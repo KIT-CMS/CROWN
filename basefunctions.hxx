@@ -18,17 +18,31 @@ namespace basefunctions {
         };
     }
 
-    auto FilterPt(float ptCut){
-        return [ptCut](const ROOT::RVec<float>& pts){
-            ROOT::RVec<int> mask = pts > ptCut;
+    auto FilterMin(float cut){
+        // As in ROOT, for min we use >=
+        return [cut](const ROOT::RVec<float>& values){
+            ROOT::RVec<int> mask = values >= cut;
             return mask;
         };
     }
 
-    auto FilterEta(float etaCut){
-        return [etaCut](const ROOT::RVec<float>& etas){
-            ROOT::RVec<int> mask = abs(etas) < etaCut;
+    auto FilterAbsMax(float cut){
+        return [cut](const ROOT::RVec<float>& values){
+            ROOT::RVec<int> mask = abs(values) < cut;
             return mask;
+        };
+    }
+
+    auto FilterAbsMin(float cut){
+        return [cut](const ROOT::RVec<float>& values){
+            ROOT::RVec<int> mask = abs(values) >= cut;
+            return mask;
+        };
+    }
+
+    auto MultiplyTwoMasks(){
+        return [](const ROOT::RVec<Int_t>& mask_1, const ROOT::RVec<Int_t>& mask_2){
+            return mask_1 * mask_2;
         };
     }
 
@@ -41,4 +55,5 @@ namespace basefunctions {
             return mask;
         };
     }
+
 } // namespace basefunctions
