@@ -13,7 +13,7 @@ int main(){
     // for testing, we limit to 1000 events only
     // 1st stage: Good object selection
     std::cout << "Starting Setup of Dataframe \n";
-    auto df2 = df.Range(100);
+    auto df2 = df.Range(100000);
     // MET Filters
     auto df3 = metfilter::ApplyMetFilter(df2, "Flag_goodVertices");
 
