@@ -39,6 +39,7 @@ Create flamegraph
 ```bash
 perf script > out.perf
 FlameGraph/stackcollapse-perf.pl out.perf > out.folded
+FlameGraph/flamegraph.pl out.folded > out.svg
 ```
 
 ## Profiling with valgrind massif for Memory
