@@ -13,3 +13,31 @@ source init.sh
 ```bash
 g++ analysis.cxx $(root-config --cflags --libs) -fconcepts
 ```
+
+## Profiling with perf & flamegraph for CPU
+
+Running profiling on executable
+
+```bash
+perf record ./a.out
+```
+
+Print out the report
+
+```bash
+perf report
+```
+
+Get flamegraph repo
+
+```bash
+git clone https://github.com/brendangregg/FlameGraph
+```
+
+Create flamegraph
+
+```bash
+perf script > out.perf
+FlameGraph/stackcollapse-perf.pl out.perf > out.folded
+```
+
