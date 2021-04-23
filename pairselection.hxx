@@ -10,6 +10,8 @@
 // Examples: void foo() {
 //    using namespace ROOT::VecOps;
 //    }
+//
+//    using VecF = const ROOT::RVec<float>&; 
 
 namespace pairselection {
 
