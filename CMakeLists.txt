@@ -16,7 +16,7 @@ find_package(ROOT 6.24 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame)
 message(STATUS "")
 message(STATUS "Found ROOT with following settings:")
 message(STATUS "  Version: ${ROOT_VERSION}")
-message(STATUS "  ROOT executable: ${ROOT_root_CMD}")
+message(STATUS "  ROOT executable: ${ROOT_EXECUTABLE}")
 message(STATUS "  Include directories: ${ROOT_INCLUDE_DIRS}")
 message(STATUS "  Compiler flags: ${ROOT_CXX_FLAGS}")
 
@@ -30,9 +30,11 @@ target_link_libraries(Analysis ROOT::ROOTVecOps ROOT::ROOTDataFrame)
 # the verbose make output with "VERBOSE=1 make".
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ROOT_CXX_FLAGS}")
 
-# Use -fconcepts to silcence following warning:
+# Use -fconcepts with g++ to silcence following warning:
 # warning: use of 'auto' in parameter declaration only available with '-fconcepts
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts")
+if (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts")
+endif()
 
 # Print settings of the executable
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER)
@@ -43,3 +45,6 @@ message(STATUS "  C++ compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "  Base compiler flags: ${CMAKE_CXX_FLAGS}")
 message(STATUS "  Compiler flags from build type: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}")
 message(STATUS "")
+
+# Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
+install(TARGETS Analysis DESTINATION bin)
