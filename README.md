@@ -41,3 +41,9 @@ perf script > out.perf
 FlameGraph/stackcollapse-perf.pl out.perf > out.folded
 ```
 
+## Profiling with valgrind massif for Memory
+
+```bash
+valgrind --tool=massif ./a.out
+ms_print massif.out.4103388 > massif.log
+```
