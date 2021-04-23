@@ -5,15 +5,21 @@
 #include "metfilter.hxx"
 #include "pairselection.hxx"
 
+#include <ROOT/RLogger.hxx>
+
 static std::vector<std::string> varSet = {};
 
 int main(){
 
-    ROOT::RDataFrame df("Events", "/ceph/htautau/nanoaod/testing/DYJetsToLL_SUmmer19_UL18.root");
+    // ROOT logging
+    auto verbosity = ROOT::Experimental::RLogScopedVerbosity(ROOT::Detail::RDF::RDFLogChannel(), ROOT::Experimental::ELogLevel::kDebug);
+
+    ROOT::RDataFrame df("Events", "/work/sbrommer/ntuple_prototype/files/DYJetsToLL_SUmmer19_UL18.root");
     // for testing, we limit to 1000 events only
     // 1st stage: Good object selection
     std::cout << "Starting Setup of Dataframe \n";
-    auto df2 = df.Range(100000);
+    auto df2 = df.Range(0,0); // Run on entire file
+    // auto df2 = df.Range(100000000); // Run on entire file
     // MET Filters
     auto df3 = metfilter::ApplyMetFilter(df2, "Flag_goodVertices");
 
@@ -46,19 +52,22 @@ int main(){
 
 
     // Build the pair !
-    auto df24_1 = physicsobject::FilterObjects(df24, "nTau", 1);
-    auto df24_2 = physicsobject::FilterObjects(df24_1, "nMuon", 1);
+    auto df24_1 = physicsobject::FilterObjects(df24, "nTau", 1,"NumberOfTaus");
+    auto df24_2 = physicsobject::FilterObjects(df24_1, "nMuon", 1,"NumberOfMuons");
     auto df25 = pairselection::mutau::PairSelection(df24_2, "good_taus_mask", "good_muons_mask", "mtpair", {""});
     auto df_final = df25;
-    auto cutReport = df_final.Report();
+
+    // std::cout << df_final.Describe() << std::endl; <-- starting from ROOT 6.25
+
     varSet.push_back("good_muons_mask");
     varSet.push_back("good_taus_mask");
     varSet.push_back("mtpair");
     std::cout << "Finished Setup \n";
     std::cout << "Starting Evaluation \n";
 
+    df_final.Snapshot<ROOT::VecOps::RVec<int>, ROOT::VecOps::RVec<int>, ROOT::VecOps::RVec<int>>("ntuple", "test.root", varSet);
+    auto cutReport = df_final.Report();
     cutReport->Print();
-    df_final.Snapshot("ntuple", "test.root", varSet);
     std::cout << "Finished Evaluation \n";
     // as a first testcase, we work on selecting good muons
     return 0;

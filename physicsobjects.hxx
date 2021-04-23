@@ -67,6 +67,9 @@ namespace physicsobject {
         }
         filterstring.pop_back(); // removing the last * from the string
         return df.Define(maskname, filterstring); // TODO make this a compiled version
+
+        // df.Define(PassAsVec<3, float>(myVecFunc), MaskList); <-- example how to do w/o jiting
+        // --> https://root.cern/doc/master/namespaceROOT_1_1RDF.html#a1ecc8a41e8f12e65e1bf0d2e65aec36d
     }
 
     auto FilterMasks(auto df, const std::string maskname){
@@ -77,8 +80,8 @@ namespace physicsobject {
         return df1;
     }
 
-    auto FilterObjects(auto df, const std::string objectcounter, const int minThreshold){
-            return df.Filter([minThreshold](const UInt_t& nobject){return nobject>=minThreshold;}, {objectcounter});
+    auto FilterObjects(auto df, const std::string objectcounter, const int minThreshold, const std::string filtername){
+            return df.Filter([minThreshold](const UInt_t& nobject){return nobject>=minThreshold;}, {objectcounter}, filtername);
         }
 
     namespace muon {
