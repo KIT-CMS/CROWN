@@ -19,7 +19,7 @@ g++ analysis.cxx $(root-config --cflags --libs) -fconcepts
 Running profiling on executable
 
 ```bash
-perf record ./a.out -a -g
+perf record ./a.out -g
 ```
 
 Print out the report
