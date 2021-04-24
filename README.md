@@ -8,6 +8,16 @@ Current requirement is a working mount to CERN's `/cvmfs/sft.cern.ch`
 source init.sh
 ```
 
+## Compilation with cmake
+
+```bash
+mkdir build/ && cd build/
+cmake .. # or cmake3 on centos7
+make -j8 # or 'VERBOSE=1 make' for the verbose output
+cd ..
+```
+Executable will then be `build/Analysis` instead of `a.out`
+
 ## Compilation for main executable
 
 ```bash
