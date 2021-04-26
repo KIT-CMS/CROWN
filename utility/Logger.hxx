@@ -2,6 +2,7 @@
 #define GUARDLOGGER_H
 
 #include "spdlog/spdlog.h"
+#include "spdlog/fmt/ostr.h" // for formatting of RVecs
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
