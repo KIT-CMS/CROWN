@@ -1,13 +1,13 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RDFHelpers.hxx"
-
+#include "lorentzvectors.hxx"
 #include "physicsobjects.hxx"
 #include "metfilter.hxx"
 #include "pairselection.hxx"
 #include "utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
 
-static std::vector<std::string> varSet = {};
+static std::vector<std::string> varSet = {"run", "luminosityBlock", "event"};
 
 int main(){
 
@@ -18,7 +18,7 @@ int main(){
     // for testing, we limit to 1000 events only
     // 1st stage: Good object selection
     Logger::enableFileLogging("logs/main.txt");
-    Logger::setLevel(Logger::LogLevel::DEBUG);
+    Logger::setLevel(Logger::LogLevel::INFO);
     Logger::get("main")->info("Starting Setup of Dataframe");
     auto df2 = df.Range(0,0); // Run on entire file
     // auto df2 = df.Range(100000); // Run on part of file
@@ -56,18 +56,24 @@ int main(){
     // Build the pair !
     auto df24_1 = physicsobject::FilterObjects(df24, "nTau", 1,"NumberOfTaus");
     auto df24_2 = physicsobject::FilterObjects(df24_1, "nMuon", 1,"NumberOfMuons");
-    auto df25 = pairselection::mutau::PairSelection(df24_2, "good_taus_mask", "good_muons_mask", "mtpair", {""});
-    auto df_final = df25;
+    auto mt_df = pairselection::mutau::PairSelection(df24_2, "good_taus_mask", "good_muons_mask", "mtpair", {""});
+    auto mt_df_1 = pairselection::filterGoodParticles(mt_df, "mtpair", "GoodMuTauPairs");
+    auto mt_df_2 = lorentzvectors::mutau::build(mt_df_1, "mtpair");
 
-    // Logger::get("main")->info(df_final.Describe()); <-- starting from ROOT 6.25
+
+    auto df_final = mt_df_2;
+
+    Logger::get("main")->debug(df_final.Describe()); // <-- starting from ROOT 6.25
 
     varSet.push_back("good_muons_mask");
     varSet.push_back("good_taus_mask");
     varSet.push_back("mtpair");
+    varSet.push_back("particle_1_p4");
+    varSet.push_back("particle_2_p4");
     Logger::get("main")->info("Finished Setup");
     Logger::get("main")->info("Starting Evaluation");
 
-    df_final.Snapshot<ROOT::VecOps::RVec<int>, ROOT::VecOps::RVec<int>, ROOT::VecOps::RVec<int>>("ntuple", "test.root", varSet);
+    df_final.Snapshot("ntuple", "test.root", varSet);
     auto cutReport = df_final.Report();
     cutReport->Print();
     Logger::get("main")->info("Finished Evaluation");

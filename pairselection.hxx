@@ -16,6 +16,14 @@
 
 namespace pairselection {
 
+    auto filterGoodParticles(auto df, const std::string& pairname, const std::string& filtername){
+        using namespace ROOT::VecOps;
+        return df.Filter([](const ROOT::RVec<int>& pair){
+            const auto goodParticles = Filter(pair, [](int i){return -1 != i;});
+            return Any(goodParticles);
+            },{pairname}, filtername);
+    }
+
     auto compareForPairs(const ROOT::RVec<float>& lep1pt, const ROOT::RVec<float>& lep1iso, const ROOT::RVec<float>& lep2pt, const ROOT::RVec<float>& lep2iso){
         return [lep1pt, lep1iso, lep2pt, lep2iso](auto value_next, auto value_previous){
             Logger::get("PairSelectionCompare")->debug("lep1 Pt: {}", lep1pt);
