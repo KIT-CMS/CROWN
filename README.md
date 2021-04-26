@@ -56,6 +56,8 @@ FlameGraph/flamegraph.pl out.folded > out.svg
 
 ## Profiling with valgrind massif for Memory
 
+See the script [`profiling/massif.sh`](profiling/massif.sh).
+
 ```bash
 valgrind --tool=massif ./a.out
 ms_print massif.out.4103388 > massif.log
