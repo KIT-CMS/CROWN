@@ -21,10 +21,6 @@ message(STATUS "  Include directories: ${ROOT_INCLUDE_DIRS}")
 message(STATUS "  Compiler flags: ${ROOT_CXX_FLAGS}")
 message(STATUS "")
 
-# Register analysis executable target
-add_executable(Analysis analysis.cxx)
-target_link_libraries(Analysis ROOT::ROOTVecOps ROOT::ROOTDataFrame)
-
 # Add ROOT flags to compile options, e.g. we have to use the same C++ standard
 # Note that the flags from the build type, e.g. CMAKE_CXX_FLAGS_RELEASE, are
 # automatically appended. You can check this during build time by enabling
@@ -52,7 +48,21 @@ else ()
 endif()
 
 # Build the logging library
-# TODO
+include(ExternalProject)
+ExternalProject_Add(spdlog
+    PREFIX          spdlog
+    GIT_REPOSITORY  https://github.com/gabime/spdlog.git
+    GIT_TAG         v1.8.5
+    CMAKE_ARGS      -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+                    -DCMAKE_BUILD_TYPE=Release
+                    -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}
+    LOG_DOWNLOAD 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
+)
+
+# Make an imported target out of the build logging library
+add_library(logging STATIC IMPORTED)
+set_property(TARGET logging PROPERTY IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/lib64/libspdlog.a")
+add_dependencies(logging spdlog) # enforces to build spdlog before making the imported target
 
 # Print settings of the executable
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER)
@@ -63,6 +73,11 @@ message(STATUS "  C++ compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "  Base compiler flags: ${CMAKE_CXX_FLAGS}")
 message(STATUS "  Compiler flags from build type: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}")
 message(STATUS "")
+
+# Register analysis executable target
+add_executable(Analysis analysis.cxx)
+target_link_libraries(Analysis ROOT::ROOTVecOps ROOT::ROOTDataFrame logging)
+target_include_directories(Analysis PRIVATE ${CMAKE_BINARY_DIR}/lib64) # for logging library
 
 # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
 install(TARGETS Analysis DESTINATION bin)
