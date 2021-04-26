@@ -26,6 +26,8 @@ g++ analysis.cxx $(root-config --cflags --libs) -fconcepts
 
 ## Profiling with perf & flamegraph for CPU
 
+See the script [`profiling/flamegraph.sh`](profiling/flamegraph.sh).
+
 Running profiling on executable
 
 ```bash
