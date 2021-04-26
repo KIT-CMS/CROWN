@@ -18,6 +18,7 @@ int main(){
     // for testing, we limit to 1000 events only
     // 1st stage: Good object selection
     Logger::enableFileLogging("logs/main.txt");
+    Logger::setLevel(Logger::LogLevel::DEBUG);
     Logger::get("main")->info("Starting Setup of Dataframe");
     auto df2 = df.Range(0,0); // Run on entire file
     // auto df2 = df.Range(100000); // Run on part of file
