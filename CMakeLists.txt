@@ -39,7 +39,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
 endif()
 
 # Find the C++ standard from ROOT and set it as the standard of this project
-# We require the C++ standard 17 or 20.
+# We require the C++ standard 17 or 20 and don't want to fall back to lower versions.
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (${ROOT_CXX_FLAGS} MATCHES "\\-std\\=c\\+\\+17")
     message(STATUS "Set c++17 as the C++ standard.")
     set(CMAKE_CXX_STANDARD 17)
