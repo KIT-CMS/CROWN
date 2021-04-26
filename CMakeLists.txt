@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 
+# Check that config name is given with -DCONFIG, needed to generate the C++ code
+if (NOT DEFINED CONFIG)
+    message(FATAL_ERROR "Please specify the config to be used with -DCONFIG=my_config_name")
+endif()
+message(STATUS "Set up analysis for config ${CONFIG}.")
+
 # Define the default compiler flags for different build types, if different from the cmake defaults
 set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Set default compiler flags for build type Debug")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "Set default compiler flags for build type Release")
@@ -67,10 +73,6 @@ set_target_properties(logging PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_BINARY_DIR}/include")
 add_dependencies(logging spdlog) # enforces to build spdlog before making the imported target
 
-# Register analysis executable target
-add_executable(Analysis analysis.cxx)
-target_link_libraries(Analysis ROOT::ROOTVecOps ROOT::ROOTDataFrame logging)
-
 # Print settings of the executable
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER)
 message(STATUS "")
@@ -81,5 +83,36 @@ message(STATUS "  Base compiler flags: ${CMAKE_CXX_FLAGS}")
 message(STATUS "  Compiler flags from build type: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}")
 message(STATUS "")
 
-# Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
-install(TARGETS Analysis DESTINATION bin)
+# Find Python 3
+find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
+
+# Generate the C++ code
+set(GENERATE_CPP_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/generated")
+set(GENERATE_CPP_INPUT_TEMPLATE "${CMAKE_SOURCE_DIR}/analysis.cxx")
+message(STATUS "Generate C++ code in directory ${GENERATE_CPP_OUTPUT_DIRECTORY} using the template ${GENERATE_CPP_INPUT_TEMPLATE} and config ${CONFIG}")
+file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
+execute_process(
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py ${GENERATE_CPP_INPUT_TEMPLATE} ${GENERATE_CPP_OUTPUT_DIRECTORY} ${CONFIG}
+)
+
+set(GENERATE_CPP_OUTPUT_FILELIST "${GENERATE_CPP_OUTPUT_DIRECTORY}/files.txt")
+if(NOT EXISTS ${GENERATE_CPP_OUTPUT_FILELIST})
+    message(FATAL_ERROR "List of generated C++ files in ${GENERATE_CPP_OUTPUT_FILELIST} does not exist.")
+endif()
+
+# Iterate over files from output filelist and add targets
+FILE(READ ${GENERATE_CPP_OUTPUT_FILELIST} FILELIST)
+STRING(REGEX REPLACE "\n" ";" FILELIST ${FILELIST})
+foreach(FILENAME ${FILELIST})
+    STRING(REGEX REPLACE ".cxx" "" TARGET_NAME ${FILENAME})
+    set(FULL_PATH "${GENERATE_CPP_OUTPUT_DIRECTORY}/${FILENAME}")
+
+    # Add build target
+    message(STATUS "Add target ${TARGET_NAME} from file ${FULL_PATH}".)
+    add_executable(${TARGET_NAME} ${FULL_PATH})
+    target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame logging)
+
+    # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
+    install(TARGETS ${TARGET_NAME} DESTINATION bin)
+endforeach()
