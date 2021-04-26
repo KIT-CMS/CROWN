@@ -61,8 +61,15 @@ ExternalProject_Add(spdlog
 
 # Make an imported target out of the build logging library
 add_library(logging STATIC IMPORTED)
-set_property(TARGET logging PROPERTY IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/lib64/libspdlog.a")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/include") # required because the include dir must be existent for INTERFACE_INCLUDE_DIRECTORIES
+set_target_properties(logging PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/lib64/libspdlog.a"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_BINARY_DIR}/include")
 add_dependencies(logging spdlog) # enforces to build spdlog before making the imported target
+
+# Register analysis executable target
+add_executable(Analysis analysis.cxx)
+target_link_libraries(Analysis ROOT::ROOTVecOps ROOT::ROOTDataFrame logging)
 
 # Print settings of the executable
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER)
@@ -73,11 +80,6 @@ message(STATUS "  C++ compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "  Base compiler flags: ${CMAKE_CXX_FLAGS}")
 message(STATUS "  Compiler flags from build type: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}")
 message(STATUS "")
-
-# Register analysis executable target
-add_executable(Analysis analysis.cxx)
-target_link_libraries(Analysis ROOT::ROOTVecOps ROOT::ROOTDataFrame logging)
-target_include_directories(Analysis PRIVATE ${CMAKE_BINARY_DIR}/lib64) # for logging library
 
 # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
 install(TARGETS Analysis DESTINATION bin)
