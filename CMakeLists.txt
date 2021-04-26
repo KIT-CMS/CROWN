@@ -13,6 +13,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "Set default compiler fl
 # The build type should be set so that the correct compiler flags are chosen
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
 
+# Set the default install directory to the build directory
+set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} CACHE STRING "Set default install prefix to the build directory")
+
 # Create the project
 project(ToBeNamedPrototype CXX)
 
@@ -87,7 +90,7 @@ message(STATUS "")
 find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
 
 # Generate the C++ code
-set(GENERATE_CPP_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/generated")
+set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(GENERATE_CPP_INPUT_TEMPLATE "${CMAKE_SOURCE_DIR}/analysis.cxx")
 message(STATUS "Generate C++ code in directory ${GENERATE_CPP_OUTPUT_DIRECTORY} using the template ${GENERATE_CPP_INPUT_TEMPLATE} and config ${CONFIG}")
 file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
@@ -100,7 +103,7 @@ if(NOT EXISTS ${GENERATE_CPP_OUTPUT_FILELIST})
     message(FATAL_ERROR "List of generated C++ files in ${GENERATE_CPP_OUTPUT_FILELIST} does not exist.")
 endif()
 
-# Iterate over files from output filelist and add targets
+# Iterate over files from output filelist and add build and install targets
 FILE(READ ${GENERATE_CPP_OUTPUT_FILELIST} FILELIST)
 STRING(REGEX REPLACE "\n" ";" FILELIST ${FILELIST})
 foreach(FILENAME ${FILELIST})
