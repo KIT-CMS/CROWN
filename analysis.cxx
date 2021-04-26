@@ -4,7 +4,7 @@
 #include "physicsobjects.hxx"
 #include "metfilter.hxx"
 #include "pairselection.hxx"
-
+#include "utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
 
 static std::vector<std::string> varSet = {};
@@ -13,11 +13,12 @@ int main(){
 
     // ROOT logging
     auto verbosity = ROOT::Experimental::RLogScopedVerbosity(ROOT::Detail::RDF::RDFLogChannel(), ROOT::Experimental::ELogLevel::kDebug);
-
+    // file logging
     ROOT::RDataFrame df("Events", "/work/sbrommer/ntuple_prototype/files/DYJetsToLL_SUmmer19_UL18.root");
     // for testing, we limit to 1000 events only
     // 1st stage: Good object selection
-    std::cout << "Starting Setup of Dataframe \n";
+    Logger::enableFileLogging("logs/main.txt");
+    Logger::get("main")->info("Starting Setup of Dataframe");
     auto df2 = df.Range(0,0); // Run on entire file
     // auto df2 = df.Range(100000); // Run on part of file
     // MET Filters
@@ -57,18 +58,18 @@ int main(){
     auto df25 = pairselection::mutau::PairSelection(df24_2, "good_taus_mask", "good_muons_mask", "mtpair", {""});
     auto df_final = df25;
 
-    // std::cout << df_final.Describe() << std::endl; <-- starting from ROOT 6.25
+    // Logger::get("main")->info(df_final.Describe()); <-- starting from ROOT 6.25
 
     varSet.push_back("good_muons_mask");
     varSet.push_back("good_taus_mask");
     varSet.push_back("mtpair");
-    std::cout << "Finished Setup \n";
-    std::cout << "Starting Evaluation \n";
+    Logger::get("main")->info("Finished Setup");
+    Logger::get("main")->info("Starting Evaluation");
 
     df_final.Snapshot<ROOT::VecOps::RVec<int>, ROOT::VecOps::RVec<int>, ROOT::VecOps::RVec<int>>("ntuple", "test.root", varSet);
     auto cutReport = df_final.Report();
     cutReport->Print();
-    std::cout << "Finished Evaluation \n";
+    Logger::get("main")->info("Finished Evaluation");
     // as a first testcase, we work on selecting good muons
     return 0;
 }
