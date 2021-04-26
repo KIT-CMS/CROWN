@@ -1,3 +1,6 @@
+#ifndef GUARDLOGGER_H
+#define GUARDLOGGER_H
+
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -75,3 +78,5 @@ spdlog::level::level_enum Logger::convertLevelToSpdlog(LogLevel level)
         default:                 return spdlog::level::info;
     }
 }
+
+#endif /* GUARDLOGGER_H */
