@@ -8,7 +8,7 @@ do
     RETURN_VALUE=$?
     if [ $RETURN_VALUE -ne 0 ]
     then
-    	black --diff $FILENAME 2> /dev/null
+        black --diff $FILENAME 2> /dev/null
         FOUND_ISSUE=1
     fi
 done
