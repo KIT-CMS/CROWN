@@ -14,7 +14,7 @@ env:
   CONFIG: Config
 
 jobs:
-  build:
+  build_project:
     runs-on: ubuntu-20.04
     container: rootproject/root:6.24.00-conda
 
@@ -36,7 +36,7 @@ jobs:
       shell: bash
       run: cd ${{github.workspace}}/build && make
 
-  python:
+  python_format:
     runs-on: ubuntu-20.04
     container: rootproject/root:6.24.00-conda
 
