@@ -66,8 +66,9 @@ int main(){
 
 
     auto df_final = mt_df_2;
+    auto cutReport = df_final.Report();
 
-    Logger::get("main")->debug(df_final.Describe()); // <-- starting from ROOT 6.25
+    //Logger::get("main")->debug(df_final.Describe()); // <-- starting from ROOT 6.25
 
     varSet.push_back("good_muons_mask");
     varSet.push_back("good_taus_mask");
@@ -80,9 +81,14 @@ int main(){
 
     Logger::get("main")->info("Starting Evaluation");
     df_final.Snapshot("ntuple", "test.root", varSet);
-    auto cutReport = df_final.Report();
     cutReport->Print();
     Logger::get("main")->info("Finished Evaluation");
+
+    const auto nruns = df_final.GetNRuns();
+    if (nruns != 1) {
+        Logger::get("main")->critical("Analysis runs more than one event loop!", timer.RealTime(), timer.CpuTime());
+    }
+
     // as a first testcase, we work on selecting good muons
     Logger::get("main")->info("Overall runtime (real time: {}, CPU time: {})", timer.RealTime(), timer.CpuTime());
 }
