@@ -1,7 +1,7 @@
 namespace metfilter{
 
-    auto ApplyMetFilter(auto df, std::string filtername){
-        return df.Filter([](const bool flag){return flag;},{filtername});
+    auto ApplyMetFilter(auto df, const std::string& flagname, const std::string& filtername){
+        return df.Filter([](const bool flag){return flag;},{flagname}, filtername);
     }
 
 } // end namespace metfilters
