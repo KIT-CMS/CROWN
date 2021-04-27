@@ -28,7 +28,7 @@ int main(){
     auto df2 = df.Range(0,0); // Run on entire file
     // auto df2 = df.Range(100000); // Run on part of file
     // MET Filters
-    auto df3 = metfilter::ApplyMetFilter(df2, "Flag_goodVertices");
+    auto df3 = metfilter::ApplyMetFilter(df2, "Flag_goodVertices", "METFilter_goodVertices");
 
     // Electron
 
@@ -63,14 +63,17 @@ int main(){
     auto df24_2 = physicsobject::FilterObjects(df24_1, "nMuon", 1,"NumberOfMuons");
     auto mt_df = pairselection::mutau::PairSelection(df24_2, "good_taus_mask", "good_muons_mask", "mtpair", {""});
     auto mt_df_1 = pairselection::filterGoodPairs(mt_df, "mtpair", "GoodMuTauPairs");
-    auto mt_df_2 = lorentzvectors::mutau::build(mt_df_1, "mtpair");
-    auto mt_df_3 = quantities::pt(mt_df_2);
-    auto mt_df_4 = quantities::eta(mt_df_3);
-    auto mt_df_5 = quantities::phi(mt_df_4);
-    auto mt_df_6 = quantities::mvis(mt_df_5);
+    auto mt_df_2 = lorentzvectors::mutau::build(mt_df_1, "mtpair", {"Muon_pt", "Muon_eta", "Muon_phi", "Muon_mass"}, {"Tau_pt", "Tau_eta", "Tau_phi", "Tau_mass"}, "p4_1", "p4_2");
+    auto mt_df_3 = quantities::pt(mt_df_2, varSet, "pt_1", "p4_1");
+    auto mt_df_4 = quantities::pt(mt_df_3, varSet, "pt_2", "p4_2");
+    auto mt_df_5 = quantities::eta(mt_df_4, varSet, "eta_1", "p4_1");
+    auto mt_df_6 = quantities::eta(mt_df_5, varSet, "eta_2", "p4_2");
+    auto mt_df_7 = quantities::phi(mt_df_6, varSet, "phi_1", "p4_1");
+    auto mt_df_8 = quantities::phi(mt_df_7, varSet, "phi_2", "p4_2");
+    auto mt_df_9 = quantities::m_vis(mt_df_8, varSet, "m_vis", "p4_1", "p4_2");
 
 
-    auto df_final = mt_df_6;
+    auto df_final = mt_df_9;
     auto cutReport = df_final.Report();
 
     //Logger::get("main")->debug(df_final.Describe()); // <-- starting from ROOT 6.25
@@ -78,15 +81,6 @@ int main(){
     varSet.push_back("good_muons_mask");
     varSet.push_back("good_taus_mask");
     varSet.push_back("mtpair");
-    varSet.push_back("p4_1");
-    varSet.push_back("p4_2");
-    varSet.push_back("pt_1");
-    varSet.push_back("pt_2");
-    varSet.push_back("eta_1");
-    varSet.push_back("eta_2");
-    varSet.push_back("phi_1");
-    varSet.push_back("phi_2");
-    varSet.push_back("m_vis");
     Logger::get("main")->info("Finished Setup");
     Logger::get("main")->info("Runtime for setup (real time: {}, CPU time: {})", timer.RealTime(), timer.CpuTime());
     timer.Continue();
