@@ -120,3 +120,6 @@ foreach(FILENAME ${FILELIST})
     # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
     install(TARGETS ${TARGET_NAME} DESTINATION bin)
 endforeach()
+
+# Include testing executables
+add_subdirectory(tests)
