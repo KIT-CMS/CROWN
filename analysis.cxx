@@ -6,13 +6,17 @@
 #include "pairselection.hxx"
 #include "utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
+#include "TStopwatch.h"
 
 static std::vector<std::string> varSet = {"run", "luminosityBlock", "event"};
 
 int main(){
+    TStopwatch timer;
+    timer.Start();
 
     // ROOT logging
-    auto verbosity = ROOT::Experimental::RLogScopedVerbosity(ROOT::Detail::RDF::RDFLogChannel(), ROOT::Experimental::ELogLevel::kDebug);
+    auto verbosity = ROOT::Experimental::RLogScopedVerbosity(ROOT::Detail::RDF::RDFLogChannel(), ROOT::Experimental::ELogLevel::kInfo);
+
     // file logging
     ROOT::RDataFrame df("Events", "/work/sbrommer/ntuple_prototype/files/DYJetsToLL_SUmmer19_UL18.root");
     // for testing, we limit to 1000 events only
@@ -71,12 +75,14 @@ int main(){
     varSet.push_back("particle_1_p4");
     varSet.push_back("particle_2_p4");
     Logger::get("main")->info("Finished Setup");
-    Logger::get("main")->info("Starting Evaluation");
+    Logger::get("main")->info("Runtime for setup (real time: {}, CPU time: {})", timer.RealTime(), timer.CpuTime());
+    timer.Continue();
 
+    Logger::get("main")->info("Starting Evaluation");
     df_final.Snapshot("ntuple", "test.root", varSet);
     auto cutReport = df_final.Report();
     cutReport->Print();
     Logger::get("main")->info("Finished Evaluation");
     // as a first testcase, we work on selecting good muons
-    return 0;
+    Logger::get("main")->info("Overall runtime (real time: {}, CPU time: {})", timer.RealTime(), timer.CpuTime());
 }
