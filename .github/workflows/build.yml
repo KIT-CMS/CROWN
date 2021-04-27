@@ -1,4 +1,4 @@
-name: Build project
+name: Checks
 
 on:
   push:
@@ -36,8 +36,16 @@ jobs:
       shell: bash
       run: cd ${{github.workspace}}/build && make
 
-      #- name: Test
-      #shell: bash
-      # Execute tests defined by the CMake configuration.
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      #run: ctest -C $BUILD_TYPE
+  python:
+    runs-on: ubuntu-20.04
+    container: rootproject/root:6.24.00-conda
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install missing software
+      run: pip install black
+
+    - name: Check Python formatting
+      shell: bash
+      run: cd ${{github.workspace}} && bash checks/python-formatting.sh
