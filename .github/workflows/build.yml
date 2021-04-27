@@ -9,7 +9,8 @@ env:
 
 jobs:
   build:
-    runs-on: rootproject/root:6.24.00-conda
+    runs-on: ubuntu-20.04
+    container: rootproject/root:6.24.00-conda
 
     steps:
     - uses: actions/checkout@v2
