@@ -13,6 +13,6 @@ then
 else
     echo "Found following diff with clang-format:"
     git --no-pager diff
-    echo "Please format the code with clang-format -i /path/to/files"
+    echo "Please format the code with clang-format -i /path/to/files using the .clang-format config from this repository"
     exit 1
 fi
