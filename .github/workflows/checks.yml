@@ -48,4 +48,4 @@ jobs:
 
     - name: Check Python formatting
       shell: bash
-      run: cd ${{github.workspace}} && bash checks/python-formatting.sh
+      run: cd $GITHUB_WORKSPACE && bash checks/python-formatting.sh
