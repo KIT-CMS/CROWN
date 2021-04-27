@@ -11,7 +11,7 @@ parser.add_argument('output', type=str, help='Path to the output directory')
 parser.add_argument('config', type=str, help='Name of the config')
 args = parser.parse_args()
 
-files = [f'analysis_{i}.cxx' for i in range(8)]
+files = [f'analysis_{i}.cxx' for i in range(2)]
 
 with open(path.join(args.output, 'files.txt'), 'w') as f:
     for filename in files:
