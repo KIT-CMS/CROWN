@@ -28,7 +28,7 @@ int main() {
   Logger::setLevel(Logger::LogLevel::INFO);
   Logger::get("main")->info("Starting Setup of Dataframe");
 
-  auto df_final = df0;
+  // auto df_final = df0;
 
   // {CODE_GENERATION}
 
