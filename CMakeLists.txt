@@ -1,10 +1,25 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Check that config name is given with -DCONFIG, needed to generate the C++ code
-if (NOT DEFINED CONFIG)
-    message(FATAL_ERROR "Please specify the config to be used with -DCONFIG=my_config_name")
+if (NOT DEFINED ANALYSIS)
+    message(FATAL_ERROR "Please specify the config to be used with -DANALYSIS=my_config_name")
 endif()
-message(STATUS "Set up analysis for config ${CONFIG}.")
+message(STATUS "Set up analysis for config ${ANALYSIS}.")
+
+if (NOT DEFINED CHANNELS)
+    message("No channel specificed, build the four main channels using -DCHANNELS=et,mt,tt,em")
+    set(CHANNELS "et;mt;tt;em")
+endif()
+
+if (NOT DEFINED SHIFTS)
+    message("No channel specificed, using -DSHIFTS=all")
+    set(SHIFTS "all")
+endif()
+
+if (NOT DEFINED SAMPLES)
+    message(FATAL_ERROR "Please specify the samples to be used with -DSAMPLES=samples")
+endif()
+message(STATUS "Set up analysis with --config ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES}")
 
 # Define the default compiler flags for different build types, if different from the cmake defaults
 set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Set default compiler flags for build type Debug")
@@ -96,7 +111,7 @@ set(GENERATE_CPP_INPUT_TEMPLATE "${CMAKE_SOURCE_DIR}/analysis.cxx")
 message(STATUS "Generate C++ code in directory ${GENERATE_CPP_OUTPUT_DIRECTORY} using the template ${GENERATE_CPP_INPUT_TEMPLATE} and config ${CONFIG}")
 file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
 execute_process(
-    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py ${GENERATE_CPP_INPUT_TEMPLATE} ${GENERATE_CPP_OUTPUT_DIRECTORY} ${CONFIG}
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES}
 )
 
 set(GENERATE_CPP_OUTPUT_FILELIST "${GENERATE_CPP_OUTPUT_DIRECTORY}/files.txt")
