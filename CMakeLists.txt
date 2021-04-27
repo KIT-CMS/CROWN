@@ -107,7 +107,7 @@ find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
 
 # Generate the C++ code
 set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set(GENERATE_CPP_INPUT_TEMPLATE "${CMAKE_SOURCE_DIR}/analysis.cxx")
+set(GENERATE_CPP_INPUT_TEMPLATE "${CMAKE_SOURCE_DIR}/analysis_template.cxx")
 message(STATUS "Generate C++ code in directory ${GENERATE_CPP_OUTPUT_DIRECTORY} using the template ${GENERATE_CPP_INPUT_TEMPLATE} and config ${CONFIG}")
 file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
 execute_process(
