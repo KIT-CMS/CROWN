@@ -1,0 +1,42 @@
+# folders
+build/
+log/
+logs/
+include/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.vscode
+.vscode/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pythonstuff
+*.pyc
+__pycache__/
+*__init__.py
+
+# C extensions
+*.so
+
+# ROOT files
+*.root
+
+# plots / figures
+*.png
+*.pdf
+*.svg
+
+# Flamegraph
+*.perf
+*.folded
+*.pl
+perf.data
+perf.data.old
