@@ -49,3 +49,17 @@ jobs:
     - name: Check Python formatting
       shell: bash
       run: cd $GITHUB_WORKSPACE && bash checks/python-formatting.sh
+
+  cpp_format:
+    runs-on: ubuntu-20.04
+    container: rootproject/root:6.24.00-conda
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install missing software
+      run: pip install clang-format
+
+    - name: Check C++ formatting
+      shell: bash
+      run: cd $GITHUB_WORKSPACE && bash checks/cpp-formatting.sh
