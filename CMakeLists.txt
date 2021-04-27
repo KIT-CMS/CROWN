@@ -111,7 +111,7 @@ foreach(FILENAME ${FILELIST})
     set(FULL_PATH "${GENERATE_CPP_OUTPUT_DIRECTORY}/${FILENAME}")
 
     # Add build target
-    message(STATUS "Add build target for file ${FILENAME}".)
+    message(STATUS "Add build target for file ${FILENAME}.")
     add_executable(${TARGET_NAME} ${FULL_PATH})
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame logging)
