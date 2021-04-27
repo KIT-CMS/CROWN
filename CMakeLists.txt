@@ -7,7 +7,7 @@ endif()
 message(STATUS "Set up analysis for config ${ANALYSIS}.")
 
 if (NOT DEFINED CHANNELS)
-    message("No channel specificed, build the four main channels using -DCHANNELS=et,mt,tt,em")
+    message("No channel specificed, build the four main channels using -DCHANNELS=et;mt;tt;em")
     set(CHANNELS "et;mt;tt;em")
 endif()
 
