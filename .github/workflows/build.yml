@@ -9,8 +9,7 @@ env:
 
 jobs:
   build:
-    container:
-        image: rootproject/root:6.24.00-conda
+    runs-on: rootproject/root:6.24.00-conda
 
     steps:
     - uses: actions/checkout@v2
