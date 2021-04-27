@@ -16,7 +16,7 @@
 
 namespace pairselection {
 
-    auto filterGoodParticles(auto df, const std::string& pairname, const std::string& filtername){
+    auto filterGoodPairs(auto df, const std::string& pairname, const std::string& filtername){
         using namespace ROOT::VecOps;
         return df.Filter([](const ROOT::RVec<int>& pair){
             const auto goodParticles = Filter(pair, [](int i){return -1 != i;});

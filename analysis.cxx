@@ -57,7 +57,7 @@ int main(){
     auto df24_1 = physicsobject::FilterObjects(df24, "nTau", 1,"NumberOfTaus");
     auto df24_2 = physicsobject::FilterObjects(df24_1, "nMuon", 1,"NumberOfMuons");
     auto mt_df = pairselection::mutau::PairSelection(df24_2, "good_taus_mask", "good_muons_mask", "mtpair", {""});
-    auto mt_df_1 = pairselection::filterGoodParticles(mt_df, "mtpair", "GoodMuTauPairs");
+    auto mt_df_1 = pairselection::filterGoodPairs(mt_df, "mtpair", "GoodMuTauPairs");
     auto mt_df_2 = lorentzvectors::mutau::build(mt_df_1, "mtpair");
 
 
