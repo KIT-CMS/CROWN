@@ -2,6 +2,7 @@
 #include "ROOT/RDFHelpers.hxx"
 #include "lorentzvectors.hxx"
 #include "physicsobjects.hxx"
+#include "quantities.hxx"
 #include "metfilter.hxx"
 #include "pairselection.hxx"
 #include "utility/Logger.hxx"
@@ -42,7 +43,7 @@ int main(){
     // Tau_idDeepTau2017v2p1VSmu > 1
     auto df4 = physicsobject::CutPt(df3, "Tau_pt", "tau_maskpt", 30);
     auto df5 = physicsobject::CutEta(df4, "Tau_eta", "tau_masketa", 2.3);
-    auto df6 = physicsobject::tau::FilterDecayModes(df5, "tau_maskdecaymodes", {1,2,3,4,10});
+    auto df6 = physicsobject::tau::FilterDecayModes(df5, "tau_maskdecaymodes", {0,1,2,3,4,10,11});
     auto df7 = physicsobject::tau::FilterTauID(df6, "tau_maskIDvsJet", "Tau_idDeepTau2017v2p1VSjet", 4);
     auto df8 = physicsobject::tau::FilterTauID(df7, "tau_maskIDvsEle", "Tau_idDeepTau2017v2p1VSe", 4);
     auto df9 = physicsobject::tau::FilterTauID(df8, "tau_maskIDvsMu", "Tau_idDeepTau2017v2p1VSmu", 1);
@@ -63,9 +64,13 @@ int main(){
     auto mt_df = pairselection::mutau::PairSelection(df24_2, "good_taus_mask", "good_muons_mask", "mtpair", {""});
     auto mt_df_1 = pairselection::filterGoodPairs(mt_df, "mtpair", "GoodMuTauPairs");
     auto mt_df_2 = lorentzvectors::mutau::build(mt_df_1, "mtpair");
+    auto mt_df_3 = quantities::pt(mt_df_2);
+    auto mt_df_4 = quantities::eta(mt_df_3);
+    auto mt_df_5 = quantities::phi(mt_df_4);
+    auto mt_df_6 = quantities::mvis(mt_df_5);
 
 
-    auto df_final = mt_df_2;
+    auto df_final = mt_df_6;
     auto cutReport = df_final.Report();
 
     //Logger::get("main")->debug(df_final.Describe()); // <-- starting from ROOT 6.25
@@ -73,8 +78,15 @@ int main(){
     varSet.push_back("good_muons_mask");
     varSet.push_back("good_taus_mask");
     varSet.push_back("mtpair");
-    varSet.push_back("particle_1_p4");
-    varSet.push_back("particle_2_p4");
+    varSet.push_back("p4_1");
+    varSet.push_back("p4_2");
+    varSet.push_back("pt_1");
+    varSet.push_back("pt_2");
+    varSet.push_back("eta_1");
+    varSet.push_back("eta_2");
+    varSet.push_back("phi_1");
+    varSet.push_back("phi_2");
+    varSet.push_back("m_vis");
     Logger::get("main")->info("Finished Setup");
     Logger::get("main")->info("Runtime for setup (real time: {}, CPU time: {})", timer.RealTime(), timer.CpuTime());
     timer.Continue();
