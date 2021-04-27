@@ -35,6 +35,7 @@ __pycache__/
 *.svg
 
 # Flamegraph
+Flamegraph/
 *.perf
 *.folded
 *.pl
