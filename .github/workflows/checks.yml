@@ -11,7 +11,8 @@ on:
 # Settings go here!
 env:
   BUILD_TYPE: Release
-  CONFIG: Config
+  ANALYSIS: config
+  SAMPLES: foo
 
 jobs:
   build_project:
@@ -30,7 +31,7 @@ jobs:
 
     - name: Configure CMake
       shell: bash
-      run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCONFIG=$CONFIG
+      run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES
 
     - name: Build
       shell: bash
