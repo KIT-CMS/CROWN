@@ -20,10 +20,10 @@ jobs:
     container: rootproject/root:6.24.00-arch
 
     steps:
-    - uses: actions/checkout@v2
-
     - name: Install missing software
-      run: pacman -Syu cmake make
+      run: pacman -Syu cmake make git
+
+    - uses: actions/checkout@v2
 
     - name: Create Build Environment
       shell: bash
@@ -46,10 +46,10 @@ jobs:
     container: rootproject/root:6.24.00-arch
 
     steps:
-    - uses: actions/checkout@v2
-
     - name: Install missing software
-      run: pip install black
+      run: pacman -Syu git && pip install black
+
+    - uses: actions/checkout@v2
 
     - name: Check Python formatting
       shell: bash
@@ -60,10 +60,10 @@ jobs:
     container: rootproject/root:6.24.00-arch
 
     steps:
-    - uses: actions/checkout@v2
-
     - name: Install missing software
-      run: pip install clang-format
+      run: pacman -Syu git && pip install clang-format
+
+    - uses: actions/checkout@v2
 
     - name: Check C++ formatting
       shell: bash
