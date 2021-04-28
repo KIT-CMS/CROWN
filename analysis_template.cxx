@@ -34,9 +34,7 @@ int main(int argc, char *argv[]) {
         ROOT::Experimental::ELogLevel::kInfo);
 
     // file logging
-    ROOT::RDataFrame df0(
-        "Events",
-        "/work/sbrommer/ntuple_prototype/files/DYJetsToLL_SUmmer19_UL18.root");
+    ROOT::RDataFrame df0("Events", input_path);
     // for testing, we limit to 1000 events only
     // 1st stage: Good object selection
     Logger::enableFileLogging("logs/main.txt");
