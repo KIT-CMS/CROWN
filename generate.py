@@ -43,6 +43,10 @@ for sample_group in sample_groups:
     analysis = importlib.import_module("config." + args.analysis)
     config = analysis.build_config()
     # modify config according to args
+    # ...
+    # process shifts
+    # ...
+    # fill code template and write executable
     with open(args.template, "r") as template_file:
         template = template_file.read()
     template = fill_template(template, config)
