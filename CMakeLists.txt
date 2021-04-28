@@ -7,12 +7,12 @@ endif()
 message(STATUS "Set up analysis for config ${ANALYSIS}.")
 
 if (NOT DEFINED CHANNELS)
-    message("No channel specificed, build the four main channels using -DCHANNELS=et;mt;tt;em")
+    message(STATUS "No channel specificed, build the four main channels using -DCHANNELS=et;mt;tt;em")
     set(CHANNELS "et;mt;tt;em")
 endif()
 
 if (NOT DEFINED SHIFTS)
-    message("No shifts specificed, using -DSHIFTS=all")
+    message(STATUS "No shifts specificed, using -DSHIFTS=all")
     set(SHIFTS "all")
 endif()
 
@@ -108,7 +108,17 @@ find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
 # Generate the C++ code
 set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(GENERATE_CPP_INPUT_TEMPLATE "${CMAKE_SOURCE_DIR}/analysis_template.cxx")
-message(STATUS "Generate C++ code in directory ${GENERATE_CPP_OUTPUT_DIRECTORY} using the template ${GENERATE_CPP_INPUT_TEMPLATE} and config ${CONFIG}")
+
+message(STATUS "")
+message(STATUS "Generate C++ code with following settings:")
+message(STATUS "  Output directory: ${GENERATE_CPP_OUTPUT_DIRECTORY}")
+message(STATUS "  Template: ${GENERATE_CPP_INPUT_TEMPLATE}")
+message(STATUS "  Analysis: ${ANALYSIS}")
+message(STATUS "  Channels: ${CHANNELS}")
+message(STATUS "  Shifts: ${SHIFTS}")
+message(STATUS "  Samples: ${SAMPLES}")
+message(STATUS "")
+
 file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
 execute_process(
     COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES}
