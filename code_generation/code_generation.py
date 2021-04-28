@@ -6,7 +6,7 @@ def fill_template(t, config):
     df_count = 0
     for producer in config["producers"]:
         for call in getattr(p, producer).writecalls(config):
-            print(call)
+            #print(call)
             commandlist += (
                 "  auto df%i = " % (df_count + 1)
                 + call.format_map({"df": "df%i" % df_count})
@@ -17,5 +17,5 @@ def fill_template(t, config):
     final = {}
     final["CODE_GENERATION"] = commandlist
     t = t.replace("  // {CODE_GENERATION}", commandlist)
-    print(t)
+    #print(t)
     return t
