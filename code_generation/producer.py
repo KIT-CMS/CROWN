@@ -42,7 +42,7 @@ class Producer:
         return calls
 
 
-class producer_vec(producer):
+class VectorProducer(Producer):
     def __init__(self, call, inputs, output, vec_config):
         super().__init__(call, inputs, output)
         self.vec_config = vec_config
@@ -61,21 +61,21 @@ class producer_vec(producer):
         return calls
 
 
-prod1 = producer(
+prod1 = Producer(
     "phyticsd::FilterID(auto {df}, const std::string {output}, std::string isolationName)",
     [],
     q.pt_1,
 )
-prod2 = producer(
+prod2 = Producer(
     "FilterID(auto {df}, const std::string {output}, std::string isolationName)",
     [],
     q.pt_2,
 )
-prod3 = producer(
+prod3 = Producer(
     'FilterID({df}, "{output}", {input_coll}, {ptcut})', [q.pt_1, q.pt_2], q.m_vis
 )
 
-MetFilter = producer_vec(
+MetFilter = VectorProducer(
     'metfilter::ApplyMetFilter({df}, "{met_filters}", "{met_filters}")',
     [],
     None,
