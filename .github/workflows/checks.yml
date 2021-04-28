@@ -17,11 +17,13 @@ env:
 jobs:
   build_project:
     runs-on: ubuntu-20.04
-    container: rootproject/root:6.24.00-arch
+    container:
+        image: rootproject/root:6.24.00-arch
+        options: --user 0 # run as root
 
     steps:
     - name: Install missing software
-      run: pacman -Syu cmake make git
+      run: pacman -Syu --noconfirm cmake make git
 
     - uses: actions/checkout@v2
 
@@ -43,11 +45,13 @@ jobs:
 
   python_format:
     runs-on: ubuntu-20.04
-    container: rootproject/root:6.24.00-arch
+    container:
+        image: rootproject/root:6.24.00-arch
+        options: --user 0 # run as root
 
     steps:
     - name: Install missing software
-      run: pacman -Syu git && pip install black
+      run: pacman -Syu --noconfirm git && pip install black
 
     - uses: actions/checkout@v2
 
@@ -57,11 +61,13 @@ jobs:
 
   cpp_format:
     runs-on: ubuntu-20.04
-    container: rootproject/root:6.24.00-arch
+    container:
+        image: rootproject/root:6.24.00-arch
+        options: --user 0 # run as root
 
     steps:
     - name: Install missing software
-      run: pacman -Syu git && pip install clang-format
+      run: pacman -Syu --noconfirm git && pip install clang-format
 
     - uses: actions/checkout@v2
 
