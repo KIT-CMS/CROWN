@@ -51,7 +51,7 @@ jobs:
 
     steps:
     - name: Install missing software
-      run: pacman -Syu --noconfirm git && pip install black
+      run: pacman -Syu --noconfirm git python-pip && pip install black
 
     - uses: actions/checkout@v2
 
@@ -67,7 +67,7 @@ jobs:
 
     steps:
     - name: Install missing software
-      run: pacman -Syu --noconfirm git && pip install clang-format
+      run: pacman -Syu --noconfirm git python-pip && pip install clang-format
 
     - uses: actions/checkout@v2
 
