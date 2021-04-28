@@ -93,7 +93,8 @@ int main(int argc, char *argv[]) {
             .Define("Tau_rawDeepTau2017v2p1VSjet", ConstantVector<float>(1),
                     {"nTau"})
             .Define("nVertices", UnsignedInt(10), {})
-            .Define("Flag_goodVertices", []() { return true; }, {});
+            .Define("Flag_goodVertices", []() { return true; }, {})
+            .Define("Flag_METFilters", []() { return true; }, {});
     df2.Snapshot("Events", output_path);
     Logger::get("main")->info("Done writing sample to file {}", output_path);
 }
