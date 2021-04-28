@@ -6,7 +6,7 @@ do
 done
 
 DIFF=$(git --no-pager diff)
-if [ -z $DIFF ];
+if [[ -z $DIFF ]];
 then
     echo "Nothing the format, all good!"
     exit 0
