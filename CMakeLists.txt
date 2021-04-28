@@ -12,7 +12,7 @@ if (NOT DEFINED CHANNELS)
 endif()
 
 if (NOT DEFINED SHIFTS)
-    message("No channel specificed, using -DSHIFTS=all")
+    message("No shifts specificed, using -DSHIFTS=all")
     set(SHIFTS "all")
 endif()
 
