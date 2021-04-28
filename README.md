@@ -12,7 +12,8 @@ source init.sh
 
 ```bash
 mkdir build/ && cd build/
-cmake .. # or cmake3 on centos7
+# the options DANALYSIS and DSAMPLES are mandatory options
+cmake .. -DANALYSIS=config -DSAMPLES=samples # or cmake3 on centos7
 make -j8 # or 'VERBOSE=1 make' for the verbose output
 cd ..
 ```
