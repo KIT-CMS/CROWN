@@ -8,7 +8,7 @@ done
 DIFF=$(git --no-pager diff)
 if [[ -z $DIFF ]];
 then
-    echo "Nothing the format, all good!"
+    echo "Nothing to format, all good!"
     exit 0
 else
     echo "Found following diff with clang-format:"
