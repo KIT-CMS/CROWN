@@ -37,6 +37,10 @@ jobs:
       shell: bash
       run: cd ${{github.workspace}}/build && make
 
+    - name: Test
+      shell: bash
+      run: cd ${{github.workspace}}/build && ctest -V
+
   python_format:
     runs-on: ubuntu-20.04
     container: rootproject/root:6.24.00-conda
