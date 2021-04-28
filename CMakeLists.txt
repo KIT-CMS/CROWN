@@ -132,8 +132,10 @@ endif()
 # Iterate over files from output filelist and add build and install targets
 FILE(READ ${GENERATE_CPP_OUTPUT_FILELIST} FILELIST)
 STRING(REGEX REPLACE "\n" ";" FILELIST ${FILELIST})
+set(TARGET_NAMES "")
 foreach(FILENAME ${FILELIST})
     STRING(REGEX REPLACE ".cxx" "" TARGET_NAME ${FILENAME})
+    list(APPEND TARGET_NAMES ${TARGET_NAME})
     set(FULL_PATH "${GENERATE_CPP_OUTPUT_DIRECTORY}/${FILENAME}")
 
     # Add build target
@@ -146,5 +148,6 @@ foreach(FILENAME ${FILELIST})
     install(TARGETS ${TARGET_NAME} DESTINATION bin)
 endforeach()
 
-# Include testing executables
+# Include tests
+enable_testing()
 add_subdirectory(tests)
