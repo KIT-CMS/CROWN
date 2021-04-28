@@ -1,4 +1,4 @@
-class quantity:
+class Quantity:
     def __init__(self, name):
         self.name = name
         self.shifts = []
@@ -17,7 +17,7 @@ class quantity:
                 c.shift(name)
 
 
-pt_1 = quantity("pt_1")
-pt_2 = quantity("pt_2")
-m_vis = quantity("m_vis")
-mt_1 = quantity("mt_1")
+pt_1 = Quantity("pt_1")
+pt_2 = Quantity("pt_2")
+m_vis = Quantity("m_vis")
+mt_1 = Quantity("mt_1")

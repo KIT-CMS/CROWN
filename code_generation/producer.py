@@ -6,7 +6,7 @@ class SafeDict(dict):
         return "{" + key + "}"
 
 
-class producer:
+class Producer:
     def __init__(self, call, inputs, output):
         self.call = call
         self.inputs = inputs
