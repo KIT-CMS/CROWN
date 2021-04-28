@@ -1,6 +1,8 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "TRandom3.h"
+#include "utility/Logger.hxx"
+#include <string>
 
 struct UnsignedInt {
     unsigned int mMax;
@@ -44,9 +46,21 @@ template <class T> struct ConstantVector {
 
 auto constValue() { return (unsigned int)42; }
 
-int main() {
-    gRandom->SetSeed(1234);
-    const auto n_events = 100;
+int main(int argc, char *argv[]) {
+    Logger::setLevel(Logger::LogLevel::INFO);
+    Logger::get("main")->info("Generate sample for testing");
+    const auto seed = 1234;
+    Logger::get("main")->info("Set random seed to {}", seed);
+    gRandom->SetSeed(seed);
+    if (argc != 3) {
+        Logger::get("main")->critical("Require exactly two additional input arguments (the number of events to produce and the output paths) but got {}", argc - 1);
+        return 1;
+    }
+
+    Logger::get("main")->info("Generate {} events and write to file {}", argv[1], argv[2]);
+    const auto n_events = std::stoi(argv[1]);
+    const auto output_path = argv[2];
+
     ROOT::RDataFrame df(n_events);
     auto df2 =
         df.Define("run", constValue, {})
@@ -76,6 +90,6 @@ int main() {
                     {"nTau"})
             .Define("nVertices", UnsignedInt(10), {})
             .Define("Flag_goodVertices", []() { return true; }, {});
-    const auto output_path = "sample.root";
     df2.Snapshot("Events", output_path);
+    Logger::get("main")->info("Done writing sample to file {}", output_path);
 }
