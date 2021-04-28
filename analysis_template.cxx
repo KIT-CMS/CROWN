@@ -7,10 +7,24 @@
 #include "physicsobjects.hxx"
 #include "utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
+#include <string>
 
 static std::vector<std::string> varSet = {"run", "luminosityBlock", "event"};
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        Logger::get("main")->critical(
+            "Require exactly two additional input arguments (the input and "
+            "output paths to the ROOT files) but got {}",
+            argc - 1);
+        return 1;
+    }
+
+    const auto input_path = argv[1];
+    Logger::get("main")->info("Input file: {}", input_path);
+    const auto output_path = argv[2];
+    Logger::get("main")->info("Output file: {}", output_path);
+
     TStopwatch timer;
     timer.Start();
 
@@ -44,7 +58,7 @@ int main() {
     timer.Continue();
 
     Logger::get("main")->info("Starting Evaluation");
-    df_final.Snapshot("ntuple", "test.root", varSet);
+    df_final.Snapshot("ntuple", output_path, varSet);
     cutReport->Print();
     Logger::get("main")->info("Finished Evaluation");
 
