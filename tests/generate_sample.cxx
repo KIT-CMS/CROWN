@@ -53,11 +53,15 @@ int main(int argc, char *argv[]) {
     Logger::get("main")->info("Set random seed to {}", seed);
     gRandom->SetSeed(seed);
     if (argc != 3) {
-        Logger::get("main")->critical("Require exactly two additional input arguments (the number of events to produce and the output paths) but got {}", argc - 1);
+        Logger::get("main")->critical(
+            "Require exactly two additional input arguments (the number of "
+            "events to produce and the output paths) but got {}",
+            argc - 1);
         return 1;
     }
 
-    Logger::get("main")->info("Generate {} events and write to file {}", argv[1], argv[2]);
+    Logger::get("main")->info("Generate {} events and write to file {}",
+                              argv[1], argv[2]);
     const auto n_events = std::stoi(argv[1]);
     const auto output_path = argv[2];
 
