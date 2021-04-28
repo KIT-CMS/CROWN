@@ -17,13 +17,13 @@ env:
 jobs:
   build_project:
     runs-on: ubuntu-20.04
-    container: rootproject/root:6.24.00-conda
+    container: rootproject/root:6.24.00-arch
 
     steps:
     - uses: actions/checkout@v2
 
     - name: Install missing software
-      run: conda install -y cmake make
+      run: pacman -Syu cmake make
 
     - name: Create Build Environment
       shell: bash
@@ -43,7 +43,7 @@ jobs:
 
   python_format:
     runs-on: ubuntu-20.04
-    container: rootproject/root:6.24.00-conda
+    container: rootproject/root:6.24.00-arch
 
     steps:
     - uses: actions/checkout@v2
@@ -57,7 +57,7 @@ jobs:
 
   cpp_format:
     runs-on: ubuntu-20.04
-    container: rootproject/root:6.24.00-conda
+    container: rootproject/root:6.24.00-arch
 
     steps:
     - uses: actions/checkout@v2
