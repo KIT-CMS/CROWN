@@ -105,9 +105,6 @@ message(STATUS "")
 # Find Python 3
 find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
 
-# Find Sphinx for documentation
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-
 # Generate the C++ code
 set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(GENERATE_CPP_INPUT_TEMPLATE "${CMAKE_SOURCE_DIR}/analysis_template.cxx")
@@ -154,4 +151,11 @@ endforeach()
 # Include tests
 enable_testing()
 add_subdirectory(tests)
-add_subdirectory(docs)
+
+# documentation stuff
+if (DEFINED RUN_DOCS)
+    # Find Sphinx for documentation
+    set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+    message(STATUS "Updating Documentation ...")
+    add_subdirectory(docs)
+endif()
