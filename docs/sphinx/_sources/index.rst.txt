@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to a's documentation!
-=============================
+Welcome to The FARTUS documentation!
+=====================================
 
 .. toctree::
    :maxdepth: 2
@@ -13,7 +13,7 @@ Welcome to a's documentation!
 
 
 Indices and tables
-==================
+===================
 
 * :ref:`genindex`
 * :ref:`modindex`
@@ -21,8 +21,12 @@ Indices and tables
 
 …
 
-Docs
-====
+Documentation
+==============
 
 .. doxygennamespace:: quantities
+   :members:
+.. doxygennamespace:: metfilter
+   :members:
+.. doxygennamespace:: basefunctions
    :members:

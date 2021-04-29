@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to The FARTUS documentation!
-=============================
+=====================================
 
 .. toctree::
    :maxdepth: 2
@@ -13,7 +13,7 @@ Welcome to The FARTUS documentation!
 
 
 Indices and tables
-==================
+===================
 
 * :ref:`genindex`
 * :ref:`modindex`
@@ -22,7 +22,11 @@ Indices and tables
 …
 
 Documentation
-====
+==============
 
 .. doxygennamespace:: quantities
+   :members:
+.. doxygennamespace:: metfilter
+   :members:
+.. doxygennamespace:: basefunctions
    :members:
