@@ -2,19 +2,19 @@ import code_generation.producer as p
 
 
 def fill_template(t, config):
-    #shift producers
+    # shift producers
     for shift in config.keys():
-        #shift names start with "_"
+        # shift names start with "_"
         if not shift.startswith("_"):
             continue
         for entry in config[shift]["shiftbase"]:
             getattr(p, entry).shift(shift)
 
-    #generate list of commands
-    commandlist = "" #string to be placed into code template
-    df_count = 0 #enumerate dataframes
+    # generate list of commands
+    commandlist = ""  # string to be placed into code template
+    df_count = 0  # enumerate dataframes
 
-    #get commands of producers and append to the command list
+    # get commands of producers and append to the command list
     for producer in config["producers"]:
         for call in getattr(p, producer).writecalls(config):
             # print(call)
