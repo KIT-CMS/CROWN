@@ -44,8 +44,6 @@ for sample_group in sample_groups:
     config = analysis.build_config()
     # modify config according to args
     # ...
-    # process shifts
-    # ...
     # fill code template and write executable
     with open(args.template, "r") as template_file:
         template = template_file.read()
