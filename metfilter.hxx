@@ -1,4 +1,4 @@
-/// The namespace that contains the metfilters
+/// The namespace that contains the metfilter function.
 
 namespace metfilter {
 
