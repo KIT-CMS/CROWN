@@ -6,7 +6,7 @@ find_package(Sphinx REQUIRED)
 file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/*.hxx)
 
 set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/)
-set(DOXYGEN_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/docs/build/doxygen/)
+set(DOXYGEN_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/docs/doxygen/)
 set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/html/index.html)
 set(DOXYFILE_IN ${PROJECT_SOURCE_DIR}/docgenerator/scripts/Doxyfile.in)
 set(DOXYFILE_OUT ${PROJECT_SOURCE_DIR}/docgenerator/scripts/Doxyfile)
