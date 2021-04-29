@@ -157,5 +157,5 @@ if (DEFINED RUN_DOCS)
     # Find Sphinx for documentation
     set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
     message(STATUS "Updating Documentation ...")
-    add_subdirectory(docs)
+    add_subdirectory(docgenerator)
 endif()
