@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.18">
+  <compounddef id="namespacepairselection" kind="namespace" language="C++">
+    <compoundname>pairselection</compoundname>
+    <innernamespace refid="namespacepairselection_1_1mutau">pairselection::mutau</innernamespace>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="pairselection_8hxx_1a054032bda526e8d2a59e46368e1291f1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto pairselection::filterGoodPairs</definition>
+        <argsstring>(auto df, const std::string &amp;pairname, const std::string &amp;filtername)</argsstring>
+        <name>filterGoodPairs</name>
+        <param>
+          <type>auto</type>
+          <declname>df</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>pairname</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>filtername</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/pairselection.hxx" line="19" column="6" bodyfile="/work/sbrommer/ntuple_prototype/pairselection.hxx" bodystart="19" bodyend="29"/>
+      </memberdef>
+      <memberdef kind="function" id="pairselection_8hxx_1a4af2482f14b956a37caf34577c09b773" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto pairselection::compareForPairs</definition>
+        <argsstring>(const ROOT::RVec&lt; float &gt; &amp;lep1pt, const ROOT::RVec&lt; float &gt; &amp;lep1iso, const ROOT::RVec&lt; float &gt; &amp;lep2pt, const ROOT::RVec&lt; float &gt; &amp;lep2iso)</argsstring>
+        <name>compareForPairs</name>
+        <param>
+          <type>const ROOT::RVec&lt; float &gt; &amp;</type>
+          <declname>lep1pt</declname>
+        </param>
+        <param>
+          <type>const ROOT::RVec&lt; float &gt; &amp;</type>
+          <declname>lep1iso</declname>
+        </param>
+        <param>
+          <type>const ROOT::RVec&lt; float &gt; &amp;</type>
+          <declname>lep2pt</declname>
+        </param>
+        <param>
+          <type>const ROOT::RVec&lt; float &gt; &amp;</type>
+          <declname>lep2iso</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/pairselection.hxx" line="31" column="6" bodyfile="/work/sbrommer/ntuple_prototype/pairselection.hxx" bodystart="31" bodyend="88"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/work/sbrommer/ntuple_prototype/pairselection.hxx" line="17" column="1"/>
+  </compounddef>
+</doxygen>

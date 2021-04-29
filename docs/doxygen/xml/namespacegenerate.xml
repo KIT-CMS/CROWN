@@ -1,0 +1,177 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.18">
+  <compounddef id="namespacegenerate" kind="namespace" language="Python">
+    <compoundname>generate</compoundname>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="generate_8py_1a17a1c434a40b228f25748ab35b718f04" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>generate.parser</definition>
+        <argsstring></argsstring>
+        <name>parser</name>
+        <initializer>=  argparse.ArgumentParser(description=&quot;Generate the C++ code for a given config&quot;)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/generate.py" line="11" column="1" bodyfile="/work/sbrommer/ntuple_prototype/generate.py" bodystart="11" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="generate_8py_1a1d046dd01e5d7ce9c64d83c3aca75b5f" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>generate.type</definition>
+        <argsstring></argsstring>
+        <name>type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/generate.py" line="12" column="1" bodyfile="/work/sbrommer/ntuple_prototype/generate.py" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="generate_8py_1ab13febeb63c15321780ec4704bd7093a" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>generate.str</definition>
+        <argsstring></argsstring>
+        <name>str</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/generate.py" line="12" column="1" bodyfile="/work/sbrommer/ntuple_prototype/generate.py" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="generate_8py_1a36cbee60b5d815661735944a05134129" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>generate.help</definition>
+        <argsstring></argsstring>
+        <name>help</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/generate.py" line="12" column="1" bodyfile="/work/sbrommer/ntuple_prototype/generate.py" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="generate_8py_1a7b81a1cc5951dd5598c720f14cf9ae59" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>generate.nargs</definition>
+        <argsstring></argsstring>
+        <name>nargs</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/generate.py" line="18" column="1" bodyfile="/work/sbrommer/ntuple_prototype/generate.py" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="generate_8py_1a0c5a3d86032ffead1cfe760264456a23" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>generate.args</definition>
+        <argsstring></argsstring>
+        <name>args</name>
+        <initializer>=  parser.parse_args()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/generate.py" line="28" column="1" bodyfile="/work/sbrommer/ntuple_prototype/generate.py" bodystart="28" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="generate_8py_1a2551e495f7d6d52170e75d8268e99841" prot="public" static="no" mutable="no">
+        <type>list</type>
+        <definition>list generate.executables</definition>
+        <argsstring></argsstring>
+        <name>executables</name>
+        <initializer>=  []</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/generate.py" line="39" column="1" bodyfile="/work/sbrommer/ntuple_prototype/generate.py" bodystart="39" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="generate_8py_1aa3193361eaea043d7b6452d112bd383d" prot="public" static="no" mutable="no">
+        <type>list</type>
+        <definition>list generate.sample_groups</definition>
+        <argsstring></argsstring>
+        <name>sample_groups</name>
+        <initializer>=  [&quot;emb&quot;]</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/generate.py" line="40" column="1" bodyfile="/work/sbrommer/ntuple_prototype/generate.py" bodystart="40" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="generate_8py_1a563c0e7440da45bea99ed9e4eccdca1c" prot="public" static="no" mutable="no">
+        <type>string</type>
+        <definition>string generate.executable</definition>
+        <argsstring></argsstring>
+        <name>executable</name>
+        <initializer>=  f&quot;analysis_{sample_group}.cxx&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/generate.py" line="42" column="1" bodyfile="/work/sbrommer/ntuple_prototype/generate.py" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="generate_8py_1ad1b724024fce5d34de9ec7e81c23cd58" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>generate.analysis</definition>
+        <argsstring></argsstring>
+        <name>analysis</name>
+        <initializer>=  importlib.import_module(&quot;config.&quot; + args.analysis)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/generate.py" line="43" column="1" bodyfile="/work/sbrommer/ntuple_prototype/generate.py" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="generate_8py_1a1ddbb16e1c123929ec396e756e6413f0" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>generate.config</definition>
+        <argsstring></argsstring>
+        <name>config</name>
+        <initializer>=  analysis.build_config()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/generate.py" line="44" column="1" bodyfile="/work/sbrommer/ntuple_prototype/generate.py" bodystart="44" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="generate_8py_1a1be9486fe2e9ca69d56775596c2de287" prot="public" static="no" mutable="no">
+        <type></type>
+        <definition>generate.template</definition>
+        <argsstring></argsstring>
+        <name>template</name>
+        <initializer>=  template_file.read()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/generate.py" line="47" column="1" bodyfile="/work/sbrommer/ntuple_prototype/generate.py" bodystart="47" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/work/sbrommer/ntuple_prototype/generate.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

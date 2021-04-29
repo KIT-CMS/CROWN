@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.18">
+  <compounddef id="README_8md" kind="file" language="Markdown">
+    <compoundname>README.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>ToBeNamedPrototype</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Environment<sp/>setup</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Current<sp/>requirement<sp/>is<sp/>a<sp/>working<sp/>mount<sp/>to<sp/>CERN&apos;s<sp/>`/cvmfs/sft.cern.ch`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">source<sp/>init.sh</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Compilation<sp/>with<sp/>cmake</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">mkdir<sp/>build/<sp/>&amp;&amp;<sp/>cd<sp/>build/</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>the<sp/>options<sp/>DANALYSIS<sp/>and<sp/>DSAMPLES<sp/>are<sp/>mandatory<sp/>options</highlight></codeline>
+<codeline><highlight class="normal">cmake<sp/>..<sp/>-DANALYSIS=config<sp/>-DSAMPLES=samples<sp/>#<sp/>or<sp/>cmake3<sp/>on<sp/>centos7</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>-j8<sp/>#<sp/>or<sp/>&apos;VERBOSE=1<sp/>make&apos;<sp/>for<sp/>the<sp/>verbose<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>..</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">Executable<sp/>will<sp/>then<sp/>be<sp/>`build/Analysis`<sp/>instead<sp/>of<sp/>`a.out`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Compilation<sp/>for<sp/>main<sp/>executable</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">g++<sp/>analysis.cxx<sp/>$(root-config<sp/>--cflags<sp/>--libs)<sp/>-fconcepts</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Profiling<sp/>with<sp/>perf<sp/>&amp;<sp/>flamegraph<sp/>for<sp/>CPU</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">See<sp/>the<sp/>script<sp/>[`profiling/flamegraph.sh`](profiling/flamegraph.sh).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Running<sp/>profiling<sp/>on<sp/>executable</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">perf<sp/>record<sp/>./a.out<sp/>-g</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Print<sp/>out<sp/>the<sp/>report</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">perf<sp/>report</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Get<sp/>flamegraph<sp/>repo</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">git<sp/>clone<sp/>https://github.com/brendangregg/FlameGraph</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Create<sp/>flamegraph</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">perf<sp/>script<sp/>&gt;<sp/>out.perf</highlight></codeline>
+<codeline><highlight class="normal">FlameGraph/stackcollapse-perf.pl<sp/>out.perf<sp/>&gt;<sp/>out.folded</highlight></codeline>
+<codeline><highlight class="normal">FlameGraph/flamegraph.pl<sp/>out.folded<sp/>&gt;<sp/>out.svg</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Profiling<sp/>with<sp/>valgrind<sp/>massif<sp/>for<sp/>Memory</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">See<sp/>the<sp/>script<sp/>[`profiling/massif.sh`](profiling/massif.sh).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">valgrind<sp/>--tool=massif<sp/>./a.out</highlight></codeline>
+<codeline><highlight class="normal">ms_print<sp/>massif.out.4103388<sp/>&gt;<sp/>massif.log</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+    </programlisting>
+    <location file="/work/sbrommer/ntuple_prototype/README.md"/>
+  </compounddef>
+</doxygen>

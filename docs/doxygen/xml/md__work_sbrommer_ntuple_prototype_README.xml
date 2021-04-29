@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.18">
+  <compounddef id="md__work_sbrommer_ntuple_prototype_README" kind="page">
+    <compoundname>md__work_sbrommer_ntuple_prototype_README</compoundname>
+    <title>ToBeNamedPrototype</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<sect1 id="md__work_sbrommer_ntuple_prototype_README_1autotoc_md1">
+<title>Environment setup</title>
+<para>Current requirement is a working mount to CERN&apos;s <computeroutput>/cvmfs/sft.cern.ch</computeroutput></para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">source<sp/>init.sh</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__work_sbrommer_ntuple_prototype_README_1autotoc_md2">
+<title>Compilation with cmake</title>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">mkdir<sp/>build/<sp/>&amp;&amp;<sp/>cd<sp/>build/</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>the<sp/>options<sp/>DANALYSIS<sp/>and<sp/>DSAMPLES<sp/>are<sp/>mandatory<sp/>options</highlight></codeline>
+<codeline><highlight class="normal">cmake<sp/>..<sp/>-DANALYSIS=config<sp/>-DSAMPLES=samples<sp/>#<sp/>or<sp/>cmake3<sp/>on<sp/>centos7</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>-j8<sp/>#<sp/>or<sp/>&apos;VERBOSE=1<sp/>make&apos;<sp/>for<sp/>the<sp/>verbose<sp/>output</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>..</highlight></codeline>
+</programlisting></para>
+<para>Executable will then be <computeroutput>build/Analysis</computeroutput> instead of <computeroutput>a.out</computeroutput></para>
+</sect1>
+<sect1 id="md__work_sbrommer_ntuple_prototype_README_1autotoc_md3">
+<title>Compilation for main executable</title>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">g++<sp/>analysis.cxx<sp/>$(root-config<sp/>--cflags<sp/>--libs)<sp/>-fconcepts</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__work_sbrommer_ntuple_prototype_README_1autotoc_md4">
+<title>Profiling with perf &amp; flamegraph for CPU</title>
+<para>See the script <ulink url="profiling/flamegraph.sh"><computeroutput>profiling/flamegraph.sh</computeroutput></ulink>.</para>
+<para>Running profiling on executable</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">perf<sp/>record<sp/>./a.out<sp/>-g</highlight></codeline>
+</programlisting></para>
+<para>Print out the report</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">perf<sp/>report</highlight></codeline>
+</programlisting></para>
+<para>Get flamegraph repo</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">git<sp/>clone<sp/>https://github.com/brendangregg/FlameGraph</highlight></codeline>
+</programlisting></para>
+<para>Create flamegraph</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">perf<sp/>script<sp/>&gt;<sp/>out.perf</highlight></codeline>
+<codeline><highlight class="normal">FlameGraph/stackcollapse-perf.pl<sp/>out.perf<sp/>&gt;<sp/>out.folded</highlight></codeline>
+<codeline><highlight class="normal">FlameGraph/flamegraph.pl<sp/>out.folded<sp/>&gt;<sp/>out.svg</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md__work_sbrommer_ntuple_prototype_README_1autotoc_md5">
+<title>Profiling with valgrind massif for Memory</title>
+<para>See the script <ulink url="profiling/massif.sh"><computeroutput>profiling/massif.sh</computeroutput></ulink>.</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">valgrind<sp/>--tool=massif<sp/>./a.out</highlight></codeline>
+<codeline><highlight class="normal">ms_print<sp/>massif.out.4103388<sp/>&gt;<sp/>massif.log</highlight></codeline>
+</programlisting> </para>
+</sect1>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.18">
+  <compounddef id="metfilter_8hxx" kind="file" language="C++">
+    <compoundname>metfilter.hxx</compoundname>
+    <includedby refid="analysis_8cxx" local="yes">/work/sbrommer/ntuple_prototype/analysis.cxx</includedby>
+    <includedby refid="analysis__template_8cxx" local="yes">/work/sbrommer/ntuple_prototype/analysis_template.cxx</includedby>
+    <innernamespace refid="namespacemetfilter">metfilter</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="keyword">namespace<sp/></highlight><highlight class="normal">metfilter<sp/>{</highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>ApplyMetFilter(</highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>df,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;flagname,</highlight></codeline>
+<codeline lineno="4"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;filtername)<sp/>{</highlight></codeline>
+<codeline lineno="5"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>df.Filter([](</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>flag)<sp/>{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>flag;<sp/>},<sp/>{flagname},</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>filtername);</highlight></codeline>
+<codeline lineno="7"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal">}<sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>metfilter</highlight></codeline>
+    </programlisting>
+    <location file="/work/sbrommer/ntuple_prototype/metfilter.hxx"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,67 @@
+\hypertarget{md__work_sbrommer_ntuple_prototype_README_autotoc_md1}{}\doxysection{Environment setup}\label{md__work_sbrommer_ntuple_prototype_README_autotoc_md1}
+Current requirement is a working mount to C\+E\+RN\textquotesingle{}s {\ttfamily /cvmfs/sft.cern.\+ch}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{source init.sh}
+\end{DoxyCode}
+\hypertarget{md__work_sbrommer_ntuple_prototype_README_autotoc_md2}{}\doxysection{Compilation with cmake}\label{md__work_sbrommer_ntuple_prototype_README_autotoc_md2}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{mkdir build/ \&\& cd build/}
+\DoxyCodeLine{\# the options DANALYSIS and DSAMPLES are mandatory options}
+\DoxyCodeLine{cmake .. -\/DANALYSIS=config -\/DSAMPLES=samples \# or cmake3 on centos7}
+\DoxyCodeLine{make -\/j8 \# or 'VERBOSE=1 make' for the verbose output}
+\DoxyCodeLine{cd ..}
+\end{DoxyCode}
+
+
+Executable will then be {\ttfamily build/\+Analysis} instead of {\ttfamily a.\+out}\hypertarget{md__work_sbrommer_ntuple_prototype_README_autotoc_md3}{}\doxysection{Compilation for main executable}\label{md__work_sbrommer_ntuple_prototype_README_autotoc_md3}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{g++ analysis.cxx \$(root-\/config -\/-\/cflags -\/-\/libs) -\/fconcepts}
+\end{DoxyCode}
+\hypertarget{md__work_sbrommer_ntuple_prototype_README_autotoc_md4}{}\doxysection{Profiling with perf \& flamegraph for C\+PU}\label{md__work_sbrommer_ntuple_prototype_README_autotoc_md4}
+See the script \href{profiling/flamegraph.sh}{\texttt{ {\ttfamily profiling/flamegraph.\+sh}}}.
+
+Running profiling on executable
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{perf record ./a.out -\/g}
+\end{DoxyCode}
+
+
+Print out the report
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{perf report}
+\end{DoxyCode}
+
+
+Get flamegraph repo
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git clone https://github.com/brendangregg/FlameGraph}
+\end{DoxyCode}
+
+
+Create flamegraph
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{perf script > out.perf}
+\DoxyCodeLine{FlameGraph/stackcollapse-\/perf.pl out.perf > out.folded}
+\DoxyCodeLine{FlameGraph/flamegraph.pl out.folded > out.svg}
+\end{DoxyCode}
+\hypertarget{md__work_sbrommer_ntuple_prototype_README_autotoc_md5}{}\doxysection{Profiling with valgrind massif for Memory}\label{md__work_sbrommer_ntuple_prototype_README_autotoc_md5}
+See the script \href{profiling/massif.sh}{\texttt{ {\ttfamily profiling/massif.\+sh}}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{valgrind -\/-\/tool=massif ./a.out}
+\DoxyCodeLine{ms\_print massif.out.4103388 > massif.log}
+\end{DoxyCode}
+ 

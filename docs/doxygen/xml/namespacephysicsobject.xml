@@ -1,0 +1,208 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.18">
+  <compounddef id="namespacephysicsobject" kind="namespace" language="C++">
+    <compoundname>physicsobject</compoundname>
+    <innernamespace refid="namespacephysicsobject_1_1electron">physicsobject::electron</innernamespace>
+    <innernamespace refid="namespacephysicsobject_1_1jet">physicsobject::jet</innernamespace>
+    <innernamespace refid="namespacephysicsobject_1_1muon">physicsobject::muon</innernamespace>
+    <innernamespace refid="namespacephysicsobject_1_1tau">physicsobject::tau</innernamespace>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="physicsobjects_8hxx_1a607d36a33cba05fadc195d8f725073ee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto physicsobject::CutPt</definition>
+        <argsstring>(auto df, const std::string quantity, const std::string maskname, const float ptThreshold)</argsstring>
+        <name>CutPt</name>
+        <param>
+          <type>auto</type>
+          <declname>df</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>quantity</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>maskname</declname>
+        </param>
+        <param>
+          <type>const float</type>
+          <declname>ptThreshold</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" line="33" column="6" bodyfile="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" bodystart="33" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="function" id="physicsobjects_8hxx_1aa003f2546ec4284f8c26006f6f852751" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto physicsobject::CutEta</definition>
+        <argsstring>(auto df, const std::string quantity, const std::string maskname, const float EtaThreshold)</argsstring>
+        <name>CutEta</name>
+        <param>
+          <type>auto</type>
+          <declname>df</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>quantity</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>maskname</declname>
+        </param>
+        <param>
+          <type>const float</type>
+          <declname>EtaThreshold</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" line="40" column="6" bodyfile="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" bodystart="40" bodyend="45"/>
+      </memberdef>
+      <memberdef kind="function" id="physicsobjects_8hxx_1a1cf3fbf39bf00155654f4fc6e76035e9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto physicsobject::CutDz</definition>
+        <argsstring>(auto df, const std::string quantity, const std::string maskname, const float Threshold)</argsstring>
+        <name>CutDz</name>
+        <param>
+          <type>auto</type>
+          <declname>df</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>quantity</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>maskname</declname>
+        </param>
+        <param>
+          <type>const float</type>
+          <declname>Threshold</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" line="47" column="6" bodyfile="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" bodystart="47" bodyend="52"/>
+      </memberdef>
+      <memberdef kind="function" id="physicsobjects_8hxx_1a00f61b68b0d12cde6afdc4475d678511" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto physicsobject::CutDxy</definition>
+        <argsstring>(auto df, const std::string quantity, const std::string maskname, const float Threshold)</argsstring>
+        <name>CutDxy</name>
+        <param>
+          <type>auto</type>
+          <declname>df</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>quantity</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>maskname</declname>
+        </param>
+        <param>
+          <type>const float</type>
+          <declname>Threshold</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" line="54" column="6" bodyfile="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" bodystart="54" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="function" id="physicsobjects_8hxx_1adbf7a5c87742ff1ded8f16adda0cd86a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto physicsobject::CombineMasks</definition>
+        <argsstring>(auto df, const std::string maskname, std::vector&lt; std::string &gt; MaskList)</argsstring>
+        <name>CombineMasks</name>
+        <param>
+          <type>auto</type>
+          <declname>df</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>maskname</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; std::string &gt;</type>
+          <declname>MaskList</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" line="61" column="6" bodyfile="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" bodystart="61" bodyend="84"/>
+      </memberdef>
+      <memberdef kind="function" id="physicsobjects_8hxx_1a08223a9cc3507f9d61e17ca9c9bc6626" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto physicsobject::FilterMasks</definition>
+        <argsstring>(auto df, const std::string maskname)</argsstring>
+        <name>FilterMasks</name>
+        <param>
+          <type>auto</type>
+          <declname>df</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>maskname</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" line="86" column="6" bodyfile="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" bodystart="86" bodyend="94"/>
+      </memberdef>
+      <memberdef kind="function" id="physicsobjects_8hxx_1a67dcc5eeac8eb9e178bbde42c025b788" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto physicsobject::FilterObjects</definition>
+        <argsstring>(auto df, const std::string objectcounter, const int minThreshold, const std::string filtername)</argsstring>
+        <name>FilterObjects</name>
+        <param>
+          <type>auto</type>
+          <declname>df</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>objectcounter</declname>
+        </param>
+        <param>
+          <type>const int</type>
+          <declname>minThreshold</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>filtername</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" line="96" column="6" bodyfile="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" bodystart="96" bodyend="103"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/work/sbrommer/ntuple_prototype/physicsobjects.hxx" line="32" column="1"/>
+  </compounddef>
+</doxygen>
