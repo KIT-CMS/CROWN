@@ -103,16 +103,16 @@ class ProducerGroup:
         self.producers = subproducers
         # link producers
         for p in self.producers:
+            # check that output quantities of subproducers are not yet filled
+            if p.output != None:
+                print("Output of subproducers must be None!") 
+                raise Exception 
             # skip producers without output
             if not "output" in p.call:
                 continue
-            # check that output quantities of subproducers are not yet filled
-            if p.output != None:
-                print("Output of subproducers must be None!")
-                raise Exception
             # create quantities that are produced by subproducers and then collected by the final call of the producer group
             p.output = q.Quantity(
-                "PG_internal_quantity%i" % self.__class__.PG_count
+                "PG_internal_quantity_%i" % self.__class__.PG_count
             )  # quantities of vector producers will be duplicated later on when config is known
             self.__class__.PG_count += 1
             self.inputs.append(p.output)
@@ -132,7 +132,7 @@ class ProducerGroup:
                 for i in range(len(config[""][producer.vec_configs[0]]) - 1):
                     producer.output.append(
                         producer.output[0].copy(
-                            "PG_internal_quantity%i" % self.__class__.PG_count
+                            "PG_internal_quantity_%i" % self.__class__.PG_count
                         )
                     )
                     self.__class__.PG_count += 1

@@ -28,7 +28,7 @@ def build_config():
 
     config["producers"] = ["MetFilter", "GoodTaus", "GoodMuons"]
 
-    config["_tauCutUp"]["ptcut"] = 2.1
+    config["_tauCutUp"]["min_tau_pt"] = 31.0
     config["_tauCutUp"]["shiftbase"] = ["TauPtCut"]
     # write some modifier tools for creating shifts. Should these automatically determine producers that consume params and shift these?
     # Or simply add an explicit command to the modifier tool to shift a producer
