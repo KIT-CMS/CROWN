@@ -4,6 +4,9 @@ log/
 logs/
 include/
 
+# Doxygen Documentation
+docs/doxygen
+
 # Environments
 .env
 .venv
