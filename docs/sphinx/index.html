@@ -259,12 +259,26 @@
 <dl class="cpp type">
 <dt id="_CPPv49metfilter">
 <span id="_CPPv39metfilter"></span><span id="_CPPv29metfilter"></span><span id="metfilter"></span><span class="target" id="namespacemetfilter"></span><em class="property">namespace </em><code class="sig-name descname">metfilter</code><a class="headerlink" href="#_CPPv49metfilter" title="Permalink to this definition">¶</a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
+<dd><p>The namespace that contains the metfilter function. </p>
+<div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N9metfilter14ApplyMetFilterEDaRKNSt6stringERKNSt6stringE">
-<span id="_CPPv3N9metfilter14ApplyMetFilterEDaRKNSt6stringERKNSt6stringE"></span><span id="_CPPv2N9metfilter14ApplyMetFilterEDaRKNSt6stringERKNSt6stringE"></span><span id="metfilter::ApplyMetFilter__auto.ssCR.ssCR"></span><span class="target" id="metfilter_8hxx_1acf2a17326a2c7aaa38b0e71c4d45954f"></span>auto <code class="sig-name descname">ApplyMetFilter</code><span class="sig-paren">(</span>auto <em>df</em>, <em class="property">const</em> std::string &amp;<em>flagname</em>, <em class="property">const</em> std::string &amp;<em>filtername</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9metfilter14ApplyMetFilterEDaRKNSt6stringERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span id="_CPPv3N9metfilter14ApplyMetFilterEDaRKNSt6stringERKNSt6stringE"></span><span id="_CPPv2N9metfilter14ApplyMetFilterEDaRKNSt6stringERKNSt6stringE"></span><span id="metfilter::ApplyMetFilter__auto.ssCR.ssCR"></span><span class="target" id="namespacemetfilter_1acf2a17326a2c7aaa38b0e71c4d45954f"></span>auto <code class="sig-name descname">ApplyMetFilter</code><span class="sig-paren">(</span>auto <em>df</em>, <em class="property">const</em> std::string &amp;<em>flagname</em>, <em class="property">const</em> std::string &amp;<em>filtername</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9metfilter14ApplyMetFilterEDaRKNSt6stringERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Function to apply a metfilter to the dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> – the dataframe to add the quantity to </p></li>
+<li><p><strong>flagname</strong> – Name of the Filterflag in NanoAOD </p></li>
+<li><p><strong>filtername</strong> – Name of the Filter to be shown in the dataframe report</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a dataframe with the filter applied </p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 </dd></dl>
@@ -272,37 +286,95 @@
 <dl class="cpp type">
 <dt id="_CPPv413basefunctions">
 <span id="_CPPv313basefunctions"></span><span id="_CPPv213basefunctions"></span><span id="basefunctions"></span><span class="target" id="namespacebasefunctions"></span><em class="property">namespace </em><code class="sig-name descname">basefunctions</code><a class="headerlink" href="#_CPPv413basefunctions" title="Permalink to this definition">¶</a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
+<dd><p>Namespace used for common basefunctions. Theses functions return a lambda function to be used in a data frame define </p>
+<div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N13basefunctions9FilterMaxEf">
-<span id="_CPPv3N13basefunctions9FilterMaxEf"></span><span id="_CPPv2N13basefunctions9FilterMaxEf"></span><span id="basefunctions::FilterMax__float"></span><span class="target" id="basefunctions_8hxx_1ad1d035867be70f5086d131bd18533b11"></span>auto <code class="sig-name descname">FilterMax</code><span class="sig-paren">(</span>float <em>cut</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13basefunctions9FilterMaxEf" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N13basefunctions9FilterMinEf">
-<span id="_CPPv3N13basefunctions9FilterMinEf"></span><span id="_CPPv2N13basefunctions9FilterMinEf"></span><span id="basefunctions::FilterMin__float"></span><span class="target" id="basefunctions_8hxx_1ae06dbf053d501323b49d56029889e5d1"></span>auto <code class="sig-name descname">FilterMin</code><span class="sig-paren">(</span>float <em>cut</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13basefunctions9FilterMinEf" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span id="_CPPv3N13basefunctions9FilterMaxEf"></span><span id="_CPPv2N13basefunctions9FilterMaxEf"></span><span id="basefunctions::FilterMax__float"></span><span class="target" id="namespacebasefunctions_1ad1d035867be70f5086d131bd18533b11"></span>auto <code class="sig-name descname">FilterMax</code><span class="sig-paren">(</span>float <em>cut</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13basefunctions9FilterMaxEf" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Function to apply a maximal filter requirement to a quantity. Returns true if the value is smaller than the given cut value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cut</strong> – The cut value of the filter</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a lambda function to be used in RDF Define </p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N13basefunctions12FilterAbsMaxEf">
-<span id="_CPPv3N13basefunctions12FilterAbsMaxEf"></span><span id="_CPPv2N13basefunctions12FilterAbsMaxEf"></span><span id="basefunctions::FilterAbsMax__float"></span><span class="target" id="basefunctions_8hxx_1ab24c866184b8ca9af1037200130349e5"></span>auto <code class="sig-name descname">FilterAbsMax</code><span class="sig-paren">(</span>float <em>cut</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13basefunctions12FilterAbsMaxEf" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span id="_CPPv3N13basefunctions12FilterAbsMaxEf"></span><span id="_CPPv2N13basefunctions12FilterAbsMaxEf"></span><span id="basefunctions::FilterAbsMax__float"></span><span class="target" id="namespacebasefunctions_1ab24c866184b8ca9af1037200130349e5"></span>auto <code class="sig-name descname">FilterAbsMax</code><span class="sig-paren">(</span>float <em>cut</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13basefunctions12FilterAbsMaxEf" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Function to apply a maximal filter requirement to a quantity. Returns true if the absolute value is smaller than the given cut value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cut</strong> – The cut value of the filter</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a lambda function to be used in RDF Define </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N13basefunctions9FilterMinEf">
+<span id="_CPPv3N13basefunctions9FilterMinEf"></span><span id="_CPPv2N13basefunctions9FilterMinEf"></span><span id="basefunctions::FilterMin__float"></span><span class="target" id="namespacebasefunctions_1ae06dbf053d501323b49d56029889e5d1"></span>auto <code class="sig-name descname">FilterMin</code><span class="sig-paren">(</span>float <em>cut</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13basefunctions9FilterMinEf" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Function to apply a minimal filter requirement to a quantity. Returns true if the value is larger than the given cut value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cut</strong> – The cut value of the filter</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a lambda function to be used in RDF Define </p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N13basefunctions12FilterAbsMinEf">
-<span id="_CPPv3N13basefunctions12FilterAbsMinEf"></span><span id="_CPPv2N13basefunctions12FilterAbsMinEf"></span><span id="basefunctions::FilterAbsMin__float"></span><span class="target" id="basefunctions_8hxx_1a144dc39bdb7bd9f8860b46b3e525efba"></span>auto <code class="sig-name descname">FilterAbsMin</code><span class="sig-paren">(</span>float <em>cut</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13basefunctions12FilterAbsMinEf" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span id="_CPPv3N13basefunctions12FilterAbsMinEf"></span><span id="_CPPv2N13basefunctions12FilterAbsMinEf"></span><span id="basefunctions::FilterAbsMin__float"></span><span class="target" id="namespacebasefunctions_1a144dc39bdb7bd9f8860b46b3e525efba"></span>auto <code class="sig-name descname">FilterAbsMin</code><span class="sig-paren">(</span>float <em>cut</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13basefunctions12FilterAbsMinEf" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Function to apply a minimal filter requirement to a quantity. Returns true if the absolute value is larger than the given cut value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cut</strong> – The cut value of the filter</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a lambda function to be used in RDF Define </p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N13basefunctions16MultiplyTwoMasksEv">
-<span id="_CPPv3N13basefunctions16MultiplyTwoMasksEv"></span><span id="_CPPv2N13basefunctions16MultiplyTwoMasksEv"></span><span id="basefunctions::MultiplyTwoMasks"></span><span class="target" id="basefunctions_8hxx_1ab2f59d93536d44d0b2f8d1e989b9ee63"></span>auto <code class="sig-name descname">MultiplyTwoMasks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13basefunctions16MultiplyTwoMasksEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span id="_CPPv3N13basefunctions16MultiplyTwoMasksEv"></span><span id="_CPPv2N13basefunctions16MultiplyTwoMasksEv"></span><span id="basefunctions::MultiplyTwoMasks"></span><span class="target" id="namespacebasefunctions_1ab2f59d93536d44d0b2f8d1e989b9ee63"></span>auto <code class="sig-name descname">MultiplyTwoMasks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13basefunctions16MultiplyTwoMasksEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Function to combine two RVec Masks by multiplying the two RVec elementwise</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mask_1</strong> – The first mask </p></li>
+<li><p><strong>mask_2</strong> – The second mask</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a lambda function which returns the multiplication of the two masks </p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N13basefunctions8FilterIDEi">
-<span id="_CPPv3N13basefunctions8FilterIDEi"></span><span id="_CPPv2N13basefunctions8FilterIDEi"></span><span id="basefunctions::FilterID__i"></span><span class="target" id="basefunctions_8hxx_1a5f9c4dd8dcf4ce8a0791736aed5fa388"></span>auto <code class="sig-name descname">FilterID</code><span class="sig-paren">(</span>int <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13basefunctions8FilterIDEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<span id="_CPPv3N13basefunctions8FilterIDEi"></span><span id="_CPPv2N13basefunctions8FilterIDEi"></span><span id="basefunctions::FilterID__i"></span><span class="target" id="namespacebasefunctions_1a5f9c4dd8dcf4ce8a0791736aed5fa388"></span>auto <code class="sig-name descname">FilterID</code><span class="sig-paren">(</span>int <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13basefunctions8FilterIDEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Function to filter the Tau ID in NanoAOD. The disciminator output is stored as a bitmask. In order to filter based on a given WP, a bitwise comparison between the given ID and the filtered index is performed. Return true if the working point is passed by a tau.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>index</strong> – The bitmask index to be used for comparion</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a lambda function to be used in RDF Define </p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 </dd></dl>

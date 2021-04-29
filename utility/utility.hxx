@@ -1,3 +1,5 @@
+/// Namespace used for common utility functions. 
+
 namespace utility {
 bool ApproxEqual(auto value1, auto value2, double maxDelta = 1e-5) {
     if (value1 == value2) {
