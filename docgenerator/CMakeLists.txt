@@ -6,10 +6,10 @@ find_package(Sphinx REQUIRED)
 file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/*.hxx)
 
 set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/)
-set(DOXYGEN_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/docs/doxygen/)
+set(DOXYGEN_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/docs/build/doxygen/)
 set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/html/index.html)
-set(DOXYFILE_IN ${PROJECT_SOURCE_DIR}/docs/Doxyfile.in)
-set(DOXYFILE_OUT ${PROJECT_SOURCE_DIR}/Doxyfile)
+set(DOXYFILE_IN ${PROJECT_SOURCE_DIR}/docgenerator/scripts/Doxyfile.in)
+set(DOXYFILE_OUT ${PROJECT_SOURCE_DIR}/docgenerator/scripts/Doxyfile)
 
 #Replace variables inside @@ with the current values
 configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
@@ -23,8 +23,8 @@ add_custom_command(OUTPUT ${DOXYGEN_INDEX_FILE}
 
 add_custom_target(Doxygen ALL DEPENDS ${DOXYGEN_INDEX_FILE})
 
-set(SPHINX_SOURCE ${PROJECT_SOURCE_DIR}/docs/sphinx_source/)
-set(SPHINX_BUILD ${PROJECT_SOURCE_DIR}/docs/sphinx/)
+set(SPHINX_SOURCE ${PROJECT_SOURCE_DIR}/docgenerator/scripts/sphinx_source/)
+set(SPHINX_BUILD ${PROJECT_SOURCE_DIR}/docs)
 set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
 
 add_custom_target(Sphinx ALL
