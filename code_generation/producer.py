@@ -1,6 +1,5 @@
 import code_generation.quantities as q
 
-
 class SafeDict(dict):
     def __missing__(self, key):
         return "{" + key + "}"
@@ -57,7 +56,7 @@ class VectorProducer(Producer):
         calls = []
         shifts = [""]
         if self.output != None:
-            shifts.extend(self.output.shifts)
+            shifts.extend(self.output[0].shifts)
         for shift in shifts:
             #check that all config lists (and output if applicable) have same length
             l = len(config[shift][self.vec_configs[0]])
@@ -72,10 +71,52 @@ class VectorProducer(Producer):
                 for key in self.vec_configs:
                     helper_dict[key] = config[shift][key][i]
                 if self.output!=None:
-                    helper_dict["output"] = self.output[i]
+                    helper_dict["output"] = self.output[i].get_leaf(shift)
                 self.call = basecall.format_map(SafeDict(helper_dict))
                 calls.append(self.writecall(config, shift))
         self.call = basecall
+        return calls
+
+class ProducerGroup():
+    PG_count = 1 #counter for internal quantities used by ProducerGroups
+
+    def __init__(self, call, inputs, output, subproducers):
+        self.call = call
+        self.inputs = inputs
+        self.output = output
+        self.producers = subproducers
+        #link producers
+        for p in self.producers:
+            #skip producers without output
+            if not "output" in p.call:
+                continue
+            #check that output quantities of subproducers are not yet filled
+            if p.output!=None:
+                print("Output of subproducers must be None!")
+                raise Exception
+            #create quantities that are produced by subproducers and then collected by the final call of the producer group
+            p.output = q.Quantity("PG_internal_quantity%i"%self.__class__.PG_count) #quantities of vector producers will be duplicated later on when config is known
+            self.__class__.PG_count += 1
+            self.inputs.append(p.output)
+        #treat own collection function as subproducer
+        self.producers.append(Producer(self.call, self.inputs, self.output))
+
+    def shift(self, name):
+        for producer in self.producers:
+            producer.shift(name)
+
+    def writecalls(self, config):
+        calls = []
+        for producer in self.producers:
+            #duplicate outputs of vector subproducers
+            if hasattr(producer, "vec_configs"):
+                producer.output = [producer.output]
+                for i in range(len(config[""][producer.vec_configs[0]]) - 1):
+                    producer.output.append(producer.output[0].copy("PG_internal_quantity%i"%self.__class__.PG_count))
+                    self.__class__.PG_count += 1
+                    self.inputs.append(producer.output[-1])
+            #retrieve calls of subproducers
+            calls.extend(producer.writecalls(config))
         return calls
 
 
@@ -99,3 +140,9 @@ MetFilter = VectorProducer(
     None,
     ["met_filters"],
 )
+
+TauPtCut = Producer('physicsobject::CutPt({df}, "{input}", "{output}", {ptcut})', [q.Tau_pt], None)
+TauEtaCut = Producer('physicsobject::CutEta({df}, "{input}", "{output}", {etacut})', [q.Tau_eta], None)
+TauDzCut = Producer('physicsobject::CutDz({df}, "{input}", "{output}", {ptcut})', [q.Tau_dz], None)
+TauIDFilters = VectorProducer('physicsobject::tau::FilterTauID({df}, "{output}", "{tau_id}", {tau_id_idx})', [], None, ["tau_id", "tau_id_idx"])
+GoodTaus = ProducerGroup('physicsobject::CombineMasks({df}, "{output}", {input_coll})', [], q.good_taus_mask, [TauPtCut, TauEtaCut, TauDzCut, TauIDFilters])

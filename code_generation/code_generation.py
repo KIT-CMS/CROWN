@@ -11,7 +11,7 @@ def fill_template(t, config):
             # print(call)
             commandlist += (
                 "  auto df%i = " % (df_count + 1)
-                + call.format_map({"df": "df%i" % df_count})
+                + call.format_map(p.SafeDict({"df": "df%i" % df_count}))
                 + ";\n"
             )
             df_count += 1

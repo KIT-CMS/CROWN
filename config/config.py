@@ -5,14 +5,17 @@ import code_generation.producer as p
 
 def build_config():
     base_config = {
-        "ptcut": 2.0,
-        "etacut": 1.0,
+        "ptcut": 30.0,
+        "etacut": 2.3,
+        "dzcut": 0.2,
         "met_filters": ["Flag_goodVertices", "Flag_METFilters"],
+        "tau_id": ["Tau_idDeepTau2017v2p1VSjet", "Tau_idDeepTau2017v2p1VSe", "Tau_idDeepTau2017v2p1VSmu"],
+        "tau_id_idx": [4, 4, 1]
     }
 
     config = {"": copy.deepcopy(base_config), "_tauEsUp": copy.deepcopy(base_config)}
 
-    config["producers"] = ["MetFilter"]
+    config["producers"] = ["MetFilter", "GoodTaus"]
 
     config["_tauEsUp"]["ptcut"] = 2.1
     # write some modifier tools for creating shifts. Should these automatically determine producers that consume params and shift these?
