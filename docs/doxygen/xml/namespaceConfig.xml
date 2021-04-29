@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.18">
+  <compounddef id="namespaceConfig" kind="namespace" language="C++">
+    <compoundname>Config</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="analysis__playground_8cxx_1a26ba75efa30ce2e12578d32e352566f8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto Config::transformation</definition>
+        <argsstring>(auto df, TagSMHTT2016 foo)</argsstring>
+        <name>transformation</name>
+        <param>
+          <type>auto</type>
+          <declname>df</declname>
+        </param>
+        <param>
+          <type>TagSMHTT2016</type>
+          <declname>foo</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/analysis_playground.cxx" line="34" column="6" bodyfile="/work/sbrommer/ntuple_prototype/analysis_playground.cxx" bodystart="34" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="function" id="analysis__playground_8cxx_1ad6288c21d867f53752c7137edb490af3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto Config::transformation</definition>
+        <argsstring>(auto df, TagMSSM foo)</argsstring>
+        <name>transformation</name>
+        <param>
+          <type>auto</type>
+          <declname>df</declname>
+        </param>
+        <param>
+          <type>TagMSSM</type>
+          <declname>foo</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/analysis_playground.cxx" line="38" column="6" bodyfile="/work/sbrommer/ntuple_prototype/analysis_playground.cxx" bodystart="38" bodyend="40"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/work/sbrommer/ntuple_prototype/analysis_playground.cxx" line="33" column="1"/>
+  </compounddef>
+</doxygen>

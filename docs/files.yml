@@ -1,0 +1,3 @@
+SingleMuon: "/ceph/htautau/nanoaod/testing/SingleMuon_2018A.root"
+Tau: "/ceph/htautau/nanoaod/testing/Tau_2018A.root"
+MC: "/ceph/htautau/nanoaod/testing/DYJetsToLL_SUmmer19_UL18.root"

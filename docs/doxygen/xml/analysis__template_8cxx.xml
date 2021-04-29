@@ -1,0 +1,233 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.18">
+  <compounddef id="analysis__template_8cxx" kind="file" language="C++">
+    <compoundname>analysis_template.cxx</compoundname>
+    <includes local="yes">ROOT/RDFHelpers.hxx</includes>
+    <includes local="yes">ROOT/RDataFrame.hxx</includes>
+    <includes local="yes">TStopwatch.h</includes>
+    <includes refid="lorentzvectors_8hxx" local="yes">lorentzvectors.hxx</includes>
+    <includes refid="metfilter_8hxx" local="yes">metfilter.hxx</includes>
+    <includes refid="pairselection_8hxx" local="yes">pairselection.hxx</includes>
+    <includes refid="physicsobjects_8hxx" local="yes">physicsobjects.hxx</includes>
+    <includes local="yes">utility/Logger.hxx</includes>
+    <includes local="no">ROOT/RLogger.hxx</includes>
+    <includes local="no">string</includes>
+    <incdepgraph>
+      <node id="13">
+        <label>physicsobjects.hxx</label>
+        <link refid="physicsobjects_8hxx_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ROOT/RDataFrame.hxx</label>
+      </node>
+      <node id="12">
+        <label>utility/utility.hxx</label>
+      </node>
+      <node id="15">
+        <label>ROOT/RLogger.hxx</label>
+      </node>
+      <node id="2">
+        <label>ROOT/RDFHelpers.hxx</label>
+      </node>
+      <node id="11">
+        <label>TVector2.h</label>
+      </node>
+      <node id="4">
+        <label>TStopwatch.h</label>
+      </node>
+      <node id="16">
+        <label>string</label>
+      </node>
+      <node id="1">
+        <label>/work/sbrommer/ntuple_prototype/analysis_template.cxx</label>
+        <link refid="analysis__template_8cxx"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>pairselection.hxx</label>
+        <link refid="pairselection_8hxx_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>Math/Vector4D.h</label>
+      </node>
+      <node id="6">
+        <label>utility/Logger.hxx</label>
+      </node>
+      <node id="10">
+        <label>ROOT/RVec.hxx</label>
+      </node>
+      <node id="5">
+        <label>lorentzvectors.hxx</label>
+        <link refid="lorentzvectors_8hxx_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="14">
+        <label>basefunctions.hxx</label>
+        <link refid="basefunctions_8hxx_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>metfilter.hxx</label>
+        <link refid="metfilter_8hxx_source"/>
+      </node>
+    </incdepgraph>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="analysis__template_8cxx_1a16066986a0c65fcc754c90c550a7b4b4" prot="public" static="yes" mutable="no">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt;std::string&gt; varSet</definition>
+        <argsstring></argsstring>
+        <name>varSet</name>
+        <initializer>= {&quot;run&quot;, &quot;luminosityBlock&quot;, &quot;event&quot;}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/analysis_template.cxx" line="12" column="20" bodyfile="/work/sbrommer/ntuple_prototype/analysis_template.cxx" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="analysis__template_8cxx_1a0ddf1224851353fc92bfbff6f499fa97" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int main</definition>
+        <argsstring>(int argc, char *argv[])</argsstring>
+        <name>main</name>
+        <param>
+          <type>int</type>
+          <declname>argc</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>argv</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/analysis_template.cxx" line="14" column="5" bodyfile="/work/sbrommer/ntuple_prototype/analysis_template.cxx" bodystart="14" bodyend="72"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#include<sp/>&quot;ROOT/RDFHelpers.hxx&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ROOT/RDataFrame.hxx&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;TStopwatch.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;lorentzvectors.hxx&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;metfilter.hxx&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;pairselection.hxx&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;physicsobjects.hxx&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;utility/Logger.hxx&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;ROOT/RLogger.hxx&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/>std::vector&lt;std::string&gt;<sp/>varSet<sp/>=<sp/>{</highlight><highlight class="stringliteral">&quot;run&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;luminosityBlock&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;event&quot;</highlight><highlight class="normal">};</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>main(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>argc,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*argv[])<sp/>{</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(argc<sp/>!=<sp/>3)<sp/>{</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Logger::get(</highlight><highlight class="stringliteral">&quot;main&quot;</highlight><highlight class="normal">)-&gt;critical(</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;Require<sp/>exactly<sp/>two<sp/>additional<sp/>input<sp/>arguments<sp/>(the<sp/>input<sp/>and<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;output<sp/>paths<sp/>to<sp/>the<sp/>ROOT<sp/>files)<sp/>but<sp/>got<sp/>{}&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>argc<sp/>-<sp/>1);</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>input_path<sp/>=<sp/>argv[1];</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>Logger::get(</highlight><highlight class="stringliteral">&quot;main&quot;</highlight><highlight class="normal">)-&gt;info(</highlight><highlight class="stringliteral">&quot;Input<sp/>file:<sp/>{}&quot;</highlight><highlight class="normal">,<sp/>input_path);</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>output_path<sp/>=<sp/>argv[2];</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>Logger::get(</highlight><highlight class="stringliteral">&quot;main&quot;</highlight><highlight class="normal">)-&gt;info(</highlight><highlight class="stringliteral">&quot;Output<sp/>file:<sp/>{}&quot;</highlight><highlight class="normal">,<sp/>output_path);</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/>TStopwatch<sp/>timer;</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/>timer.Start();</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>ROOT<sp/>logging</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>verbosity<sp/>=<sp/>ROOT::Experimental::RLogScopedVerbosity(</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ROOT::Detail::RDF::RDFLogChannel(),</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ROOT::Experimental::ELogLevel::kInfo);</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>file<sp/>logging</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/>ROOT::RDataFrame<sp/>df0(</highlight><highlight class="stringliteral">&quot;Events&quot;</highlight><highlight class="normal">,<sp/>input_path);</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>for<sp/>testing,<sp/>we<sp/>limit<sp/>to<sp/>1000<sp/>events<sp/>only</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>1st<sp/>stage:<sp/>Good<sp/>object<sp/>selection</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>Logger::enableFileLogging(</highlight><highlight class="stringliteral">&quot;logs/main.txt&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/>Logger::setLevel(Logger::LogLevel::INFO);</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/>Logger::get(</highlight><highlight class="stringliteral">&quot;main&quot;</highlight><highlight class="normal">)-&gt;info(</highlight><highlight class="stringliteral">&quot;Starting<sp/>Setup<sp/>of<sp/>Dataframe&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>auto<sp/>df_final<sp/>=<sp/>df0;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>{CODE_GENERATION}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>cutReport<sp/>=<sp/>df_final.Report();</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Logger::get(&quot;main&quot;)-&gt;debug(df_final.Describe());<sp/>//<sp/>&lt;--<sp/>starting<sp/>from</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>ROOT<sp/>6.25</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/>Logger::get(</highlight><highlight class="stringliteral">&quot;main&quot;</highlight><highlight class="normal">)-&gt;info(</highlight><highlight class="stringliteral">&quot;Finished<sp/>Setup&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/>Logger::get(</highlight><highlight class="stringliteral">&quot;main&quot;</highlight><highlight class="normal">)-&gt;info(</highlight><highlight class="stringliteral">&quot;Runtime<sp/>for<sp/>setup<sp/>(real<sp/>time:<sp/>{},<sp/>CPU<sp/>time:<sp/>{})&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>timer.RealTime(),<sp/>timer.CpuTime());</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/>timer.Continue();</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/>Logger::get(</highlight><highlight class="stringliteral">&quot;main&quot;</highlight><highlight class="normal">)-&gt;info(</highlight><highlight class="stringliteral">&quot;Starting<sp/>Evaluation&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/>df_final.Snapshot(</highlight><highlight class="stringliteral">&quot;ntuple&quot;</highlight><highlight class="normal">,<sp/>output_path,<sp/>varSet);</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>cutReport-&gt;Print();</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/>Logger::get(</highlight><highlight class="stringliteral">&quot;main&quot;</highlight><highlight class="normal">)-&gt;info(</highlight><highlight class="stringliteral">&quot;Finished<sp/>Evaluation&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>nruns<sp/>=<sp/>df_final.GetNRuns();</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(nruns<sp/>!=<sp/>1)<sp/>{</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Logger::get(</highlight><highlight class="stringliteral">&quot;main&quot;</highlight><highlight class="normal">)-&gt;critical(</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;Analysis<sp/>runs<sp/>more<sp/>than<sp/>one<sp/>event<sp/>loop!&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>as<sp/>a<sp/>first<sp/>testcase,<sp/>we<sp/>work<sp/>on<sp/>selecting<sp/>good<sp/>muons</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/>Logger::get(</highlight><highlight class="stringliteral">&quot;main&quot;</highlight><highlight class="normal">)-&gt;info(</highlight><highlight class="stringliteral">&quot;Overall<sp/>runtime<sp/>(real<sp/>time:<sp/>{},<sp/>CPU<sp/>time:<sp/>{})&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>timer.RealTime(),<sp/>timer.CpuTime());</highlight></codeline>
+<codeline lineno="72"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="/work/sbrommer/ntuple_prototype/analysis_template.cxx"/>
+  </compounddef>
+</doxygen>

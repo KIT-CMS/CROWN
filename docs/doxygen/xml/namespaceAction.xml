@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.18">
+  <compounddef id="namespaceAction" kind="namespace" language="C++">
+    <compoundname>Action</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="analysis__playground_8cxx_1aeb168161058b37a1d98cea18efc0801a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto Action::transformation</definition>
+        <argsstring>(auto df, const float foo, const std::vector&lt; std::string &gt; &amp;vars)</argsstring>
+        <name>transformation</name>
+        <param>
+          <type>auto</type>
+          <declname>df</declname>
+        </param>
+        <param>
+          <type>const float</type>
+          <declname>foo</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>vars</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/work/sbrommer/ntuple_prototype/analysis_playground.cxx" line="27" column="6" bodyfile="/work/sbrommer/ntuple_prototype/analysis_playground.cxx" bodystart="27" bodyend="30"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/work/sbrommer/ntuple_prototype/analysis_playground.cxx" line="26" column="1"/>
+  </compounddef>
+</doxygen>

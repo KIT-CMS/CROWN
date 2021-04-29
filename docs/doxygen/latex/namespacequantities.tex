@@ -1,0 +1,109 @@
+\hypertarget{namespacequantities}{}\doxysection{quantities Namespace Reference}
+\label{namespacequantities}\index{quantities@{quantities}}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+auto \mbox{\hyperlink{namespacequantities_a9f540d78b507e07cffcefb9952a6b8d5}{pt}} (auto df, std\+::vector$<$ std\+::string $>$ var\+Set, const std\+::string \&outputname, const std\+::string \&inputvector)
+\item 
+auto \mbox{\hyperlink{namespacequantities_a88c8f32db1b0b21d2d9d6a0372c6ad20}{eta}} (auto df, std\+::vector$<$ std\+::string $>$ var\+Set, const std\+::string \&outputname, const std\+::string \&inputvector)
+\item 
+auto \mbox{\hyperlink{namespacequantities_a1bbe36bb71e290fc362fd6ee2ba90414}{phi}} (auto df, std\+::vector$<$ std\+::string $>$ var\+Set, const std\+::string \&outputname, const std\+::string \&inputvector)
+\item 
+auto \mbox{\hyperlink{namespacequantities_af7cd7e5effc0d3a2652dcbf13f32d7d4}{m\+\_\+vis}} (auto df, std\+::vector$<$ std\+::string $>$ var\+Set, const std\+::string \&outputname, const std\+::string \&inputvector1, const std\+::string \&inputvector2)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+The namespace that is used to hold the functions for basic quantities that are needed for every event 
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{namespacequantities_a88c8f32db1b0b21d2d9d6a0372c6ad20}\label{namespacequantities_a88c8f32db1b0b21d2d9d6a0372c6ad20}} 
+\index{quantities@{quantities}!eta@{eta}}
+\index{eta@{eta}!quantities@{quantities}}
+\doxysubsubsection{\texorpdfstring{eta()}{eta()}}
+{\footnotesize\ttfamily auto quantities\+::eta (\begin{DoxyParamCaption}\item[{auto}]{df,  }\item[{std\+::vector$<$ std\+::string $>$}]{var\+Set,  }\item[{const std\+::string \&}]{outputname,  }\item[{const std\+::string \&}]{inputvector }\end{DoxyParamCaption})}
+
+Function to calculate the eta from a given lorentz vector and add it to the dataframe
+
+
+\begin{DoxyParams}{Parameters}
+{\em df} & the dataframe to add the quantity to \\
+\hline
+{\em var\+Set} & -\/ vector of variables with are snapsotted in the end \\
+\hline
+{\em outputname} & name of the new column containing the eta value \\
+\hline
+{\em inputvector} & name of the column containing the lorentz vector\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a dataframe with the new column 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespacequantities_af7cd7e5effc0d3a2652dcbf13f32d7d4}\label{namespacequantities_af7cd7e5effc0d3a2652dcbf13f32d7d4}} 
+\index{quantities@{quantities}!m\_vis@{m\_vis}}
+\index{m\_vis@{m\_vis}!quantities@{quantities}}
+\doxysubsubsection{\texorpdfstring{m\_vis()}{m\_vis()}}
+{\footnotesize\ttfamily auto quantities\+::m\+\_\+vis (\begin{DoxyParamCaption}\item[{auto}]{df,  }\item[{std\+::vector$<$ std\+::string $>$}]{var\+Set,  }\item[{const std\+::string \&}]{outputname,  }\item[{const std\+::string \&}]{inputvector1,  }\item[{const std\+::string \&}]{inputvector2 }\end{DoxyParamCaption})}
+
+Function to calculate the mass from a pair of lorentz vectors and add it to the dataframe
+
+
+\begin{DoxyParams}{Parameters}
+{\em df} & the dataframe to add the quantity to \\
+\hline
+{\em var\+Set} & -\/ vector of variables with are snapsotted in the end \\
+\hline
+{\em outputname} & name of the new column containing the pt value \\
+\hline
+{\em inputvector1} & name of the column containing the first lorentz vector \\
+\hline
+{\em inputvector2} & name of the column containing the second lorentz vector\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a dataframe with the new column 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespacequantities_a1bbe36bb71e290fc362fd6ee2ba90414}\label{namespacequantities_a1bbe36bb71e290fc362fd6ee2ba90414}} 
+\index{quantities@{quantities}!phi@{phi}}
+\index{phi@{phi}!quantities@{quantities}}
+\doxysubsubsection{\texorpdfstring{phi()}{phi()}}
+{\footnotesize\ttfamily auto quantities\+::phi (\begin{DoxyParamCaption}\item[{auto}]{df,  }\item[{std\+::vector$<$ std\+::string $>$}]{var\+Set,  }\item[{const std\+::string \&}]{outputname,  }\item[{const std\+::string \&}]{inputvector }\end{DoxyParamCaption})}
+
+Function to calculate the eta from a given lorentz vector and add it to the dataframe
+
+
+\begin{DoxyParams}{Parameters}
+{\em df} & the dataframe to add the quantity to \\
+\hline
+{\em var\+Set} & -\/ vector of variables with are snapsotted in the end \\
+\hline
+{\em outputname} & name of the new column containing the eta value \\
+\hline
+{\em inputvector} & name of the column containing the lorentz vector\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a dataframe with the new column 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespacequantities_a9f540d78b507e07cffcefb9952a6b8d5}\label{namespacequantities_a9f540d78b507e07cffcefb9952a6b8d5}} 
+\index{quantities@{quantities}!pt@{pt}}
+\index{pt@{pt}!quantities@{quantities}}
+\doxysubsubsection{\texorpdfstring{pt()}{pt()}}
+{\footnotesize\ttfamily auto quantities\+::pt (\begin{DoxyParamCaption}\item[{auto}]{df,  }\item[{std\+::vector$<$ std\+::string $>$}]{var\+Set,  }\item[{const std\+::string \&}]{outputname,  }\item[{const std\+::string \&}]{inputvector }\end{DoxyParamCaption})}
+
+Function to calculate the pt from a given lorentz vector and add it to the dataframe
+
+
+\begin{DoxyParams}{Parameters}
+{\em df} & the dataframe to add the quantity to \\
+\hline
+{\em var\+Set} & -\/ vector of variables with are snapsotted in the end \\
+\hline
+{\em outputname} & name of the new column containing the pt value \\
+\hline
+{\em inputvector} & name of the column containing the lorentz vector\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a dataframe with the new column 
+\end{DoxyReturn}
