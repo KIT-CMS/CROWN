@@ -201,7 +201,7 @@ MuonIDFilter = Producer(
     'physicsobject::muon::FilterID({df}, "{output}", "{muon_id}")', [], None
 )
 MuonIsoFilter = Producer(
-    'physicsobject::muon::FilterIsolation({df}, "{output}", "{muon_iso}", "{muon_iso_cut}")',
+    'physicsobject::muon::FilterIsolation({df}, "{output}", "{muon_iso}", {muon_iso_cut})',
     [],
     None,
 )
