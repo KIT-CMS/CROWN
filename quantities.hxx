@@ -12,7 +12,7 @@ namespace quantities {
 /// \param outputname name of the new column containing the pt value
 /// \param inputvector name of the column containing the lorentz vector
 ///
-/// \returns df return a dataframe with the new column
+/// \returns a dataframe with the new column
 
 auto pt(auto df, std::vector<std::string> varSet, const std::string &outputname,
         const std::string &inputvector) {
@@ -30,7 +30,7 @@ auto pt(auto df, std::vector<std::string> varSet, const std::string &outputname,
 /// \param outputname name of the new column containing the eta value
 /// \param inputvector name of the column containing the lorentz vector
 ///
-/// \returns df return a dataframe with the new column
+/// \returns a dataframe with the new column
 
 auto eta(auto df, std::vector<std::string> varSet,
          const std::string &outputname, const std::string &inputvector) {
@@ -48,7 +48,7 @@ auto eta(auto df, std::vector<std::string> varSet,
 /// \param outputname name of the new column containing the eta value
 /// \param inputvector name of the column containing the lorentz vector
 ///
-/// \returns df return a dataframe with the new column
+/// \returns a dataframe with the new column
 
 auto phi(auto df, std::vector<std::string> varSet,
          const std::string &outputname, const std::string &inputvector) {
@@ -67,7 +67,7 @@ auto phi(auto df, std::vector<std::string> varSet,
 /// \param inputvector1 name of the column containing the first lorentz vector
 /// \param inputvector2 name of the column containing the second lorentz vector
 ///
-/// \returns df return a dataframe with the new column
+/// \returns a dataframe with the new column
 
 auto m_vis(auto df, std::vector<std::string> varSet,
            const std::string &outputname, const std::string &inputvector1,
