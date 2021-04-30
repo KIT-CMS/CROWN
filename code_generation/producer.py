@@ -13,8 +13,9 @@ class Producer:
         self.output = output
 
         # keep track of variable dependencies
-        for q in self.inputs:
-            q.children.append(self.output)
+        if self.output != None:
+            for qy in self.inputs:
+                qy.children.append(self.output)
 
     def shift(self, name):
         if isinstance(self.output, list):
@@ -101,23 +102,26 @@ class ProducerGroup:
         self.inputs = inputs
         self.output = output
         self.producers = subproducers
-        # link producers
-        for p in self.producers:
-            # check that output quantities of subproducers are not yet filled
-            if p.output != None:
-                print("Output of subproducers must be None!") 
-                raise Exception 
-            # skip producers without output
-            if not "output" in p.call:
-                continue
-            # create quantities that are produced by subproducers and then collected by the final call of the producer group
-            p.output = q.Quantity(
-                "PG_internal_quantity_%i" % self.__class__.PG_count
-            )  # quantities of vector producers will be duplicated later on when config is known
-            self.__class__.PG_count += 1
-            self.inputs.append(p.output)
-        # treat own collection function as subproducer
-        self.producers.append(Producer(self.call, self.inputs, self.output))
+        # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
+        if self.call != None:
+            for p in self.producers:
+                # check that output quantities of subproducers are not yet filled
+                if p.output != None:
+                    print("Output of subproducers must be None!")
+                    raise Exception
+                # skip producers without output
+                if not "output" in p.call:
+                    continue
+                # create quantities that are produced by subproducers and then collected by the final call of the producer group
+                p.output = q.Quantity(
+                    "PG_internal_quantity_%i" % self.__class__.PG_count
+                )  # quantities of vector producers will be duplicated later on when config is known
+                for qy in p.inputs:
+                    qy.children.append(p.output)
+                self.__class__.PG_count += 1
+                self.inputs.append(p.output)
+            # treat own collection function as subproducer
+            self.producers.append(Producer(self.call, self.inputs, self.output))
 
     def shift(self, name):
         for producer in self.producers:
@@ -126,8 +130,8 @@ class ProducerGroup:
     def writecalls(self, config):
         calls = []
         for producer in self.producers:
-            # duplicate outputs of vector subproducers
-            if hasattr(producer, "vec_configs"):
+            # duplicate outputs of vector subproducers if they were generated automatically
+            if self.call != None and hasattr(producer, "vec_configs"):
                 producer.output = [producer.output]
                 for i in range(len(config[""][producer.vec_configs[0]]) - 1):
                     producer.output.append(
@@ -201,8 +205,8 @@ MuonIDFilter = Producer(
     'physicsobject::muon::FilterID({df}, "{output}", "{muon_id}")', [], None
 )
 MuonIsoFilter = Producer(
-    'physicsobject::muon::FilterIsolation({df}, "{output}", "{muon_iso}", {muon_iso_cut})',
-    [],
+    'physicsobject::muon::FilterIsolation({df}, "{output}", "{input}", {muon_iso_cut})',
+    [q.Muon_iso],
     None,
 )
 GoodMuons = ProducerGroup(
@@ -218,3 +222,58 @@ RequireObjects = VectorProducer(
     None,
     ["require_candidate", "require_candidate_number"],
 )
+
+MTPairSelection = Producer(
+    'pairselection::mutau::PairSelection({df}, {input_coll}, "{output}")',
+    [q.Tau_pt, q.Tau_IDraw, q.Muon_pt, q.Muon_iso, q.good_taus_mask, q.good_muons_mask],
+    q.ditaupair,
+)
+
+GoodMTPairFilter = Producer(
+    'pairselection::filterGoodPairs({df}, "{input}", "GoodMuTauPairs")',
+    [q.ditaupair],
+    None,
+)
+
+LVMu1 = Producer(
+    'lorentzvectors::build({df}, {input_coll}, 0, "{output}")',
+    [q.ditaupair, q.Muon_pt, q.Muon_eta, q.Muon_phi, q.Muon_mass],
+    q.p4_1,
+)
+LVMu2 = Producer(
+    'lorentzvectors::build({df}, {input_coll}, 1, "{output}")',
+    [q.ditaupair, q.Muon_pt, q.Muon_eta, q.Muon_phi, q.Muon_mass],
+    q.p4_2,
+)
+LVTau1 = Producer(
+    'lorentzvectors::build({df}, {input_coll}, 0, "{output}")',
+    [q.ditaupair, q.Tau_pt, q.Tau_eta, q.Tau_phi, q.Tau_mass],
+    q.p4_1,
+)
+LVTau2 = Producer(
+    'lorentzvectors::build({df}, {input_coll}, 1, "{output}")',
+    [q.ditaupair, q.Tau_pt, q.Tau_eta, q.Tau_phi, q.Tau_mass],
+    q.p4_2,
+)
+
+pt_1 = Producer('quantities::pt({df}, varSet, "{output}", "{input}")', [q.p4_1], q.pt_1)
+pt_2 = Producer('quantities::pt({df}, varSet, "{output}", "{input}")', [q.p4_2], q.pt_2)
+eta_1 = Producer(
+    'quantities::eta({df}, varSet, "{output}", "{input}")', [q.p4_1], q.eta_1
+)
+eta_2 = Producer(
+    'quantities::eta({df}, varSet, "{output}", "{input}")', [q.p4_2], q.eta_2
+)
+phi_1 = Producer(
+    'quantities::phi({df}, varSet, "{output}", "{input}")', [q.p4_1], q.phi_1
+)
+phi_2 = Producer(
+    'quantities::phi({df}, varSet, "{output}", "{input}")', [q.p4_2], q.phi_2
+)
+UnrollLV1 = ProducerGroup(None, None, None, [pt_1, eta_1, phi_1])
+UnrollLV2 = ProducerGroup(None, None, None, [pt_2, eta_2, phi_2])
+
+m_vis = Producer(
+    'quantities::pt({df}, varSet, "{output}", {input_coll})', [q.p4_1, q.p4_2], q.m_vis
+)
+DiTauPairQuantities = ProducerGroup(None, None, None, [UnrollLV1, UnrollLV2, m_vis])

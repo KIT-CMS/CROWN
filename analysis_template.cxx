@@ -5,6 +5,7 @@
 #include "metfilter.hxx"
 #include "pairselection.hxx"
 #include "physicsobjects.hxx"
+#include "quantities.hxx"
 #include "utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
 #include <string>

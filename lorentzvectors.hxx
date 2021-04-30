@@ -31,6 +31,7 @@ auto buildparticle(auto df, const std::vector<std::string> quantities,
     // cols.push_back(particle + "_phi");
     // cols.push_back(particle + "_mass");
     // const auto outputcol = "p4_" + std::to_string(position+1);
+    std::cout << outputname << std::endl;
     auto df1 = df.Define(
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<float> &pts,
@@ -53,6 +54,12 @@ auto buildparticle(auto df, const std::vector<std::string> quantities,
         },
         quantities);
     return df1;
+}
+
+auto build(auto df, const std::vector<std::string> &obj_quantities, const int pairindex, const std::string &obj_p4_name){
+    for (auto i : obj_quantities)
+        Logger::get("lorentzvectors")->debug("Used object quantities {}", i);
+    return lorentzvectors::buildparticle(df, obj_quantities, obj_p4_name, pairindex);
 }
 
 /// namespace used for mutau lorentzvectors
