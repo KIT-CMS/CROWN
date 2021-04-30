@@ -9,17 +9,22 @@ find_package(Doxygen 1.8 REQUIRED)
 find_package(Sphinx 3.4 REQUIRED)
 find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
 
-execute_process(COMMAND "${Python_EXECUTABLE}" "-c" "import breathe; print(breathe.__version__)"
-                RESULT_VARIABLE BREATHE_NOT_FOUND
-                OUTPUT_VARIABLE BREATHE_VERSION
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
-if(${BREATHE_NOT_FOUND} EQUAL 1)
-    message(FATAL_ERROR "Failed to import breathe or get version.")
-endif()
-set(BREATHE_MIN_VERSION 4.29)
-if(BREATHE_VERSION VERSION_LESS BREATHE_MIN_VERSION)
-    message(FATAL_ERROR "The version of python-breathe is too old (found ${BREATHE_VERSION}, require at least ${BREATHE_MIN_VERSION}).")
-endif()
+function(find_python_package NAME MIN_VERSION)
+    execute_process(COMMAND "${Python_EXECUTABLE}" "-c" "import ${NAME}; print(${NAME}.__version__)"
+                    RESULT_VARIABLE PACKAGE_NOT_FOUND
+                    OUTPUT_VARIABLE PACKAGE_VERSION
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(${PACKAGE_NOT_FOUND} EQUAL 1)
+        message(FATAL_ERROR "Failed to import ${NAME} or get version.")
+    endif()
+    if(PACKAGE_VERSION VERSION_LESS MIN_VERSION)
+        message(FATAL_ERROR "The version of Python package ${NAME} is too old (found ${PACKAGE_VERSION}, require at least ${MIN_VERSION}).")
+    endif()
+    message(STATUS "Found Python package ${NAME} (require ${MIN_VERSION}, found ${PACKAGE_VERSION})")
+endfunction()
+
+find_python_package(breathe 4.29)
+find_python_package(sphinx_rtd_theme 0.5)
 
 # adapted from https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/
 
