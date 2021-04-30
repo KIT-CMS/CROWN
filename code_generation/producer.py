@@ -146,20 +146,6 @@ class ProducerGroup:
         return calls
 
 
-prod1 = Producer(
-    "phyticsd::FilterID(auto {df}, const std::string {output}, std::string isolationName)",
-    [],
-    q.pt_1,
-)
-prod2 = Producer(
-    "FilterID(auto {df}, const std::string {output}, std::string isolationName)",
-    [],
-    q.pt_2,
-)
-prod3 = Producer(
-    'FilterID({df}, "{output}", {input_coll}, {ptcut})', [q.pt_1, q.pt_2], q.m_vis
-)
-
 MetFilter = VectorProducer(
     'metfilter::ApplyMetFilter({df}, "{met_filters}", "{met_filters}")',
     [],
