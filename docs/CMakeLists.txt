@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Create the project
-project(Docs)
+project(Docs NONE)
 
 # Search for dependencies
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
