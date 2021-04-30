@@ -17,7 +17,7 @@ jobs:
 
     steps:
     - name: Install missing software
-      run: pacman -Syu --noconfirm git cmake make doxygen python-sphinx python-breathe
+      run: pacman -Syu --noconfirm git cmake make doxygen python-pip && pip install breathe sphinx_rtd_theme
 
     - uses: actions/checkout@v2
 
