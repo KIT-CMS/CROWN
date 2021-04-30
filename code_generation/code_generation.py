@@ -16,13 +16,14 @@ def fill_template(t, config):
 
     # get commands of producers and append to the command list
     for producer in config["producers"]:
+        commandlist += "\n    //" + producer + "\n"
         for call in getattr(p, producer).writecalls(config):
             # print(call)
             commandlist += (
-                "  auto df%i = " % (df_count + 1)
+                "    auto df%i = " % (df_count + 1)
                 + call.format_map(p.SafeDict({"df": "df%i" % df_count}))
                 + ";\n"
             )
             df_count += 1
-    commandlist += "  auto df_final = df%i;" % df_count
-    return t.replace("  // {CODE_GENERATION}", commandlist)
+    commandlist += "    auto df_final = df%i;" % df_count
+    return t.replace("    // {CODE_GENERATION}", commandlist)
