@@ -1,0 +1,38 @@
+name: Docs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_project:
+    runs-on: ubuntu-20.04
+    container:
+        image: rootproject/root:6.24.00-arch
+        options: --user 0 # run as root
+
+    steps:
+    - name: Install missing software
+      run: pacman -Syu --noconfirm git cmake doxygen python-sphinx
+
+    - uses: actions/checkout@v2
+
+    - name: Create Build Environment
+      shell: bash
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE/docs
+
+    - name: Build docs
+      shell: bash
+      run: cd ${{github.workspace}}/build && make
+
+    - name: Publish
+      shell: bash
+      run: echo "TODO"
