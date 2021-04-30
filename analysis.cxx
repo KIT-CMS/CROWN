@@ -78,8 +78,10 @@ int main() {
     auto df24_2 =
         physicsobject::FilterObjects(df24_1, "nMuon", 1, "NumberOfMuons");
     auto mt_df = pairselection::mutau::PairSelection(
-        df24_2, {"Tau_pt", "Tau_rawDeepTau2017v2p1VSjet", "Muon_pt",
-                          "Muon_pfRelIso04_all", "good_taus_mask", "good_muons_mask"}, "mtpair");
+        df24_2,
+        {"Tau_pt", "Tau_rawDeepTau2017v2p1VSjet", "Muon_pt",
+         "Muon_pfRelIso04_all", "good_taus_mask", "good_muons_mask"},
+        "mtpair");
     auto mt_df_1 =
         pairselection::filterGoodPairs(mt_df, "mtpair", "GoodMuTauPairs");
     auto mt_df_2 = lorentzvectors::mutau::build(
@@ -91,7 +93,8 @@ int main() {
     auto mt_df_6 = quantities::eta(mt_df_5, varSet, "eta_2", "p4_2");
     auto mt_df_7 = quantities::phi(mt_df_6, varSet, "phi_1", "p4_1");
     auto mt_df_8 = quantities::phi(mt_df_7, varSet, "phi_2", "p4_2");
-    auto mt_df_9 = quantities::m_vis(mt_df_8, varSet, "m_vis", {"p4_1", "p4_2"});
+    auto mt_df_9 =
+        quantities::m_vis(mt_df_8, varSet, "m_vis", {"p4_1", "p4_2"});
 
     auto df_final = mt_df_9;
     auto cutReport = df_final.Report();
