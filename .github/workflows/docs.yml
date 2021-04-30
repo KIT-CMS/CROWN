@@ -17,7 +17,7 @@ jobs:
 
     steps:
     - name: Install missing software
-      run: pacman -Syu --noconfirm git cmake make doxygen python-sphinx
+      run: pacman -Syu --noconfirm git cmake make doxygen python-sphinx python-breathe
 
     - uses: actions/checkout@v2
 
