@@ -18,7 +18,7 @@ def build_config():
         ],
         "tau_id_idx": [4, 4, 1],
         "muon_id": "Muon_mediumId",
-        "muon_iso": "Muon_pfRelIso04_all",
+        # "muon_iso": "Muon_pfRelIso04_all",
         "muon_iso_cut": 0.15,
         "require_candidate": ["nTau", "nMuon"],
         "require_candidate_number": [1, 1],
@@ -26,7 +26,16 @@ def build_config():
 
     config = {"": copy.deepcopy(base_config), "_tauCutUp": copy.deepcopy(base_config)}
 
-    config["producers"] = ["MetFilter", "GoodTaus", "GoodMuons"]
+    config["producers"] = [
+        "MetFilter",
+        "GoodTaus",
+        "GoodMuons",
+        "MTPairSelection",
+        "GoodMTPairFilter",
+        "LVMu1",
+        "LVTau2",
+        "DiTauPairQuantities",
+    ]
 
     config["_tauCutUp"]["min_tau_pt"] = 31.0
     config["_tauCutUp"]["shiftbase"] = ["TauPtCut"]

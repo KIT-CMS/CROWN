@@ -209,13 +209,11 @@ auto PairSelectionAlgo() {
 ///  TODO add documentation here
 ///
 /// \returns a dataframe containing the new pairname column
-auto PairSelection(auto df, const std::string taumask,
-                   const std::string muonmask, const std::string pairname,
-                   const std::vector<std::string> pairvariables) {
+auto PairSelection(auto df, const std::vector<std::string> input_vector,
+                   const std::string pairname) {
     Logger::get("PairSelection")->debug("Setting up mutau pair building");
     auto df1 = df.Define(pairname, pairselection::mutau::PairSelectionAlgo(),
-                         {"Tau_pt", "Tau_rawDeepTau2017v2p1VSjet", "Muon_pt",
-                          "Muon_pfRelIso04_all", taumask, muonmask});
+                         input_vector);
     return df1;
 }
 
