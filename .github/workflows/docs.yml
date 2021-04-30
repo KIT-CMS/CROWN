@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  build_project:
+  build:
     runs-on: ubuntu-20.04
     container:
         image: rootproject/root:6.24.00-arch
