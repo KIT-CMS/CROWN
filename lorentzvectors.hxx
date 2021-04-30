@@ -25,13 +25,6 @@ namespace lorentzvectors {
 /// \returns a new dataframe, which contains the new lorentz vector
 auto buildparticle(auto df, const std::vector<std::string> quantities,
                    const std::string outputname, const int &position) {
-    // std::vector<std::string> cols;
-    // cols.push_back(particle + "_pt");
-    // cols.push_back(particle + "_eta");
-    // cols.push_back(particle + "_phi");
-    // cols.push_back(particle + "_mass");
-    // const auto outputcol = "p4_" + std::to_string(position+1);
-    std::cout << outputname << std::endl;
     auto df1 = df.Define(
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<float> &pts,

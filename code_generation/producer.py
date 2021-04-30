@@ -260,6 +260,6 @@ UnrollLV1 = ProducerGroup(None, None, None, [pt_1, eta_1, phi_1])
 UnrollLV2 = ProducerGroup(None, None, None, [pt_2, eta_2, phi_2])
 
 m_vis = Producer(
-    'quantities::pt({df}, varSet, "{output}", {input_coll})', [q.p4_1, q.p4_2], q.m_vis
+    'quantities::m_vis({df}, varSet, "{output}", {input_coll})', [q.p4_1, q.p4_2], q.m_vis
 )
 DiTauPairQuantities = ProducerGroup(None, None, None, [UnrollLV1, UnrollLV2, m_vis])
