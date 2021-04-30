@@ -151,10 +151,3 @@ endforeach()
 # Include tests
 enable_testing()
 add_subdirectory(tests)
-
-# documentation stuff
-if (DEFINED DOCS)
-    set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-    message(STATUS "Enable documentation generation")
-    add_subdirectory(docgenerator)
-endif()
