@@ -153,9 +153,8 @@ enable_testing()
 add_subdirectory(tests)
 
 # documentation stuff
-if (DEFINED RUN_DOCS)
-    # Find Sphinx for documentation
+if (DEFINED DOCS)
     set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-    message(STATUS "Updating Documentation ...")
+    message(STATUS "Enable documentation generation")
     add_subdirectory(docgenerator)
 endif()
