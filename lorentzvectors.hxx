@@ -56,10 +56,12 @@ auto buildparticle(auto df, const std::vector<std::string> quantities,
     return df1;
 }
 
-auto build(auto df, const std::vector<std::string> &obj_quantities, const int pairindex, const std::string &obj_p4_name){
+auto build(auto df, const std::vector<std::string> &obj_quantities,
+           const int pairindex, const std::string &obj_p4_name) {
     for (auto i : obj_quantities)
         Logger::get("lorentzvectors")->debug("Used object quantities {}", i);
-    return lorentzvectors::buildparticle(df, obj_quantities, obj_p4_name, pairindex);
+    return lorentzvectors::buildparticle(df, obj_quantities, obj_p4_name,
+                                         pairindex);
 }
 
 /// namespace used for mutau lorentzvectors
