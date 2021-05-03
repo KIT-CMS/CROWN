@@ -1,63 +1,85 @@
 #include "ROOT/RDataFrame.hxx"
 #include "basefunctions.hxx"
-/*
-class Foo {
-    Channel mChannel;
-
-public:
-    Foo(const Channel channel){
-        mChannel = foo;
-    }
-
-    float operator()(float x){
-        if (mChannel == Channel::MT) {
-            return x > 42;
-        } else {
-            ...;
-        }
-    }
-};
-
-ROOT::RDataFrame df(...);
-Foo foo(...);
-df.Define("y", foo, {"x"});
-
-float MyFoo(float x, Channel channel) {
-    if (channel == Channel::MT) {
-        return 42;
-    }
-}
-*/
-
+/// Namespace containing function to apply filters on physics objects. The
+/// filter results are typically stored within a mask, which is represented by
+/// an `ROOT::RVec<int>`.
+///    \code
+///    In the mask
+///    1 --> filter is passed by the object
+///    0 --> filter is not passed by the object
+///    \endcode
+/// multiple filters can be combined by multiplying masks using
+/// physicsobject::CombineMasks.
 namespace physicsobject {
+/// Function to select objects above a pt threshold, using
+/// basefunctions::FilterMin
+///
+/// \param[in] df the input dataframe
+/// \param[in] quantity name of the pt column in the NanoAOD
+/// \param[out] maskname the name of the mask to be added as column to the
+/// dataframe \param[in] ptThreshold minimal pt value
+///
+/// \return a dataframe containing the new mask
 auto CutPt(auto df, const std::string quantity, const std::string maskname,
            const float ptThreshold) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterMin(ptThreshold), {quantity});
     return df1;
 }
-
+/// Function to select objects blow an eta threshold, using
+/// basefunctions::FilterAbsMax
+///
+/// \param[in] df the input dataframe
+/// \param[in] quantity name of the eta column in the NanoAOD
+/// \param[out] maskname the name of the mask to be added as column to the
+/// dataframe \param[in] EtaThreshold maximal eta value
+///
+/// \return a dataframe containing the new mask
 auto CutEta(auto df, const std::string quantity, const std::string maskname,
             const float EtaThreshold) {
     auto df1 = df.Define(maskname, basefunctions::FilterAbsMax(EtaThreshold),
                          {quantity});
     return df1;
 }
-
+/// Function to select objects below an Dz threshold, using
+/// basefunctions::FilterMax
+///
+/// \param[in] df the input dataframe
+/// \param[in] quantity name of the Dz column in the NanoAOD
+/// \param[out] maskname the name of the mask to be added as column to the
+/// dataframe \param[in] Threshold maximal Dz value
+///
+/// \return a dataframe containing the new mask
 auto CutDz(auto df, const std::string quantity, const std::string maskname,
            const float Threshold) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterMax(Threshold), {quantity});
     return df1;
 }
-
+/// Function to select objects below an Dxy threshold, using
+/// basefunctions::FilterMax
+///
+/// \param[in] df the input dataframe
+/// \param[in] quantity name of the Dxy column in the NanoAOD
+/// \param[out] maskname the name of the mask to be added as column to the
+/// dataframe \param[in] Threshold maximal Dxy value
+///
+/// \return a dataframe containing the new mask
 auto CutDxy(auto df, const std::string quantity, const std::string maskname,
             const float Threshold) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterMax(Threshold), {quantity});
     return df1;
 }
-
+/// Function to combine a list of masks into a single mask. This is done be
+/// multiplying all input masks
+///
+/// \param[in] df the input dataframe
+/// \param[out] maskname the name of the new mask to be added as column to the
+/// dataframe \param[in] MaskList a `std::vector<std::string>` containing all
+/// masknames to be combined into a single mask
+///
+/// \return a dataframe containing the new mask
 auto CombineMasks(auto df, const std::string maskname,
                   std::vector<std::string> MaskList) {
     // if(MaskList.size() == 0)
@@ -92,24 +114,38 @@ auto FilterMasks(auto df, const std::string maskname) {
         {maskname});
     return df1;
 }
+// auto FilterObjects(auto df, const std::string objectcounter,
+//                    const int minThreshold, const std::string filtername) {
+//     return df.Filter(
+//         [minThreshold](const UInt_t &nobject) {
+//             return nobject >= minThreshold;
+//         },
+//         {objectcounter}, filtername);
+// }
 
-auto FilterObjects(auto df, const std::string objectcounter,
-                   const int minThreshold, const std::string filtername) {
-    return df.Filter(
-        [minThreshold](const UInt_t &nobject) {
-            return nobject >= minThreshold;
-        },
-        {objectcounter}, filtername);
-}
-
+/// Muon specific functions
 namespace muon {
-
+/// Function to filter muons based on the muon ID
+///
+/// \param[in] df the input dataframe
+/// \param[out] maskname the name of the new mask to be added as column to the
+/// dataframe \param[in] nameID name of the ID column in the NanoAOD
+///
+/// \return a dataframe containing the new mask
 auto FilterID(auto df, const std::string maskname, const std::string nameID) {
     auto df1 = df.Define(
         maskname, [](const ROOT::RVec<Bool_t> &id) { return id; }, {nameID});
     return df1;
 }
-
+/// Function to filter muons based on the muon isolation using
+/// basefunctions::FilterMax
+///
+/// \param[in] df the input dataframe
+/// \param[in] isolationName name of the isolation column in the NanoAOD
+/// \param[out] maskname the name of the new mask to be added as column to the
+/// dataframe \param[in] Threshold maximal isolation threshold
+///
+/// \return a dataframe containing the new mask
 auto FilterIsolation(auto df, const std::string maskname,
                      const std::string isolationName, const float Threshold) {
     auto df1 = df.Define(maskname, basefunctions::FilterMax(Threshold),
@@ -118,8 +154,16 @@ auto FilterIsolation(auto df, const std::string maskname,
 }
 
 } // end namespace muon
-
+/// Tau specific functions
 namespace tau {
+/// Function to filter taus based on the tau decay mode
+///
+/// \param[in] df the input dataframe
+/// \param[out] maskname the name of the new mask to be added as column to the
+/// dataframe \param[in] SelectedDecayModes a `std::vector<int>` containing the
+/// decay modes, that should pass the filter
+///
+/// \return a dataframe containing the new mask
 auto FilterDecayModes(auto df, const std::string maskname,
                       const std::vector<int> SelectedDecayModes) {
     auto df1 = df.Define(
@@ -136,7 +180,14 @@ auto FilterDecayModes(auto df, const std::string maskname,
         {"Tau_decayMode"});
     return df1;
 }
-
+/// Function to filter taus based on the tau ID
+///
+/// \param[in] df the input dataframe
+/// \param[out] maskname the name of the new mask to be added as column to the
+/// dataframe \param[in] nameID name of the ID column in the NanoAOD \param[in]
+/// idxID bitvalue of the WP the has to be passed
+///
+/// \return a dataframe containing the new mask
 auto FilterTauID(auto df, const std::string maskname, const std::string nameID,
                  const int idxID) {
     auto df1 = df.Define(maskname, basefunctions::FilterID(idxID), {nameID});

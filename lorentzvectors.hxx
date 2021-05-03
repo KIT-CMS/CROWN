@@ -1,8 +1,28 @@
 #include "utility/Logger.hxx"
 #include <Math/Vector4D.h>
 
+/// Namespace used for lorentzvector operations
+
 namespace lorentzvectors {
 
+/// Function to build the lorentzvector from the pt, eta, phi and mass of a
+/// particle. This utilizes the [PtEtaPhiMVector from
+/// ROOT](https://root.cern/doc/master/namespaceROOT_1_1Math.html#a6cea5921731c7ac99dea921fb188df31)
+///
+/// \param df The input dataframe
+/// \param quantities This vector contains the names of the columns:
+///    -# pair - In this vector the particle index is stored. This index is used
+///    to select the correct particle from the four particle quantity vectors.
+///    -# pts - In this vector, the pts of the particle are stored.
+///    -# etas - In this vector, the etas of the particle are stored.
+///    -# phis - In this vector, the phis of the particle are stored.
+///    -# masses - In this vector, the masses of the particle are stored.
+///      This order has to be kept!
+/// \param outputname The name of the output column in the new dataframe
+/// \param position The position in the pair vector, which is used to store the
+/// index of the particle in the particle quantity vectors.
+///
+/// \returns a new dataframe, which contains the new lorentz vector
 auto buildparticle(auto df, const std::vector<std::string> quantities,
                    const std::string outputname, const int &position) {
     // std::vector<std::string> cols;
@@ -35,8 +55,8 @@ auto buildparticle(auto df, const std::vector<std::string> quantities,
     return df1;
 }
 
+/// namespace used for mutau lorentzvectors
 namespace mutau {
-
 auto build(auto df, const std::string &pairname,
            const std::vector<std::string> &muon_quantities,
            const std::vector<std::string> &tau_quantities,
