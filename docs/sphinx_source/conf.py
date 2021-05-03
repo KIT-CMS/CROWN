@@ -79,11 +79,19 @@ html_theme = "sphinx_rtd_theme"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+# html_static_path = ["_static"]
 
 # ...
-extensions = ["breathe"]
+extensions = ["breathe", "sphinx.ext.viewcode"]
 # ...
 
 # Breathe Configuration
 breathe_default_project = "ToBeNamedPrototype"
+
+exhale_args = {
+    # Suggested optional arguments
+    "createTreeView": True,
+    "treeViewIsBootstrap": True,
+    "pageLevelConfigMeta": ":github_url: https://github.com/KIT-CMS/ToBeNamedPrototype",
+}
+breathe_domain_by_extension = {"h": "cpp", "hxx": "cpp"}

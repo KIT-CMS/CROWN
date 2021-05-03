@@ -1,32 +1,51 @@
-.. a documentation master file, created by
-   sphinx-quickstart on Thu Apr 29 16:29:35 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Welcome to The Framework documentation!
+========================================
 
-Welcome to The FARTUS documentation!
-=====================================
+The Framework is used to convert CMS NanoAOD into analysis ntuples.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
 
+Documentation of Namespaces
+============================
 
-Indices and tables
-===================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
-…
-
-Documentation
-==============
-
+Quantities
+-----------
 .. doxygennamespace:: quantities
    :members:
+
+Metfilter
+-----------
 .. doxygennamespace:: metfilter
    :members:
+
+Basefunctions
+-------------
 .. doxygennamespace:: basefunctions
    :members:
+
+Pairselection
+-------------
+.. doxygennamespace:: pairselection
+   :members:
+
+Physicsobjects
+---------------
+.. doxygennamespace:: physicsobject
+   :members:
+
+
+Lorentzvectors
+---------------
+.. doxygenfile:: lorentzvectors.hxx
+.. literalinclude:: ../../lorentzvectors.hxx
+   :language: cpp
+   :linenos:
+
+Index
+======
+
+* :ref:`genindex`
+* :ref:`search`
