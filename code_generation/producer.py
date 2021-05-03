@@ -69,20 +69,20 @@ class VectorProducer(Producer):
             shifts.extend(self.output[0].shifts)
         for shift in shifts:
             # check that all config lists (and output if applicable) have same length
-            l = len(config[shift][self.vec_configs[0]])
+            n_versions = len(config[shift][self.vec_configs[0]])
             for key in self.vec_configs:
-                if l != len(config[shift][key]):
+                if n_versions != len(config[shift][key]):
                     print(
                         "Following lists in config must have same length: %s, %s"
                         % (self.vec_configs[0], key)
                     )
                     raise Exception
-            if self.output != None and len(self.output) != l:
+            if self.output != None and len(self.output) != n_versions:
                 print(
                     "VectorProducer expects either no output or same amount as entries in config lists (e.g. %s)!"
                     % self.vec_configs[0]
                 )
-            for i in range(l):
+            for i in range(n_versions):
                 helper_dict = {}
                 for key in self.vec_configs:
                     helper_dict[key] = config[shift][key][i]
@@ -104,22 +104,22 @@ class ProducerGroup:
         self.producers = subproducers
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
         if self.call != None:
-            for p in self.producers:
+            for producer in self.producers:
                 # check that output quantities of subproducers are not yet filled
-                if p.output != None:
+                if producer.output != None:
                     print("Output of subproducers must be None!")
                     raise Exception
                 # skip producers without output
-                if not "output" in p.call:
+                if not "output" in producer.call:
                     continue
                 # create quantities that are produced by subproducers and then collected by the final call of the producer group
-                p.output = q.Quantity(
+                producer.output = q.Quantity(
                     "PG_internal_quantity_%i" % self.__class__.PG_count
                 )  # quantities of vector producers will be duplicated later on when config is known
-                for qy in p.inputs:
-                    qy.children.append(p.output)
+                for quantity in producer.inputs:
+                    quantity.children.append(producer.output)
                 self.__class__.PG_count += 1
-                self.inputs.append(p.output)
+                self.inputs.append(producer.output)
             # treat own collection function as subproducer
             self.producers.append(Producer(self.call, self.inputs, self.output))
 
