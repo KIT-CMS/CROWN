@@ -14,8 +14,20 @@
 //
 //    using VecF = const ROOT::RVec<float>&;
 
+/// Namespace used for lorentzvector operations
 namespace pairselection {
 
+/// This function filters events, where no suitable particle pair is found. A
+/// pair is considered suitable, if a PairSelectionAlgo (like
+/// pairselection::mutau::PairSelectionAlgo) returns indices, that are not -1.
+/// Events, where any of the particle indices is -1 are vetoed by this filter.
+///
+/// \param df The input dataframe
+/// \param pairname The name of the column, containing the particle indices
+/// \param filtername The name of the filter, used in the Dataframe report
+/// index of the particle in the particle quantity vectors.
+///
+/// \returns a filtered dataframe
 auto filterGoodPairs(auto df, const std::string &pairname,
                      const std::string &filtername) {
     using namespace ROOT::VecOps;
@@ -28,6 +40,24 @@ auto filterGoodPairs(auto df, const std::string &pairname,
         {pairname}, filtername);
 }
 
+/// Function used to sort two particles based on the isolation and the pt of the
+/// two particles. The function is used as the ordering function for the
+/// [ROOT::VecOps::Sort()](https://root.cern.ch/doc/master/group__vecops.html#ga882439c2ff958157d2990b52dd76f599)
+/// algorithm. If two quantities are the same within a given epsilon of 1e-5,
+/// the next criterion is applied. The sorting is done using the following
+/// criterion odering:
+/// -# Isolation of the first particle
+/// -# pt of the first particle
+/// -# Isolation of the second particle
+/// -# pt of the second particle
+///
+/// \param lep1pt `ROOT::RVec<float>` containing pts of the first particle
+/// \param lep1iso `ROOT::RVec<float>` containing isolations of the first
+/// particle \param lep2pt `ROOT::RVec<float>` containing pts of the second
+/// particle \param lep2iso `ROOT::RVec<float>` containing isolations of the
+/// second particle
+///
+/// \returns true or false based on the particle ordering.
 auto compareForPairs(const ROOT::RVec<float> &lep1pt,
                      const ROOT::RVec<float> &lep1iso,
                      const ROOT::RVec<float> &lep2pt,
@@ -87,12 +117,17 @@ auto compareForPairs(const ROOT::RVec<float> &lep1pt,
     };
 }
 
+/// namespace for pairs in the MuTau channel
 namespace mutau {
-// 1. Muon Isolation
-// 2. Muon pt
-// 3. Tau Isolation
-// 4. Tau pt
 
+/// Implementation of the pair selection algorithm. First, only events that
+/// contain at least one goodMuon and one goodTau are considered. Events contain
+/// at least one good muon and one good tau, if the taumask and the mounmask
+/// both have nonzero elements. These masks are constructed using the functions
+/// from the physicsobject namespace (e.g. physicsobject::CutPt).
+///
+/// \returns an `ROOT::RVec<int>` with two values, the first one beeing the muon
+/// index and the second one beeing the tau index.
 auto PairSelectionAlgo() {
     Logger::get("PairSelection")->debug("Setting up algorithm");
     return [](const ROOT::RVec<float> &taupt, const ROOT::RVec<float> &tauiso,
@@ -169,6 +204,11 @@ auto PairSelectionAlgo() {
     };
 }
 
+/// Function to add the Pairselection result to a dataframe
+///
+///  TODO add documentation here
+///
+/// \returns a dataframe containing the new pairname column
 auto PairSelection(auto df, const std::string taumask,
                    const std::string muonmask, const std::string pairname,
                    const std::vector<std::string> pairvariables) {
