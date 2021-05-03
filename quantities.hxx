@@ -19,7 +19,7 @@ auto pt(auto df, std::vector<std::string> varSet, const std::string &outputname,
     varSet.push_back(outputname);
     return df.Define(
         outputname,
-        [](const ROOT::Math::PtEtaPhiMVector &p4) { return p4.pt(); },
+        [](const ROOT::Math::PtEtaPhiMVector &p4) { return (float)p4.pt(); },
         {inputvector});
 }
 /// Function to calculate the eta from a given lorentz vector and add it to the
@@ -37,7 +37,7 @@ auto eta(auto df, std::vector<std::string> varSet,
     varSet.push_back(outputname);
     return df.Define(
         outputname,
-        [](const ROOT::Math::PtEtaPhiMVector &p4) { return p4.eta(); },
+        [](const ROOT::Math::PtEtaPhiMVector &p4) { return (float)p4.eta(); },
         {inputvector});
 }
 /// Function to calculate the eta from a given lorentz vector and add it to the
@@ -55,7 +55,7 @@ auto phi(auto df, std::vector<std::string> varSet,
     varSet.push_back(outputname);
     return df.Define(
         outputname,
-        [](const ROOT::Math::PtEtaPhiMVector &p4) { return p4.phi(); },
+        [](const ROOT::Math::PtEtaPhiMVector &p4) { return (float)p4.phi(); },
         {inputvector});
 }
 /// Function to calculate the mass from a pair of lorentz vectors and add it to
@@ -79,7 +79,7 @@ auto m_vis(auto df, std::vector<std::string> varSet,
         [](const ROOT::Math::PtEtaPhiMVector &p4_1,
            const ROOT::Math::PtEtaPhiMVector &p4_2) {
             auto const dileptonsystem = p4_1 + p4_2;
-            return dileptonsystem.mass();
+            return (float)dileptonsystem.mass();
         },
         inputvectors);
 }
