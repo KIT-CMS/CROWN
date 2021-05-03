@@ -12,8 +12,9 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../'))
-sys.path.insert(0, os.path.abspath('../../code_generation'))
+
+sys.path.insert(0, os.path.abspath("../../"))
+sys.path.insert(0, os.path.abspath("../../code_generation"))
 
 ## for read the docs
 import subprocess, os
@@ -96,4 +97,4 @@ exhale_args = {
     "pageLevelConfigMeta": ":github_url: https://github.com/KIT-CMS/ToBeNamedPrototype",
 }
 breathe_domain_by_extension = {"h": "cpp", "hxx": "cpp"}
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
