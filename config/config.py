@@ -26,16 +26,20 @@ def build_config():
 
     config = {"": copy.deepcopy(base_config), "__tauCutUp": copy.deepcopy(base_config)}
 
-    config["producers"] = [
-        p.MetFilter,
-        p.GoodTaus,
-        p.GoodMuons,
-        p.MTPairSelection,
-        p.GoodMTPairFilter,
-        p.LVMu1,
-        p.LVTau2,
-        p.DiTauPairQuantities,
-    ]
+    config["producers"] = {
+        "global": [
+            p.MetFilter,
+            p.GoodTaus,
+            p.GoodMuons,
+        ],
+        "mt": [
+            p.MTPairSelection,
+            p.GoodMTPairFilter,
+            p.LVMu1,
+            p.LVTau2,
+            p.DiTauPairQuantities,
+        ],
+    }
 
     config["__tauCutUp"]["min_tau_pt"] = 31.0
     p.TauPtCut.shift("__tauCutUp")

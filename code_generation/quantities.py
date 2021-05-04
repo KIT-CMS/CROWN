@@ -1,26 +1,51 @@
 class Quantity:
     def __init__(self, name):
         self.name = name
-        self.shifts = []
-        self.children = []
+        self.shifts = {}
+        self.children = {}
 
-    def get_leaf(self, shift):
+    def get_leaf(self, shift, scope):
         # add sth here that creates name of shifted quantity
-        if shift in self.shifts:
+        if shift in self.get_shifts(scope):
             return self.name + shift
         return self.name
 
-    def shift(self, name):
-        if not name in self.shifts:
-            self.shifts.append(name)
-            for c in self.children:
-                c.shift(name)
+    def shift(self, name, scope):
+        if not scope in self.shifts.keys():
+            self.shifts[scope] = set()
+        if not name in self.shifts[scope]:
+            self.shifts[scope].add(name)
+            if scope == "global":  # shift children in all scopes if scope is global
+                for any_scope in self.children.values():
+                    for c in any_scope:
+                        c.shift(name, scope)
+            else:
+                if scope in self.children.keys():
+                    for c in self.children[scope]:
+                        c.shift(name, scope)
 
     def copy(self, name):
         copy = Quantity(name)
         copy.shifts = self.shifts
         copy.children = self.children
         return copy
+
+    def adopt(self, child, scope):
+        if not scope in self.children.keys():
+            self.children[scope] = []
+        self.children[scope].append(child)
+
+    def get_shifts(self, scope):
+        if scope in self.shifts.keys():
+            if "global" in self.shifts.keys():
+                return list(self.shifts[scope].union(self.shifts["global"]))
+            else:
+                return list(self.shifts[scope])
+        else:
+            if "global" in self.shifts.keys():
+                return list(self.shifts["global"])
+            else:
+                return []
 
 
 m_vis = Quantity("m_vis")
