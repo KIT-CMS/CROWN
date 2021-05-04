@@ -1,9 +1,11 @@
 #!/bin/bash
 
 EXECUTABLE=$1
+INPUTFILE=$2
+OUTPUTFILE=$3
 
 # Record samples with perf
-perf record -g $EXECUTABLE
+perf record -g $EXECUTABLE $INPUTFILE $OUTPUTFILE
 
 # Convert the data to be readable for flamegraphs
 perf script > out.perf
