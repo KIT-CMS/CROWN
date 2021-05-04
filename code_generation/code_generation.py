@@ -2,6 +2,7 @@ class SafeDict(dict):
     def __missing__(self, key):
         return "{" + key + "}"
 
+
 def fill_template(t, config):
     # generate list of commands
     commandlist = ""  # string to be placed into code template
