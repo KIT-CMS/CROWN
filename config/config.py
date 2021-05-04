@@ -24,21 +24,21 @@ def build_config():
         "require_candidate_number": [1, 1],
     }
 
-    config = {"": copy.deepcopy(base_config), "_tauCutUp": copy.deepcopy(base_config)}
+    config = {"": copy.deepcopy(base_config), "#tauCutUp": copy.deepcopy(base_config)}
 
     config["producers"] = [
-        "MetFilter",
-        "GoodTaus",
-        "GoodMuons",
-        "MTPairSelection",
-        "GoodMTPairFilter",
-        "LVMu1",
-        "LVTau2",
-        "DiTauPairQuantities",
+        p.MetFilter,
+        p.GoodTaus,
+        p.GoodMuons,
+        p.MTPairSelection,
+        p.GoodMTPairFilter,
+        p.LVMu1,
+        p.LVTau2,
+        p.DiTauPairQuantities,
     ]
 
-    config["_tauCutUp"]["min_tau_pt"] = 31.0
-    config["_tauCutUp"]["shiftbase"] = ["TauPtCut"]
+    config["#tauCutUp"]["min_tau_pt"] = 31.0
+    p.TauPtCut.shift("#tauCutUp")
     # write some modifier tools for creating shifts. Should these automatically determine producers that consume params and shift these?
     # Or simply add an explicit command to the modifier tool to shift a producer
     # AddShift(config, "_tauEsDown", dict)
