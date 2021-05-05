@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     // ROOT logging
     auto verbosity = ROOT::Experimental::RLogScopedVerbosity(
         ROOT::Detail::RDF::RDFLogChannel(),
-        ROOT::Experimental::ELogLevel::kInfo);
+        ROOT::Experimental::ELogLevel::kDebug + 10);
 
     // file logging
     ROOT::RDataFrame df0("Events", input_path);
