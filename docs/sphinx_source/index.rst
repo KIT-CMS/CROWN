@@ -6,9 +6,10 @@ The Framework is used to convert CMS NanoAOD into analysis ntuples.
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-   
+
    introduction.rst
    namespaces.rst
+   build_root.rst
 
 Documentation of Python Stuff
 ==============================
