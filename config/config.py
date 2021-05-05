@@ -40,6 +40,13 @@ def build_config():
         ],
     }
 
+    config["output"] = {
+        "mt": [
+            p.q.pt_1,
+            p.q.pt_2,
+        ]
+    }
+
     shift_dict = {"min_tau_pt": 31.0}
     AddSystematicShift(config, "tauCutUp", shift_dict, [p.TauPtCut])
 
