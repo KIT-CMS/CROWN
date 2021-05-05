@@ -46,8 +46,6 @@ int main(int argc, char *argv[]) {
 
     // {CODE_GENERATION}
 
-    auto cutReport = df_final.Report();
-
     // Logger::get("main")->debug(df_final.Describe()); // <-- starting from
     // ROOT 6.25
 
@@ -57,11 +55,12 @@ int main(int argc, char *argv[]) {
     timer.Continue();
 
     Logger::get("main")->info("Starting Evaluation");
-    df_final.Snapshot("ntuple", output_path, varSet);
-    cutReport->Print();
+    ROOT::RDF::RSnapshotOptions dfconfig;
+    dfconfig.fLazy = true;
+    // {RUN_COMMANDS}
     Logger::get("main")->info("Finished Evaluation");
 
-    const auto nruns = df_final.GetNRuns();
+    const auto nruns = {NRUNS};
     if (nruns != 1) {
         Logger::get("main")->critical(
             "Analysis runs more than one event loop!");
