@@ -1,6 +1,5 @@
-import copy
-
 import code_generation.producer as p
+from config.utility import AddSystematicShift
 
 
 def build_config():
@@ -24,7 +23,7 @@ def build_config():
         "require_candidate_number": [1, 1],
     }
 
-    config = {"": copy.deepcopy(base_config), "__tauCutUp": copy.deepcopy(base_config)}
+    config = {"": base_config}
 
     config["producers"] = {
         "global": [
@@ -41,10 +40,7 @@ def build_config():
         ],
     }
 
-    config["__tauCutUp"]["min_tau_pt"] = 31.0
-    p.TauPtCut.shift("__tauCutUp")
-    # write some modifier tools for creating shifts. Should these automatically determine producers that consume params and shift these?
-    # Or simply add an explicit command to the modifier tool to shift a producer
-    # AddShift(config, "_tauEsDown", dict)
+    shift_dict = {"min_tau_pt": 31.0}
+    AddSystematicShift(config, "tauCutUp", shift_dict, [p.TauPtCut])
 
     return config
