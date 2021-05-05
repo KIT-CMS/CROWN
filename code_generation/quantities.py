@@ -5,10 +5,12 @@ class Quantity:
         self.children = {}
 
     def get_leaf(self, shift, scope):
-        # add sth here that creates name of shifted quantity
         if shift in self.get_shifts(scope):
             return self.name + shift
         return self.name
+
+    def get_leafs_of_scope(self, scope):
+        return [self.name] + [self.name + shift for shift in self.get_shifts(scope)]
 
     def shift(self, name, scope):
         if not scope in self.shifts.keys():

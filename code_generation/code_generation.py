@@ -45,18 +45,27 @@ def fill_template(t, config):
             df_scope_count,
         )
     commandlist += "\n"
-    for scope in config["producers"]:
+    for scope in config["output"]:
         commandlist += "    auto %s_cutReport = %s_df_final.Report();\n" % (
             scope,
             scope,
         )
     runcommands = ""
-    for scope in config["producers"]:
-        runcommands += (
-            '    auto %s_result = %s_df_final.Snapshot("ntuple", std::string(output_path) + "test_%s.root", varSet, dfconfig);\n'
-            % (scope, scope, scope)
+    for scope in config["output"]:
+        runcommands += '    auto %s_result = %s_df_final.Snapshot("ntuple", std::string(output_path) + "test_%s.root", %s, dfconfig);\n' % (
+            scope,
+            scope,
+            scope,
+            '{"'
+            + '", "'.join(
+                [
+                    '", "'.join(q.get_leafs_of_scope(scope))
+                    for q in config["output"][scope]
+                ]
+            )
+            + '"}',
         )
-    for scope in config["producers"]:
+    for scope in config["output"]:
         runcommands += "    %s_result.GetValue();\n" % scope
         runcommands += '    Logger::get("main")->info("%s:");\n' % scope
         runcommands += "    %s_cutReport->Print();\n" % scope
