@@ -166,195 +166,221 @@ class ProducerGroup:
 
 
 MetFilter = VectorProducer(
-    "MetFilter",
-    'metfilter::ApplyMetFilter({df}, "{met_filters}", "{met_filters}")',
-    [],
-    None,
-    ["global"],
-    ["met_filters"],
+    name="MetFilter",
+    call='metfilter::ApplyMetFilter({df}, "{met_filters}", "{met_filters}")',
+    inputs=[],
+    output=None,
+    scopes=["global"],
+    vec_configs=["met_filters"],
 )
 
 TauPtCut = Producer(
-    "TauPtCut",
-    'physicsobject::CutPt({df}, "{input}", "{output}", {min_tau_pt})',
-    [q.Tau_pt],
-    None,
-    ["global"],
+    name="TauPtCut",
+    call='physicsobject::CutPt({df}, "{input}", "{output}", {min_tau_pt})',
+    inputs=[q.Tau_pt],
+    output=None,
+    scopes=["global"],
 )
 TauEtaCut = Producer(
-    "TauEtaCut",
-    'physicsobject::CutEta({df}, "{input}", "{output}", {max_tau_eta})',
-    [q.Tau_eta],
-    None,
-    ["global"],
+    name="TauEtaCut",
+    call='physicsobject::CutEta({df}, "{input}", "{output}", {max_tau_eta})',
+    inputs=[q.Tau_eta],
+    output=None,
+    scopes=["global"],
 )
 TauDzCut = Producer(
-    "TauDzCut",
-    'physicsobject::CutDz({df}, "{input}", "{output}", {max_tau_dz})',
-    [q.Tau_dz],
-    None,
-    ["global"],
+    name="TauDzCut",
+    call='physicsobject::CutDz({df}, "{input}", "{output}", {max_tau_dz})',
+    inputs=[q.Tau_dz],
+    output=None,
+    scopes=["global"],
 )
 TauIDFilters = VectorProducer(
-    "TauIDFilters",
-    'physicsobject::tau::FilterTauID({df}, "{output}", "{tau_id}", {tau_id_idx})',
-    [],
-    None,
-    ["global"],
-    ["tau_id", "tau_id_idx"],
+    name="TauIDFilters",
+    call='physicsobject::tau::FilterTauID({df}, "{output}", "{tau_id}", {tau_id_idx})',
+    inputs=[],
+    output=None,
+    scopes=["global"],
+    vec_configs=["tau_id", "tau_id_idx"],
 )
 GoodTaus = ProducerGroup(
-    "GoodTaus",
-    'physicsobject::CombineMasks({df}, "{output}", {input_coll})',
-    [],
-    q.good_taus_mask,
-    ["global"],
-    [TauPtCut, TauEtaCut, TauDzCut, TauIDFilters],
+    name="GoodTaus",
+    call='physicsobject::CombineMasks({df}, "{output}", {input_coll})',
+    inputs=[],
+    output=q.good_taus_mask,
+    scopes=["global"],
+    subproducers=[TauPtCut, TauEtaCut, TauDzCut, TauIDFilters],
 )
 
 MuonPtCut = Producer(
-    "MuonPtCut",
-    'physicsobject::CutPt({df}, "{input}", "{output}", {min_muon_pt})',
-    [q.Muon_pt],
-    None,
-    ["global"],
+    name="MuonPtCut",
+    call='physicsobject::CutPt({df}, "{input}", "{output}", {min_muon_pt})',
+    inputs=[q.Muon_pt],
+    output=None,
+    scopes=["global"],
 )
 MuonEtaCut = Producer(
-    "MuonEtaCut",
-    'physicsobject::CutEta({df}, "{input}", "{output}", {max_muon_eta})',
-    [q.Muon_eta],
-    None,
-    ["global"],
+    name="MuonEtaCut",
+    call='physicsobject::CutEta({df}, "{input}", "{output}", {max_muon_eta})',
+    inputs=[q.Muon_eta],
+    output=None,
+    scopes=["global"],
 )
 MuonIDFilter = Producer(
-    "MuonIDFilter",
-    'physicsobject::muon::FilterID({df}, "{output}", "{muon_id}")',
-    [],
-    None,
-    ["global"],
+    name="MuonIDFilter",
+    call='physicsobject::muon::FilterID({df}, "{output}", "{muon_id}")',
+    inputs=[],
+    output=None,
+    scopes=["global"],
 )
 MuonIsoFilter = Producer(
-    "MuonIsoFilter",
-    'physicsobject::muon::FilterIsolation({df}, "{output}", "{input}", {muon_iso_cut})',
-    [q.Muon_iso],
-    None,
-    ["global"],
+    name="MuonIsoFilter",
+    call='physicsobject::muon::FilterIsolation({df}, "{output}", "{input}", {muon_iso_cut})',
+    inputs=[q.Muon_iso],
+    output=None,
+    scopes=["global"],
 )
 GoodMuons = ProducerGroup(
-    "GoodMuons",
-    'physicsobject::CombineMasks({df}, "{output}", {input_coll})',
-    [],
-    q.good_muons_mask,
-    ["global"],
-    [MuonPtCut, MuonEtaCut, MuonIDFilter, MuonIsoFilter],
+    name="GoodMuons",
+    call='physicsobject::CombineMasks({df}, "{output}", {input_coll})',
+    inputs=[],
+    output=q.good_muons_mask,
+    scopes=["global"],
+    subproducers=[MuonPtCut, MuonEtaCut, MuonIDFilter, MuonIsoFilter],
 )
 
 RequireObjects = VectorProducer(
-    "RequireObjects",
-    'physicsobject::FilterObjects({df}, "{require_candidate}", {require_candidate_number}, "{require_candidate}")',
-    [],
-    None,
-    ["global"],
-    ["require_candidate", "require_candidate_number"],
+    name="RequireObjects",
+    call='physicsobject::FilterObjects({df}, "{require_candidate}", {require_candidate_number}, "{require_candidate}")',
+    inputs=[],
+    output=None,
+    scopes=["global"],
+    vec_configs=["require_candidate", "require_candidate_number"],
 )
 
 MTPairSelection = Producer(
-    "MTPairSelection",
-    'pairselection::mutau::PairSelection({df}, {input_coll}, "{output}")',
-    [q.Tau_pt, q.Tau_IDraw, q.Muon_pt, q.Muon_iso, q.good_taus_mask, q.good_muons_mask],
-    q.ditaupair,
-    ["mt"],
+    name="MTPairSelection",
+    call='pairselection::mutau::PairSelection({df}, {input_coll}, "{output}")',
+    inputs=[
+        q.Tau_pt,
+        q.Tau_IDraw,
+        q.Muon_pt,
+        q.Muon_iso,
+        q.good_taus_mask,
+        q.good_muons_mask,
+    ],
+    output=q.ditaupair,
+    scopes=["mt"],
 )
 
 GoodMTPairFilter = Producer(
-    "GoodMTPairFilter",
-    'pairselection::filterGoodPairs({df}, "{input}", "GoodMuTauPairs")',
-    [q.ditaupair],
-    None,
-    ["mt"],
+    name="GoodMTPairFilter",
+    call='pairselection::filterGoodPairs({df}, "{input}", "GoodMuTauPairs")',
+    inputs=[q.ditaupair],
+    output=None,
+    scopes=["mt"],
 )
 
 LVMu1 = Producer(
-    "LVMu1",
-    'lorentzvectors::build({df}, {input_coll}, 0, "{output}")',
-    [q.ditaupair, q.Muon_pt, q.Muon_eta, q.Muon_phi, q.Muon_mass],
-    q.p4_1,
-    ["mt"],
+    name="LVMu1",
+    call='lorentzvectors::build({df}, {input_coll}, 0, "{output}")',
+    inputs=[q.ditaupair, q.Muon_pt, q.Muon_eta, q.Muon_phi, q.Muon_mass],
+    output=q.p4_1,
+    scopes=["mt"],
 )
 LVMu2 = Producer(
-    "LVMu2",
-    'lorentzvectors::build({df}, {input_coll}, 1, "{output}")',
-    [q.ditaupair, q.Muon_pt, q.Muon_eta, q.Muon_phi, q.Muon_mass],
-    q.p4_2,
-    ["mt"],
+    name="LVMu2",
+    call='lorentzvectors::build({df}, {input_coll}, 1, "{output}")',
+    inputs=[q.ditaupair, q.Muon_pt, q.Muon_eta, q.Muon_phi, q.Muon_mass],
+    output=q.p4_2,
+    scopes=["mt"],
 )
 LVTau1 = Producer(
-    "LVTau1",
-    'lorentzvectors::build({df}, {input_coll}, 0, "{output}")',
-    [q.ditaupair, q.Tau_pt, q.Tau_eta, q.Tau_phi, q.Tau_mass],
-    q.p4_1,
-    ["mt"],
+    name="LVTau1",
+    call='lorentzvectors::build({df}, {input_coll}, 0, "{output}")',
+    inputs=[q.ditaupair, q.Tau_pt, q.Tau_eta, q.Tau_phi, q.Tau_mass],
+    output=q.p4_1,
+    scopes=["mt"],
 )
 LVTau2 = Producer(
-    "LVTau2",
-    'lorentzvectors::build({df}, {input_coll}, 1, "{output}")',
-    [q.ditaupair, q.Tau_pt, q.Tau_eta, q.Tau_phi, q.Tau_mass],
-    q.p4_2,
-    ["mt"],
+    name="LVTau2",
+    call='lorentzvectors::build({df}, {input_coll}, 1, "{output}")',
+    inputs=[q.ditaupair, q.Tau_pt, q.Tau_eta, q.Tau_phi, q.Tau_mass],
+    output=q.p4_2,
+    scopes=["mt"],
 )
 
 pt_1 = Producer(
-    "pt_1",
-    'quantities::pt({df}, varSet, "{output}", "{input}")',
-    [q.p4_1],
-    q.pt_1,
-    ["mt"],
+    name="pt_1",
+    call='quantities::pt({df}, varSet, "{output}", "{input}")',
+    inputs=[q.p4_1],
+    output=q.pt_1,
+    scopes=["mt"],
 )
 pt_2 = Producer(
-    "pt_2",
-    'quantities::pt({df}, varSet, "{output}", "{input}")',
-    [q.p4_2],
-    q.pt_2,
-    ["mt"],
+    name="pt_2",
+    call='quantities::pt({df}, varSet, "{output}", "{input}")',
+    inputs=[q.p4_2],
+    output=q.pt_2,
+    scopes=["mt"],
 )
 eta_1 = Producer(
-    "eta_1",
-    'quantities::eta({df}, varSet, "{output}", "{input}")',
-    [q.p4_1],
-    q.eta_1,
-    ["mt"],
+    name="eta_1",
+    call='quantities::eta({df}, varSet, "{output}", "{input}")',
+    inputs=[q.p4_1],
+    output=q.eta_1,
+    scopes=["mt"],
 )
 eta_2 = Producer(
-    "eta_2",
-    'quantities::eta({df}, varSet, "{output}", "{input}")',
-    [q.p4_2],
-    q.eta_2,
-    ["mt"],
+    name="eta_2",
+    call='quantities::eta({df}, varSet, "{output}", "{input}")',
+    inputs=[q.p4_2],
+    output=q.eta_2,
+    scopes=["mt"],
 )
 phi_1 = Producer(
-    "phi_1",
-    'quantities::phi({df}, varSet, "{output}", "{input}")',
-    [q.p4_1],
-    q.phi_1,
-    ["mt"],
+    name="phi_1",
+    call='quantities::phi({df}, varSet, "{output}", "{input}")',
+    inputs=[q.p4_1],
+    output=q.phi_1,
+    scopes=["mt"],
 )
 phi_2 = Producer(
-    "phi_2",
-    'quantities::phi({df}, varSet, "{output}", "{input}")',
-    [q.p4_2],
-    q.phi_2,
-    ["mt"],
+    name="phi_2",
+    call='quantities::phi({df}, varSet, "{output}", "{input}")',
+    inputs=[q.p4_2],
+    output=q.phi_2,
+    scopes=["mt"],
 )
-UnrollLV1 = ProducerGroup("UnrollLV1", None, None, None, ["mt"], [pt_1, eta_1, phi_1])
-UnrollLV2 = ProducerGroup("UnrollLV2", None, None, None, ["mt"], [pt_2, eta_2, phi_2])
+UnrollLV1 = ProducerGroup(
+    name="UnrollLV1",
+    call=None,
+    inputs=None,
+    output=None,
+    scopes=["mt"],
+    subproducers=[pt_1, eta_1, phi_1],
+)
+UnrollLV2 = ProducerGroup(
+    name="UnrollLV2",
+    call=None,
+    inputs=None,
+    output=None,
+    scopes=["mt"],
+    subproducers=[pt_2, eta_2, phi_2],
+)
 
 m_vis = Producer(
-    "m_vis",
-    'quantities::m_vis({df}, varSet, "{output}", {input_coll})',
-    [q.p4_1, q.p4_2],
-    q.m_vis,
-    ["mt"],
+    name="m_vis",
+    call='quantities::m_vis({df}, varSet, "{output}", {input_coll})',
+    inputs=[q.p4_1, q.p4_2],
+    output=q.m_vis,
+    scopes=["mt"],
 )
 DiTauPairQuantities = ProducerGroup(
-    "DiTauPairQuantities", None, None, None, ["mt"], [UnrollLV1, UnrollLV2, m_vis]
+    name="DiTauPairQuantities",
+    call=None,
+    inputs=None,
+    output=None,
+    scopes=["mt"],
+    subproducers=[UnrollLV1, UnrollLV2, m_vis],
 )
