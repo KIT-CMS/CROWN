@@ -19,6 +19,7 @@ def fill_template(t, config):
                 + ";\n"
             )
             df_count += 1
+    commandlist += "    auto global_df_final = df%i;\n" % df_count
     for scope in config["producers"]:
         if scope == "global":
             continue
@@ -30,7 +31,7 @@ def fill_template(t, config):
                     "    auto %s_df%i = " % (scope, df_scope_count + 1)
                     + call.format_map(
                         SafeDict(
-                            {"df": "df%i" % df_count}
+                            {"df": "global_df_final"}
                             if df_scope_count == 0
                             else {"df": "%s_df%i" % (scope, df_scope_count)}
                         )
@@ -38,5 +39,34 @@ def fill_template(t, config):
                     + ";\n"
                 )
                 df_scope_count += 1
-    commandlist += "    auto df_final = mt_df%i;" % df_scope_count
-    return t.replace("    // {CODE_GENERATION}", commandlist)
+        commandlist += "    auto %s_df_final = %s_df%i;\n" % (
+            scope,
+            scope,
+            df_scope_count,
+        )
+    commandlist += "\n"
+    for scope in config["producers"]:
+        commandlist += "    auto %s_cutReport = %s_df_final.Report();\n" % (
+            scope,
+            scope,
+        )
+    runcommands = ""
+    for scope in config["producers"]:
+        runcommands += (
+            '    auto %s_result = %s_df_final.Snapshot("ntuple", std::string(output_path) + "test_%s.root", varSet, dfconfig);\n'
+            % (scope, scope, scope)
+        )
+    for scope in config["producers"]:
+        runcommands += "    %s_result.GetValue();\n" % scope
+        runcommands += '    Logger::get("main")->info("%s:");\n' % scope
+        runcommands += "    %s_cutReport->Print();\n" % scope
+    nruns = (
+        "("
+        + "+".join(["%s_df_final.GetNRuns()" % scope for scope in config["producers"]])
+        + ")/%f" % len(config["producers"])
+    )
+    return (
+        t.replace("    // {CODE_GENERATION}", commandlist)
+        .replace("    // {RUN_COMMANDS}", runcommands)
+        .replace("{NRUNS}", nruns)
+    )
