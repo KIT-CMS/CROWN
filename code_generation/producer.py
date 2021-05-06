@@ -45,12 +45,13 @@ class Producer:
             if isinstance(self.output, list)
             else self.output.get_leaf(shift, scope)
         )
-        config[shift]["input"] = ",".join(
+        config[shift]["input"] = '", "'.join(
             [x.get_leaf(shift, scope) for x in self.inputs]
         )
         config[shift]["input_coll"] = (
             '{"' + '","'.join([x.get_leaf(shift, scope) for x in self.inputs]) + '"}'
         )
+
         config[shift]["df"] = "{df}"
         return self.call.format(
             **config[shift]
@@ -205,7 +206,7 @@ TauIDFilters = VectorProducer(
 )
 GoodTaus = ProducerGroup(
     name="GoodTaus",
-    call='physicsobject::CombineMasks({df}, "{output}", {input_coll})',
+    call='physicsobject::CombineMasks({df}, "{output}", "{input}")',
     inputs=[],
     output=q.good_taus_mask,
     scopes=["global"],
@@ -242,7 +243,7 @@ MuonIsoFilter = Producer(
 )
 GoodMuons = ProducerGroup(
     name="GoodMuons",
-    call='physicsobject::CombineMasks({df}, "{output}", {input_coll})',
+    call='physicsobject::CombineMasks({df}, "{output}", "{input}")',
     inputs=[],
     output=q.good_muons_mask,
     scopes=["global"],
