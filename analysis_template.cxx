@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     const auto input_path = argv[1];
     Logger::get("main")->info("Input file: {}", input_path);
     const auto output_path = argv[2];
-    Logger::get("main")->info("Output file: {}", output_path);
+    Logger::get("main")->info("Output directory: {}", output_path);
 
     TStopwatch timer;
     timer.Start();
