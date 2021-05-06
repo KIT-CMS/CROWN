@@ -10,6 +10,7 @@ The Framework is used to convert CMS NanoAOD into analysis ntuples.
    introduction.rst
    namespaces.rst
    build_root.rst
+   create_nanoaod.rst
 
 Documentation of Python Stuff
 ==============================
