@@ -27,7 +27,11 @@ def build_config():
     config = {"": base_config}
 
     config["producers"] = {
-        "global": [p.MetFilter, p.GoodTaus, p.GoodMuons,],
+        "global": [
+            p.MetFilter,
+            p.GoodTaus,
+            p.GoodMuons,
+        ],
         "mt": [
             p.MTPairSelection,
             p.GoodMTPairFilter,
