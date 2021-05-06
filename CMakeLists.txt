@@ -141,7 +141,7 @@ foreach(FILENAME ${FILELIST})
     # Add build target
     message(STATUS "Add build target for file ${FILENAME}.")
     add_executable(${TARGET_NAME} ${FULL_PATH})
-    target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
+    target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
     target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame logging)
 
     # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
