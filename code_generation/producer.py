@@ -45,13 +45,12 @@ class Producer:
             if isinstance(self.output, list)
             else self.output.get_leaf(shift, scope)
         )
-        config[shift]["input"] = '", "'.join(
-            [x.get_leaf(shift, scope) for x in self.inputs]
+        config[shift]["input"] = (
+            '"' + '", "'.join([x.get_leaf(shift, scope) for x in self.inputs]) + '"'
         )
         config[shift]["input_coll"] = (
             '{"' + '","'.join([x.get_leaf(shift, scope) for x in self.inputs]) + '"}'
         )
-
         config[shift]["df"] = "{df}"
         return self.call.format(
             **config[shift]
@@ -177,21 +176,21 @@ MetFilter = VectorProducer(
 
 TauPtCut = Producer(
     name="TauPtCut",
-    call='physicsobject::CutPt({df}, "{input}", "{output}", {min_tau_pt})',
+    call='physicsobject::CutPt({df}, {input}, "{output}", {min_tau_pt})',
     inputs=[q.Tau_pt],
     output=None,
     scopes=["global"],
 )
 TauEtaCut = Producer(
     name="TauEtaCut",
-    call='physicsobject::CutEta({df}, "{input}", "{output}", {max_tau_eta})',
+    call='physicsobject::CutEta({df}, {input}, "{output}", {max_tau_eta})',
     inputs=[q.Tau_eta],
     output=None,
     scopes=["global"],
 )
 TauDzCut = Producer(
     name="TauDzCut",
-    call='physicsobject::CutDz({df}, "{input}", "{output}", {max_tau_dz})',
+    call='physicsobject::CutDz({df}, {input}, "{output}", {max_tau_dz})',
     inputs=[q.Tau_dz],
     output=None,
     scopes=["global"],
@@ -206,7 +205,7 @@ TauIDFilters = VectorProducer(
 )
 GoodTaus = ProducerGroup(
     name="GoodTaus",
-    call='physicsobject::CombineMasks({df}, "{output}", "{input}")',
+    call='physicsobject::CombineMasks({df}, "{output}", {input})',
     inputs=[],
     output=q.good_taus_mask,
     scopes=["global"],
@@ -215,14 +214,14 @@ GoodTaus = ProducerGroup(
 
 MuonPtCut = Producer(
     name="MuonPtCut",
-    call='physicsobject::CutPt({df}, "{input}", "{output}", {min_muon_pt})',
+    call='physicsobject::CutPt({df}, {input}, "{output}", {min_muon_pt})',
     inputs=[q.Muon_pt],
     output=None,
     scopes=["global"],
 )
 MuonEtaCut = Producer(
     name="MuonEtaCut",
-    call='physicsobject::CutEta({df}, "{input}", "{output}", {max_muon_eta})',
+    call='physicsobject::CutEta({df}, {input}, "{output}", {max_muon_eta})',
     inputs=[q.Muon_eta],
     output=None,
     scopes=["global"],
@@ -236,14 +235,14 @@ MuonIDFilter = Producer(
 )
 MuonIsoFilter = Producer(
     name="MuonIsoFilter",
-    call='physicsobject::muon::FilterIsolation({df}, "{output}", "{input}", {muon_iso_cut})',
+    call='physicsobject::muon::FilterIsolation({df}, "{output}", {input}, {muon_iso_cut})',
     inputs=[q.Muon_iso],
     output=None,
     scopes=["global"],
 )
 GoodMuons = ProducerGroup(
     name="GoodMuons",
-    call='physicsobject::CombineMasks({df}, "{output}", "{input}")',
+    call='physicsobject::CombineMasks({df}, "{output}", {input})',
     inputs=[],
     output=q.good_muons_mask,
     scopes=["global"],
@@ -276,7 +275,7 @@ MTPairSelection = Producer(
 
 GoodMTPairFilter = Producer(
     name="GoodMTPairFilter",
-    call='pairselection::filterGoodPairs({df}, "{input}", "GoodMuTauPairs")',
+    call='pairselection::filterGoodPairs({df}, {input}, "GoodMuTauPairs")',
     inputs=[q.ditaupair],
     output=None,
     scopes=["mt"],
@@ -313,42 +312,42 @@ LVTau2 = Producer(
 
 pt_1 = Producer(
     name="pt_1",
-    call='quantities::pt({df}, "{output}", "{input}")',
+    call='quantities::pt({df}, "{output}", {input})',
     inputs=[q.p4_1],
     output=q.pt_1,
     scopes=["mt"],
 )
 pt_2 = Producer(
     name="pt_2",
-    call='quantities::pt({df}, "{output}", "{input}")',
+    call='quantities::pt({df}, "{output}", {input})',
     inputs=[q.p4_2],
     output=q.pt_2,
     scopes=["mt"],
 )
 eta_1 = Producer(
     name="eta_1",
-    call='quantities::eta({df}, "{output}", "{input}")',
+    call='quantities::eta({df}, "{output}", {input})',
     inputs=[q.p4_1],
     output=q.eta_1,
     scopes=["mt"],
 )
 eta_2 = Producer(
     name="eta_2",
-    call='quantities::eta({df}, "{output}", "{input}")',
+    call='quantities::eta({df}, "{output}", {input})',
     inputs=[q.p4_2],
     output=q.eta_2,
     scopes=["mt"],
 )
 phi_1 = Producer(
     name="phi_1",
-    call='quantities::phi({df}, "{output}", "{input}")',
+    call='quantities::phi({df}, "{output}", {input})',
     inputs=[q.p4_1],
     output=q.phi_1,
     scopes=["mt"],
 )
 phi_2 = Producer(
     name="phi_2",
-    call='quantities::phi({df}, "{output}", "{input}")',
+    call='quantities::phi({df}, "{output}", {input})',
     inputs=[q.p4_2],
     output=q.phi_2,
     scopes=["mt"],
