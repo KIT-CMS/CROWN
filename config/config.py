@@ -1,4 +1,5 @@
 import code_generation.producer as p
+from code_generation.producer import q
 from config.utility import AddSystematicShift
 
 
@@ -42,8 +43,8 @@ def build_config():
 
     config["output"] = {
         "mt": [
-            p.q.pt_1,
-            p.q.pt_2,
+            q.pt_1,
+            q.pt_2,
         ]
     }
 
