@@ -1,9 +1,9 @@
 How to generate the files used for testing
 ==========================================
 
-We use self-generated NanoAOD samples for testing, which can be produced with the open source [CMSSW](https://github.com/cms-sw/cmssw) framework. The following script generates a file from scratch using [fast simulation](https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideFastSimulationExamples).
+We use self-generated NanoAOD samples for testing, which can be produced with the open source CMSSW framework (see https://github.com/cms-sw/cmssw). The following script generates a file from scratch using fast simulation (see https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideFastSimulationExamples).
 
-The used files are hosted in the repository [CROWNTestingSamples](https://github.com/KIT-CMS/CROWNTestingSamples).
+The used files are hosted in the repository https://github.com/KIT-CMS/CROWNTestingSamples.
 
 It should be noted that these files must be used solely for testing purposes and do not contain any useful information for physics analysis.
 
