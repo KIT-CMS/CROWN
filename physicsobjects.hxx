@@ -1,5 +1,9 @@
 #include "ROOT/RDataFrame.hxx"
 #include "basefunctions.hxx"
+#include <iostream>
+#include <string>
+#include <type_traits>
+#include <vector>
 /// Namespace containing function to apply filters on physics objects. The
 /// filter results are typically stored within a mask, which is represented by
 /// an `ROOT::RVec<int>`.
@@ -76,33 +80,26 @@ auto CutDxy(auto df, const std::string quantity, const std::string maskname,
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe \param[in] MaskList a `std::vector<std::string>` containing all
-/// masknames to be combined into a single mask
+/// dataframe
+/// \param[in] masks a parameter pack containing an arbitrary number of
+/// `std::vector<std::string>` objects. Each string is the name of a mask to be
+/// combined
 ///
 /// \return a dataframe containing the new mask
-auto CombineMasks(auto df, const std::string maskname,
-                  std::vector<std::string> MaskList) {
-    // if(MaskList.size() == 0)
-    // {
-    //     std::cout << "No masks to combine for filtering\n";
-    //     return df;
-    // }
-    // std::string former_mask = MaskList.pop();
-    // std::string latter_mask = "";
-    // while(MaskList.size() > 0){
-    // }
-    std::string filterstring;
-    for (auto mask : MaskList) {
-        filterstring.append(mask + "*");
-    }
-    filterstring.pop_back(); // removing the last * from the string
-    return df.Define(maskname,
-                     filterstring); // TODO make this a compiled version
-
-    // df.Define(PassAsVec<3, float>(myVecFunc), MaskList); <-- example how to
-    // do w/o jiting
-    // -->
-    // https://root.cern/doc/master/namespaceROOT_1_1RDF.html#a1ecc8a41e8f12e65e1bf0d2e65aec36d
+template <class... Masks>
+auto CombineMasks(auto df, const std::string &maskname, Masks... masks) {
+    auto multiplyMasks = [](const ROOT::RVec<ROOT::RVec<int>> &x) {
+        ROOT::RVec<int> result(x[0].size(), 1);
+        for (auto &xx : x) {
+            result *= xx;
+        }
+        return result;
+    };
+    std::vector<std::string> MaskList{{masks...}};
+    const auto nMasks = sizeof...(Masks);
+    return df.Define(
+        maskname, ROOT::RDF::PassAsVec<nMasks, ROOT::RVec<int>>(multiplyMasks),
+        MaskList);
 }
 
 auto FilterMasks(auto df, const std::string maskname) {
@@ -134,7 +131,9 @@ namespace muon {
 /// \return a dataframe containing the new mask
 auto FilterID(auto df, const std::string maskname, const std::string nameID) {
     auto df1 = df.Define(
-        maskname, [](const ROOT::RVec<Bool_t> &id) { return id; }, {nameID});
+        maskname,
+        [](const ROOT::RVec<Bool_t> &id) { return (ROOT::RVec<int>)id; },
+        {nameID});
     return df1;
 }
 /// Function to filter muons based on the muon isolation using
