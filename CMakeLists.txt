@@ -32,7 +32,7 @@ set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options a
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} CACHE STRING "Set default install prefix to the build directory")
 
 # Create the project
-project(ToBeNamedPrototype CXX)
+project(CROWN CXX)
 
 # Find ROOT and print details
 find_package(ROOT 6.24 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame)

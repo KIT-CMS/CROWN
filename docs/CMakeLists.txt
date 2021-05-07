@@ -56,7 +56,7 @@ add_custom_target(Sphinx ALL
                 DEPENDS ${HEADERS}
                 COMMAND ${SPHINX_EXECUTABLE} -b html
                 # Tell Breathe where to find the Doxygen output
-                -Dbreathe_projects.ToBeNamedPrototype=${DOXYGEN_OUTPUT_DIR}/xml
+                -Dbreathe_projects.CROWN=${DOXYGEN_OUTPUT_DIR}/xml
                 ${SPHINX_SOURCE} ${SPHINX_OUTPUT_DIR}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                 COMMENT "Generating documentation with Sphinx")
