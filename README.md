@@ -1,65 +1,14 @@
-# ToBeNamedPrototype
 
-## Environment setup
+<img src="doc/_static/crown_logo.svg"><br>
 
-Current requirement is a working mount to CERN's `/cvmfs/sft.cern.ch`
+[![Documentation Status](https://readthedocs.org/projects/crown/badge/?version=latest)](https://crown.readthedocs.io/en/latest/?badge=latest)
+Crown
+=======
 
-```bash
-source init.sh
-```
+The C++-based ROot Workflow for N-tuples (CROWN)  framework is a fast way, of converting CMS NanoAOD samples into analysis N-tuples.
 
-## Compilation with cmake
 
-```bash
-mkdir build/ && cd build/
-# the options DANALYSIS and DSAMPLES are mandatory options
-cmake .. -DANALYSIS=config -DSAMPLES=samples # or cmake3 on centos7
-make -j8 # or 'VERBOSE=1 make' for the verbose output
-cd ..
-```
-Executable will then be `build/Analysis` instead of `a.out`
+Documentation
+--------------
 
-## Compilation for main executable
-
-```bash
-g++ analysis.cxx $(root-config --cflags --libs) -fconcepts
-```
-
-## Profiling with perf & flamegraph for CPU
-
-See the script [`profiling/flamegraph.sh`](profiling/flamegraph.sh).
-
-Running profiling on executable
-
-```bash
-perf record ./a.out -g
-```
-
-Print out the report
-
-```bash
-perf report
-```
-
-Get flamegraph repo
-
-```bash
-git clone https://github.com/brendangregg/FlameGraph
-```
-
-Create flamegraph
-
-```bash
-perf script > out.perf
-FlameGraph/stackcollapse-perf.pl out.perf > out.folded
-FlameGraph/flamegraph.pl out.folded > out.svg
-```
-
-## Profiling with valgrind massif for Memory
-
-See the script [`profiling/massif.sh`](profiling/massif.sh).
-
-```bash
-valgrind --tool=massif ./a.out
-ms_print massif.out.4103388 > massif.log
-```
+The documentation can be found at https://crown.readthedocs.io/en/latest/.

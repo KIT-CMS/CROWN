@@ -41,13 +41,13 @@ if read_the_docs_build:
     output_dir = "build"
     configureDoxyfile(input_dir, output_dir)
     subprocess.call("doxygen", shell=True)
-    breathe_projects["ToBeNamedPrototype"] = output_dir + "/xml"
+    breathe_projects["CROWN"] = output_dir + "/xml"
 
 # ...
 
 # -- Project information -----------------------------------------------------
 
-project = "ToBeNamedPrototype"
+project = "CROWN"
 copyright = "2021, Sebastian Brommer, Maximilian Burkart, Artur Gottmann, Sebastian Wozniewski, Stefan Wunsch"
 author = "Sebastian Brommer, Maximilian Burkart, Artur Gottmann, Sebastian Wozniewski, Stefan Wunsch"
 
@@ -77,7 +77,12 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
-
+html_logo = "../_static/crown_logo_bw.svg"
+html_static_path = ["../_static"]
+html_theme_options = {
+    "logo_only": True,
+    "display_version": False,
+}
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
@@ -88,13 +93,13 @@ extensions = ["breathe", "sphinx.ext.viewcode", "sphinx.ext.autodoc"]
 # ...
 
 # Breathe Configuration
-breathe_default_project = "ToBeNamedPrototype"
+breathe_default_project = "CROWN"
 
 exhale_args = {
     # Suggested optional arguments
     "createTreeView": True,
     "treeViewIsBootstrap": True,
-    "pageLevelConfigMeta": ":github_url: https://github.com/KIT-CMS/ToBeNamedPrototype",
+    "pageLevelConfigMeta": ":github_url: https://github.com/KIT-CMS/CROWN",
 }
 breathe_domain_by_extension = {"h": "cpp", "hxx": "cpp"}
 pygments_style = "sphinx"
