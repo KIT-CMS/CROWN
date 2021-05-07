@@ -3,7 +3,7 @@ How to build ROOT with CVMFS on CentOS 7
 
 For profiling with debug symbols or just to test the newest ROOT features, you may want to use your own ROOT version. Here are the commands, which allow you to build ROOT with a given build type, ROOT release tag and C++ 17.
 
-Most likely, you want to use `RelWithDebInfo` as build type so you get debug symbols but also a realistic performance due to compiler optimizations.
+Most likely, you want to use :code:`RelWithDebInfo` as build type so you get debug symbols but also a realistic performance due to compiler optimizations.
 
 To look up the release tags, go to https://github.com/root-project/root and see the tags (not the branches!).
 

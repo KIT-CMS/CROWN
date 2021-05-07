@@ -16,7 +16,7 @@ The main purpose of the framework is to be effieicnt and fast. Therefore it is e
 
 
 Debugging
-==========
+**********
 
 A more verbose version of the framework can be activated by setting a higher debug level. This can be done for the framework directly using
 
@@ -32,55 +32,18 @@ and for the RDataFrame using
             ROOT::Detail::RDF::RDFLogChannel(),
             ROOT::Experimental::ELogLevel::kDebug + 10);
 
-in the beginning of the `main()` function in `analysis_template.cxx`
+in the beginning of the :code:`main()` function in :code:`analysis_template.cxx`
 
 Profiling
-==========
+**********
 
 Profiling with perf & flamegraph for CPU
-*****************************************
+-----------------------------------------
 
-See the script [`profiling/flamegraph.sh`](profiling/flamegraph.sh).
-
-Running profiling on executable
-
-.. code-block:: console
-
-    perf record --call-graph dwarf $EXECUTABLE $INPUTFILE $OUTPUTFILE
-
-
-If you want to print out the report
-
-.. code-block:: console
-
-    perf report
-
-Get flamegraph repo
-
-.. code-block:: console
-
-    BASE_URL=https://raw.githubusercontent.com/eguiraud/FlameGraph/160b531f4c5ef0fec37e2b719ec609842a02aa99/
-    # Perform the stack collapse
-    curl -Os ${BASE_URL}/stackcollapse-perf.pl > stackcollapse-perf.pl
-
-
-and create the flamegraph
-
-.. code-block:: console
-
-    perf script > out.perf
-    perl stackcollapse-perf.pl out.perf > out.folded
-    curl -Os ${BASE_URL}/flamegraph.pl > flamegraph.pl
-    perl flamegraph.pl out.folded > flamegraph.svg
+See the script https://github.com/KIT-CMS/CROWN/blob/main/profiling/flamegraph.sh.
 
 
 Profiling with valgrind massif for Memory
-*******************************************
+------------------------------------------
 
-See the script [`profiling/massif.sh`](profiling/massif.sh).
-
-
-.. code-block:: console
-
-    valgrind --tool=massif ./a.out
-    ms_print massif.out.4103388 > massif.log
+See the script https://github.com/KIT-CMS/CROWN/blob/main/profiling/massif.sh.

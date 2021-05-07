@@ -1,13 +1,13 @@
 Introduction
 =============
 
-The The **C** ++-based **RO** ot **W** orkflow for **N** -tuples (CROWN) is a fast new way to convert NanoAOD samples into flat `TTrees` to be used in further analysis. The main focus of the framework is to provide a fast and clean way of selecting events, calculating quantities and weights. The framework has minimal dependencies and only uses ROOT and it's Dataframe as a backend.
+The The **C** ++-based **RO** OT **W** orkflow for **N** -tuples (CROWN) is a fast new way to convert NanoAOD samples into flat :code:`TTrees` to be used in further analysis. The main focus of the framework is to provide a fast and clean way of selecting events, calculating quantities and weights. The framework has minimal dependencies and only uses ROOT and it's Dataframe as a backend.
 
 
 Design Idea
 ************
 
-The framework consists of two main parts, a python configuration and a set of C++ functions. The python configuration is used to automatically generate a C++ script, which is then compiled to an executable using `cmake` and all available compiler optimizations. This has to main advantage that the compiled executable is very fast and efficient in calculating the output `TTree`
+The framework consists of two main parts, a python configuration and a set of C++ functions. The python configuration is used to automatically generate a C++ script, which is then compiled to an executable using :code:`cmake` and all available compiler optimizations. This has to main advantage that the compiled executable is very fast and efficient in calculating the output `TTree`
 
 TODO add some nice figure here
 
@@ -55,14 +55,14 @@ and compile the executable using
 Creating Documentation
 ***********************
 
-The Web documentation at readthedocs is updated automatically. However, if you want to create the documentation locally you have to first create a new build directory like `build_docs`
+The Web documentation at readthedocs is updated automatically. However, if you want to create the documentation locally you have to first create a new build directory like :code:`build_docs`
 
 .. code-block:: console
 
    mkdir build_docs && cd build_docs
 
 
-then run `cmake` to setup the documentation building process
+then run :code:`cmake` to setup the documentation building process
 
 .. code-block:: console
 
