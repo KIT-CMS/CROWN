@@ -48,7 +48,7 @@ class Producer:
         config[shift]["input"] = (
             '"' + '", "'.join([x.get_leaf(shift, scope) for x in self.inputs]) + '"'
         )
-        config[shift]["input_coll"] = (
+        config[shift]["input_vec"] = (
             '{"' + '","'.join([x.get_leaf(shift, scope) for x in self.inputs]) + '"}'
         )
         config[shift]["df"] = "{df}"
@@ -262,7 +262,7 @@ RequireObjects = VectorProducer(
 
 MTPairSelection = Producer(
     name="MTPairSelection",
-    call="pairselection::mutau::PairSelection({df}, {input_coll}, {output})",
+    call="pairselection::mutau::PairSelection({df}, {input_vec}, {output})",
     inputs=[
         q.Tau_pt,
         q.Tau_IDraw,
@@ -285,28 +285,28 @@ GoodMTPairFilter = Producer(
 
 LVMu1 = Producer(
     name="LVMu1",
-    call="lorentzvectors::build({df}, {input_coll}, 0, {output})",
+    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
     inputs=[q.ditaupair, q.Muon_pt, q.Muon_eta, q.Muon_phi, q.Muon_mass],
     output=q.p4_1,
     scopes=["mt"],
 )
 LVMu2 = Producer(
     name="LVMu2",
-    call="lorentzvectors::build({df}, {input_coll}, 1, {output})",
+    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
     inputs=[q.ditaupair, q.Muon_pt, q.Muon_eta, q.Muon_phi, q.Muon_mass],
     output=q.p4_2,
     scopes=["mt"],
 )
 LVTau1 = Producer(
     name="LVTau1",
-    call="lorentzvectors::build({df}, {input_coll}, 0, {output})",
+    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
     inputs=[q.ditaupair, q.Tau_pt, q.Tau_eta, q.Tau_phi, q.Tau_mass],
     output=q.p4_1,
     scopes=["mt"],
 )
 LVTau2 = Producer(
     name="LVTau2",
-    call="lorentzvectors::build({df}, {input_coll}, 1, {output})",
+    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
     inputs=[q.ditaupair, q.Tau_pt, q.Tau_eta, q.Tau_phi, q.Tau_mass],
     output=q.p4_2,
     scopes=["mt"],
@@ -373,7 +373,7 @@ UnrollLV2 = ProducerGroup(
 
 m_vis = Producer(
     name="m_vis",
-    call="quantities::m_vis({df}, {output}, {input_coll})",
+    call="quantities::m_vis({df}, {output}, {input_vec})",
     inputs=[q.p4_1, q.p4_2],
     output=q.m_vis,
     scopes=["mt"],
