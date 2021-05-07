@@ -1,5 +1,5 @@
 
-<img src="doc/_static/crown_logo.svg"><br>
+<img src="docs/_static/crown_logo.svg"><br>
 
 [![Documentation Status](https://readthedocs.org/projects/crown/badge/?version=latest)](https://crown.readthedocs.io/en/latest/?badge=latest)
 Crown
