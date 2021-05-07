@@ -11,7 +11,7 @@ perf record --call-graph dwarf $EXECUTABLE $INPUTFILE $OUTPUTFILE
 perf script > out.perf
 BASE_URL=https://raw.githubusercontent.com/eguiraud/FlameGraph/160b531f4c5ef0fec37e2b719ec609842a02aa99/
 # Perform the stack collapse
-curl -Os ${BASE_URL}/stackcollapse-perf.pl > stackcollapse-perf.pl
+curl -OLs ${BASE_URL}/stackcollapse-perf.pl > stackcollapse-perf.pl
 perl stackcollapse-perf.pl out.perf > out.folded
 
 # Generate the flamegraph
