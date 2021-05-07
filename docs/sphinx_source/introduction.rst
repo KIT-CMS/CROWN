@@ -1,7 +1,7 @@
 Introduction
 =============
 
-The ToBeNamedFramework is a fast new way to convert NanoAOD samples into flat `TTrees` to be used in further analysis. The main focus of the framework is to provide a fast and clean way of selecting events, calculating quantities and weights. The framework has minimal dependencies and only uses ROOT and it's Dataframe as a backend.
+The The **C** ++-based **RO** ot **W** orkflow for **N** -tuples (CROWN) is a fast new way to convert NanoAOD samples into flat `TTrees` to be used in further analysis. The main focus of the framework is to provide a fast and clean way of selecting events, calculating quantities and weights. The framework has minimal dependencies and only uses ROOT and it's Dataframe as a backend.
 
 
 Design Idea
@@ -20,7 +20,7 @@ First clone the Repository
 
 .. code-block:: console
 
-   git clone git@github.com:KIT-CMS/ToBeNamedPrototype.git
+   git clone git@github.com:KIT-CMS/CROWN.git
 
 and source the current LCG stack (at the moment we use a nightly build)
 
