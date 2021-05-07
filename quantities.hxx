@@ -8,15 +8,13 @@ namespace quantities {
 /// dataframe
 ///
 /// \param df the dataframe to add the quantity to
-/// \param varSet - vector of variables with are snapsotted in the end
 /// \param outputname name of the new column containing the pt value
 /// \param inputvector name of the column containing the lorentz vector
 ///
 /// \returns a dataframe with the new column
 
-auto pt(auto df, std::vector<std::string> varSet, const std::string &outputname,
+auto pt(auto df, const std::string &outputname,
         const std::string &inputvector) {
-    varSet.push_back(outputname);
     return df.Define(
         outputname,
         [](const ROOT::Math::PtEtaPhiMVector &p4) { return (float)p4.pt(); },
@@ -32,9 +30,8 @@ auto pt(auto df, std::vector<std::string> varSet, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-auto eta(auto df, std::vector<std::string> varSet,
-         const std::string &outputname, const std::string &inputvector) {
-    varSet.push_back(outputname);
+auto eta(auto df, const std::string &outputname,
+         const std::string &inputvector) {
     return df.Define(
         outputname,
         [](const ROOT::Math::PtEtaPhiMVector &p4) { return (float)p4.eta(); },
@@ -44,15 +41,13 @@ auto eta(auto df, std::vector<std::string> varSet,
 /// dataframe
 ///
 /// \param df the dataframe to add the quantity to
-/// \param varSet - vector of variables with are snapsotted in the end
 /// \param outputname name of the new column containing the eta value
 /// \param inputvector name of the column containing the lorentz vector
 ///
 /// \returns a dataframe with the new column
 
-auto phi(auto df, std::vector<std::string> varSet,
-         const std::string &outputname, const std::string &inputvector) {
-    varSet.push_back(outputname);
+auto phi(auto df, const std::string &outputname,
+         const std::string &inputvector) {
     return df.Define(
         outputname,
         [](const ROOT::Math::PtEtaPhiMVector &p4) { return (float)p4.phi(); },
@@ -62,17 +57,14 @@ auto phi(auto df, std::vector<std::string> varSet,
 /// the dataframe
 ///
 /// \param df the dataframe to add the quantity to
-/// \param varSet - vector of variables with are snapsotted in the end
 /// \param outputname name of the new column containing the pt value
 /// \param inputvector1 name of the column containing the first lorentz vector
 /// \param inputvector2 name of the column containing the second lorentz vector
 ///
 /// \returns a dataframe with the new column
 
-auto m_vis(auto df, std::vector<std::string> varSet,
-           const std::string &outputname,
+auto m_vis(auto df, const std::string &outputname,
            const std::vector<std::string> &inputvectors) {
-    varSet.push_back(outputname);
     // build visible mass from the two particles
     return df.Define(
         outputname,
