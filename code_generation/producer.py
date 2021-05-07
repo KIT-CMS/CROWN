@@ -312,42 +312,42 @@ LVTau2 = Producer(
 
 pt_1 = Producer(
     name="pt_1",
-    call='quantities::pt({df}, varSet, "{output}", "{input}")',
+    call='quantities::pt({df}, "{output}", "{input}")',
     inputs=[q.p4_1],
     output=q.pt_1,
     scopes=["mt"],
 )
 pt_2 = Producer(
     name="pt_2",
-    call='quantities::pt({df}, varSet, "{output}", "{input}")',
+    call='quantities::pt({df}, "{output}", "{input}")',
     inputs=[q.p4_2],
     output=q.pt_2,
     scopes=["mt"],
 )
 eta_1 = Producer(
     name="eta_1",
-    call='quantities::eta({df}, varSet, "{output}", "{input}")',
+    call='quantities::eta({df}, "{output}", "{input}")',
     inputs=[q.p4_1],
     output=q.eta_1,
     scopes=["mt"],
 )
 eta_2 = Producer(
     name="eta_2",
-    call='quantities::eta({df}, varSet, "{output}", "{input}")',
+    call='quantities::eta({df}, "{output}", "{input}")',
     inputs=[q.p4_2],
     output=q.eta_2,
     scopes=["mt"],
 )
 phi_1 = Producer(
     name="phi_1",
-    call='quantities::phi({df}, varSet, "{output}", "{input}")',
+    call='quantities::phi({df}, "{output}", "{input}")',
     inputs=[q.p4_1],
     output=q.phi_1,
     scopes=["mt"],
 )
 phi_2 = Producer(
     name="phi_2",
-    call='quantities::phi({df}, varSet, "{output}", "{input}")',
+    call='quantities::phi({df}, "{output}", "{input}")',
     inputs=[q.p4_2],
     output=q.phi_2,
     scopes=["mt"],
@@ -371,7 +371,7 @@ UnrollLV2 = ProducerGroup(
 
 m_vis = Producer(
     name="m_vis",
-    call='quantities::m_vis({df}, varSet, "{output}", {input_coll})',
+    call='quantities::m_vis({df}, "{output}", {input_coll})',
     inputs=[q.p4_1, q.p4_2],
     output=q.m_vis,
     scopes=["mt"],
