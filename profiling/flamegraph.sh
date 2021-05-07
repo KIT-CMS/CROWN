@@ -15,5 +15,5 @@ curl -OLs ${BASE_URL}/stackcollapse-perf.pl > stackcollapse-perf.pl
 perl stackcollapse-perf.pl out.perf > out.folded
 
 # Generate the flamegraph
-curl -Os ${BASE_URL}/flamegraph.pl > flamegraph.pl
+curl -OLs ${BASE_URL}/flamegraph.pl > flamegraph.pl
 perl flamegraph.pl out.folded > flamegraph.svg
