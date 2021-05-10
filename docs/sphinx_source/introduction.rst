@@ -74,6 +74,13 @@ and build the documentation using
 
    make
 
+It may require installing the following python packages beforehand
+
+.. code-block:: console
+
+   pip3 install --user breathe
+   pip3 install --user sphinx_rtd_theme
+
 The resulting documentation can than be found in
 
 .. code-block:: console
