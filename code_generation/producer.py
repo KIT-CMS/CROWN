@@ -129,23 +129,19 @@ class ProducerGroup:
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
         if self.call != None:
             for producer in self.producers:
-                # check that output quantities of subproducers are not yet filled
-                if producer.output != None and not isinstance(producer, ProducerGroup):
-                    print("Output of subproducers must be None!")
-                    raise Exception
-                # skip producers without output
-                if not "output" in producer.call:
-                    continue
-                # if one of the subproducers is already a ProducerGroup, we don't have to generate an internal product and can just use the given one
-                if not isinstance(producer, ProducerGroup):
+                # if the subproducer does not have an output quantity, we assign an internally tracked quantity
+                if producer.output == None:
                     # create quantities that are produced by subproducers and then collected by the final call of the producer group
                     producer.output = q.Quantity(
                         "PG_internal_quantity_%i" % self.__class__.PG_count
                     )  # quantities of vector producers will be duplicated later on when config is known
+                    self.__class__.PG_count += 1
+                # skip producers without output
+                if not "output" in producer.call:
+                    continue
                 for quantity in producer.inputs:
                     for scope in producer.scopes:
                         quantity.adopt(producer.output, scope)
-                self.__class__.PG_count += 1
                 self.inputs.append(producer.output)
             # treat own collection function as subproducer
             self.producers.append(
