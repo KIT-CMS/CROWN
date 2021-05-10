@@ -68,6 +68,14 @@ Muon_phi = Quantity("Muon_phi")
 Muon_mass = Quantity("Muon_mass")
 Muon_iso = Quantity("Muon_pfRelIso04_all")
 
+electron_veto_mask = Quantity("electron_veto_mask")
+electron_veto_flag = Quantity("extraelec_veto")
+Electron_pt = Quantity("Electron_pt")
+Electron_eta = Quantity("Electron_eta")
+Electron_phi = Quantity("Electron_phi")
+Electron_mass = Quantity("Electron_mass")
+Electron_iso = Quantity("Electron_pfRelIso03_all")
+
 ditaupair = Quantity("ditaupair")
 
 p4_1 = Quantity("p4_1")

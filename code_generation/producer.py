@@ -120,20 +120,27 @@ class ProducerGroup:
         self.output = output
         self.producers = subproducers
         self.scopes = scopes
+        # this can be the case for a recurive usage of a ProducerGroup, in this case, we want to use an internal quantity as output for the group
+        if output == None:
+            self.output = q.Quantity(
+                "PG_internal_quantity_%i" % self.__class__.PG_count
+            )
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
         if self.call != None:
             for producer in self.producers:
                 # check that output quantities of subproducers are not yet filled
-                if producer.output != None:
+                if producer.output != None and not isinstance(producer, ProducerGroup):
                     print("Output of subproducers must be None!")
                     raise Exception
                 # skip producers without output
                 if not "output" in producer.call:
                     continue
-                # create quantities that are produced by subproducers and then collected by the final call of the producer group
-                producer.output = q.Quantity(
-                    "PG_internal_quantity_%i" % self.__class__.PG_count
-                )  # quantities of vector producers will be duplicated later on when config is known
+                # if one of the subproducers is already a ProducerGroup, we don't have to generate an internal product and can just use the given one
+                if not isinstance(producer, ProducerGroup):
+                    # create quantities that are produced by subproducers and then collected by the final call of the producer group
+                    producer.output = q.Quantity(
+                        "PG_internal_quantity_%i" % self.__class__.PG_count
+                    )  # quantities of vector producers will be duplicated later on when config is known
                 for quantity in producer.inputs:
                     for scope in producer.scopes:
                         quantity.adopt(producer.output, scope)
@@ -250,6 +257,58 @@ GoodMuons = ProducerGroup(
     scopes=["global"],
     subproducers=[MuonPtCut, MuonEtaCut, MuonIDFilter, MuonIsoFilter],
 )
+
+VetoElectronPtCut = Producer(
+    name="ElectronPtCut",
+    call='physicsobject::CutPt({df}, {input}, "{output}", {min_VetoElectron_pt})',
+    inputs=[q.Electron_pt],
+    output=None,
+    scopes=["global"],
+)
+VetoElectronEtaCut = Producer(
+    name="ElectronEtaCut",
+    call='physicsobject::CutEta({df}, {input}, "{output}", {max_VetoElectron_eta})',
+    inputs=[q.Electron_eta],
+    output=None,
+    scopes=["global"],
+)
+VetoElectronIDFilter = Producer(
+    name="ElectronIDFilter",
+    call='physicsobject::electron::FilterID({df}, "{output}", "{VetoElectron_id}")',
+    inputs=[],
+    output=None,
+    scopes=["global"],
+)
+VetoElectronIsoFilter = Producer(
+    name="ElectronIsoFilter",
+    call='physicsobject::electron::FilterIsolation({df}, "{output}", {input}, {VetoElectron_iso_cut})',
+    inputs=[q.Electron_iso],
+    output=None,
+    scopes=["global"],
+)
+VetoElectrons = ProducerGroup(
+    name="VetoElectrons",
+    call='physicsobject::CombineMasks({df}, "{output}", {input})',
+    inputs=[],
+    output=q.electron_veto_mask,
+    scopes=["global"],
+    subproducers=[
+        VetoElectronPtCut,
+        VetoElectronEtaCut,
+        VetoElectronIDFilter,
+        VetoElectronIsoFilter,
+    ],
+)
+
+GoodElectronsVeto = ProducerGroup(
+    name="GoodElectronsVeto",
+    call='physicsobject::LeptonVetoFlag({df}, "{output}", {input})',
+    inputs=[],
+    output=q.electron_veto_flag,
+    scopes=["global"],
+    subproducers=[VetoElectrons],
+)
+
 
 RequireObjects = VectorProducer(
     name="RequireObjects",
