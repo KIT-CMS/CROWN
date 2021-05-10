@@ -125,6 +125,7 @@ class ProducerGroup:
             self.output = q.Quantity(
                 "PG_internal_quantity_%i" % self.__class__.PG_count
             )
+            self.__class__.PG_count += 1
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
         if self.call != None:
             for producer in self.producers:
@@ -290,7 +291,7 @@ VetoElectrons = ProducerGroup(
     name="VetoElectrons",
     call='physicsobject::CombineMasks({df}, "{output}", {input})',
     inputs=[],
-    output=q.electron_veto_mask,
+    output=None,
     scopes=["global"],
     subproducers=[
         VetoElectronPtCut,
