@@ -10,6 +10,10 @@ def build_config():
         "max_tau_dz": 0.2,
         "min_muon_pt": 23.0,
         "max_muon_eta": 2.5,
+        "min_VetoElectron_pt": 10.0,
+        "max_VetoElectron_eta": 2.5,
+        "VetoElectron_iso_cut": 0.30,
+        "VetoElectron_id": "Electron_mvaFall17V2noIso_WP90",
         "met_filters": ["Flag_goodVertices", "Flag_METFilters"],
         "tau_id": [
             "Tau_idDeepTau2017v2p1VSjet",
@@ -31,6 +35,7 @@ def build_config():
             p.MetFilter,
             p.GoodTaus,
             p.GoodMuons,
+            p.GoodElectronsVeto,
         ],
         "mt": [
             p.MTPairSelection,
@@ -41,12 +46,7 @@ def build_config():
         ],
     }
 
-    config["output"] = {
-        "mt": [
-            q.pt_1,
-            q.pt_2,
-        ]
-    }
+    config["output"] = {"mt": [q.pt_1, q.pt_2, q.electron_veto_flag]}
 
     shift_dict = {"min_tau_pt": 31.0}
     AddSystematicShift(config, "tauCutUp", shift_dict, [p.TauPtCut])
