@@ -1,8 +1,10 @@
 Implementing new producers in the python part
 =============================================
 
-C++ functions that are supposed to be used by the code generation, referred to as producers, need a corresponding python object defined code_generation/producer.py.
+C++ functions that are supposed to be used by the code generation, referred to as producers, need a corresponding python object defined producer.py_.
 There are different types of producer classes available.
+
+.. _producer.py: https://github.com/KIT-CMS/CROWN/blob/main/code_generation/producer.py
 
 - Producer: This is the standard producer class and takes the following arguments:
 
@@ -10,13 +12,13 @@ There are different types of producer classes available.
   - ``<string> call``: Function call to be embedded into the C++ template. Use curly brackets like ``{parameter_name}`` in order to mark places where parameters of the configuration shall be written. The following keys fulfill special roles and are reserved therefore:
 
     - ``{output}``: to be filled with name of output quantity as string or vector of strings, depending on number of outputs.
-    - ``{input}``: to be filled with names of input qunatities as strings separated by commas
+    - ``{input}``: to be filled with names of input quantities as strings separated by commas
     - ``{input_vec}``: like input but with curly brackets around it representing a C++ vector
     - ``{df}``: to be filled with the input dataframe
 
   - ``<list of quantities> inputs``: input quantities, which are used to fill ``{input}`` and/or ``{input_vec}``, list can be empty.
   - ``output``: can be None, quantity or list of quantities. Is used to fill ``{output}`` (not usable if None). A single quantity will appear as single string. A list of quantities will be filled as c++ vector of strings.
-  - ``<list of strings> scopes``: Scopes define certain sections of the production chain. ``global`` is the initial scope and it can be split into multiple custom scopes working on individual dataframe branches and writing out separate ROOT trees. This list of scopes defines, in which scopes the producer can be used. Dependencies between quantities will be traced separately for each scope.
+  - ``<list of strings> scopes``: Scopes define certain sections of the production chain. ``global`` is the initial scope and it can be split into multiple custom scopes working on individual dataframe branches and writing out separate ROOT trees. This list of scopes defines, in which scopes the producer can be used. Dependencies between quantities will be traced separately for each scope. For example properties of the tau candidates may be generated with the same producer but in different decay channels, which are represented by separate scopes.
 
 - VectorProducer: This is an extension of the standard producer class which can be used for C++ producers that need to be called several times with various parameter values. It takes the same arguments as the standard producer plus the following additional one:
 
