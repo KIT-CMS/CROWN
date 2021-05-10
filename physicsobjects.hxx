@@ -102,6 +102,14 @@ auto CombineMasks(auto df, const std::string &maskname, Masks... masks) {
         MaskList);
 }
 
+/// Function to filter events based on a mask. If the mask contains at least
+/// one object, the event is filtered
+///
+///   \param df the input dataframe
+///   \param maskname the name of the column containing the vetomap
+///    to be used
+///
+///   \return a new df with the events filtered
 auto FilterMasks(auto df, const std::string maskname) {
     auto df1 = df.Filter(
         [](const ROOT::RVec<Int_t> &mask) {
@@ -111,14 +119,30 @@ auto FilterMasks(auto df, const std::string maskname) {
         {maskname});
     return df1;
 }
-// auto FilterObjects(auto df, const std::string objectcounter,
-//                    const int minThreshold, const std::string filtername) {
-//     return df.Filter(
-//         [minThreshold](const UInt_t &nobject) {
-//             return nobject >= minThreshold;
-//         },
-//         {objectcounter}, filtername);
-// }
+
+/// Function to generate a veto based on a mask. If the mask contains at least
+/// one object, the veto flag is set, meaning that this event contains at least
+/// one object matching the requirements of the veto map.
+///
+/// \code
+///  In the veto column
+///  1 --> the event contains at least one object matching the veto map
+///  0 --> the event does not contain any object matching the veto map
+/// \endcode
+///
+/// \param df the input dataframe
+/// \param outputname name of the new quantity containing the veto flags
+/// \param vetomap the name of the column containing the vetomap to be used
+///
+/// \return a new df containing the veto flag column
+auto LeptonVetoFlag(auto df, const std::string &outputname,
+                    const std::string &vetomap) {
+    return df.Define(outputname,
+                     [](const ROOT::RVec<int> &mask) {
+                         return ROOT::VecOps::Nonzero(mask).size() != 0;
+                     },
+                     {vetomap});
+}
 
 /// Muon specific functions
 namespace muon {
@@ -195,7 +219,38 @@ auto FilterTauID(auto df, const std::string maskname, const std::string nameID,
 
 } // end namespace tau
 
-namespace electron {} // end namespace electron
+namespace electron {
+/// Function to filter electrons based on the electron ID
+///
+/// \param[in] df the input dataframe
+/// \param[out] maskname the name of the new mask to be added as column to the
+/// dataframe \param[in] nameID name of the ID column in the NanoAOD
+///
+/// \return a dataframe containing the new mask
+auto FilterID(auto df, const std::string maskname, const std::string nameID) {
+    auto df1 = df.Define(
+        maskname,
+        [](const ROOT::RVec<Bool_t> &id) { return (ROOT::RVec<int>)id; },
+        {nameID});
+    return df1;
+}
+/// Function to filter electrons based on the electron isolation using
+/// basefunctions::FilterMax
+///
+/// \param[in] df the input dataframe
+/// \param[in] isolationName name of the isolation column in the NanoAOD
+/// \param[out] maskname the name of the new mask to be added as column to the
+/// dataframe \param[in] Threshold maximal isolation threshold
+///
+/// \return a dataframe containing the new mask
+auto FilterIsolation(auto df, const std::string maskname,
+                     const std::string isolationName, const float Threshold) {
+    auto df1 = df.Define(maskname, basefunctions::FilterMax(Threshold),
+                         {isolationName});
+    return df1;
+}
+
+} // end namespace electron
 
 namespace jet {} // end namespace jet
 

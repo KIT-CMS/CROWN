@@ -24,7 +24,6 @@ auto pt(auto df, const std::string &outputname,
 /// dataframe
 ///
 /// \param df the dataframe to add the quantity to
-/// \param varSet - vector of variables with are snapsotted in the end
 /// \param outputname name of the new column containing the eta value
 /// \param inputvector name of the column containing the lorentz vector
 ///
@@ -58,8 +57,8 @@ auto phi(auto df, const std::string &outputname,
 ///
 /// \param df the dataframe to add the quantity to
 /// \param outputname name of the new column containing the pt value
-/// \param inputvector1 name of the column containing the first lorentz vector
-/// \param inputvector2 name of the column containing the second lorentz vector
+/// \param inputvectors a vector of the two names of the columns containing the
+/// required lorentz vectors
 ///
 /// \returns a dataframe with the new column
 
