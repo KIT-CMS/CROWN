@@ -4,7 +4,7 @@ Best Practices for Contributions
 C++ functions
 **************
 
-The main purpose of the framework is to be effieicnt and fast. Therefore it is essential to write clear and fast C++ functions, with as little overhead as possible. We try to enforce the following minimal requirements for new functions:
+The main purpose of the framework is to be efficient and fast. Therefore it is essential to write clear and fast C++ functions, with as little overhead as possible. We try to enforce the following minimal requirements for new functions:
 
 * If possible, no jitting should be used. Although RDataFrames support jitted functions, this should be avoided if possible, since a jitted function can not be optimized at compile time and will slow down the execution time of the framework.
 
@@ -47,3 +47,9 @@ Profiling with valgrind massif for Memory
 ------------------------------------------
 
 See the script https://github.com/KIT-CMS/CROWN/blob/main/profiling/massif.sh.
+
+
+Writing a new producer
+***********************
+
+Writing a new producer requires two main part, adding the C++ part and the python part.
