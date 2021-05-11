@@ -89,7 +89,12 @@ html_theme_options = {
 # html_static_path = ["_static"]
 
 # ...
-extensions = ["breathe", "sphinx.ext.viewcode", "sphinx.ext.autodoc"]
+extensions = [
+    "breathe",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosectionlabel",
+]
 # ...
 
 # Breathe Configuration
