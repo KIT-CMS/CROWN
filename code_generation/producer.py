@@ -290,7 +290,7 @@ VetoElectronIDFilter = Producer(
 )
 VetoElectronIsoFilter = Producer(
     name="ElectronIsoFilter",
-    call="physicsobject::electron::FilterIsolation({df}, {output}, {input}, {VetoElectron_iso_cut})",
+    call="physicsobject::electron::FilterIsolation({df}, {output}, {input}, {max_VetoElectron_iso})",
     input=[q.Electron_iso],
     output=[],
     scopes=["global"],
