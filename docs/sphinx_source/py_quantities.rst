@@ -1,3 +1,5 @@
+.. _py_quantities:
+
 Quantities in the python part
 =============================
 

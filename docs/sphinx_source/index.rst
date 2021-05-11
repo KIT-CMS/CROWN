@@ -21,6 +21,7 @@ Documentation of Python Stuff
    :caption: Contents:
 
    py_producers.rst
+   py_quantities.rst
    
 TODO add more
 
