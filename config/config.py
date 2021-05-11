@@ -12,7 +12,7 @@ def build_config():
         "max_muon_eta": 2.5,
         "min_VetoElectron_pt": 10.0,
         "max_VetoElectron_eta": 2.5,
-        "VetoElectron_iso_cut": 0.30,
+        "max_VetoElectron_iso": 0.30,
         "VetoElectron_id": "Electron_mvaFall17V2noIso_WP90",
         "met_filters": ["Flag_goodVertices", "Flag_METFilters"],
         "tau_id": [
