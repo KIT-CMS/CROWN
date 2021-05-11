@@ -11,7 +11,7 @@ There are different types of producer classes available.
   - ``<string> name``: Name of the producer showing up in error messages of the python workflow
   - ``<string> call``: Function call to be embedded into the C++ template. Use curly brackets like ``{parameter_name}`` in order to mark places where parameters of the configuration shall be written. The following keys fulfill special roles and are reserved therefore:
 
-    - ``{output}``: to be filled with name of output quantity as string or vector of strings, depending on number of outputs.
+    - ``{output}``: to be filled with name of output quantity (see :ref:`py_quantities`) as string or vector of strings, depending on number of outputs.
     - ``{input}``: to be filled with names of input quantities as strings separated by commas
     - ``{input_vec}``: like input but with curly brackets around it representing a C++ vector
     - ``{df}``: to be filled with the input dataframe
@@ -29,3 +29,5 @@ There are different types of producer classes available.
 - ProducerGroup: This object can be used to collect several producers for simplifying the configuration. It takes the same the same arguments as the standard producer plus the following additional one:
 
   - ``<list of producers> subproducers``: Producers can be any of the three types listed here. The producer group executes the subproducers first. Optionally, a closing call can be added by filling the ``call``, ``inputs``, and ``output`` arguments accordingly. If set to None, no closing call is added and only the subproducers executed. A closing call is used to process the outputs of the subproducers forming a new output. In this case, the outputs of the subproducers are regarded as internal quantities and will be set automatically. The output argument of the subproducers must be None, the internal quantities are filled in by the producer group and appended to the inputs of the closing call.
+
+.. _quantity: py_quantities.rst
