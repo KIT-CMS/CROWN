@@ -1,3 +1,10 @@
+Writing a new producer
+=======================
+
+Writing a new producer requires two main parts, adding the :ref:`C++ function<New C++ functions>` and the required :ref:`python part<Implementing new producers in the python part>`.
+
+
+
 Best Practices for Contributions
 =================================
 
@@ -13,6 +20,12 @@ The main purpose of the framework is to be efficient and fast. Therefore it is e
 * Documentation via docstrings directly in the code. These docstrings are then used to automatically generate the documentation.
 
 * Check the performance using the methods described below. Try to avoid adding functions that will be "fixed later down the line". This will be the beginning of the end of the frameworks performance.
+
+
+Python producers
+*****************
+
+To be added
 
 
 Debugging
@@ -47,9 +60,3 @@ Profiling with valgrind massif for Memory
 ------------------------------------------
 
 See the script https://github.com/KIT-CMS/CROWN/blob/main/profiling/massif.sh.
-
-
-Writing a new producer
-***********************
-
-Writing a new producer requires two main part, adding the C++ part and the python part.

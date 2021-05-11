@@ -8,13 +8,21 @@ The CORWN Framework is used to convert CMS NanoAOD into analysis N-tuples.
    :caption: Contents:
 
    introduction.rst
-   namespaces.rst
    contrib.rst
    build_root.rst
    create_nanoaod.rst
 
-Documentation of Python Stuff
-==============================
+Documentation of Build System
+===================================
+
+.. .. toctree::
+..    :maxdepth: 2
+..    :caption: Contents:
+
+TODO add this
+
+Documentation of Python Components
+===================================
 
 .. toctree::
    :maxdepth: 2
@@ -22,8 +30,18 @@ Documentation of Python Stuff
 
    py_producers.rst
    py_quantities.rst
-   
-TODO add more
+
+
+Documentation of C++ Components
+================================
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   c_functions.rst
+   namespaces.rst
+
 
 
 Index
