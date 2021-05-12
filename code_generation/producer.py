@@ -142,6 +142,32 @@ class VectorProducer(Producer):
         return calls
 
 
+class Filter(Producer):
+    def __init__(self, name, call, input, scopes):
+        super().__init__(name, call, input, None, scopes)
+    
+    def writecall(self, config, scope, shift=""):
+        log.critical("{}: Filters do not support method writecall!".format(self.name))
+        raise Exception
+    
+    def writecalls(self, config, scope):
+        config[shift]["output"] = ""
+        config[shift]["output_vec"] = ""
+        inputs = []
+        for quantity in self.input:
+            inputs.extend(quantity.get_leafs_of_scope(scope))
+        config[shift]["input"] = (
+            '"' + '", "'.join(inputs) + '"'
+        )
+        config[shift]["input_vec"] = (
+            '{"' + '","'.join(inputs) + '"}'
+        )
+        config[shift]["df"] = "{df}"
+        return [self.call.format(
+            **config[shift]
+        )]  # use format (not format_map here) such that missing config entries cause an error
+
+
 class ProducerGroup:
     PG_count = 1  # counter for internal quantities used by ProducerGroups
 
