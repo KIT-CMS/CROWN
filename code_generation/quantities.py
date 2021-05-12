@@ -1,8 +1,14 @@
+import logging
+
+log = logging.getLogger(__name__)
+
+
 class Quantity:
     def __init__(self, name):
         self.name = name
         self.shifts = {}
         self.children = {}
+        log.debug("Setting up new Quantity {}".format(self.name))
 
     def get_leaf(self, shift, scope):
         if shift in self.get_shifts(scope):
@@ -13,6 +19,7 @@ class Quantity:
         return [self.name] + [self.name + shift for shift in self.get_shifts(scope)]
 
     def shift(self, name, scope):
+        log.debug("Adding shift {} to quantity {}".format(name, self.name))
         if not scope in self.shifts.keys():
             self.shifts[scope] = set()
         if not name in self.shifts[scope]:
@@ -33,6 +40,9 @@ class Quantity:
         return copy
 
     def adopt(self, child, scope):
+        log.debug(
+            "Adopting child quantity {} to quantity {}".format(child.name, self.name)
+        )
         if not scope in self.children.keys():
             self.children[scope] = []
         self.children[scope].append(child)

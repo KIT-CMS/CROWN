@@ -1,3 +1,8 @@
+import logging
+
+log = logging.getLogger(__name__)
+
+
 class SafeDict(dict):
     def __missing__(self, key):
         return "{" + key + "}"
@@ -10,6 +15,7 @@ def fill_template(t, config):
     df_scope_count = 0  # enumerate dataframes in certain scopes
 
     # get commands of producers and append to the command list
+    log.info("Generating commands ...")
     for producer in config["producers"]["global"]:
         commandlist += "\n    //" + producer.name + "\n"
         for call in producer.writecalls(config, "global"):
@@ -19,6 +25,8 @@ def fill_template(t, config):
                 + ";\n"
             )
             df_count += 1
+            log.debug("Adding call for {}".format(producer.name))
+            log.debug("|---> {}".format(commandlist.split("\n")[-2]))
     commandlist += "    auto global_df_final = df%i;\n" % df_count
     for scope in config["producers"]:
         if scope == "global":
@@ -38,6 +46,8 @@ def fill_template(t, config):
                     )
                     + ";\n"
                 )
+                log.debug("Adding call for {}".format(producer.name))
+                log.debug("|---> {}".format(commandlist.split("\n")[-2]))
                 df_scope_count += 1
         commandlist += "    auto %s_df_final = %s_df%i;\n" % (
             scope,
@@ -74,6 +84,7 @@ def fill_template(t, config):
         + "+".join(["%s_df_final.GetNRuns()" % scope for scope in config["producers"]])
         + ")/%f" % len(config["producers"])
     )
+    log.info("Finished generating code.")
     return (
         t.replace("    // {CODE_GENERATION}", commandlist)
         .replace("    // {RUN_COMMANDS}", runcommands)
