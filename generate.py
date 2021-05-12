@@ -1,10 +1,9 @@
-# Dummy Python generation script, just to showcase the cmake integration
-# This script just copies the template around and does not modify it
-
 import argparse
 from shutil import copyfile
-from os import path
+from os import path, makedirs
 import importlib
+import logging
+import logging.handlers
 
 from code_generation.code_generation import fill_template
 
@@ -36,11 +35,26 @@ args = parser.parse_args()
 # DY
 # WJets
 # data
+
 executables = []
 sample_groups = ["emb"]
 for sample_group in sample_groups:
+    ## setup logging
+    if not path.exists("generation_logs"):
+        makedirs("generation_logs")
+    handler = logging.handlers.WatchedFileHandler(
+        "generation_logs/generation_{sample}.log".format(sample=sample_group), "w"
+    )
+    handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+    root = logging.getLogger()
+    root.setLevel("INFO")
+    root.addHandler(handler)
+    log = logging.getLogger(__name__)
+    ### Setting up executable
     executable = f"analysis_{sample_group}.cxx"
     analysis = importlib.import_module("config." + args.analysis)
+    log.info("Generating code for {}...".format(sample_group))
+    log.info("Configuration used: {}".format(analysis))
     config = analysis.build_config()
     # modify config according to args
     # ...

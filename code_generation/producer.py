@@ -1,4 +1,7 @@
 import code_generation.quantities as q
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class SafeDict(dict):
@@ -8,6 +11,7 @@ class SafeDict(dict):
 
 class Producer:
     def __init__(self, name, call, input, output, scopes):
+        log.debug("Setting up a new producer {}".format(name))
 
         # sanity checks
         if not isinstance(input, list):
@@ -21,13 +25,25 @@ class Producer:
         self.input = input
         self.output = output
         self.scopes = scopes
-
         # keep track of variable dependencies
         if self.output != None:
             for input_quantity in self.input:
                 for scope in self.scopes:
                     for output_quantity in self.output:
                         input_quantity.adopt(output_quantity, scope)
+        log.debug("-----------------------------------------")
+        log.debug("| Producer: {}".format(self.name))
+        log.debug("| Call: {}".format(self.call))
+        if self.input == None:
+            log.debug("| Inputs: None")
+        else:
+            log.debug("| Inputs: {}".format([input.name for input in self.input]))
+        if self.output == None:
+            log.debug("| Output: None")
+        else:
+            log.debug("| Outputs: {}".format([output.name for output in self.output]))
+        log.debug("| scopes: {}".format(self.scopes))
+        log.debug("-----------------------------------------")
 
     def shift(self, name, scope="global"):
         if not scope in self.scopes:
