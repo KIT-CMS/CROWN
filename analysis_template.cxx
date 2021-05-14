@@ -1,6 +1,7 @@
 #include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "TStopwatch.h"
+#include "jets.hxx"
 #include "lorentzvectors.hxx"
 #include "metfilter.hxx"
 #include "pairselection.hxx"
@@ -39,7 +40,7 @@ int main(int argc, char *argv[]) {
     // for testing, we limit to 1000 events only
     // 1st stage: Good object selection
     Logger::enableFileLogging("logs/main.txt");
-    Logger::setLevel(Logger::LogLevel::INFO);
+    Logger::setLevel(Logger::LogLevel::DEBUG);
     Logger::get("main")->info("Starting Setup of Dataframe");
 
     // auto df_final = df0;
