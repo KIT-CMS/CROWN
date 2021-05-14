@@ -1,6 +1,9 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
+#include "basefunctions.hxx"
+#include "utility/Logger.hxx"
 #include <Math/Vector3D.h>
+#include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 
 namespace jet {
@@ -55,9 +58,11 @@ auto OrderJetsByPt(auto df, const std::string &output_col,
             // gives back an unsigned long vector
             auto temp =
                 ROOT::VecOps::Argsort(ROOT::VecOps::Nonzero(good_jets_pt));
+            Logger::get("OrderJetsByPt")->debug("jet Indices {}", temp);
             ROOT::RVec<int> result;
             std::transform(temp.begin(), temp.end(), result.begin(),
-                           [](unsigned long x) { return (int)x; });
+                           [](unsigned long int x) { return (int)x; });
+            Logger::get("OrderJetsByPt")->debug("jet Indices int {}", result);
             return result;
         },
         {jetmask, jet_pt});
@@ -90,6 +95,8 @@ auto NumberOfJets(auto df, const std::string &outputname,
                   const std::string &jetcollection) {
     return df.Define(outputname,
                      [](const ROOT::RVec<int> &jetcollection) {
+                         Logger::get("NumberOfJets")
+                             ->debug("NJets {}", jetcollection.size());
                          return jetcollection.size();
                      },
                      {jetcollection});
