@@ -31,16 +31,24 @@ auto buildparticle(auto df, const std::vector<std::string> quantities,
                    const ROOT::RVec<float> &etas, const ROOT::RVec<float> &phis,
                    const ROOT::RVec<float> &masses) {
             // the index of the particle is stored in the pair vector
-            const int index = pair.at(position);
-            Logger::get("lorentzvectors")->debug("pair {}", pair);
-            Logger::get("lorentzvectors")->debug("pts {}", pts);
-            Logger::get("lorentzvectors")->debug("etas {}", etas);
-            Logger::get("lorentzvectors")->debug("phis {}", phis);
-            Logger::get("lorentzvectors")->debug("masses {}", masses);
-            Logger::get("lorentzvectors")->debug("Index {}", index);
+            ROOT::Math::PtEtaPhiMVector p4;
+            try {
+                const int index = pair.at(position);
+                Logger::get("lorentzvectors")->debug("pair {}", pair);
+                Logger::get("lorentzvectors")->debug("pts {}", pts);
+                Logger::get("lorentzvectors")->debug("etas {}", etas);
+                Logger::get("lorentzvectors")->debug("phis {}", phis);
+                Logger::get("lorentzvectors")->debug("masses {}", masses);
+                Logger::get("lorentzvectors")->debug("Index {}", index);
 
-            const auto p4 = ROOT::Math::PtEtaPhiMVector(
-                pts.at(index), etas.at(index), phis.at(index), masses.at(index));
+                p4 = ROOT::Math::PtEtaPhiMVector(pts.at(index), etas.at(index),
+                                                 phis.at(index),
+                                                 masses.at(index));
+            } catch (const std::out_of_range &e) {
+                p4 = ROOT::Math::PtEtaPhiMVector(-999, -999, -999, -999);
+                Logger::get("lorentzvectors")
+                    ->debug("Index not found, retuning dummy vector !");
+            }
             Logger::get("lorentzvectors")
                 ->debug("P4 - Particle {} : {}", position, p4);
             return p4;

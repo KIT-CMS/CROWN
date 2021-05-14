@@ -1,3 +1,6 @@
+#ifndef GUARDBASEFUCTIONS_H
+#define GUARDBASEFUCTIONS_H
+
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 
@@ -107,3 +110,5 @@ auto FilterJetID(int index) {
 }
 
 } // namespace basefunctions
+
+#endif /* GUARDBASEFUNCTIONS_H */
