@@ -45,16 +45,19 @@ for sample_group in sample_groups:
     handler = logging.handlers.WatchedFileHandler(
         "generation_logs/generation_{sample}.log".format(sample=sample_group), "w"
     )
+    terminal_handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+    terminal_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
     root = logging.getLogger()
-    root.setLevel("INFO")
+    root.setLevel("DEBUG")
     root.addHandler(handler)
-    log = logging.getLogger(__name__)
+    root.addHandler(terminal_handler)
+
     ### Setting up executable
     executable = f"analysis_{sample_group}.cxx"
     analysis = importlib.import_module("config." + args.analysis)
-    log.info("Generating code for {}...".format(sample_group))
-    log.info("Configuration used: {}".format(analysis))
+    root.info("Generating code for {}...".format(sample_group))
+    root.info("Configuration used: {}".format(analysis))
     config = analysis.build_config()
     # modify config according to args
     # ...
