@@ -31,7 +31,7 @@ auto buildparticle(auto df, const std::vector<std::string> quantities,
                    const ROOT::RVec<float> &etas, const ROOT::RVec<float> &phis,
                    const ROOT::RVec<float> &masses) {
             // the index of the particle is stored in the pair vector
-            const int index = pair[position];
+            const int index = pair.at(position);
             Logger::get("lorentzvectors")->debug("pair {}", pair);
             Logger::get("lorentzvectors")->debug("pts {}", pts);
             Logger::get("lorentzvectors")->debug("etas {}", etas);
@@ -40,7 +40,7 @@ auto buildparticle(auto df, const std::vector<std::string> quantities,
             Logger::get("lorentzvectors")->debug("Index {}", index);
 
             const auto p4 = ROOT::Math::PtEtaPhiMVector(
-                pts[index], etas[index], phis[index], masses[index]);
+                pts.at(index), etas.at(index), phis.at(index), masses.at(index));
             Logger::get("lorentzvectors")
                 ->debug("P4 - Particle {} : {}", position, p4);
             return p4;

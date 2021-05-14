@@ -63,7 +63,7 @@ auto OrderJetsByPt(auto df, const std::string &output_col,
         {jetmask, jet_pt});
     return df1;
 }
-} // namespace jet
+} // end namespace jet
 
 namespace physicsobject {
 namespace jet {
