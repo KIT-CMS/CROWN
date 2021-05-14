@@ -1,4 +1,5 @@
 import code_generation.producer as p
+from code_generation.producers import *
 from code_generation.producer import q
 from config.utility import AddSystematicShift
 
@@ -10,6 +11,9 @@ def build_config():
         "max_tau_dz": 0.2,
         "min_muon_pt": 23.0,
         "max_muon_eta": 2.5,
+        "min_jet_pt": 30,
+        "max_jet_eta": 4.7,
+        "jet_id": 2,  # second bit is tight JetID
         "min_VetoElectron_pt": 10.0,
         "max_VetoElectron_eta": 2.5,
         "max_VetoElectron_iso": 0.30,
@@ -36,6 +40,7 @@ def build_config():
             p.GoodTaus,
             p.GoodMuons,
             p.GoodElectronsVeto,
+            GoodJets,
         ],
         "mt": [
             p.MTPairSelection,
@@ -43,10 +48,11 @@ def build_config():
             p.LVMu1,
             p.LVTau2,
             p.DiTauPairQuantities,
+            VetoJets,
         ],
     }
 
-    config["output"] = {"mt": [q.pt_1, q.pt_2, q.electron_veto_flag]}
+    config["output"] = {"mt": [q.pt_1, q.pt_2, q.electron_veto_flag, q.good_jets_mask]}
 
     shift_dict = {"min_tau_pt": 31.0}
     AddSystematicShift(config, "tauCutUp", shift_dict, [p.TauPtCut])

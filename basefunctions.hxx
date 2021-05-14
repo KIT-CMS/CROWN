@@ -77,7 +77,7 @@ auto MultiplyTwoMasks() {
 /// between the given ID and the filtered index is performed. Return true if the
 /// working point is passed by a tau.
 ///
-/// \param index The bitmask index to be used for comparion
+/// \param index The bitmask index to be used for comparison
 ///
 /// \returns a lambda function to be used in RDF Define
 auto FilterID(int index) {
@@ -85,6 +85,22 @@ auto FilterID(int index) {
         ROOT::RVec<int> mask;
         for (auto const ID : IDs) {
             mask.push_back(std::min(1, int(ID & 1 << index - 1)));
+        }
+        return mask;
+    };
+}
+/// Function to filter the Jet ID in NanoAOD. Ths values are stored bitwise, so
+/// the integer value has to be decoded into binary, and then the value of the
+/// index bit has to be compared.
+///
+/// \param index The bitmask index to be used for comparison
+///
+/// \returns a lambda function to be used in RDF Define
+auto FilterJetID(int index) {
+    return [index](const ROOT::RVec<Int_t> &IDs) {
+        ROOT::RVec<int> mask;
+        for (auto const ID : IDs) {
+            mask.push_back(std::min(1, (ID >> index) & 1));
         }
         return mask;
     };

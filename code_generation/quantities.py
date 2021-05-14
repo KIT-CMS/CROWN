@@ -86,7 +86,12 @@ Electron_phi = Quantity("Electron_phi")
 Electron_mass = Quantity("Electron_mass")
 Electron_iso = Quantity("Electron_pfRelIso03_all")
 
+good_jets_mask = Quantity("good_jets_mask")
+good_jets_with_leptonveto_mask = Quantity("good_jets_with_leptonveto_mask")
+Jet_eta = Quantity("Jet_eta")
+Jet_phi = Quantity("Jet_phi")
 ditaupair = Quantity("ditaupair")
+good_jet_collection = Quantity("good_jet_collection")
 
 p4_1 = Quantity("p4_1")
 pt_1 = Quantity("pt_1")
