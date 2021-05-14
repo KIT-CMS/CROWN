@@ -252,21 +252,4 @@ auto FilterIsolation(auto df, const std::string maskname,
 
 } // end namespace electron
 
-namespace jet {
-
-/// Function to filter jets based on the tau ID
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe \param[in] nameID name of the ID column in the NanoAOD \param[in]
-/// idxID bitvalue of the WP the has to be passed
-///
-/// \return a dataframe containing the new mask
-auto FilterID(auto df, const std::string maskname, const std::string nameID,
-              const int idxID) {
-    auto df1 = df.Define(maskname, basefunctions::FilterJetID(idxID), {nameID});
-    return df1;
-}
-} // end namespace jet
-
 } // namespace physicsobject
