@@ -14,6 +14,7 @@ def build_config():
         "min_jet_pt": 30,
         "max_jet_eta": 4.7,
         "jet_id": 2,  # second bit is tight JetID
+        "deltaR_jet_veto": 0.5,
         "min_VetoElectron_pt": 10.0,
         "max_VetoElectron_eta": 2.5,
         "max_VetoElectron_iso": 0.30,
@@ -40,7 +41,7 @@ def build_config():
             p.GoodTaus,
             p.GoodMuons,
             p.GoodElectronsVeto,
-            GoodJets,
+            # GoodJets,
         ],
         "mt": [
             p.MTPairSelection,
@@ -49,10 +50,21 @@ def build_config():
             p.LVTau2,
             p.DiTauPairQuantities,
             VetoJets,
+            BasicJetQuantities,
         ],
     }
 
-    config["output"] = {"mt": [q.pt_1, q.pt_2, q.electron_veto_flag, q.good_jets_mask]}
+    config["output"] = {
+        "mt": [
+            q.pt_1,
+            q.pt_2,
+            q.njets,
+            q.jpt_1,
+            q.jpt_2,
+            q.electron_veto_flag,
+            q.good_jet_collection,
+        ]
+    }
 
     shift_dict = {"min_tau_pt": 31.0}
     AddSystematicShift(config, "tauCutUp", shift_dict, [p.TauPtCut])

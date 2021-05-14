@@ -176,6 +176,22 @@ class ProducerGroup:
             self.producers.append(
                 Producer(self.name, self.call, self.input, self.output, self.scopes)
             )
+        log.debug("-----------------------------------------")
+        log.debug("| ProducerGroup: {}".format(self.name))
+        log.debug("| Call: {}".format(self.call))
+        if self.input == None:
+            log.debug("| Inputs: None")
+        else:
+            log.debug("| Inputs: {}".format([input.name for input in self.input]))
+        if self.output == None:
+            log.debug("| Output: None")
+        else:
+            log.debug("| Outputs: {}".format([output.name for output in self.output]))
+        log.debug(
+            "| Producers: {}".format([producer.name for producer in self.producers])
+        )
+        log.debug("| scopes: {}".format(self.scopes))
+        log.debug("-----------------------------------------")
 
     def shift(self, name, scope="global"):
         for producer in self.producers:
