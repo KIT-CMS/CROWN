@@ -44,7 +44,7 @@ auto VetoOverlappingJets(auto df, const std::string &output_col,
 }
 
 auto OrderJetsByPt(auto df, const std::string &output_col,
-                   const std::string &jetmask, const std::string &jet_pt) {
+                   const std::string &jet_pt, const std::string &jetmask) {
     auto df1 = df.Define(
         output_col,
         [](const ROOT::RVec<int> &jetmask, const ROOT::RVec<float> &jet_pt) {

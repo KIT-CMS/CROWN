@@ -14,6 +14,9 @@ def build_config():
         "min_jet_pt": 30,
         "max_jet_eta": 4.7,
         "jet_id": 2,  # second bit is tight JetID
+        "min_bjet_pt": 20,
+        "max_bjet_eta": 2.4,
+        "btag_cut": 0.2783,  # medium
         "deltaR_jet_veto": 0.5,
         "min_VetoElectron_pt": 10.0,
         "max_VetoElectron_eta": 2.5,
@@ -49,8 +52,9 @@ def build_config():
             p.LVMu1,
             p.LVTau2,
             p.DiTauPairQuantities,
-            VetoJets,
+            JetCollection,
             BasicJetQuantities,
+            BJetCollection,
         ],
     }
 
