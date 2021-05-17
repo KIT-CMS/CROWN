@@ -6,21 +6,42 @@ from code_generation.producer import Producer, ProducerGroup
 ####################
 JetPtCut = Producer(
     name="JetPtCut",
-    call='physicsobject::CutPt({df}, "Jet_pt", {output}, {min_jet_pt})',
-    input=[],
+    call="physicsobject::CutPt({df}, {input}, {output}, {min_jet_pt})",
+    input=[q.Jet_pt],
+    output=[],
+    scopes=["global"],
+)
+BJetPtCut = Producer(
+    name="BJetPtCut",
+    call="physicsobject::CutPt({df}, {input}, {output}, {min_bjet_pt})",
+    input=[q.Jet_pt],
     output=[],
     scopes=["global"],
 )
 JetEtaCut = Producer(
     name="JetEtaCut",
-    call='physicsobject::CutEta({df}, "Jet_eta", {output}, {max_jet_eta})',
-    input=[],
+    call="physicsobject::CutEta({df}, {input}, {output}, {max_jet_eta})",
+    input=[q.Jet_eta],
+    output=[],
+    scopes=["global"],
+)
+BJetEtaCut = Producer(
+    name="BJetEtaCut",
+    call="physicsobject::CutEta({df}, {input}, {output}, {max_bjet_eta})",
+    input=[q.Jet_eta],
     output=[],
     scopes=["global"],
 )
 JetIDFilter = Producer(
     name="JetIDFilter",
     call='physicsobject::jet::FilterID({df}, {output}, "Jet_jetId", {jet_id})',
+    input=[],
+    output=[q.jet_id_mask],
+    scopes=["global"],
+)
+BTag = Producer(
+    name="BTag",
+    call='physicsobject::CutPt({df}, "Jet_btagDeepFlavB", {output}, {btag_cut})',
     input=[],
     output=[],
     scopes=["global"],
@@ -45,7 +66,7 @@ VetoOverlappingJets = Producer(
     name="VetoOverlappingJets",
     call="jet::VetoOverlappingJets({df}, {output}, {input}, {deltaR_jet_veto})",
     input=[q.Jet_eta, q.Jet_phi, q.p4_1, q.p4_2],
-    output=[],
+    output=[q.jet_overlap_veto_mask],
     scopes=["mt"],
 )
 
@@ -53,26 +74,36 @@ GoodJetsWithVeto = ProducerGroup(
     name="GoodJetsWithVeto",
     call="physicsobject::CombineMasks({df}, {output}, {input})",
     input=[],
-    output=[q.good_jets_with_leptonveto_mask],
+    output=[],
     scopes=["mt"],
     subproducers=[JetPtCut, JetEtaCut, JetIDFilter, VetoOverlappingJets],
 )
 
-OrderJetsByPt = Producer(
-    name="OrderJetsByPt",
-    call="jet::OrderJetsByPt({df}, {output}, {input})",
-    input=[q.good_jets_with_leptonveto_mask, q.Jet_pt],
-    output=[q.good_jet_collection],
-    scopes=["mt"],
-)
-
-VetoJets = ProducerGroup(
-    name="VetoJets",
-    call=None,
-    input=[],
+GoodBJetsWithVeto = ProducerGroup(
+    name="GoodBJetsWithVeto",
+    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    input=[q.jet_id_mask, q.jet_overlap_veto_mask],
     output=[],
     scopes=["mt"],
-    subproducers=[GoodJetsWithVeto, OrderJetsByPt],
+    subproducers=[BJetPtCut, BJetEtaCut, BTag],
+)
+
+JetCollection = ProducerGroup(
+    name="JetCollection",
+    call="jet::OrderJetsByPt({df}, {output}, {input})",
+    input=[q.Jet_pt],
+    output=[q.good_jet_collection],
+    scopes=["mt"],
+    subproducers=[GoodJetsWithVeto],
+)
+
+BJetCollection = ProducerGroup(
+    name="BJetCollection",
+    call="jet::OrderJetsByPt({df}, {output}, {input})",
+    input=[q.Jet_pt],
+    output=[q.good_bjet_collection],
+    scopes=["mt"],
+    subproducers=[GoodBJetsWithVeto],
 )
 
 ##########################
