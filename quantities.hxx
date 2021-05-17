@@ -1,4 +1,5 @@
 #include "utility/Logger.hxx"
+#include "defaults.hxx"
 #include <Math/Vector4D.h>
 /// The namespace that is used to hold the functions for basic quantities that
 /// are needed for every event
@@ -49,7 +50,9 @@ auto phi(auto df, const std::string &outputname,
          const std::string &inputvector) {
     return df.Define(
         outputname,
-        [](const ROOT::Math::PtEtaPhiMVector &p4) { return (float)p4.phi(); },
+        [](const ROOT::Math::PtEtaPhiMVector &p4) { 
+            if (p4.pt() < 0.0) return default_float;
+            return (float)p4.phi(); },
         {inputvector});
 }
 /// Function to calculate the mass from a pair of lorentz vectors and add it to
@@ -69,6 +72,7 @@ auto m_vis(auto df, const std::string &outputname,
         outputname,
         [](const ROOT::Math::PtEtaPhiMVector &p4_1,
            const ROOT::Math::PtEtaPhiMVector &p4_2) {
+            if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0) return default_float;
             auto const dileptonsystem = p4_1 + p4_2;
             return (float)dileptonsystem.mass();
         },

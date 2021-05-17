@@ -1,5 +1,5 @@
 import code_generation.producer as p
-from code_generation.producers import *
+from code_generation.producers.jets import *
 from code_generation.producer import q
 from config.utility import AddSystematicShift
 
@@ -61,6 +61,11 @@ def build_config():
             q.njets,
             q.jpt_1,
             q.jpt_2,
+            q.jeta_1,
+            q.jeta_2,
+            q.jphi_1,
+            q.jphi_2,
+            q.mjj,
             q.electron_veto_flag,
             q.good_jet_collection,
         ]

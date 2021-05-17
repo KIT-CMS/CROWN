@@ -1,4 +1,5 @@
 #include "utility/Logger.hxx"
+#include "defaults.hxx"
 #include <Math/Vector4D.h>
 
 /// Namespace used for lorentzvector operations
@@ -45,7 +46,7 @@ auto buildparticle(auto df, const std::vector<std::string> quantities,
                                                  phis.at(index),
                                                  masses.at(index));
             } catch (const std::out_of_range &e) {
-                p4 = ROOT::Math::PtEtaPhiMVector(-999, -999, -999, -999);
+                p4 = ROOT::Math::PtEtaPhiMVector(default_float, default_float, default_float, default_float);
                 Logger::get("lorentzvectors")
                     ->debug("Index not found, retuning dummy vector !");
             }
