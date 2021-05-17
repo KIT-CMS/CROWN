@@ -59,7 +59,7 @@ auto OrderJetsByPt(auto df, const std::string &output_col,
             auto temp =
                 ROOT::VecOps::Argsort(ROOT::VecOps::Nonzero(good_jets_pt));
             Logger::get("OrderJetsByPt")->debug("jet Indices {}", temp);
-            ROOT::RVec<int> result;
+            ROOT::RVec<int> result(temp.size());
             std::transform(temp.begin(), temp.end(), result.begin(),
                            [](unsigned long int x) { return (int)x; });
             Logger::get("OrderJetsByPt")->debug("jet Indices int {}", result);
@@ -97,7 +97,7 @@ auto NumberOfJets(auto df, const std::string &outputname,
                      [](const ROOT::RVec<int> &jetcollection) {
                          Logger::get("NumberOfJets")
                              ->debug("NJets {}", jetcollection.size());
-                         return jetcollection.size();
+                         return (int)jetcollection.size();
                      },
                      {jetcollection});
 }

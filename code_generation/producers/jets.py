@@ -144,6 +144,13 @@ jphi_2 = Producer(
     output=[q.jphi_2],
     scopes=["mt"],
 )
+mjj = Producer(
+    name="jphi_2",
+    call="quantities::m_vis({df}, {output}, {input_vec})",
+    input=[q.jet_p4_1, q.jet_p4_2],
+    output=[q.mjj],
+    scopes=["mt"],
+)
 BasicJetQuantities = ProducerGroup(
     name="BasicJetQuantities",
     call=None,
@@ -160,5 +167,6 @@ BasicJetQuantities = ProducerGroup(
         jpt_2,
         jeta_2,
         jphi_2,
+        mjj,
     ],
 )
