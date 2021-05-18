@@ -54,6 +54,14 @@ GoodJets = ProducerGroup(
     scopes=["global"],
     subproducers=[JetPtCut, JetEtaCut, JetIDFilter],
 )
+GoodBJets = ProducerGroup(
+    name="GoodBJets",
+    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    input=[q.jet_id_mask],
+    output=[q.good_bjets_mask],
+    scopes=["global"],
+    subproducers=[BJetPtCut, BJetEtaCut, BTag],
+)
 
 ####################
 # Set of producers to apply a veto of jets overlapping with ditaupair candidates and ordering jets by their pt
@@ -73,19 +81,18 @@ VetoOverlappingJets = Producer(
 GoodJetsWithVeto = ProducerGroup(
     name="GoodJetsWithVeto",
     call="physicsobject::CombineMasks({df}, {output}, {input})",
-    input=[],
+    input=[q.good_jets_mask],
     output=[],
     scopes=["mt"],
-    subproducers=[JetPtCut, JetEtaCut, JetIDFilter, VetoOverlappingJets],
+    subproducers=[VetoOverlappingJets],
 )
 
-GoodBJetsWithVeto = ProducerGroup(
+GoodBJetsWithVeto = Producer(
     name="GoodBJetsWithVeto",
     call="physicsobject::CombineMasks({df}, {output}, {input})",
-    input=[q.jet_id_mask, q.jet_overlap_veto_mask],
+    input=[q.good_bjets_mask, q.jet_overlap_veto_mask],
     output=[],
     scopes=["mt"],
-    subproducers=[BJetPtCut, BJetEtaCut, BTag],
 )
 
 JetCollection = ProducerGroup(
@@ -132,7 +139,6 @@ NumberOfJets = Producer(
     output=[q.njets],
     scopes=["mt"],
 )
-
 jpt_1 = Producer(
     name="jpt_1",
     call="quantities::pt({df}, {output}, {input})",
@@ -199,5 +205,92 @@ BasicJetQuantities = ProducerGroup(
         jeta_2,
         jphi_2,
         mjj,
+    ],
+)
+
+##########################
+# Basic b-Jet Quantities
+# nbtag, pt, eta, phi
+##########################
+
+LVBJet1 = Producer(
+    name="LVBJet1",
+    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
+    input=[q.good_bjet_collection, q.Jet_pt, q.Jet_eta, q.Jet_phi, q.Jet_mass],
+    output=[q.bjet_p4_1],
+    scopes=["mt"],
+)
+LVBJet2 = Producer(
+    name="LVBJet2",
+    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
+    input=[q.good_bjet_collection, q.Jet_pt, q.Jet_eta, q.Jet_phi, q.Jet_mass],
+    output=[q.bjet_p4_2],
+    scopes=["mt"],
+)
+NumberOfBJets = Producer(
+    name="NumberOfBJets",
+    call="quantities::jet::NumberOfJets({df}, {output}, {input})",
+    input=[q.good_bjet_collection],
+    output=[q.nbtag],
+    scopes=["mt"],
+)
+bpt_1 = Producer(
+    name="bpt_1",
+    call="quantities::pt({df}, {output}, {input})",
+    input=[q.bjet_p4_1],
+    output=[q.bpt_1],
+    scopes=["mt"],
+)
+bpt_2 = Producer(
+    name="bpt_2",
+    call="quantities::pt({df}, {output}, {input})",
+    input=[q.bjet_p4_2],
+    output=[q.bpt_2],
+    scopes=["mt"],
+)
+beta_1 = Producer(
+    name="beta_1",
+    call="quantities::eta({df}, {output}, {input})",
+    input=[q.bjet_p4_1],
+    output=[q.beta_1],
+    scopes=["mt"],
+)
+beta_2 = Producer(
+    name="beta_2",
+    call="quantities::eta({df}, {output}, {input})",
+    input=[q.bjet_p4_2],
+    output=[q.beta_2],
+    scopes=["mt"],
+)
+bphi_1 = Producer(
+    name="bphi_1",
+    call="quantities::phi({df}, {output}, {input})",
+    input=[q.bjet_p4_1],
+    output=[q.bphi_1],
+    scopes=["mt"],
+)
+bphi_2 = Producer(
+    name="bphi_2",
+    call="quantities::phi({df}, {output}, {input})",
+    input=[q.bjet_p4_2],
+    output=[q.bphi_2],
+    scopes=["mt"],
+)
+BasicBJetQuantities = ProducerGroup(
+    name="BasicBJetQuantities",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["mt"],
+    subproducers=[
+        LVBJet1,
+        LVBJet2,
+        NumberOfBJets,
+        bpt_1,
+        beta_1,
+        bphi_1,
+        bpt_2,
+        beta_2,
+        bphi_2,
     ],
 )
