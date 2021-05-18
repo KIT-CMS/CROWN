@@ -44,7 +44,8 @@ def build_config():
             p.GoodTaus,
             p.GoodMuons,
             p.GoodElectronsVeto,
-            # GoodJets,
+            GoodJets,
+            GoodBJets,
         ],
         "mt": [
             p.MTPairSelection,
@@ -55,6 +56,7 @@ def build_config():
             JetCollection,
             BasicJetQuantities,
             BJetCollection,
+            BasicBJetQuantities,
         ],
     }
 
@@ -72,6 +74,13 @@ def build_config():
             q.mjj,
             q.electron_veto_flag,
             q.good_jet_collection,
+            q.nbtag,
+            q.bpt_1,
+            q.bpt_2,
+            q.beta_1,
+            q.beta_2,
+            q.bphi_1,
+            q.bphi_2,
         ]
     }
 
