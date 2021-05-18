@@ -75,11 +75,14 @@ auto CutDxy(auto df, const std::string quantity, const std::string maskname,
         df.Define(maskname, basefunctions::FilterMax(Threshold), {quantity});
     return df1;
 }
-void appendParameterPackToVector(std::vector<std::string> &v, const std::string &maskname){
+void appendParameterPackToVector(std::vector<std::string> &v,
+                                 const std::string &maskname) {
     v.push_back(maskname);
 }
 template <class... Masks>
-void appendParameterPackToVector(std::vector<std::string> &v, const std::string &maskname, const Masks&... masks){
+void appendParameterPackToVector(std::vector<std::string> &v,
+                                 const std::string &maskname,
+                                 const Masks &... masks) {
     v.push_back(maskname);
     appendParameterPackToVector(v, masks...);
 }
@@ -95,7 +98,8 @@ void appendParameterPackToVector(std::vector<std::string> &v, const std::string 
 ///
 /// \return a dataframe containing the new mask
 template <class... Masks>
-auto CombineMasks(auto df, const std::string &maskname, const Masks&... masks) {
+auto CombineMasks(auto df, const std::string &maskname,
+                  const Masks &... masks) {
     auto multiplyMasks = [](const ROOT::RVec<ROOT::RVec<int>> &x) {
         ROOT::RVec<int> result(x[0].size(), 1);
         for (auto &xx : x) {
@@ -103,7 +107,8 @@ auto CombineMasks(auto df, const std::string &maskname, const Masks&... masks) {
         }
         return result;
     };
-    //std::vector<std::string> MaskList{{masks...}}; does weird things in case of two arguments in masks
+    // std::vector<std::string> MaskList{{masks...}}; does weird things in case
+    // of two arguments in masks
     std::vector<std::string> MaskList;
     appendParameterPackToVector(MaskList, masks...);
     const auto nMasks = sizeof...(Masks);
