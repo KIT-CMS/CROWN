@@ -4,17 +4,24 @@ from code_generation.producer import Producer, ProducerGroup
 ####################
 # Set of producers used for selection possible good jets
 ####################
+JetEnergyCorrection = Producer(
+    name="JetEnergyCorrection",
+    call='physicsobject::jet::JetEnergyCorrection({df}, {output}, {input}, "GenJet_pt", "GenJet_eta", "GenJet_phi", "Pileup_pudensity", {JEC_shift_sources}, {JE_scale_shift}, {JE_reso_shift})',
+    input=[q.Jet_pt, q.Jet_eta, q.Jet_phi],
+    output=[q.Jet_pt_corrected],
+    scopes=["global"],
+)
 JetPtCut = Producer(
     name="JetPtCut",
     call="physicsobject::CutPt({df}, {input}, {output}, {min_jet_pt})",
-    input=[q.Jet_pt],
+    input=[q.Jet_pt_corrected],
     output=[],
     scopes=["global"],
 )
 BJetPtCut = Producer(
     name="BJetPtCut",
     call="physicsobject::CutPt({df}, {input}, {output}, {min_bjet_pt})",
-    input=[q.Jet_pt],
+    input=[q.Jet_pt_corrected],
     output=[],
     scopes=["global"],
 )
@@ -98,7 +105,7 @@ GoodBJetsWithVeto = Producer(
 JetCollection = ProducerGroup(
     name="JetCollection",
     call="jet::OrderJetsByPt({df}, {output}, {input})",
-    input=[q.Jet_pt],
+    input=[q.Jet_pt_corrected],
     output=[q.good_jet_collection],
     scopes=["mt"],
     subproducers=[GoodJetsWithVeto],
@@ -107,7 +114,7 @@ JetCollection = ProducerGroup(
 BJetCollection = ProducerGroup(
     name="BJetCollection",
     call="jet::OrderJetsByPt({df}, {output}, {input})",
-    input=[q.Jet_pt],
+    input=[q.Jet_pt_corrected],
     output=[q.good_bjet_collection],
     scopes=["mt"],
     subproducers=[GoodBJetsWithVeto],
@@ -121,14 +128,14 @@ BJetCollection = ProducerGroup(
 LVJet1 = Producer(
     name="LVJet1",
     call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
-    input=[q.good_jet_collection, q.Jet_pt, q.Jet_eta, q.Jet_phi, q.Jet_mass],
+    input=[q.good_jet_collection, q.Jet_pt_corrected, q.Jet_eta, q.Jet_phi, q.Jet_mass],
     output=[q.jet_p4_1],
     scopes=["mt"],
 )
 LVJet2 = Producer(
     name="LVJet2",
     call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
-    input=[q.good_jet_collection, q.Jet_pt, q.Jet_eta, q.Jet_phi, q.Jet_mass],
+    input=[q.good_jet_collection, q.Jet_pt_corrected, q.Jet_eta, q.Jet_phi, q.Jet_mass],
     output=[q.jet_p4_2],
     scopes=["mt"],
 )
@@ -216,14 +223,26 @@ BasicJetQuantities = ProducerGroup(
 LVBJet1 = Producer(
     name="LVBJet1",
     call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
-    input=[q.good_bjet_collection, q.Jet_pt, q.Jet_eta, q.Jet_phi, q.Jet_mass],
+    input=[
+        q.good_bjet_collection,
+        q.Jet_pt_corrected,
+        q.Jet_eta,
+        q.Jet_phi,
+        q.Jet_mass,
+    ],
     output=[q.bjet_p4_1],
     scopes=["mt"],
 )
 LVBJet2 = Producer(
     name="LVBJet2",
     call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
-    input=[q.good_bjet_collection, q.Jet_pt, q.Jet_eta, q.Jet_phi, q.Jet_mass],
+    input=[
+        q.good_bjet_collection,
+        q.Jet_pt_corrected,
+        q.Jet_eta,
+        q.Jet_phi,
+        q.Jet_mass,
+    ],
     output=[q.bjet_p4_2],
     scopes=["mt"],
 )

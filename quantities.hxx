@@ -50,7 +50,8 @@ auto phi(auto df, const std::string &outputname,
          const std::string &inputvector) {
     return df.Define(outputname,
                      [](const ROOT::Math::PtEtaPhiMVector &p4) {
-                         if (p4.pt() < 0.0)
+                         if (p4.pt() <
+                             0.0) // negative pt is used to mark invalid LVs
                              return default_float;
                          return (float)p4.phi();
                      },

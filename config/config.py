@@ -34,6 +34,9 @@ def build_config():
         "muon_iso_cut": 0.15,
         "require_candidate": ["nTau", "nMuon"],
         "require_candidate_number": [1, 1],
+        "JEC_shift_sources": '{""}',
+        "JE_scale_shift": 0,
+        "JE_reso_shift": 0,
     }
 
     config = {"": base_config}
@@ -44,6 +47,7 @@ def build_config():
             p.GoodTaus,
             p.GoodMuons,
             p.GoodElectronsVeto,
+            JetEnergyCorrection,
             GoodJets,
             GoodBJets,
         ],
@@ -86,5 +90,88 @@ def build_config():
 
     shift_dict = {"min_tau_pt": 31.0}
     AddSystematicShift(config, "tauCutUp", shift_dict, [p.TauPtCut])
+    # Jet energy resolution
+    shift_dict = {"JE_reso_shift": 1}
+    AddSystematicShift(config, "jerUncUp", shift_dict, [JetEnergyCorrection])
+    shift_dict = {"JE_reso_shift": -1}
+    AddSystematicShift(config, "jerUncDown", shift_dict, [JetEnergyCorrection])
+    # Jet energy scale
+    JEC_sources = '{"SinglePionECAL", "SinglePionHCAL", "AbsoluteMPFBias", "AbsoluteScale", "Fragmentation", "PileUpDataMC", "RelativeFSR", "PileUpPtRef"}'
+    shift_dict = {"JE_scale_shift": 1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncAbsoluteUp", shift_dict, [JetEnergyCorrection])
+    shift_dict = {"JE_scale_shift": -1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncAbsoluteDown", shift_dict, [JetEnergyCorrection])
+
+    JEC_sources = '{"AbsoluteStat", "TimePtEta", "RelativeStatFSR"}'
+    shift_dict = {"JE_scale_shift": 1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(
+        config, "jecUncAbsoluteYearUp", shift_dict, [JetEnergyCorrection]
+    )
+    shift_dict = {"JE_scale_shift": -1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(
+        config, "jecUncAbsoluteYearDown", shift_dict, [JetEnergyCorrection]
+    )
+
+    JEC_sources = '{"FlavorQCD"}'
+    shift_dict = {"JE_scale_shift": 1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncFlavorQCDUp", shift_dict, [JetEnergyCorrection])
+    shift_dict = {"JE_scale_shift": -1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncFlavorQCDDown", shift_dict, [JetEnergyCorrection])
+
+    JEC_sources = '{"PileUpPtEC1", "PileUpPtBB", "RelativePtBB"}'
+    shift_dict = {"JE_scale_shift": 1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncBBEC1Up", shift_dict, [JetEnergyCorrection])
+    shift_dict = {"JE_scale_shift": -1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncBBEC1Down", shift_dict, [JetEnergyCorrection])
+
+    JEC_sources = '{"RelativeJEREC1", "RelativePtEC1", "RelativeStatEC"}'
+    shift_dict = {"JE_scale_shift": 1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncBBEC1YearUp", shift_dict, [JetEnergyCorrection])
+    shift_dict = {"JE_scale_shift": -1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncBBEC1YearDown", shift_dict, [JetEnergyCorrection])
+
+    JEC_sources = '{"RelativePtHF", "PileUpPtHF", "RelativeJERHF"}'
+    shift_dict = {"JE_scale_shift": 1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncHFUp", shift_dict, [JetEnergyCorrection])
+    shift_dict = {"JE_scale_shift": -1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncHFDown", shift_dict, [JetEnergyCorrection])
+
+    JEC_sources = '{"RelativeStatHF"}'
+    shift_dict = {"JE_scale_shift": 1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncHFYearUp", shift_dict, [JetEnergyCorrection])
+    shift_dict = {"JE_scale_shift": -1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncHFYearDown", shift_dict, [JetEnergyCorrection])
+
+    JEC_sources = '{"PileUpPtEC2"}'
+    shift_dict = {"JE_scale_shift": 1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncEC2Up", shift_dict, [JetEnergyCorrection])
+    shift_dict = {"JE_scale_shift": -1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncEC2Down", shift_dict, [JetEnergyCorrection])
+
+    JEC_sources = '{"RelativeJEREC2", "RelativePtEC2"}'
+    shift_dict = {"JE_scale_shift": 1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(
+        config, "jecUnjecUncEC2YearUpcHFUp", shift_dict, [JetEnergyCorrection]
+    )
+    shift_dict = {"JE_scale_shift": -1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncEC2YearDown", shift_dict, [JetEnergyCorrection])
+
+    JEC_sources = '{"RelativeBal"}'
+    shift_dict = {"JE_scale_shift": 1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(config, "jecUncRelativeBalUp", shift_dict, [JetEnergyCorrection])
+    shift_dict = {"JE_scale_shift": -1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(
+        config, "jecUncRelativeBalDown", shift_dict, [JetEnergyCorrection]
+    )
+
+    JEC_sources = '{"RelativeSample"}'
+    shift_dict = {"JE_scale_shift": 1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(
+        config, "jecUncRelativeSampleYearUp", shift_dict, [JetEnergyCorrection]
+    )
+    shift_dict = {"JE_scale_shift": -1, "JEC_shift_sources": JEC_sources}
+    AddSystematicShift(
+        config, "jecUncRelativeSampleYearDown", shift_dict, [JetEnergyCorrection]
+    )
 
     return config
