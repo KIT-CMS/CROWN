@@ -133,13 +133,13 @@ auto dz(auto df, const std::string &outputname, const int position,
 
 auto charge(auto df, const std::string &outputname, const int position,
             const std::string &pairname, const std::string &chargecolum) {
-    return df.Define(outputname,
-                     [position](const ROOT::RVec<int> &pair,
-                                const ROOT::RVec<int> &charge) {
-                         const int index = pair.at(position);
-                         return charge[index];
-                     },
-                     {pairname, chargecolum});
+    return df.Define(
+        outputname,
+        [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &charge) {
+            const int index = pair.at(position);
+            return charge[index];
+        },
+        {pairname, chargecolum});
 }
 /// Function to calculate the visible mass from a pair of lorentz vectors and
 /// add it to the dataframe
