@@ -135,7 +135,7 @@ auto charge(auto df, const std::string &outputname, const int position,
             const std::string &pairname, const std::string &chargecolum) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
-                                const ROOT::RVec<float> &charge) {
+                                const ROOT::RVec<int> &charge) {
                          const int index = pair.at(position);
                          return charge[index];
                      },
@@ -231,7 +231,7 @@ auto genmatch(auto df, const std::string &outputname, const int position,
               const std::string &pairname, const std::string &genmatchcolum) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
-                                const ROOT::RVec<uint> &genmatch) {
+                                const ROOT::RVec<UChar_t> &genmatch) {
                          const int index = pair.at(position);
                          return genmatch[index];
                      },
