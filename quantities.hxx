@@ -64,19 +64,19 @@ auto phi(auto df, const std::string &outputname,
 /// \param outputname name of the new column containing the mass value
 /// \param position index of the position in the pair vector
 /// \param pairname name of the column containing the pair vector
-/// \param masscolum name of the column containing the mass values
+/// \param masscolumn name of the column containing the mass values
 ///
 /// \returns a dataframe with the new column
 
 auto mass(auto df, const std::string &outputname, const int position,
-          const std::string &pairname, const std::string &masscolum) {
+          const std::string &pairname, const std::string &masscolumn) {
     return df.Define(
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<float> &mass) {
             const int index = pair.at(position);
             return mass[index];
         },
-        {pairname, masscolum});
+        {pairname, masscolumn});
 }
 /// Function to writeout the dxy impact parameter from a particle. The particle
 /// is identified via the index stored in the pair vector
@@ -85,19 +85,19 @@ auto mass(auto df, const std::string &outputname, const int position,
 /// \param outputname name of the new column containing the dxy value
 /// \param position index of the position in the pair vector
 /// \param pairname name of the column containing the pair vector
-/// \param dxycolum name of the column containing the dxy values
+/// \param dxycolumn name of the column containing the dxy values
 ///
 /// \returns a dataframe with the new column
 
 auto dxy(auto df, const std::string &outputname, const int position,
-         const std::string &pairname, const std::string &dxycolum) {
+         const std::string &pairname, const std::string &dxycolumn) {
     return df.Define(
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<float> &dxy) {
             const int index = pair.at(position);
             return dxy[index];
         },
-        {pairname, dxycolum});
+        {pairname, dxycolumn});
 }
 /// Function to writeout the dz impact parameter from a particle. The particle
 /// is identified via the index stored in the pair vector
@@ -106,19 +106,19 @@ auto dxy(auto df, const std::string &outputname, const int position,
 /// \param outputname name of the new column containing the dz value
 /// \param position index of the position in the pair vector
 /// \param pairname name of the column containing the pair vector
-/// \param dzcolum name of the column containing the dz values
+/// \param dzcolumn name of the column containing the dz values
 ///
 /// \returns a dataframe with the new column
 
 auto dz(auto df, const std::string &outputname, const int position,
-        const std::string &pairname, const std::string &dzcolum) {
+        const std::string &pairname, const std::string &dzcolumn) {
     return df.Define(
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<float> &dz) {
             const int index = pair.at(position);
             return dz[index];
         },
-        {pairname, dzcolum});
+        {pairname, dzcolumn});
 }
 /// Function to writeout the charge of a particle. The particle is identified
 /// via the index stored in the pair vector
@@ -127,19 +127,19 @@ auto dz(auto df, const std::string &outputname, const int position,
 /// \param outputname name of the new column containing the charge value
 /// \param position index of the position in the pair vector
 /// \param pairname name of the column containing the pair vector
-/// \param chargecolum name of the column containing the charge values
+/// \param chargecolumn name of the column containing the charge values
 ///
 /// \returns a dataframe with the new column
 
 auto charge(auto df, const std::string &outputname, const int position,
-            const std::string &pairname, const std::string &chargecolum) {
+            const std::string &pairname, const std::string &chargecolumn) {
     return df.Define(
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &charge) {
             const int index = pair.at(position);
             return charge[index];
         },
-        {pairname, chargecolum});
+        {pairname, chargecolumn});
 }
 /// Function to calculate the visible mass from a pair of lorentz vectors and
 /// add it to the dataframe
@@ -172,19 +172,20 @@ auto m_vis(auto df, const std::string &outputname,
 /// \param outputname name of the new column containing the isolation value
 /// \param position index of the position in the pair vector
 /// \param pairname name of the column containing the pair vector
-/// \param isolationcolum name of the column containing the isolation values
+/// \param isolationcolumn name of the column containing the isolation values
 ///
 /// \returns a dataframe with the new column
 
 auto isolation(auto df, const std::string &outputname, const int position,
-               const std::string &pairname, const std::string &isolationcolum) {
+               const std::string &pairname,
+               const std::string &isolationcolumn) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
                                 const ROOT::RVec<float> &isolation) {
                          const int index = pair.at(position);
                          return isolation[index];
                      },
-                     {pairname, isolationcolum});
+                     {pairname, isolationcolumn});
 }
 /// namespace for tau specific quantities
 namespace tau {
@@ -195,19 +196,20 @@ namespace tau {
 /// \param outputname name of the new column containing the decaymode value
 /// \param position index of the position in the pair vector
 /// \param pairname name of the column containing the pair vector
-/// \param decaymodecolum name of the column containing the decaymode values
+/// \param decaymodecolumn name of the column containing the decaymode values
 ///
 /// \returns a dataframe with the new column
 
 auto decaymode(auto df, const std::string &outputname, const int position,
-               const std::string &pairname, const std::string &decaymodecolum) {
+               const std::string &pairname,
+               const std::string &decaymodecolumn) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
                                 const ROOT::RVec<int> &decaymode) {
                          const int index = pair.at(position);
                          return decaymode[index];
                      },
-                     {pairname, decaymodecolum});
+                     {pairname, decaymodecolumn});
 }
 /// Function to writeout the genmatch of a tau. The particle is identified via
 /// the index stored in the pair vector Genmatch values are defined as \code
@@ -223,19 +225,19 @@ auto decaymode(auto df, const std::string &outputname, const int position,
 /// \param outputname name of the new column containing the genmatch value
 /// \param position index of the position in the pair vector
 /// \param pairname name of the column containing the pair vector
-/// \param genmatchcolum name of the column containing the genmatch values
+/// \param genmatchcolumn name of the column containing the genmatch values
 ///
 /// \returns a dataframe with the new column
 
 auto genmatch(auto df, const std::string &outputname, const int position,
-              const std::string &pairname, const std::string &genmatchcolum) {
+              const std::string &pairname, const std::string &genmatchcolumn) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
                                 const ROOT::RVec<UChar_t> &genmatch) {
                          const int index = pair.at(position);
                          return genmatch[index];
                      },
-                     {pairname, genmatchcolum});
+                     {pairname, genmatchcolumn});
 }
 } // end namespace tau
 } // end namespace quantities
