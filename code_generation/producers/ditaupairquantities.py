@@ -52,14 +52,14 @@ mass_1 = Producer(
     call="quantities::mass({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.mass_1],
-    scopes=["mt"],
+    scopes=["mt", "et", "tt", "em"],
 )
 mass_2 = Producer(
     name="mass_2",
     call="quantities::mass({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.mass_2],
-    scopes=["mt", "et", "tt"],
+    scopes=["mt", "et", "tt", "em"],
 )
 m_vis = Producer(
     name="m_vis",
