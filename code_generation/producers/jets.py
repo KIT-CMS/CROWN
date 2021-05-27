@@ -1,4 +1,5 @@
-import code_generation.quantities as q
+import code_generation.quantities.output as q
+import code_generation.quantities.nanoAOD as nanoAOD
 from code_generation.producer import Producer, ProducerGroup
 
 ####################
@@ -6,8 +7,16 @@ from code_generation.producer import Producer, ProducerGroup
 ####################
 JetEnergyCorrection = Producer(
     name="JetEnergyCorrection",
-    call='physicsobject::jet::JetEnergyCorrection({df}, {output}, {input}, "GenJet_pt", "GenJet_eta", "GenJet_phi", "Pileup_pudensity", {JEC_shift_sources}, {JE_scale_shift}, {JE_reso_shift})',
-    input=[q.Jet_pt, q.Jet_eta, q.Jet_phi],
+    call="physicsobject::jet::JetEnergyCorrection({df}, {output}, {input}, {JEC_shift_sources}, {JE_scale_shift}, {JE_reso_shift})",
+    input=[
+        nanoAOD.Jet_pt,
+        nanoAOD.Jet_eta,
+        nanoAOD.Jet_phi,
+        nanoAOD.GenJet_pt,
+        nanoAOD.GenJet_eta,
+        nanoAOD.GenJet_phi,
+        nanoAOD.rho,
+    ],
     output=[q.Jet_pt_corrected],
     scopes=["global"],
 )
@@ -28,28 +37,28 @@ BJetPtCut = Producer(
 JetEtaCut = Producer(
     name="JetEtaCut",
     call="physicsobject::CutEta({df}, {input}, {output}, {max_jet_eta})",
-    input=[q.Jet_eta],
+    input=[nanoAOD.Jet_eta],
     output=[],
     scopes=["global"],
 )
 BJetEtaCut = Producer(
     name="BJetEtaCut",
     call="physicsobject::CutEta({df}, {input}, {output}, {max_bjet_eta})",
-    input=[q.Jet_eta],
+    input=[nanoAOD.Jet_eta],
     output=[],
     scopes=["global"],
 )
 JetIDFilter = Producer(
     name="JetIDFilter",
-    call='physicsobject::jet::FilterID({df}, {output}, "Jet_jetId", {jet_id})',
-    input=[],
+    call="physicsobject::jet::FilterID({df}, {output}, {input}, {jet_id})",
+    input=[nanoAOD.Jet_ID],
     output=[q.jet_id_mask],
     scopes=["global"],
 )
 BTag = Producer(
     name="BTag",
-    call='physicsobject::CutPt({df}, "Jet_btagDeepFlavB", {output}, {btag_cut})',
-    input=[],
+    call="physicsobject::CutPt({df}, {input}, {output}, {btag_cut})",
+    input=[nanoAOD.BJet_discriminator],
     output=[],
     scopes=["global"],
 )
@@ -80,7 +89,7 @@ GoodBJets = ProducerGroup(
 VetoOverlappingJets = Producer(
     name="VetoOverlappingJets",
     call="jet::VetoOverlappingJets({df}, {output}, {input}, {deltaR_jet_veto})",
-    input=[q.Jet_eta, q.Jet_phi, q.p4_1, q.p4_2],
+    input=[nanoAOD.Jet_eta, nanoAOD.Jet_phi, q.p4_1, q.p4_2],
     output=[q.jet_overlap_veto_mask],
     scopes=["mt"],
 )
@@ -128,14 +137,26 @@ BJetCollection = ProducerGroup(
 LVJet1 = Producer(
     name="LVJet1",
     call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
-    input=[q.good_jet_collection, q.Jet_pt_corrected, q.Jet_eta, q.Jet_phi, q.Jet_mass],
+    input=[
+        q.good_jet_collection,
+        q.Jet_pt_corrected,
+        nanoAOD.Jet_eta,
+        nanoAOD.Jet_phi,
+        nanoAOD.Jet_mass,
+    ],
     output=[q.jet_p4_1],
     scopes=["mt"],
 )
 LVJet2 = Producer(
     name="LVJet2",
     call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
-    input=[q.good_jet_collection, q.Jet_pt_corrected, q.Jet_eta, q.Jet_phi, q.Jet_mass],
+    input=[
+        q.good_jet_collection,
+        q.Jet_pt_corrected,
+        nanoAOD.Jet_eta,
+        nanoAOD.Jet_phi,
+        nanoAOD.Jet_mass,
+    ],
     output=[q.jet_p4_2],
     scopes=["mt"],
 )
@@ -226,9 +247,9 @@ LVBJet1 = Producer(
     input=[
         q.good_bjet_collection,
         q.Jet_pt_corrected,
-        q.Jet_eta,
-        q.Jet_phi,
-        q.Jet_mass,
+        nanoAOD.Jet_eta,
+        nanoAOD.Jet_phi,
+        nanoAOD.Jet_mass,
     ],
     output=[q.bjet_p4_1],
     scopes=["mt"],
@@ -239,9 +260,9 @@ LVBJet2 = Producer(
     input=[
         q.good_bjet_collection,
         q.Jet_pt_corrected,
-        q.Jet_eta,
-        q.Jet_phi,
-        q.Jet_mass,
+        nanoAOD.Jet_eta,
+        nanoAOD.Jet_phi,
+        nanoAOD.Jet_mass,
     ],
     output=[q.bjet_p4_2],
     scopes=["mt"],
