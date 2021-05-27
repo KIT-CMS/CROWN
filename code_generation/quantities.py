@@ -8,7 +8,23 @@ class Quantity:
         self.name = name
         self.shifts = {}
         self.children = {}
+        self.output_scopes = []
         log.debug("Setting up new Quantity {}".format(self.name))
+
+    # the scopes, in which a quantity is used as an output is tracked in the output_scopes list.
+    # This check is triggered for every producer.
+    # If a quantity is already used within a given scope as output, this will result in an exception.
+    def check_scope(self, scope):
+        log.debug("Checking {} / scope {}".format(self.name, scope))
+        if scope not in self.output_scopes:
+            self.output_scopes.append(scope)
+        else:
+            log.error(
+                "Quantity {} is already used as output in {} scope !".format(
+                    self.name, scope
+                )
+            )
+            raise Exception
 
     def get_leaf(self, shift, scope):
         if shift in self.get_shifts(scope):
@@ -60,48 +76,33 @@ class Quantity:
                 return []
 
 
+class NanoAODQuantity(Quantity):
+    def __init__(self, name):
+        self.name = name
+        super().__init__(name)
+
+    # Quantities from the NanoAOD are not designed to be directly usable as output
+    def check_scope(self, scope):
+        log.error(
+            "Quantity {} is a NanoAOD quantity and cant be used as output !".format(
+                self.name
+            )
+        )
+        raise Exception
+
+
 m_vis = Quantity("m_vis")
 mt_1 = Quantity("mt_1")
 
 good_taus_mask = Quantity("good_taus_mask")
-Tau_pt = Quantity("Tau_pt")
-Tau_eta = Quantity("Tau_eta")
-Tau_phi = Quantity("Tau_phi")
-Tau_mass = Quantity("Tau_mass")
-Tau_dz = Quantity("Tau_dz")
-Tau_dxy = Quantity("Tau_dxy")
-Tau_charge = Quantity("Tau_charge")
-Tau_decayMode = Quantity("Tau_decayMode")
-Tau_genMatch = Quantity("Tau_genPartFlav")
-Tau_IDraw = Quantity("Tau_rawDeepTau2017v2p1VSjet")
-
 good_muons_mask = Quantity("good_muons_mask")
-Muon_pt = Quantity("Muon_pt")
-Muon_eta = Quantity("Muon_eta")
-Muon_phi = Quantity("Muon_phi")
-Muon_mass = Quantity("Muon_mass")
-Muon_iso = Quantity("Muon_pfRelIso04_all")
-Muon_dz = Quantity("Muon_dz")
-Muon_dxy = Quantity("Muon_dxy")
-Muon_charge = Quantity("Muon_charge")
-
 electron_veto_mask = Quantity("electron_veto_mask")
 electron_veto_flag = Quantity("extraelec_veto")
-Electron_pt = Quantity("Electron_pt")
-Electron_eta = Quantity("Electron_eta")
-Electron_phi = Quantity("Electron_phi")
-Electron_mass = Quantity("Electron_mass")
-Electron_iso = Quantity("Electron_pfRelIso03_all")
-
 jet_id_mask = Quantity("jet_id_mask")
 jet_overlap_veto_mask = Quantity("jet_overlap_veto_mask")
 good_jets_mask = Quantity("good_jets_mask")
 good_bjets_mask = Quantity("good_bjets_mask")
-Jet_eta = Quantity("Jet_eta")
-Jet_phi = Quantity("Jet_phi")
-Jet_pt = Quantity("Jet_pt")
 Jet_pt_corrected = Quantity("Jet_pt_corrected")
-Jet_mass = Quantity("Jet_mass")
 ditaupair = Quantity("ditaupair")
 good_jet_collection = Quantity("good_jet_collection")
 good_bjet_collection = Quantity("good_bjet_collection")

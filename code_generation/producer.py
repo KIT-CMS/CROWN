@@ -25,6 +25,7 @@ class Producer:
         self.input = input
         self.output = output
         self.scopes = scopes
+        self.output_checked = False
         # keep track of variable dependencies
         if self.output != None:
             for input_quantity in self.input:
@@ -44,6 +45,13 @@ class Producer:
             log.debug("| Outputs: {}".format([output.name for output in self.output]))
         log.debug("| scopes: {}".format(self.scopes))
         log.debug("-----------------------------------------")
+
+    def check_output(self):
+        if self.output != None and not self.output_checked:
+            for scope in self.scopes:
+                for output_quantity in self.output:
+                    output_quantity.check_scope(scope)
+        self.output_checked = True
 
     def shift(self, name, scope="global"):
         if not scope in self.scopes:
@@ -214,6 +222,10 @@ class ProducerGroup:
         )
         log.debug("| scopes: {}".format(self.scopes))
         log.debug("-----------------------------------------")
+
+    def check_output(self):
+        for subproducer in self.producers:
+            subproducer.check_output()
 
     def shift(self, name, scope="global"):
         for producer in self.producers:

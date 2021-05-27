@@ -13,10 +13,10 @@ def fill_template(t, config):
     commandlist = ""  # string to be placed into code template
     df_count = 0  # enumerate dataframes
     df_scope_count = 0  # enumerate dataframes in certain scopes
-
     # get commands of producers and append to the command list
     log.info("Generating commands ...")
     for producer in config["producers"]["global"]:
+        producer.check_output()
         commandlist += "\n    //" + producer.name + "\n"
         for call in producer.writecalls(config, "global"):
             commandlist += (
@@ -33,6 +33,7 @@ def fill_template(t, config):
             continue
         df_scope_count = 0
         for producer in config["producers"][scope]:
+            producer.check_output()
             commandlist += "\n    //" + producer.name + "\n"
             for call in producer.writecalls(config, scope):
                 commandlist += (
