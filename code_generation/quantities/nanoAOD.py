@@ -1,7 +1,4 @@
-import logging
-from code_generation.quantities import NanoAODQuantity
-
-log = logging.getLogger(__name__)
+from code_generation.quantity import NanoAODQuantity
 
 Tau_pt = NanoAODQuantity("Tau_pt")
 Tau_eta = NanoAODQuantity("Tau_eta")
@@ -29,7 +26,15 @@ Electron_phi = NanoAODQuantity("Electron_phi")
 Electron_mass = NanoAODQuantity("Electron_mass")
 Electron_iso = NanoAODQuantity("Electron_pfRelIso03_all")
 
+GenJet_pt = NanoAODQuantity("GenJet_pt")
+GenJet_eta = NanoAODQuantity("GenJet_eta")
+GenJet_phi = NanoAODQuantity("GenJet_phi")
+
 Jet_eta = NanoAODQuantity("Jet_eta")
 Jet_phi = NanoAODQuantity("Jet_phi")
 Jet_pt = NanoAODQuantity("Jet_pt")
 Jet_mass = NanoAODQuantity("Jet_mass")
+Jet_ID = NanoAODQuantity("Jet_jetId")
+BJet_discriminator = NanoAODQuantity("Jet_btagDeepFlavB")
+
+rho = NanoAODQuantity("Pileup_pudensity")

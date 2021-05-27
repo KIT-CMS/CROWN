@@ -1,4 +1,5 @@
-import code_generation.quantities as q
+import code_generation.quantities.output as q
+import code_generation.quantities.nanoAOD as nanoAOD
 from code_generation.producer import Producer, ProducerGroup
 
 ####################
@@ -74,70 +75,70 @@ m_vis = Producer(
 dxy_1 = Producer(
     name="dxy_1",
     call="quantities::dxy({df}, {output}, 0, {input})",
-    input=[q.ditaupair, q.Muon_dxy],
+    input=[q.ditaupair, nanoAOD.Muon_dxy],
     output=[q.dxy_1],
     scopes=["mt"],
 )
 dxy_2 = Producer(
     name="dxy_2",
     call="quantities::dxy({df}, {output}, 1, {input})",
-    input=[q.ditaupair, q.Tau_dxy],
+    input=[q.ditaupair, nanoAOD.Tau_dxy],
     output=[q.dxy_2],
     scopes=["mt", "et", "tt"],
 )
 dz_1 = Producer(
     name="dz_1",
     call="quantities::dz({df}, {output}, 0, {input})",
-    input=[q.ditaupair, q.Muon_dz],
+    input=[q.ditaupair, nanoAOD.Muon_dz],
     output=[q.dz_1],
     scopes=["mt"],
 )
 dz_2 = Producer(
     name="dz_2",
     call="quantities::dz({df}, {output}, 1, {input})",
-    input=[q.ditaupair, q.Tau_dz],
+    input=[q.ditaupair, nanoAOD.Tau_dz],
     output=[q.dz_2],
     scopes=["mt", "et", "tt"],
 )
 q_1 = Producer(
     name="q_1",
     call="quantities::charge({df}, {output}, 0, {input})",
-    input=[q.ditaupair, q.Muon_charge],
+    input=[q.ditaupair, nanoAOD.Muon_charge],
     output=[q.q_1],
     scopes=["mt"],
 )
 q_2 = Producer(
     name="q_2",
     call="quantities::charge({df}, {output}, 1, {input})",
-    input=[q.ditaupair, q.Tau_charge],
+    input=[q.ditaupair, nanoAOD.Tau_charge],
     output=[q.q_2],
     scopes=["mt", "et", "tt"],
 )
 iso_1 = Producer(
     name="iso_1",
     call="quantities::isolation({df}, {output}, 0, {input})",
-    input=[q.ditaupair, q.Muon_iso],
+    input=[q.ditaupair, nanoAOD.Muon_iso],
     output=[q.iso_1],
     scopes=["mt"],
 )
 iso_2 = Producer(
     name="iso_2",
     call="quantities::isolation({df}, {output}, 1, {input})",
-    input=[q.ditaupair, q.Tau_IDraw],
+    input=[q.ditaupair, nanoAOD.Tau_IDraw],
     output=[q.iso_2],
     scopes=["mt", "et", "tt"],
 )
 decaymode_2 = Producer(
     name="decaymode_2",
     call="quantities::tau::decaymode({df}, {output}, 1, {input})",
-    input=[q.ditaupair, q.Tau_decayMode],
+    input=[q.ditaupair, nanoAOD.Tau_decayMode],
     output=[q.decaymode_2],
     scopes=["mt", "et", "tt"],
 )
 gen_match_2 = Producer(
     name="gen_match_2",
     call="quantities::tau::genmatch({df}, {output}, 1, {input})",
-    input=[q.ditaupair, q.Tau_genMatch],
+    input=[q.ditaupair, nanoAOD.Tau_genMatch],
     output=[q.gen_match_2],
     scopes=["mt", "et", "tt"],
 )
