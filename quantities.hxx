@@ -57,26 +57,25 @@ auto phi(auto df, const std::string &outputname,
                      },
                      {inputvector});
 }
-/// Function to writeout the mass from a particle. The particle is identified
-/// via the index stored in the pair vector
+/// Function to calculate the mass from a given lorentz vector and add it to the
+/// dataframe
 ///
 /// \param df the dataframe to add the quantity to
 /// \param outputname name of the new column containing the mass value
-/// \param position index of the position in the pair vector
-/// \param pairname name of the column containing the pair vector
-/// \param masscolumn name of the column containing the mass values
+/// \param inputvector name of the column containing the lorentz vector
 ///
 /// \returns a dataframe with the new column
 
-auto mass(auto df, const std::string &outputname, const int position,
-          const std::string &pairname, const std::string &masscolumn) {
-    return df.Define(
-        outputname,
-        [position](const ROOT::RVec<int> &pair, const ROOT::RVec<float> &mass) {
-            const int index = pair.at(position);
-            return mass[index];
-        },
-        {pairname, masscolumn});
+auto mass(auto df, const std::string &outputname,
+          const std::string &inputvector) {
+    return df.Define(outputname,
+                     [](const ROOT::Math::PtEtaPhiMVector &p4) {
+                         if (p4.pt() <
+                             0.0) // negative pt is used to mark invalid LVs
+                             return default_float;
+                         return (float)p4.mass();
+                     },
+                     {inputvector});
 }
 /// Function to writeout the dxy impact parameter from a particle. The particle
 /// is identified via the index stored in the pair vector

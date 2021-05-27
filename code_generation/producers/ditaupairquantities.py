@@ -47,6 +47,20 @@ phi_2 = Producer(
     output=[q.phi_2],
     scopes=["mt", "et", "tt", "em"],
 )
+mass_1 = Producer(
+    name="mass_1",
+    call="quantities::mass({df}, {output}, {input})",
+    input=[q.p4_1],
+    output=[q.mass_1],
+    scopes=["mt"],
+)
+mass_2 = Producer(
+    name="mass_2",
+    call="quantities::mass({df}, {output}, {input})",
+    input=[q.p4_2],
+    output=[q.mass_2],
+    scopes=["mt", "et", "tt"],
+)
 m_vis = Producer(
     name="m_vis",
     call="quantities::m_vis({df}, {output}, {input_vec})",
@@ -57,20 +71,6 @@ m_vis = Producer(
 ####################
 # Set of channel specific producers
 ####################
-mass_1 = Producer(
-    name="mass_1",
-    call="quantities::mass({df}, {output}, 0, {input})",
-    input=[q.ditaupair, q.Muon_mass],
-    output=[q.mass_1],
-    scopes=["mt"],
-)
-mass_2 = Producer(
-    name="mass_2",
-    call="quantities::mass({df}, {output}, 1, {input})",
-    input=[q.ditaupair, q.Tau_mass],
-    output=[q.mass_2],
-    scopes=["mt", "et", "tt"],
-)
 dxy_1 = Producer(
     name="dxy_1",
     call="quantities::dxy({df}, {output}, 0, {input})",
