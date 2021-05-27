@@ -1,7 +1,11 @@
-import code_generation.producer as p
+from code_generation.filters.filters import *
 from code_generation.producers.jets import *
-from code_generation.producers.ditaupairquantities import *
-from code_generation.producer import q
+from code_generation.producers.taus import *
+from code_generation.producers.muons import *
+from code_generation.producers.electrons import *
+from code_generation.producers.pairselection import *
+from code_generation.producers.pairquantities import *
+import code_generation.quantities.output as q
 from config.utility import AddSystematicShift
 
 
@@ -44,19 +48,19 @@ def build_config():
 
     config["producers"] = {
         "global": [
-            p.MetFilter,
-            p.GoodTaus,
-            p.GoodMuons,
-            p.GoodElectronsVeto,
+            MetFilter,
+            GoodTaus,
+            GoodMuons,
+            GoodElectronsVeto,
             JetEnergyCorrection,
             GoodJets,
             GoodBJets,
         ],
         "mt": [
-            p.MTPairSelection,
-            p.GoodMTPairFilter,
-            p.LVMu1,
-            p.LVTau2,
+            MTPairSelection,
+            GoodMTPairFilter,
+            LVMu1,
+            LVTau2,
             DiTauPairQuantities,
             JetCollection,
             BasicJetQuantities,
@@ -102,7 +106,7 @@ def build_config():
     }
 
     shift_dict = {"min_tau_pt": 31.0}
-    AddSystematicShift(config, "tauCutUp", shift_dict, [p.TauPtCut])
+    AddSystematicShift(config, "tauCutUp", shift_dict, [TauPtCut])
     # # Jet energy resolution
     # shift_dict = {"JE_reso_shift": 1}
     # AddSystematicShift(config, "jerUncUp", shift_dict, [JetEnergyCorrection])
