@@ -16,7 +16,7 @@ def fill_template(t, config):
     # get commands of producers and append to the command list
     log.info("Generating commands ...")
     for producer in config["producers"]["global"]:
-        producer.check_output()
+        producer.reserve_output("global")
         commandlist += "\n    //" + producer.name + "\n"
         for call in producer.writecalls(config, "global"):
             commandlist += (
@@ -33,7 +33,7 @@ def fill_template(t, config):
             continue
         df_scope_count = 0
         for producer in config["producers"][scope]:
-            producer.check_output()
+            producer.reserve_output(scope)
             commandlist += "\n    //" + producer.name + "\n"
             for call in producer.writecalls(config, scope):
                 commandlist += (

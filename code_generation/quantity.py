@@ -8,21 +8,19 @@ class Quantity:
         self.name = name
         self.shifts = {}
         self.children = {}
-        self.output_scopes = []
+        self.defined_for_scopes = []
         log.debug("Setting up new Quantity {}".format(self.name))
 
     # the scopes, in which a quantity is used as an output is tracked in the output_scopes list.
     # This check is triggered for every producer.
     # If a quantity is already used within a given scope as output, this will result in an exception.
-    def check_scope(self, scope):
+    def reserve_scope(self, scope):
         log.debug("Checking {} / scope {}".format(self.name, scope))
-        if scope not in self.output_scopes:
-            self.output_scopes.append(scope)
+        if scope not in self.defined_for_scopes:
+            self.defined_for_scopes.append(scope)
         else:
             log.error(
-                "Quantity {} is already used as output in {} scope !".format(
-                    self.name, scope
-                )
+                "Quantity {} is already defined in {} scope !".format(self.name, scope)
             )
             raise Exception
 
@@ -78,11 +76,10 @@ class Quantity:
 
 class NanoAODQuantity(Quantity):
     def __init__(self, name):
-        self.name = name
         super().__init__(name)
 
     # Quantities from the NanoAOD are not designed to be directly usable as output
-    def check_scope(self, scope):
+    def reserve_scope(self, scope):
         log.error(
             "Quantity {} is a NanoAOD quantity and cant be used as output !".format(
                 self.name

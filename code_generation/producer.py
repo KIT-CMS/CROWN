@@ -25,7 +25,6 @@ class Producer:
         self.input = input
         self.output = output
         self.scopes = scopes
-        self.output_checked = False
         # keep track of variable dependencies
         if self.output != None:
             for input_quantity in self.input:
@@ -46,12 +45,14 @@ class Producer:
         log.debug("| scopes: {}".format(self.scopes))
         log.debug("-----------------------------------------")
 
-    def check_output(self):
-        if self.output != None and not self.output_checked:
-            for scope in self.scopes:
-                for output_quantity in self.output:
-                    output_quantity.check_scope(scope)
-        self.output_checked = True
+    # Check if a output_quantity is already used as an output by
+    # another producer within the same scope.
+    # If this occurs, a Exception is thrown, since this is not possible with dataframes
+
+    def reserve_output(self, scope):
+        if self.output != None:
+            for output_quantity in self.output:
+                output_quantity.reserve_scope(scope)
 
     def shift(self, name, scope="global"):
         if not scope in self.scopes:
@@ -223,9 +224,12 @@ class ProducerGroup:
         log.debug("| scopes: {}".format(self.scopes))
         log.debug("-----------------------------------------")
 
-    def check_output(self):
+    # for a producer group, step iteratively
+    # through the subproducers and reserve the output there
+
+    def reserve_output(self, scope):
         for subproducer in self.producers:
-            subproducer.check_output()
+            subproducer.reserve_output(scope)
 
     def shift(self, name, scope="global"):
         for producer in self.producers:
