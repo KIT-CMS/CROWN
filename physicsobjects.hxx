@@ -261,6 +261,44 @@ auto FilterTauID(auto df, const std::string maskname, const std::string nameID,
     auto df1 = df.Define(maskname, basefunctions::FilterID(idxID), {nameID});
     return df1;
 }
+/// Function to correct tau pt
+///
+/// \param[in] df the input dataframe
+/// \param[out] corrected_pt name of the corrected tau pt to be calculated
+/// \param[in] pt name of the raw tau pt \param[in] decayMode
+/// \param[in] sf_dm0 scale factor to be applied to taus with decay mode 0
+/// \param[in] sf_dm1 scale factor to be applied to other 1 prong taus
+/// \param[in] sf_dm10 scale factor to be applied to taus with decay mode 10
+/// \param[in] sf_dm11 scale factor to be applied to other 3 prong taus
+/// name of the tau decay mode quantity
+///
+/// \return a dataframe containing the new mask
+auto PtCorrection(auto df, const std::string corrected_pt, const std::string pt,
+                  const std::string decayMode, const float sf_dm0,
+                  const float sf_dm1, const float sf_dm10,
+                  const float sf_dm11) {
+    auto tau_pt_correction_lambda =
+        [sf_dm0, sf_dm1, sf_dm10, sf_dm11](const ROOT::RVec<float> &pt_values,
+                                           const ROOT::RVec<int> &decay_modes) {
+            ROOT::RVec<float> corrected_pt_values(pt_values.size());
+            for (int i = 0; i < pt_values.size(); i++) {
+                if (decay_modes.at(i) == 0)
+                    corrected_pt_values[i] = pt_values.at(i) * sf_dm0;
+                else if (decay_modes.at(i) > 0 && decay_modes.at(i) < 5)
+                    corrected_pt_values[i] = pt_values.at(i) * sf_dm1;
+                else if (decay_modes.at(i) == 10)
+                    corrected_pt_values[i] = pt_values.at(i) * sf_dm10;
+                else if (decay_modes.at(i) > 10 && decay_modes.at(i) < 15)
+                    corrected_pt_values[i] = pt_values.at(i) * sf_dm11;
+                else
+                    corrected_pt_values[i] = pt_values.at(i);
+            }
+            return corrected_pt_values;
+        };
+    auto df1 =
+        df.Define(corrected_pt, tau_pt_correction_lambda, {pt, decayMode});
+    return df1;
+}
 
 } // end namespace tau
 
