@@ -5,9 +5,9 @@ from code_generation.producer import Producer, ProducerGroup
 ####################
 # Set of producers used for selection possible good jets
 ####################
-JetEnergyCorrection = Producer(
-    name="JetEnergyCorrection",
-    call="physicsobject::jet::JetEnergyCorrection({df}, {output}, {input}, {JEC_shift_sources}, {JE_scale_shift}, {JE_reso_shift})",
+JetPtCorrection = Producer(
+    name="JetPtCorrection",
+    call="physicsobject::jet::JetPtCorrection({df}, {output}, {input}, {JEC_shift_sources}, {JE_scale_shift}, {JE_reso_shift})",
     input=[
         nanoAOD.Jet_pt,
         nanoAOD.Jet_eta,
@@ -19,6 +19,25 @@ JetEnergyCorrection = Producer(
     ],
     output=[q.Jet_pt_corrected],
     scopes=["global"],
+)
+JetMassCorrection = Producer(
+    name="JetMassCorrection",
+    call="physicsobject::ObjectMassCorrectionWithPt({df}, {output}, {input})",
+    input=[
+        nanoAOD.Jet_mass,
+        nanoAOD.Jet_pt,
+        q.Jet_pt_corrected,
+    ],
+    output=[q.Jet_mass_corrected],
+    scopes=["global"],
+)
+JetEnergyCorrection = ProducerGroup(
+    name="JetEnergyCorrection",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["global"],
+    subproducers=[JetPtCorrection, JetMassCorrection],
 )
 JetPtCut = Producer(
     name="JetPtCut",
@@ -142,7 +161,7 @@ LVJet1 = Producer(
         q.Jet_pt_corrected,
         nanoAOD.Jet_eta,
         nanoAOD.Jet_phi,
-        nanoAOD.Jet_mass,
+        q.Jet_mass_corrected,
     ],
     output=[q.jet_p4_1],
     scopes=["mt"],
@@ -155,7 +174,7 @@ LVJet2 = Producer(
         q.Jet_pt_corrected,
         nanoAOD.Jet_eta,
         nanoAOD.Jet_phi,
-        nanoAOD.Jet_mass,
+        q.Jet_mass_corrected,
     ],
     output=[q.jet_p4_2],
     scopes=["mt"],
@@ -249,7 +268,7 @@ LVBJet1 = Producer(
         q.Jet_pt_corrected,
         nanoAOD.Jet_eta,
         nanoAOD.Jet_phi,
-        nanoAOD.Jet_mass,
+        q.Jet_mass_corrected,
     ],
     output=[q.bjet_p4_1],
     scopes=["mt"],
@@ -262,7 +281,7 @@ LVBJet2 = Producer(
         q.Jet_pt_corrected,
         nanoAOD.Jet_eta,
         nanoAOD.Jet_phi,
-        nanoAOD.Jet_mass,
+        q.Jet_mass_corrected,
     ],
     output=[q.bjet_p4_2],
     scopes=["mt"],
