@@ -167,7 +167,7 @@ auto LeptonVetoFlag(auto df, const std::string &outputname,
 /// uncorrected object pts \param[in] corrected_pt name of the corrected object
 /// pts
 ///
-/// \return a dataframe containing the modified jet masses
+/// \return a dataframe containing the modified object masses
 auto ObjectMassCorrectionWithPt(auto df, const std::string corrected_mass,
                                 const std::string raw_mass,
                                 const std::string raw_pt,
