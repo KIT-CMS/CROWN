@@ -159,6 +159,36 @@ auto LeptonVetoFlag(auto df, const std::string &outputname,
                      {vetomap});
 }
 
+/// Function to correct object mass in alignment with object pt correction
+///
+/// \param[in] df the input dataframe
+/// \param[out] corrected_mass the name of the corrected masses to be determined
+/// \param[in] raw_mass name of the input mass \param[in] raw_pt name of the
+/// uncorrected object pts \param[in] corrected_pt name of the corrected object
+/// pts
+///
+/// \return a dataframe containing the modified jet masses
+auto ObjectMassCorrectionWithPt(auto df, const std::string corrected_mass,
+                                const std::string raw_mass,
+                                const std::string raw_pt,
+                                const std::string corrected_pt) {
+    auto mass_correction_lambda =
+        [](const ROOT::RVec<float> &mass_values,
+           const ROOT::RVec<float> &pt_values,
+           const ROOT::RVec<float> &corrected_pt_values) {
+            ROOT::RVec<float> corrected_mass_values(mass_values.size());
+            for (int i = 0; i < mass_values.size(); i++) {
+                corrected_mass_values[i] = mass_values.at(i) *
+                                           corrected_pt_values.at(i) /
+                                           pt_values.at(i);
+            }
+            return corrected_mass_values;
+        };
+    auto df1 = df.Define(corrected_mass, mass_correction_lambda,
+                         {raw_mass, raw_pt, corrected_pt});
+    return df1;
+}
+
 /// Muon specific functions
 namespace muon {
 /// Function to filter muons based on the muon ID

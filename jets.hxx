@@ -107,7 +107,7 @@ auto FilterID(auto df, const std::string maskname, const std::string nameID,
     return df1;
 }
 
-/// Function to shift and smear jet energy
+/// Function to shift and smear jet pt
 ///
 /// \param[in] df the input dataframe
 /// \param[out] corrected_jet_pt the name of the shifted and smeared jet pts
@@ -122,15 +122,14 @@ auto FilterID(auto df, const std::string maskname, const std::string nameID,
 /// Down
 ///
 /// \return a dataframe containing the modified jet pts
-auto JetEnergyCorrection(auto df, const std::string corrected_jet_pt,
-                         const std::string jet_pt, const std::string jet_eta,
-                         const std::string jet_phi,
-                         const std::string gen_jet_pt,
-                         const std::string gen_jet_eta,
-                         const std::string gen_jet_phi, const std::string rho,
-                         const std::vector<std::string> energy_shift_sources,
-                         const int energy_shift_state,
-                         const int energy_reso_shift) {
+auto JetPtCorrection(auto df, const std::string corrected_jet_pt,
+                     const std::string jet_pt, const std::string jet_eta,
+                     const std::string jet_phi, const std::string gen_jet_pt,
+                     const std::string gen_jet_eta,
+                     const std::string gen_jet_phi, const std::string rho,
+                     const std::vector<std::string> energy_shift_sources,
+                     const int energy_shift_state,
+                     const int energy_reso_shift) {
     // configure readout tool here and capture it in lambda below
     // dummy lambdas for now:
     std::vector<std::function<float(float, float)>> JetEnergyShiftSources;
