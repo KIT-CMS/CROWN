@@ -1,5 +1,6 @@
 #include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
+#include "RooTrace.h"
 #include "TStopwatch.h"
 #include "jets.hxx"
 #include "lorentzvectors.hxx"
@@ -7,6 +8,7 @@
 #include "pairselection.hxx"
 #include "physicsobjects.hxx"
 #include "quantities.hxx"
+#include "scalefactors.hxx"
 #include "utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
 #include <string>
@@ -34,6 +36,7 @@ int main(int argc, char *argv[]) {
     auto verbosity = ROOT::Experimental::RLogScopedVerbosity(
         ROOT::Detail::RDF::RDFLogChannel(),
         ROOT::Experimental::ELogLevel::kInfo);
+    RooTrace::verbose(kTRUE);
 
     // file logging
     ROOT::RDataFrame df0("Events", input_path);

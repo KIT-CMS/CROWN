@@ -7,6 +7,7 @@ from code_generation.producers.genparticles import *
 from code_generation.producers.pairselection import *
 from code_generation.producers.pairquantities import *
 from code_generation.producers.event import *
+from code_generation.producers.scalefactors import *
 import code_generation.quantities.output as q
 from config.utility import AddSystematicShift
 
@@ -48,6 +49,11 @@ def build_config():
         "tau_ES_shift_DM1": 1.001,
         "tau_ES_shift_DM10": 1.001,
         "tau_ES_shift_DM11": 1.001,
+        "muon_sf_workspace": "../data/muon_corrections/htt_scalefactors_legacy_2018_muons.root",
+        "muon_sf_id_name": "m_id_kit_ratio",
+        "muon_sf_id_args": "m_pt,m_eta",
+        "muon_sf_iso_name": "m_iso_binned_kit_ratio",
+        "muon_sf_iso_args": "m_pt,m_eta,m_iso",
     }
 
     config = {"": base_config}
@@ -75,6 +81,7 @@ def build_config():
             BJetCollection,
             BasicBJetQuantities,
             GenDiTauPairQuantities,
+            Muon_SF,
         ],
     }
 
@@ -126,6 +133,10 @@ def build_config():
             q.gen_mass_2,
             q.gen_pdgid_2,
             q.gen_m_vis,
+            q.taujet_pt_2,
+            q.gen_taujet_pt_2,
+            q.idWeight_1,
+            q.isoWeight_1,
         ]
     }
 
