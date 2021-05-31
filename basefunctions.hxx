@@ -3,6 +3,9 @@
 
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
+#include "RooFunctor.h"
+#include "utility/Logger.hxx"
+#include "utility/utility.hxx"
 
 enum Channel { MT = 0, ET = 1, TT = 2, EM = 3 };
 
@@ -108,7 +111,44 @@ auto FilterJetID(int index) {
         return mask;
     };
 }
-
+/// Function to evaluate a RooWorkspace function and put the output into a new
+/// dataframe column
+///
+/// \param[in] df The dataframe, where the new column should be added
+/// \param[in] outputname name of the new column
+/// \param[in] function A `RooFunctor` pointer, which has to be loaded from a
+/// Roo Workspace \param[in] inputs a paramter pack containing all column names
+/// needed to be able to evaluate the workspace function
+///
+/// \returns a dataframe with the newly defined output column
+template <class... Inputs>
+auto evaluateWorkspaceFunction(auto df, const std::string &outputname,
+                               const std::shared_ptr<RooFunctor> function,
+                               const Inputs &... inputs) {
+    Logger::get("evaluateWorkspaceFunction")
+        ->debug("Starting evaluation for {}", outputname);
+    auto getValue = [function](const ROOT::RVec<float> &values) {
+        Logger::get("evaluateWorkspaceFunction")
+            ->debug("Type: {} // nPar {} // nObs {}", typeid(function).name(),
+                    function->nPar(), function->nObs());
+        auto argvalues = std::vector<double>{};
+        for (auto par : values) {
+            argvalues.push_back(double(par));
+            Logger::get("evaluateWorkspaceFunction")
+                ->debug("double value: {}", argvalues.back());
+        }
+        auto result = function->eval(argvalues.data());
+        Logger::get("evaluateWorkspaceFunction")->debug("result {}", result);
+        return result;
+    };
+    std::vector<std::string> InputList;
+    utility::appendParameterPackToVector(InputList, inputs...);
+    const auto nInputs = sizeof...(Inputs);
+    Logger::get("evaluateWorkspaceFunction")->debug("nInputs: {} ", nInputs);
+    auto df1 = df.Define(
+        outputname, ROOT::RDF::PassAsVec<nInputs, float>(getValue), InputList);
+    return df1;
+}
 } // namespace basefunctions
 
 #endif /* GUARDBASEFUNCTIONS_H */
