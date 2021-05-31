@@ -42,6 +42,10 @@ def build_config():
         "JEC_shift_sources": '{""}',
         "JE_scale_shift": 0,
         "JE_reso_shift": 0,
+        "tau_ES_shift_DM0": 1.001,
+        "tau_ES_shift_DM1": 1.001,
+        "tau_ES_shift_DM10": 1.001,
+        "tau_ES_shift_DM11": 1.001,
     }
 
     config = {"": base_config}
@@ -49,6 +53,7 @@ def build_config():
     config["producers"] = {
         "global": [
             MetFilter,
+            TauEnergyCorrection,
             GoodTaus,
             GoodMuons,
             GoodElectronsVeto,
@@ -105,8 +110,15 @@ def build_config():
         ]
     }
 
-    shift_dict = {"min_tau_pt": 31.0}
-    AddSystematicShift(config, "tauCutUp", shift_dict, [TauPtCut])
+    AddSystematicShift(
+        config, "tauES_1prong0pizeroUp", {"tau_ES_shift_DM0": 1.002}, [TauPtCorrection]
+    )
+    AddSystematicShift(
+        config,
+        "tauES_1prong0pizeroDown",
+        {"tau_ES_shift_DM0": 1.000},
+        [TauPtCorrection],
+    )
     # # Jet energy resolution
     # shift_dict = {"JE_reso_shift": 1}
     # AddSystematicShift(config, "jerUncUp", shift_dict, [JetEnergyCorrection])
