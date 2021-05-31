@@ -15,11 +15,15 @@ if (NOT DEFINED SHIFTS)
     message(STATUS "No shifts specificed, using -DSHIFTS=all")
     set(SHIFTS "all")
 endif()
+if (NOT DEFINED DEBUG)
+    message(STATUS "No debug mode")
+    set(DEBUG "false")
+endif()
 
 if (NOT DEFINED SAMPLES)
     message(FATAL_ERROR "Please specify the samples to be used with -DSAMPLES=samples")
 endif()
-message(STATUS "Set up analysis with --config ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES}")
+message(STATUS "Set up analysis with --config ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --debug ${DEBUG}")
 
 # Define the default compiler flags for different build types, if different from the cmake defaults
 set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Set default compiler flags for build type Debug")
@@ -35,7 +39,7 @@ set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} CACHE STRING "Set default install p
 project(CROWN CXX)
 
 # Find ROOT and print details
-find_package(ROOT 6.24 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame)
+find_package(ROOT 6.24 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit)
 
 message(STATUS "")
 message(STATUS "Found ROOT with following settings:")
@@ -121,7 +125,7 @@ message(STATUS "")
 
 file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
 execute_process(
-    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES}
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --debug ${DEBUG}
 )
 
 set(GENERATE_CPP_OUTPUT_FILELIST "${GENERATE_CPP_OUTPUT_DIRECTORY}/files.txt")
@@ -141,9 +145,9 @@ foreach(FILENAME ${FILELIST})
     # Add build target
     message(STATUS "Add build target for file ${FILENAME}.")
     add_executable(${TARGET_NAME} ${FULL_PATH})
+    # target_precompile_headers(${TARGET_NAME} PRIVATE jets.hxx lorentzvectors.hxx metfilter.hxx pairselection.hxx quantities.hxx)
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
-    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame logging)
-
+    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging)
     # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
     install(TARGETS ${TARGET_NAME} DESTINATION bin)
 endforeach()

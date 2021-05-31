@@ -23,7 +23,7 @@ parser.add_argument(
 parser.add_argument(
     "--samples", type=str, help='Samples to be processed. To select all, choose "auto"'
 )
-
+parser.add_argument("--debug", type=str, help='set debug mode for building"')
 args = parser.parse_args()
 # Executables for each era and per following processes:
 # ggH
@@ -49,7 +49,9 @@ for sample_group in sample_groups:
     handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
     terminal_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
     root = logging.getLogger()
-    root.setLevel("DEBUG")
+    root.setLevel("INFO")
+    if args.debug != "false":
+        root.setLevel("DEBUG")
     root.addHandler(handler)
     root.addHandler(terminal_handler)
 
