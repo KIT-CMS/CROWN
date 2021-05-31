@@ -272,5 +272,62 @@ auto genmatch(auto df, const std::string &outputname, const int position,
                      },
                      {pairname, genmatchcolumn});
 }
+/// Function to writeout the pt of the reco jet associated with the given tau.
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the jet pt value
+/// \param position index of the position in the pair vector
+/// \param pairname name of the column containing the pair vector
+/// \param taujet_index name of the column containing the association between
+/// the tau and the reco jet \param jetpt_column name of the column containing
+/// the recojet pt values
+///
+/// \returns a dataframe with the new column
+auto matching_jet_pt(auto df, const std::string &outputname, const int position,
+                     const std::string &pairname,
+                     const std::string &taujet_index,
+                     const std::string &jetpt_column) {
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<int> &pair,
+                                const ROOT::RVec<int> &taujets,
+                                const ROOT::RVec<float> &jetpt) {
+                         const int tauindex = pair.at(position);
+                         const int jetindex = taujets[tauindex];
+                         return jetpt[jetindex];
+                     },
+                     {pairname, taujet_index, jetpt_column});
+}
+/// Function to writeout the pt of the gen jet associated with the reco jet,
+/// which is associated with the given tau. \code
+///  Tau --> recoJet --> GenJet
+///   \endcode
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the jet pt value
+/// \param position index of the position in the pair vector
+/// \param pairname name of the column containing the pair vector
+/// \param taujet_index name of the column containing the association between
+/// the tau and the reco jet \param genjet_index name of the column containing
+/// the association between the reco jet and the gen jet \param genjetpt_column
+/// name of the column containing the genJet pt values
+///
+/// \returns a dataframe with the new column
+auto matching_genjet_pt(auto df, const std::string &outputname,
+                        const int position, const std::string &pairname,
+                        const std::string &taujet_index,
+                        const std::string &genjet_index,
+                        const std::string &genjetpt_column) {
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<int> &pair,
+                                const ROOT::RVec<int> &taujets,
+                                const ROOT::RVec<int> &genjets,
+                                const ROOT::RVec<float> &genjetpt) {
+                         const int tauindex = pair.at(position);
+                         const int jetindex = taujets[tauindex];
+                         const int genjetindex = genjets[jetindex];
+                         return genjetpt[genjetindex];
+                     },
+                     {pairname, taujet_index, genjet_index, genjetpt_column});
+}
 } // end namespace tau
 } // end namespace quantities

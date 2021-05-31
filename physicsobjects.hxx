@@ -1,5 +1,6 @@
 #include "ROOT/RDataFrame.hxx"
 #include "basefunctions.hxx"
+#include "utility/utility.hxx"
 #include <iostream>
 #include <string>
 #include <type_traits>
@@ -75,17 +76,6 @@ auto CutDxy(auto df, const std::string quantity, const std::string maskname,
         df.Define(maskname, basefunctions::FilterMax(Threshold), {quantity});
     return df1;
 }
-void appendParameterPackToVector(std::vector<std::string> &v,
-                                 const std::string &maskname) {
-    v.push_back(maskname);
-}
-template <class... Masks>
-void appendParameterPackToVector(std::vector<std::string> &v,
-                                 const std::string &maskname,
-                                 const Masks &... masks) {
-    v.push_back(maskname);
-    appendParameterPackToVector(v, masks...);
-}
 /// Function to combine a list of masks into a single mask. This is done be
 /// multiplying all input masks
 ///
@@ -110,7 +100,7 @@ auto CombineMasks(auto df, const std::string &maskname,
     // std::vector<std::string> MaskList{{masks...}}; does weird things in case
     // of two arguments in masks
     std::vector<std::string> MaskList;
-    appendParameterPackToVector(MaskList, masks...);
+    utility::appendParameterPackToVector(MaskList, masks...);
     const auto nMasks = sizeof...(Masks);
     return df.Define(
         maskname, ROOT::RDF::PassAsVec<nMasks, ROOT::RVec<int>>(multiplyMasks),
