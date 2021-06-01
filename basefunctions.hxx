@@ -111,7 +111,7 @@ auto FilterJetID(int index) {
         return mask;
     };
 }
-/// Function to evaluate a RooWorkspace function and put the output into a new
+/// Function to evaluate a `RooWorkspace` function and put the output into a new
 /// dataframe column
 ///
 /// \param[in] df The dataframe, where the new column should be added
