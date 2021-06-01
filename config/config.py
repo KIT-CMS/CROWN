@@ -111,13 +111,18 @@ def build_config():
     }
 
     AddSystematicShift(
-        config, "tauES_1prong0pizeroUp", {"tau_ES_shift_DM0": 1.002}, [TauPtCorrection]
+        config,
+        "tauES_1prong0pizeroUp",
+        {"tau_ES_shift_DM0": 1.002},
+        [TauPtCorrection],
+        [[LVMu1, "mt"]],
     )
     AddSystematicShift(
         config,
         "tauES_1prong0pizeroDown",
         {"tau_ES_shift_DM0": 1.000},
         [TauPtCorrection],
+        [[LVMu1, "mt"]],
     )
     # # Jet energy resolution
     # shift_dict = {"JE_reso_shift": 1}

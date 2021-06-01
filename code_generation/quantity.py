@@ -7,6 +7,7 @@ class Quantity:
     def __init__(self, name):
         self.name = name
         self.shifts = {}
+        self.ignored_shifts = {}
         self.children = {}
         self.defined_for_scopes = []
         log.debug("Setting up new Quantity {}".format(self.name))
@@ -33,19 +34,29 @@ class Quantity:
         return [self.name] + [self.name + shift for shift in self.get_shifts(scope)]
 
     def shift(self, name, scope):
+        if scope in self.ignored_shifts.keys():
+            if name in self.ignored_shifts[scope]:
+                log.debug("Ignoring shift {} for quantity {}".format(name, self.name))
+                return
         log.debug("Adding shift {} to quantity {}".format(name, self.name))
         if not scope in self.shifts.keys():
             self.shifts[scope] = set()
         if not name in self.shifts[scope]:
             self.shifts[scope].add(name)
             if scope == "global":  # shift children in all scopes if scope is global
-                for any_scope in self.children.values():
-                    for c in any_scope:
-                        c.shift(name, scope)
+                for any_scope in self.children:
+                    for c in self.children[any_scope]:
+                        c.shift(name, any_scope)
             else:
                 if scope in self.children.keys():
                     for c in self.children[scope]:
                         c.shift(name, scope)
+
+    def ignore_shift(self, name, scope):
+        log.debug("Make quantity {} ignore shift {}".format(self.name, name))
+        if not scope in self.ignored_shifts.keys():
+            self.ignored_shifts[scope] = set()
+        self.ignored_shifts[scope].add(name)
 
     def copy(self, name):
         copy = Quantity(name)
@@ -63,15 +74,9 @@ class Quantity:
 
     def get_shifts(self, scope):
         if scope in self.shifts.keys():
-            if "global" in self.shifts.keys():
-                return list(self.shifts[scope].union(self.shifts["global"]))
-            else:
-                return list(self.shifts[scope])
+            return list(self.shifts[scope])
         else:
-            if "global" in self.shifts.keys():
-                return list(self.shifts["global"])
-            else:
-                return []
+            return []
 
 
 class NanoAODQuantity(Quantity):

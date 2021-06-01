@@ -68,9 +68,23 @@ class Producer:
             )
             raise Exception
         for entry in self.output:
-            entry.shift(
-                name, scope
-            )  # crashes on purpose if output is None. This method should not be called for a producer without output
+            entry.shift(name, scope)
+
+    def ignore_shift(self, name, scope="global"):
+        if not scope in self.scopes:
+            print(
+                "Trying to add shift %s to producer %s in scope %s, but producer does not exist in given scope!"
+                % (name, self.name, scope)
+            )
+            raise Exception
+        if self.output is None:
+            print(
+                "Exception (%s): output None cannot be shifted ! How did you end up here ?"
+                % name
+            )
+            raise Exception
+        for entry in self.output:
+            entry.ignore_shift(name, scope)
 
     def writecall(self, config, scope, shift=""):
         if self.output == None:
@@ -234,6 +248,10 @@ class ProducerGroup:
     def shift(self, name, scope="global"):
         for producer in self.producers:
             producer.shift(name, scope)
+
+    def ignore_shift(self, name, scope="global"):
+        for producer in self.producers:
+            producer.ignore_shift(name, scope)
 
     def writecalls(self, config, scope):
         calls = []
