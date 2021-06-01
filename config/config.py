@@ -3,6 +3,7 @@ from code_generation.producers.jets import *
 from code_generation.producers.taus import *
 from code_generation.producers.muons import *
 from code_generation.producers.electrons import *
+from code_generation.producers.genparticles import *
 from code_generation.producers.pairselection import *
 from code_generation.producers.pairquantities import *
 import code_generation.quantities.output as q
@@ -66,6 +67,8 @@ def build_config():
             BasicJetQuantities,
             BJetCollection,
             BasicBJetQuantities,
+            MTGenPair,
+            GenDiTauPairQuantities
         ],
     }
 
@@ -81,6 +84,7 @@ def build_config():
             q.jphi_1,
             q.jphi_2,
             q.mjj,
+            q.m_vis,
             q.electron_veto_flag,
             q.good_jet_collection,
             q.nbtag,
@@ -102,6 +106,17 @@ def build_config():
             q.iso_2,
             q.decaymode_2,
             q.gen_match_2,
+            q.gen_pt_1,
+            q.gen_eta_1,
+            q.gen_phi_1,
+            q.gen_mass_1,
+            q.gen_pdgid_1,
+            q.gen_pt_2,
+            q.gen_eta_2,
+            q.gen_phi_2,
+            q.gen_mass_2,
+            q.gen_pdgid_2,
+            q.gen_m_vis
         ]
     }
 

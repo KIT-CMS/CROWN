@@ -186,6 +186,27 @@ auto isolation(auto df, const std::string &outputname, const int position,
                      },
                      {pairname, isolationcolumn});
 }
+/// Function to writeout the PDGID from a genparticle. The particle
+/// is identified via the index stored in the pair vector
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the PDGID
+/// \param position index of the position in the pair vector
+/// \param pairname name of the column containing the pair vector
+/// \param pdgidcolumn name of the column containing the pdgID
+///
+/// \returns a dataframe with the new column
+
+auto pdgid(auto df, const std::string &outputname, const int position,
+           const std::string &pairname, const std::string &pdgidcolumn) {
+    return df.Define(
+        outputname,
+        [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &pdgid) {
+            const int index = pair.at(position);
+            return pdgid[index];
+        },
+        {pairname, pdgidcolumn});
+}
 /// namespace for tau specific quantities
 namespace tau {
 /// Function to writeout the decaymode of a tau. The particle is identified via

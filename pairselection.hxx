@@ -16,7 +16,38 @@
 
 /// Namespace used for lorentzvector operations
 namespace pairselection {
-
+/**
+ * @brief Function used to build a pair of GenParticles from the selected
+ * DiTauPair. This uses the references of the reco particles to the gen
+ * particles.
+ *
+ * @param df the Dataframe
+ * @param recopair the column containing the DiTauPair vector
+ * @param genindex_particle1 the column containing the index of the GenParticle
+ * reference for the first pair particle
+ * @param genindex_particle2 the column containing the index of the GenParticle
+ * reference for the second pair particle
+ * @param genpair name of the new column containing the GenDiTauPair
+ * @return a new Dataframe with the GenDiTauPair column
+ */
+auto buildgenpair(auto df, const std::string &recopair,
+                  const std::string &genindex_particle1,
+                  const std::string &genindex_particle2,
+                  const std::string &genpair) {
+    auto getGenPair = [](const ROOT::RVec<int> recopair,
+                         const ROOT::RVec<int> genindex_particle1,
+                         const ROOT::RVec<int> genindex_particle2) {
+        ROOT::RVec<int> genpair = {-1, -1};
+        Logger::get("buildgenpair")->debug("existing DiTauPair: {}", recopair);
+        genpair[0] = genindex_particle1[recopair.at(0)];
+        genpair[1] = genindex_particle1[recopair.at(0)];
+        Logger::get("buildgenpair")
+            ->debug("matching GenDiTauPair: {}", genpair);
+        return genpair;
+    };
+    return df.Define(genpair, getGenPair,
+                     {recopair, genindex_particle1, genindex_particle2});
+}
 /// This function filters events, where no suitable particle pair is found. A
 /// pair is considered suitable, if a PairSelectionAlgo (like
 /// pairselection::mutau::PairSelectionAlgo) returns indices, that are not -1.
