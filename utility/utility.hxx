@@ -26,4 +26,24 @@ void appendParameterPackToVector(std::vector<std::string> &v,
     appendParameterPackToVector(v, pack...);
 }
 } // end namespace utility
+/// !!!! Remove once we can switch to Root 6.25, where fix is included
+template <typename I, typename T, typename F>
+class PassAsVecHelper;
+
+template <std::size_t... N, typename T, typename F>
+class PassAsVecHelper<std::index_sequence<N...>, T, F> {
+   template <std::size_t Idx>
+   using AlwaysT = T;
+   typename std::decay<F>::type fFunc;
+
+public:
+   PassAsVecHelper(F &&f) : fFunc(std::forward<F>(f)) {}
+   auto operator()(AlwaysT<N>... args) -> decltype(fFunc({args...})) { return fFunc({args...}); }
+};
+
+template <std::size_t N, typename T, typename F>
+auto PassAsVec(F &&f) -> PassAsVecHelper<std::make_index_sequence<N>, T, F>
+{
+   return PassAsVecHelper<std::make_index_sequence<N>, T, F>(std::forward<F>(f));
+}
 #endif /* GUARDUTILITY_H */
