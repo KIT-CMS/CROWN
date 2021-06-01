@@ -37,7 +37,7 @@ jobs:
 
     - name: Build
       shell: bash
-      run: cd ${{github.workspace}}/build && make
+      run: cd ${{github.workspace}}/build && make install
 
     - name: Test
       shell: bash

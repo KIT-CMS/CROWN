@@ -137,6 +137,8 @@ endif()
 FILE(READ ${GENERATE_CPP_OUTPUT_FILELIST} FILELIST)
 STRING(REGEX REPLACE "\n" ";" FILELIST ${FILELIST})
 set(TARGET_NAMES "")
+# copy all correction files into the install location
+install(DIRECTORY data/ DESTINATION data)
 foreach(FILENAME ${FILELIST})
     STRING(REGEX REPLACE ".cxx" "" TARGET_NAME ${FILENAME})
     list(APPEND TARGET_NAMES ${TARGET_NAME})
@@ -149,7 +151,7 @@ foreach(FILENAME ${FILELIST})
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
     target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging)
     # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
-    install(TARGETS ${TARGET_NAME} DESTINATION bin)
+    install(TARGETS ${TARGET_NAME} DESTINATION)
 endforeach()
 
 # Include tests
