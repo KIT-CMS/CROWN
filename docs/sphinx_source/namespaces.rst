@@ -26,6 +26,11 @@ Physicsobjects
 .. doxygennamespace:: physicsobject
    :members:
 
+Scalefactors
+***************
+.. doxygennamespace:: scalefactor
+   :members:
+
 
 Lorentzvectors
 ***************
