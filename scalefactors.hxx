@@ -29,8 +29,6 @@ std::shared_ptr<RooFunctor> loadFunctor(const std::string &workspace_name,
     auto workspacefile = TFile::Open(workspace_name.c_str(), "read");
     auto workspace = (RooWorkspace *)workspacefile->Get("w");
     workspacefile->Close();
-    // workspace->function(id_functor_name.c_str())->Print();
-    // workspace->argSet(id_arguments.c_str()).Print();
     const std::shared_ptr<RooFunctor> functor = std::shared_ptr<RooFunctor>(
         workspace->function(functor_name.c_str())
             ->functor(workspace->argSet(arguments.c_str())));

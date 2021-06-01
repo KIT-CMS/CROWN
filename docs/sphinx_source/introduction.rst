@@ -53,7 +53,7 @@ and compile the executable using
 
 .. code-block:: console
 
-   make
+   make install
 
 
 Creating Documentation
