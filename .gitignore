@@ -3,7 +3,6 @@ build/
 log/
 logs/
 include/
-
 # Doxygen Documentation
 docs/doxygen
 
@@ -29,8 +28,8 @@ __pycache__/
 # C extensions
 *.so
 
-# ROOT files
-*.root
+# ROOT files in the main folder
+/*.root
 
 # plots / figures
 *.png
