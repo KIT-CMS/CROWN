@@ -18,6 +18,7 @@ Tau_mass_corrected = Quantity("Tau_mass_corrected")
 Jet_pt_corrected = Quantity("Jet_pt_corrected")
 Jet_mass_corrected = Quantity("Jet_mass_corrected")
 ditaupair = Quantity("ditaupair")
+gen_ditaupair = Quantity("gen_ditaupair")
 good_jet_collection = Quantity("good_jet_collection")
 good_bjet_collection = Quantity("good_bjet_collection")
 
@@ -63,3 +64,20 @@ bjet_p4_2 = Quantity("bjet_p4_2")
 bpt_2 = Quantity("bpt_2")
 beta_2 = Quantity("beta_2")
 bphi_2 = Quantity("bphi_2")
+
+## Gen Quantities
+gen_p4_1 = Quantity("gen_p4_1")
+gen_pt_1 = Quantity("gen_pt_1")
+gen_eta_1 = Quantity("gen_eta_1")
+gen_phi_1 = Quantity("gen_phi_1")
+gen_mass_1 = Quantity("gen_mass_1")
+gen_pdgid_1 = Quantity("gen_pdgid_1")
+
+gen_p4_2 = Quantity("gen_p4_2")
+gen_pt_2 = Quantity("gen_pt_2")
+gen_eta_2 = Quantity("gen_eta_2")
+gen_phi_2 = Quantity("gen_phi_2")
+gen_mass_2 = Quantity("gen_mass_2")
+gen_pdgid_2 = Quantity("gen_pdgid_2")
+
+gen_m_vis = Quantity("gen_m_vis")
