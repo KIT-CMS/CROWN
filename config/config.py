@@ -75,7 +75,7 @@ def build_config():
             BJetCollection,
             BasicBJetQuantities,
             MTGenPair,
-            GenDiTauPairQuantities
+            GenDiTauPairQuantities,
         ],
     }
 
@@ -126,7 +126,7 @@ def build_config():
             q.gen_phi_2,
             q.gen_mass_2,
             q.gen_pdgid_2,
-            q.gen_m_vis
+            q.gen_m_vis,
         ]
     }
 
