@@ -25,7 +25,7 @@ void appendParameterPackToVector(std::vector<std::string> &v,
     v.push_back(parameter);
     appendParameterPackToVector(v, pack...);
 }
-} // end namespace utility
+
 /// !!!! Remove once we can switch to Root 6.25, where fix is included
 template <typename I, typename T, typename F>
 class PassAsVecHelper;
@@ -44,6 +44,7 @@ public:
 template <std::size_t N, typename T, typename F>
 auto PassAsVec(F &&f) -> PassAsVecHelper<std::make_index_sequence<N>, T, F>
 {
-   return PassAsVecHelper<std::make_index_sequence<N>, T, F>(std::forward<F>(f));
+   return utility::PassAsVecHelper<std::make_index_sequence<N>, T, F>(std::forward<F>(f));
 }
+} // end namespace utility
 #endif /* GUARDUTILITY_H */

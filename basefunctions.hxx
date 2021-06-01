@@ -146,7 +146,8 @@ auto evaluateWorkspaceFunction(auto df, const std::string &outputname,
     const auto nInputs = sizeof...(Inputs);
     Logger::get("evaluateWorkspaceFunction")->debug("nInputs: {} ", nInputs);
     auto df1 = df.Define(
-        outputname, ROOT::RDF::PassAsVec<nInputs, float>(getValue), InputList);
+        outputname, utility::PassAsVec<nInputs, float>(getValue), InputList);
+    // change back to ROOT::RDF as soon as fix is available
     return df1;
 }
 } // namespace basefunctions
