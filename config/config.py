@@ -67,7 +67,6 @@ def build_config():
             BasicJetQuantities,
             BJetCollection,
             BasicBJetQuantities,
-            MTGenPair,
             GenDiTauPairQuantities,
         ],
     }

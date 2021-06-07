@@ -145,6 +145,7 @@ GenDiTauPairQuantities = ProducerGroup(
     output=None,
     scopes=["mt", "et", "tt", "em"],
     subproducers=[
+        MTGenPair,
         LVGenParticle1,
         LVGenParticle2,
         UnrollGenLV1,
