@@ -56,13 +56,13 @@ class Producer:
 
     def shift(self, name, scope="global"):
         if not scope in self.scopes:
-            print(
+            log.error(
                 "Trying to add shift %s to producer %s in scope %s, but producer does not exist in given scope!"
                 % (name, self.name, scope)
             )
             raise Exception
         if self.output is None:
-            print(
+            log.error(
                 "Exception (%s): output None cannot be shifted ! How did you end up here ?"
                 % name
             )
@@ -72,13 +72,13 @@ class Producer:
 
     def ignore_shift(self, name, scope="global"):
         if not scope in self.scopes:
-            print(
+            log.error(
                 "Trying to add shift %s to producer %s in scope %s, but producer does not exist in given scope!"
                 % (name, self.name, scope)
             )
             raise Exception
         if self.output is None:
-            print(
+            log.error(
                 "Exception (%s): output None cannot be shifted ! How did you end up here ?"
                 % name
             )
