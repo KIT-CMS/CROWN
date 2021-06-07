@@ -81,7 +81,6 @@ def build_config():
             BJetCollection,
             BasicBJetQuantities,
             GenDiTauPairQuantities,
-            Muon_SF,
             MuonIDIso_SF,
         ],
     }
