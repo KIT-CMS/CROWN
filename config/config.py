@@ -5,6 +5,7 @@ from code_generation.producers.muons import *
 from code_generation.producers.electrons import *
 from code_generation.producers.pairselection import *
 from code_generation.producers.pairquantities import *
+from code_generation.producers.event import *
 import code_generation.quantities.output as q
 from config.utility import AddSystematicShift
 
@@ -52,6 +53,7 @@ def build_config():
 
     config["producers"] = {
         "global": [
+            Lumi,
             MetFilter,
             TauEnergyCorrection,
             GoodTaus,
@@ -76,6 +78,9 @@ def build_config():
 
     config["output"] = {
         "mt": [
+            nanoAOD.run,
+            q.lumi,
+            nanoAOD.event,
             q.pt_1,
             q.pt_2,
             q.njets,

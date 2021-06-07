@@ -5,6 +5,19 @@
 /// are needed for every event
 namespace quantities {
 
+/// Function to add an input quantity under a different name
+///
+/// \param df the dataframe to add the quantity to
+/// \param inputname name of the existing column
+/// \param outputname name of the new column
+///
+/// \returns a dataframe with the new column
+
+template <typename T>
+auto rename(auto df, const std::string &inputname,
+            const std::string &outputname) {
+    return df.Define(outputname, [](const T &q) { return q; }, {inputname});
+}
 /// Function to calculate the pt from a given lorentz vector and add it to the
 /// dataframe
 ///
