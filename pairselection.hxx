@@ -40,7 +40,7 @@ auto buildgenpair(auto df, const std::string &recopair,
         ROOT::RVec<int> genpair = {-1, -1};
         Logger::get("buildgenpair")->debug("existing DiTauPair: {}", recopair);
         genpair[0] = genindex_particle1[recopair.at(0)];
-        genpair[1] = genindex_particle1[recopair.at(1)];
+        genpair[1] = genindex_particle2[recopair.at(1)];
         Logger::get("buildgenpair")
             ->debug("matching GenDiTauPair: {}", genpair);
         return genpair;
