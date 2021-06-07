@@ -131,12 +131,7 @@ auto evaluateWorkspaceFunction(auto df, const std::string &outputname,
         Logger::get("evaluateWorkspaceFunction")
             ->debug("Type: {} // nPar {} // nObs {}", typeid(function).name(),
                     function->nPar(), function->nObs());
-        auto argvalues = std::vector<double>{};
-        for (auto par : values) {
-            argvalues.push_back(double(par));
-            Logger::get("evaluateWorkspaceFunction")
-                ->debug("double value: {}", argvalues.back());
-        }
+        std::vector<double> argvalues(values.begin(), values.end());
         auto result = function->eval(argvalues.data());
         Logger::get("evaluateWorkspaceFunction")->debug("result {}", result);
         return result;
