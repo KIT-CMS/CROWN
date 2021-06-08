@@ -26,6 +26,8 @@ template <typename T>
 auto FilterIntSelection(auto df, const std::string &quantity,
                         const std::vector<T> &selection,
                         const std::string &filtername) {
+    for (auto entry : selection)
+        std::cout << entry << std::endl;
     return df.Filter(
         [selection](const T probe) {
             return std::find(selection.begin(), selection.end(), probe) !=

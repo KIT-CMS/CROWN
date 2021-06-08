@@ -106,6 +106,8 @@ class Producer:
             '{"' + '","'.join([x.get_leaf(shift, scope) for x in self.input]) + '"}'
         )
         config[shift]["df"] = "{df}"
+        config[shift]["vec_open"] = "{vec_open}"
+        config[shift]["vec_close"] = "{vec_close}"
         return self.call.format(
             **config[shift]
         )  # use format (not format_map here) such that missing config entries cause an error
