@@ -139,7 +139,7 @@ UnrollGenLV2 = ProducerGroup(
 )
 
 GenDiTauPairQuantities = ProducerGroup(
-    name="DiTauPairQuantities",
+    name="GenDiTauPairQuantities",
     call=None,
     input=None,
     output=None,
