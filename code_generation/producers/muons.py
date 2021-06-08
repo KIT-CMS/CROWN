@@ -54,5 +54,12 @@ GoodMuons = ProducerGroup(
     input=[],
     output=[q.good_muons_mask],
     scopes=["global"],
-    subproducers=[MuonPtCut, MuonEtaCut, MuonDxyCut, MuonDzCut, MuonIDFilter, MuonIsoFilter],
+    subproducers=[
+        MuonPtCut,
+        MuonEtaCut,
+        MuonDxyCut,
+        MuonDzCut,
+        MuonIDFilter,
+        MuonIsoFilter,
+    ],
 )

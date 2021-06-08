@@ -22,12 +22,13 @@ namespace basefunctions {
 /// \param filtername The name of the filter, used in the Dataframe report
 ///
 /// \returns a filtered dataframe
+template <typename T>
 auto FilterIntSelection(auto df, const std::string &quantity,
-                        const std::vector<int> &selection,
+                        const std::vector<T> &selection,
                         const std::string &filtername) {
     using namespace ROOT::VecOps;
     return df.Filter(
-        [selection](const UInt_t probe) {
+        [selection](const T probe) {
             return std::find(selection.begin(), selection.end(), probe) !=
                    selection.end();
         },
