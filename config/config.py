@@ -57,6 +57,7 @@ def build_config():
         "muon_sf_iso_name": "m_iso_binned_kit_ratio",
         "muon_sf_iso_args": "m_pt,m_eta,m_iso",
         "RunLumiEventFilter_Quantities": ["event"],
+        "RunLumiEventFilter_Quantity_Types": ["ULong64_t"],
         "RunLumiEventFilter_Selections": ["271361"],
     }
 

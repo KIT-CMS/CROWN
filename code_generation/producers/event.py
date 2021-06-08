@@ -8,11 +8,15 @@ from code_generation.producer import Producer, VectorProducer
 
 RunLumiEventFilter = VectorProducer(
     name="RunLumiEventFilter",
-    call='basefunctions::FilterIntSelection({df}, "{RunLumiEventFilter_Quantities}", std::vector<int>({RunLumiEventFilter_Selections}), "RunLumiEventFilter")',
+    call='basefunctions::FilterIntSelection<{RunLumiEventFilter_Quantity_Types}>({df}, "{RunLumiEventFilter_Quantities}", std::vector<{RunLumiEventFilter_Quantity_Types}>({RunLumiEventFilter_Selections}), "RunLumiEventFilter")',
     input=[],
     output=None,
     scopes=["general"],
-    vec_configs=["RunLumiEventFilter_Quantities", "RunLumiEventFilter_Selections"],
+    vec_configs=[
+        "RunLumiEventFilter_Quantities",
+        "RunLumiEventFilter_Quantity_Types",
+        "RunLumiEventFilter_Selections",
+    ],
 )
 
 Lumi = Producer(
