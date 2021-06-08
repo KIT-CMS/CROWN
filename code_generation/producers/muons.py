@@ -20,6 +20,20 @@ MuonEtaCut = Producer(
     output=[],
     scopes=["global"],
 )
+MuonDxyCut = Producer(
+    name="MuonDzCut",
+    call="physicsobject::CutDz({df}, {input}, {output}, {max_muon_dxy})",
+    input=[nanoAOD.Muon_dxy],
+    output=[],
+    scopes=["global"],
+)
+MuonDzCut = Producer(
+    name="MuonDzCut",
+    call="physicsobject::CutDz({df}, {input}, {output}, {max_muon_dz})",
+    input=[nanoAOD.Muon_dz],
+    output=[],
+    scopes=["global"],
+)
 MuonIDFilter = Producer(
     name="MuonIDFilter",
     call='physicsobject::muon::FilterID({df}, {output}, "{muon_id}")',
@@ -40,5 +54,5 @@ GoodMuons = ProducerGroup(
     input=[],
     output=[q.good_muons_mask],
     scopes=["global"],
-    subproducers=[MuonPtCut, MuonEtaCut, MuonIDFilter, MuonIsoFilter],
+    subproducers=[MuonPtCut, MuonEtaCut, MuonDxyCut, MuonDzCut, MuonIDFilter, MuonIsoFilter],
 )
