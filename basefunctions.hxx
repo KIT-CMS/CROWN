@@ -14,6 +14,26 @@ enum Channel { MT = 0, ET = 1, TT = 2, EM = 3 };
 
 namespace basefunctions {
 
+/// Function to apply a selection on an integer quantity.
+/// Returns true if the value is smaller than the given cut value
+///
+/// \param quantity The quantity the selection refers to
+/// \param selection The values of the quantity that are accepted
+/// \param filtername The name of the filter, used in the Dataframe report
+///
+/// \returns a filtered dataframe
+auto FilterIntSelection(auto df, const std::string &quantity,
+                        const std::vector<int> &selection,
+                        const std::string &filtername) {
+    using namespace ROOT::VecOps;
+    return df.Filter(
+        [selection](const UInt_t probe) {
+            return std::find(selection.begin(), selection.end(), probe) !=
+                   selection.end();
+        },
+        {quantity}, filtername);
+}
+
 /// Function to apply a maximal filter requirement to a quantity.
 /// Returns true if the value is smaller than the given cut value
 ///
