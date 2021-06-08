@@ -21,7 +21,11 @@ def fill_template(t, config):
         for call in producer.writecalls(config, "global"):
             commandlist += (
                 "    auto df%i = " % (df_count + 1)
-                + call.format_map(SafeDict({"df": "df%i" % df_count}))
+                + call.format_map(
+                    SafeDict(
+                        {"df": "df%i" % df_count, "vec_open": "{", "vec_close": "}"}
+                    )
+                )
                 + ";\n"
             )
             df_count += 1
@@ -40,9 +44,13 @@ def fill_template(t, config):
                     "    auto %s_df%i = " % (scope, df_scope_count + 1)
                     + call.format_map(
                         SafeDict(
-                            {"df": "global_df_final"}
+                            {"df": "global_df_final", "vec_open": "{", "vec_close": "}"}
                             if df_scope_count == 0
-                            else {"df": "%s_df%i" % (scope, df_scope_count)}
+                            else {
+                                "df": "%s_df%i" % (scope, df_scope_count),
+                                "vec_open": "{",
+                                "vec_close": "}",
+                            }
                         )
                     )
                     + ";\n"
