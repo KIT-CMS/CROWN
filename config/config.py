@@ -34,7 +34,7 @@ def build_config():
         "VetoElectron_id": "Electron_mvaFall17V2noIso_WP90",
         "met_filters": ["Flag_goodVertices", "Flag_METFilters"],
         "tau_id": [
-            #"Tau_idDeepTau2017v2p1VSjet",
+            # "Tau_idDeepTau2017v2p1VSjet",
             "Tau_idDeepTau2017v2p1VSe",
             "Tau_idDeepTau2017v2p1VSmu",
         ],
@@ -56,12 +56,15 @@ def build_config():
         "muon_sf_id_args": "m_pt,m_eta",
         "muon_sf_iso_name": "m_iso_binned_kit_ratio",
         "muon_sf_iso_args": "m_pt,m_eta,m_iso",
+        "RunLumiEventFilter_Quantities": ["event"],
+        "RunLumiEventFilter_Selections": ["271361"],
     }
 
     config = {"": base_config}
 
     config["producers"] = {
         "global": [
+            RunLumiEventFilter,
             Lumi,
             MetFilter,
             TauEnergyCorrection,
