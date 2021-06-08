@@ -58,7 +58,7 @@ auto CutEta(auto df, const std::string quantity, const std::string maskname,
 auto CutDz(auto df, const std::string quantity, const std::string maskname,
            const float Threshold) {
     auto df1 =
-        df.Define(maskname, basefunctions::FilterMax(Threshold), {quantity});
+        df.Define(maskname, basefunctions::FilterAbsMax(Threshold), {quantity});
     return df1;
 }
 /// Function to select objects below an Dxy threshold, using
@@ -73,7 +73,7 @@ auto CutDz(auto df, const std::string quantity, const std::string maskname,
 auto CutDxy(auto df, const std::string quantity, const std::string maskname,
             const float Threshold) {
     auto df1 =
-        df.Define(maskname, basefunctions::FilterMax(Threshold), {quantity});
+        df.Define(maskname, basefunctions::FilterAbsMax(Threshold), {quantity});
     return df1;
 }
 /// Function to combine a list of masks into a single mask. This is done be
