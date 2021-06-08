@@ -26,7 +26,6 @@ template <typename T>
 auto FilterIntSelection(auto df, const std::string &quantity,
                         const std::vector<T> &selection,
                         const std::string &filtername) {
-    using namespace ROOT::VecOps;
     return df.Filter(
         [selection](const T probe) {
             return std::find(selection.begin(), selection.end(), probe) !=
