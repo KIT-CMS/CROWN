@@ -58,7 +58,7 @@ TauDzCut = Producer(
 )
 TauDMCut = Producer(
     name="TauDMCut",
-    call='physicsobject::tau::FilterDecayModes({df}, {output}, {input}, {vec_open}{tau_dms}{vec_close})',
+    call="physicsobject::tau::FilterDecayModes({df}, {output}, {input}, {vec_open}{tau_dms}{vec_close})",
     input=[nanoAOD.Tau_decayMode],
     output=[],
     scopes=["global"],
