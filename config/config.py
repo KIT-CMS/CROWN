@@ -66,7 +66,7 @@ def build_config():
 
     config["producers"] = {
         "global": [
-            #RunLumiEventFilter,
+            # RunLumiEventFilter,
             Lumi,
             MetFilter,
             TauEnergyCorrection,
