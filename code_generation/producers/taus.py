@@ -56,6 +56,13 @@ TauDzCut = Producer(
     output=[],
     scopes=["global"],
 )
+TauDMCut = Producer(
+    name="TauDMCut",
+    call='physicsobject::tau::FilterDecayModes({df}, {output}, {input}, {vec_open}{tau_dms}{vec_close})',
+    input=[nanoAOD.Tau_decayMode],
+    output=[],
+    scopes=["global"],
+)
 TauIDFilters = VectorProducer(
     name="TauIDFilters",
     call='physicsobject::tau::FilterTauID({df}, {output}, "{tau_id}", {tau_id_idx})',
@@ -70,5 +77,5 @@ GoodTaus = ProducerGroup(
     input=[],
     output=[q.good_taus_mask],
     scopes=["global"],
-    subproducers=[TauPtCut, TauEtaCut, TauDzCut, TauIDFilters],
+    subproducers=[TauPtCut, TauEtaCut, TauDzCut, TauDMCut, TauIDFilters],
 )
