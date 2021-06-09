@@ -64,9 +64,7 @@ auto filterGoodPairs(auto df, const std::string &pairname,
     using namespace ROOT::VecOps;
     return df.Filter(
         [](const ROOT::RVec<int> &pair) {
-            const auto goodParticles =
-                Filter(pair, [](int i) { return -1 != i; });
-            return Any(goodParticles);
+            return Min(pair)>=0;
         },
         {pairname}, filtername);
 }
@@ -223,11 +221,11 @@ auto PairSelectionAlgo() {
             ->debug("Selected original pair indices: mu = {} , tau = {}",
                     selected_pair[0], selected_pair[1]);
         Logger::get("PairSelection")
-            ->debug("mu(Pt) = {} , tau(Pt) = {} ",
+            ->debug("MuonPt = {} , TauPt = {} ",
                     muonpt[static_cast<UInt_t>(selected_pair[0])],
                     taupt[static_cast<UInt_t>(selected_pair[1])]);
         Logger::get("PairSelection")
-            ->debug("mu(Iso) = {} , tau(Pt) = {} ",
+            ->debug("MuonIso = {} , TauIso = {} ",
                     muoniso[static_cast<UInt_t>(selected_pair[0])],
                     tauiso[static_cast<UInt_t>(selected_pair[1])]);
 

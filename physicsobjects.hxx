@@ -217,12 +217,13 @@ namespace tau {
 /// Function to filter taus based on the tau decay mode
 ///
 /// \param[in] df the input dataframe
+/// \param[in] tau_dms name of the column with tau decay modes
 /// \param[out] maskname the name of the new mask to be added as column to the
 /// dataframe \param[in] SelectedDecayModes a `std::vector<int>` containing the
 /// decay modes, that should pass the filter
 ///
 /// \return a dataframe containing the new mask
-auto FilterDecayModes(auto df, const std::string maskname,
+auto FilterDecayModes(auto df, const std::string maskname, const std::string tau_dms,
                       const std::vector<int> SelectedDecayModes) {
     auto df1 = df.Define(
         maskname,
@@ -235,7 +236,7 @@ auto FilterDecayModes(auto df, const std::string maskname,
             }
             return mask;
         },
-        {"Tau_decayMode"});
+        {tau_dms});
     return df1;
 }
 /// Function to filter taus based on the tau ID
