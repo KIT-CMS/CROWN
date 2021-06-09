@@ -62,11 +62,8 @@ auto buildgenpair(auto df, const std::string &recopair,
 auto filterGoodPairs(auto df, const std::string &pairname,
                      const std::string &filtername) {
     using namespace ROOT::VecOps;
-    return df.Filter(
-        [](const ROOT::RVec<int> &pair) {
-            return Min(pair)>=0;
-        },
-        {pairname}, filtername);
+    return df.Filter([](const ROOT::RVec<int> &pair) { return Min(pair) >= 0; },
+                     {pairname}, filtername);
 }
 
 /// Function used to sort two particles based on the isolation and the pt of the

@@ -223,7 +223,8 @@ namespace tau {
 /// decay modes, that should pass the filter
 ///
 /// \return a dataframe containing the new mask
-auto FilterDecayModes(auto df, const std::string maskname, const std::string tau_dms,
+auto FilterDecayModes(auto df, const std::string maskname,
+                      const std::string tau_dms,
                       const std::vector<int> SelectedDecayModes) {
     auto df1 = df.Define(
         maskname,
