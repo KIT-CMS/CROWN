@@ -73,7 +73,16 @@ class Quantity:
         self.children[scope].append(child)
 
     def get_shifts(self, scope):
-        if scope in self.shifts.keys():
+        if "global" in self.shifts.keys():
+            if scope!="global" and scope in self.shifts.keys():
+                log.error(
+                    "Quantity {} has shifts in global and {}. Something must be broken!".format(
+                        self.name, scope
+                    )
+                )
+                raise Exception
+            return list(self.shifts["global"])
+        elif scope in self.shifts.keys():
             return list(self.shifts[scope])
         else:
             return []
