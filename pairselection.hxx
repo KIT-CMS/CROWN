@@ -63,7 +63,8 @@ auto filterGoodPairs(auto df, const std::string &flagname,
                      const std::string &pairname) {
     using namespace ROOT::VecOps;
     return df.Define(
-        flagname, [](const ROOT::RVec<int> &pair) { return bool(Min(pair) >= 0); },
+        flagname,
+        [](const ROOT::RVec<int> &pair) { return bool(Min(pair) >= 0); },
         {pairname});
 }
 

@@ -74,7 +74,7 @@ class Quantity:
 
     def get_shifts(self, scope):
         if "global" in self.shifts.keys():
-            if scope!="global" and scope in self.shifts.keys():
+            if scope != "global" and scope in self.shifts.keys():
                 log.error(
                     "Quantity {} has shifts in global and {}. Something must be broken!".format(
                         self.name, scope
