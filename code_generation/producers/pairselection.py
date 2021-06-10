@@ -24,7 +24,7 @@ MTPairSelection = Producer(
 
 GoodMTPairFlag = Producer(
     name="GoodMTPairFlag",
-    call='pairselection::filterGoodPairs({df}, {output}, {input})',
+    call="pairselection::filterGoodPairs({df}, {output}, {input})",
     input=[q.ditaupair],
     output=[],
     scopes=["mt"],
