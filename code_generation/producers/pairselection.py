@@ -1,6 +1,6 @@
 import code_generation.quantities.output as q
 import code_generation.quantities.nanoAOD as nanoAOD
-from code_generation.producer import Producer
+from code_generation.producer import Producer, Filter
 
 ####################
 # Set of producers used for contruction of MT good pairs and the coressponding lorentz vectors
@@ -22,12 +22,20 @@ MTPairSelection = Producer(
     scopes=["mt"],
 )
 
-GoodMTPairFilter = Producer(
-    name="GoodMTPairFilter",
-    call='pairselection::filterGoodPairs({df}, {input}, "GoodMuTauPairs")',
+GoodMTPairFlag = Producer(
+    name="GoodMTPairFlag",
+    call='pairselection::filterGoodPairs({df}, {output}, {input})',
     input=[q.ditaupair],
-    output=None,
+    output=[],
     scopes=["mt"],
+)
+
+GoodMTPairFilter = Filter(
+    name="GoodMTPairFilter",
+    call='basefunctions::FilterPassAny({df}, "GoodMuTauPairs", {input})',
+    input=[],
+    scopes=["mt"],
+    subproducers=[GoodMTPairFlag],
 )
 
 LVMu1 = Producer(

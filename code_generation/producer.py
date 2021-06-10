@@ -167,7 +167,7 @@ class VectorProducer(Producer):
         return calls
 
 
-class Filter(Producer):
+class BaseFilter(Producer):
     def __init__(self, name, call, input, scopes):
         super().__init__(name, call, input, None, scopes)
 
@@ -176,16 +176,15 @@ class Filter(Producer):
         raise Exception
 
     def writecalls(self, config, scope):
-        config[shift]["output"] = ""
-        config[shift]["output_vec"] = ""
         inputs = []
         for quantity in self.input:
             inputs.extend(quantity.get_leafs_of_scope(scope))
-        config[shift]["input"] = '"' + '", "'.join(inputs) + '"'
-        config[shift]["input_vec"] = '{"' + '","'.join(inputs) + '"}'
-        config[shift]["df"] = "{df}"
+        formatdict = {}
+        formatdict["input"] = '"' + '", "'.join(inputs) + '"'
+        formatdict["input_vec"] = '{"' + '","'.join(inputs) + '"}'
+        formatdict["df"] = "{df}"
         return [
-            self.call.format(**config[shift])
+            self.call.format(**formatdict)
         ]  # use format (not format_map here) such that missing config entries cause an error
 
 
@@ -220,9 +219,7 @@ class ProducerGroup:
                 for output_quantity in subproducer.output:
                     self.input.append(output_quantity)
             # treat own collection function as subproducer
-            self.producers.append(
-                Producer(self.name, self.call, self.input, self.output, self.scopes)
-            )
+            self.setup_own_producer()
         log.debug("-----------------------------------------")
         log.debug("| ProducerGroup: {}".format(self.name))
         log.debug("| Call: {}".format(self.call))
@@ -239,6 +236,11 @@ class ProducerGroup:
         )
         log.debug("| scopes: {}".format(self.scopes))
         log.debug("-----------------------------------------")
+
+    def setup_own_producer(self):
+        self.producers.append(
+            Producer(self.name, self.call, self.input, self.output, self.scopes)
+        )
 
     # for a producer group, step iteratively
     # through the subproducers and reserve the output there
@@ -271,3 +273,13 @@ class ProducerGroup:
             # retrieve calls of subproducers
             calls.extend(producer.writecalls(config, scope))
         return calls
+
+
+class Filter(ProducerGroup):
+    def __init__(self, name, call, input, scopes, subproducers):
+        self.__class__.PG_count = ProducerGroup.PG_count
+        super().__init__(name, call, input, None, scopes, subproducers)
+        ProducerGroup.PG_count = self.__class__.PG_count
+
+    def setup_own_producer(self):
+        self.producers.append(BaseFilter(self.name, self.call, self.input, self.scopes))

@@ -48,22 +48,23 @@ auto buildgenpair(auto df, const std::string &recopair,
     return df.Define(genpair, getGenPair,
                      {recopair, genindex_particle1, genindex_particle2});
 }
-/// This function filters events, where no suitable particle pair is found. A
+/// This function flags events, where a suitable particle pair is found. A
 /// pair is considered suitable, if a PairSelectionAlgo (like
 /// pairselection::mutau::PairSelectionAlgo) returns indices, that are not -1.
 /// Events, where any of the particle indices is -1 are vetoed by this filter.
 ///
 /// \param df The input dataframe
+/// \param flagname The name of the generated flag column
 /// \param pairname The name of the column, containing the particle indices
-/// \param filtername The name of the filter, used in the Dataframe report
 /// index of the particle in the particle quantity vectors.
 ///
-/// \returns a filtered dataframe
-auto filterGoodPairs(auto df, const std::string &pairname,
-                     const std::string &filtername) {
+/// \returns a dataframe with the new flag
+auto filterGoodPairs(auto df, const std::string &flagname,
+                     const std::string &pairname) {
     using namespace ROOT::VecOps;
-    return df.Filter([](const ROOT::RVec<int> &pair) { return Min(pair) >= 0; },
-                     {pairname}, filtername);
+    return df.Define(
+        flagname, [](const ROOT::RVec<int> &pair) { return bool(Min(pair) >= 0); },
+        {pairname});
 }
 
 /// Function used to sort two particles based on the isolation and the pt of the
