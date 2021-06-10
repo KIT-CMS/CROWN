@@ -14,6 +14,29 @@ enum Channel { MT = 0, ET = 1, TT = 2, EM = 3 };
 
 namespace basefunctions {
 
+/// This function filters events, where neither of the input flags is true.
+/// This is used to filter events which do not pass an underlying requirement in
+/// any systematic variation.
+///
+/// \param df The input dataframe
+/// \param filtername The name of the filter, used in the Dataframe report
+/// \param flags Parameter pack of column names that contain the considered
+/// flags
+///
+/// \returns a filtered dataframe
+template <class... Flags>
+auto FilterPassAny(auto df, const std::string filtername,
+                   const Flags &... flags) {
+    std::vector<std::string> FlagList;
+    utility::appendParameterPackToVector(FlagList, flags...);
+    const auto nFlags = sizeof...(Flags);
+    using namespace ROOT::VecOps;
+    return df.Filter(
+        ROOT::RDF::PassAsVec<nFlags, bool>(
+            [](const ROOT::RVec<bool> &flags) { return Any(flags); }),
+        FlagList, filtername);
+}
+
 /// Function to apply a selection on an integer quantity.
 /// Returns true if the value is smaller than the given cut value
 ///
@@ -26,8 +49,6 @@ template <typename T>
 auto FilterIntSelection(auto df, const std::string &quantity,
                         const std::vector<T> &selection,
                         const std::string &filtername) {
-    for (auto entry : selection)
-        std::cout << entry << std::endl;
     return df.Filter(
         [selection](const T probe) {
             return std::find(selection.begin(), selection.end(), probe) !=
