@@ -107,6 +107,31 @@ auto CombineMasks(auto df, const std::string &maskname,
         MaskList);
 }
 
+/// Function to take a mask and create a new one where a tau candidate is set to
+/// false
+///
+/// \param[in] df the input dataframe
+/// \param[out] outputmaskname the name of the new mask to be added as column to
+/// the dataframe \param[in] inputmaskname the name of the input mask \param[in]
+/// ditaupair name of the column of the ditaupair \param[in] index index of the
+/// tau candidate to be ignored by mask
+///
+/// \return a dataframe containing the new mask
+template <class... Masks>
+auto VetoCandInMask(auto df, const std::string &outputmaskname,
+                    const std::string &inputmaskname,
+                    const std::string &ditaupair, const int index) {
+    return df.Define(
+        outputmaskname,
+        [index](const ROOT::RVec<int> &mask, const ROOT::RVec<int> &pair) {
+            auto newmask = mask;
+            if (pair.at(index) >= 0)
+                newmask.at(pair.at(index)) = 0;
+            return newmask;
+        },
+        {inputmaskname, ditaupair});
+}
+
 /// Function to filter events based on a mask. If the mask contains at least
 /// one object, the event is filtered
 ///
