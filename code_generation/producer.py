@@ -29,7 +29,7 @@ class Producer:
         if not isinstance(self.input, dict):
             inputdict = {}
             for scope in self.scopes:
-                inputdict[scope] = self.input
+                inputdict[scope] = self.input.copy() if isinstance(self.input, list) else self.input
             self.input = inputdict
         # keep track of variable dependencies
         if self.output != None:
@@ -224,7 +224,7 @@ class ProducerGroup:
         if not isinstance(self.input, dict):
             inputdict = {}
             for scope in self.scopes:
-                inputdict[scope] = self.input
+                inputdict[scope] = self.input.copy() if isinstance(self.input, list) else self.input
             self.input = inputdict
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
         if self.call != None:
