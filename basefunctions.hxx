@@ -21,12 +21,12 @@ namespace basefunctions {
 /// \param df The input dataframe
 /// \param filtername The name of the filter, used in the Dataframe report
 /// \param flags Parameter pack of column names that contain the considered
-/// flags
+/// flags of type bool
 ///
 /// \returns a filtered dataframe
 template <class... Flags>
-auto FilterPassAny(auto df, const std::string filtername,
-                   const Flags &... flags) {
+auto FilterFlagsAny(auto df, const std::string filtername,
+                    const Flags &... flags) {
     std::vector<std::string> FlagList;
     utility::appendParameterPackToVector(FlagList, flags...);
     const auto nFlags = sizeof...(Flags);

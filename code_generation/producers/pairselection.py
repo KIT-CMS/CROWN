@@ -24,7 +24,7 @@ MTPairSelection = Producer(
 
 GoodMTPairFlag = Producer(
     name="GoodMTPairFlag",
-    call="pairselection::filterGoodPairs({df}, {output}, {input})",
+    call="pairselection::flagGoodPairs({df}, {output}, {input})",
     input=[q.ditaupair],
     output=[],
     scopes=["mt"],
@@ -32,7 +32,7 @@ GoodMTPairFlag = Producer(
 
 GoodMTPairFilter = Filter(
     name="GoodMTPairFilter",
-    call='basefunctions::FilterPassAny({df}, "GoodMuTauPairs", {input})',
+    call='basefunctions::FilterFlagsAny({df}, "GoodMuTauPairs", {input})',
     input=[],
     scopes=["mt"],
     subproducers=[GoodMTPairFlag],
