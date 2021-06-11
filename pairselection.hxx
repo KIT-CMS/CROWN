@@ -59,8 +59,8 @@ auto buildgenpair(auto df, const std::string &recopair,
 /// index of the particle in the particle quantity vectors.
 ///
 /// \returns a dataframe with the new flag
-auto filterGoodPairs(auto df, const std::string &flagname,
-                     const std::string &pairname) {
+auto flagGoodPairs(auto df, const std::string &flagname,
+                   const std::string &pairname) {
     using namespace ROOT::VecOps;
     return df.Define(
         flagname,

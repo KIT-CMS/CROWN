@@ -1,4 +1,3 @@
-from code_generation.filters.filters import *
 from code_generation.producers.jets import *
 from code_generation.producers.taus import *
 from code_generation.producers.muons import *

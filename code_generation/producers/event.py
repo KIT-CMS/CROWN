@@ -19,6 +19,15 @@ RunLumiEventFilter = VectorProducer(
     ],
 )
 
+MetFilter = VectorProducer(
+    name="MetFilter",
+    call='metfilter::ApplyMetFilter({df}, "{met_filters}", "{met_filters}")',
+    input=[],
+    output=None,
+    scopes=["global"],
+    vec_configs=["met_filters"],
+)
+
 Lumi = Producer(
     name="Lumi",
     call="quantities::rename<UInt_t>({df}, {input}, {output})",
