@@ -30,6 +30,8 @@ Muon_indexToGen = NanoAODQuantity("Muon_genPartIdx")
 
 Electron_pt = NanoAODQuantity("Electron_pt")
 Electron_eta = NanoAODQuantity("Electron_eta")
+Electron_dxy = NanoAODQuantity("Electron_dxy")
+Electron_dz = NanoAODQuantity("Electron_dz")
 Electron_phi = NanoAODQuantity("Electron_phi")
 Electron_mass = NanoAODQuantity("Electron_mass")
 Electron_iso = NanoAODQuantity("Electron_pfRelIso03_all")

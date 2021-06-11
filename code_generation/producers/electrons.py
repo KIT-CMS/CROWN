@@ -3,55 +3,87 @@ import code_generation.quantities.nanoAOD as nanoAOD
 from code_generation.producer import Producer, ProducerGroup
 
 ####################
-# Set of producers used for selection of veto electrons
+# Set of producers used for loosest selection of electrons
 ####################
 
-VetoElectronPtCut = Producer(
+ElectronPtCut = Producer(
     name="ElectronPtCut",
-    call="physicsobject::CutPt({df}, {input}, {output}, {min_VetoElectron_pt})",
+    call="physicsobject::CutPt({df}, {input}, {output}, {min_ele_pt})",
     input=[nanoAOD.Electron_pt],
     output=[],
     scopes=["global"],
 )
-VetoElectronEtaCut = Producer(
+ElectronEtaCut = Producer(
     name="ElectronEtaCut",
-    call="physicsobject::CutEta({df}, {input}, {output}, {max_VetoElectron_eta})",
+    call="physicsobject::CutEta({df}, {input}, {output}, {max_ele_eta})",
     input=[nanoAOD.Electron_eta],
     output=[],
     scopes=["global"],
 )
-VetoElectronIDCut = Producer(
+ElectronDxyCut = Producer(
+    name="ElectronDzCut",
+    call="physicsobject::CutDz({df}, {input}, {output}, {max_ele_dxy})",
+    input=[nanoAOD.Electron_dxy],
+    output=[],
+    scopes=["global"],
+)
+ElectronDzCut = Producer(
+    name="ElectronDzCut",
+    call="physicsobject::CutDz({df}, {input}, {output}, {max_ele_dz})",
+    input=[nanoAOD.Electron_dz],
+    output=[],
+    scopes=["global"],
+)
+ElectronIDCut = Producer(
     name="ElectronIDCut",
-    call='physicsobject::electron::CutID({df}, {output}, "{VetoElectron_id}")',
+    call='physicsobject::electron::CutID({df}, {output}, "{ele_id}")',
     input=[],
     output=[],
     scopes=["global"],
 )
-VetoElectronIsoCut = Producer(
+ElectronIsoCut = Producer(
     name="ElectronIsoCut",
-    call="physicsobject::electron::CutIsolation({df}, {output}, {input}, {max_VetoElectron_iso})",
+    call="physicsobject::electron::CutIsolation({df}, {output}, {input}, {max_ele_iso})",
     input=[nanoAOD.Electron_iso],
     output=[],
     scopes=["global"],
 )
-VetoElectrons = ProducerGroup(
-    name="VetoElectrons",
+BaseElectrons = ProducerGroup(
+    name="BaseElectrons",
     call="physicsobject::CombineMasks({df}, {output}, {input})",
     input=[],
-    output=[],
+    output=[q.base_electrons_mask],
     scopes=["global"],
     subproducers=[
-        VetoElectronPtCut,
-        VetoElectronEtaCut,
-        VetoElectronIDCut,
-        VetoElectronIsoCut,
+        ElectronPtCut,
+        ElectronEtaCut,
+        ElectronDxyCut,
+        ElectronDzCut,
+        ElectronIDCut,
+        ElectronIsoCut,
     ],
 )
-GoodElectronsVeto = ProducerGroup(
-    name="GoodElectronsVeto",
+
+####################
+# Set of producers used for more specific selection of electrons in channels
+####################
+
+VetoElectrons = Producer(
+    name="VetoElectrons",
+    call="physicsobject::VetoCandInMask({df}, {output}, {input}, {ele_idx})",
+    input=[q.base_electrons_mask, q.ditaupair],
+    output=[q.veto_electrons_mask],
+    scopes=["em", "et"],
+)
+ExtraElectronsVeto = Producer(
+    name="ExtraElectronsVeto",
     call="physicsobject::LeptonVetoFlag({df}, {output}, {input})",
-    input=[],
+    input={
+        "em": [q.veto_electrons_mask],
+        "et": [q.veto_electrons_mask],
+        "mt": [q.base_electrons_mask],
+        "tt": [q.base_electrons_mask],
+    },
     output=[q.electron_veto_flag],
-    scopes=["global"],
-    subproducers=[VetoElectrons],
+    scopes=["em", "et", "mt", "tt"],
 )
