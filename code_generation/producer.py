@@ -15,10 +15,14 @@ class Producer:
 
         # sanity checks
         if not isinstance(input, list) and not isinstance(input, dict):
-            print("Exception (%s): Argument 'input' must be a list!" % name)
+            log.error(
+                "Exception (%s): Argument 'input' must be a list or a dict!" % name
+            )
             raise Exception
         if not isinstance(output, list) and output != None:
-            print("Exception (%s): Argument 'output' must be a list or None!" % name)
+            log.error(
+                "Exception (%s): Argument 'output' must be a list or None!" % name
+            )
             raise Exception
         self.name = name
         self.call = call
@@ -164,16 +168,17 @@ class VectorProducer(Producer):
             n_versions = len(config[shift][scope][self.vec_configs[0]])
             for key in self.vec_configs:
                 if n_versions != len(config[shift][scope][key]):
-                    print(
+                    log.error(
                         "Following lists in config must have same length: %s, %s"
                         % (self.vec_configs[0], key)
                     )
                     raise Exception
             if self.output != None and len(self.output) != n_versions:
-                print(
+                log.error(
                     "VectorProducer expects either no output or same amount as entries in config lists (e.g. %s)!"
                     % self.vec_configs[0]
                 )
+                raise Exception
             for i in range(n_versions):
                 helper_dict = {}
                 for key in self.vec_configs:
