@@ -20,16 +20,16 @@ VetoElectronEtaCut = Producer(
     output=[],
     scopes=["global"],
 )
-VetoElectronIDFilter = Producer(
-    name="ElectronIDFilter",
-    call='physicsobject::electron::FilterID({df}, {output}, "{VetoElectron_id}")',
+VetoElectronIDCut = Producer(
+    name="ElectronIDCut",
+    call='physicsobject::electron::CutID({df}, {output}, "{VetoElectron_id}")',
     input=[],
     output=[],
     scopes=["global"],
 )
-VetoElectronIsoFilter = Producer(
-    name="ElectronIsoFilter",
-    call="physicsobject::electron::FilterIsolation({df}, {output}, {input}, {max_VetoElectron_iso})",
+VetoElectronIsoCut = Producer(
+    name="ElectronIsoCut",
+    call="physicsobject::electron::CutIsolation({df}, {output}, {input}, {max_VetoElectron_iso})",
     input=[nanoAOD.Electron_iso],
     output=[],
     scopes=["global"],
@@ -43,8 +43,8 @@ VetoElectrons = ProducerGroup(
     subproducers=[
         VetoElectronPtCut,
         VetoElectronEtaCut,
-        VetoElectronIDFilter,
-        VetoElectronIsoFilter,
+        VetoElectronIDCut,
+        VetoElectronIsoCut,
     ],
 )
 GoodElectronsVeto = ProducerGroup(
