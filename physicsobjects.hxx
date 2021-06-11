@@ -205,7 +205,7 @@ auto CutID(auto df, const std::string maskname, const std::string nameID) {
 ///
 /// \return a dataframe containing the new mask
 auto CutIsolation(auto df, const std::string maskname,
-                     const std::string isolationName, const float Threshold) {
+                  const std::string isolationName, const float Threshold) {
     auto df1 = df.Define(maskname, basefunctions::FilterMax(Threshold),
                          {isolationName});
     return df1;
@@ -224,8 +224,8 @@ namespace tau {
 ///
 /// \return a dataframe containing the new mask
 auto CutDecayModes(auto df, const std::string maskname,
-                      const std::string tau_dms,
-                      const std::vector<int> SelectedDecayModes) {
+                   const std::string tau_dms,
+                   const std::vector<int> SelectedDecayModes) {
     auto df1 = df.Define(
         maskname,
         [SelectedDecayModes](const ROOT::RVec<Int_t> &decaymodes) {
@@ -249,7 +249,7 @@ auto CutDecayModes(auto df, const std::string maskname,
 ///
 /// \return a dataframe containing the new mask
 auto CutTauID(auto df, const std::string maskname, const std::string nameID,
-                 const int idxID) {
+              const int idxID) {
     auto df1 = df.Define(maskname, basefunctions::FilterID(idxID), {nameID});
     return df1;
 }
@@ -319,7 +319,7 @@ auto CutID(auto df, const std::string maskname, const std::string nameID) {
 ///
 /// \return a dataframe containing the new mask
 auto CutIsolation(auto df, const std::string maskname,
-                     const std::string isolationName, const float Threshold) {
+                  const std::string isolationName, const float Threshold) {
     auto df1 = df.Define(maskname, basefunctions::FilterMax(Threshold),
                          {isolationName});
     return df1;

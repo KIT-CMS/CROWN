@@ -102,7 +102,7 @@ namespace jet {
 ///
 /// \return a dataframe containing the new mask
 auto CutID(auto df, const std::string maskname, const std::string nameID,
-              const int idxID) {
+           const int idxID) {
     auto df1 = df.Define(maskname, basefunctions::FilterJetID(idxID), {nameID});
     return df1;
 }
