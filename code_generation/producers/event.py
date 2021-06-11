@@ -33,5 +33,5 @@ Lumi = Producer(
     call="quantities::rename<UInt_t>({df}, {input}, {output})",
     input=[nanoAOD.luminosityBlock],
     output=[q.lumi],
-    scopes=["mt", "et", "tt", "em"],
+    scopes=["global"],
 )

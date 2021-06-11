@@ -14,7 +14,7 @@ class Producer:
         log.debug("Setting up a new producer {}".format(name))
 
         # sanity checks
-        if not isinstance(input, list):
+        if not isinstance(input, list) and not isinstance(input, dict):
             print("Exception (%s): Argument 'input' must be a list!" % name)
             raise Exception
         if not isinstance(output, list) and output != None:
@@ -25,19 +25,30 @@ class Producer:
         self.input = input
         self.output = output
         self.scopes = scopes
+        # if input not given as dict and therfore not scope specific transform into dict with all scopes
+        if not isinstance(self.input, dict):
+            inputdict = {}
+            for scope in self.scopes:
+                inputdict[scope] = self.input
+            self.input = inputdict
         # keep track of variable dependencies
         if self.output != None:
-            for input_quantity in self.input:
-                for scope in self.scopes:
+            for scope in self.scopes:
+                for input_quantity in self.input[scope]:
                     for output_quantity in self.output:
                         input_quantity.adopt(output_quantity, scope)
         log.debug("-----------------------------------------")
         log.debug("| Producer: {}".format(self.name))
         log.debug("| Call: {}".format(self.call))
-        if self.input == None:
-            log.debug("| Inputs: None")
-        else:
-            log.debug("| Inputs: {}".format([input.name for input in self.input]))
+        for scope in self.scopes:
+            if self.input[scope] == None:
+                log.debug("| Inputs ({}): None".format(scope))
+            else:
+                log.debug(
+                    "| Inputs ({}): {}".format(
+                        scope, [input.name for input in self.input[scope]]
+                    )
+                )
         if self.output == None:
             log.debug("| Output: None")
         else:
@@ -88,31 +99,42 @@ class Producer:
 
     def writecall(self, config, scope, shift=""):
         if self.output == None:
-            config[shift]["output"] = ""
-            config[shift]["output_vec"] = ""
+            config[shift][scope]["output"] = ""
+            config[shift][scope]["output_vec"] = ""
         else:
-            config[shift]["output"] = (
+            config[shift][scope]["output"] = (
                 '"' + '","'.join([x.get_leaf(shift, scope) for x in self.output]) + '"'
             )
-            config[shift]["output_vec"] = (
+            config[shift][scope]["output_vec"] = (
                 '{"'
                 + '","'.join([x.get_leaf(shift, scope) for x in self.output])
                 + '"}'
             )
-        config[shift]["input"] = (
-            '"' + '", "'.join([x.get_leaf(shift, scope) for x in self.input]) + '"'
+        config[shift][scope]["input"] = (
+            '"'
+            + '", "'.join([x.get_leaf(shift, scope) for x in self.input[scope]])
+            + '"'
         )
-        config[shift]["input_vec"] = (
-            '{"' + '","'.join([x.get_leaf(shift, scope) for x in self.input]) + '"}'
+        config[shift][scope]["input_vec"] = (
+            '{"'
+            + '","'.join([x.get_leaf(shift, scope) for x in self.input[scope]])
+            + '"}'
         )
-        config[shift]["df"] = "{df}"
-        config[shift]["vec_open"] = "{vec_open}"
-        config[shift]["vec_close"] = "{vec_close}"
+        config[shift][scope]["df"] = "{df}"
+        config[shift][scope]["vec_open"] = "{vec_open}"
+        config[shift][scope]["vec_close"] = "{vec_close}"
         return self.call.format(
-            **config[shift]
+            **config[shift][scope]
         )  # use format (not format_map here) such that missing config entries cause an error
 
     def writecalls(self, config, scope):
+        if scope not in self.scopes:
+            log.error(
+                "Exception (%s): Tried to use producer in scope {}, which the producer is not forseen for!".format(
+                    self.name, scope
+                )
+            )
+            raise Exception
         calls = [self.writecall(config, scope)]
         if self.output != None:
             list_of_shifts = self.output[0].get_shifts(
@@ -137,9 +159,9 @@ class VectorProducer(Producer):
             shifts.extend(self.output[0].get_shifts(scope))
         for shift in shifts:
             # check that all config lists (and output if applicable) have same length
-            n_versions = len(config[shift][self.vec_configs[0]])
+            n_versions = len(config[shift][scope][self.vec_configs[0]])
             for key in self.vec_configs:
-                if n_versions != len(config[shift][key]):
+                if n_versions != len(config[shift][scope][key]):
                     print(
                         "Following lists in config must have same length: %s, %s"
                         % (self.vec_configs[0], key)
@@ -153,7 +175,7 @@ class VectorProducer(Producer):
             for i in range(n_versions):
                 helper_dict = {}
                 for key in self.vec_configs:
-                    helper_dict[key] = config[shift][key][i]
+                    helper_dict[key] = config[shift][scope][key][i]
                 if self.output != None:
                     helper_dict["output"] = (
                         '"' + self.output[i].get_leaf(shift, scope) + '"'
@@ -177,7 +199,7 @@ class BaseFilter(Producer):
 
     def writecalls(self, config, scope):
         inputs = []
-        for quantity in self.input:
+        for quantity in self.input[scope]:
             inputs.extend(quantity.get_leafs_of_scope(scope))
         formatdict = {}
         formatdict["input"] = '"' + '", "'.join(inputs) + '"'
@@ -198,6 +220,12 @@ class ProducerGroup:
         self.output = output
         self.producers = subproducers
         self.scopes = scopes
+        # if input not given as dict and therfore not scope specific transform into dict with all scopes
+        if not isinstance(self.input, dict):
+            inputdict = {}
+            for scope in self.scopes:
+                inputdict[scope] = self.input
+            self.input = inputdict
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
         if self.call != None:
             for subproducer in self.producers:
@@ -213,20 +241,26 @@ class ProducerGroup:
                     self.__class__.PG_count += 1
                     if isinstance(subproducer, ProducerGroup):
                         subproducer.producers[-1].output = subproducer.output
-                    for quantity in subproducer.input:
-                        for scope in subproducer.scopes:
+                    for scope in subproducer.scopes:
+                        for quantity in subproducer.input[scope]:
                             quantity.adopt(subproducer.output[0], scope)
-                for output_quantity in subproducer.output:
-                    self.input.append(output_quantity)
+                for scope in self.scopes:
+                    for output_quantity in subproducer.output:
+                        self.input[scope].append(output_quantity)
             # treat own collection function as subproducer
             self.setup_own_producer()
         log.debug("-----------------------------------------")
         log.debug("| ProducerGroup: {}".format(self.name))
         log.debug("| Call: {}".format(self.call))
-        if self.input == None:
-            log.debug("| Inputs: None")
-        else:
-            log.debug("| Inputs: {}".format([input.name for input in self.input]))
+        for scope in self.scopes:
+            if self.input[scope] == None:
+                log.debug("| Inputs ({}): None".format(scope))
+            else:
+                log.debug(
+                    "| Inputs ({}): {}".format(
+                        scope, [input.name for input in self.input[scope]]
+                    )
+                )
         if self.output == None:
             log.debug("| Output: None")
         else:
@@ -262,14 +296,14 @@ class ProducerGroup:
         for producer in self.producers:
             # duplicate outputs of vector subproducers if they were generated automatically
             if self.call != None and hasattr(producer, "vec_configs"):
-                for i in range(len(config[""][producer.vec_configs[0]]) - 1):
+                for i in range(len(config[""][scope][producer.vec_configs[0]]) - 1):
                     producer.output.append(
                         producer.output[0].copy(
                             "PG_internal_quantity_%i" % self.__class__.PG_count
                         )
                     )
                     self.__class__.PG_count += 1
-                    self.input.append(producer.output[-1])
+                    self.input[scope].append(producer.output[-1])
             # retrieve calls of subproducers
             calls.extend(producer.writecalls(config, scope))
         return calls
