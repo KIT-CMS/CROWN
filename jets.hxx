@@ -93,7 +93,7 @@ auto OrderJetsByPt(auto df, const std::string &output_col,
 namespace physicsobject {
 namespace jet {
 
-/// Function to filter jets based on the tau ID
+/// Function to cut jets based on the tau ID
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to the
@@ -101,7 +101,7 @@ namespace jet {
 /// idxID bitvalue of the WP the has to be passed
 ///
 /// \return a dataframe containing the new mask
-auto FilterID(auto df, const std::string maskname, const std::string nameID,
+auto CutID(auto df, const std::string maskname, const std::string nameID,
               const int idxID) {
     auto df1 = df.Define(maskname, basefunctions::FilterJetID(idxID), {nameID});
     return df1;
@@ -244,6 +244,22 @@ auto JetPtCorrection(auto df, const std::string corrected_jet_pt,
     auto df1 = df.Define(
         corrected_jet_pt, JetEnergyCorrectionLambda,
         {jet_pt, jet_eta, jet_phi, gen_jet_pt, gen_jet_eta, gen_jet_phi, rho});
+    return df1;
+}
+
+/// Function to select jets passing a ID requirement, using
+/// basefunctions::FilterMin
+///
+/// \param[in] df the input dataframe
+/// \param[in] quantity name of the rawID column in the NanoAOD
+/// \param[out] maskname the name of the mask to be added as column to the
+/// dataframe \param[in] ptThreshold minimal ID value
+///
+/// \return a dataframe containing the new mask
+auto CutRawID(auto df, const std::string quantity, const std::string maskname,
+              const float idThreshold) {
+    auto df1 =
+        df.Define(maskname, basefunctions::FilterMin(idThreshold), {quantity});
     return df1;
 }
 } // end namespace jet

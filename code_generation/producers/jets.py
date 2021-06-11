@@ -67,16 +67,16 @@ BJetEtaCut = Producer(
     output=[],
     scopes=["global"],
 )
-JetIDFilter = Producer(
-    name="JetIDFilter",
-    call="physicsobject::jet::FilterID({df}, {output}, {input}, {jet_id})",
+JetIDCut = Producer(
+    name="JetIDCut",
+    call="physicsobject::jet::CutID({df}, {output}, {input}, {jet_id})",
     input=[nanoAOD.Jet_ID],
     output=[q.jet_id_mask],
     scopes=["global"],
 )
-BTag = Producer(
-    name="BTag",
-    call="physicsobject::CutPt({df}, {input}, {output}, {btag_cut})",
+BTagCut = Producer(
+    name="BTagCut",
+    call="physicsobject::jet::CutRawID({df}, {input}, {output}, {btag_cut})",
     input=[nanoAOD.BJet_discriminator],
     output=[],
     scopes=["global"],
@@ -87,7 +87,7 @@ GoodJets = ProducerGroup(
     input=[],
     output=[q.good_jets_mask],
     scopes=["global"],
-    subproducers=[JetPtCut, JetEtaCut, JetIDFilter],
+    subproducers=[JetPtCut, JetEtaCut, JetIDCut],
 )
 GoodBJets = ProducerGroup(
     name="GoodBJets",
@@ -95,7 +95,7 @@ GoodBJets = ProducerGroup(
     input=[q.jet_id_mask],
     output=[q.good_bjets_mask],
     scopes=["global"],
-    subproducers=[BJetPtCut, BJetEtaCut, BTag],
+    subproducers=[BJetPtCut, BJetEtaCut, BTagCut],
 )
 
 ####################

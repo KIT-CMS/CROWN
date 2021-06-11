@@ -5,15 +5,15 @@
 #include <string>
 #include <type_traits>
 #include <vector>
-/// Namespace containing function to apply filters on physics objects. The
-/// filter results are typically stored within a mask, which is represented by
+/// Namespace containing function to apply cuts on physics objects. The
+/// cut results are typically stored within a mask, which is represented by
 /// an `ROOT::RVec<int>`.
 ///    \code
 ///    In the mask
-///    1 --> filter is passed by the object
-///    0 --> filter is not passed by the object
+///    1 --> cut is passed by the object
+///    0 --> cut is not passed by the object
 ///    \endcode
-/// multiple filters can be combined by multiplying masks using
+/// multiple cuts can be combined by multiplying masks using
 /// physicsobject::CombineMasks.
 namespace physicsobject {
 /// Function to select objects above a pt threshold, using
@@ -181,21 +181,21 @@ auto ObjectMassCorrectionWithPt(auto df, const std::string corrected_mass,
 
 /// Muon specific functions
 namespace muon {
-/// Function to filter muons based on the muon ID
+/// Function to cut on muons based on the muon ID
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to the
 /// dataframe \param[in] nameID name of the ID column in the NanoAOD
 ///
 /// \return a dataframe containing the new mask
-auto FilterID(auto df, const std::string maskname, const std::string nameID) {
+auto CutID(auto df, const std::string maskname, const std::string nameID) {
     auto df1 = df.Define(
         maskname,
         [](const ROOT::RVec<Bool_t> &id) { return (ROOT::RVec<int>)id; },
         {nameID});
     return df1;
 }
-/// Function to filter muons based on the muon isolation using
+/// Function to cut on muons based on the muon isolation using
 /// basefunctions::FilterMax
 ///
 /// \param[in] df the input dataframe
@@ -204,7 +204,7 @@ auto FilterID(auto df, const std::string maskname, const std::string nameID) {
 /// dataframe \param[in] Threshold maximal isolation threshold
 ///
 /// \return a dataframe containing the new mask
-auto FilterIsolation(auto df, const std::string maskname,
+auto CutIsolation(auto df, const std::string maskname,
                      const std::string isolationName, const float Threshold) {
     auto df1 = df.Define(maskname, basefunctions::FilterMax(Threshold),
                          {isolationName});
@@ -214,16 +214,16 @@ auto FilterIsolation(auto df, const std::string maskname,
 } // end namespace muon
 /// Tau specific functions
 namespace tau {
-/// Function to filter taus based on the tau decay mode
+/// Function to cut on taus based on the tau decay mode
 ///
 /// \param[in] df the input dataframe
 /// \param[in] tau_dms name of the column with tau decay modes
 /// \param[out] maskname the name of the new mask to be added as column to the
 /// dataframe \param[in] SelectedDecayModes a `std::vector<int>` containing the
-/// decay modes, that should pass the filter
+/// decay modes, that should pass the cut
 ///
 /// \return a dataframe containing the new mask
-auto FilterDecayModes(auto df, const std::string maskname,
+auto CutDecayModes(auto df, const std::string maskname,
                       const std::string tau_dms,
                       const std::vector<int> SelectedDecayModes) {
     auto df1 = df.Define(
@@ -240,7 +240,7 @@ auto FilterDecayModes(auto df, const std::string maskname,
         {tau_dms});
     return df1;
 }
-/// Function to filter taus based on the tau ID
+/// Function to cut taus based on the tau ID
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to the
@@ -248,7 +248,7 @@ auto FilterDecayModes(auto df, const std::string maskname,
 /// idxID bitvalue of the WP the has to be passed
 ///
 /// \return a dataframe containing the new mask
-auto FilterTauID(auto df, const std::string maskname, const std::string nameID,
+auto CutTauID(auto df, const std::string maskname, const std::string nameID,
                  const int idxID) {
     auto df1 = df.Define(maskname, basefunctions::FilterID(idxID), {nameID});
     return df1;
@@ -295,21 +295,21 @@ auto PtCorrection(auto df, const std::string corrected_pt, const std::string pt,
 } // end namespace tau
 
 namespace electron {
-/// Function to filter electrons based on the electron ID
+/// Function to cut electrons based on the electron ID
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to the
 /// dataframe \param[in] nameID name of the ID column in the NanoAOD
 ///
 /// \return a dataframe containing the new mask
-auto FilterID(auto df, const std::string maskname, const std::string nameID) {
+auto CutID(auto df, const std::string maskname, const std::string nameID) {
     auto df1 = df.Define(
         maskname,
         [](const ROOT::RVec<Bool_t> &id) { return (ROOT::RVec<int>)id; },
         {nameID});
     return df1;
 }
-/// Function to filter electrons based on the electron isolation using
+/// Function to cut electrons based on the electron isolation using
 /// basefunctions::FilterMax
 ///
 /// \param[in] df the input dataframe
@@ -318,7 +318,7 @@ auto FilterID(auto df, const std::string maskname, const std::string nameID) {
 /// dataframe \param[in] Threshold maximal isolation threshold
 ///
 /// \return a dataframe containing the new mask
-auto FilterIsolation(auto df, const std::string maskname,
+auto CutIsolation(auto df, const std::string maskname,
                      const std::string isolationName, const float Threshold) {
     auto df1 = df.Define(maskname, basefunctions::FilterMax(Threshold),
                          {isolationName});
