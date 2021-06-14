@@ -117,7 +117,6 @@ auto CombineMasks(auto df, const std::string &maskname,
 /// tau candidate to be ignored by mask
 ///
 /// \return a dataframe containing the new mask
-template <class... Masks>
 auto VetoCandInMask(auto df, const std::string &outputmaskname,
                     const std::string &inputmaskname,
                     const std::string &ditaupair, const int index) {

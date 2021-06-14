@@ -169,14 +169,14 @@ def build_config():
         "tauES_1prong0pizeroUp",
         {"global": {"tau_ES_shift_DM0": 1.002}},
         [[TauPtCorrection, "global"]],
-        [[LVMu1, "mt"], [VetoMuons, "mt"]],
+        sanetize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
     )
     AddSystematicShift(
         config,
         "tauES_1prong0pizeroDown",
         {"global": {"tau_ES_shift_DM0": 0.998}},
         [[TauPtCorrection, "global"]],
-        [[LVMu1, "mt"], [VetoMuons, "mt"]],
+        sanetize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
     )
     # # Jet energy resolution
     # shift_dict = {"JE_reso_shift": 1}
