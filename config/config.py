@@ -32,10 +32,10 @@ def build_config():
             "max_bjet_eta": 2.4,
             "btag_cut": 0.2783,  # medium
             "min_ele_pt": 10.0,
-            "max_ele_eta": 2.4,
+            "max_ele_eta": 2.5,
             "max_ele_dxy": 0.045,
             "max_ele_dz": 0.2,
-            "max_ele_iso": 0.30,
+            "max_ele_iso": 0.3,
             "ele_id": "Electron_mvaFall17V2noIso_WP90",
             "met_filters": ["Flag_goodVertices", "Flag_METFilters"],
             "tau_id": [
@@ -46,7 +46,7 @@ def build_config():
             "tau_id_idx": [4, 4, 1],
             "muon_id": "Muon_mediumId",
             # "muon_iso": "Muon_pfRelIso04_all",
-            "muon_iso_cut": 0.2,
+            "muon_iso_cut": 0.3,
             "JEC_shift_sources": '{""}',
             "JE_scale_shift": 0,
             "JE_reso_shift": 0,
