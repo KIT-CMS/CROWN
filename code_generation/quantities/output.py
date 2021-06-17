@@ -80,6 +80,10 @@ bpt_2 = Quantity("bpt_2")
 beta_2 = Quantity("beta_2")
 bphi_2 = Quantity("bphi_2")
 
+dielectron_veto = Quantity("dielectron_veto")
+dimuon_veto = Quantity("dimuon_veto")
+dilepton_veto = Quantity("dilepton_veto")
+
 ## Gen Quantities
 gen_p4_1 = Quantity("gen_p4_1")
 gen_pt_1 = Quantity("gen_pt_1")

@@ -120,3 +120,47 @@ ExtraMuonsVeto = Producer(
     output=[q.muon_veto_flag],
     scopes=["em", "et", "mt", "tt"],
 )
+
+####################
+# Set of producers used for di-muon veto
+####################
+
+DiMuonVetoPtCut = Producer(
+    name="DiMuonVetoPtCut",
+    call="physicsobject::CutPt({df}, {input}, {output}, {min_dimuonveto_pt})",
+    input=[nanoAOD.Muon_pt],
+    output=[],
+    scopes=["global"],
+)
+DiMuonVetoIDCut = Producer(
+    name="DiMuonVetoIDCut",
+    call='physicsobject::muon::CutID({df}, {output}, "{dimuonveto_id}")',
+    input=[],
+    output=[],
+    scopes=["global"],
+)
+DiMuonVetoMuons = ProducerGroup(
+    name="DiMuonVetoMuons",
+    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    input=MuonEtaCut.output + MuonDxyCut.output + MuonDzCut.output + MuonIsoCut.output,
+    output=[],
+    scopes=["global"],
+    subproducers=[
+        DiMuonVetoPtCut,
+        DiMuonVetoIDCut,
+    ],
+)
+DiMuonVeto = ProducerGroup(
+    name="DiMuonVeto",
+    call="physicsobject::CheckForDiLeptonPairs({df}, {output}, {input}, {dileptonveto_dR})",
+    input=[
+        nanoAOD.Muon_pt,
+        nanoAOD.Muon_eta,
+        nanoAOD.Muon_phi,
+        nanoAOD.Muon_mass,
+        nanoAOD.Muon_charge,
+    ],
+    output=[q.dimuon_veto],
+    scopes=["global"],
+    subproducers=[DiMuonVetoMuons],
+)

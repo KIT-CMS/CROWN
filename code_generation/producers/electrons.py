@@ -87,3 +87,50 @@ ExtraElectronsVeto = Producer(
     output=[q.electron_veto_flag],
     scopes=["em", "et", "mt", "tt"],
 )
+
+####################
+# Set of producers used for di-electron veto
+####################
+
+DiElectronVetoPtCut = Producer(
+    name="DiElectronVetoPtCut",
+    call="physicsobject::CutPt({df}, {input}, {output}, {min_dielectronveto_pt})",
+    input=[nanoAOD.Electron_pt],
+    output=[],
+    scopes=["global"],
+)
+DiElectronVetoIDCut = Producer(
+    name="DiElectronVetoIDCut",
+    call='physicsobject::electron::CutCBID({df}, {output}, "{dielectronveto_id}", {dielectronveto_id_wp})',
+    input=[],
+    output=[],
+    scopes=["global"],
+)
+DiElectronVetoElectrons = ProducerGroup(
+    name="DiElectronVetoElectrons",
+    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    input=ElectronEtaCut.output
+    + ElectronDxyCut.output
+    + ElectronDzCut.output
+    + ElectronIsoCut.output,
+    output=[],
+    scopes=["global"],
+    subproducers=[
+        DiElectronVetoPtCut,
+        DiElectronVetoIDCut,
+    ],
+)
+DiElectronVeto = ProducerGroup(
+    name="DiElectronVeto",
+    call="physicsobject::CheckForDiLeptonPairs({df}, {output}, {input}, {dileptonveto_dR})",
+    input=[
+        nanoAOD.Electron_pt,
+        nanoAOD.Electron_eta,
+        nanoAOD.Electron_phi,
+        nanoAOD.Electron_mass,
+        nanoAOD.Electron_charge,
+    ],
+    output=[q.dielectron_veto],
+    scopes=["global"],
+    subproducers=[DiElectronVetoElectrons],
+)
