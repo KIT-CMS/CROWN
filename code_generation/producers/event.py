@@ -1,6 +1,8 @@
 import code_generation.quantities.output as q
 import code_generation.quantities.nanoAOD as nanoAOD
-from code_generation.producer import Producer, VectorProducer
+from code_generation.producer import Producer, VectorProducer, ProducerGroup
+from code_generation.producers.electrons import DiElectronVeto
+from code_generation.producers.muons import DiMuonVeto
 
 ####################
 # Set of general producers for event quantities
@@ -34,4 +36,13 @@ Lumi = Producer(
     input=[nanoAOD.luminosityBlock],
     output=[q.lumi],
     scopes=["global"],
+)
+
+DiLeptonVeto = ProducerGroup(
+    name="DiLeptonVeto",
+    call="basefunctions::CombineFlagsAny({df}, {output}, {input})",
+    input=[],
+    output=[q.dilepton_veto],
+    scopes=["global"],
+    subproducers=[DiElectronVeto, DiMuonVeto],
 )

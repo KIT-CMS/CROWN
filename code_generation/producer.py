@@ -136,7 +136,7 @@ class Producer:
     def writecalls(self, config, scope):
         if scope not in self.scopes:
             log.error(
-                "Exception (%s): Tried to use producer in scope {}, which the producer is not forseen for!".format(
+                "Exception ({}): Tried to use producer in scope {}, which the producer is not forseen for!".format(
                     self.name, scope
                 )
             )

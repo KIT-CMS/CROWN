@@ -203,6 +203,57 @@ auto ObjectMassCorrectionWithPt(auto df, const std::string corrected_mass,
     return df1;
 }
 
+/// Function to correct object mass in alignment with object pt correction
+///
+/// \param[in] df the input dataframe
+/// \param[out] output_flag the name of the corrected masses to be determined
+/// \param[in] leptons_pt name of the input pt column of the lepton collection
+/// \param[in] leptons_eta name of the input eta column of the lepton collection
+/// \param[in] leptons_phi name of the input phi column of the lepton collection
+/// \param[in] leptons_mass name of the input mass column of the lepton
+/// collection \param[in] leptons_charge name of the input charge column of the
+/// lepton collection \param[in] leptons_mask name of the input mask column of
+/// the lepton collection that marks lepton to be taken into account \param[in]
+/// dR_cut minimum required angular distance between the leptons
+///
+/// \return a dataframe containing the modified object masses
+auto CheckForDiLeptonPairs(auto df, const std::string output_flag,
+                           const std::string leptons_pt,
+                           const std::string leptons_eta,
+                           const std::string leptons_phi,
+                           const std::string leptons_mass,
+                           const std::string leptons_charge,
+                           const std::string leptons_mask, const float dR_cut) {
+    auto pair_finder_lambda = [dR_cut](const ROOT::RVec<float> &pt_values,
+                                       const ROOT::RVec<float> &eta_values,
+                                       const ROOT::RVec<float> &phi_values,
+                                       const ROOT::RVec<float> &mass_values,
+                                       const ROOT::RVec<int> &charge_values,
+                                       const ROOT::RVec<int> &mask) {
+        const auto valid_lepton_indices = ROOT::VecOps::Nonzero(mask);
+        for (auto it1 = valid_lepton_indices.begin();
+             it1 != valid_lepton_indices.end(); it1++) {
+            for (auto it2 = it1; it2 != valid_lepton_indices.end(); it2++) {
+                if (charge_values.at(*it1) != charge_values.at(*it2)) {
+                    auto p4_1 = ROOT::Math::PtEtaPhiMVector(
+                        pt_values.at(*it1), eta_values.at(*it1),
+                        phi_values.at(*it1), mass_values.at(*it1));
+                    auto p4_2 = ROOT::Math::PtEtaPhiMVector(
+                        pt_values.at(*it2), eta_values.at(*it2),
+                        phi_values.at(*it2), mass_values.at(*it2));
+                    if (ROOT::Math::VectorUtil::DeltaR(p4_1, p4_2) >= dR_cut)
+                        return true;
+                }
+            }
+        }
+        return false;
+    };
+    auto df1 = df.Define(output_flag, pair_finder_lambda,
+                         {leptons_pt, leptons_eta, leptons_phi, leptons_mass,
+                          leptons_charge, leptons_mask});
+    return df1;
+}
+
 /// Muon specific functions
 namespace muon {
 /// Function to cut on muons based on the muon ID
@@ -319,7 +370,7 @@ auto PtCorrection(auto df, const std::string corrected_pt, const std::string pt,
 } // end namespace tau
 
 namespace electron {
-/// Function to cut electrons based on the electron ID
+/// Function to cut electrons based on the electron MVA ID
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to the
@@ -331,6 +382,19 @@ auto CutID(auto df, const std::string maskname, const std::string nameID) {
         maskname,
         [](const ROOT::RVec<Bool_t> &id) { return (ROOT::RVec<int>)id; },
         {nameID});
+    return df1;
+} /// Function to cut jets based on the cut based electron ID
+///
+/// \param[in] df the input dataframe
+/// \param[out] maskname the name of the new mask to be added as column to the
+/// dataframe \param[in] nameID name of the ID column in the NanoAOD \param[in]
+/// IDvalue value of the WP the has to be passed
+///
+/// \return a dataframe containing the new mask
+auto CutCBID(auto df, const std::string maskname, const std::string nameID,
+             const int IDvalue) {
+    auto df1 =
+        df.Define(maskname, basefunctions::FilterMinInt(IDvalue), {nameID});
     return df1;
 }
 /// Function to cut electrons based on the electron isolation using

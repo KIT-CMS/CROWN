@@ -37,6 +37,29 @@ auto FilterFlagsAny(auto df, const std::string filtername,
         FlagList, filtername);
 }
 
+/// This function defines a flag being true if either of the input flags is
+/// true.
+///
+/// \param df The input dataframe
+/// \param outputflag The name of the new column
+/// \param flags Parameter pack of column names that contain the considered
+/// flags of type bool
+///
+/// \returns a dataframe containing the new column
+template <class... Flags>
+auto CombineFlagsAny(auto df, const std::string outputflag,
+                     const Flags &... flags) {
+    std::vector<std::string> FlagList;
+    utility::appendParameterPackToVector(FlagList, flags...);
+    const auto nFlags = sizeof...(Flags);
+    using namespace ROOT::VecOps;
+    return df.Define(
+        outputflag,
+        ROOT::RDF::PassAsVec<nFlags, bool>(
+            [](const ROOT::RVec<bool> &flags) { return Any(flags); }),
+        FlagList);
+}
+
 /// Function to apply a selection on an integer quantity.
 /// Returns true if the value is smaller than the given cut value
 ///
@@ -92,6 +115,20 @@ auto FilterAbsMax(float cut) {
 auto FilterMin(float cut) {
     // As in ROOT, for min we use >=
     return [cut](const ROOT::RVec<float> &values) {
+        ROOT::RVec<int> mask = values >= cut;
+        return mask;
+    };
+}
+
+/// Function to apply a minimal filter requirement to an integer quantity.
+/// Returns true if the value is larger than the given cut value
+///
+/// \param cut The cut value of the filter
+///
+/// \returns a lambda function to be used in RDF Define
+auto FilterMinInt(int cut) {
+    // As in ROOT, for min we use >=
+    return [cut](const ROOT::RVec<int> &values) {
         ROOT::RVec<int> mask = values >= cut;
         return mask;
     };
