@@ -233,7 +233,7 @@ auto CheckForDiLeptonPairs(auto df, const std::string output_flag,
         const auto valid_lepton_indices = ROOT::VecOps::Nonzero(mask);
         for (auto it1 = valid_lepton_indices.begin();
              it1 != valid_lepton_indices.end(); it1++) {
-            for (auto it2 = it1; it2 != valid_lepton_indices.end(); it2++) {
+            for (auto it2 = it1 + 1; it2 != valid_lepton_indices.end(); it2++) {
                 if (charge_values.at(*it1) != charge_values.at(*it2)) {
                     auto p4_1 = ROOT::Math::PtEtaPhiMVector(
                         pt_values.at(*it1), eta_values.at(*it1),
