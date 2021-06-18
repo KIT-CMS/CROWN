@@ -24,8 +24,8 @@ namespace lorentzvectors {
 /// index of the particle in the particle quantity vectors.
 ///
 /// \returns a new dataframe, which contains the new lorentz vector
-auto buildparticle(auto df, const std::vector<std::string> quantities,
-                   const std::string outputname, const int &position) {
+auto buildparticle(auto &df, const std::vector<std::string> &quantities,
+                   const std::string &outputname, const int &position) {
     auto df1 = df.Define(
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<float> &pts,

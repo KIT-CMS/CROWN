@@ -14,7 +14,7 @@ namespace quantities {
 /// \returns a dataframe with the new column
 
 template <typename T>
-auto rename(auto df, const std::string &inputname,
+auto rename(auto &df, const std::string &inputname,
             const std::string &outputname) {
     return df.Define(outputname, [](const T &q) { return q; }, {inputname});
 }
@@ -27,7 +27,7 @@ auto rename(auto df, const std::string &inputname,
 ///
 /// \returns a dataframe with the new column
 
-auto pt(auto df, const std::string &outputname,
+auto pt(auto &df, const std::string &outputname,
         const std::string &inputvector) {
     return df.Define(
         outputname,
@@ -43,7 +43,7 @@ auto pt(auto df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-auto eta(auto df, const std::string &outputname,
+auto eta(auto &df, const std::string &outputname,
          const std::string &inputvector) {
     return df.Define(
         outputname,
@@ -59,7 +59,7 @@ auto eta(auto df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-auto phi(auto df, const std::string &outputname,
+auto phi(auto &df, const std::string &outputname,
          const std::string &inputvector) {
     return df.Define(outputname,
                      [](const ROOT::Math::PtEtaPhiMVector &p4) {
@@ -79,7 +79,7 @@ auto phi(auto df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-auto mass(auto df, const std::string &outputname,
+auto mass(auto &df, const std::string &outputname,
           const std::string &inputvector) {
     return df.Define(outputname,
                      [](const ROOT::Math::PtEtaPhiMVector &p4) {
@@ -101,7 +101,7 @@ auto mass(auto df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-auto dxy(auto df, const std::string &outputname, const int position,
+auto dxy(auto &df, const std::string &outputname, const int &position,
          const std::string &pairname, const std::string &dxycolumn) {
     return df.Define(
         outputname,
@@ -122,7 +122,7 @@ auto dxy(auto df, const std::string &outputname, const int position,
 ///
 /// \returns a dataframe with the new column
 
-auto dz(auto df, const std::string &outputname, const int position,
+auto dz(auto &df, const std::string &outputname, const int &position,
         const std::string &pairname, const std::string &dzcolumn) {
     return df.Define(
         outputname,
@@ -143,7 +143,7 @@ auto dz(auto df, const std::string &outputname, const int position,
 ///
 /// \returns a dataframe with the new column
 
-auto charge(auto df, const std::string &outputname, const int position,
+auto charge(auto &df, const std::string &outputname, const int &position,
             const std::string &pairname, const std::string &chargecolumn) {
     return df.Define(
         outputname,
@@ -163,7 +163,7 @@ auto charge(auto df, const std::string &outputname, const int position,
 ///
 /// \returns a dataframe with the new column
 
-auto m_vis(auto df, const std::string &outputname,
+auto m_vis(auto &df, const std::string &outputname,
            const std::vector<std::string> &inputvectors) {
     // build visible mass from the two particles
     return df.Define(
@@ -188,7 +188,7 @@ auto m_vis(auto df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-auto isolation(auto df, const std::string &outputname, const int position,
+auto isolation(auto &df, const std::string &outputname, const int &position,
                const std::string &pairname,
                const std::string &isolationcolumn) {
     return df.Define(outputname,
@@ -210,7 +210,7 @@ auto isolation(auto df, const std::string &outputname, const int position,
 ///
 /// \returns a dataframe with the new column
 
-auto pdgid(auto df, const std::string &outputname, const int position,
+auto pdgid(auto &df, const std::string &outputname, const int &position,
            const std::string &pairname, const std::string &pdgidcolumn) {
     return df.Define(
         outputname,
@@ -233,7 +233,7 @@ namespace tau {
 ///
 /// \returns a dataframe with the new column
 
-auto decaymode(auto df, const std::string &outputname, const int position,
+auto decaymode(auto &df, const std::string &outputname, const int &position,
                const std::string &pairname,
                const std::string &decaymodecolumn) {
     return df.Define(outputname,
@@ -262,7 +262,7 @@ auto decaymode(auto df, const std::string &outputname, const int position,
 ///
 /// \returns a dataframe with the new column
 
-auto genmatch(auto df, const std::string &outputname, const int position,
+auto genmatch(auto &df, const std::string &outputname, const int &position,
               const std::string &pairname, const std::string &genmatchcolumn) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
@@ -283,7 +283,7 @@ auto genmatch(auto df, const std::string &outputname, const int position,
 /// the recojet pt values
 ///
 /// \returns a dataframe with the new column
-auto matching_jet_pt(auto df, const std::string &outputname, const int position,
+auto matching_jet_pt(auto &df, const std::string &outputname, const int &position,
                      const std::string &pairname,
                      const std::string &taujet_index,
                      const std::string &jetpt_column) {
@@ -312,8 +312,8 @@ auto matching_jet_pt(auto df, const std::string &outputname, const int position,
 /// name of the column containing the genJet pt values
 ///
 /// \returns a dataframe with the new column
-auto matching_genjet_pt(auto df, const std::string &outputname,
-                        const int position, const std::string &pairname,
+auto matching_genjet_pt(auto &df, const std::string &outputname,
+                        const int &position, const std::string &pairname,
                         const std::string &taujet_index,
                         const std::string &genjet_index,
                         const std::string &genjetpt_column) {

@@ -9,7 +9,7 @@ namespace metfilter {
 /// \param filtername Name of the Filter to be shown in the dataframe report
 ///
 /// \returns a dataframe with the filter applied
-auto ApplyMetFilter(auto df, const std::string &flagname,
+auto ApplyMetFilter(auto &df, const std::string &flagname,
                     const std::string &filtername) {
     return df.Filter([](const bool flag) { return flag; }, {flagname},
                      filtername);

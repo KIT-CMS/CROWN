@@ -25,7 +25,7 @@ namespace basefunctions {
 ///
 /// \returns a filtered dataframe
 template <class... Flags>
-auto FilterFlagsAny(auto df, const std::string filtername,
+auto FilterFlagsAny(auto &df, const std::string &filtername,
                     const Flags &... flags) {
     std::vector<std::string> FlagList;
     utility::appendParameterPackToVector(FlagList, flags...);
@@ -47,7 +47,7 @@ auto FilterFlagsAny(auto df, const std::string filtername,
 ///
 /// \returns a dataframe containing the new column
 template <class... Flags>
-auto CombineFlagsAny(auto df, const std::string outputflag,
+auto CombineFlagsAny(auto &df, const std::string &outputflag,
                      const Flags &... flags) {
     std::vector<std::string> FlagList;
     utility::appendParameterPackToVector(FlagList, flags...);
@@ -69,7 +69,7 @@ auto CombineFlagsAny(auto df, const std::string outputflag,
 ///
 /// \returns a filtered dataframe
 template <typename T>
-auto FilterIntSelection(auto df, const std::string &quantity,
+auto FilterIntSelection(auto &df, const std::string &quantity,
                         const std::vector<T> &selection,
                         const std::string &filtername) {
     return df.Filter(
@@ -86,7 +86,7 @@ auto FilterIntSelection(auto df, const std::string &quantity,
 /// \param cut The cut value of the filter
 ///
 /// \returns a lambda function to be used in RDF Define
-auto FilterMax(float cut) {
+auto FilterMax(const float &cut) {
     return [cut](const ROOT::RVec<float> &values) {
         ROOT::RVec<int> mask = values < cut;
         return mask;
@@ -99,7 +99,7 @@ auto FilterMax(float cut) {
 /// \param cut The cut value of the filter
 ///
 /// \returns a lambda function to be used in RDF Define
-auto FilterAbsMax(float cut) {
+auto FilterAbsMax(const float &cut) {
     return [cut](const ROOT::RVec<float> &values) {
         ROOT::RVec<int> mask = abs(values) < cut;
         return mask;
@@ -112,7 +112,7 @@ auto FilterAbsMax(float cut) {
 /// \param cut The cut value of the filter
 ///
 /// \returns a lambda function to be used in RDF Define
-auto FilterMin(float cut) {
+auto FilterMin(const float &cut) {
     // As in ROOT, for min we use >=
     return [cut](const ROOT::RVec<float> &values) {
         ROOT::RVec<int> mask = values >= cut;
@@ -126,7 +126,7 @@ auto FilterMin(float cut) {
 /// \param cut The cut value of the filter
 ///
 /// \returns a lambda function to be used in RDF Define
-auto FilterMinInt(int cut) {
+auto FilterMinInt(const int &cut) {
     // As in ROOT, for min we use >=
     return [cut](const ROOT::RVec<int> &values) {
         ROOT::RVec<int> mask = values >= cut;
@@ -140,7 +140,7 @@ auto FilterMinInt(int cut) {
 /// \param cut The cut value of the filter
 ///
 /// \returns a lambda function to be used in RDF Define
-auto FilterAbsMin(float cut) {
+auto FilterAbsMin(const float &cut) {
     return [cut](const ROOT::RVec<float> &values) {
         ROOT::RVec<int> mask = abs(values) >= cut;
         return mask;
@@ -166,7 +166,7 @@ auto MultiplyTwoMasks() {
 /// \param index The bitmask index to be used for comparison
 ///
 /// \returns a lambda function to be used in RDF Define
-auto FilterID(int index) {
+auto FilterID(const int &index) {
     return [index](const ROOT::RVec<UChar_t> &IDs) {
         ROOT::RVec<int> mask;
         for (auto const ID : IDs) {
@@ -182,7 +182,7 @@ auto FilterID(int index) {
 /// \param index The bitmask index to be used for comparison
 ///
 /// \returns a lambda function to be used in RDF Define
-auto FilterJetID(int index) {
+auto FilterJetID(const int &index) {
     return [index](const ROOT::RVec<Int_t> &IDs) {
         ROOT::RVec<int> mask;
         for (auto const ID : IDs) {
@@ -202,8 +202,8 @@ auto FilterJetID(int index) {
 ///
 /// \returns a dataframe with the newly defined output column
 template <class... Inputs>
-auto evaluateWorkspaceFunction(auto df, const std::string &outputname,
-                               const std::shared_ptr<RooFunctor> function,
+auto evaluateWorkspaceFunction(auto &df, const std::string &outputname,
+                               const std::shared_ptr<RooFunctor> &function,
                                const Inputs &... inputs) {
     Logger::get("evaluateWorkspaceFunction")
         ->debug("Starting evaluation for {}", outputname);
