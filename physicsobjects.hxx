@@ -203,10 +203,10 @@ auto ObjectMassCorrectionWithPt(auto &df, const std::string &corrected_mass,
     return df1;
 }
 
-/// Function to correct object mass in alignment with object pt correction
+/// Function to check whether at least one lepton pair is present
 ///
 /// \param[in] df the input dataframe
-/// \param[out] output_flag the name of the corrected masses to be determined
+/// \param[out] output_flag the name of the bool column that is created
 /// \param[in] leptons_pt name of the input pt column of the lepton collection
 /// \param[in] leptons_eta name of the input eta column of the lepton collection
 /// \param[in] leptons_phi name of the input phi column of the lepton collection
@@ -216,7 +216,7 @@ auto ObjectMassCorrectionWithPt(auto &df, const std::string &corrected_mass,
 /// the lepton collection that marks lepton to be taken into account \param[in]
 /// dR_cut minimum required angular distance between the leptons
 ///
-/// \return a dataframe containing the modified object masses
+/// \return a dataframe containing the new bool column
 auto CheckForDiLeptonPairs(auto &df, const std::string &output_flag,
                            const std::string &leptons_pt,
                            const std::string &leptons_eta,
