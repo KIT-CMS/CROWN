@@ -256,8 +256,8 @@ auto JetPtCorrection(auto &df, const std::string &corrected_jet_pt,
 /// dataframe \param[in] ptThreshold minimal ID value
 ///
 /// \return a dataframe containing the new mask
-auto CutRawID(auto &df, const std::string &quantity, const std::string &maskname,
-              const float &idThreshold) {
+auto CutRawID(auto &df, const std::string &quantity,
+              const std::string &maskname, const float &idThreshold) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterMin(idThreshold), {quantity});
     return df1;
