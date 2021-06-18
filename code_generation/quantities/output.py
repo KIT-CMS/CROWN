@@ -104,3 +104,5 @@ isoWeight_1 = Quantity("isoWeight_1")
 isoWeight_2 = Quantity("isoWeight_2")
 idWeight_1 = Quantity("idWeight_1")
 idWeight_2 = Quantity("idWeight_2")
+
+ggh_NNLO_weight = Quantity("ggh_NNLO_weight")

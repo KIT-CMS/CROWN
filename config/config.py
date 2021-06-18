@@ -122,6 +122,12 @@ def build_config(era, sample):
             "muon_sf_iso_args": "m_pt,m_eta,m_iso",
         },
     }
+    all_channels = {
+        "ggHNNLOweightsRootfile": "data/htxs/somefile.root",
+        "ggH_generator": "powheg",
+    }
+    for channel in ["mt"]:  # add em et tt here as soon as they appear in config
+        base_config[channel].update(all_channels)
 
     config = {"": base_config}
 
@@ -162,6 +168,7 @@ def build_config(era, sample):
 
     config["producer_modifiers"] = [
         RemoveProducer(producers=[MuonIDIso_SF], samples=["data"], scopes=["mt"])
+        RemoveProducer(producers=[GGH_NNLO_Reweighting], samples=["ggh"], scopes=["mt"]),
     ]
 
     config["output"] = {
