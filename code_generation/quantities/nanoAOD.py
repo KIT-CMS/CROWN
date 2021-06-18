@@ -63,3 +63,10 @@ TriggerObject_pt = NanoAODQuantity("TrigObj_pt")
 TriggerObject_eta = NanoAODQuantity("TrigObj_eta")
 TriggerObject_phi = NanoAODQuantity("TrigObj_phi")
 TriggerObject_id = NanoAODQuantity("TrigObj_id")
+
+## HTXS quantities
+HTXS_Higgs_pt = NanoAODQuantity("HTXS_Higgs_pt")
+HTXS_njets30 = NanoAODQuantity("HTXS_njets30")
+HTXS_stage_0 = NanoAODQuantity("HTXS_stage_0")
+HTXS_stage1_2_cat_pTjet30GeV = NanoAODQuantity("HTXS_stage1_2_cat_pTjet30GeV")
+HTXS_stage1_2_fine_cat_pTjet30GeV = NanoAODQuantity("HTXS_stage1_2_fine_cat_pTjet30GeV")
