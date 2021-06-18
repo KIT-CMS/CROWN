@@ -217,13 +217,11 @@ auto ObjectMassCorrectionWithPt(auto &df, const std::string &corrected_mass,
 /// dR_cut minimum required angular distance between the leptons
 ///
 /// \return a dataframe containing the new bool column
-auto CheckForDiLeptonPairs(auto &df, const std::string &output_flag,
-                           const std::string &leptons_pt,
-                           const std::string &leptons_eta,
-                           const std::string &leptons_phi,
-                           const std::string &leptons_mass,
-                           const std::string &leptons_charge,
-                           const std::string &leptons_mask, const float dR_cut) {
+auto CheckForDiLeptonPairs(
+    auto &df, const std::string &output_flag, const std::string &leptons_pt,
+    const std::string &leptons_eta, const std::string &leptons_phi,
+    const std::string &leptons_mass, const std::string &leptons_charge,
+    const std::string &leptons_mask, const float dR_cut) {
     auto pair_finder_lambda = [dR_cut](const ROOT::RVec<float> &pt_values,
                                        const ROOT::RVec<float> &eta_values,
                                        const ROOT::RVec<float> &phi_values,
@@ -340,10 +338,10 @@ auto CutTauID(auto &df, const std::string &maskname, const std::string &nameID,
 /// name of the tau decay mode quantity
 ///
 /// \return a dataframe containing the new mask
-auto PtCorrection(auto &df, const std::string &corrected_pt, const std::string &pt,
-                  const std::string &decayMode, const float &sf_dm0,
-                  const float &sf_dm1, const float &sf_dm10,
-                  const float &sf_dm11) {
+auto PtCorrection(auto &df, const std::string &corrected_pt,
+                  const std::string &pt, const std::string &decayMode,
+                  const float &sf_dm0, const float &sf_dm1,
+                  const float &sf_dm10, const float &sf_dm11) {
     auto tau_pt_correction_lambda =
         [sf_dm0, sf_dm1, sf_dm10, sf_dm11](const ROOT::RVec<float> &pt_values,
                                            const ROOT::RVec<int> &decay_modes) {

@@ -283,8 +283,8 @@ auto genmatch(auto &df, const std::string &outputname, const int &position,
 /// the recojet pt values
 ///
 /// \returns a dataframe with the new column
-auto matching_jet_pt(auto &df, const std::string &outputname, const int &position,
-                     const std::string &pairname,
+auto matching_jet_pt(auto &df, const std::string &outputname,
+                     const int &position, const std::string &pairname,
                      const std::string &taujet_index,
                      const std::string &jetpt_column) {
     return df.Define(outputname,
