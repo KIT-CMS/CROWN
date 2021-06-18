@@ -223,6 +223,10 @@ def build_config(era, sample):
             q.isoWeight_1,
             GenerateSingleMuonTriggerFlags.output_group,
             GenerateCrossTriggerFlags.output_group,
+            nanoAOD.HTXS_Higgs_pt,
+            nanoAOD.HTXS_njets30,
+            nanoAOD.HTXS_stage_0,
+            nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
         ]
     }
 
