@@ -30,13 +30,13 @@ namespace pairselection {
  * @param genpair name of the new column containing the GenDiTauPair
  * @return a new Dataframe with the GenDiTauPair column
  */
-auto buildgenpair(auto df, const std::string &recopair,
+auto buildgenpair(auto &df, const std::string &recopair,
                   const std::string &genindex_particle1,
                   const std::string &genindex_particle2,
                   const std::string &genpair) {
-    auto getGenPair = [](const ROOT::RVec<int> recopair,
-                         const ROOT::RVec<int> genindex_particle1,
-                         const ROOT::RVec<int> genindex_particle2) {
+    auto getGenPair = [](const ROOT::RVec<int> &recopair,
+                         const ROOT::RVec<int> &genindex_particle1,
+                         const ROOT::RVec<int> &genindex_particle2) {
         ROOT::RVec<int> genpair = {-1, -1};
         Logger::get("buildgenpair")->debug("existing DiTauPair: {}", recopair);
         genpair[0] = genindex_particle1[recopair.at(0)];
@@ -59,7 +59,7 @@ auto buildgenpair(auto df, const std::string &recopair,
 /// index of the particle in the particle quantity vectors.
 ///
 /// \returns a dataframe with the new flag
-auto flagGoodPairs(auto df, const std::string &flagname,
+auto flagGoodPairs(auto &df, const std::string &flagname,
                    const std::string &pairname) {
     using namespace ROOT::VecOps;
     return df.Define(
@@ -237,8 +237,8 @@ auto PairSelectionAlgo() {
 ///  TODO add documentation here
 ///
 /// \returns a dataframe containing the new pairname column
-auto PairSelection(auto df, const std::vector<std::string> input_vector,
-                   const std::string pairname) {
+auto PairSelection(auto &df, const std::vector<std::string> &input_vector,
+                   const std::string &pairname) {
     Logger::get("PairSelection")->debug("Setting up mutau pair building");
     auto df1 = df.Define(pairname, pairselection::mutau::PairSelectionAlgo(),
                          input_vector);

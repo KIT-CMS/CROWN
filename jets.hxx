@@ -19,10 +19,10 @@ namespace jet {
 /// jets and tau candidates
 ///
 /// \return a dataframe containing the new mask
-auto VetoOverlappingJets(auto df, const std::string &output_col,
+auto VetoOverlappingJets(auto &df, const std::string &output_col,
                          const std::string &jet_eta, const std::string &jet_phi,
                          const std::string &p4_1, const std::string &p4_2,
-                         const float deltaRmin) {
+                         const float &deltaRmin) {
     auto df1 = df.Define(
         output_col,
         [deltaRmin](const ROOT::RVec<float> &jet_eta,
@@ -63,7 +63,7 @@ auto VetoOverlappingJets(auto df, const std::string &output_col,
 /// be considered
 ///
 /// \return a dataframe containing a list of jet indices sorted by pt
-auto OrderJetsByPt(auto df, const std::string &output_col,
+auto OrderJetsByPt(auto &df, const std::string &output_col,
                    const std::string &jet_pt, const std::string &jetmask) {
     auto df1 = df.Define(
         output_col,
@@ -101,8 +101,8 @@ namespace jet {
 /// idxID bitvalue of the WP the has to be passed
 ///
 /// \return a dataframe containing the new mask
-auto CutID(auto df, const std::string maskname, const std::string nameID,
-           const int idxID) {
+auto CutID(auto &df, const std::string &maskname, const std::string &nameID,
+           const int &idxID) {
     auto df1 = df.Define(maskname, basefunctions::FilterJetID(idxID), {nameID});
     return df1;
 }
@@ -122,14 +122,14 @@ auto CutID(auto df, const std::string maskname, const std::string nameID,
 /// Down
 ///
 /// \return a dataframe containing the modified jet pts
-auto JetPtCorrection(auto df, const std::string corrected_jet_pt,
-                     const std::string jet_pt, const std::string jet_eta,
-                     const std::string jet_phi, const std::string gen_jet_pt,
-                     const std::string gen_jet_eta,
-                     const std::string gen_jet_phi, const std::string rho,
-                     const std::vector<std::string> energy_shift_sources,
-                     const int energy_shift_state,
-                     const int energy_reso_shift) {
+auto JetPtCorrection(auto &df, const std::string &corrected_jet_pt,
+                     const std::string &jet_pt, const std::string &jet_eta,
+                     const std::string &jet_phi, const std::string &gen_jet_pt,
+                     const std::string &gen_jet_eta,
+                     const std::string &gen_jet_phi, const std::string &rho,
+                     const std::vector<std::string> &energy_shift_sources,
+                     const int &energy_shift_state,
+                     const int &energy_reso_shift) {
     // configure readout tool here and capture it in lambda below
     // dummy lambdas for now:
     std::vector<std::function<float(float, float)>> JetEnergyShiftSources;
@@ -256,8 +256,8 @@ auto JetPtCorrection(auto df, const std::string corrected_jet_pt,
 /// dataframe \param[in] ptThreshold minimal ID value
 ///
 /// \return a dataframe containing the new mask
-auto CutRawID(auto df, const std::string quantity, const std::string maskname,
-              const float idThreshold) {
+auto CutRawID(auto &df, const std::string &quantity, const std::string &maskname,
+              const float &idThreshold) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterMin(idThreshold), {quantity});
     return df1;
@@ -275,7 +275,7 @@ namespace jet {
 /// jets belonging to the collection, its length constitutes the output quantity
 ///
 /// \return a dataframe containing a list of jet indices sorted by pt
-auto NumberOfJets(auto df, const std::string &outputname,
+auto NumberOfJets(auto &df, const std::string &outputname,
                   const std::string &jetcollection) {
     return df.Define(outputname,
                      [](const ROOT::RVec<int> &jetcollection) {

@@ -47,7 +47,7 @@ namespace muon {
  * @param id_arguments arguments of the function
  * @return a new dataframe containing the new column
  */
-auto id(auto df, const std::string &pt, const std::string &eta,
+auto id(auto &df, const std::string &pt, const std::string &eta,
         const std::string &id_output, const std::string &workspace_name,
         const std::string &id_functor_name, const std::string &id_arguments) {
 
@@ -74,7 +74,7 @@ auto id(auto df, const std::string &pt, const std::string &eta,
  * @param iso_arguments arguments of the function
  * @return a new dataframe containing the new column
  */
-auto iso(auto df, const std::string &pt, const std::string &eta,
+auto iso(auto &df, const std::string &pt, const std::string &eta,
          const std::string &iso, const std::string &iso_output,
          const std::string &workspace_name, const std::string &iso_functor_name,
          const std::string &iso_arguments) {

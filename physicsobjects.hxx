@@ -25,8 +25,8 @@ namespace physicsobject {
 /// dataframe \param[in] ptThreshold minimal pt value
 ///
 /// \return a dataframe containing the new mask
-auto CutPt(auto df, const std::string quantity, const std::string maskname,
-           const float ptThreshold) {
+auto CutPt(auto &df, const std::string &quantity, const std::string &maskname,
+           const float &ptThreshold) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterMin(ptThreshold), {quantity});
     return df1;
@@ -40,8 +40,8 @@ auto CutPt(auto df, const std::string quantity, const std::string maskname,
 /// dataframe \param[in] EtaThreshold maximal eta value
 ///
 /// \return a dataframe containing the new mask
-auto CutEta(auto df, const std::string quantity, const std::string maskname,
-            const float EtaThreshold) {
+auto CutEta(auto &df, const std::string &quantity, const std::string &maskname,
+            const float &EtaThreshold) {
     auto df1 = df.Define(maskname, basefunctions::FilterAbsMax(EtaThreshold),
                          {quantity});
     return df1;
@@ -55,8 +55,8 @@ auto CutEta(auto df, const std::string quantity, const std::string maskname,
 /// dataframe \param[in] Threshold maximal Dz value
 ///
 /// \return a dataframe containing the new mask
-auto CutDz(auto df, const std::string quantity, const std::string maskname,
-           const float Threshold) {
+auto CutDz(auto &df, const std::string &quantity, const std::string &maskname,
+           const float &Threshold) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterAbsMax(Threshold), {quantity});
     return df1;
@@ -70,8 +70,8 @@ auto CutDz(auto df, const std::string quantity, const std::string maskname,
 /// dataframe \param[in] Threshold maximal Dxy value
 ///
 /// \return a dataframe containing the new mask
-auto CutDxy(auto df, const std::string quantity, const std::string maskname,
-            const float Threshold) {
+auto CutDxy(auto &df, const std::string &quantity, const std::string &maskname,
+            const float &Threshold) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterAbsMax(Threshold), {quantity});
     return df1;
@@ -88,7 +88,7 @@ auto CutDxy(auto df, const std::string quantity, const std::string maskname,
 ///
 /// \return a dataframe containing the new mask
 template <class... Masks>
-auto CombineMasks(auto df, const std::string &maskname,
+auto CombineMasks(auto &df, const std::string &maskname,
                   const Masks &... masks) {
     auto multiplyMasks = [](const ROOT::RVec<ROOT::RVec<int>> &x) {
         ROOT::RVec<int> result(x[0].size(), 1);
@@ -117,7 +117,7 @@ auto CombineMasks(auto df, const std::string &maskname,
 /// tau candidate to be ignored by mask
 ///
 /// \return a dataframe containing the new mask
-auto VetoCandInMask(auto df, const std::string &outputmaskname,
+auto VetoCandInMask(auto &df, const std::string &outputmaskname,
                     const std::string &inputmaskname,
                     const std::string &ditaupair, const int index) {
     return df.Define(
@@ -139,7 +139,7 @@ auto VetoCandInMask(auto df, const std::string &outputmaskname,
 ///    to be used
 ///
 ///   \return a new df with the events filtered
-auto FilterMasks(auto df, const std::string maskname) {
+auto FilterMasks(auto &df, const std::string &maskname) {
     auto df1 = df.Filter(
         [](const ROOT::RVec<Int_t> &mask) {
             auto result = Any(mask);
@@ -164,7 +164,7 @@ auto FilterMasks(auto df, const std::string maskname) {
 /// \param vetomap the name of the column containing the vetomap to be used
 ///
 /// \return a new df containing the veto flag column
-auto LeptonVetoFlag(auto df, const std::string &outputname,
+auto LeptonVetoFlag(auto &df, const std::string &outputname,
                     const std::string &vetomap) {
     return df.Define(outputname,
                      [](const ROOT::RVec<int> &mask) {
@@ -182,10 +182,10 @@ auto LeptonVetoFlag(auto df, const std::string &outputname,
 /// pts
 ///
 /// \return a dataframe containing the modified object masses
-auto ObjectMassCorrectionWithPt(auto df, const std::string corrected_mass,
-                                const std::string raw_mass,
-                                const std::string raw_pt,
-                                const std::string corrected_pt) {
+auto ObjectMassCorrectionWithPt(auto &df, const std::string &corrected_mass,
+                                const std::string &raw_mass,
+                                const std::string &raw_pt,
+                                const std::string &corrected_pt) {
     auto mass_correction_lambda =
         [](const ROOT::RVec<float> &mass_values,
            const ROOT::RVec<float> &pt_values,
@@ -217,13 +217,13 @@ auto ObjectMassCorrectionWithPt(auto df, const std::string corrected_mass,
 /// dR_cut minimum required angular distance between the leptons
 ///
 /// \return a dataframe containing the modified object masses
-auto CheckForDiLeptonPairs(auto df, const std::string output_flag,
-                           const std::string leptons_pt,
-                           const std::string leptons_eta,
-                           const std::string leptons_phi,
-                           const std::string leptons_mass,
-                           const std::string leptons_charge,
-                           const std::string leptons_mask, const float dR_cut) {
+auto CheckForDiLeptonPairs(auto &df, const std::string &output_flag,
+                           const std::string &leptons_pt,
+                           const std::string &leptons_eta,
+                           const std::string &leptons_phi,
+                           const std::string &leptons_mass,
+                           const std::string &leptons_charge,
+                           const std::string &leptons_mask, const float dR_cut) {
     auto pair_finder_lambda = [dR_cut](const ROOT::RVec<float> &pt_values,
                                        const ROOT::RVec<float> &eta_values,
                                        const ROOT::RVec<float> &phi_values,
@@ -263,7 +263,7 @@ namespace muon {
 /// dataframe \param[in] nameID name of the ID column in the NanoAOD
 ///
 /// \return a dataframe containing the new mask
-auto CutID(auto df, const std::string maskname, const std::string nameID) {
+auto CutID(auto &df, const std::string &maskname, const std::string &nameID) {
     auto df1 = df.Define(
         maskname,
         [](const ROOT::RVec<Bool_t> &id) { return (ROOT::RVec<int>)id; },
@@ -279,8 +279,8 @@ auto CutID(auto df, const std::string maskname, const std::string nameID) {
 /// dataframe \param[in] Threshold maximal isolation threshold
 ///
 /// \return a dataframe containing the new mask
-auto CutIsolation(auto df, const std::string maskname,
-                  const std::string isolationName, const float Threshold) {
+auto CutIsolation(auto &df, const std::string &maskname,
+                  const std::string &isolationName, const float &Threshold) {
     auto df1 = df.Define(maskname, basefunctions::FilterMax(Threshold),
                          {isolationName});
     return df1;
@@ -298,9 +298,9 @@ namespace tau {
 /// decay modes, that should pass the cut
 ///
 /// \return a dataframe containing the new mask
-auto CutDecayModes(auto df, const std::string maskname,
-                   const std::string tau_dms,
-                   const std::vector<int> SelectedDecayModes) {
+auto CutDecayModes(auto &df, const std::string &maskname,
+                   const std::string &tau_dms,
+                   const std::vector<int> &SelectedDecayModes) {
     auto df1 = df.Define(
         maskname,
         [SelectedDecayModes](const ROOT::RVec<Int_t> &decaymodes) {
@@ -323,8 +323,8 @@ auto CutDecayModes(auto df, const std::string maskname,
 /// idxID bitvalue of the WP the has to be passed
 ///
 /// \return a dataframe containing the new mask
-auto CutTauID(auto df, const std::string maskname, const std::string nameID,
-              const int idxID) {
+auto CutTauID(auto &df, const std::string &maskname, const std::string &nameID,
+              const int &idxID) {
     auto df1 = df.Define(maskname, basefunctions::FilterID(idxID), {nameID});
     return df1;
 }
@@ -340,10 +340,10 @@ auto CutTauID(auto df, const std::string maskname, const std::string nameID,
 /// name of the tau decay mode quantity
 ///
 /// \return a dataframe containing the new mask
-auto PtCorrection(auto df, const std::string corrected_pt, const std::string pt,
-                  const std::string decayMode, const float sf_dm0,
-                  const float sf_dm1, const float sf_dm10,
-                  const float sf_dm11) {
+auto PtCorrection(auto &df, const std::string &corrected_pt, const std::string &pt,
+                  const std::string &decayMode, const float &sf_dm0,
+                  const float &sf_dm1, const float &sf_dm10,
+                  const float &sf_dm11) {
     auto tau_pt_correction_lambda =
         [sf_dm0, sf_dm1, sf_dm10, sf_dm11](const ROOT::RVec<float> &pt_values,
                                            const ROOT::RVec<int> &decay_modes) {
@@ -377,7 +377,7 @@ namespace electron {
 /// dataframe \param[in] nameID name of the ID column in the NanoAOD
 ///
 /// \return a dataframe containing the new mask
-auto CutID(auto df, const std::string maskname, const std::string nameID) {
+auto CutID(auto &df, const std::string &maskname, const std::string &nameID) {
     auto df1 = df.Define(
         maskname,
         [](const ROOT::RVec<Bool_t> &id) { return (ROOT::RVec<int>)id; },
@@ -391,8 +391,8 @@ auto CutID(auto df, const std::string maskname, const std::string nameID) {
 /// IDvalue value of the WP the has to be passed
 ///
 /// \return a dataframe containing the new mask
-auto CutCBID(auto df, const std::string maskname, const std::string nameID,
-             const int IDvalue) {
+auto CutCBID(auto &df, const std::string &maskname, const std::string &nameID,
+             const int &IDvalue) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterMinInt(IDvalue), {nameID});
     return df1;
@@ -406,8 +406,8 @@ auto CutCBID(auto df, const std::string maskname, const std::string nameID,
 /// dataframe \param[in] Threshold maximal isolation threshold
 ///
 /// \return a dataframe containing the new mask
-auto CutIsolation(auto df, const std::string maskname,
-                  const std::string isolationName, const float Threshold) {
+auto CutIsolation(auto &df, const std::string &maskname,
+                  const std::string &isolationName, const float &Threshold) {
     auto df1 = df.Define(maskname, basefunctions::FilterMax(Threshold),
                          {isolationName});
     return df1;
