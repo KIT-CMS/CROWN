@@ -37,39 +37,39 @@ args = parser.parse_args()
 # data
 
 executables = []
+eras = ["2017"]
 sample_groups = ["emb"]
-for sample_group in sample_groups:
-    ## setup logging
-    if not path.exists("generation_logs"):
-        makedirs("generation_logs")
-    handler = logging.handlers.WatchedFileHandler(
-        "generation_logs/generation_{sample}.log".format(sample=sample_group), "w"
-    )
-    terminal_handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
-    terminal_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
-    root = logging.getLogger()
-    root.setLevel("INFO")
-    if args.debug != "false":
-        root.setLevel("DEBUG")
-    root.addHandler(handler)
-    root.addHandler(terminal_handler)
+for era in eras:
+    for sample_group in sample_groups:
+        ## setup logging
+        if not path.exists("generation_logs"):
+            makedirs("generation_logs")
+        handler = logging.handlers.WatchedFileHandler(
+            "generation_logs/generation_{sample}.log".format(sample=sample_group), "w"
+        )
+        terminal_handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+        terminal_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+        root = logging.getLogger()
+        root.setLevel("INFO")
+        if args.debug != "false":
+            root.setLevel("DEBUG")
+        root.addHandler(handler)
+        root.addHandler(terminal_handler)
 
-    ### Setting up executable
-    executable = f"analysis_{sample_group}.cxx"
-    analysis = importlib.import_module("config." + args.analysis)
-    root.info("Generating code for {}...".format(sample_group))
-    root.info("Configuration used: {}".format(analysis))
-    config = analysis.build_config()
-    # modify config according to args
-    # ...
-    # fill code template and write executable
-    with open(args.template, "r") as template_file:
-        template = template_file.read()
-    template = fill_template(template, config)
-    with open(executable, "w") as executable_file:
-        executable_file.write(template)
-    executables.append(executable)
+        ### Setting up executable
+        executable = f"analysis_{sample_group}_{era}.cxx"
+        analysis = importlib.import_module("config." + args.analysis)
+        root.info("Generating code for {}...".format(sample_group))
+        root.info("Configuration used: {}".format(analysis))
+        config = analysis.build_config(era, sample_group)
+        # fill code template and write executable
+        with open(args.template, "r") as template_file:
+            template = template_file.read()
+        template = fill_template(template, config)
+        with open(executable, "w") as executable_file:
+            executable_file.write(template)
+        executables.append(executable)
 
 with open(path.join(args.output, "files.txt"), "w") as f:
     for filename in executables:

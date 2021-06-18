@@ -8,10 +8,16 @@ from code_generation.producers.pairquantities import *
 from code_generation.producers.event import *
 from code_generation.producers.scalefactors import *
 import code_generation.quantities.output as q
-from config.utility import AddSystematicShift
+from config.utility import (
+    AddSystematicShift,
+    ResolveSampleDependencies,
+    ResolveEraDependencies,
+    Prod_Remove,
+    Prod_Append,
+)
 
 
-def build_config():
+def build_config(era, sample):
     base_config = {
         "global": {
             "RunLumiEventFilter_Quantities": ["event"],
@@ -112,6 +118,10 @@ def build_config():
         ],
     }
 
+    config["producer_mods"] = [
+        Prod_Remove(producers=[MuonIDIso_SF], samples=["data"], scopes=["mt"])
+    ]
+
     config["output"] = {
         "mt": [
             nanoAOD.run,
@@ -171,6 +181,11 @@ def build_config():
             q.isoWeight_1,
         ]
     }
+
+    for mod in config["producer_mods"]:
+        mod.apply(sample, config["producers"], config["output"])
+    ResolveSampleDependencies(config, sample)
+    ResolveEraDependencies(config, era)
 
     AddSystematicShift(
         config,
