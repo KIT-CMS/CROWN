@@ -104,3 +104,9 @@ isoWeight_1 = Quantity("isoWeight_1")
 isoWeight_2 = Quantity("isoWeight_2")
 idWeight_1 = Quantity("idWeight_1")
 idWeight_2 = Quantity("idWeight_2")
+
+# Triggerflags
+
+singlemuon_24 = Quantity("singlemuon_24")
+singlemuon_27 = Quantity("singlemuon_27")
+trg_crossmuon_mu20tau27_hps = Quantity("trg_crossmuon_mu20tau27_hps")
