@@ -31,6 +31,15 @@ Scalefactors
 .. doxygennamespace:: scalefactor
    :members:
 
+Jets
+***************
+.. doxygennamespace:: jet
+   :members:
+
+Trigger
+***************
+.. doxygennamespace:: trigger
+   :members:
 
 Lorentzvectors
 ***************
