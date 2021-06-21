@@ -48,8 +48,5 @@ MuTauTriggerFlags = ProducerGroup(
     input=None,
     output=None,
     scopes=["mt"],
-    subproducers=[
-        GenerateSingleMuonTriggerFlags,
-        GenerateCrossTriggerFlags
-    ],
+    subproducers=[GenerateSingleMuonTriggerFlags, GenerateCrossTriggerFlags],
 )

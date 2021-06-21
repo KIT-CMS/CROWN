@@ -216,9 +216,9 @@ def build_config(era, sample):
             q.gen_taujet_pt_2,
             q.idWeight_1,
             q.isoWeight_1,
-            # q.singlemuon_24,
-            # q.singlemuon_27,
-            q.trg_crossmuon_mu20tau27_hps
+            q.singlemuon_24,
+            q.singlemuon_27,
+            q.trg_crossmuon_mu20tau27_hps,
         ]
     }
 
