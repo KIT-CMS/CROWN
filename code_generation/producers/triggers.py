@@ -12,7 +12,7 @@ from code_generation.producer import (
 ####################
 
 GenerateSingleMuonTriggerFlags = TriggerVectorProducer(
-    name="GenerateTriggerFlags",
+    name="GenerateSingleMuonTriggerFlags",
     call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
     input=[
         q.p4_1,
@@ -27,8 +27,8 @@ GenerateSingleMuonTriggerFlags = TriggerVectorProducer(
     vec_config="singlemoun_trigger",
 )
 GenerateCrossTriggerFlags = TriggerVectorProducer(
-    name="GenerateTriggerFlags",
-    call='trigger::GenerateCrossTriggerFlag({df}, {output}, {input}, "{hlt_path}", "{p1_ptcut}", "{p2_ptcut}", "{p1_etacut}", "{p2_etacut}", "{p1_filterbit}", "{p1_trigger_particle_id}", "{p2_filterbit}", "{p2_trigger_particle_id}", "{max_deltaR_triggermatch}")',
+    name="GenerateCrossTriggerFlags",
+    call='trigger::GenerateDoubleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {p1_ptcut}, {p2_ptcut}, {p1_etacut}, {p2_etacut}, {p1_trigger_particle_id}, {p2_trigger_particle_id}, {p1_filterbit}, {p2_filterbit}, {max_deltaR_triggermatch})',
     input=[
         q.p4_1,
         q.p4_2,
@@ -50,6 +50,6 @@ MuTauTriggerFlags = ProducerGroup(
     scopes=["mt"],
     subproducers=[
         GenerateSingleMuonTriggerFlags,
-        # GenerateCrossTriggerFlags
+        GenerateCrossTriggerFlags
     ],
 )

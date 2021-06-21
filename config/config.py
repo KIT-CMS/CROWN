@@ -75,7 +75,7 @@ def build_config(era, sample):
                     "hlt_path": "HLT_IsoMu24",
                     "ptcut": 25,
                     "etacut": 2.5,
-                    "filterbit": 8,
+                    "filterbit": 4,
                     "trigger_particle_id": 13,
                     "max_deltaR_triggermatch": 0.4,
                 },
@@ -84,26 +84,26 @@ def build_config(era, sample):
                     "hlt_path": "HLT_IsoMu27",
                     "ptcut": 28,
                     "etacut": 2.5,
-                    "filterbit": 8,
+                    "filterbit": 4,
                     "trigger_particle_id": 13,
                     "max_deltaR_triggermatch": 0.4,
                 },
             ],
-            # "cross_trigger": [
-            #     {
-            #         "flagname": q.trg_crossmuon_mu20tau27_hps,
-            #         "hlt_path": "HLT_IsoMu20_eta2p1_LooseChargedIsoPFTauHPS27_eta2p1_CrossL1",
-            #         "p1_ptcut": 21,
-            #         "p2_ptcut": 28,
-            #         "p1_etacut": 2.5,
-            #         "p2_etacut": 2.1,
-            #         "p1_filterbit": 8,
-            #         "p1_trigger_particle_id": 13,
-            #         "p2_filterbit": 256,
-            #         "p2_trigger_particle_id": 15,
-            #         "max_deltaR_triggermatch": 0.4,
-            #     }
-            # ],
+            "cross_trigger": [
+                {
+                    "flagname": q.trg_crossmuon_mu20tau27_hps,
+                    "hlt_path": "HLT_IsoMu20_eta2p1_LooseChargedIsoPFTauHPS27_eta2p1_CrossL1",
+                    "p1_ptcut": 21,
+                    "p2_ptcut": 32,
+                    "p1_etacut": 2.5,
+                    "p2_etacut": 2.1,
+                    "p1_filterbit": 4,
+                    "p1_trigger_particle_id": 13,
+                    "p2_filterbit": 0,
+                    "p2_trigger_particle_id": 15,
+                    "max_deltaR_triggermatch": 0.4,
+                }
+            ],
             "mu_idx": 0,
             "min_muon_pt": 23.0,
             "max_muon_eta": 2.1,
@@ -216,8 +216,9 @@ def build_config(era, sample):
             q.gen_taujet_pt_2,
             q.idWeight_1,
             q.isoWeight_1,
-            q.singlemuon_24,
-            q.singlemuon_27,
+            # q.singlemuon_24,
+            # q.singlemuon_27,
+            q.trg_crossmuon_mu20tau27_hps
         ]
     }
 
