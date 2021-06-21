@@ -129,9 +129,18 @@ class Producer:
         config[shift][scope]["df"] = "{df}"
         config[shift][scope]["vec_open"] = "{vec_open}"
         config[shift][scope]["vec_close"] = "{vec_close}"
-        return self.call.format(
-            **config[shift][scope]
-        )  # use format (not format_map here) such that missing config entries cause an error
+        try:
+            return self.call.format(
+                **config[shift][scope]
+            )  # use format (not format_map here) such that missing config entries cause an error
+        except KeyError as e:
+            log.error(
+                "Error in {} Produer, key {} is not found in configuration".format(
+                    self.name, e
+                )
+            )
+            log.error("Call: {}".format(self.call))
+            raise Exception
 
     def writecalls(self, config, scope):
         if scope not in self.scopes:
@@ -196,6 +205,49 @@ class VectorProducer(Producer):
         return calls
 
 
+class TriggerVectorProducer(Producer):
+    def __init__(self, name, call, input, output, scope, vec_config):
+        self.name = name
+        # we create a temporary quantity and assign it correctly during the writecalls() step
+        self.output = [q.Quantity("temp")]
+        self.outputname = output
+        self.vec_config = vec_config
+        if len(scope) != 1:
+            log.error("TriggerVectorProducer can only use one scope per instance !")
+            raise Exception
+        super().__init__(name, call, input, self.output, scope)
+
+    def writecalls(self, config, scope):
+        n_versions = len(config[""][scope][self.vec_config])
+        quantity = self.output[0]
+        log.debug("Number of trigger producers to be created {}".format(n_versions))
+        self.output = []
+        for i in range(n_versions):
+            self.output.append(
+                quantity.copy(
+                    config[""][scope][self.vec_config][i][self.outputname].name
+                )
+            )
+        basecall = self.call
+        calls = []
+        shifts = [""]
+        shifts.extend(self.output[0].get_shifts(scope))
+        for shift in shifts:
+            for i in range(n_versions):
+                # the information for the producer is directly read from the configuration
+                helper_dict = config[shift][scope][self.vec_config][i]
+                helper_dict["output"] = (
+                    '"' + self.output[i].get_leaf(shift, scope) + '"'
+                )
+                helper_dict["output_vec"] = (
+                    '{"' + self.output[i].get_leaf(shift, scope) + '"}'
+                )
+                self.call = basecall.format_map(SafeDict(helper_dict))
+                calls.append(self.writecall(config, scope, shift))
+        self.call = basecall
+        return calls
+
+
 class BaseFilter(Producer):
     def __init__(self, name, call, input, scopes):
         super().__init__(name, call, input, None, scopes)
@@ -227,7 +279,7 @@ class ProducerGroup:
         self.output = output
         self.producers = subproducers
         self.scopes = scopes
-        # if input not given as dict and therfore not scope specific transform into dict with all scopes
+        # if input not given as dict and therefore not scope specific transform into dict with all scopes
         if not isinstance(self.input, dict):
             inputdict = {}
             for scope in self.scopes:

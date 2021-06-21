@@ -56,3 +56,10 @@ GenParticle_phi = NanoAODQuantity("GenPart_phi")
 GenParticle_pt = NanoAODQuantity("GenPart_pt")
 GenParticle_mass = NanoAODQuantity("GenPart_mass")
 GenParticle_pdgId = NanoAODQuantity("GenPart_pdgId")
+
+## Trigger Objects
+TriggerObject_bit = NanoAODQuantity("TrigObj_filterBits")
+TriggerObject_pt = NanoAODQuantity("TrigObj_pt")
+TriggerObject_eta = NanoAODQuantity("TrigObj_eta")
+TriggerObject_phi = NanoAODQuantity("TrigObj_phi")
+TriggerObject_id = NanoAODQuantity("TrigObj_id")
