@@ -3,6 +3,7 @@
 EXECUTABLE=$1
 INPUTFILE=$2
 OUTPUTFILE=$3
+GRAPHNAME=$4
 
 # Record samples with perf
 # perf record -g $EXECUTABLE
@@ -16,4 +17,7 @@ perl stackcollapse-perf.pl out.perf > out.folded
 
 # Generate the flamegraph
 curl -OLs ${BASE_URL}/flamegraph.pl > flamegraph.pl
-perl flamegraph.pl out.folded > flamegraph.svg
+perl flamegraph.pl out.folded > flamegraph_${GRAPHNAME}.svg
+
+#cleanup
+rm out.perf out.folded perf.data perf.data.old
