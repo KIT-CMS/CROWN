@@ -9,6 +9,7 @@
 #include "physicsobjects.hxx"
 #include "quantities.hxx"
 #include "scalefactors.hxx"
+#include "triggers.hxx"
 #include "utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
 #include <string>
@@ -31,7 +32,7 @@ int main(int argc, char *argv[]) {
 
     TStopwatch timer;
     timer.Start();
-
+    ROOT::EnableImplicitMT(1); //
     // ROOT logging
     auto verbosity = ROOT::Experimental::RLogScopedVerbosity(
         ROOT::Detail::RDF::RDFLogChannel(),
