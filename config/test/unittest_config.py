@@ -7,12 +7,20 @@ from code_generation.producers.pairselection import *
 from code_generation.producers.pairquantities import *
 from code_generation.producers.event import *
 from code_generation.producers.scalefactors import *
-from code_generation.producers.triggers import *
+
+# triggers do not work with the unittest as no HLT flags are included
+# from code_generation.producers.triggers import *
 import code_generation.quantities.output as q
-from config.utility import AddSystematicShift
+from config.utility import (
+    AddSystematicShift,
+    ResolveSampleDependencies,
+    ResolveEraDependencies,
+    RemoveProducer,
+    AppendProducer,
+)
 
 
-def build_config():
+def build_config(era, sample):
     base_config = {
         "global": {
             "RunLumiEventFilter_Quantities": ["event"],
@@ -55,43 +63,14 @@ def build_config():
             "tau_ES_shift_DM1": 1.0,
             "tau_ES_shift_DM10": 1.0,
             "tau_ES_shift_DM11": 1.0,
+            "min_dielectronveto_pt": 15.0,
+            "dielectronveto_id": "Electron_cutBased",
+            "dielectronveto_id_wp": 1,
+            "min_dimuonveto_pt": 15.0,
+            "dimuonveto_id": "Muon_looseId",
+            "dileptonveto_dR": 0.15,
         },
         "mt": {
-            "singlemoun_trigger": [
-                {
-                    "flagname": "singlemuon_24",
-                    "hlt_path": "HLT_IsoMu24",
-                    "ptcut": 25,
-                    "etacut": 2.5,
-                    "filterbit": 4,
-                    "trigger_particle_id": 13,
-                    "max_deltaR_triggermatch": 0.4,
-                },
-                {
-                    "flagname": "singlemuon_27",
-                    "hlt_path": "HLT_IsoMu27",
-                    "ptcut": 28,
-                    "etacut": 2.5,
-                    "filterbit": 4,
-                    "trigger_particle_id": 13,
-                    "max_deltaR_triggermatch": 0.4,
-                },
-            ],
-            "cross_trigger": [
-                {
-                    "flagname": "trg_crossmuon_mu20tau27_hps",
-                    "hlt_path": "HLT_IsoMu20_eta2p1_LooseChargedIsoPFTauHPS27_eta2p1_CrossL1",
-                    "p1_ptcut": 21,
-                    "p2_ptcut": 32,
-                    "p1_etacut": 2.5,
-                    "p2_etacut": 2.1,
-                    "p1_filterbit": 4,
-                    "p1_trigger_particle_id": 13,
-                    "p2_filterbit": 0,
-                    "p2_trigger_particle_id": 15,
-                    "max_deltaR_triggermatch": 0.4,
-                }
-            ],
             "mu_idx": 0,
             "min_muon_pt": 23.0,
             "max_muon_eta": 2.1,
@@ -118,6 +97,7 @@ def build_config():
             GoodTaus,
             BaseMuons,
             BaseElectrons,
+            DiLeptonVeto,
             JetEnergyCorrection,
             GoodJets,
             GoodBJets,
@@ -138,10 +118,12 @@ def build_config():
             BasicBJetQuantities,
             GenDiTauPairQuantities,
             MuonIDIso_SF,
-            GenerateSingleMuonTriggerFlags,
-            GenerateCrossTriggerFlags,
         ],
     }
+
+    config["producer_modifiers"] = [
+        RemoveProducer(producers=[MuonIDIso_SF], samples=["data"], scopes=["mt"])
+    ]
 
     config["output"] = {
         "mt": [
@@ -165,6 +147,7 @@ def build_config():
             q.m_vis,
             q.electron_veto_flag,
             q.muon_veto_flag,
+            q.dimuon_veto,
             q.nbtag,
             q.bpt_1,
             q.bpt_2,
@@ -199,10 +182,13 @@ def build_config():
             q.gen_taujet_pt_2,
             q.idWeight_1,
             q.isoWeight_1,
-            GenerateSingleMuonTriggerFlags.outputQuantities,
-            GenerateCrossTriggerFlags.outputQuantities,
         ]
     }
+
+    for modifier in config["producer_modifiers"]:
+        modifier.apply(sample, config["producers"], config["output"])
+    ResolveSampleDependencies(config, sample)
+    ResolveEraDependencies(config, era)
 
     AddSystematicShift(
         config,
