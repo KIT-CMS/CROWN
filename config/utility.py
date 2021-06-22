@@ -3,7 +3,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-
+# Function for introducing systematic variations to producers and depending quantities
 def AddSystematicShift(
     config, name, change_dict, base_producers, sanetize_producers=[]
 ):
@@ -18,6 +18,7 @@ def AddSystematicShift(
         producer[0].shift(name, producer[1])
 
 
+# Function for resolving sample dependencies in the config dict for a given sample
 def ResolveSampleDependencies(config, sample):
     for key in config.keys():
         if isinstance(config[key], dict):
@@ -31,6 +32,7 @@ def ResolveSampleDependencies(config, sample):
                 ResolveSampleDependencies(config[key], sample)
 
 
+# Function for resolving era dependencies in the config dict for a given era
 def ResolveEraDependencies(config, era):
     for key in config.keys():
         if isinstance(config[key], dict):
@@ -44,6 +46,7 @@ def ResolveEraDependencies(config, era):
                 ResolveEraDependencies(config[key], era)
 
 
+# Helper function to retrieve all quantities produced by a producer or producer group
 def CollectProducerOutput(producer):
     output = []
     if producer.output != None:
@@ -57,6 +60,7 @@ def CollectProducerOutput(producer):
     return output
 
 
+# Base class of modifiers that are used to apply sample specific modifications to the producer lists
 class ProducerRule:
     def __init__(self, producers, samples, scopes, invert=False, update_output=True):
         self.producers = producers
@@ -65,16 +69,19 @@ class ProducerRule:
         self.invert = invert
         self.update_output = update_output
 
+    # Evaluate whether modification should be applied depending on sample and inversion flag
     def applicable(self, sample):
         applicable = sample in self.samples
         if self.invert:
             applicable = not applicable
         return applicable
 
+    # Placeholder for the actual operation on a list. To be overwritten by inheriting classes
     def operate(self, item, item_list):
         log.error("Operation not implemented for ProducerRule base class!")
         raise Exception
 
+    # Method to be called at the level of config generation in order to evaluate conditions and apply the modification
     def apply(self, sample, producer_dict, output_dict=None):
         if self.applicable(sample):
             for scope in self.scopes:
@@ -85,11 +92,13 @@ class ProducerRule:
                             self.operate(q, output_dict[scope])
 
 
+# Modifier class that can remove producers from lists
 class RemoveProducer(ProducerRule):
     def operate(self, item, item_list):
         item_list.remove(item)
 
 
+# Modifier class that can append producers to lists
 class AppendProducer(ProducerRule):
     def operate(self, item, item_list):
         item_list.append(item)
