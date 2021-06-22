@@ -11,7 +11,7 @@ on:
 # Settings go here!
 env:
   BUILD_TYPE: Release
-  ANALYSIS: config
+  ANALYSIS: test.unittest_config
   SAMPLES: foo
 
 jobs:
