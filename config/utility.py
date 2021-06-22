@@ -85,11 +85,11 @@ class ProducerRule:
                             self.operate(q, output_dict[scope])
 
 
-class Prod_Remove(ProducerRule):
+class RemoveProducer(ProducerRule):
     def operate(self, item, item_list):
         item_list.remove(item)
 
 
-class Prod_Append(ProducerRule):
+class AppendProducer(ProducerRule):
     def operate(self, item, item_list):
         item_list.append(item)
