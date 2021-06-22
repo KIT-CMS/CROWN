@@ -37,7 +37,7 @@ args = parser.parse_args()
 # data
 
 executables = []
-eras = ["2017"]
+eras = ["2018"]
 sample_groups = ["emb"]
 for era in eras:
     for sample_group in sample_groups:

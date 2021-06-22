@@ -69,41 +69,45 @@ def build_config(era, sample):
             "dileptonveto_dR": 0.15,
         },
         "mt": {
-            "singlemoun_trigger": [
-                {
-                    "flagname": "singlemuon_24",
-                    "hlt_path": "HLT_IsoMu24",
-                    "ptcut": 25,
-                    "etacut": 2.5,
-                    "filterbit": 4,
-                    "trigger_particle_id": 13,
-                    "max_deltaR_triggermatch": 0.4,
-                },
-                {
-                    "flagname": "singlemuon_27",
-                    "hlt_path": "HLT_IsoMu27",
-                    "ptcut": 28,
-                    "etacut": 2.5,
-                    "filterbit": 4,
-                    "trigger_particle_id": 13,
-                    "max_deltaR_triggermatch": 0.4,
-                },
-            ],
-            "cross_trigger": [
-                {
-                    "flagname": "trg_crossmuon_mu20tau27_hps",
-                    "hlt_path": "HLT_IsoMu20_eta2p1_LooseChargedIsoPFTauHPS27_eta2p1_CrossL1",
-                    "p1_ptcut": 21,
-                    "p2_ptcut": 32,
-                    "p1_etacut": 2.5,
-                    "p2_etacut": 2.1,
-                    "p1_filterbit": 4,
-                    "p1_trigger_particle_id": 13,
-                    "p2_filterbit": 0,
-                    "p2_trigger_particle_id": 15,
-                    "max_deltaR_triggermatch": 0.4,
-                }
-            ],
+            "singlemoun_trigger": {
+                "ERA_2018": [
+                    {
+                        "flagname": "singlemuon_24",
+                        "hlt_path": "HLT_IsoMu24",
+                        "ptcut": 25,
+                        "etacut": 2.5,
+                        "filterbit": 4,
+                        "trigger_particle_id": 13,
+                        "max_deltaR_triggermatch": 0.4,
+                    },
+                    {
+                        "flagname": "singlemuon_27",
+                        "hlt_path": "HLT_IsoMu27",
+                        "ptcut": 28,
+                        "etacut": 2.5,
+                        "filterbit": 4,
+                        "trigger_particle_id": 13,
+                        "max_deltaR_triggermatch": 0.4,
+                    },
+                ],
+            },
+            "cross_trigger": {
+                "ERA_2018": [
+                    {
+                        "flagname": "trg_crossmuon_mu20tau27_hps",
+                        "hlt_path": "HLT_IsoMu20_eta2p1_LooseChargedIsoPFTauHPS27_eta2p1_CrossL1",
+                        "p1_ptcut": 21,
+                        "p2_ptcut": 32,
+                        "p1_etacut": 2.5,
+                        "p2_etacut": 2.1,
+                        "p1_filterbit": 4,
+                        "p1_trigger_particle_id": 13,
+                        "p2_filterbit": 0,
+                        "p2_trigger_particle_id": 15,
+                        "max_deltaR_triggermatch": 0.4,
+                    }
+                ],
+            },
             "mu_idx": 0,
             "min_muon_pt": 23.0,
             "max_muon_eta": 2.1,
