@@ -62,6 +62,8 @@ class Quantity:
         copy = Quantity(name)
         copy.shifts = self.shifts
         copy.children = self.children
+        copy.ignored_shifts = self.ignored_shifts
+        copy.defined_for_scopes = self.defined_for_scopes
         return copy
 
     def adopt(self, child, scope):
@@ -86,6 +88,36 @@ class Quantity:
             return list(self.shifts[scope])
         else:
             return []
+
+
+class QuantityGroup(Quantity):
+    # A Quantity Group is a group of quantities, that all have the same settings, but different names.
+    def __init__(self, name):
+        super().__init__(name)
+        self.quantities = []
+
+    def copy(self, name):
+        log.error("Copy is not allowed for a Quantity Group !")
+        raise Exception
+
+    def add(self, name):
+        # add a new Quantity to the group. This quantity contains the identical shifts as the group itself
+        quantity = Quantity(name)
+        quantity.shifts = self.shifts
+        quantity.children = self.children
+        quantity.ignored_shifts = self.ignored_shifts
+        quantity.defined_for_scopes = self.defined_for_scopes
+        self.quantities.append(quantity)
+
+    def get_leafs_of_scope(self, scope):
+        # For the writeout, we have to loop over all quantities in the group and return them all (plus their shifts) in a list
+        output = []
+        for quantity in self.quantities:
+            output.extend(
+                [quantity.name]
+                + [quantity.name + shift for shift in quantity.get_shifts(scope)]
+            )
+        return output
 
 
 class NanoAODQuantity(Quantity):
