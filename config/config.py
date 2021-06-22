@@ -71,7 +71,7 @@ def build_config(era, sample):
         "mt": {
             "singlemoun_trigger": [
                 {
-                    "flagname": q.singlemuon_24,
+                    "flagname": "singlemuon_24",
                     "hlt_path": "HLT_IsoMu24",
                     "ptcut": 25,
                     "etacut": 2.5,
@@ -80,7 +80,7 @@ def build_config(era, sample):
                     "max_deltaR_triggermatch": 0.4,
                 },
                 {
-                    "flagname": q.singlemuon_27,
+                    "flagname": "singlemuon_27",
                     "hlt_path": "HLT_IsoMu27",
                     "ptcut": 28,
                     "etacut": 2.5,
@@ -91,7 +91,7 @@ def build_config(era, sample):
             ],
             "cross_trigger": [
                 {
-                    "flagname": q.trg_crossmuon_mu20tau27_hps,
+                    "flagname": "trg_crossmuon_mu20tau27_hps",
                     "hlt_path": "HLT_IsoMu20_eta2p1_LooseChargedIsoPFTauHPS27_eta2p1_CrossL1",
                     "p1_ptcut": 21,
                     "p2_ptcut": 32,
@@ -151,7 +151,8 @@ def build_config(era, sample):
             BasicBJetQuantities,
             GenDiTauPairQuantities,
             MuonIDIso_SF,
-            MuTauTriggerFlags,
+            GenerateSingleMuonTriggerFlags,
+            GenerateCrossTriggerFlags,
         ],
     }
 
@@ -216,9 +217,8 @@ def build_config(era, sample):
             q.gen_taujet_pt_2,
             q.idWeight_1,
             q.isoWeight_1,
-            q.singlemuon_24,
-            q.singlemuon_27,
-            q.trg_crossmuon_mu20tau27_hps,
+            GenerateSingleMuonTriggerFlags.outputQuantities,
+            GenerateCrossTriggerFlags.outputQuantities,
         ]
     }
 

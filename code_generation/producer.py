@@ -208,8 +208,9 @@ class VectorProducer(Producer):
 class TriggerVectorProducer(Producer):
     def __init__(self, name, call, input, output, scope, vec_config):
         self.name = name
-        # we create a temporary quantity and assign it correctly during the writecalls() step
-        self.output = [q.Quantity("temp")]
+        # we create a Quantity Group, which is updated during the writecalls() step
+        self.output = [q.QuantityGroup(name)]
+        self.outputQuantities = self.output[0]
         self.outputname = output
         self.vec_config = vec_config
         if len(scope) != 1:
@@ -219,28 +220,30 @@ class TriggerVectorProducer(Producer):
 
     def writecalls(self, config, scope):
         n_versions = len(config[""][scope][self.vec_config])
-        quantity = self.output[0]
         log.debug("Number of trigger producers to be created {}".format(n_versions))
-        self.output = []
         for i in range(n_versions):
-            self.output.append(
-                quantity.copy(
-                    config[""][scope][self.vec_config][i][self.outputname].name
-                )
+            self.outputQuantities.add(
+                config[""][scope][self.vec_config][i][self.outputname]
             )
+            # we also have to replace the quantity in the output scope list
+            config["output"][scope]
         basecall = self.call
         calls = []
         shifts = [""]
-        shifts.extend(self.output[0].get_shifts(scope))
+        shifts.extend(self.outputQuantities.get_shifts(scope))
         for shift in shifts:
             for i in range(n_versions):
                 # the information for the producer is directly read from the configuration
                 helper_dict = config[shift][scope][self.vec_config][i]
                 helper_dict["output"] = (
-                    '"' + self.output[i].get_leaf(shift, scope) + '"'
+                    '"'
+                    + self.outputQuantities.quantities[i].get_leaf(shift, scope)
+                    + '"'
                 )
                 helper_dict["output_vec"] = (
-                    '{"' + self.output[i].get_leaf(shift, scope) + '"}'
+                    '{"'
+                    + self.outputQuantities.quantities[i].get_leaf(shift, scope)
+                    + '"}'
                 )
                 self.call = basecall.format_map(SafeDict(helper_dict))
                 calls.append(self.writecall(config, scope, shift))

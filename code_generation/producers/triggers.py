@@ -42,11 +42,3 @@ GenerateCrossTriggerFlags = TriggerVectorProducer(
     scope=["mt"],
     vec_config="cross_trigger",
 )
-MuTauTriggerFlags = ProducerGroup(
-    name="MuTauTriggerFlags",
-    call=None,
-    input=None,
-    output=None,
-    scopes=["mt"],
-    subproducers=[GenerateSingleMuonTriggerFlags, GenerateCrossTriggerFlags],
-)
