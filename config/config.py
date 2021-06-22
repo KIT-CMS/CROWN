@@ -12,8 +12,8 @@ from config.utility import (
     AddSystematicShift,
     ResolveSampleDependencies,
     ResolveEraDependencies,
-    Prod_Remove,
-    Prod_Append,
+    RemoveProducer,
+    AppendProducer,
 )
 
 
@@ -118,8 +118,8 @@ def build_config(era, sample):
         ],
     }
 
-    config["producer_mods"] = [
-        Prod_Remove(producers=[MuonIDIso_SF], samples=["data"], scopes=["mt"])
+    config["producer_modifiers"] = [
+        RemoveProducer(producers=[MuonIDIso_SF], samples=["data"], scopes=["mt"])
     ]
 
     config["output"] = {
@@ -182,8 +182,8 @@ def build_config(era, sample):
         ]
     }
 
-    for mod in config["producer_mods"]:
-        mod.apply(sample, config["producers"], config["output"])
+    for modifier in config["producer_modifiers"]:
+        modifier.apply(sample, config["producers"], config["output"])
     ResolveSampleDependencies(config, sample)
     ResolveEraDependencies(config, era)
 
