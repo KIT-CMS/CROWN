@@ -108,8 +108,8 @@ auto compareForPairs(const ROOT::RVec<float> &lep1pt,
         const auto i1_previous = value_previous.second;
 
         // start with lep1 isolation
-        const auto iso1_next = lep1iso[i1_next];
-        const auto iso1_previous = lep1iso[i1_previous];
+        const auto iso1_next = lep1iso.at(i1_next);
+        const auto iso1_previous = lep1iso.at(i1_previous);
         Logger::get("PairSelectionCompare")
             ->debug("Isolations: {}, {}", iso1_next, iso1_previous);
         if (not utility::ApproxEqual(iso1_next, iso1_previous)) {
@@ -118,8 +118,8 @@ auto compareForPairs(const ROOT::RVec<float> &lep1pt,
             // if too similar, compare lep1 pt
             Logger::get("PairSelectionCompare")
                 ->debug("Isolation lep 1 too similar, taking pt");
-            const auto pt1_next = lep1pt[i1_next];
-            const auto pt1_previous = lep1pt[i1_previous];
+            const auto pt1_next = lep1pt.at(i1_next);
+            const auto pt1_previous = lep1pt.at(i1_previous);
             if (not utility::ApproxEqual(pt1_next, pt1_previous)) {
                 return pt1_next > pt1_previous;
             } else {
@@ -128,16 +128,16 @@ auto compareForPairs(const ROOT::RVec<float> &lep1pt,
                 const auto i2_previous = value_previous.second;
                 Logger::get("PairSelectionCompare")
                     ->debug("Pt lep 1 too similar, taking lep2 iso");
-                const auto iso2_next = lep2iso[i2_next];
-                const auto iso2_previous = lep2iso[i2_previous];
+                const auto iso2_next = lep2iso.at(i2_next);
+                const auto iso2_previous = lep2iso.at(i2_previous);
                 if (not utility::ApproxEqual(iso2_next, iso2_previous)) {
                     return iso2_next > iso2_previous;
                 } else {
                     // if too similar, compare lep2 pt
                     Logger::get("PairSelectionCompare")
                         ->debug("Isolation lep 2 too similar, taking pt");
-                    const auto pt2_next = lep2pt[i2_next];
-                    const auto pt2_previous = lep2pt[i2_previous];
+                    const auto pt2_next = lep2pt.at(i2_next);
+                    const auto pt2_previous = lep2pt.at(i2_previous);
                     return pt2_next > pt2_previous;
                 }
             }
