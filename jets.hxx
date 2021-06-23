@@ -32,7 +32,8 @@ auto VetoOverlappingJets(auto &df, const std::string &output_col,
             Logger::get("VetoOverlappingJets")->debug("Checking jets");
             ROOT::RVec<int> mask(jet_eta.size(), 1);
             for (std::size_t idx = 0; idx < mask.size(); ++idx) {
-                ROOT::Math::RhoEtaPhiVectorF jet(0, jet_eta[idx], jet_phi[idx]);
+                ROOT::Math::RhoEtaPhiVectorF jet(0, jet_eta.at(idx),
+                                                 jet_phi.at(idx));
                 Logger::get("VetoOverlappingJets")
                     ->debug("Jet:  Eta: {} Phi: {} ", jet.Eta(), jet.Phi());
                 Logger::get("VetoOverlappingJets")
