@@ -107,7 +107,7 @@ auto dxy(auto &df, const std::string &outputname, const int &position,
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<float> &dxy) {
             const int index = pair.at(position);
-            return dxy[index];
+            return dxy.at(index, default_float);
         },
         {pairname, dxycolumn});
 }
@@ -128,7 +128,7 @@ auto dz(auto &df, const std::string &outputname, const int &position,
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<float> &dz) {
             const int index = pair.at(position);
-            return dz[index];
+            return dz.at(index, default_float);
         },
         {pairname, dzcolumn});
 }
@@ -149,7 +149,7 @@ auto charge(auto &df, const std::string &outputname, const int &position,
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &charge) {
             const int index = pair.at(position);
-            return charge.ax(index);
+            return charge.at(index, default_int);
         },
         {pairname, chargecolumn});
 }
@@ -195,7 +195,7 @@ auto isolation(auto &df, const std::string &outputname, const int &position,
                      [position](const ROOT::RVec<int> &pair,
                                 const ROOT::RVec<float> &isolation) {
                          const int index = pair.at(position);
-                         return isolation.at(index);
+                         return isolation.at(index, default_float);
                      },
                      {pairname, isolationcolumn});
 }
@@ -216,7 +216,7 @@ auto pdgid(auto &df, const std::string &outputname, const int &position,
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &pdgid) {
             const int index = pair.at(position);
-            return pdgid.at(index);
+            return pdgid.at(index, default_int);
         },
         {pairname, pdgidcolumn});
 }
@@ -240,7 +240,7 @@ auto decaymode(auto &df, const std::string &outputname, const int &position,
                      [position](const ROOT::RVec<int> &pair,
                                 const ROOT::RVec<int> &decaymode) {
                          const int index = pair.at(position);
-                         return decaymode.at(index);
+                         return decaymode.at(index, default_int);
                      },
                      {pairname, decaymodecolumn});
 }
@@ -268,7 +268,7 @@ auto genmatch(auto &df, const std::string &outputname, const int &position,
                      [position](const ROOT::RVec<int> &pair,
                                 const ROOT::RVec<UChar_t> &genmatch) {
                          const int index = pair.at(position);
-                         return genmatch.at(index);
+                         return genmatch.at(index, default_uchar);
                      },
                      {pairname, genmatchcolumn});
 }
@@ -292,8 +292,8 @@ auto matching_jet_pt(auto &df, const std::string &outputname,
                                 const ROOT::RVec<int> &taujets,
                                 const ROOT::RVec<float> &jetpt) {
                          const int tauindex = pair.at(position);
-                         const int jetindex = taujets.at(tauindex);
-                         return jetpt.at(jetindex);
+                         const int jetindex = taujets[tauindex];
+                         return jetpt.at(jetindex, default_float);
                      },
                      {pairname, taujet_index, jetpt_column});
 }
@@ -323,9 +323,9 @@ auto matching_genjet_pt(auto &df, const std::string &outputname,
                                 const ROOT::RVec<int> &genjets,
                                 const ROOT::RVec<float> &genjetpt) {
                          const int tauindex = pair.at(position);
-                         const int jetindex = taujets.at(tauindex);
-                         const int genjetindex = genjets.at(jetindex);
-                         return genjetpt.at(genjetindex);
+                         const int jetindex = taujets[tauindex];
+                         const int genjetindex = genjets[jetindex];
+                         return genjetpt.at(genjetindex, default_int);
                      },
                      {pairname, taujet_index, genjet_index, genjetpt_column});
 }
