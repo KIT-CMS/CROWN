@@ -113,10 +113,7 @@ class QuantityGroup(Quantity):
         # For the writeout, we have to loop over all quantities in the group and return them all (plus their shifts) in a list
         output = []
         for quantity in self.quantities:
-            output.extend(
-                [quantity.name]
-                + [quantity.name + shift for shift in quantity.get_shifts(scope)]
-            )
+            output.extend(quantity.get_leafs_of_scope(scope))
         return output
 
 
