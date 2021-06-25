@@ -221,8 +221,8 @@ def build_config(era, sample):
             q.gen_taujet_pt_2,
             q.idWeight_1,
             q.isoWeight_1,
-            GenerateSingleMuonTriggerFlags.outputQuantities,
-            GenerateCrossTriggerFlags.outputQuantities,
+            GenerateSingleMuonTriggerFlags.output_group,
+            GenerateCrossTriggerFlags.output_group,
         ]
     }
 
