@@ -6,7 +6,7 @@ Writing a new producer consists of two parts. First, the C++ function to act on 
 
 * The producer should live in a well defined namespace. If a producer is meant for electrons only, if should be contained in an electron namespace, rather than putting electron in the function name.
 
-* The the dataframe object that is meant to be modified by the function :code:`(auto df,)` should always be the first argument.
+* The dataframe object that is meant to be modified by the function :code:`(auto df,)` should always be the first argument.
 
 * The function must always return a new dataframe object and nothing else.
 
