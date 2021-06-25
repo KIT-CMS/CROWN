@@ -208,13 +208,12 @@ class VectorProducer(Producer):
 class TriggerVectorProducer(Producer):
     def __init__(self, name, call, input, output, scope, vec_config):
         # we create a Quantity Group, which is updated during the writecalls() step
-        self.output = [q.QuantityGroup(name)]
         self.outputname = output
         self.vec_config = vec_config
         if len(scope) != 1:
             log.error("TriggerVectorProducer can only use one scope per instance !")
             raise Exception
-        super().__init__(name, call, input, self.output, scope)
+        super().__init__(name, call, input, [q.QuantityGroup(name)], scope)
 
     @property
     def output_group(self):
