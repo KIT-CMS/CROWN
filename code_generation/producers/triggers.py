@@ -1,11 +1,6 @@
 import code_generation.quantities.output as q
 import code_generation.quantities.nanoAOD as nanoAOD
-from code_generation.producer import (
-    Producer,
-    ProducerGroup,
-    VectorProducer,
-    TriggerVectorProducer,
-)
+from code_generation.producer import TriggerVectorProducer
 
 ####################
 # Set of producers used for trigger flags

@@ -225,8 +225,6 @@ class TriggerVectorProducer(Producer):
             self.outputQuantities.add(
                 config[""][scope][self.vec_config][i][self.outputname]
             )
-            # we also have to replace the quantity in the output scope list
-            config["output"][scope]
         basecall = self.call
         calls = []
         shifts = [""]
