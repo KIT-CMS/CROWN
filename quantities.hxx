@@ -325,7 +325,7 @@ auto matching_genjet_pt(auto &df, const std::string &outputname,
                          const int tauindex = pair.at(position);
                          const int jetindex = taujets.at(tauindex, -1);
                          const int genjetindex = genjets.at(jetindex, -1);
-                         return genjetpt.at(genjetindex, default_int);
+                         return genjetpt.at(genjetindex, default_float);
                      },
                      {pairname, taujet_index, genjet_index, genjetpt_column});
 }
