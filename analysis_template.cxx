@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 
     TStopwatch timer;
     timer.Start();
-    ROOT::EnableImplicitMT(1); //
+    ROOT::EnableImplicitMT(1); // for multithreading
     // ROOT logging
     auto verbosity = ROOT::Experimental::RLogScopedVerbosity(
         ROOT::Detail::RDF::RDFLogChannel(),
