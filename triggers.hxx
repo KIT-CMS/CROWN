@@ -126,7 +126,7 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
         // triggerobject are above the given thresholds
         bool deltaR = ROOT::Math::VectorUtil::DeltaR(triggerobject, particle) <
                       matchDeltaR;
-        // it we dont want to do any matching here, the triggerbut_cut value is
+        // it we don't want to do any matching here, the triggerbut_cut value is
         // 0
         bool bit = (triggerbit_cut == 0) |
                    (IntBits(triggerobject_bits[idx]).test(triggerbit_cut));
