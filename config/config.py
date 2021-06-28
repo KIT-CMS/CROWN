@@ -168,7 +168,9 @@ def build_config(era, sample):
 
     config["producer_modifiers"] = [
         RemoveProducer(producers=[MuonIDIso_SF], samples=["data"], scopes=["mt"]),
-        AppendProducer(producers=[GGH_NNLO_Reweighting], samples=["ggh"], scopes=["mt"]),
+        AppendProducer(
+            producers=[GGH_NNLO_Reweighting], samples=["ggh"], scopes=["mt"]
+        ),
     ]
 
     config["output"] = {
