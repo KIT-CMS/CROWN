@@ -4,36 +4,9 @@
 #include "TFile.h"
 #include "basefunctions.hxx"
 #include "utility/Logger.hxx"
+#include "utility/RooFunctorThreadsafe.hxx"
 /// namespace used for scale factor related functions
 namespace scalefactor {
-/**
- * @brief Function used to evaluate id scale factors from muons
- * Function used to load a
- * [`RooFunctor`](https://root.cern.ch/doc/master/classRooFunctor.html) from a
- * [`RooWorkspace`](https://root.cern.ch/doc/master/classRooWorkspace.html).
- * These can be used to store scale factors and other functions. An example,
- * how these workspaces are created can be found in [this
- * repository](https://github.com/KIT-CMS/LegacyCorrectionsWorkspace).
- *
- * @param workspace_name The path to the workspace file, from which the functor
- * should be loaded
- * @param functor_name The name of the function from the workspace to be loaded
- * @param arguments The arguments, that form the `ArgSet` of of the functor.
- * @returns A `std::shared_ptr<RooFunctor>`, which contains the functor used for
- * evaluation
- */
-std::shared_ptr<RooFunctor> loadFunctor(const std::string &workspace_name,
-                                        const std::string &functor_name,
-                                        const std::string &arguments) {
-    // first load the workspace
-    auto workspacefile = TFile::Open(workspace_name.c_str(), "read");
-    auto workspace = (RooWorkspace *)workspacefile->Get("w");
-    workspacefile->Close();
-    const std::shared_ptr<RooFunctor> functor = std::shared_ptr<RooFunctor>(
-        workspace->function(functor_name.c_str())
-            ->functor(workspace->argSet(arguments.c_str())));
-    return functor;
-}
 namespace muon {
 /**
  * @brief Function used to evaluate id scale factors from muons
@@ -55,7 +28,7 @@ auto id(auto &df, const std::string &pt, const std::string &eta,
     Logger::get("muonsf")->debug("ID - Function {} // argset {}",
                                  id_functor_name, id_arguments);
 
-    const std::shared_ptr<RooFunctor> id_function =
+    const std::shared_ptr<RooFunctorThreadsafe> id_function =
         loadFunctor(workspace_name, id_functor_name, id_arguments);
     auto df1 = basefunctions::evaluateWorkspaceFunction(df, id_output,
                                                         id_function, pt, eta);
@@ -83,7 +56,7 @@ auto iso(auto &df, const std::string &pt, const std::string &eta,
     Logger::get("muonsf")->debug("Iso - Function {} // argset {}",
                                  iso_functor_name, iso_arguments);
 
-    const std::shared_ptr<RooFunctor> iso_function =
+    const std::shared_ptr<RooFunctorThreadsafe> iso_function =
         loadFunctor(workspace_name, iso_functor_name, iso_arguments);
     auto df1 = basefunctions::evaluateWorkspaceFunction(
         df, iso_output, iso_function, pt, eta, iso);

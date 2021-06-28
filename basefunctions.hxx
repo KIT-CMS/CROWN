@@ -3,8 +3,8 @@
 
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
-#include "RooFunctor.h"
 #include "utility/Logger.hxx"
+#include "utility/RooFunctorThreadsafe.hxx"
 #include "utility/utility.hxx"
 
 enum Channel { MT = 0, ET = 1, TT = 2, EM = 3 };
@@ -202,15 +202,15 @@ auto FilterJetID(const int &index) {
 ///
 /// \returns a dataframe with the newly defined output column
 template <class... Inputs>
-auto evaluateWorkspaceFunction(auto &df, const std::string &outputname,
-                               const std::shared_ptr<RooFunctor> &function,
-                               const Inputs &... inputs) {
+auto evaluateWorkspaceFunction(
+    auto &df, const std::string &outputname,
+    const std::shared_ptr<RooFunctorThreadsafe> &function,
+    const Inputs &... inputs) {
     Logger::get("evaluateWorkspaceFunction")
         ->debug("Starting evaluation for {}", outputname);
     auto getValue = [function](const ROOT::RVec<float> &values) {
         Logger::get("evaluateWorkspaceFunction")
-            ->debug("Type: {} // nPar {} // nObs {}", typeid(function).name(),
-                    function->nPar(), function->nObs());
+            ->debug("Type: {} ", typeid(function).name());
         std::vector<double> argvalues(values.begin(), values.end());
         auto result = function->eval(argvalues.data());
         Logger::get("evaluateWorkspaceFunction")->debug("result {}", result);
