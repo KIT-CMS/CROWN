@@ -123,7 +123,7 @@ def build_config(era, sample):
         },
     }
     all_channels = {
-        "ggHNNLOweightsRootfile": "data/htxs/somefile.root",
+        "ggHNNLOweightsRootfile": "data/htxs/NNLOPS_reweight.root",
         "ggH_generator": "powheg",
     }
     for channel in ["mt"]:  # add em et tt here as soon as they appear in config
@@ -167,8 +167,8 @@ def build_config(era, sample):
     }
 
     config["producer_modifiers"] = [
-        RemoveProducer(producers=[MuonIDIso_SF], samples=["data"], scopes=["mt"])
-        RemoveProducer(producers=[GGH_NNLO_Reweighting], samples=["ggh"], scopes=["mt"]),
+        RemoveProducer(producers=[MuonIDIso_SF], samples=["data"], scopes=["mt"]),
+        AppendProducer(producers=[GGH_NNLO_Reweighting], samples=["ggh"], scopes=["mt"]),
     ]
 
     config["output"] = {
