@@ -9,9 +9,11 @@ namespace htxs {
  *
  * @param weight_name Name of the derived weight in the dataframe.
  * @param rootfilename Path to the rootfile containing the weight graphs.
- * @param generator Generator that was used to simulate the ggH sample, either powheg or amcatnlo.
+ * @param generator Generator that was used to simulate the ggH sample, either
+ * powheg or amcatnlo.
  * @param htxs_pth Name of the column with pt(H) from the htxs module.
- * @param htxs_njets Name of the column with the number of jets from the htxs module.
+ * @param htxs_njets Name of the column with the number of jets from the htxs
+ * module.
  * @returns a dataframe with the weight column included
  */
 auto ggHNLLOWeights(auto &df, const std::string &weight_name,
