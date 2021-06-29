@@ -225,6 +225,29 @@ auto evaluateWorkspaceFunction(auto &df, const std::string &outputname,
     // change back to ROOT::RDF as soon as fix is available
     return df1;
 }
+/// Helper function to recursively define columns for each entry of a vector
+/// quantity
+///
+/// \param df Input dataframe
+/// \param name name of the vector quantity
+/// \param names vector of names for the new columns
+/// \param idx index of the current recursion loop, should not be set outside
+/// this function
+///
+/// \returns a lambda function to be used in RDF Define
+template <typename T>
+auto UnrollVectorQuantity(auto &df, const std::string &name,
+                          const std::vector<std::string> &names,
+                          const size_t &idx = 0) {
+    if (idx >= names.size()) {
+        return df;
+    }
+    auto df1 = df.Define(
+        names.at(idx),
+        [idx](const std::vector<T> &quantities) { return quantities.at(idx); },
+        {name});
+    return UnrollVectorQuantity<T>(df1, name, names, idx + 1);
+}
 } // namespace basefunctions
 
 #endif /* GUARDBASEFUNCTIONS_H */

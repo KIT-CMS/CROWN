@@ -171,6 +171,12 @@ def build_config(era, sample):
         AppendProducer(
             producers=[GGH_NNLO_Reweighting], samples=["ggh"], scopes=["mt"]
         ),
+        AppendProducer(
+            producers=[GGH_WG1_Uncertainties], samples=["ggh"], scopes=["mt"]
+        ),
+        AppendProducer(
+            producers=[QQH_WG1_Uncertainties], samples=["qqh"], scopes=["mt"]
+        ),
     ]
 
     config["output"] = {
