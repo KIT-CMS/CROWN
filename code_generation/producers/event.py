@@ -54,3 +54,46 @@ GGH_NNLO_Reweighting = Producer(
     output=[q.ggh_NNLO_weight],
     scopes=["global", "em", "et", "mt", "tt"],
 )
+
+GGH_WG1_Uncertainties = Producer(
+    name="GGH_WG1_Uncertainties",
+    call="htxs::ggH_WG1_uncertainties({df}, {output_vec}, {input})",
+    input=[
+        nanoAOD.HTXS_stage_1_pTjet30,
+        nanoAOD.HTXS_Higgs_pt,
+        nanoAOD.HTXS_njets30,
+    ],  # using non-updated stage1 flag required by the used macro
+    output=[
+        q.THU_ggH_Mu,
+        q.THU_ggH_Res,
+        q.THU_ggH_Mig01,
+        q.THU_ggH_Mig12,
+        q.THU_ggH_VBF2j,
+        q.THU_ggH_VBF3j,
+        q.THU_ggH_PT60,
+        q.THU_ggH_PT120,
+        q.THU_ggH_qmtop,
+    ],
+    scopes=["global", "em", "et", "mt", "tt"],
+)
+
+QQH_WG1_Uncertainties = Producer(
+    name="QQH_WG1_Uncertainties",
+    call="htxs::qqH_WG1_uncertainties({df}, {output_vec}, {input})",
+    input=[
+        nanoAOD.HTXS_stage1_1_fine_cat_pTjet30GeV
+    ],  # using fine stage1.1 flag required by the used macro
+    output=[
+        q.THU_qqH_TOT,
+        q.THU_qqH_PTH200,
+        q.THU_qqH_Mjj60,
+        q.THU_qqH_Mjj120,
+        q.THU_qqH_Mjj350,
+        q.THU_qqH_Mjj700,
+        q.THU_qqH_Mjj1000,
+        q.THU_qqH_Mjj1500,
+        q.THU_qqH_25,
+        q.THU_qqH_JET01,
+    ],
+    scopes=["global", "em", "et", "mt", "tt"],
+)

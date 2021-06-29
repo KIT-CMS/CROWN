@@ -1,7 +1,10 @@
 #include "ROOT/RDataFrame.hxx"
 #include "TFile.h"
 #include "TGraphErrors.h"
+#include "basefunctions.hxx"
 #include "utility/Logger.hxx"
+#include "utility/ggF_qcd_uncertainty_2017.cxx"
+#include "utility/qq2Hqq_uncert_scheme.cpp"
 /// namespace used for HTXS related functions
 namespace htxs {
 /**
@@ -53,5 +56,60 @@ auto ggHNLLOWeights(auto &df, const std::string &weight_name,
     };
     auto df1 = df.Define(weight_name, readout_lambda, {htxs_pth, htxs_njets});
     return df1;
+}
+
+/**
+ * @brief Function to derive the WG1 ggH uncertainties
+ *
+ * @param weight_names Names of the derived weight in the dataframe in the order
+ * given by the WG1 macro.
+ * @param htxs_flag Name of the column with the htxs stage1 (NOT 1.1, 1.2 or
+ * later!) flag.
+ * @param htxs_pth Name of the column with pt(H) from the htxs module.
+ * @param htxs_njets Name of the column with the number of jets from the htxs
+ * module.
+ * @returns a dataframe with the weight column included
+ */
+auto ggH_WG1_uncertainties(auto &df,
+                           const std::vector<std::string> &weight_names,
+                           const std::string &htxs_flag,
+                           const std::string &htxs_pth,
+                           const std::string &htxs_njets) {
+    auto df1 = df.Define(
+        "ggH_WG1_uncertainties",
+        [](const Int_t &flag, const Float_t &pth, const UChar_t &njets) {
+            return qcd_ggF_uncertSF_2017(njets, pth, flag);
+        },
+        {htxs_flag, htxs_pth, htxs_njets});
+    auto df2 = basefunctions::UnrollVectorQuantity<double>(
+        df1, "ggH_WG1_uncertainties", weight_names);
+    return df2;
+}
+
+/**
+ * @brief Function to derive the WG1 ggH uncertainties
+ *
+ * @param weight_names Names of the derived weight in the dataframe in the order
+ * given by the WG1 macro.
+ * @param htxs_flag Name of the column with the fine htxs stage1.1 flag.
+ * module.
+ * @returns a dataframe with the weight column included
+ */
+auto qqH_WG1_uncertainties(auto &df,
+                           const std::vector<std::string> &weight_names,
+                           const std::string &htxs_flag,
+                           const size_t &idx = 0) {
+    if (idx >= weight_names.size()) {
+        return df;
+    }
+    auto dflamda = [idx](const int &stxs1flag) {
+        if (stxs1flag >= 200 && stxs1flag < 300) {
+            return vbf_uncert_stage_1_1(idx, stxs1flag, 1.0);
+        } else {
+            return 1.0;
+        }
+    };
+    auto df1 = df.Define(weight_names.at(idx), dflamda, {htxs_flag});
+    return qqH_WG1_uncertainties(df1, weight_names, htxs_flag, idx + 1);
 }
 } // namespace htxs
