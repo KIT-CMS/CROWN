@@ -23,7 +23,7 @@ jobs:
 
     steps:
     - name: Install missing software
-      run: pacman -Syu --noconfirm cmake make git
+      run: pacman -Syu --noconfirm cmake make git --ignore=root
 
     - uses: actions/checkout@v2
 
