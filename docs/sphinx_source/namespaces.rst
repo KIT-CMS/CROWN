@@ -43,7 +43,10 @@ Trigger
 
 Lorentzvectors
 ***************
-.. doxygenfile:: lorentzvectors.hxx
-.. literalinclude:: ../../lorentzvectors.hxx
-   :language: cpp
-   :linenos:
+.. doxygennamespace:: lorentzvectors
+   :members:
+
+HTXS
+***************
+.. doxygennamespace:: htxs
+   :members:

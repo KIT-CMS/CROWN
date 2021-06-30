@@ -33,7 +33,7 @@ file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/../*.hxx)
 
 # Write doxyfile
 # Replace variables inside @@ with the current values
-set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/..) # set in Doxyfile.in
+set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/../src) # set in Doxyfile.in
 set(DOXYGEN_OUTPUT_DIR ${PROJECT_BINARY_DIR}/docs/) # set in Doxyfile.in
 set(DOXYFILE_IN ${PROJECT_SOURCE_DIR}/Doxyfile.in)
 set(DOXYFILE_OUT ${PROJECT_BINARY_DIR}/Doxyfile)
