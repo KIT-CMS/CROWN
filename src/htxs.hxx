@@ -10,6 +10,7 @@ namespace htxs {
 /**
  * @brief Function to derive the ggH NNLO weights
  *
+ * @param df the input dataframe
  * @param weight_name Name of the derived weight in the dataframe.
  * @param rootfilename Path to the rootfile containing the weight graphs.
  * Corresponding cutoffs are hardcoded in this function.
@@ -62,6 +63,7 @@ auto ggHNLLOWeights(auto &df, const std::string &weight_name,
 /**
  * @brief Function to derive the WG1 ggH uncertainty weights.
  *
+ * @param df the input dataframe
  * @param weight_names Names of the derived weight in the dataframe in the order
  * given by the WG1 macro.
  * @param htxs_flag Name of the column with the htxs stage1 (NOT 1.1, 1.2 or
@@ -92,6 +94,7 @@ auto ggH_WG1_uncertainties(auto &df,
  * explicitly restricted to qqH events according to the STXS flag such that e.g.
  * VH samples can be run with this but VHlep events obtain a weight of 1.0.
  *
+ * @param df the input dataframe
  * @param weight_names Names of the derived weight in the dataframe in the order
  * given by the WG1 macro.
  * @param htxs_flag Name of the column with the fine htxs stage1.1 flag.
