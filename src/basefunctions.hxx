@@ -63,6 +63,7 @@ auto CombineFlagsAny(auto &df, const std::string &outputflag,
 /// Function to apply a selection on an integer quantity.
 /// Returns true if the value is smaller than the given cut value
 ///
+/// \param df The input dataframe
 /// \param quantity The quantity the selection refers to
 /// \param selection The values of the quantity that are accepted
 /// \param filtername The name of the filter, used in the Dataframe report

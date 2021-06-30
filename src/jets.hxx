@@ -112,15 +112,19 @@ auto CutID(auto &df, const std::string &maskname, const std::string &nameID,
 ///
 /// \param[in] df the input dataframe
 /// \param[out] corrected_jet_pt the name of the shifted and smeared jet pts
-/// \param[in] jet_pt name of the input jet pts \param[in] jet_eta name of the
-/// jet etas \param[in] jet_phi name of the jet phis \param[in] gen_jet_pt name
-/// of the gen jet pts \param[in] jet_eta name of the gen jet etas \param[in]
-/// jet_phi name of the gen jet phis \param[in] rho name of the pileup density
+/// \param[in] jet_pt name of the input jet pts
+/// \param[in] jet_eta name of the jet etas
+/// \param[in] jet_phi name of the jet phis
+/// \param[in] gen_jet_pt name of the gen jet pts
+/// \param[in] gen_jet_eta name of the gen jet etas
+/// \param[in] gen_jet_phi name of the gen jet phis
+/// \param[in] rho name of the pileup density
 /// \param[in] energy_shift_sources vector of JEC unc source names to be applied
-/// in one group \param[in] energy_shift_state parameter to control jet energy
-/// scale shift: 0 - nominal; 1 - Up; -1 - Down \param[in] energy_reso_shift
-/// parameter to control jet energy resolution shift: 0 - nominal; 1 - Up; -1 -
-/// Down
+/// in one group
+/// \param[in] energy_shift_state parameter to control jet energy
+/// scale shift: 0 - nominal; 1 - Up; -1 - Down
+/// \param[in] energy_reso_shift parameter to control jet energy resolution
+/// shift: 0 - nominal; 1 - Up; -1 - Down
 ///
 /// \return a dataframe containing the modified jet pts
 auto JetPtCorrection(auto &df, const std::string &corrected_jet_pt,
@@ -254,7 +258,8 @@ auto JetPtCorrection(auto &df, const std::string &corrected_jet_pt,
 /// \param[in] df the input dataframe
 /// \param[in] quantity name of the rawID column in the NanoAOD
 /// \param[out] maskname the name of the mask to be added as column to the
-/// dataframe \param[in] ptThreshold minimal ID value
+/// dataframe
+/// \param[in] idThreshold minimal ID value
 ///
 /// \return a dataframe containing the new mask
 auto CutRawID(auto &df, const std::string &quantity,
