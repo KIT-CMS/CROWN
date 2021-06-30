@@ -12,6 +12,7 @@ namespace htxs {
  *
  * @param weight_name Name of the derived weight in the dataframe.
  * @param rootfilename Path to the rootfile containing the weight graphs.
+ * Corresponding cutoffs are hardcoded in this function.
  * @param generator Generator that was used to simulate the ggH sample, either
  * powheg or amcatnlo.
  * @param htxs_pth Name of the column with pt(H) from the htxs module.
@@ -59,7 +60,7 @@ auto ggHNLLOWeights(auto &df, const std::string &weight_name,
 }
 
 /**
- * @brief Function to derive the WG1 ggH uncertainties
+ * @brief Function to derive the WG1 ggH uncertainty weights.
  *
  * @param weight_names Names of the derived weight in the dataframe in the order
  * given by the WG1 macro.
@@ -68,7 +69,7 @@ auto ggHNLLOWeights(auto &df, const std::string &weight_name,
  * @param htxs_pth Name of the column with pt(H) from the htxs module.
  * @param htxs_njets Name of the column with the number of jets from the htxs
  * module.
- * @returns a dataframe with the weight column included
+ * @returns a dataframe with the weight column included.
  */
 auto ggH_WG1_uncertainties(auto &df,
                            const std::vector<std::string> &weight_names,
@@ -87,13 +88,18 @@ auto ggH_WG1_uncertainties(auto &df,
 }
 
 /**
- * @brief Function to derive the WG1 ggH uncertainties
+ * @brief Function to derive the WG1 qqH uncertainty weights. The application is
+ * explicitly restricted to qqH events according to the STXS flag such that e.g.
+ * VH samples can be run with this but VHlep events obtain a weight of 1.0.
  *
  * @param weight_names Names of the derived weight in the dataframe in the order
  * given by the WG1 macro.
  * @param htxs_flag Name of the column with the fine htxs stage1.1 flag.
  * module.
- * @returns a dataframe with the weight column included
+ * @param idx initial uncertainty index. It is 0 by default and should not be
+ * set by the user. The parameter is needed for the recursive operation of this
+ * function.
+ * @returns a dataframe with the weight columns included.
  */
 auto qqH_WG1_uncertainties(auto &df,
                            const std::vector<std::string> &weight_names,
