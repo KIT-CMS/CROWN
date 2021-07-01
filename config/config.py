@@ -8,6 +8,7 @@ from code_generation.producers.pairquantities import *
 from code_generation.producers.event import *
 from code_generation.producers.scalefactors import *
 from code_generation.producers.triggers import *
+from code_generation.producers.met import *
 import code_generation.quantities.output as q
 from config.utility import (
     AddSystematicShift,
@@ -152,6 +153,7 @@ def build_config(era, sample):
             JetEnergyCorrection,
             GoodJets,
             GoodBJets,
+            Met
         ],
         "mt": [
             GoodMuons,
@@ -249,6 +251,13 @@ def build_config(era, sample):
             q.gen_taujet_pt_2,
             q.idWeight_1,
             q.isoWeight_1,
+            q.met,
+            q.metphi,
+            q.metSumEt,
+            q.metcov00,
+            q.metcov01,
+            q.metcov10,
+            q.metcov11,
             GenerateSingleMuonTriggerFlags.output_group,
             GenerateCrossTriggerFlags.output_group,
             nanoAOD.HTXS_Higgs_pt,

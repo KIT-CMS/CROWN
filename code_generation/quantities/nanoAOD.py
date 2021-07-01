@@ -74,3 +74,12 @@ HTXS_stage_1_pTjet30 = NanoAODQuantity("HTXS_stage_1_pTjet30")
 HTXS_stage1_1_fine_cat_pTjet30GeV = NanoAODQuantity("HTXS_stage1_1_fine_cat_pTjet30GeV")
 HTXS_stage1_2_cat_pTjet30GeV = NanoAODQuantity("HTXS_stage1_2_cat_pTjet30GeV")
 HTXS_stage1_2_fine_cat_pTjet30GeV = NanoAODQuantity("HTXS_stage1_2_fine_cat_pTjet30GeV")
+
+## MET quantities
+MET_covXX = NanoAODQuantity("MET_covXX")
+MET_covXY = NanoAODQuantity("MET_covXY")
+MET_covYY = NanoAODQuantity("MET_covYY")
+MET_phi = NanoAODQuantity("MET_phi")
+MET_pt = NanoAODQuantity("MET_pt")
+MET_significance = NanoAODQuantity("MET_significance")
+MET_sumEt = NanoAODQuantity("MET_sumEt")
