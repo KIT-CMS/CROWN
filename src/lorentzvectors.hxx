@@ -59,12 +59,34 @@ auto buildparticle(auto &df, const std::vector<std::string> &quantities,
     return df1;
 }
 
+/**
+ * @brief Function used to construct a 4-vector for a pair particle.
+ *
+ * @param df the input dataframe
+ * @param obj_quantities a vector of strings containing the names of the
+ * quantities used for the 4 vector building. As this function is a wrapper for
+ * lorentzvectors::buildparticle, the order of the inputs has to match the order
+ * used in that function
+ * @param pairindex the index of the particle in the pair to be build
+ * @param obj_p4_name name of the column containing the 4-vector
+ * @return a new df, containing the thw column
+ */
+
 auto build(auto df, const std::vector<std::string> &obj_quantities,
            const int pairindex, const std::string &obj_p4_name) {
     for (auto i : obj_quantities)
         Logger::get("lorentzvectors")->debug("Used object quantities {}", i);
     return lorentzvectors::buildparticle(df, obj_quantities, obj_p4_name,
                                          pairindex);
+}
+
+auto buildMET(auto df, const std::string &met_pt, const std::string &met_phi,
+              const std::string &outputname) {
+    auto construct_metvector = [](const float &pt, const float &phi) {
+        // for MET, eta is zero
+        return ROOT::Math::PtEtaPhiEVector(pt, 0, phi, pt);
+    };
+    return df.Define(outputname, construct_metvector, {met_pt, met_phi});
 }
 
 /// namespace used for mutau lorentzvectors

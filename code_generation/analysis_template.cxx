@@ -5,6 +5,7 @@
 #include "src/htxs.hxx"
 #include "src/jets.hxx"
 #include "src/lorentzvectors.hxx"
+#include "src/met.hxx"
 #include "src/metfilter.hxx"
 #include "src/pairselection.hxx"
 #include "src/physicsobjects.hxx"

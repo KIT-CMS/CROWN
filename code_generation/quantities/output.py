@@ -130,3 +130,13 @@ THU_qqH_Mjj1000 = Quantity("THU_qqH_Mjj1000")
 THU_qqH_Mjj1500 = Quantity("THU_qqH_Mjj1500")
 THU_qqH_25 = Quantity("THU_qqH_25")
 THU_qqH_JET01 = Quantity("THU_qqH_JET01")
+
+## MET quantities
+met_p4 = Quantity("met_p4")
+met = Quantity("met")
+metphi = Quantity("metphi")
+metSumEt = Quantity("metSumEt")
+metcov00 = Quantity("metcov00")
+metcov01 = Quantity("metcov01")
+metcov10 = Quantity("metcov10")
+metcov11 = Quantity("metcov11")
