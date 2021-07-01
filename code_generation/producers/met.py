@@ -20,9 +20,7 @@ BuildMetVector = Producer(
 MetPt = Producer(
     name="MetPt",
     call="met::metPt({df}, {input}, {output})",
-    input=[
-        q.met_p4
-    ],
+    input=[q.met_p4],
     output=[q.met],
     scopes=["global"],
 )
@@ -30,9 +28,7 @@ MetPt = Producer(
 MetPhi = Producer(
     name="MetPhi",
     call="met::metPhi({df}, {input}, {output})",
-    input=[
-        q.met_p4
-    ],
+    input=[q.met_p4],
     output=[q.metphi],
     scopes=["global"],
 )
@@ -97,6 +93,6 @@ Met = ProducerGroup(
         MetCov01,
         MetCov10,
         MetCov11,
-        MetSumEt
+        MetSumEt,
     ],
 )
