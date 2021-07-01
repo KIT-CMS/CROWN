@@ -153,7 +153,7 @@ def build_config(era, sample):
             JetEnergyCorrection,
             GoodJets,
             GoodBJets,
-            Met
+            Met,
         ],
         "mt": [
             GoodMuons,
