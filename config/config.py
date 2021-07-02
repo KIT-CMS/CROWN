@@ -153,7 +153,6 @@ def build_config(era, sample):
             JetEnergyCorrection,
             GoodJets,
             GoodBJets,
-            Met,
         ],
         "mt": [
             GoodMuons,
@@ -173,6 +172,9 @@ def build_config(era, sample):
             MuonIDIso_SF,
             GenerateSingleMuonTriggerFlags,
             GenerateCrossTriggerFlags,
+            LVMu1Uncorrected,
+            LVTau2Uncorrected,
+            MetCorrections,
         ],
     }
 

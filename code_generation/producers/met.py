@@ -14,23 +14,7 @@ BuildMetVector = Producer(
         nanoAOD.MET_phi,
     ],
     output=[q.met_p4],
-    scopes=["global"],
-)
-
-MetPt = Producer(
-    name="MetPt",
-    call="met::metPt({df}, {input}, {output})",
-    input=[q.met_p4],
-    output=[q.met],
-    scopes=["global"],
-)
-
-MetPhi = Producer(
-    name="MetPhi",
-    call="met::metPhi({df}, {input}, {output})",
-    input=[q.met_p4],
-    output=[q.metphi],
-    scopes=["global"],
+    scopes=["et", "mt", "tt", "em"],
 )
 MetCov00 = Producer(
     name="MetCov00",
@@ -39,7 +23,7 @@ MetCov00 = Producer(
         nanoAOD.MET_covXX,
     ],
     output=[q.metcov00],
-    scopes=["global"],
+    scopes=["et", "mt", "tt", "em"],
 )
 MetCov01 = Producer(
     name="MetCov01",
@@ -48,7 +32,7 @@ MetCov01 = Producer(
         nanoAOD.MET_covXY,
     ],
     output=[q.metcov01],
-    scopes=["global"],
+    scopes=["et", "mt", "tt", "em"],
 )
 MetCov10 = Producer(
     name="MetCov10",
@@ -57,7 +41,7 @@ MetCov10 = Producer(
         nanoAOD.MET_covXY,
     ],
     output=[q.metcov10],
-    scopes=["global"],
+    scopes=["et", "mt", "tt", "em"],
 )
 MetCov11 = Producer(
     name="MetCov11",
@@ -66,7 +50,7 @@ MetCov11 = Producer(
         nanoAOD.MET_covYY,
     ],
     output=[q.metcov11],
-    scopes=["global"],
+    scopes=["et", "mt", "tt", "em"],
 )
 MetSumEt = Producer(
     name="MetSumEt",
@@ -75,24 +59,46 @@ MetSumEt = Producer(
         nanoAOD.MET_sumEt,
     ],
     output=[q.metSumEt],
-    scopes=["global"],
+    scopes=["et", "mt", "tt", "em"],
 )
 
+PropagateLeptonsToMET = Producer(
+    name="PropagateLeptonsToMET",
+    call="met::propagateLeptons({df}, {input}, {output})",
+    input=[q.met_p4, q.p4_1_uncorrected, q.p4_2_uncorrected, q.p4_1, q.p4_2],
+    output=[q.met_p4_leptoncorrected],
+    scopes=["et", "mt", "tt", "em"],
+)
+MetPt = Producer(
+    name="MetPt",
+    call="met::metPt({df}, {input}, {output})",
+    input=[q.met_p4_leptoncorrected],
+    output=[q.met],
+    scopes=["et", "mt", "tt", "em"],
+)
 
-Met = ProducerGroup(
-    name="Met",
+MetPhi = Producer(
+    name="MetPhi",
+    call="met::metPhi({df}, {input}, {output})",
+    input=[q.met_p4_leptoncorrected],
+    output=[q.metphi],
+    scopes=["et", "mt", "tt", "em"],
+)
+MetCorrections = ProducerGroup(
+    name="MetCorrections",
     call=None,
     input=None,
     output=None,
-    scopes=["global"],
+    scopes=["et", "mt", "tt", "em"],
     subproducers=[
         BuildMetVector,
-        MetPt,
-        MetPhi,
         MetCov00,
         MetCov01,
         MetCov10,
         MetCov11,
         MetSumEt,
+        PropagateLeptonsToMET,
+        MetPt,
+        MetPhi,
     ],
 )
