@@ -31,7 +31,7 @@ MetFilter = VectorProducer(
 
 Lumi = Producer(
     name="Lumi",
-    call="quantities::rename<UInt_t>({df}, {input}, {output})",
+    call="basefunctions::rename<UInt_t>({df}, {input}, {output})",
     input=[nanoAOD.luminosityBlock],
     output=[q.lumi],
     scopes=["global"],
