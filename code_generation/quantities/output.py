@@ -136,6 +136,7 @@ THU_qqH_JET01 = Quantity("THU_qqH_JET01")
 ## MET quantities
 met_p4 = Quantity("met_p4")
 met_p4_leptoncorrected = Quantity("met_p4_leptoncorrected")
+met_p4_jetcorrected = Quantity("met_p4_jetcorrected")
 met = Quantity("met")
 metphi = Quantity("metphi")
 metSumEt = Quantity("metSumEt")
