@@ -135,13 +135,28 @@ class Producer:
         config[shift][scope]["df"] = "{df}"
         config[shift][scope]["vec_open"] = "{vec_open}"
         config[shift][scope]["vec_close"] = "{vec_close}"
+        # if a bool is used in the python configuration, convert it to a c++ bool value
+        # True -> true, False -> false
+        for para in config[shift][scope]:
+            if (
+                isinstance(config[shift][scope][para], bool)
+                and config[shift][scope][para]
+            ):
+                log.debug("Found a boolean True ! - converting to C++ syntax")
+                config[shift][scope][para] = "true"
+            if (
+                isinstance(config[shift][scope][para], bool)
+                and not config[shift][scope][para]
+            ):
+                log.debug("Found a boolean False ! - converting to C++ syntax")
+                config[shift][scope][para] = "false"
         try:
             return self.call.format(
                 **config[shift][scope]
             )  # use format (not format_map here) such that missing config entries cause an error
         except KeyError as e:
             log.error(
-                "Error in {} Produer, key {} is not found in configuration".format(
+                "Error in {} Producer, key {} is not found in configuration".format(
                     self.name, e
                 )
             )
