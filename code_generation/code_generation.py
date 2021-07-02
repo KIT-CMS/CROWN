@@ -94,8 +94,25 @@ def fill_template(t, config):
         + ")/%f" % len(config["producers"])
     )
     log.info("Finished generating code.")
+    log.info("Prepare meta data.")
+    plain_output_list = (
+        '{"' + '", "'.join([q.name for q in config["output"][scope]]) + '"}'
+    )
+    shiftset = set()
+    for q in config["output"][scope]:
+        for shift in q.get_shifts(scope):
+            shiftset.add(shift)
+    shiftlist = '{"' + '", "'.join(list(shiftset)) + '"}'
+    log.info("Finished preparing meta data.")
     return (
         t.replace("    // {CODE_GENERATION}", commandlist)
         .replace("    // {RUN_COMMANDS}", runcommands)
         .replace("{NRUNS}", nruns)
+        .replace(
+            "{OUTPUTFILENAME}", 'std::string(output_path) + "test_%s.root"' % scope
+        )
+        .replace("{OUTPUT_QUANTITIES}", plain_output_list)
+        .replace("{SYSTEMATIC_VARIATIONS}", shiftlist)
+        .replace("{COMMITHASH}", '"babbeldibubb"')
+        .replace("{CLEANSETUP}", "true")
     )

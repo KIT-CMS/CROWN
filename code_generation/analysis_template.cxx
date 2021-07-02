@@ -1,6 +1,8 @@
 #include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "RooTrace.h"
+#include <TFile.h>
+#include <TTree.h>
 #include "TStopwatch.h"
 #include "src/htxs.hxx"
 #include "src/jets.hxx"
@@ -64,6 +66,25 @@ int main(int argc, char *argv[]) {
     ROOT::RDF::RSnapshotOptions dfconfig;
     dfconfig.fLazy = true;
     // {RUN_COMMANDS}
+    // Add meta-data
+    std::string outputfilename = {OUTPUTFILENAME};
+    std::vector<std::string> output_quanties = {OUTPUT_QUANTITIES};
+    std::vector<std::string> systematic_variations = {SYSTEMATIC_VARIATIONS};
+    std::string commit_hash = {COMMITHASH};
+    bool setup_clean = {CLEANSETUP};
+    TFile outputfile(outputfilename.c_str(), "UPDATE");
+    TTree quantities_meta = TTree("quantities", "quantities");
+    for(auto quantity : output_quanties) {quantities_meta.Branch(quantity.c_str(), &setup_clean);}
+    quantities_meta.Write();
+    TTree variations_meta = TTree("variations", "variations");
+    for(auto variation : systematic_variations) {variations_meta.Branch(variation.c_str(), &setup_clean);}
+    variations_meta.Write();
+    TTree commit_meta = TTree("commit", "commit");
+    commit_meta.Branch(commit_hash.c_str(), &setup_clean);
+    commit_meta.Fill();
+    commit_meta.Write();
+    outputfile.Close();
+
     Logger::get("main")->info("Finished Evaluation");
 
     const auto nruns = {NRUNS};
