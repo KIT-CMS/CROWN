@@ -143,7 +143,8 @@ auto propagateLeptonsToMET(auto df, const std::string &met,
  vector
   * @param apply_propagation if bool is set, the propagation is applied, if not,
  the outputcolumn contains the original met value
- * @param min_jet_pt minimal pt, the corrected jet has to have, in order for the met propagation to be applied
+ * @param min_jet_pt minimal pt, the corrected jet has to have, in order for the
+ met propagation to be applied
  * @return a new df containing the corrected met lorentz vector
  */
 auto propagateJetsToMET(auto df, const std::string &met,
@@ -203,10 +204,9 @@ auto propagateJetsToMET(auto df, const std::string &met,
     };
     if (apply_propagation) {
         return df.Define(outputname, scaleMet,
-                         {met, jet_pt_corrected,
-                          jet_eta_corrected, jet_phi_corrected,
-                          jet_mass_corrected, jet_pt, jet_eta, jet_phi,
-                          jet_mass});
+                         {met, jet_pt_corrected, jet_eta_corrected,
+                          jet_phi_corrected, jet_mass_corrected, jet_pt,
+                          jet_eta, jet_phi, jet_mass});
     } else {
         // if we do not apply the propagation, just rename the met column to the
         // new outputname and dont change anything else
