@@ -1,6 +1,6 @@
 import code_generation.quantities.output as q
 import code_generation.quantities.nanoAOD as nanoAOD
-from code_generation.producer import Producer, VectorProducer, ProducerGroup
+from code_generation.producer import Producer, ProducerGroup
 
 ####################
 # Set of producers used for contruction of met related quantities
@@ -18,7 +18,7 @@ BuildMetVector = Producer(
 )
 MetCov00 = Producer(
     name="MetCov00",
-    call="quantities::rename<float>({df}, {input}, {output})",
+    call="basefunctions::rename<float>({df}, {input}, {output})",
     input=[
         nanoAOD.MET_covXX,
     ],
@@ -27,7 +27,7 @@ MetCov00 = Producer(
 )
 MetCov01 = Producer(
     name="MetCov01",
-    call="quantities::rename<float>({df}, {input}, {output})",
+    call="basefunctions::rename<float>({df}, {input}, {output})",
     input=[
         nanoAOD.MET_covXY,
     ],
@@ -36,7 +36,7 @@ MetCov01 = Producer(
 )
 MetCov10 = Producer(
     name="MetCov10",
-    call="quantities::rename<float>({df}, {input}, {output})",
+    call="basefunctions::rename<float>({df}, {input}, {output})",
     input=[
         nanoAOD.MET_covXY,
     ],
@@ -45,7 +45,7 @@ MetCov10 = Producer(
 )
 MetCov11 = Producer(
     name="MetCov11",
-    call="quantities::rename<float>({df}, {input}, {output})",
+    call="basefunctions::rename<float>({df}, {input}, {output})",
     input=[
         nanoAOD.MET_covYY,
     ],
@@ -54,7 +54,7 @@ MetCov11 = Producer(
 )
 MetSumEt = Producer(
     name="MetSumEt",
-    call="quantities::rename<float>({df}, {input}, {output})",
+    call="basefunctions::rename<float>({df}, {input}, {output})",
     input=[
         nanoAOD.MET_sumEt,
     ],
@@ -64,15 +64,32 @@ MetSumEt = Producer(
 
 PropagateLeptonsToMET = Producer(
     name="PropagateLeptonsToMET",
-    call="met::propagateLeptons({df}, {input}, {output})",
+    call="met::propagateLeptonsToMET({df}, {input}, {output}, {propagateLeptons})",
     input=[q.met_p4, q.p4_1_uncorrected, q.p4_2_uncorrected, q.p4_1, q.p4_2],
     output=[q.met_p4_leptoncorrected],
+    scopes=["et", "mt", "tt", "em"],
+)
+PropagateJetsToMET = Producer(
+    name="PropagateJetsToMET",
+    call="met::propagateJetsToMET({df}, {input}, {output}, {propagateJets}, {min_jetpt_met_propagation})",
+    input=[
+        q.met_p4_leptoncorrected,
+        q.Jet_pt_corrected,
+        nanoAOD.Jet_eta,
+        nanoAOD.Jet_phi,
+        q.Jet_mass_corrected,
+        nanoAOD.Jet_pt,
+        nanoAOD.Jet_eta,
+        nanoAOD.Jet_phi,
+        nanoAOD.Jet_mass,
+    ],
+    output=[q.met_p4_jetcorrected],
     scopes=["et", "mt", "tt", "em"],
 )
 MetPt = Producer(
     name="MetPt",
     call="met::metPt({df}, {input}, {output})",
-    input=[q.met_p4_leptoncorrected],
+    input=[q.met_p4_jetcorrected],
     output=[q.met],
     scopes=["et", "mt", "tt", "em"],
 )
@@ -80,10 +97,11 @@ MetPt = Producer(
 MetPhi = Producer(
     name="MetPhi",
     call="met::metPhi({df}, {input}, {output})",
-    input=[q.met_p4_leptoncorrected],
+    input=[q.met_p4_jetcorrected],
     output=[q.metphi],
     scopes=["et", "mt", "tt", "em"],
 )
+
 MetCorrections = ProducerGroup(
     name="MetCorrections",
     call=None,
@@ -98,6 +116,9 @@ MetCorrections = ProducerGroup(
         MetCov11,
         MetSumEt,
         PropagateLeptonsToMET,
+        PropagateJetsToMET,
+        # RecoilCorrections,
+        # METunclustered,
         MetPt,
         MetPhi,
     ],

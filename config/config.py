@@ -128,6 +128,9 @@ def build_config(era, sample):
             "muon_sf_id_args": "m_pt,m_eta",
             "muon_sf_iso_name": "m_iso_binned_kit_ratio",
             "muon_sf_iso_args": "m_pt,m_eta,m_iso",
+            "propagateLeptons": True,
+            "propagateJets": True,
+            "min_jetpt_met_propagation": 15,
         },
     }
     all_channels = {
@@ -289,12 +292,16 @@ def build_config(era, sample):
         [[TauPtCorrection, "global"]],
         sanetize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
     )
-    # # Jet energy resolution
-    # shift_dict = {"JE_reso_shift": 1}
-    # AddSystematicShift(config, "jerUncUp", {"global": shift_dict}, [[JetEnergyCorrection, "global"]])
-    # shift_dict = {"JE_reso_shift": -1}
-    # AddSystematicShift(config, "jerUncDown", {"global": shift_dict}, [[JetEnergyCorrection, "global"]])
-    # # Jet energy scale
+    # Jet energy resolution
+    shift_dict = {"JE_reso_shift": 1}
+    AddSystematicShift(
+        config, "jerUncUp", {"global": shift_dict}, [[JetEnergyCorrection, "global"]]
+    )
+    shift_dict = {"JE_reso_shift": -1}
+    AddSystematicShift(
+        config, "jerUncDown", {"global": shift_dict}, [[JetEnergyCorrection, "global"]]
+    )
+    # Jet energy scale
     # JEC_sources = '{"SinglePionECAL", "SinglePionHCAL", "AbsoluteMPFBias", "AbsoluteScale", "Fragmentation", "PileUpDataMC", "RelativeFSR", "PileUpPtRef"}'
     # shift_dict = {"JE_scale_shift": 1, "JEC_shift_sources": JEC_sources}
     # AddSystematicShift(config, "jecUncAbsoluteUp", {"global": shift_dict}, [[JetEnergyCorrection, "global"]])
