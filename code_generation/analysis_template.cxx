@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
     dfconfig.fLazy = true;
     // {RUN_COMMANDS}
     // Add meta-data
-    std::string outputfilename = {OUTPUTFILENAME};
+    std::string outputfilename = {METADATAFILENAME};
     std::vector<std::string> output_quanties = {OUTPUT_QUANTITIES};
     std::vector<std::string> systematic_variations = {SYSTEMATIC_VARIATIONS};
     std::string commit_hash = {COMMITHASH};

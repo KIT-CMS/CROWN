@@ -109,7 +109,7 @@ def fill_template(t, config):
         .replace("    // {RUN_COMMANDS}", runcommands)
         .replace("{NRUNS}", nruns)
         .replace(
-            "{OUTPUTFILENAME}", 'std::string(output_path) + "test_%s.root"' % scope
+            "{METADATAFILENAME}", 'std::string(output_path) + "test_%s.root"' % scope
         )
         .replace("{OUTPUT_QUANTITIES}", plain_output_list)
         .replace("{SYSTEMATIC_VARIATIONS}", shiftlist)
