@@ -102,7 +102,7 @@ def fill_template(t, config):
     for q in config["output"][scope]:
         for shift in q.get_shifts(scope):
             shiftset.add(shift)
-    shiftlist = '{"' + '", "'.join(list(shiftset)) + '"}'
+    shiftlist = '{"' + '", "'.join(shiftset) + '"}'
     log.info("Finished preparing meta data.")
     return (
         t.replace("    // {CODE_GENERATION}", commandlist)
