@@ -90,3 +90,30 @@ LVTau2 = Producer(
     output=[q.p4_2],
     scopes=["mt"],
 )
+## uncorrected versions of all particles, used for MET propagation
+LVMu1Uncorrected = Producer(
+    name="LVMu1Uncorrected",
+    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
+    input=[
+        q.ditaupair,
+        nanoAOD.Muon_pt,
+        nanoAOD.Muon_eta,
+        nanoAOD.Muon_phi,
+        nanoAOD.Muon_mass,
+    ],
+    output=[q.p4_1_uncorrected],
+    scopes=["mt"],
+)
+LVTau2Uncorrected = Producer(
+    name="LVTau2Uncorrected",
+    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
+    input=[
+        q.ditaupair,
+        nanoAOD.Tau_pt,
+        nanoAOD.Tau_eta,
+        nanoAOD.Tau_phi,
+        nanoAOD.Tau_mass,
+    ],
+    output=[q.p4_2_uncorrected],
+    scopes=["mt"],
+)

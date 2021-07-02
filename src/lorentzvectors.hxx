@@ -33,6 +33,8 @@ auto buildparticle(auto &df, const std::vector<std::string> &quantities,
                    const ROOT::RVec<float> &masses) {
             // the index of the particle is stored in the pair vector
             ROOT::Math::PtEtaPhiMVector p4;
+            Logger::get("lorentzvectors")
+                ->debug("starting to build 4vectors !");
             try {
                 const int index = pair.at(position);
                 Logger::get("lorentzvectors")->debug("pair {}", pair);
@@ -74,6 +76,7 @@ auto buildparticle(auto &df, const std::vector<std::string> &quantities,
 
 auto build(auto df, const std::vector<std::string> &obj_quantities,
            const int pairindex, const std::string &obj_p4_name) {
+    Logger::get("lorentzvectors")->debug("Building {}", obj_p4_name);
     for (auto i : obj_quantities)
         Logger::get("lorentzvectors")->debug("Used object quantities {}", i);
     return lorentzvectors::buildparticle(df, obj_quantities, obj_p4_name,

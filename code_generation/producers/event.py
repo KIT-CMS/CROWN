@@ -20,7 +20,6 @@ RunLumiEventFilter = VectorProducer(
         "RunLumiEventFilter_Selections",
     ],
 )
-
 MetFilter = VectorProducer(
     name="MetFilter",
     call='metfilter::ApplyMetFilter({df}, "{met_filters}", "{met_filters}")',
