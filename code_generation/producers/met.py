@@ -86,10 +86,26 @@ PropagateJetsToMET = Producer(
     output=[q.met_p4_jetcorrected],
     scopes=["et", "mt", "tt", "em"],
 )
+ApplyRecoilCorrections = Producer(
+    name="ApplyRecoilCorrections",
+    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", {applyRecoilCorrections})',
+    input=[
+        q.met_p4_jetcorrected,
+        nanoAOD.GenParticle_pt,
+        nanoAOD.GenParticle_eta,
+        nanoAOD.GenParticle_phi,
+        nanoAOD.GenParticle_mass,
+        nanoAOD.GenParticle_pdgId,
+        nanoAOD.GenParticle_statusFlags,
+        q.Jet_pt_corrected,
+    ],
+    output=[q.met_p4_recoilcorrected],
+    scopes=["et", "mt", "tt", "em"],
+)
 MetPt = Producer(
     name="MetPt",
     call="met::metPt({df}, {input}, {output})",
-    input=[q.met_p4_jetcorrected],
+    input=[q.met_p4_recoilcorrected],
     output=[q.met],
     scopes=["et", "mt", "tt", "em"],
 )
@@ -97,7 +113,7 @@ MetPt = Producer(
 MetPhi = Producer(
     name="MetPhi",
     call="met::metPhi({df}, {input}, {output})",
-    input=[q.met_p4_jetcorrected],
+    input=[q.met_p4_recoilcorrected],
     output=[q.metphi],
     scopes=["et", "mt", "tt", "em"],
 )
@@ -117,7 +133,7 @@ MetCorrections = ProducerGroup(
         MetSumEt,
         PropagateLeptonsToMET,
         PropagateJetsToMET,
-        # RecoilCorrections,
+        ApplyRecoilCorrections,
         # METunclustered,
         MetPt,
         MetPhi,
