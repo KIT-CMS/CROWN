@@ -1,10 +1,14 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
+#include "RecoilCorrections/RecoilCorrector.cxx"
 #include "basefunctions.hxx"
+#include "bitset"
 #include "utility/Logger.hxx"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include <cmath>
+
+typedef std::bitset<20> IntBits;
 
 namespace met {
 /**
@@ -210,6 +214,124 @@ auto propagateJetsToMET(auto df, const std::string &met,
     } else {
         // if we do not apply the propagation, just rename the met column to the
         // new outputname and dont change anything else
+        return basefunctions::rename<ROOT::Math::PtEtaPhiEVector>(df, met,
+                                                                  outputname);
+    }
+}
+/**
+ * @brief
+ * 
+ * @param df 
+ * @param met 
+ * @param genparticle_pt 
+ * @param genparticle_eta 
+ * @param genparticle_phi 
+ * @param genparticle_mass 
+ * @param genparticle_id 
+ * @param genparticle_status 
+ * @param jet_pt 
+ * @param outputname 
+ * @param inputfile 
+ * @param applyRecoilCorrections 
+ * @return auto 
+ */
+auto applyRecoilCorrections(
+    auto df, const std::string &met, const std::string &genparticle_pt,
+    const std::string &genparticle_eta, const std::string &genparticle_phi,
+    const std::string &genparticle_mass, const std::string &genparticle_id,
+    const std::string &genparticle_status, const std::string &jet_pt,
+    const std::string &outputname, const std::string &inputfile,
+    bool applyRecoilCorrections) {
+    if (applyRecoilCorrections) {
+        Logger::get("applyRecoilCorrections")
+            ->debug("Will run recoil corrections");
+        const auto corrector = new RecoilCorrector(inputfile);
+        auto RecoilCorrections = [corrector](
+                                     ROOT::Math::PtEtaPhiEVector &met,
+                                     const ROOT::RVec<float> &genparticle_pt,
+                                     const ROOT::RVec<float> &genparticle_eta,
+                                     const ROOT::RVec<float> &genparticle_phi,
+                                     const ROOT::RVec<float> &genparticle_mass,
+                                     const ROOT::RVec<int> &genparticle_id,
+                                     const ROOT::RVec<int> &genparticle_status,
+                                     const ROOT::RVec<float> &jet_pt) {
+            // TODO is this the correct number of jets ?
+            auto jets_above30 =
+                Filter(jet_pt, [](float pt) { return pt > 30; });
+            int nJets30 = jets_above30.size() + 1;
+            float genPx = 0.; // generator Z(W) px
+            float genPy = 0.; // generator Z(W) py
+            float visPx = 0.; // visible (generator) Z(W) px
+            float visPy = 0.; // visible (generator) Z(W) py
+            float MetX = met.Px();
+            float MetY = met.Py();
+            float correctedMetX = 0.;
+            float correctedMetY = 0.;
+            ROOT::Math::PtEtaPhiMVector genparticle;
+            ROOT::Math::PtEtaPhiEVector corrected_met;
+            // now loop though all genparticles in the event
+            for (std::size_t index = 0; index < genparticle_id.size();
+                 ++index) {
+                // consider a genparticle,
+                // 1. if it is a lepton and fromHardProcess --> bit 8 from
+                // status
+                // 2. if it is isDirectHardProcessTauDecayProduct --> bit 10
+                // in status
+                Logger::get("applyRecoilCorrections")
+                    ->debug("Checking particle {} ", genparticle_id.at(index));
+                if ((abs(genparticle_id.at(index)) >= 11 &&
+                     abs(genparticle_id.at(index)) <= 16) ||
+                    (IntBits(genparticle_status.at(index)).test(10))) {
+                    Logger::get("applyRecoilCorrections")
+                        ->debug("Adding to gen p*");
+                    genparticle = ROOT::Math::PtEtaPhiMVector(
+                        genparticle_pt.at(index), genparticle_eta.at(index),
+                        genparticle_phi.at(index), genparticle_mass.at(index));
+                    genPx += genparticle.Px();
+                    genPy += genparticle.Py();
+                    // if the genparticle is no neutrino, we add the x and y
+                    // component to the visible generator component as well
+                    if (abs(genparticle_id.at(index)) != 12 &&
+                        abs(genparticle_id.at(index)) != 14 &&
+                        abs(genparticle_id.at(index)) != 16) {
+                        Logger::get("applyRecoilCorrections")
+                            ->debug("Adding to vis p*");
+                        visPx += genparticle.Px();
+                        visPy += genparticle.Py();
+                    }
+                }
+            };
+            Logger::get("applyRecoilCorrections")->debug("Corrector Inputs");
+            Logger::get("applyRecoilCorrections")
+                ->debug("nJets30 {} ", nJets30);
+            Logger::get("applyRecoilCorrections")->debug("genPx {} ", genPx);
+            Logger::get("applyRecoilCorrections")->debug("genPy {} ", genPy);
+            Logger::get("applyRecoilCorrections")->debug("visPx {} ", visPx);
+            Logger::get("applyRecoilCorrections")->debug("visPy {} ", visPy);
+            Logger::get("applyRecoilCorrections")->debug("MetX {} ", MetX);
+            Logger::get("applyRecoilCorrections")->debug("MetY {} ", MetY);
+            corrector->CorrectWithHist(MetX, MetY, genPx, genPy, visPx, visPy,
+                                       nJets30, correctedMetX, correctedMetY);
+            Logger::get("applyRecoilCorrections")
+                ->debug("correctedMetX {} ", correctedMetX);
+            Logger::get("applyRecoilCorrections")
+                ->debug("correctedMetY {} ", correctedMetY);
+            corrected_met.SetPxPyPzE(correctedMetX, correctedMetY, 0,
+                                     std::sqrt(correctedMetX * correctedMetX +
+                                               correctedMetY * correctedMetY));
+            Logger::get("applyRecoilCorrections")
+                ->debug("old met {} ", met.Pt());
+            Logger::get("applyRecoilCorrections")
+                ->debug("corrected met {} ", corrected_met.Pt());
+            return corrected_met;
+        };
+        return df.Define(outputname, RecoilCorrections,
+                         {met, genparticle_pt, genparticle_eta, genparticle_phi,
+                          genparticle_mass, genparticle_id, genparticle_status,
+                          jet_pt});
+    } else {
+        // if we do not apply the recoil corrections, just rename the met
+        // column to the new outputname and dont change anything else
         return basefunctions::rename<ROOT::Math::PtEtaPhiEVector>(df, met,
                                                                   outputname);
     }

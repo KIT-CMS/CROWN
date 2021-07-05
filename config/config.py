@@ -130,6 +130,12 @@ def build_config(era, sample):
             "muon_sf_iso_args": "m_pt,m_eta,m_iso",
             "propagateLeptons": True,
             "propagateJets": True,
+            "applyRecoilCorrections": True,
+            "recoil_corrections_file": {
+                "ERA_2016": "data/recoil_corrections/Type1_PuppiMET_2016.root",
+                "ERA_2017": "data/recoil_corrections/Type1_PuppiMET_2017.root",
+                "ERA_2018": "data/recoil_corrections/Type1_PuppiMET_2018.root",
+            },
             "min_jetpt_met_propagation": 15,
         },
     }
