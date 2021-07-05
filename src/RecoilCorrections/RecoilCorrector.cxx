@@ -28,9 +28,9 @@ RecoilCorrector::RecoilCorrector(std::string filepath) {
         perpZStr = firstBinStr;
     }
     Logger::get("RecoilCorrector")
-        ->debug("Parallel component      (U1) : {}",paralZStr);
+        ->debug("Parallel component      (U1) : {}", paralZStr);
     Logger::get("RecoilCorrector")
-        ->debug("Perpendicular component (U2) : {}",perpZStr);
+        ->debug("Perpendicular component (U2) : {}", perpZStr);
 
     TH1D *ZPtBinsH = (TH1D *)file->Get("ZPtBinsH");
     if (ZPtBinsH == NULL) {
@@ -54,7 +54,7 @@ RecoilCorrector::RecoilCorrector(std::string filepath) {
         Logger::get("RecoilCorrector")
             ->debug("File should contain histogram with the name nJetBinsH");
         Logger::get("RecoilCorrector")
-            ->debug("Check content of the file {}",fileName);
+            ->debug("Check content of the file {}", fileName);
         exit(-1);
     }
     int nJetsBins = nJetBinsH->GetNbinsX();
@@ -103,7 +103,7 @@ void RecoilCorrector::InitMEtWeights(
 
     // checking files
     if (_fileMet->IsZombie()) {
-        Logger::get("RecoilCorrector")->debug("File {} is not found",fileName);
+        Logger::get("RecoilCorrector")->debug("File {} is not found", fileName);
         Logger::get("RecoilCorrector")->debug("quitting program...");
         exit(-1);
     }
@@ -185,30 +185,30 @@ void RecoilCorrector::InitMEtWeights(
             if (_metZParalDataHist[ZPtBin][jetBin] == NULL) {
                 Logger::get("RecoilCorrector")
                     ->debug("Histogram with name {} is not found in file {}... "
-                            "quitting program...",binStrParalDataHist,
-                            fileName);
+                            "quitting program...",
+                            binStrParalDataHist, fileName);
                 exit(-1);
             }
             if (_metZPerpDataHist[ZPtBin][jetBin] == NULL) {
                 Logger::get("RecoilCorrector")
                     ->debug("Histogram with name {} is not found in file {}... "
-                            "quitting program...",binStrPerpDataHist,
-                            fileName);
+                            "quitting program...",
+                            binStrPerpDataHist, fileName);
                 exit(-1);
             }
 
             if (_metZParalMCHist[ZPtBin][jetBin] == NULL) {
                 Logger::get("RecoilCorrector")
                     ->debug("Histogram with name {} is not found in file {}... "
-                            "quitting program...",binStrParalMCHist,
-                            fileName);
+                            "quitting program...",
+                            binStrParalMCHist, fileName);
                 exit(-1);
             }
             if (_metZPerpMCHist[ZPtBin][jetBin] == NULL) {
                 Logger::get("RecoilCorrector")
                     ->debug("Histogram with name {} is not found in file {}... "
-                            "quitting program...",binStrPerpMCHist,
-                            fileName);
+                            "quitting program...",
+                            binStrPerpMCHist, fileName);
                 exit(-1);
             }
 
@@ -404,7 +404,8 @@ void RecoilCorrector::CorrectWithHist(float MetPx, float MetPy, float genVPx,
     } else {
         Logger::get("RecoilCorrector")
             ->debug("Warning: perpendicular MET component out of histogram "
-                       "range: {}. Correction won't be applied",U2);
+                    "range: {}. Correction won't be applied",
+                    U2);
         //  float U2reco = rescale(U2,
         //      		   _meanMetZPerpData[ZptBin][njets],
         //      		   _meanMetZPerpMC[ZptBin][njets],

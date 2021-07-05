@@ -220,20 +220,20 @@ auto propagateJetsToMET(auto df, const std::string &met,
 }
 /**
  * @brief
- * 
- * @param df 
- * @param met 
- * @param genparticle_pt 
- * @param genparticle_eta 
- * @param genparticle_phi 
- * @param genparticle_mass 
- * @param genparticle_id 
- * @param genparticle_status 
- * @param jet_pt 
- * @param outputname 
- * @param inputfile 
- * @param applyRecoilCorrections 
- * @return auto 
+ *
+ * @param df
+ * @param met
+ * @param genparticle_pt
+ * @param genparticle_eta
+ * @param genparticle_phi
+ * @param genparticle_mass
+ * @param genparticle_id
+ * @param genparticle_status
+ * @param jet_pt
+ * @param outputname
+ * @param inputfile
+ * @param applyRecoilCorrections
+ * @return auto
  */
 auto applyRecoilCorrections(
     auto df, const std::string &met, const std::string &genparticle_pt,
