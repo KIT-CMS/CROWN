@@ -67,6 +67,11 @@ for era in eras:
         with open(args.template, "r") as template_file:
             template = template_file.read()
         template = fill_template(template, config)
+        template = (
+            template.replace("{ANALYSISTAG}", '"Analysis=%s"' % args.analysis)
+            .replace("{ERATAG}", '"Era=%s"' % era)
+            .replace("{SAMPLETAG}", '"Samplegroup=%s"' % sample_group)
+        )
         with open(executable, "w") as executable_file:
             executable_file.write(template)
         executables.append(executable)
