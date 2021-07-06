@@ -104,10 +104,13 @@ def fill_template(t, config):
         for shift in q.get_shifts(scope):
             shiftset.add(shift)
     shiftlist = '{"' + '", "'.join(shiftset) + '"}'
-    repo = Repo("../../CROWN")
-    assert not repo.bare
-    current_commit = repo.head.commit
-    setup_is_clean = "false" if repo.is_dirty() else "true"
+    try:
+        repo = Repo("../../CROWN")
+        current_commit = repo.head.commit
+        setup_is_clean = "false" if repo.is_dirty() else "true"
+    except:
+        current_commit = "undefined"
+        setup_is_clean = "false"
     log.info("Finished preparing meta data.")
     return (
         t.replace("    // {CODE_GENERATION}", commandlist)
