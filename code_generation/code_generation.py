@@ -1,4 +1,5 @@
 import logging
+from git import Repo
 
 log = logging.getLogger(__name__)
 
@@ -103,6 +104,10 @@ def fill_template(t, config):
         for shift in q.get_shifts(scope):
             shiftset.add(shift)
     shiftlist = '{"' + '", "'.join(shiftset) + '"}'
+    repo = Repo("../../CROWN")
+    assert not repo.bare
+    current_commit = repo.head.commit
+    setup_is_clean = "false" if repo.is_dirty() else "true"
     log.info("Finished preparing meta data.")
     return (
         t.replace("    // {CODE_GENERATION}", commandlist)
@@ -113,6 +118,6 @@ def fill_template(t, config):
         )
         .replace("{OUTPUT_QUANTITIES}", plain_output_list)
         .replace("{SYSTEMATIC_VARIATIONS}", shiftlist)
-        .replace("{COMMITHASH}", '"babbeldibubb"')
-        .replace("{CLEANSETUP}", "true")
+        .replace("{COMMITHASH}", '"%s"' % current_commit)
+        .replace("{CLEANSETUP}", setup_is_clean)
     )
