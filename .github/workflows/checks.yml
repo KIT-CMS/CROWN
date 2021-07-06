@@ -23,7 +23,7 @@ jobs:
 
     steps:
     - name: Install missing software
-      run: pacman -Syu --noconfirm cmake make git --ignore=root && pacman -Syu --noconfirm git python-pip
+      run: pacman -Syu --noconfirm cmake make git python-pip --ignore=root
 
     - uses: actions/checkout@v2
 
