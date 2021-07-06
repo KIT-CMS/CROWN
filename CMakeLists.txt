@@ -109,6 +109,15 @@ message(STATUS "")
 # Find Python 3
 find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
 
+# detect virtualenv and set Pip args accordingly
+if(DEFINED ENV{VIRTUAL_ENV} OR DEFINED ENV{CONDA_PREFIX})
+  set(_pip_args)
+else()
+  set(_pip_args "--user")
+endif()
+
+execute_process(COMMAND ${Python_EXECUTABLE} -m pip install GitPython ${_pip_args})
+
 # Generate the C++ code
 set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(GENERATE_CPP_INPUT_TEMPLATE "${CMAKE_SOURCE_DIR}/code_generation/analysis_template.cxx")
