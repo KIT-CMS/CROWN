@@ -55,3 +55,8 @@ Reweighting
 ***************
 .. doxygennamespace:: reweighting
    :members:
+   
+MET
+***************
+.. doxygennamespace:: met
+   :members:

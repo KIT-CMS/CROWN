@@ -219,21 +219,45 @@ auto propagateJetsToMET(auto df, const std::string &met,
     }
 }
 /**
- * @brief
+ * @brief function used to apply Recoil corrections on a given sample. For more
+information on recoil corrections, check [this
+repo](https://github.com/KIT-CMS/RecoilCorrections/). The code for the
+application of these corrections can be found in `src/RecoilCorrections`. The
+meaning of the genparticle status codes is listed in the table below.
+
+ Meaning                             | Value | Bit (value used in the config)
+-------------------------------------|-------|-------
+ isPrompt                            | 1     | 0
+ isDecayedLeptonHadron               | 2     | 1
+ isTauDecayProduct                   | 4     | 2
+ isPromptTauDecayProduct             | 8     | 3
+ isDirectTauDecayProduct             | 16    | 4
+ isDirectPromptTauDecayProduct       | 32    | 5
+ isDirectHadronDecayProduct          | 64    | 6
+ isHardProcess                       | 128   | 7
+ fromHardProcess                     | 265   | 8
+ isHardProcessTauDecayProduct        | 512   | 9
+ isDirectHardProcessTauDecayProduct  | 1024  | 10
+ fromHardProcessBeforeFSR            | 2048  | 11
+ isFirstCopy                         | 4096  | 12
+ isLastCopy                          | 8192  | 13
+ isLastCopyBeforeFSR                 | 16384 | 14
+
  *
- * @param df
- * @param met
- * @param genparticle_pt
- * @param genparticle_eta
- * @param genparticle_phi
- * @param genparticle_mass
- * @param genparticle_id
- * @param genparticle_status
- * @param jet_pt
- * @param outputname
- * @param inputfile
- * @param applyRecoilCorrections
- * @return auto
+ * @param df the input dataframe
+ * @param met the input met
+ * @param genparticle_pt genparticle pt
+ * @param genparticle_eta genparticle eta
+ * @param genparticle_phi genparticle phi
+ * @param genparticle_mass genparticle mass
+ * @param genparticle_id genparticle PDG ID
+ * @param genparticle_status genparticle status bit
+ * @param jet_pt the pt of all jets
+ * @param outputname name of the new column containing the corrected met
+ * @param inputfile path to the recoil corrections file
+ * @param applyRecoilCorrections if bool is set, the recoil correction is
+applied, if not, the outputcolumn contains the original met value
+ * @return a new dataframe containing the new met column
  */
 auto applyRecoilCorrections(
     auto df, const std::string &met, const std::string &genparticle_pt,
@@ -278,12 +302,13 @@ auto applyRecoilCorrections(
                 // 2. if it is isDirectHardProcessTauDecayProduct --> bit 10
                 // in status
                 Logger::get("applyRecoilCorrections")
-                    ->debug("Checking particle {} ", genparticle_id.at(index));
+                    ->warn("Checking particle {} ", genparticle_id.at(index));
                 if ((abs(genparticle_id.at(index)) >= 11 &&
-                     abs(genparticle_id.at(index)) <= 16) ||
+                     abs(genparticle_id.at(index)) <= 16 &&
+                     (IntBits(genparticle_status.at(index)).test(8))) ||
                     (IntBits(genparticle_status.at(index)).test(10))) {
                     Logger::get("applyRecoilCorrections")
-                        ->debug("Adding to gen p*");
+                        ->warn("Adding to gen p*");
                     genparticle = ROOT::Math::PtEtaPhiMVector(
                         genparticle_pt.at(index), genparticle_eta.at(index),
                         genparticle_phi.at(index), genparticle_mass.at(index));
@@ -295,27 +320,26 @@ auto applyRecoilCorrections(
                         abs(genparticle_id.at(index)) != 14 &&
                         abs(genparticle_id.at(index)) != 16) {
                         Logger::get("applyRecoilCorrections")
-                            ->debug("Adding to vis p*");
+                            ->warn("Adding to vis p*");
                         visPx += genparticle.Px();
                         visPy += genparticle.Py();
                     }
                 }
             };
-            Logger::get("applyRecoilCorrections")->debug("Corrector Inputs");
-            Logger::get("applyRecoilCorrections")
-                ->debug("nJets30 {} ", nJets30);
-            Logger::get("applyRecoilCorrections")->debug("genPx {} ", genPx);
-            Logger::get("applyRecoilCorrections")->debug("genPy {} ", genPy);
-            Logger::get("applyRecoilCorrections")->debug("visPx {} ", visPx);
-            Logger::get("applyRecoilCorrections")->debug("visPy {} ", visPy);
-            Logger::get("applyRecoilCorrections")->debug("MetX {} ", MetX);
-            Logger::get("applyRecoilCorrections")->debug("MetY {} ", MetY);
+            Logger::get("applyRecoilCorrections")->warn("Corrector Inputs");
+            Logger::get("applyRecoilCorrections")->warn("nJets30 {} ", nJets30);
+            Logger::get("applyRecoilCorrections")->warn("genPx {} ", genPx);
+            Logger::get("applyRecoilCorrections")->warn("genPy {} ", genPy);
+            Logger::get("applyRecoilCorrections")->warn("visPx {} ", visPx);
+            Logger::get("applyRecoilCorrections")->warn("visPy {} ", visPy);
+            Logger::get("applyRecoilCorrections")->warn("MetX {} ", MetX);
+            Logger::get("applyRecoilCorrections")->warn("MetY {} ", MetY);
             corrector->CorrectWithHist(MetX, MetY, genPx, genPy, visPx, visPy,
                                        nJets30, correctedMetX, correctedMetY);
             Logger::get("applyRecoilCorrections")
-                ->debug("correctedMetX {} ", correctedMetX);
+                ->warn("correctedMetX {} ", correctedMetX);
             Logger::get("applyRecoilCorrections")
-                ->debug("correctedMetY {} ", correctedMetY);
+                ->warn("correctedMetY {} ", correctedMetY);
             corrected_met.SetPxPyPzE(correctedMetX, correctedMetY, 0,
                                      std::sqrt(correctedMetX * correctedMetX +
                                                correctedMetY * correctedMetY));
