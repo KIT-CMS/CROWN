@@ -116,7 +116,28 @@ else()
   set(_pip_args "--user")
 endif()
 
-execute_process(COMMAND ${Python_EXECUTABLE} -m pip install GitPython ${_pip_args})
+function(find_python_package PYPINAME NAME MIN_VERSION)
+    execute_process(COMMAND "${Python_EXECUTABLE}" "-c" "import ${NAME}; print(${NAME}.__version__)"
+                    RESULT_VARIABLE PACKAGE_NOT_FOUND
+                    OUTPUT_VARIABLE PACKAGE_VERSION
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(${PACKAGE_NOT_FOUND} EQUAL 1)
+        execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${PYPINAME} ${_pip_args})
+        execute_process(COMMAND "${Python_EXECUTABLE}" "-c" "import ${NAME}; print(${NAME}.__version__)"
+                    RESULT_VARIABLE PACKAGE_NOT_FOUND
+                    OUTPUT_VARIABLE PACKAGE_VERSION
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+        if(${PACKAGE_NOT_FOUND} EQUAL 1)
+            message(FATAL_ERROR "Failed to import ${PYPINAME} or get version.")
+        endif()
+    endif()
+    if(PACKAGE_VERSION VERSION_LESS MIN_VERSION)
+        message(FATAL_ERROR "The version of Python package ${PYPINAME} is too old (found ${PACKAGE_VERSION}, require at least ${MIN_VERSION}).")
+    endif()
+    message(STATUS "Found Python package ${PYPINAME} (require ${MIN_VERSION}, found ${PACKAGE_VERSION})")
+endfunction()
+
+find_python_package(GitPython git 3.1)
 
 # Generate the C++ code
 set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
