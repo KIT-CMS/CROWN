@@ -1,8 +1,6 @@
 #include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "RooTrace.h"
-#include <TFile.h>
-#include <TTree.h>
 #include "TStopwatch.h"
 #include "src/htxs.hxx"
 #include "src/jets.hxx"
@@ -15,6 +13,8 @@
 #include "src/triggers.hxx"
 #include "src/utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
+#include <TFile.h>
+#include <TTree.h>
 #include <string>
 
 static std::vector<std::string> varSet = {"run", "luminosityBlock", "event"};
@@ -74,10 +74,14 @@ int main(int argc, char *argv[]) {
     bool setup_clean = {CLEANSETUP};
     TFile outputfile(outputfilename.c_str(), "UPDATE");
     TTree quantities_meta = TTree("quantities", "quantities");
-    for(auto quantity : output_quanties) {quantities_meta.Branch(quantity.c_str(), &setup_clean);}
+    for (auto quantity : output_quanties) {
+        quantities_meta.Branch(quantity.c_str(), &setup_clean);
+    }
     quantities_meta.Write();
     TTree variations_meta = TTree("variations", "variations");
-    for(auto variation : systematic_variations) {variations_meta.Branch(variation.c_str(), &setup_clean);}
+    for (auto variation : systematic_variations) {
+        variations_meta.Branch(variation.c_str(), &setup_clean);
+    }
     variations_meta.Write();
     TTree commit_meta = TTree("commit", "commit");
     commit_meta.Branch(commit_hash.c_str(), &setup_clean);
