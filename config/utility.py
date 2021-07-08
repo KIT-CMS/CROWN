@@ -89,7 +89,15 @@ class ProducerRule:
                     self.operate(prod, producer_dict[scope])
                     if self.update_output and output_dict != None:
                         for q in CollectProducerOutput(prod):
-                            self.operate(q, output_dict[scope])
+                            scopelist = (
+                                [scope]
+                                if scope in output_dict.keys()
+                                else output_dict.keys()
+                                if scope == "global"
+                                else []
+                            )
+                            for scope2 in scopelist:
+                                self.operate(q, output_dict[scope2])
 
 
 # Modifier class that can remove producers from lists

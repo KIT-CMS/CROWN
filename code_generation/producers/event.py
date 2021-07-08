@@ -38,6 +38,14 @@ Lumi = Producer(
     scopes=["global"],
 )
 
+PUweights = Producer(
+    name="PUweights",
+    call='reweighting::puweights({df}, {output}, {input}, "{PU_reweighting_file}", "{PU_reweighting_hist}")',
+    input=[nanoAOD.Pileup_nTrueInt],
+    output=[q.puweight],
+    scopes=["global"],
+)
+
 DiLeptonVeto = ProducerGroup(
     name="DiLeptonVeto",
     call="basefunctions::CombineFlagsAny({df}, {output}, {input})",

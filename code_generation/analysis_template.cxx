@@ -9,6 +9,7 @@
 #include "src/pairselection.hxx"
 #include "src/physicsobjects.hxx"
 #include "src/quantities.hxx"
+#include "src/reweighting.hxx"
 #include "src/scalefactors.hxx"
 #include "src/triggers.hxx"
 #include "src/utility/Logger.hxx"

@@ -24,6 +24,12 @@ def build_config(era, sample):
             "RunLumiEventFilter_Quantities": ["event"],
             "RunLumiEventFilter_Quantity_Types": ["ULong64_t"],
             "RunLumiEventFilter_Selections": ["271361"],
+            "PU_reweighting_file": {
+                "ERA_2016": "data/pileup/Data_Pileup_2016_271036-284044_13TeVMoriond17_23Sep2016ReReco_69p2mbMinBiasXS.root",
+                "ERA_2017": "data/pileup/Data_Pileup_2017_294927-306462_13TeVSummer17_PromptReco_69p2mbMinBiasXS.root",
+                "ERA_2018": "data/pileup/Data_Pileup_2018_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18.root",
+            },
+            "PU_reweighting_hist": "pileup",
             "min_tau_pt": 30.0,
             "max_tau_eta": 2.3,
             "max_tau_dz": 0.2,
@@ -136,6 +142,7 @@ def build_config(era, sample):
             # RunLumiEventFilter,
             Lumi,
             MetFilter,
+            PUweights,
             TauEnergyCorrection,
             GoodTaus,
             BaseMuons,
@@ -168,6 +175,9 @@ def build_config(era, sample):
 
     config["producer_modifiers"] = [
         RemoveProducer(producers=[MuonIDIso_SF], samples=["data"], scopes=["mt"]),
+        RemoveProducer(
+            producers=[PUweights], samples=["data", "emb"], scopes=["global"]
+        ),
         AppendProducer(
             producers=[GGH_NNLO_Reweighting], samples=["ggh"], scopes=["mt"]
         ),
@@ -184,6 +194,7 @@ def build_config(era, sample):
             nanoAOD.run,
             q.lumi,
             nanoAOD.event,
+            q.puweight,
             q.pt_1,
             q.pt_2,
             q.eta_1,
