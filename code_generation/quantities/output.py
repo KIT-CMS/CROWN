@@ -2,6 +2,8 @@ from code_generation.quantity import Quantity
 
 lumi = Quantity("lumi")
 
+puweight = Quantity("puweight")
+
 m_vis = Quantity("m_vis")
 mt_1 = Quantity("mt_1")
 

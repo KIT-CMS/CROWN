@@ -49,6 +49,7 @@ Jet_ID = NanoAODQuantity("Jet_jetId")
 Jet_associatedGenJet = NanoAODQuantity("Jet_genJetIdx")
 BJet_discriminator = NanoAODQuantity("Jet_btagDeepFlavB")
 
+Pileup_nTrueInt = NanoAODQuantity("Pileup_nTrueInt")
 rho = NanoAODQuantity("Pileup_pudensity")
 
 GenParticle_eta = NanoAODQuantity("GenPart_eta")
