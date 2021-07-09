@@ -112,6 +112,13 @@ def build_config(era, sample):
         },
     }
 
+    all_channels = {
+        "ggHNNLOweightsRootfile": "data/htxs/NNLOPS_reweight.root",
+        "ggH_generator": "powheg",
+    }
+    for channel in ["mt"]:  # add em et tt here as soon as they appear in config
+        base_config[channel].update(all_channels)
+
     config = {"": base_config}
 
     config["producers"] = {
@@ -145,7 +152,9 @@ def build_config(era, sample):
             BasicBJetQuantities,
             GenDiTauPairQuantities,
             MuonIDIso_SF,
-            MetCorrections
+            LVMu1Uncorrected,
+            LVTau2Uncorrected,
+            MetCorrections,
         ],
     }
 
