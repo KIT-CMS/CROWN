@@ -7,6 +7,7 @@ from code_generation.producers.pairselection import *
 from code_generation.producers.pairquantities import *
 from code_generation.producers.event import *
 from code_generation.producers.scalefactors import *
+from code_generation.producers.met import *
 
 # triggers do not work with the unittest as no HLT flags are included
 # from code_generation.producers.triggers import *
@@ -90,6 +91,24 @@ def build_config(era, sample):
             "muon_sf_id_args": "m_pt,m_eta",
             "muon_sf_iso_name": "m_iso_binned_kit_ratio",
             "muon_sf_iso_args": "m_pt,m_eta,m_iso",
+            "propagateLeptons": True,
+            "propagateJets": True,
+            "recoil_corrections_file": {
+                "ERA_2016": "data/recoil_corrections/Type1_PuppiMET_2016.root",
+                "ERA_2017": "data/recoil_corrections/Type1_PuppiMET_2017.root",
+                "ERA_2018": "data/recoil_corrections/Type1_PuppiMET_2018.root",
+            },
+            "recoil_systematics_file": {
+                "ERA_2016": "data/recoil_corrections/PuppiMETSys_2016.root",
+                "ERA_2017": "data/recoil_corrections/PuppiMETSys_2017.root",
+                "ERA_2018": "data/recoil_corrections/PuppiMETSys_2018.root",
+            },
+            "applyRecoilCorrections": True,
+            "apply_recoil_resolution_systematic": False,
+            "apply_recoil_response_systematic": False,
+            "recoil_systematic_shift_up": False,
+            "recoil_systematic_shift_down": False,
+            "min_jetpt_met_propagation": 15,
         },
     }
 
@@ -126,6 +145,7 @@ def build_config(era, sample):
             BasicBJetQuantities,
             GenDiTauPairQuantities,
             MuonIDIso_SF,
+            MetCorrections
         ],
     }
 
@@ -191,6 +211,13 @@ def build_config(era, sample):
             q.gen_taujet_pt_2,
             q.idWeight_1,
             q.isoWeight_1,
+            q.met,
+            q.metphi,
+            q.metSumEt,
+            q.metcov00,
+            q.metcov01,
+            q.metcov10,
+            q.metcov11,
         ]
     }
 

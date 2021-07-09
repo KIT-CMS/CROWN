@@ -88,7 +88,7 @@ PropagateJetsToMET = Producer(
 )
 ApplyRecoilCorrections = Producer(
     name="ApplyRecoilCorrections",
-    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", {applyRecoilCorrections})',
+    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down})',
     input=[
         q.met_p4_jetcorrected,
         nanoAOD.GenParticle_pt,
@@ -134,7 +134,6 @@ MetCorrections = ProducerGroup(
         PropagateLeptonsToMET,
         PropagateJetsToMET,
         ApplyRecoilCorrections,
-        # METunclustered,
         MetPt,
         MetPhi,
     ],
