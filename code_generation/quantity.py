@@ -1,5 +1,4 @@
 import logging
-import time
 
 log = logging.getLogger(__name__)
 
@@ -8,7 +7,10 @@ class Quantity:
     def __init__(self, name):
         self.name = name
         # structure for storing shifts:
-        # {scope1: {shift1 : name2}, {shift2: name2}, scope2: {shift1 : name2}, {shift2: name2}, ...}
+        # {scope1: {shift1 : name2,
+        #          shift2: name2},
+        #  scope2: {shift1 : name2,
+        #           shift2: name2}, ...}
         self.shifts = {}
         self.ignored_shifts = {}
         self.children = {}
@@ -21,10 +23,13 @@ class Quantity:
     def __repr__(self) -> str:
         return self.name
 
-    # the scopes, in which a quantity is used as an output is tracked in the output_scopes list.
-    # This check is triggered for every producer.
-    # If a quantity is already used within a given scope as output, this will result in an exception.
     def reserve_scope(self, scope):
+        """
+        Function to reserve a scope for a given quantity. The scopes, in which a quantity is used
+        as an output are tracked in the output_scopes list.
+        If a quantity is already used within a given scope as output, this will result in an exception.
+        This check is triggered for every Producer.
+        """
         log.debug("Checking {} / scope {}".format(self.name, scope))
         if scope not in self.defined_for_scopes:
             self.defined_for_scopes.append(scope)
@@ -35,48 +40,106 @@ class Quantity:
             raise Exception
 
     def get_leaf(self, shift, scope):
+        """
+        Function to get the leaf of a given shift within a given scope.
+        A leaf is the name of the quantity used for that scope/shift combination.
+        If no shift is defined, the name of the quantity is returned.
+
+        Args:
+            shift (str): Name of the shift for which the leaf should be returned
+            scope (str): Scope for which the leaf should be returned
+        Returns:
+            str. Name of the leaf
+        """
         log.debug("{} - getting shift {} for scope {}".format(self.name, shift, scope))
         leaf = self.name
-        if "global" in self.shifts.keys():
-            if shift in self.shifts["global"].keys():
-                leaf = self.shifts["global"][shift]
-        elif scope in self.shifts.keys():
+        if scope in self.shifts.keys():
             if shift in self.shifts[scope].keys():
                 leaf = self.shifts[scope][shift]
         return leaf
 
     def get_leafs_of_scope(self, scope):
+        """
+        Function returns a list of all leafs, which are defined for a given scope.
+
+        Args:
+            scope (str): Scope for which the leafs should be returned
+        Returns:
+            list. List of leafs
+        """
         result = [self.name] + [
-            self.shifts[scope][shift] for shift in self.get_shifts(scope)
+            self.get_leaf(shift, scope) for shift in self.get_shifts(scope)
         ]
         return result
 
     def shift(self, name, scope):
+        """
+        Function to define a shift for a given scope. If the shift is marked as ignored, nothing will be added.
+        When a new shift is defined, all child quantities of a given quantity will be shifted as well.
+        Shifts defined in the global scope, are added to the shift dictionary of all scopes.
+        Shifts that are exclusive to a single scope are only added to the given scope.
+
+        Args:
+            name (str): Name of the shift
+            scope (str): Scope for which the shift should be defined
+        Returns:
+            None
+        """
         if scope in self.ignored_shifts.keys():
             if name in self.ignored_shifts[scope]:
                 log.debug("Ignoring shift {} for quantity {}".format(name, self.name))
                 return
         log.debug("Adding shift {} to quantity {}".format(name, self.name))
+        # adding new shifts to scopes:
+        # if a shift is defined for the global scope, it should also be added for all other scopes,
+        # therefore, if a new scope is added,
+        # this scope is a copy of the global scope.
         if scope not in self.shifts.keys():
-            self.shifts[scope] = {}
-        if name not in self.shifts[scope]:
-            self.shifts[scope][name] = self.name + name
-            if scope == "global":  # shift children in all scopes if scope is global
-                for any_scope in self.children:
-                    for c in self.children[any_scope]:
-                        c.shift(name, any_scope)
+            if "global" in self.shifts.keys():
+                # make a copy of the global shifts
+                self.shifts[scope] = self.shifts["global"]
             else:
-                if scope in self.children.keys():
-                    for c in self.children[scope]:
-                        c.shift(name, scope)
+                self.shifts[scope] = {}
+        scopes = [scope]
+        if scope == "global" and scope in self.shifts.keys():
+            # in this case, we add the shift to all existing scopes
+            scopes = self.shifts.keys()
+        for scope in scopes:
+            if name not in self.shifts[scope]:
+                self.shifts[scope][name] = self.name + name
+                if scope == "global":  # shift children in all scopes if scope is global
+                    for any_scope in self.children:
+                        for c in self.children[any_scope]:
+                            c.shift(name, any_scope)
+                else:
+                    if scope in self.children.keys():
+                        for c in self.children[scope]:
+                            c.shift(name, scope)
 
     def ignore_shift(self, name, scope):
+        """
+        Function to ignore a shift for a given scope.
+
+        Args:
+            name (str): Name of the shift to be ignored
+            scope (str): Scope for which the shift should be ignored
+        Returns:
+            None
+        """
         log.debug("Make quantity {} ignore shift {}".format(self.name, name))
-        if not scope in self.ignored_shifts.keys():
-            self.ignored_shifts[scope] = set()
-        self.ignored_shifts[scope].add(name)
+        if scope not in self.ignored_shifts.keys():
+            self.ignored_shifts[scope] = {}
+        self.ignored_shifts[scope] = name
 
     def copy(self, name):
+        """
+        Generate a copy of the current quantity with a new name.
+
+        Args:
+            name (str): Name of the new quantity
+        Returns:
+            Quantity. a new Quantity object.
+        """
         copy = Quantity(name)
         copy.shifts = self.shifts
         copy.children = self.children
@@ -85,26 +148,35 @@ class Quantity:
         return copy
 
     def adopt(self, child, scope):
+        """
+        Adopt a child quantity to the current quantity.
+        An adopted quantity will inherit all shifts of the partent quantity.
+
+        Args:
+            child (Quantity): The child quantity
+            scope (str): Scope for which the child should be adopted
+        Returns:
+            None
+        """
         log.debug(
             "Adopting child quantity {} to quantity {} in scope {}".format(
                 child.name, self.name, scope
             )
         )
-        if not scope in self.children.keys():
+        if scope not in self.children.keys():
             self.children[scope] = []
         self.children[scope].append(child)
 
     def get_shifts(self, scope):
-        if "global" in self.shifts.keys():
-            if scope != "global" and scope in self.shifts.keys():
-                log.error(
-                    "Quantity {} has shifts in global and {}. Something must be broken!".format(
-                        self.name, scope
-                    )
-                )
-                raise Exception
-            return list(self.shifts["global"].keys())
-        elif scope in self.shifts.keys():
+        """
+        Function returns a list of all shifts, which are defined for a given scope.
+
+        Args:
+            scope (str): Scope for which shifts should be returned
+        Returns:
+            list: List of all shifts, which are defined for a given scope.
+        """
+        if scope in self.shifts.keys():
             return list(self.shifts[scope].keys())
         else:
             return []
@@ -153,8 +225,11 @@ class NanoAODQuantity(Quantity):
     # if the shifted version of a quantity already exists in the input,
     # this function can be used to register an
     # branch from the input as a shifted version of a quantity
-    def register_external_shift(self, shift, external_name):
-        shift = "__" + shift
-        if "global" not in self.shifts.keys():
-            self.shifts["global"] = {}
-        self.shifts["global"][shift] = external_name
+    def register_external_shift(self, shift, scope, external_name):
+        if scope not in self.shifts.keys():
+            self.shifts[scope] = {}
+        if scope == "global":
+            for allscope in self.shifts.keys():
+                self.shifts[allscope][shift] = external_name
+        else:
+            self.shifts[scope][shift] = external_name

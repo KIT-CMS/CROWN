@@ -19,6 +19,20 @@ def AddSystematicShift(
         producer[0].shift(name, producer[1])
 
 
+# Function for introducing systematic variations to producers and depending quantities by adding an already shifted input quantity
+def SystematicShiftByInputQuantity(
+    config, name, base_producers, external_dict, sanetize_producers=[]
+):
+    for scope in external_dict.keys():
+        for quantity in external_dict[scope].keys():
+            quantity.register_external_shift(
+                shift="__" + name,
+                scope=scope,
+                external_name=external_dict[scope][quantity],
+            )
+    AddSystematicShift(config, name, {}, base_producers, sanetize_producers)
+
+
 # Function for resolving sample dependencies in the config dict for a given sample
 def ResolveSampleDependencies(config, sample):
     for key in config.keys():

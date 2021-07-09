@@ -13,6 +13,7 @@ import code_generation.quantities.output as q
 from config.utility import (
     AddSystematicShift,
     OptimizeProducerOrdering,
+    SystematicShiftByInputQuantity,
     ResolveSampleDependencies,
     ResolveEraDependencies,
     RemoveProducer,
@@ -308,17 +309,27 @@ def build_config(era, sample):
         sanetize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
     )
     # Add MET shifts
-    AddSystematicShift(
+    SystematicShiftByInputQuantity(
         config,
         "metUnclusteredEnUp",
-        {},
         [[BuildMetVector, "mt"]],
+        {
+            "mt": {
+                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
+                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
+            }
+        },
     )
-    AddSystematicShift(
+    SystematicShiftByInputQuantity(
         config,
         "metUnclusteredEnDown",
-        {},
         [[BuildMetVector, "mt"]],
+        {
+            "mt": {
+                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
+                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
+            }
+        },
     )
     # MET Recoil Shifts
     AddSystematicShift(
