@@ -107,6 +107,8 @@ isoWeight_2 = Quantity("isoWeight_2")
 idWeight_1 = Quantity("idWeight_1")
 idWeight_2 = Quantity("idWeight_2")
 
+topPtReweightWeight = Quantity("topPtReweightWeight")
+
 ## HTXS quantities
 ggh_NNLO_weight = Quantity("ggh_NNLO_weight")
 THU_ggH_Mu = Quantity("THU_ggH_Mu")

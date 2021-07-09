@@ -46,6 +46,18 @@ PUweights = Producer(
     scopes=["global"],
 )
 
+TopPtReweighting = Producer(
+    name="TopPtReweighting",
+    call="reweighting::topptreweighting({df}, {output}, {input})",
+    input=[
+        nanoAOD.GenParticle_pdgId,
+        nanoAOD.GenParticle_statusFlags,
+        nanoAOD.GenParticle_pt,
+    ],
+    output=[q.topPtReweightWeight],
+    scopes=["global", "em", "et", "mt", "tt"],
+)
+
 DiLeptonVeto = ProducerGroup(
     name="DiLeptonVeto",
     call="basefunctions::CombineFlagsAny({df}, {output}, {input})",
