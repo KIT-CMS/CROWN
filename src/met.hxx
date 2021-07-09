@@ -1,5 +1,6 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
+#include "RecoilCorrections/METSystematics.cxx"
 #include "RecoilCorrections/RecoilCorrector.cxx"
 #include "basefunctions.hxx"
 #include "bitset"
@@ -254,9 +255,17 @@ meaning of the genparticle status codes is listed in the table below.
  * @param genparticle_status genparticle status bit
  * @param jet_pt the pt of all jets
  * @param outputname name of the new column containing the corrected met
- * @param inputfile path to the recoil corrections file
+ * @param recoilfile path to the recoil corrections file
+ * @param systematicsfile path to the systematics corrections file
  * @param applyRecoilCorrections if bool is set, the recoil correction is
 applied, if not, the outputcolumn contains the original met value
+ * @param resolution bool - if set, resolution corrections are applied
+ * @param response bool - if set, response corrections are applied
+ * @param shiftType bool if set to to 1, the down shift is applied, if set to 0
+the up shift is applied
+    @code
+    { Up = 0, Down = 1 };
+    @endcode
  * @return a new dataframe containing the new met column
  */
 auto applyRecoilCorrections(
@@ -264,13 +273,26 @@ auto applyRecoilCorrections(
     const std::string &genparticle_eta, const std::string &genparticle_phi,
     const std::string &genparticle_mass, const std::string &genparticle_id,
     const std::string &genparticle_status, const std::string &jet_pt,
-    const std::string &outputname, const std::string &inputfile,
-    bool applyRecoilCorrections) {
+    const std::string &outputname, const std::string &recoilfile,
+    const std::string &systematicsfile, bool applyRecoilCorrections,
+    bool resolution, bool response, bool shiftUp, bool shiftDown) {
     if (applyRecoilCorrections) {
-        Logger::get("applyRecoilCorrections")
-            ->debug("Will run recoil corrections");
-        const auto corrector = new RecoilCorrector(inputfile);
-        auto RecoilCorrections = [corrector](
+        Logger::get("RecoilCorrections")->debug("Will run recoil corrections");
+        const auto corrector = new RecoilCorrector(recoilfile);
+        const auto systematics = new METSystematic(systematicsfile);
+        auto shiftType = METSystematic::SysShift::Nominal;
+        if (shiftUp) {
+            shiftType = METSystematic::SysShift::Up;
+        } else if (shiftDown) {
+            shiftType = METSystematic::SysShift::Down;
+        }
+        auto sysType = METSystematic::SysType::None;
+        if (response) {
+            sysType = METSystematic::SysType::Response;
+        } else if (resolution) {
+            sysType = METSystematic::SysType::Resolution;
+        }
+        auto RecoilCorrections = [sysType, systematics, shiftType, corrector](
                                      ROOT::Math::PtEtaPhiEVector &met,
                                      const ROOT::RVec<float> &genparticle_pt,
                                      const ROOT::RVec<float> &genparticle_eta,
@@ -282,17 +304,17 @@ auto applyRecoilCorrections(
             // TODO is this the correct number of jets ?
             auto jets_above30 =
                 Filter(jet_pt, [](float pt) { return pt > 30; });
-            int nJets30 = jets_above30.size() + 1;
-            float genPx = 0.; // generator Z(W) px
-            float genPy = 0.; // generator Z(W) py
-            float visPx = 0.; // visible (generator) Z(W) px
-            float visPy = 0.; // visible (generator) Z(W) py
+            int nJets30 = jets_above30.size();
             float MetX = met.Px();
             float MetY = met.Py();
             float correctedMetX = 0.;
             float correctedMetY = 0.;
             ROOT::Math::PtEtaPhiMVector genparticle;
             ROOT::Math::PtEtaPhiEVector corrected_met;
+            float genPx = 0.; // generator Z(W) px
+            float genPy = 0.; // generator Z(W) py
+            float visPx = 0.; // visible (generator) Z(W) px
+            float visPy = 0.; // visible (generator) Z(W) py
             // now loop though all genparticles in the event
             for (std::size_t index = 0; index < genparticle_id.size();
                  ++index) {
@@ -301,14 +323,13 @@ auto applyRecoilCorrections(
                 // status
                 // 2. if it is isDirectHardProcessTauDecayProduct --> bit 10
                 // in status
-                Logger::get("applyRecoilCorrections")
-                    ->warn("Checking particle {} ", genparticle_id.at(index));
+                Logger::get("getGenMET")
+                    ->debug("Checking particle {} ", genparticle_id.at(index));
                 if ((abs(genparticle_id.at(index)) >= 11 &&
                      abs(genparticle_id.at(index)) <= 16 &&
                      (IntBits(genparticle_status.at(index)).test(8))) ||
                     (IntBits(genparticle_status.at(index)).test(10))) {
-                    Logger::get("applyRecoilCorrections")
-                        ->warn("Adding to gen p*");
+                    Logger::get("getGenMET")->debug("Adding to gen p*");
                     genparticle = ROOT::Math::PtEtaPhiMVector(
                         genparticle_pt.at(index), genparticle_eta.at(index),
                         genparticle_phi.at(index), genparticle_mass.at(index));
@@ -319,34 +340,42 @@ auto applyRecoilCorrections(
                     if (abs(genparticle_id.at(index)) != 12 &&
                         abs(genparticle_id.at(index)) != 14 &&
                         abs(genparticle_id.at(index)) != 16) {
-                        Logger::get("applyRecoilCorrections")
-                            ->warn("Adding to vis p*");
+                        Logger::get("getGenMET")->debug("Adding to vis p*");
                         visPx += genparticle.Px();
                         visPy += genparticle.Py();
                     }
                 }
-            };
-            Logger::get("applyRecoilCorrections")->warn("Corrector Inputs");
-            Logger::get("applyRecoilCorrections")->warn("nJets30 {} ", nJets30);
-            Logger::get("applyRecoilCorrections")->warn("genPx {} ", genPx);
-            Logger::get("applyRecoilCorrections")->warn("genPy {} ", genPy);
-            Logger::get("applyRecoilCorrections")->warn("visPx {} ", visPx);
-            Logger::get("applyRecoilCorrections")->warn("visPy {} ", visPy);
-            Logger::get("applyRecoilCorrections")->warn("MetX {} ", MetX);
-            Logger::get("applyRecoilCorrections")->warn("MetY {} ", MetY);
+            }
+            Logger::get("RecoilCorrections")->debug("Corrector Inputs");
+            Logger::get("RecoilCorrections")->debug("nJets30 {} ", nJets30);
+            Logger::get("RecoilCorrections")->debug("genPx {} ", genPx);
+            Logger::get("RecoilCorrections")->debug("genPy {} ", genPy);
+            Logger::get("RecoilCorrections")->debug("visPx {} ", visPx);
+            Logger::get("RecoilCorrections")->debug("visPy {} ", visPy);
+            Logger::get("RecoilCorrections")->debug("MetX {} ", MetX);
+            Logger::get("RecoilCorrections")->debug("MetY {} ", MetY);
+            Logger::get("RecoilCorrections")
+                ->debug("correctedMetX {} ", correctedMetX);
+            Logger::get("RecoilCorrections")
+                ->debug("correctedMetY {} ", correctedMetY);
+            Logger::get("RecoilCorrections")->debug("old met {} ", met.Pt());
             corrector->CorrectWithHist(MetX, MetY, genPx, genPy, visPx, visPy,
                                        nJets30, correctedMetX, correctedMetY);
-            Logger::get("applyRecoilCorrections")
-                ->warn("correctedMetX {} ", correctedMetX);
-            Logger::get("applyRecoilCorrections")
-                ->warn("correctedMetY {} ", correctedMetY);
+            // only apply shifts is the correpsonding variables are set
+            if (sysType != METSystematic::SysType::None &&
+                shiftType != METSystematic::SysShift::Nominal) {
+                Logger::get("RecoilCorrections")
+                    ->debug(" apply systematics {} {}", sysType, shiftType);
+                systematics->ApplyMETSystematic(
+                    correctedMetX, correctedMetY, genPx, genPy, visPx, visPy,
+                    nJets30, sysType, shiftType, correctedMetX, correctedMetY);
+            }
             corrected_met.SetPxPyPzE(correctedMetX, correctedMetY, 0,
                                      std::sqrt(correctedMetX * correctedMetX +
                                                correctedMetY * correctedMetY));
-            Logger::get("applyRecoilCorrections")
-                ->debug("old met {} ", met.Pt());
-            Logger::get("applyRecoilCorrections")
-                ->debug("corrected met {} ", corrected_met.Pt());
+            Logger::get("RecoilCorrections")
+                ->debug("shifted and corrected met {} ", corrected_met.Pt());
+
             return corrected_met;
         };
         return df.Define(outputname, RecoilCorrections,

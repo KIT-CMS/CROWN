@@ -16,7 +16,7 @@
 class RecoilCorrector {
 
   public:
-    RecoilCorrector(std::string fileName);
+    RecoilCorrector(std::string filepath);
     ~RecoilCorrector();
 
     void CorrectWithHist(float MetPx, float MetPy, float genZPx, float genZPy,
