@@ -1,4 +1,5 @@
 import logging
+import time
 
 log = logging.getLogger(__name__)
 
@@ -6,6 +7,8 @@ log = logging.getLogger(__name__)
 class Quantity:
     def __init__(self, name):
         self.name = name
+        # structure for storing shifts:
+        # {scope1: {shift1 : name2}, {shift2: name2}, scope2: {shift1 : name2}, {shift2: name2}, ...}
         self.shifts = {}
         self.ignored_shifts = {}
         self.children = {}
@@ -32,12 +35,21 @@ class Quantity:
             raise Exception
 
     def get_leaf(self, shift, scope):
-        if shift in self.get_shifts(scope):
-            return self.name + shift
-        return self.name
+        log.debug("{} - getting shift {} for scope {}".format(self.name, shift, scope))
+        leaf = self.name
+        if "global" in self.shifts.keys():
+            if shift in self.shifts["global"].keys():
+                leaf = self.shifts["global"][shift]
+        elif scope in self.shifts.keys():
+            if shift in self.shifts[scope].keys():
+                leaf = self.shifts[scope][shift]
+        return leaf
 
     def get_leafs_of_scope(self, scope):
-        return [self.name] + [self.name + shift for shift in self.get_shifts(scope)]
+        result = [self.name] + [
+            self.shifts[scope][shift] for shift in self.get_shifts(scope)
+        ]
+        return result
 
     def shift(self, name, scope):
         if scope in self.ignored_shifts.keys():
@@ -45,10 +57,10 @@ class Quantity:
                 log.debug("Ignoring shift {} for quantity {}".format(name, self.name))
                 return
         log.debug("Adding shift {} to quantity {}".format(name, self.name))
-        if not scope in self.shifts.keys():
-            self.shifts[scope] = set()
-        if not name in self.shifts[scope]:
-            self.shifts[scope].add(name)
+        if scope not in self.shifts.keys():
+            self.shifts[scope] = {}
+        if name not in self.shifts[scope]:
+            self.shifts[scope][name] = self.name + name
             if scope == "global":  # shift children in all scopes if scope is global
                 for any_scope in self.children:
                     for c in self.children[any_scope]:
@@ -74,7 +86,9 @@ class Quantity:
 
     def adopt(self, child, scope):
         log.debug(
-            "Adopting child quantity {} to quantity {}".format(child.name, self.name)
+            "Adopting child quantity {} to quantity {} in scope {}".format(
+                child.name, self.name, scope
+            )
         )
         if not scope in self.children.keys():
             self.children[scope] = []
@@ -89,9 +103,9 @@ class Quantity:
                     )
                 )
                 raise Exception
-            return list(self.shifts["global"])
+            return list(self.shifts["global"].keys())
         elif scope in self.shifts.keys():
-            return list(self.shifts[scope])
+            return list(self.shifts[scope].keys())
         else:
             return []
 
@@ -135,3 +149,12 @@ class NanoAODQuantity(Quantity):
             )
         )
         raise Exception
+
+    # if the shifted version of a quantity already exists in the input,
+    # this function can be used to register an
+    # branch from the input as a shifted version of a quantity
+    def register_external_shift(self, shift, external_name):
+        shift = "__" + shift
+        if "global" not in self.shifts.keys():
+            self.shifts["global"] = {}
+        self.shifts["global"][shift] = external_name

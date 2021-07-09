@@ -76,10 +76,24 @@ HTXS_stage1_2_cat_pTjet30GeV = NanoAODQuantity("HTXS_stage1_2_cat_pTjet30GeV")
 HTXS_stage1_2_fine_cat_pTjet30GeV = NanoAODQuantity("HTXS_stage1_2_fine_cat_pTjet30GeV")
 
 ## MET quantities
+## TODO Swich to Puppi versions for METCOV and Signifiance as soon as they are in the nanoAOD
 MET_covXX = NanoAODQuantity("MET_covXX")
 MET_covXY = NanoAODQuantity("MET_covXY")
 MET_covYY = NanoAODQuantity("MET_covYY")
-MET_phi = NanoAODQuantity("MET_phi")
-MET_pt = NanoAODQuantity("MET_pt")
 MET_significance = NanoAODQuantity("MET_significance")
-MET_sumEt = NanoAODQuantity("MET_sumEt")
+
+MET_phi = NanoAODQuantity("PuppiMET_phi")
+MET_pt = NanoAODQuantity("PuppiMET_pt")
+MET_sumEt = NanoAODQuantity("PuppiMET_sumEt")
+MET_pt.register_external_shift(
+    shift="metUnclusteredEnUp", external_name="PuppiMET_ptUnclusteredUp"
+)
+MET_pt.register_external_shift(
+    shift="metUnclusteredEnDown", external_name="PuppiMET_ptUnclusteredDown"
+)
+MET_phi.register_external_shift(
+    shift="metUnclusteredEnUp", external_name="PuppiMET_phiUnclusteredUp"
+)
+MET_phi.register_external_shift(
+    shift="metUnclusteredEnDown", external_name="PuppiMET_phiUnclusteredDown"
+)
