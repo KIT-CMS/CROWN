@@ -85,15 +85,3 @@ MET_significance = NanoAODQuantity("MET_significance")
 MET_phi = NanoAODQuantity("PuppiMET_phi")
 MET_pt = NanoAODQuantity("PuppiMET_pt")
 MET_sumEt = NanoAODQuantity("PuppiMET_sumEt")
-MET_pt.register_external_shift(
-    shift="metUnclusteredEnUp", external_name="PuppiMET_ptUnclusteredUp"
-)
-MET_pt.register_external_shift(
-    shift="metUnclusteredEnDown", external_name="PuppiMET_ptUnclusteredDown"
-)
-MET_phi.register_external_shift(
-    shift="metUnclusteredEnUp", external_name="PuppiMET_phiUnclusteredUp"
-)
-MET_phi.register_external_shift(
-    shift="metUnclusteredEnDown", external_name="PuppiMET_phiUnclusteredDown"
-)
