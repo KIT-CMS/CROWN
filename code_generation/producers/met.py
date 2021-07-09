@@ -61,7 +61,6 @@ MetSumEt = Producer(
     output=[q.metSumEt],
     scopes=["et", "mt", "tt", "em"],
 )
-
 PropagateLeptonsToMET = Producer(
     name="PropagateLeptonsToMET",
     call="met::propagateLeptonsToMET({df}, {input}, {output}, {propagateLeptons})",
@@ -109,7 +108,6 @@ MetPt = Producer(
     output=[q.met],
     scopes=["et", "mt", "tt", "em"],
 )
-
 MetPhi = Producer(
     name="MetPhi",
     call="met::metPhi({df}, {input}, {output})",
@@ -117,7 +115,6 @@ MetPhi = Producer(
     output=[q.metphi],
     scopes=["et", "mt", "tt", "em"],
 )
-
 MetCorrections = ProducerGroup(
     name="MetCorrections",
     call=None,
