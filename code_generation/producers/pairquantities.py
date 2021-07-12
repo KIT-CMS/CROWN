@@ -69,6 +69,13 @@ m_vis = Producer(
     output=[q.m_vis],
     scopes=["mt", "et", "tt", "em"],
 )
+pt_vis = Producer(
+    name="pt_vis",
+    call="quantities::pt_vis({df}, {output}, {input_vec})",
+    input=[q.p4_1, q.p4_2],
+    output=[q.pt_vis],
+    scopes=["mt", "et", "tt", "em"],
+)
 ####################
 # Set of channel specific producers
 ####################
@@ -196,7 +203,7 @@ DiTauPairQuantities = ProducerGroup(
     input=None,
     output=None,
     scopes=["mt", "et", "tt", "em"],
-    subproducers=[UnrollLV1, UnrollLV2, m_vis],
+    subproducers=[UnrollLV1, UnrollLV2, m_vis, pt_vis],
 )
 
 ## advanced event quantities (can be caluculated when ditau pair and met and all jets are determined)
@@ -247,11 +254,18 @@ pt_ttjj = Producer(
     output=[q.pt_ttjj],
     scopes=["mt", "et", "tt", "em"],
 )
+mt_tot = Producer(
+    name="mt_tot",
+    call="quantities::mt_tot({df}, {output}, {input})",
+    input=[q.p4_1, q.p4_2, q.met_p4_recoilcorrected],
+    output=[q.mt_tot],
+    scopes=["mt", "et", "tt", "em"],
+)
 DiTauPairMETQuantities = ProducerGroup(
     name="DiTauPairMETQuantities",
     call=None,
     input=None,
     output=None,
     scopes=["mt", "et", "tt", "em"],
-    subproducers=[Pzetamissvis, mTdileptonMET, mt_1, mt_2, pt_tt, pt_ttjj],
+    subproducers=[Pzetamissvis, mTdileptonMET, mt_1, mt_2, pt_tt, pt_ttjj, mt_tot],
 )

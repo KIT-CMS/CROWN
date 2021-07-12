@@ -166,6 +166,32 @@ auto m_vis(auto &df, const std::string &outputname,
         },
         inputvectors);
 }
+/// Function to calculate the visible pt from a pair of lorentz vectors and
+/// add it to the dataframe. The visible pt is calculated as the pt of the
+/// lorentz vector of the dilepton system.
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the pt value
+/// \param inputvectors a vector of the two names of the columns containing the
+/// required lorentz vectors
+///
+/// \returns a dataframe with the new column
+
+auto pt_vis(auto &df, const std::string &outputname,
+            const std::vector<std::string> &inputvectors) {
+    // build visible pt from the two particles
+    return df.Define(
+        outputname,
+        [](const ROOT::Math::PtEtaPhiMVector &p4_1,
+           const ROOT::Math::PtEtaPhiMVector &p4_2) {
+            if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0)
+                return default_float;
+            auto const dileptonsystem = p4_1 + p4_2;
+            return (float)dileptonsystem.pt();
+        },
+        inputvectors);
+}
+
 /**
  * @brief Function to calculate the quantity `pZetaMissVis` from the two leptons
  in the event + the met vector. The variable is defined as
@@ -314,6 +340,35 @@ auto pt_ttjj(auto &df, const std::string &outputname, const std::string &p_1_p4,
     };
     return df.Define(outputname, calculate_pt_ttjj,
                      {p_1_p4, p_2_p4, jet_1_p4, jet_2_p4, met});
+}
+
+/**
+ * @brief function used to calculate mt_tot. mt_tot is defined as
+ /f[
+    m_{T}^{tot} = \sqrt{m_{T}^2(p_{1},E_{T}^{miss}) +
+ m_{T}^2(p_{2},E_{T}^{miss}) + m_{T}^2(p_{1},p_2) } \f] where \f$ m_{T}^2 \f$ is
+ the transverse mass, \f$ p_{1} \f$ and \f$ p_{2} \f$ are the lepton lorentz
+ vectors and \f$ E_{T}^{miss} \f$ is the missing energy.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the mt_tot value
+ * @param p_1_p4 lorentz vector of the first particle
+ * @param p_2_p4 lorentz vector of the second particle
+ * @param met lorentz vector of the met
+ * @return a new dataframe with the new column
+ */
+
+auto mt_tot(auto &df, const std::string &outputname, const std::string &p_1_p4,
+            const std::string &p_2_p4, const std::string &met) {
+    auto calculate_mt_tot = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
+                               ROOT::Math::PtEtaPhiMVector &p_2_p4,
+                               ROOT::Math::PtEtaPhiMVector &met) {
+        const float mt_1 = vectoroperations::calculateMT(p_1_p4, met);
+        const float mt_2 = vectoroperations::calculateMT(p_2_p4, met);
+        const float mt_mix = vectoroperations::calculateMT(p_1_p4, p_2_p4);
+        return (float)sqrt(mt_1 * mt_1 + mt_2 * mt_2 + mt_mix * mt_mix);
+    };
+    return df.Define(outputname, calculate_mt_tot, {p_1_p4, p_2_p4, met});
 }
 
 /// Function to writeout the isolation of a particle. The particle is
