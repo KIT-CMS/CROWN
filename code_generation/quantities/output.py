@@ -64,6 +64,9 @@ taujet_pt_2 = Quantity("taujet_pt_2")
 gen_taujet_pt_1 = Quantity("gen_taujet_pt_1")
 gen_taujet_pt_2 = Quantity("gen_taujet_pt_2")
 
+# Combined event quantities
+pzetamissvis = Quantity("pzetamissvis")
+
 njets = Quantity("njets")
 nbtag = Quantity("nbtag")
 jet_p4_1 = Quantity("jet_p4_1")
