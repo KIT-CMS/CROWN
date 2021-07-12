@@ -22,7 +22,7 @@ namespace met {
  */
 auto metPt(auto df, const std::string &metvector,
            const std::string &outputname) {
-    auto GetMetPt = [](const ROOT::Math::PtEtaPhiEVector &met) {
+    auto GetMetPt = [](const ROOT::Math::PtEtaPhiMVector &met) {
         return met.Pt();
     };
     return df.Define(outputname, GetMetPt, {metvector});
@@ -37,7 +37,7 @@ auto metPt(auto df, const std::string &metvector,
  */
 auto metPhi(auto df, const std::string &metvector,
             const std::string &outputname) {
-    auto GetMetPhi = [](const ROOT::Math::PtEtaPhiEVector met) {
+    auto GetMetPhi = [](const ROOT::Math::PtEtaPhiMVector met) {
         return met.Phi();
     };
     return df.Define(outputname, GetMetPhi, {metvector});
@@ -71,7 +71,7 @@ auto propagateLeptonsToMET(auto df, const std::string &met,
                            const std::string &p4_1, const std::string &p4_2,
                            const std::string &outputname,
                            bool apply_propagation) {
-    auto scaleMet = [](const ROOT::Math::PtEtaPhiEVector &met,
+    auto scaleMet = [](const ROOT::Math::PtEtaPhiMVector &met,
                        const ROOT::Math::PtEtaPhiMVector &uncorrected_object,
                        const ROOT::Math::PtEtaPhiMVector &corrected_object) {
         // We propagate the lepton corrections to the MET by scaling the x and y
@@ -89,7 +89,7 @@ auto propagateLeptonsToMET(auto df, const std::string &met,
         Logger::get("propagateLeptonsToMET")->debug("corr_y {}", corr_y);
         Logger::get("propagateLeptonsToMET")->debug("MetX {}", MetX);
         Logger::get("propagateLeptonsToMET")->debug("MetY {}", MetY);
-        ROOT::Math::PtEtaPhiEVector corrected_met;
+        ROOT::Math::PtEtaPhiMVector corrected_met;
         corrected_met.SetPxPyPzE(MetX, MetY, 0,
                                  std::sqrt(MetX * MetX + MetY * MetY));
         Logger::get("propagateLeptonsToMET")
@@ -117,7 +117,7 @@ auto propagateLeptonsToMET(auto df, const std::string &met,
     } else {
         // if we do not apply the propagation, just rename the met column to the
         // new outputname and dont change anything else
-        return basefunctions::rename<ROOT::Math::PtEtaPhiEVector>(df, met,
+        return basefunctions::rename<ROOT::Math::PtEtaPhiMVector>(df, met,
                                                                   outputname);
     }
 }
@@ -163,7 +163,7 @@ auto propagateJetsToMET(auto df, const std::string &met,
                         float min_jet_pt) {
     // propagate jet corrections to met, since we can have an arbitrary
     // amount of jets, this has to be done per event
-    auto scaleMet = [min_jet_pt](const ROOT::Math::PtEtaPhiEVector &met,
+    auto scaleMet = [min_jet_pt](const ROOT::Math::PtEtaPhiMVector &met,
                                  const ROOT::RVec<float> &jet_pt_corrected,
                                  const ROOT::RVec<float> &jet_eta_corrected,
                                  const ROOT::RVec<float> &jet_phi_corrected,
@@ -172,7 +172,7 @@ auto propagateJetsToMET(auto df, const std::string &met,
                                  const ROOT::RVec<float> &jet_eta,
                                  const ROOT::RVec<float> &jet_phi,
                                  const ROOT::RVec<float> &jet_mass) {
-        ROOT::Math::PtEtaPhiEVector corrected_met;
+        ROOT::Math::PtEtaPhiMVector corrected_met;
         ROOT::Math::PtEtaPhiMVector uncorrected_jet;
         ROOT::Math::PtEtaPhiMVector corrected_jet;
         float corr_x = 0.0;
@@ -215,7 +215,7 @@ auto propagateJetsToMET(auto df, const std::string &met,
     } else {
         // if we do not apply the propagation, just rename the met column to the
         // new outputname and dont change anything else
-        return basefunctions::rename<ROOT::Math::PtEtaPhiEVector>(df, met,
+        return basefunctions::rename<ROOT::Math::PtEtaPhiMVector>(df, met,
                                                                   outputname);
     }
 }
@@ -290,7 +290,7 @@ auto applyRecoilCorrections(
             sysType = METSystematic::SysType::Resolution;
         }
         auto RecoilCorrections = [sysType, systematics, shiftType, corrector](
-                                     ROOT::Math::PtEtaPhiEVector &met,
+                                     ROOT::Math::PtEtaPhiMVector &met,
                                      const ROOT::RVec<float> &genparticle_pt,
                                      const ROOT::RVec<float> &genparticle_eta,
                                      const ROOT::RVec<float> &genparticle_phi,
@@ -307,7 +307,7 @@ auto applyRecoilCorrections(
             float correctedMetX = 0.;
             float correctedMetY = 0.;
             ROOT::Math::PtEtaPhiMVector genparticle;
-            ROOT::Math::PtEtaPhiEVector corrected_met;
+            ROOT::Math::PtEtaPhiMVector corrected_met;
             float genPx = 0.; // generator Z(W) px
             float genPy = 0.; // generator Z(W) py
             float visPx = 0.; // visible (generator) Z(W) px
@@ -382,7 +382,7 @@ auto applyRecoilCorrections(
     } else {
         // if we do not apply the recoil corrections, just rename the met
         // column to the new outputname and dont change anything else
-        return basefunctions::rename<ROOT::Math::PtEtaPhiEVector>(df, met,
+        return basefunctions::rename<ROOT::Math::PtEtaPhiMVector>(df, met,
                                                                   outputname);
     }
 }
