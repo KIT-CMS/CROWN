@@ -265,14 +265,38 @@ auto mT(auto &df, const std::string &outputname, const std::string &particle_p4,
     return df.Define(outputname, calculate_mt, {particle_p4, met});
 }
 
-/// Function to writeout the isolation of a particle. The particle is identified
-/// via the index stored in the pair vector
+/**
+ * @brief function used to calculate the pt of the dilepton + met system.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the pt_tt value
+ * @param particle_1_p4 lorentz vector of the first particle
+ * @param particle_2_p4 lorentz vector of the second particle
+ * @param met lorentz vector of the met
+ * @return a new dataframe with the new column
+ */
+
+auto pt_tt(auto &df, const std::string &outputname,
+           const std::string &particle_1_p4, const std::string &particle_2_p4,
+           const std::string &met) {
+    auto calculate_pt_tt = [](ROOT::Math::PtEtaPhiMVector &particle_1_p4,
+                              ROOT::Math::PtEtaPhiMVector &particle_2_p4,
+                              ROOT::Math::PtEtaPhiMVector &met) {
+        auto dileptonmet = particle_1_p4 + particle_2_p4 + met;
+        return dileptonmet.Pt();
+    };
+    return df.Define(outputname, calculate_pt_tt,
+                     {particle_1_p4, particle_2_p4, met});
+}
+/// Function to writeout the isolation of a particle. The particle is
+/// identified via the index stored in the pair vector
 ///
 /// \param df the dataframe to add the quantity to
 /// \param outputname name of the new column containing the isolation value
 /// \param position index of the position in the pair vector
 /// \param pairname name of the column containing the pair vector
-/// \param isolationcolumn name of the column containing the isolation values
+/// \param isolationcolumn name of the column containing the isolation
+/// values
 ///
 /// \returns a dataframe with the new column
 
@@ -310,14 +334,15 @@ auto pdgid(auto &df, const std::string &outputname, const int &position,
 }
 /// namespace for tau specific quantities
 namespace tau {
-/// Function to writeout the decaymode of a tau. The particle is identified via
-/// the index stored in the pair vector
+/// Function to writeout the decaymode of a tau. The particle is identified
+/// via the index stored in the pair vector
 ///
 /// \param df the dataframe to add the quantity to
 /// \param outputname name of the new column containing the decaymode value
 /// \param position index of the position in the pair vector
 /// \param pairname name of the column containing the pair vector
-/// \param decaymodecolumn name of the column containing the decaymode values
+/// \param decaymodecolumn name of the column containing the decaymode
+/// values
 ///
 /// \returns a dataframe with the new column
 
@@ -332,8 +357,9 @@ auto decaymode(auto &df, const std::string &outputname, const int &position,
                      },
                      {pairname, decaymodecolumn});
 }
-/// Function to writeout the genmatch of a tau. The particle is identified via
-/// the index stored in the pair vector Genmatch values are defined as \code
+/// Function to writeout the genmatch of a tau. The particle is identified
+/// via the index stored in the pair vector Genmatch values are defined as
+/// \code
 ///   1 = prompt electron,
 ///   2 = prompt muon,
 ///   3 = tau->e decay,
@@ -360,15 +386,16 @@ auto genmatch(auto &df, const std::string &outputname, const int &position,
                      },
                      {pairname, genmatchcolumn});
 }
-/// Function to writeout the pt of the reco jet associated with the given tau.
+/// Function to writeout the pt of the reco jet associated with the given
+/// tau.
 ///
 /// \param df the dataframe to add the quantity to
 /// \param outputname name of the new column containing the jet pt value
 /// \param position index of the position in the pair vector
 /// \param pairname name of the column containing the pair vector
-/// \param taujet_index name of the column containing the association between
-/// the tau and the reco jet \param jetpt_column name of the column containing
-/// the recojet pt values
+/// \param taujet_index name of the column containing the association
+/// between the tau and the reco jet \param jetpt_column name of the column
+/// containing the recojet pt values
 ///
 /// \returns a dataframe with the new column
 auto matching_jet_pt(auto &df, const std::string &outputname,
@@ -394,10 +421,10 @@ auto matching_jet_pt(auto &df, const std::string &outputname,
 /// \param outputname name of the new column containing the jet pt value
 /// \param position index of the position in the pair vector
 /// \param pairname name of the column containing the pair vector
-/// \param taujet_index name of the column containing the association between
-/// the tau and the reco jet \param genjet_index name of the column containing
-/// the association between the reco jet and the gen jet \param genjetpt_column
-/// name of the column containing the genJet pt values
+/// \param taujet_index name of the column containing the association
+/// between the tau and the reco jet \param genjet_index name of the column
+/// containing the association between the reco jet and the gen jet \param
+/// genjetpt_column name of the column containing the genJet pt values
 ///
 /// \returns a dataframe with the new column
 auto matching_genjet_pt(auto &df, const std::string &outputname,

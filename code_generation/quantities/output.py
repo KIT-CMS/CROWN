@@ -69,6 +69,7 @@ pzetamissvis = Quantity("pzetamissvis")
 mTdileptonMET = Quantity("mTdileptonMET")
 mt_1 = Quantity("mt_1")
 mt_2 = Quantity("mt_2")
+pt_tt = Quantity("pt_tt")
 
 njets = Quantity("njets")
 nbtag = Quantity("nbtag")

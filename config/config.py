@@ -290,6 +290,7 @@ def build_config(era, sample):
             q.mTdileptonMET,
             q.mt_1,
             q.mt_2,
+            q.pt_tt,
         ]
     }
 
