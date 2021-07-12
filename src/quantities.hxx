@@ -343,8 +343,8 @@ auto pt_ttjj(auto &df, const std::string &outputname, const std::string &p_1_p4,
 }
 
 /**
- * @brief function used to calculate mt_tot. mt_tot is defined as
- /f[
+ * @brief function used to calculate `mt_tot`. It is defined as
+ \f[
     m_{T}^{tot} = \sqrt{m_{T}^2(p_{1},E_{T}^{miss}) +
  m_{T}^2(p_{2},E_{T}^{miss}) + m_{T}^2(p_{1},p_2) } \f] where \f$ m_{T}^2 \f$ is
  the transverse mass, \f$ p_{1} \f$ and \f$ p_{2} \f$ are the lepton lorentz
