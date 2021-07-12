@@ -261,11 +261,8 @@ meaning of the genparticle status codes is listed in the table below.
 applied, if not, the outputcolumn contains the original met value
  * @param resolution bool - if set, resolution corrections are applied
  * @param response bool - if set, response corrections are applied
- * @param shiftType bool if set to to 1, the down shift is applied, if set to 0
-the up shift is applied
-    @code
-    { Up = 0, Down = 1 };
-    @endcode
+ * @param shiftUp bool - if set, the up shift is applied
+ * @param shiftDown bool - if set, the down shift is applied
  * @return a new dataframe containing the new met column
  */
 auto applyRecoilCorrections(

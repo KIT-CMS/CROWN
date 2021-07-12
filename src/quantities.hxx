@@ -5,6 +5,14 @@
 /// are needed for every event
 namespace quantities {
 
+/// Function to calculate the pt from a given lorentz vector and add it to the
+/// dataframe
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the pt value
+/// \param inputvector name of the column containing the lorentz vector
+///
+/// \returns a dataframe with the new column
 auto pt(auto &df, const std::string &outputname,
         const std::string &inputvector) {
     return df.Define(
@@ -132,7 +140,8 @@ auto charge(auto &df, const std::string &outputname, const int &position,
         {pairname, chargecolumn});
 }
 /// Function to calculate the visible mass from a pair of lorentz vectors and
-/// add it to the dataframe
+/// add it to the dataframe. The visible mass is calculated as the mass of the
+/// lorentz vector of the dilepton system.
 ///
 /// \param df the dataframe to add the quantity to
 /// \param outputname name of the new column containing the pt value
@@ -155,6 +164,60 @@ auto m_vis(auto &df, const std::string &outputname,
         },
         inputvectors);
 }
+/**
+ * @brief Function to calculate the quantity `pZetaMissVis` from the two leptons
+ in the event + the met vector. The variable is defined as
+ * \f[
+     D_\zeta = p_\zeta^\text{miss} - 0.85 p_\zeta^\text{vis}
+    \qquad;
+    p_\zeta^\text{miss} = \vec{p}_\text{T}^\text{miss} \cdot \hat{\zeta}
+    \qquad;
+    p_\zeta^\text{vis} = (\vec{p}_\text{T}^{p_1} + \vec{p}_\text{T}^{p_2}) \cdot
+ \hat{\zeta} \f] where \f$\vec{p}_\text{T}^{p_{1,2}}\f$ corresponds to the
+ transverse momentum vector of the first (second) lepton and \f$\hat{\zeta}\f$
+ to the bisectional direction between the two leptons in the transverse plane.
+ For more information check
+
+ D. Jang, “Search for MSSM Higgs decaying to
+ tau pairs in pp collision at √s=1.96 TeV at CDF”. PhD thesis, Rutgers
+ University, 2006. FERMILAB-THESIS-2006-11.
+
+ * @param df the input dataframe
+ * @param particle_1_p4 the lorentz vector of the first particle
+ * @param particle_2_p4 the lorentz vector of the second particle
+ * @param met the lorentz vector of the met
+ * @param outputname the name of the new column containing the pZetaMissVis
+ value
+ * @return a new dataframe with the new column
+ */
+auto pzetamissvis(auto &df, const std::string &outputname,
+                  const std::string &particle_1_p4,
+                  const std::string &particle_2_p4, const std::string &met) {
+    float alpha = 0.85;
+    auto calculate_pzetamissvis =
+        [alpha](ROOT::Math::PtEtaPhiMVector &particle_1_p4,
+                ROOT::Math::PtEtaPhiMVector &particle_2_p4,
+                ROOT::Math::PtEtaPhiEVector &met) {
+            auto met_3dvec = met.Vect();
+            met_3dvec.SetZ(0.0);
+            // calculate zeta for the delepton system
+            auto p1_norm = particle_1_p4.Vect().Unit();
+            auto p2_norm = particle_2_p4.Vect().Unit();
+            p1_norm.SetZ(0.0);
+            p2_norm.SetZ(0.0);
+            p1_norm = p1_norm.Unit();
+            p2_norm = p2_norm.Unit();
+            auto zeta = (p1_norm + p2_norm).Unit();
+
+            auto dileptonsystem = particle_1_p4.Vect() + particle_2_p4.Vect();
+            dileptonsystem.SetZ(0);
+            auto pzetaVis = dileptonsystem.Dot(zeta);
+            return met_3dvec.Dot(zeta) - (alpha * pzetaVis);
+        };
+    return df.Define(outputname, calculate_pzetamissvis,
+                     {particle_1_p4, particle_2_p4, met});
+}
+
 /// Function to writeout the isolation of a particle. The particle is identified
 /// via the index stored in the pair vector
 ///

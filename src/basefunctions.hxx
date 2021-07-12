@@ -27,15 +27,6 @@ auto rename(auto &df, const std::string &inputname,
             const std::string &outputname) {
     return df.Define(outputname, [](const T &q) { return q; }, {inputname});
 }
-/// Function to calculate the pt from a given lorentz vector and add it to the
-/// dataframe
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the new column containing the pt value
-/// \param inputvector name of the column containing the lorentz vector
-///
-/// \returns a dataframe with the new column
-
 /// This function filters events, where neither of the input flags is true.
 /// This is used to filter events which do not pass an underlying requirement in
 /// any systematic variation.
