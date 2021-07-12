@@ -202,7 +202,7 @@ DiTauPairQuantities = ProducerGroup(
 ## advanced event quantities (can be caluculated when ditau pair and met and all jets are determined)
 ## leptons: q.p4_1, q.p4_2
 ## met: met_p4_recoilcorrected
-## jets: good_jet_collection
+## jets: good_jet_collection (if only the leading two are needed: q.jet_p4_1, q.jet_p4_2
 ## bjets: gen_bjet_collection
 
 Pzetamissvis = Producer(
@@ -240,12 +240,18 @@ pt_tt = Producer(
     output=[q.pt_tt],
     scopes=["mt", "et", "tt", "em"],
 )
-
+pt_ttjj = Producer(
+    name="pt_ttjj",
+    call="quantities::pt_ttjj({df}, {output}, {input})",
+    input=[q.p4_1, q.p4_2, q.jet_p4_1, q.jet_p4_2, q.met_p4_recoilcorrected],
+    output=[q.pt_ttjj],
+    scopes=["mt", "et", "tt", "em"],
+)
 DiTauPairMETQuantities = ProducerGroup(
     name="DiTauPairMETQuantities",
     call=None,
     input=None,
     output=None,
     scopes=["mt", "et", "tt", "em"],
-    subproducers=[Pzetamissvis, mTdileptonMET, mt_1, mt_2, pt_tt],
+    subproducers=[Pzetamissvis, mTdileptonMET, mt_1, mt_2, pt_tt, pt_ttjj],
 )
