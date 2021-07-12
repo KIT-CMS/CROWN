@@ -288,6 +288,8 @@ def build_config(era, sample):
             nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
             q.pzetamissvis,
             q.mTdileptonMET,
+            q.mt_1,
+            q.mt_2,
         ]
     }
 

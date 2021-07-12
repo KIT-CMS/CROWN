@@ -212,7 +212,6 @@ Pzetamissvis = Producer(
     output=[q.pzetamissvis],
     scopes=["mt", "et", "tt", "em"],
 )
-
 mTdileptonMET = Producer(
     name="mTdileptonMET",
     call="quantities::mTdileptonMET({df}, {output}, {input})",
@@ -220,6 +219,21 @@ mTdileptonMET = Producer(
     output=[q.mTdileptonMET],
     scopes=["mt", "et", "tt", "em"],
 )
+mt_1 = Producer(
+    name="mt_1",
+    call="quantities::mT({df}, {output}, {input})",
+    input=[q.p4_1, q.met_p4_recoilcorrected],
+    output=[q.mt_1],
+    scopes=["mt", "et", "tt", "em"],
+)
+mt_2 = Producer(
+    name="mt_2",
+    call="quantities::mT({df}, {output}, {input})",
+    input=[q.p4_2, q.met_p4_recoilcorrected],
+    output=[q.mt_2],
+    scopes=["mt", "et", "tt", "em"],
+)
+
 
 DiTauPairMETQuantities = ProducerGroup(
     name="DiTauPairMETQuantities",
@@ -227,5 +241,5 @@ DiTauPairMETQuantities = ProducerGroup(
     input=None,
     output=None,
     scopes=["mt", "et", "tt", "em"],
-    subproducers=[Pzetamissvis, mTdileptonMET],
+    subproducers=[Pzetamissvis, mTdileptonMET, mt_1, mt_2],
 )
