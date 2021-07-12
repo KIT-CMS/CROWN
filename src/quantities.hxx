@@ -185,39 +185,37 @@ auto m_vis(auto &df, const std::string &outputname,
  University, 2006. FERMILAB-THESIS-2006-11.
 
  * @param df the input dataframe
- * @param particle_1_p4 the lorentz vector of the first particle
- * @param particle_2_p4 the lorentz vector of the second particle
+ * @param p_1_p4 the lorentz vector of the first particle
+ * @param p_2_p4 the lorentz vector of the second particle
  * @param met the lorentz vector of the met
  * @param outputname the name of the new column containing the pZetaMissVis
  value
  * @return a new dataframe with the new column
  */
 auto pzetamissvis(auto &df, const std::string &outputname,
-                  const std::string &particle_1_p4,
-                  const std::string &particle_2_p4, const std::string &met) {
+                  const std::string &p_1_p4, const std::string &p_2_p4,
+                  const std::string &met) {
     float alpha = 0.85;
-    auto calculate_pzetamissvis =
-        [alpha](ROOT::Math::PtEtaPhiMVector &particle_1_p4,
-                ROOT::Math::PtEtaPhiMVector &particle_2_p4,
-                ROOT::Math::PtEtaPhiMVector &met) {
-            auto met_3dvec = met.Vect();
-            met_3dvec.SetZ(0.0);
-            // calculate zeta for the delepton system
-            auto p1_norm = particle_1_p4.Vect().Unit();
-            auto p2_norm = particle_2_p4.Vect().Unit();
-            p1_norm.SetZ(0.0);
-            p2_norm.SetZ(0.0);
-            p1_norm = p1_norm.Unit();
-            p2_norm = p2_norm.Unit();
-            auto zeta = (p1_norm + p2_norm).Unit();
+    auto calculate_pzetamissvis = [alpha](ROOT::Math::PtEtaPhiMVector &p_1_p4,
+                                          ROOT::Math::PtEtaPhiMVector &p_2_p4,
+                                          ROOT::Math::PtEtaPhiMVector &met) {
+        auto met_3dvec = met.Vect();
+        met_3dvec.SetZ(0.0);
+        // calculate zeta for the delepton system
+        auto p1_norm = p_1_p4.Vect().Unit();
+        auto p2_norm = p_2_p4.Vect().Unit();
+        p1_norm.SetZ(0.0);
+        p2_norm.SetZ(0.0);
+        p1_norm = p1_norm.Unit();
+        p2_norm = p2_norm.Unit();
+        auto zeta = (p1_norm + p2_norm).Unit();
 
-            auto dileptonsystem = particle_1_p4.Vect() + particle_2_p4.Vect();
-            dileptonsystem.SetZ(0);
-            auto pzetaVis = dileptonsystem.Dot(zeta);
-            return met_3dvec.Dot(zeta) - (alpha * pzetaVis);
-        };
-    return df.Define(outputname, calculate_pzetamissvis,
-                     {particle_1_p4, particle_2_p4, met});
+        auto dileptonsystem = p_1_p4.Vect() + p_2_p4.Vect();
+        dileptonsystem.SetZ(0);
+        auto pzetaVis = dileptonsystem.Dot(zeta);
+        return met_3dvec.Dot(zeta) - (alpha * pzetaVis);
+    };
+    return df.Define(outputname, calculate_pzetamissvis, {p_1_p4, p_2_p4, met});
 }
 /**
  * @brief function used to calculate mTdileptonMET, which is the transverse mass
@@ -226,23 +224,22 @@ auto pzetamissvis(auto &df, const std::string &outputname,
  *
  * @param df name of the dataframe
  * @param outputname name of the new column containing the mTdileptonMET value
- * @param particle_1_p4 lorentz vector of the first particle
- * @param particle_2_p4 lorentz vector of the second particle
+ * @param p_1_p4 lorentz vector of the first particle
+ * @param p_2_p4 lorentz vector of the second particle
  * @param met lorentz vector of the met
  * @return a new dataframe with the new column
  */
 auto mTdileptonMET(auto &df, const std::string &outputname,
-                   const std::string &particle_1_p4,
-                   const std::string &particle_2_p4, const std::string &met) {
-    auto calculate_mTdileptonMET =
-        [](ROOT::Math::PtEtaPhiMVector &particle_1_p4,
-           ROOT::Math::PtEtaPhiMVector &particle_2_p4,
-           ROOT::Math::PtEtaPhiMVector &met) {
-            auto dileptonsystem = particle_1_p4 + particle_2_p4;
-            return vectoroperations::calculateMT(dileptonsystem, met);
-        };
+                   const std::string &p_1_p4, const std::string &p_2_p4,
+                   const std::string &met) {
+    auto calculate_mTdileptonMET = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
+                                      ROOT::Math::PtEtaPhiMVector &p_2_p4,
+                                      ROOT::Math::PtEtaPhiMVector &met) {
+        auto dileptonsystem = p_1_p4 + p_2_p4;
+        return vectoroperations::calculateMT(dileptonsystem, met);
+    };
     return df.Define(outputname, calculate_mTdileptonMET,
-                     {particle_1_p4, particle_2_p4, met});
+                     {p_1_p4, p_2_p4, met});
 }
 /**
  * @brief function used to calculate the transverse mass of a particle. The
@@ -270,24 +267,55 @@ auto mT(auto &df, const std::string &outputname, const std::string &particle_p4,
  *
  * @param df name of the dataframe
  * @param outputname name of the new column containing the pt_tt value
- * @param particle_1_p4 lorentz vector of the first particle
- * @param particle_2_p4 lorentz vector of the second particle
+ * @param p_1_p4 lorentz vector of the first particle
+ * @param p_2_p4 lorentz vector of the second particle
  * @param met lorentz vector of the met
  * @return a new dataframe with the new column
  */
 
-auto pt_tt(auto &df, const std::string &outputname,
-           const std::string &particle_1_p4, const std::string &particle_2_p4,
-           const std::string &met) {
-    auto calculate_pt_tt = [](ROOT::Math::PtEtaPhiMVector &particle_1_p4,
-                              ROOT::Math::PtEtaPhiMVector &particle_2_p4,
+auto pt_tt(auto &df, const std::string &outputname, const std::string &p_1_p4,
+           const std::string &p_2_p4, const std::string &met) {
+    auto calculate_pt_tt = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
+                              ROOT::Math::PtEtaPhiMVector &p_2_p4,
                               ROOT::Math::PtEtaPhiMVector &met) {
-        auto dileptonmet = particle_1_p4 + particle_2_p4 + met;
-        return dileptonmet.Pt();
+        auto dileptonmet = p_1_p4 + p_2_p4 + met;
+        return (float)dileptonmet.Pt();
     };
-    return df.Define(outputname, calculate_pt_tt,
-                     {particle_1_p4, particle_2_p4, met});
+    return df.Define(outputname, calculate_pt_tt, {p_1_p4, p_2_p4, met});
 }
+
+/**
+ * @brief function used to calculate the pt of the dilepton + two leading jets +
+ * met system. If the number of jets is less than 2, the quantity is set to 10
+ * instead.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the pt_ttjj value
+ * @param p_1_p4 lorentz vector of the first particle
+ * @param p_2_p4 lorentz vector of the second particle
+ * @param jet_1_p4 lorentz vector of the first jet
+ * @param jet_2_p4 lorentz vector of the second jet
+ * @param met lorentz vector of the met
+ * @return a new dataframe with the new column
+ */
+
+auto pt_ttjj(auto &df, const std::string &outputname, const std::string &p_1_p4,
+             const std::string &p_2_p4, const std::string &jet_1_p4,
+             const std::string &jet_2_p4, const std::string &met) {
+    auto calculate_pt_ttjj = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
+                                ROOT::Math::PtEtaPhiMVector &p_2_p4,
+                                ROOT::Math::PtEtaPhiMVector &jet_1_p4,
+                                ROOT::Math::PtEtaPhiMVector &jet_2_p4,
+                                ROOT::Math::PtEtaPhiMVector &met) {
+        if (jet_1_p4.pt() < 0.0 || jet_2_p4.pt() < 0.0)
+            return default_float;
+        auto jetlepmet = p_1_p4 + p_2_p4 + met + jet_1_p4 + jet_2_p4;
+        return (float)jetlepmet.Pt();
+    };
+    return df.Define(outputname, calculate_pt_ttjj,
+                     {p_1_p4, p_2_p4, jet_1_p4, jet_2_p4, met});
+}
+
 /// Function to writeout the isolation of a particle. The particle is
 /// identified via the index stored in the pair vector
 ///

@@ -18,7 +18,7 @@ namespace vectoroperations {
  */
 auto calculateMT(ROOT::Math::PtEtaPhiMVector &particle,
                  ROOT::Math::PtEtaPhiMVector &met) {
-    return sqrt(2 * particle.Pt() * met.Pt() *
-                (1. - cos(particle.Phi() - met.Phi())));
+    return (float)sqrt(2 * particle.Pt() * met.Pt() *
+                       (1. - cos(particle.Phi() - met.Phi())));
 }
 } // end namespace vectoroperations
