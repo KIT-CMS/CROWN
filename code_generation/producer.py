@@ -138,18 +138,13 @@ class Producer:
         # if a bool is used in the python configuration, convert it to a c++ bool value
         # True -> true, False -> false
         for para in config[shift][scope]:
-            if (
-                isinstance(config[shift][scope][para], bool)
-                and config[shift][scope][para]
-            ):
-                log.debug("Found a boolean True ! - converting to C++ syntax")
-                config[shift][scope][para] = "true"
-            if (
-                isinstance(config[shift][scope][para], bool)
-                and not config[shift][scope][para]
-            ):
-                log.debug("Found a boolean False ! - converting to C++ syntax")
-                config[shift][scope][para] = "false"
+            if isinstance(config[shift][scope][para], bool):
+                if config[shift][scope][para]:
+                    log.debug("Found a boolean True ! - converting to C++ syntax")
+                    config[shift][scope][para] = "true"
+                else:
+                    log.debug("Found a boolean False ! - converting to C++ syntax")
+                    config[shift][scope][para] = "false"
         try:
             return self.call.format(
                 **config[shift][scope]
