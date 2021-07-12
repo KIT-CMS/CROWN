@@ -83,11 +83,25 @@ auto build(auto df, const std::vector<std::string> &obj_quantities,
                                          pairindex);
 }
 
+/**
+ * @brief Function used to construct the missing transverse energy lorentz
+ * vector.
+ *
+ * @param df the input dataframe
+ * @param met_pt the met pt value
+ * @param met_phi the met phi value
+ * @param outputname name of the new column containing the missing transverse
+ * energy lorentz vector.
+ * @return a new df, containing the new column
+ */
 auto buildMET(auto df, const std::string &met_pt, const std::string &met_phi,
               const std::string &outputname) {
     auto construct_metvector = [](const float &pt, const float &phi) {
         // for MET, eta is zero
-        return ROOT::Math::PtEtaPhiEVector(pt, 0, phi, pt);
+        auto met = ROOT::Math::PtEtaPhiEVector(pt, 0, phi, pt);
+        // cast MET vector to a ROOT::Math::PtEtaPhiMVector to make latter
+        // functions easier to use
+        return (ROOT::Math::PtEtaPhiMVector)met;
     };
     return df.Define(outputname, construct_metvector, {met_pt, met_phi});
 }

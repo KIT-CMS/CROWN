@@ -1,6 +1,8 @@
 #include "defaults.hxx"
 #include "utility/Logger.hxx"
+#include "vectoroperations.hxx"
 #include <Math/Vector4D.h>
+
 /// The namespace that is used to hold the functions for basic quantities that
 /// are needed for every event
 namespace quantities {
@@ -197,7 +199,7 @@ auto pzetamissvis(auto &df, const std::string &outputname,
     auto calculate_pzetamissvis =
         [alpha](ROOT::Math::PtEtaPhiMVector &particle_1_p4,
                 ROOT::Math::PtEtaPhiMVector &particle_2_p4,
-                ROOT::Math::PtEtaPhiEVector &met) {
+                ROOT::Math::PtEtaPhiMVector &met) {
             auto met_3dvec = met.Vect();
             met_3dvec.SetZ(0.0);
             // calculate zeta for the delepton system
@@ -215,6 +217,31 @@ auto pzetamissvis(auto &df, const std::string &outputname,
             return met_3dvec.Dot(zeta) - (alpha * pzetaVis);
         };
     return df.Define(outputname, calculate_pzetamissvis,
+                     {particle_1_p4, particle_2_p4, met});
+}
+/**
+ * @brief function used to calculate mTdileptonMET, which is the transverse mass
+ * of the di-lepton system. The transverse mass is calculated using the
+ * vectoroperations::calculateMT function.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the mTdileptonMET value
+ * @param particle_1_p4 lorentz vector of the first particle
+ * @param particle_2_p4 lorentz vector of the second particle
+ * @param met lorentz vector of the met
+ * @return a new dataframe with the new column
+ */
+auto mTdileptonMET(auto &df, const std::string &outputname,
+                   const std::string &particle_1_p4,
+                   const std::string &particle_2_p4, const std::string &met) {
+    auto calculate_mTdileptonMET =
+        [](ROOT::Math::PtEtaPhiMVector &particle_1_p4,
+           ROOT::Math::PtEtaPhiMVector &particle_2_p4,
+           ROOT::Math::PtEtaPhiMVector &met) {
+            auto dileptonsystem = particle_1_p4 + particle_2_p4;
+            return vectoroperations::calculateMT(dileptonsystem, met);
+        };
+    return df.Define(outputname, calculate_mTdileptonMET,
                      {particle_1_p4, particle_2_p4, met});
 }
 
