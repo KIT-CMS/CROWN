@@ -236,6 +236,7 @@ def build_config(era, sample):
             q.jphi_2,
             q.mjj,
             q.m_vis,
+            q.pt_vis,
             q.electron_veto_flag,
             q.muon_veto_flag,
             q.dimuon_veto,
@@ -292,6 +293,7 @@ def build_config(era, sample):
             q.mt_2,
             q.pt_tt,
             q.pt_ttjj,
+            q.mt_tot,
         ]
     }
 

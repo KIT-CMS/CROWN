@@ -1,11 +1,7 @@
 from code_generation.quantity import Quantity
 
 lumi = Quantity("lumi")
-
 puweight = Quantity("puweight")
-
-m_vis = Quantity("m_vis")
-mt_1 = Quantity("mt_1")
 
 good_taus_mask = Quantity("good_taus_mask")
 base_muons_mask = Quantity("base_muons_mask")
@@ -65,12 +61,15 @@ gen_taujet_pt_1 = Quantity("gen_taujet_pt_1")
 gen_taujet_pt_2 = Quantity("gen_taujet_pt_2")
 
 # Combined event quantities
+m_vis = Quantity("m_vis")
+pt_vis = Quantity("pt_vis")
 pzetamissvis = Quantity("pzetamissvis")
 mTdileptonMET = Quantity("mTdileptonMET")
 mt_1 = Quantity("mt_1")
 mt_2 = Quantity("mt_2")
 pt_tt = Quantity("pt_tt")
 pt_ttjj = Quantity("pt_ttjj")
+mt_tot = Quantity("mt_tot")
 
 njets = Quantity("njets")
 nbtag = Quantity("nbtag")
