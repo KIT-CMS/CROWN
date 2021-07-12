@@ -244,6 +244,26 @@ auto mTdileptonMET(auto &df, const std::string &outputname,
     return df.Define(outputname, calculate_mTdileptonMET,
                      {particle_1_p4, particle_2_p4, met});
 }
+/**
+ * @brief function used to calculate the transverse mass of a particle. The
+ * transverse mass is calculated using the vectoroperations::calculateMT
+ * function.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the mT value
+ * @param particle_p4 lorentz vector of the particle
+ * @param met lorentz vector of the met
+ * @return a new dataframe with the new column
+ */
+
+auto mT(auto &df, const std::string &outputname, const std::string &particle_p4,
+        const std::string &met) {
+    auto calculate_mt = [](ROOT::Math::PtEtaPhiMVector &particle_p4,
+                           ROOT::Math::PtEtaPhiMVector &met) {
+        return vectoroperations::calculateMT(particle_p4, met);
+    };
+    return df.Define(outputname, calculate_mt, {particle_p4, met});
+}
 
 /// Function to writeout the isolation of a particle. The particle is identified
 /// via the index stored in the pair vector

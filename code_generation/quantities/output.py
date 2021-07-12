@@ -67,6 +67,8 @@ gen_taujet_pt_2 = Quantity("gen_taujet_pt_2")
 # Combined event quantities
 pzetamissvis = Quantity("pzetamissvis")
 mTdileptonMET = Quantity("mTdileptonMET")
+mt_1 = Quantity("mt_1")
+mt_2 = Quantity("mt_2")
 
 njets = Quantity("njets")
 nbtag = Quantity("nbtag")
