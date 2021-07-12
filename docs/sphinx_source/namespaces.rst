@@ -15,6 +15,8 @@ Basefunctions
 *************
 .. doxygennamespace:: basefunctions
    :members:
+.. doxygennamespace:: vectoroperations
+   :members:
 
 Pairselection
 *************
