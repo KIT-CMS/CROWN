@@ -114,9 +114,9 @@ class AppendProducer(ProducerRule):
 
 
 def OptimizeProducerOrdering(config):
-    log.info("Optimizing Producer Ordering")
     scopes = config["producers"].keys()
     for scope in scopes:
+        log.info("Optimizing Producer Ordering in scope {}".format(scope))
         ordering = ProducerOrdering(config, scope)
         ordering.Optimize()
         config["producers"][scope] = ordering.ordering
