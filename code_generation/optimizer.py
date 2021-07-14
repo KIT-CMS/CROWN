@@ -248,9 +248,8 @@ class ProducerOrdering:
                         found = True
                         log.debug("found {} in global scope ..".format(input))
             if not found:
-                log.error("Could not find all needed inputs for {}".format(producer))
                 log.error("{} was not found in any producer output!".format(input))
-                log.error("Please check, if all needed producers are activated")
+                log.error("Please check if all needed producers are activated !")
                 raise Exception
         return list(producers_to_relocate)
 
