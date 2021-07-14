@@ -11,6 +11,7 @@ from code_generation.producers.triggers import *
 import code_generation.quantities.output as q
 from config.utility import (
     AddSystematicShift,
+    OptimizeProducerOrdering,
     ResolveSampleDependencies,
     ResolveEraDependencies,
     RemoveProducer,
@@ -261,6 +262,7 @@ def build_config(era, sample):
         modifier.apply(sample, config["producers"], config["output"])
     ResolveSampleDependencies(config, sample)
     ResolveEraDependencies(config, era)
+    OptimizeProducerOrdering(config)
 
     AddSystematicShift(
         config,
