@@ -1,3 +1,4 @@
+from code_generation.optimizer import ProducerOrdering
 import copy
 import logging
 
@@ -110,3 +111,12 @@ class RemoveProducer(ProducerRule):
 class AppendProducer(ProducerRule):
     def operate(self, item, item_list):
         item_list.append(item)
+
+
+def OptimizeProducerOrdering(config):
+    log.info("Optimizing Producer Ordering")
+    scopes = config["producers"].keys()
+    for scope in scopes:
+        ordering = ProducerOrdering(config, scope)
+        ordering.Optimize()
+        config["producers"][scope] = ordering.ordering

@@ -62,6 +62,12 @@ class Producer:
         log.debug("| scopes: {}".format(self.scopes))
         log.debug("-----------------------------------------")
 
+    def __str__(self) -> str:
+        return "Producer: {}".format(self.name)
+
+    def __repr__(self) -> str:
+        return "Producer: {}".format(self.name)
+
     # Check if a output_quantity is already used as an output by
     # another producer within the same scope.
     # If this occurs, a Exception is thrown, since this is not possible with dataframes
@@ -159,12 +165,41 @@ class Producer:
                 calls.append(self.writecall(config, scope, shift))
         return calls
 
+    def get_inputs(self, scope):
+        if scope not in self.scopes:
+            log.error(
+                "Exception ({}): Tried to get producer inputs in scope {}, which the producer is not forseen for!".format(
+                    self.name, scope
+                )
+            )
+            raise Exception
+        return self.input[scope]
+
+    def get_outputs(self, scope):
+        if scope not in self.scopes:
+            log.error(
+                "Exception ({}): Tried to get producer outputs in scope {}, which the producer is not forseen for!".format(
+                    self.name, scope
+                )
+            )
+            raise Exception
+        if self.output == None:
+            return []
+        else:
+            return self.output
+
 
 class VectorProducer(Producer):
     def __init__(self, name, call, input, output, scopes, vec_configs):
         self.name = name
         super().__init__(name, call, input, output, scopes)
         self.vec_configs = vec_configs
+
+    def __str__(self) -> str:
+        return "VectorProducer: {}".format(self.name)
+
+    def __repr__(self) -> str:
+        return "VectorProducer: {}".format(self.name)
 
     def writecalls(self, config, scope):
         basecall = self.call
@@ -215,6 +250,12 @@ class TriggerVectorProducer(Producer):
             raise Exception
         super().__init__(name, call, input, [q.QuantityGroup(name)], scope)
 
+    def __str__(self) -> str:
+        return "TriggerVectorProducer: {}".format(self.name)
+
+    def __repr__(self) -> str:
+        return "TriggerVectorProducer: {}".format(self.name)
+
     @property
     def output_group(self):
         return self.output[0]
@@ -247,6 +288,12 @@ class TriggerVectorProducer(Producer):
 class BaseFilter(Producer):
     def __init__(self, name, call, input, scopes):
         super().__init__(name, call, input, None, scopes)
+
+    def __str__(self) -> str:
+        return "BaseFilter: {}".format(self.name)
+
+    def __repr__(self) -> str:
+        return "BaseFilter: {}".format(self.name)
 
     def writecall(self, config, scope, shift=""):
         log.critical("{}: Filters do not support method writecall!".format(self.name))
@@ -328,6 +375,12 @@ class ProducerGroup:
         log.debug("| scopes: {}".format(self.scopes))
         log.debug("-----------------------------------------")
 
+    def __str__(self) -> str:
+        return "ProducerGroup: {}".format(self.name)
+
+    def __repr__(self) -> str:
+        return "ProducerGroup: {}".format(self.name)
+
     def setup_own_producer(self):
         self.producers.append(
             Producer(self.name, self.call, self.input, self.output, self.scopes)
@@ -365,12 +418,34 @@ class ProducerGroup:
             calls.extend(producer.writecalls(config, scope))
         return calls
 
+    def get_inputs(self, scope):
+        inputs = []
+        log.debug("Getting inputs for {}".format(self.name))
+        for subproducer in self.producers:
+            log.debug("  --> ", subproducer, subproducer.get_inputs(scope))
+            inputs.extend(subproducer.get_inputs(scope))
+        return inputs
+
+    def get_outputs(self, scope):
+        outputs = []
+        log.debug("Getting outputs for {}".format(self.name))
+        for subproducer in self.producers:
+            log.debug("  --> ", subproducer, subproducer.get_outputs(scope))
+            outputs.extend(subproducer.get_outputs(scope))
+        return outputs
+
 
 class Filter(ProducerGroup):
     def __init__(self, name, call, input, scopes, subproducers):
         self.__class__.PG_count = ProducerGroup.PG_count
         super().__init__(name, call, input, None, scopes, subproducers)
         ProducerGroup.PG_count = self.__class__.PG_count
+
+    def __str__(self) -> str:
+        return "Filter: {}".format(self.name)
+
+    def __repr__(self) -> str:
+        return "Filter: {}".format(self.name)
 
     def setup_own_producer(self):
         self.producers.append(BaseFilter(self.name, self.call, self.input, self.scopes))

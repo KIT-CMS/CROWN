@@ -12,6 +12,12 @@ class Quantity:
         self.defined_for_scopes = []
         log.debug("Setting up new Quantity {}".format(self.name))
 
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return self.name
+
     # the scopes, in which a quantity is used as an output is tracked in the output_scopes list.
     # This check is triggered for every producer.
     # If a quantity is already used within a given scope as output, this will result in an exception.
