@@ -21,7 +21,7 @@ MuonIso_SF = Producer(
     scopes=["mt"],
 )
 MuonIDIso_SF = ProducerGroup(
-    name="Muon_SF",
+    name="MuonIDIso_SF",
     call=None,
     input=None,
     output=None,

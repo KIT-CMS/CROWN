@@ -151,7 +151,9 @@ class ProducerOrdering:
                         self.get_position(producer_to_relocate),
                         producerIndex,
                     )
-        log.info("Optimization for scope {} done after {} steps".format(self.scope, counter))
+        log.info(
+            "Optimization for scope {} done after {} steps".format(self.scope, counter)
+        )
 
     """
     Function used to check the ordering.
