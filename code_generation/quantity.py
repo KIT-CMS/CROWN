@@ -31,7 +31,12 @@ class Quantity:
         This check is triggered for every Producer.
         """
         log.debug("Checking {} / scope {}".format(self.name, scope))
-        if scope not in self.defined_for_scopes:
+        if scope == "global" and self.defined_for_scopes == []:
+            self.defined_for_scopes.append(scope)
+        elif (
+            scope not in self.defined_for_scopes
+            and "global" not in self.defined_for_scopes
+        ):
             self.defined_for_scopes.append(scope)
         else:
             log.error(
