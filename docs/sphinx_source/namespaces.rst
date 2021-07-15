@@ -50,3 +50,8 @@ HTXS
 ***************
 .. doxygennamespace:: htxs
    :members:
+
+Reweighting
+***************
+.. doxygennamespace:: reweighting
+   :members:
