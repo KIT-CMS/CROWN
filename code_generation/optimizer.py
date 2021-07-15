@@ -33,16 +33,13 @@ class ProducerOrdering:
         self.optimized = False
         self.global_outputs = self.get_global_outputs()
 
-    def __call__(self):
-        return self.producer_list
-
     """
     Helper Function to get the position of a producer in the ordering list
 
     Args:
         producer: The producer to get the position of
     Returns:
-        The position of the producer
+        The position of the producer in the current ordering
     """
 
     def get_position(self, producer):
@@ -107,13 +104,13 @@ class ProducerOrdering:
         self.ordering = new_ordering
 
     """
-    The main function of this class. During the optimization, a
+    The main function of this class. During the optimization,
     finding a correct ordering is attempted. This is done as follows:
 
     1. Bring all filters to the beginning of the ordering
     2. Check if the ordering is already correct. The ordering is correct,
         if, for all producers in the ordering, all inputs can be found in
-        the outputs of preceeding producers. If the scope is not global,
+        the outputs of preceding producers. If the scope is not global,
         all outputs from producers in the global scope are also considered.
     3. If the ordering is correct, return.
     4. If the ordering is not correct,
@@ -145,11 +142,10 @@ class ProducerOrdering:
             else:
                 for producer_to_relocate in producers_to_relocate:
                     counter += 1
-                    producerIndex = self.get_position(wrongProducer)
                     self.relocate_producer(
                         producer_to_relocate,
                         self.get_position(producer_to_relocate),
-                        producerIndex,
+                        self.get_position(wrongProducer),
                     )
         log.info(
             "Optimization for scope {} done after {} steps".format(self.scope, counter)
@@ -173,8 +169,8 @@ class ProducerOrdering:
         outputs = []
         if self.scope != "global":
             outputs = self.global_outputs
-        for producer in self.ordering:
-            temp_outputs = producer.get_outputs(self.scope)
+        for producer_to_check in self.ordering:
+            temp_outputs = producer_to_check.get_outputs(self.scope)
             if temp_outputs != None:
                 outputs.extend(
                     [
@@ -185,12 +181,12 @@ class ProducerOrdering:
                 )
             inputs = [
                 quantity
-                for quantity in producer.get_inputs(self.scope)
+                for quantity in producer_to_check.get_inputs(self.scope)
                 if not isinstance(quantity, NanoAODQuantity)
             ]
             invalid_inputs = self.invalid_inputs(inputs, outputs)
             if len(invalid_inputs) > 0:
-                return producer, invalid_inputs
+                return producer_to_check, invalid_inputs
         self.optimized = True
         return None, []
 
@@ -277,8 +273,8 @@ class ProducerOrdering:
                     updated_ordering[position] = old_position
         if old_position < new_position:
             for position in updated_ordering:
-                if position < old_position and position >= new_position:
-                    updated_ordering[position] = position - 1
+                if position >= old_position and position < new_position:
+                    updated_ordering[position] = position + 1
                 if position == new_position:
                     updated_ordering[position] = old_position
         if old_position == new_position:
