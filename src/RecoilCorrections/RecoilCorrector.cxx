@@ -352,7 +352,7 @@ void RecoilCorrector::CorrectWithHist(float MetPx, float MetPy, float genVPx,
 
     } else {
         Logger::get("RecoilCorrector")
-            ->debug("Warning: parallel MET component out of histogram range: "
+            ->debug("Warning: parallel Met component out of histogram range: "
                     "{}. Correction won't be applied",
                     U1);
         //  float U1reco = rescale(U1,
@@ -403,7 +403,7 @@ void RecoilCorrector::CorrectWithHist(float MetPx, float MetPy, float genVPx,
 
     } else {
         Logger::get("RecoilCorrector")
-            ->debug("Warning: perpendicular MET component out of histogram "
+            ->debug("Warning: perpendicular Met component out of histogram "
                     "range: {}. Correction won't be applied",
                     U2);
         //  float U2reco = rescale(U2,
@@ -428,7 +428,7 @@ void RecoilCorrector::CalculateU1U2FromMet(float metPx, float metPy,
     auto genZ = ROOT::Math::XYVector(genZPx, genZPy);
     auto met = ROOT::Math::XYVector(metPx, metPy);
     auto hadRec = met + diLep - genZ; // actually, that's: - 1.0 * ( hadrons +
-                                      // Z) = MET - neutrinos (if involved)
+                                      // Z) = Met - neutrinos (if involved)
 
     auto deltaPhiZHadRec = ROOT::Math::VectorUtil::DeltaPhi(genZ, hadRec);
     auto deltaPhiDiLepMEt = ROOT::Math::VectorUtil::DeltaPhi(diLep, met);

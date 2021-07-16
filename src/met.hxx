@@ -1,6 +1,6 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
-#include "RecoilCorrections/METSystematics.cxx"
+#include "RecoilCorrections/MetSystematics.cxx"
 #include "RecoilCorrections/RecoilCorrector.cxx"
 #include "basefunctions.hxx"
 #include "bitset"
@@ -48,10 +48,10 @@ auto metPhi(auto df, const std::string &metvector,
  change in energy has to be propagated to the met vector, and the met vector has
  to be adapted accordingly. The met is recalculated via
  @code
-  Recalculate MET with corrected lepton energies :
+  Recalculate Met with corrected lepton energies :
   MetX_corrected = MetX + Px - Px_corrected
   MetY_corrected = MetY + Py - Py_corrected
-  MET_corrected = sqrt(MetX_corrected * MetX_corrected + MetY_corrected *
+  Met_corrected = sqrt(MetX_corrected * MetX_corrected + MetY_corrected *
  MetY_corrected)
  @endcode
  * @param df the input dataframe
@@ -65,7 +65,7 @@ auto metPhi(auto df, const std::string &metvector,
  the outputcolumn contains the original met value vector
  * @return a new df containing the corrected met lorentz vector
  */
-auto propagateLeptonsToMET(auto df, const std::string &met,
+auto propagateLeptonsToMet(auto df, const std::string &met,
                            const std::string &p4_1_uncorrected,
                            const std::string &p4_2_uncorrected,
                            const std::string &p4_1, const std::string &p4_2,
@@ -74,42 +74,42 @@ auto propagateLeptonsToMET(auto df, const std::string &met,
     auto scaleMet = [](const ROOT::Math::PtEtaPhiMVector &met,
                        const ROOT::Math::PtEtaPhiMVector &uncorrected_object,
                        const ROOT::Math::PtEtaPhiMVector &corrected_object) {
-        // We propagate the lepton corrections to the MET by scaling the x and y
-        // component of the MET according to the correction of the lepton
-        // Recalculate MET with corrected lepton energies :
+        // We propagate the lepton corrections to the Met by scaling the x and y
+        // component of the Met according to the correction of the lepton
+        // Recalculate Met with corrected lepton energies :
         // MetX_corrected = MetX + Px - Px_corrected
         // MetY_corrected = MetY + Py - Py_corrected
-        // MET_corrected = sqrt(MetX_corrected * MetX_corrected + MetY_corrected
+        // Met_corrected = sqrt(MetX_corrected * MetX_corrected + MetY_corrected
         // * MetY_corrected)
         float corr_x = uncorrected_object.Px() - corrected_object.Px();
         float corr_y = uncorrected_object.Py() - corrected_object.Py();
         float MetX = met.Px() - corr_x;
         float MetY = met.Py() - corr_y;
-        Logger::get("propagateLeptonsToMET")->debug("corr_x {}", corr_x);
-        Logger::get("propagateLeptonsToMET")->debug("corr_y {}", corr_y);
-        Logger::get("propagateLeptonsToMET")->debug("MetX {}", MetX);
-        Logger::get("propagateLeptonsToMET")->debug("MetY {}", MetY);
+        Logger::get("propagateLeptonsToMet")->debug("corr_x {}", corr_x);
+        Logger::get("propagateLeptonsToMet")->debug("corr_y {}", corr_y);
+        Logger::get("propagateLeptonsToMet")->debug("MetX {}", MetX);
+        Logger::get("propagateLeptonsToMet")->debug("MetY {}", MetY);
         ROOT::Math::PtEtaPhiMVector corrected_met;
         corrected_met.SetPxPyPzE(MetX, MetY, 0,
                                  std::sqrt(MetX * MetX + MetY * MetY));
-        Logger::get("propagateLeptonsToMET")
+        Logger::get("propagateLeptonsToMet")
             ->debug("corrected_object pt - {}", corrected_object.Pt());
-        Logger::get("propagateLeptonsToMET")
+        Logger::get("propagateLeptonsToMet")
             ->debug("uncorrected_object pt - {}", uncorrected_object.Pt());
-        Logger::get("propagateLeptonsToMET")->debug("old met {}", met.Pt());
-        Logger::get("propagateLeptonsToMET")
+        Logger::get("propagateLeptonsToMet")->debug("old met {}", met.Pt());
+        Logger::get("propagateLeptonsToMet")
             ->debug("corrected met {}", corrected_met.Pt());
         return corrected_met;
     };
     if (apply_propagation) {
         // first correct for the first lepton, store the met in an
         // intermediate column
-        Logger::get("propagateLeptonsToMET")
+        Logger::get("propagateLeptonsToMet")
             ->debug("Setting up correction for first lepton {}", p4_1);
         auto df1 = df.Define(outputname + "_intermidiate", scaleMet,
                              {met, p4_1_uncorrected, p4_1});
         // after the second lepton correction, the correct output column is used
-        Logger::get("propagateLeptonsToMET")
+        Logger::get("propagateLeptonsToMet")
             ->debug("Setting up correction for second lepton {}", p4_2);
         return df1.Define(
             outputname, scaleMet,
@@ -127,10 +127,10 @@ auto propagateLeptonsToMET(auto df, const std::string &met,
  change in energy has to be propagated to the met vector, and the met vector has
  to be adapted accordingly. The met is recalculated via
  @code
-  Recalculate MET with corrected jet energies :
+  Recalculate Met with corrected jet energies :
   MetX_corrected = MetX + Px - Px_corrected
   MetY_corrected = MetY + Py - Py_corrected
-  MET_corrected = sqrt(MetX_corrected * MetX_corrected + MetY_corrected *
+  Met_corrected = sqrt(MetX_corrected * MetX_corrected + MetY_corrected *
  MetY_corrected)
  @endcode
  The correction is done for all valid jets.
@@ -152,7 +152,7 @@ auto propagateLeptonsToMET(auto df, const std::string &met,
  met propagation to be applied
  * @return a new df containing the corrected met lorentz vector
  */
-auto propagateJetsToMET(auto df, const std::string &met,
+auto propagateJetsToMet(auto df, const std::string &met,
                         const std::string &jet_pt_corrected,
                         const std::string &jet_eta_corrected,
                         const std::string &jet_phi_corrected,
@@ -196,14 +196,14 @@ auto propagateJetsToMET(auto df, const std::string &met,
         }
         float MetX = met.Px() - corr_x;
         float MetY = met.Py() - corr_y;
-        Logger::get("propagateJetsToMET")->debug("corr_x {}", corr_x);
-        Logger::get("propagateJetsToMET")->debug("corr_y {}", corr_y);
-        Logger::get("propagateJetsToMET")->debug("MetX {}", MetX);
-        Logger::get("propagateJetsToMET")->debug("MetY {}", MetY);
+        Logger::get("propagateJetsToMet")->debug("corr_x {}", corr_x);
+        Logger::get("propagateJetsToMet")->debug("corr_y {}", corr_y);
+        Logger::get("propagateJetsToMet")->debug("MetX {}", MetX);
+        Logger::get("propagateJetsToMet")->debug("MetY {}", MetY);
         corrected_met.SetPxPyPzE(MetX, MetY, 0,
                                  std::sqrt(MetX * MetX + MetY * MetY));
-        Logger::get("propagateJetsToMET")->debug("old met {}", met.Pt());
-        Logger::get("propagateJetsToMET")
+        Logger::get("propagateJetsToMet")->debug("old met {}", met.Pt());
+        Logger::get("propagateJetsToMet")
             ->debug("corrected met {}", corrected_met.Pt());
         return corrected_met;
     };
@@ -276,18 +276,18 @@ auto applyRecoilCorrections(
     if (applyRecoilCorrections) {
         Logger::get("RecoilCorrections")->debug("Will run recoil corrections");
         const auto corrector = new RecoilCorrector(recoilfile);
-        const auto systematics = new METSystematic(systematicsfile);
-        auto shiftType = METSystematic::SysShift::Nominal;
+        const auto systematics = new MetSystematic(systematicsfile);
+        auto shiftType = MetSystematic::SysShift::Nominal;
         if (shiftUp) {
-            shiftType = METSystematic::SysShift::Up;
+            shiftType = MetSystematic::SysShift::Up;
         } else if (shiftDown) {
-            shiftType = METSystematic::SysShift::Down;
+            shiftType = MetSystematic::SysShift::Down;
         }
-        auto sysType = METSystematic::SysType::None;
+        auto sysType = MetSystematic::SysType::None;
         if (response) {
-            sysType = METSystematic::SysType::Response;
+            sysType = MetSystematic::SysType::Response;
         } else if (resolution) {
-            sysType = METSystematic::SysType::Resolution;
+            sysType = MetSystematic::SysType::Resolution;
         }
         auto RecoilCorrections = [sysType, systematics, shiftType, corrector](
                                      ROOT::Math::PtEtaPhiMVector &met,
@@ -320,13 +320,13 @@ auto applyRecoilCorrections(
                 // status
                 // 2. if it is isDirectHardProcessTauDecayProduct --> bit 10
                 // in status
-                Logger::get("getGenMET")
+                Logger::get("getGenMet")
                     ->debug("Checking particle {} ", genparticle_id.at(index));
                 if ((abs(genparticle_id.at(index)) >= 11 &&
                      abs(genparticle_id.at(index)) <= 16 &&
                      (IntBits(genparticle_status.at(index)).test(8))) ||
                     (IntBits(genparticle_status.at(index)).test(10))) {
-                    Logger::get("getGenMET")->debug("Adding to gen p*");
+                    Logger::get("getGenMet")->debug("Adding to gen p*");
                     genparticle = ROOT::Math::PtEtaPhiMVector(
                         genparticle_pt.at(index), genparticle_eta.at(index),
                         genparticle_phi.at(index), genparticle_mass.at(index));
@@ -337,7 +337,7 @@ auto applyRecoilCorrections(
                     if (abs(genparticle_id.at(index)) != 12 &&
                         abs(genparticle_id.at(index)) != 14 &&
                         abs(genparticle_id.at(index)) != 16) {
-                        Logger::get("getGenMET")->debug("Adding to vis p*");
+                        Logger::get("getGenMet")->debug("Adding to vis p*");
                         visPx += genparticle.Px();
                         visPy += genparticle.Py();
                     }
@@ -359,11 +359,11 @@ auto applyRecoilCorrections(
             corrector->CorrectWithHist(MetX, MetY, genPx, genPy, visPx, visPy,
                                        nJets30, correctedMetX, correctedMetY);
             // only apply shifts is the correpsonding variables are set
-            if (sysType != METSystematic::SysType::None &&
-                shiftType != METSystematic::SysShift::Nominal) {
+            if (sysType != MetSystematic::SysType::None &&
+                shiftType != MetSystematic::SysShift::Nominal) {
                 Logger::get("RecoilCorrections")
                     ->debug(" apply systematics {} {}", sysType, shiftType);
-                systematics->ApplyMETSystematic(
+                systematics->ApplyMetSystematic(
                     correctedMetX, correctedMetY, genPx, genPy, visPx, visPy,
                     nJets30, sysType, shiftType, correctedMetX, correctedMetY);
             }

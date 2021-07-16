@@ -1,21 +1,21 @@
-#include "METSystematics.hxx"
+#include "MetSystematics.hxx"
 #include "../utility/Logger.hxx"
 
-METSystematic::METSystematic(std::string filepath) {
+MetSystematic::MetSystematic(std::string filepath) {
 
     fileName = filepath;
     TFile *file = new TFile(fileName, "READ");
     if (file->IsZombie()) {
-        Logger::get("METSystematics")
+        Logger::get("MetSystematics")
             ->debug("file {} is not found...   quitting ", fileName);
         exit(-1);
     }
     TH1D *jetBinsH = (TH1D *)file->Get("nJetBinsH");
     if (jetBinsH == NULL) {
-        Logger::get("METSystematics")
+        Logger::get("MetSystematics")
             ->debug("Histogram nJetBinsH should be contained in file {}",
                     fileName);
-        Logger::get("METSystematics")
+        Logger::get("MetSystematics")
             ->debug("Check content of the file {}", fileName);
         exit(-1);
     }
@@ -31,17 +31,17 @@ METSystematic::METSystematic(std::string filepath) {
     TString histName = "syst";
     TH2D *hist = (TH2D *)file->Get(histName);
     if (hist == NULL) {
-        Logger::get("METSystematics")
+        Logger::get("MetSystematics")
             ->debug("Histogram {} should be contained in file {}", histName,
                     fileName);
-        Logger::get("METSystematics")
+        Logger::get("MetSystematics")
             ->debug("Check content of the file {}", fileName);
         exit(-1);
     }
     for (int xBin = 0; xBin < 2; ++xBin) {
         for (int yBin = 0; yBin < 3; ++yBin) {
             sysUnc[xBin][yBin] = hist->GetBinContent(xBin + 1, yBin + 1);
-            Logger::get("METSystematics")
+            Logger::get("MetSystematics")
                 ->debug("Systematics : {} {} = {}", uncType[xBin],
                         JetBins[yBin], sysUnc[xBin][yBin]);
         }
@@ -51,17 +51,17 @@ METSystematic::METSystematic(std::string filepath) {
         TString histName = JetBins[j];
         responseHist[j] = (TH1D *)file->Get(histName);
         if (responseHist[j] == NULL) {
-            Logger::get("METSystematics")
+            Logger::get("MetSystematics")
                 ->debug("Histogram {} should be contained in file {}", histName,
                         fileName);
-            Logger::get("METSystematics")
+            Logger::get("MetSystematics")
                 ->debug("Check content of the file {}", fileName);
             exit(-1);
         }
     }
 }
 
-void METSystematic::ComputeHadRecoilFromMet(float metX, float metY,
+void MetSystematic::ComputeHadRecoilFromMet(float metX, float metY,
                                             float genVPx, float genVPy,
                                             float visVPx, float visVPy,
                                             float &Hparal, float &Hperp) {
@@ -81,7 +81,7 @@ void METSystematic::ComputeHadRecoilFromMet(float metX, float metY,
     Hperp = Hx * unitPerpX + Hy * unitPerpY;
 }
 
-void METSystematic::ComputeMetFromHadRecoil(float Hparal, float Hperp,
+void MetSystematic::ComputeMetFromHadRecoil(float Hparal, float Hperp,
                                             float genVPx, float genVPy,
                                             float visVPx, float visVPy,
                                             float &metX, float &metY) {
@@ -102,7 +102,7 @@ void METSystematic::ComputeMetFromHadRecoil(float Hparal, float Hperp,
     metY = -Hy - visVPy;
 }
 
-void METSystematic::ShiftResponseMet(float metPx, float metPy, float genVPx,
+void MetSystematic::ShiftResponseMet(float metPx, float metPy, float genVPx,
                                      float genVPy, float visVPx, float visVPy,
                                      int njets, float sysShift,
                                      float &metShiftPx, float &metShiftPy) {
@@ -125,7 +125,7 @@ void METSystematic::ShiftResponseMet(float metPx, float metPy, float genVPx,
     if (jets > 2)
         jets = 2;
     if (jets < 0) {
-        Logger::get("METSystematics")->debug("Number of jets is negative !");
+        Logger::get("MetSystematics")->debug("Number of jets is negative !");
         exit(-1);
     }
 
@@ -137,7 +137,7 @@ void METSystematic::ShiftResponseMet(float metPx, float metPy, float genVPx,
                             metShiftPx, metShiftPy);
 }
 
-void METSystematic::ShiftResolutionMet(float metPx, float metPy, float genVPx,
+void MetSystematic::ShiftResolutionMet(float metPx, float metPy, float genVPx,
                                        float genVPy, float visVPx, float visVPy,
                                        int njets, float sysShift,
                                        float &metShiftPx, float &metShiftPy) {
@@ -160,7 +160,7 @@ void METSystematic::ShiftResolutionMet(float metPx, float metPy, float genVPx,
     if (jets > 2)
         jets = 2;
     if (jets < 0) {
-        Logger::get("METSystematics")->debug("Number of jets is negative !");
+        Logger::get("MetSystematics")->debug("Number of jets is negative !");
         exit(-1);
     }
 
@@ -172,7 +172,7 @@ void METSystematic::ShiftResolutionMet(float metPx, float metPy, float genVPx,
                             metShiftPx, metShiftPy);
 }
 
-void METSystematic::ShiftMET(float metPx, float metPy, float genVPx,
+void MetSystematic::ShiftMet(float metPx, float metPy, float genVPx,
                              float genVPy, float visVPx, float visVPy,
                              int njets, int sysType, float sysShift,
                              float &metShiftPx, float &metShiftPy) {
@@ -189,15 +189,15 @@ void METSystematic::ShiftMET(float metPx, float metPy, float genVPx,
         ShiftResolutionMet(metPx, metPy, genVPx, genVPy, visVPx, visVPy, njets,
                            sysShift, metShiftPx, metShiftPy);
     else if (sysType == -1)
-        Logger::get("METSystematics")->debug("No type --> doing nothing");
+        Logger::get("MetSystematics")->debug("No type --> doing nothing");
     else {
-        Logger::get("METSystematics")
+        Logger::get("MetSystematics")
             ->debug("Unknown systematic type --> exiting");
         exit(-1);
     }
 }
 
-void METSystematic::ApplyMETSystematic(float metPx, float metPy, float genVPx,
+void MetSystematic::ApplyMetSystematic(float metPx, float metPy, float genVPx,
                                        float genVPy, float visVPx, float visVPy,
                                        int njets, int sysType, int sysShift,
                                        float &metShiftPx, float &metShiftPy) {
@@ -206,11 +206,11 @@ void METSystematic::ApplyMETSystematic(float metPx, float metPy, float genVPx,
     if (jets > 2)
         jets = 2;
     if (jets < 0) {
-        Logger::get("METSystematics")->debug("Number of jets is negative !");
+        Logger::get("MetSystematics")->debug("Number of jets is negative !");
         exit(-1);
     }
     if (sysShift == -1) {
-        Logger::get("METSystematics")
+        Logger::get("MetSystematics")
             ->debug("sysShift is Nominal, doing nothing !");
         exit(-1);
     }
@@ -223,6 +223,6 @@ void METSystematic::ApplyMETSystematic(float metPx, float metPy, float genVPx,
     if (sysShift != 0)
         scale = 1 - sysUnc[type][jets];
 
-    ShiftMET(metPx, metPy, genVPx, genVPy, visVPx, visVPy, njets, type, scale,
+    ShiftMet(metPx, metPy, genVPx, genVPy, visVPx, visVPy, njets, type, scale,
              metShiftPx, metShiftPy);
 }

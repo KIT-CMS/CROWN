@@ -94,12 +94,12 @@ auto build(auto df, const std::vector<std::string> &obj_quantities,
  * energy lorentz vector.
  * @return a new df, containing the new column
  */
-auto buildMET(auto df, const std::string &met_pt, const std::string &met_phi,
+auto buildMet(auto df, const std::string &met_pt, const std::string &met_phi,
               const std::string &outputname) {
     auto construct_metvector = [](const float &pt, const float &phi) {
-        // for MET, eta is zero
+        // for Met, eta is zero
         auto met = ROOT::Math::PtEtaPhiEVector(pt, 0, phi, pt);
-        // cast MET vector to a ROOT::Math::PtEtaPhiMVector to make latter
+        // cast Met vector to a ROOT::Math::PtEtaPhiMVector to make latter
         // functions easier to use
         return (ROOT::Math::PtEtaPhiMVector)met;
     };
