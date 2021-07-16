@@ -323,10 +323,8 @@ def build_config(era, sample):
         "metUnclusteredEnUp",
         [[BuildMetVector, "mt"]],
         {
-            "mt": {
-                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
-                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
-            }
+            nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
+            nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
         },
     )
     SystematicShiftByInputQuantity(
@@ -334,10 +332,8 @@ def build_config(era, sample):
         "metUnclusteredEnDown",
         [[BuildMetVector, "mt"]],
         {
-            "mt": {
-                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
-                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
-            }
+            nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
+            nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
         },
     )
     # MET Recoil Shifts

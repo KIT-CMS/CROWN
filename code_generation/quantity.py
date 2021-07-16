@@ -6,11 +6,6 @@ log = logging.getLogger(__name__)
 class Quantity:
     def __init__(self, name):
         self.name = name
-        # structure for storing shifts:
-        # {scope1: {shift1 : name2,
-        #          shift2: name2},
-        #  scope2: {shift1 : name2,
-        #           shift2: name2}, ...}
         self.shifts = {}
         self.ignored_shifts = {}
         self.children = {}
@@ -31,10 +26,7 @@ class Quantity:
         This check is triggered for every Producer.
         """
         log.debug("Checking {} / scope {}".format(self.name, scope))
-        if (scope == "global" and self.defined_for_scopes == []) or (
-            scope not in self.defined_for_scopes
-            and "global" not in self.defined_for_scopes
-        ):
+        if scope not in self.defined_for_scopes:
             self.defined_for_scopes.append(scope)
         else:
             log.error(
@@ -54,12 +46,9 @@ class Quantity:
         Returns:
             str. Name of the leaf
         """
-        log.debug("{} - getting shift {} for scope {}".format(self.name, shift, scope))
-        leaf = self.name
-        if scope in self.shifts.keys():
-            if shift in self.shifts[scope].keys():
-                leaf = self.shifts[scope][shift]
-        return leaf
+        if shift in self.get_shifts(scope):
+            return self.name + shift
+        return self.name
 
     def get_leafs_of_scope(self, scope):
         """
@@ -70,17 +59,12 @@ class Quantity:
         Returns:
             list. List of leafs
         """
-        result = [self.name] + [
-            self.get_leaf(shift, scope) for shift in self.get_shifts(scope)
-        ]
-        return result
+        return [self.name] + [self.name + shift for shift in self.get_shifts(scope)]
 
     def shift(self, name, scope):
         """
         Function to define a shift for a given scope. If the shift is marked as ignored, nothing will be added.
         When a new shift is defined, all child quantities of a given quantity will be shifted as well.
-        Shifts defined in the global scope, are added to the shift dictionary of all scopes.
-        Shifts that are exclusive to a single scope are only added to the given scope.
 
         Args:
             name (str): Name of the shift
@@ -93,31 +77,18 @@ class Quantity:
                 log.debug("Ignoring shift {} for quantity {}".format(name, self.name))
                 return
         log.debug("Adding shift {} to quantity {}".format(name, self.name))
-        # adding new shifts to scopes:
-        # if a shift is defined for the global scope, it should also be added for all other scopes,
-        # therefore, if a new scope is added,
-        # this scope is a copy of the global scope.
         if scope not in self.shifts.keys():
-            if "global" in self.shifts.keys():
-                # make a copy of the global shifts
-                self.shifts[scope] = self.shifts["global"]
+            self.shifts[scope] = set()
+        if name not in self.shifts[scope]:
+            self.shifts[scope].add(name)
+            if scope == "global":  # shift children in all scopes if scope is global
+                for any_scope in self.children:
+                    for c in self.children[any_scope]:
+                        c.shift(name, any_scope)
             else:
-                self.shifts[scope] = {}
-        scopes = [scope]
-        if scope == "global" and scope in self.shifts.keys():
-            # in this case, we add the shift to all existing scopes
-            scopes = self.shifts.keys()
-        for scope in scopes:
-            if name not in self.shifts[scope]:
-                self.shifts[scope][name] = self.name + name
-                if scope == "global":  # shift children in all scopes if scope is global
-                    for any_scope in self.children:
-                        for c in self.children[any_scope]:
-                            c.shift(name, any_scope)
-                else:
-                    if scope in self.children.keys():
-                        for c in self.children[scope]:
-                            c.shift(name, scope)
+                if scope in self.children.keys():
+                    for c in self.children[scope]:
+                        c.shift(name, scope)
 
     def ignore_shift(self, name, scope):
         """
@@ -131,8 +102,8 @@ class Quantity:
         """
         log.debug("Make quantity {} ignore shift {}".format(self.name, name))
         if scope not in self.ignored_shifts.keys():
-            self.ignored_shifts[scope] = {}
-        self.ignored_shifts[scope] = name
+            self.ignored_shifts[scope] = set()
+        self.ignored_shifts[scope].add(name)
 
     def copy(self, name):
         """
@@ -162,9 +133,7 @@ class Quantity:
             None
         """
         log.debug(
-            "Adopting child quantity {} to quantity {} in scope {}".format(
-                child.name, self.name, scope
-            )
+            "Adopting child quantity {} to quantity {}".format(child.name, self.name)
         )
         if scope not in self.children.keys():
             self.children[scope] = []
@@ -179,24 +148,45 @@ class Quantity:
         Returns:
             list: List of all shifts, which are defined for a given scope.
         """
-        if scope in self.shifts.keys():
-            return list(self.shifts[scope].keys())
+        if "global" in self.shifts.keys():
+            if scope != "global" and scope in self.shifts.keys():
+                log.error(
+                    "Quantity {} has shifts in global and {}. Something must be broken!".format(
+                        self.name, scope
+                    )
+                )
+                raise Exception
+            return list(self.shifts["global"])
+        elif scope in self.shifts.keys():
+            return list(self.shifts[scope])
         else:
             return []
 
 
 class QuantityGroup(Quantity):
-    # A Quantity Group is a group of quantities, that all have the same settings, but different names.
+    """
+    A Quantity Group is a group of quantities, that all have the same settings, but different names.
+    """
     def __init__(self, name):
         super().__init__(name)
         self.quantities = []
 
     def copy(self, name):
+        """
+        Copy is not allowed for Quantity Groups.
+        """
         log.error("Copy is not allowed for a Quantity Group !")
         raise Exception
 
     def add(self, name):
-        # add a new Quantity to the group. This quantity contains the identical shifts as the group itself
+        """
+        Function to add a new Quantity to the group. This quantity contains the identical shifts as the group itself
+
+        Args:
+            name (str): Name of the new Quantity
+        Returns:
+            None
+        """
         quantity = Quantity(name)
         quantity.shifts = self.shifts
         quantity.children = self.children
@@ -205,7 +195,18 @@ class QuantityGroup(Quantity):
         self.quantities.append(quantity)
 
     def get_leafs_of_scope(self, scope):
-        # For the writeout, we have to loop over all quantities in the group and return them all (plus their shifts) in a list
+        """
+        Function returns a list of all leafs, which are defined for a given scope.
+        This is an overload of the function used for the quantity class.
+
+        For the writeout,  loop over all quantities in the group and
+        return them all (plus their shifts) in a list.
+
+        Args:
+            scope (str): Scope for which the leafs should be returned
+        Returns:
+            list. List of leafs
+        """
         output = []
         for quantity in self.quantities:
             output.extend(quantity.get_leafs_of_scope(scope))
@@ -213,11 +214,26 @@ class QuantityGroup(Quantity):
 
 
 class NanoAODQuantity(Quantity):
+    """
+    A NanoAODQuantity is a quantity that comes directly from the NanoAOD file.
+    Normally, these quantities are not suited to be used in the output ntuple,
+    are therefore shielded from using them directly as a output.
+    """
     def __init__(self, name):
         super().__init__(name)
+        self.shifted_naming = {}
 
-    # Quantities from the NanoAOD are not designed to be directly usable as output
+
     def reserve_scope(self, scope):
+        """
+        Function used to ensure, that NanoAOD quantities are not used as output
+        in a producer. If this is attempted, an Exception will be raised.
+
+        Args:
+            scope (str): Scope for which the quantity should be reserved (not used)
+        Returns:
+            None
+        """
         log.error(
             "Quantity {} is a NanoAOD quantity and cant be used as output !".format(
                 self.name
@@ -225,14 +241,37 @@ class NanoAODQuantity(Quantity):
         )
         raise Exception
 
-    # if the shifted version of a quantity already exists in the input,
-    # this function can be used to register an
-    # branch from the input as a shifted version of a quantity
-    def register_external_shift(self, shift, scope, external_name):
-        if scope not in self.shifts.keys():
-            self.shifts[scope] = {}
-        if scope == "global":
-            for allscope in self.shifts.keys():
-                self.shifts[allscope][shift] = external_name
-        else:
-            self.shifts[scope][shift] = external_name
+    def register_external_shift(self, shift_name, external_name):
+        """
+        Function used to register a NanoAOD quantity as a shift of another quantity.
+        Iif the shifted version of a quantity already exists in the input,
+        this function can be used to register an
+        branch from the input as a shifted version of a quantity
+
+        Args:
+            shift_name (str): Name of the shift
+            external_name (str): Name of the shifted quantity in the NanoAOD
+        Returns:
+            None
+        """
+        if shift_name not in self.shifted_naming.keys():
+            self.shifted_naming[shift_name] = external_name
+        for any_scope in self.children:
+            for c in self.children[any_scope]:
+                c.shift(shift_name, any_scope)
+
+
+    def get_leaf(self, shift, scope):
+        """
+        Overloaded function for the get leafs function to return the
+        shifted versions of the quantity if needed.
+
+        Args:
+            shift (str): Name of the shift for which the leaf should be returned
+            scope (str): Scope for which the leaf should be returned (not used)
+        Returns:
+            str. Name of the leaf
+        """
+        if shift in self.shifted_naming.keys():
+            return self.shifted_naming[shift]
+        return self.name
