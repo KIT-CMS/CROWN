@@ -13,7 +13,9 @@ typedef std::bitset<20> IntBits;
 
 namespace met {
 /**
- * @brief function used calulate the genMet and the visiblegenMet for an event.
+ * @brief function used to calculate the GenBosonVector and the
+visibleGenBosonVector for an event.
+
 The meaning of the genparticle statusflag codes is listed in the table below.
 
  Meaning                             | Value | Bit (value used in the config)
@@ -44,72 +46,74 @@ The meaning of the genparticle statusflag codes is listed in the table below.
  * @param genparticle_status genparticle status
  * @param genparticle_statusflag genparticle statusflag bit (see above)
  * @param outputname name of the new column containing the corrected met
- * @return a new dataframe containing a pair of metvectors, first is the genMet,
-second is the genVisMet
+ * @return a new dataframe containing a pair of lorentz vectors, first is the
+GenBosonVector, second is the visibleGenBosonVector
  */
-auto calculateGenMet(auto df, const std::string &genparticle_pt,
-                     const std::string &genparticle_eta,
-                     const std::string &genparticle_phi,
-                     const std::string &genparticle_mass,
-                     const std::string &genparticle_id,
-                     const std::string &genparticle_status,
-                     const std::string &genparticle_statusflag,
-                     const std::string outputname) {
-    auto CalculateGenMet = [](const ROOT::RVec<float> &genparticle_pt,
-                              const ROOT::RVec<float> &genparticle_eta,
-                              const ROOT::RVec<float> &genparticle_phi,
-                              const ROOT::RVec<float> &genparticle_mass,
-                              const ROOT::RVec<int> &genparticle_id,
-                              const ROOT::RVec<int> &genparticle_status,
-                              const ROOT::RVec<int> &genparticle_statusflag) {
-        ROOT::Math::PtEtaPhiMVector genparticle;
-        float genPx = 0.; // generator Z(W) px
-        float genPy = 0.; // generator Z(W) py
-        float visPx = 0.; // visible (generator) Z(W) px
-        float visPy = 0.; // visible (generator) Z(W) py
-        // now loop though all genparticles in the event
-        for (std::size_t index = 0; index < genparticle_id.size(); ++index) {
-            // consider a genparticle,
-            // 1. if it is a lepton and fromHardProcessFinalState --> bit 8 from
-            // statusflag and 1 from status
-            // 2. if it is isDirectHardProcessTauDecayProduct --> bit 10
-            // in statusflag
-            Logger::get("getGenMet")
-                ->debug("Checking particle {} ", genparticle_id.at(index));
-            if ((abs(genparticle_id.at(index)) >= 11 &&
-                 abs(genparticle_id.at(index)) <= 16 &&
-                 (IntBits(genparticle_status.at(index)).test(8)) &&
-                 genparticle_status.at(index) == 1) ||
-                (IntBits(genparticle_status.at(index)).test(10))) {
-                Logger::get("getGenMet")->debug("Adding to gen p*");
-                genparticle = ROOT::Math::PtEtaPhiMVector(
-                    genparticle_pt.at(index), genparticle_eta.at(index),
-                    genparticle_phi.at(index), genparticle_mass.at(index));
-                genPx += genparticle.Px();
-                genPy += genparticle.Py();
-                // if the genparticle is no neutrino, we add the x and y
-                // component to the visible generator component as well
-                if (abs(genparticle_id.at(index)) != 12 &&
-                    abs(genparticle_id.at(index)) != 14 &&
-                    abs(genparticle_id.at(index)) != 16) {
-                    Logger::get("getGenMet")->debug("Adding to vis p*");
-                    visPx += genparticle.Px();
-                    visPy += genparticle.Py();
+auto calculateGenBosonVector(auto df, const std::string &genparticle_pt,
+                             const std::string &genparticle_eta,
+                             const std::string &genparticle_phi,
+                             const std::string &genparticle_mass,
+                             const std::string &genparticle_id,
+                             const std::string &genparticle_status,
+                             const std::string &genparticle_statusflag,
+                             const std::string outputname) {
+    auto calculateGenBosonVector =
+        [](const ROOT::RVec<float> &genparticle_pt,
+           const ROOT::RVec<float> &genparticle_eta,
+           const ROOT::RVec<float> &genparticle_phi,
+           const ROOT::RVec<float> &genparticle_mass,
+           const ROOT::RVec<int> &genparticle_id,
+           const ROOT::RVec<int> &genparticle_status,
+           const ROOT::RVec<int> &genparticle_statusflag) {
+            ROOT::Math::PtEtaPhiMVector genparticle;
+            float genPx = 0.; // generator Z(W) px
+            float genPy = 0.; // generator Z(W) py
+            float visPx = 0.; // visible (generator) Z(W) px
+            float visPy = 0.; // visible (generator) Z(W) py
+            // now loop though all genparticles in the event
+            for (std::size_t index = 0; index < genparticle_id.size();
+                 ++index) {
+                // consider a genparticle,
+                // 1. if it is a lepton and fromHardProcessFinalState --> bit 8
+                // from statusflag and 1 from status
+                // 2. if it is isDirectHardProcessTauDecayProduct --> bit 10
+                // in statusflag
+                Logger::get("getGenMet")
+                    ->debug("Checking particle {} ", genparticle_id.at(index));
+                if ((abs(genparticle_id.at(index)) >= 11 &&
+                     abs(genparticle_id.at(index)) <= 16 &&
+                     (IntBits(genparticle_status.at(index)).test(8)) &&
+                     genparticle_status.at(index) == 1) ||
+                    (IntBits(genparticle_status.at(index)).test(10))) {
+                    Logger::get("getGenMet")->debug("Adding to gen p*");
+                    genparticle = ROOT::Math::PtEtaPhiMVector(
+                        genparticle_pt.at(index), genparticle_eta.at(index),
+                        genparticle_phi.at(index), genparticle_mass.at(index));
+                    genPx += genparticle.Px();
+                    genPy += genparticle.Py();
+                    // if the genparticle is no neutrino, we add the x and y
+                    // component to the visible generator component as well
+                    if (abs(genparticle_id.at(index)) != 12 &&
+                        abs(genparticle_id.at(index)) != 14 &&
+                        abs(genparticle_id.at(index)) != 16) {
+                        Logger::get("getGenMet")->debug("Adding to vis p*");
+                        visPx += genparticle.Px();
+                        visPy += genparticle.Py();
+                    }
                 }
             }
-        }
-        ROOT::Math::PtEtaPhiMVector genMet;
-        ROOT::Math::PtEtaPhiMVector genVisMet;
+            ROOT::Math::PtEtaPhiMVector genBoson;
+            ROOT::Math::PtEtaPhiMVector visgenBoson;
 
-        genMet.SetPxPyPzE(genPx, genPy, 0,
-                          std::sqrt(genPx * genPx + genPy * genPy));
-        genVisMet.SetPxPyPzE(visPx, visPy, 0,
-                             std::sqrt(visPx * visPx + visPy * visPy));
-        std::pair<ROOT::Math::PtEtaPhiMVector, ROOT::Math::PtEtaPhiMVector>
-            metpair = {genMet, genVisMet};
-        return metpair;
-    };
-    return df.Define(outputname, CalculateGenMet,
+            genBoson.SetPxPyPzE(genPx, genPy, 0,
+                                std::sqrt(genPx * genPx + genPy * genPy));
+            visgenBoson.SetPxPyPzE(visPx, visPy, 0,
+                                   std::sqrt(visPx * visPx + visPy * visPy));
+            std::pair<ROOT::Math::PtEtaPhiMVector, ROOT::Math::PtEtaPhiMVector>
+                metpair = {genBoson, visgenBoson};
+            return metpair;
+        };
+    return df.Define(outputname, calculateGenBosonVector,
                      {genparticle_pt, genparticle_eta, genparticle_phi,
                       genparticle_mass, genparticle_id, genparticle_status,
                       genparticle_statusflag});
@@ -303,8 +307,9 @@ application of these corrections can be found in `src/RecoilCorrections`.
  *
  * @param df the input dataframe
  * @param met the input met
- * @param genmet the generator met, this is a std::pair where the first
-value is the genmet and the seconds value is the visible getmet
+ * @param genboson the genboson vector, this is a std::pair where the first
+value is the genboson vector and the seconds value is the visible genboson
+vector
  * @param jet_pt the pt of all jets
  * @param outputname name of the new column containing the corrected met
  * @param recoilfile path to the recoil corrections file
@@ -346,7 +351,7 @@ auto applyRecoilCorrections(
                                      ROOT::Math::PtEtaPhiMVector &met,
                                      std::pair<ROOT::Math::PtEtaPhiMVector,
                                                ROOT::Math::PtEtaPhiMVector>
-                                         &genmet,
+                                         &genboson,
                                      const ROOT::RVec<float> &jet_pt) {
             // TODO is this the correct number of jets ?
             auto jets_above30 =
@@ -361,10 +366,10 @@ auto applyRecoilCorrections(
             float correctedMetY = 0.;
             ROOT::Math::PtEtaPhiMVector genparticle;
             ROOT::Math::PtEtaPhiMVector corrected_met;
-            float genPx = genmet.first.Px();  // generator Z(W) px
-            float genPy = genmet.first.Py();  // generator Z(W) py
-            float visPx = genmet.second.Px(); // visible (generator) Z(W) px
-            float visPy = genmet.second.Py(); // visible (generator) Z(W) py
+            float genPx = genboson.first.Px();  // generator Z(W) px
+            float genPy = genboson.first.Py();  // generator Z(W) py
+            float visPx = genboson.second.Px(); // visible (generator) Z(W) px
+            float visPy = genboson.second.Py(); // visible (generator) Z(W) py
             Logger::get("RecoilCorrections")->debug("Corrector Inputs");
             Logger::get("RecoilCorrections")->debug("nJets30 {} ", nJets30);
             Logger::get("RecoilCorrections")->debug("genPx {} ", genPx);
