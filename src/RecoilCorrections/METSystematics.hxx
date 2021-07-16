@@ -21,7 +21,7 @@ class METSystematic {
                             int sysType, int shiftType, float &metShiftPx,
                             float &metShiftPy);
 
-    void ShiftMEt(float metPx, float metPy, float genVPx, float genVPy,
+    void ShiftMET(float metPx, float metPy, float genVPx, float genVPy,
                   float visVPx, float visVPy, int njets, int sysType,
                   float sysShift, float &metShiftPx, float &metShiftPy);
 

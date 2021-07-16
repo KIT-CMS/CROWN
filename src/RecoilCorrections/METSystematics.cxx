@@ -4,9 +4,9 @@
 METSystematic::METSystematic(std::string filepath) {
 
     fileName = filepath;
-    TFile *file = new TFile(fileName);
+    TFile *file = new TFile(fileName, "READ");
     if (file->IsZombie()) {
-        Logger::get("RecoilCorrector")
+        Logger::get("METSystematics")
             ->debug("file {} is not found...   quitting ", fileName);
         exit(-1);
     }
@@ -22,7 +22,6 @@ METSystematic::METSystematic(std::string filepath) {
 
     nJetBins = jetBinsH->GetNbinsX();
     std::vector<TString> JetBins;
-    JetBins.clear();
     for (int i = 0; i < nJetBins; ++i) {
         JetBins.push_back(jetBinsH->GetXaxis()->GetBinLabel(i + 1));
     }
@@ -173,7 +172,7 @@ void METSystematic::ShiftResolutionMet(float metPx, float metPy, float genVPx,
                             metShiftPx, metShiftPy);
 }
 
-void METSystematic::ShiftMEt(float metPx, float metPy, float genVPx,
+void METSystematic::ShiftMET(float metPx, float metPy, float genVPx,
                              float genVPy, float visVPx, float visVPy,
                              int njets, int sysType, float sysShift,
                              float &metShiftPx, float &metShiftPy) {
@@ -224,6 +223,6 @@ void METSystematic::ApplyMETSystematic(float metPx, float metPy, float genVPx,
     if (sysShift != 0)
         scale = 1 - sysUnc[type][jets];
 
-    ShiftMEt(metPx, metPy, genVPx, genVPy, visVPx, visVPy, njets, type, scale,
+    ShiftMET(metPx, metPy, genVPx, genVPy, visVPx, visVPy, njets, type, scale,
              metShiftPx, metShiftPy);
 }
