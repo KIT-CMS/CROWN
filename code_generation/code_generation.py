@@ -79,7 +79,7 @@ def fill_template(t, config):
             '{"'
             + '", "'.join(
                 [
-                    '", "'.join(q.get_leafs_of_scope(scope))
+                    '", "'.join(q.get_leaves_of_scope(scope))
                     for q in config["output"][scope]
                 ]
             )

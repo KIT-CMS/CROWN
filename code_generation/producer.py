@@ -312,7 +312,7 @@ class BaseFilter(Producer):
     def writecalls(self, config, scope):
         inputs = []
         for quantity in self.input[scope]:
-            inputs.extend(quantity.get_leafs_of_scope(scope))
+            inputs.extend(quantity.get_leaves_of_scope(scope))
         formatdict = {}
         formatdict["input"] = '"' + '", "'.join(inputs) + '"'
         formatdict["input_vec"] = '{"' + '","'.join(inputs) + '"}'
