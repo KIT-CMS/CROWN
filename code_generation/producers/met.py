@@ -85,17 +85,27 @@ PropagateJetsToMet = Producer(
     output=[q.met_p4_jetcorrected],
     scopes=["et", "mt", "tt", "em"],
 )
-ApplyRecoilCorrections = Producer(
-    name="ApplyRecoilCorrections",
-    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down})',
+CalculateGenMet = Producer(
+    name="CalculateGenMet",
+    call="met::calculateGenMet({df}, {input}, {output})",
     input=[
-        q.met_p4_jetcorrected,
         nanoAOD.GenParticle_pt,
         nanoAOD.GenParticle_eta,
         nanoAOD.GenParticle_phi,
         nanoAOD.GenParticle_mass,
         nanoAOD.GenParticle_pdgId,
+        nanoAOD.GenParticle_status,
         nanoAOD.GenParticle_statusFlags,
+    ],
+    output=[q.genmet_p4],
+    scopes=["et", "mt", "tt", "em"],
+)
+ApplyRecoilCorrections = Producer(
+    name="ApplyRecoilCorrections",
+    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down}, {isWJets})',
+    input=[
+        q.met_p4_jetcorrected,
+        q.genmet_p4,
         q.Jet_pt_corrected,
     ],
     output=[q.met_p4_recoilcorrected],
@@ -103,14 +113,14 @@ ApplyRecoilCorrections = Producer(
 )
 MetPt = Producer(
     name="MetPt",
-    call="quantities::pt({df}, {input}, {output})",
+    call="quantities::pt({df}, {output}, {input})",
     input=[q.met_p4_recoilcorrected],
     output=[q.met],
     scopes=["et", "mt", "tt", "em"],
 )
 MetPhi = Producer(
     name="MetPhi",
-    call="quantities::phi({df}, {input}, {output})",
+    call="quantities::phi({df}, {output}, {input})",
     input=[q.met_p4_recoilcorrected],
     output=[q.metphi],
     scopes=["et", "mt", "tt", "em"],
@@ -130,6 +140,7 @@ MetCorrections = ProducerGroup(
         MetSumEt,
         PropagateLeptonsToMet,
         PropagateJetsToMet,
+        CalculateGenMet,
         ApplyRecoilCorrections,
         MetPt,
         MetPhi,

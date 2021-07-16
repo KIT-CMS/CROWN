@@ -261,7 +261,8 @@ auto mTdileptonMET(auto &df, const std::string &outputname,
     auto calculate_mTdileptonMET = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
                                       ROOT::Math::PtEtaPhiMVector &p_2_p4,
                                       ROOT::Math::PtEtaPhiMVector &met) {
-        return vectoroperations::calculateMT(p_1_p4 + p_2_p4, met);
+        ROOT::Math::PtEtaPhiMVector dilepton = p_1_p4 + p_2_p4;
+        return vectoroperations::calculateMT(dilepton, met);
     };
     return df.Define(outputname, calculate_mTdileptonMET,
                      {p_1_p4, p_2_p4, met});
