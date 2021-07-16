@@ -53,16 +53,19 @@ class Quantity:
             return self.name + shift
         return self.name
 
-    def get_leafs_of_scope(self, scope):
+    def get_leaves_of_scope(self, scope):
         """
-        Function returns a list of all leafs, which are defined for a given scope.
+        Function returns a list of all leaves, which are defined for a given scope.
 
         Args:
-            scope (str): Scope for which the leafs should be returned
+            scope (str): Scope for which the leaves should be returned
         Returns:
-            list. List of leafs
+            list. List of leaves
         """
-        return [self.name] + [self.name + shift for shift in self.get_shifts(scope)]
+        result = [self.name] + [
+            self.get_leaf(shift, scope) for shift in self.get_shifts(scope)
+        ]
+        return result
 
     def shift(self, name, scope):
         """
@@ -198,22 +201,22 @@ class QuantityGroup(Quantity):
         quantity.defined_for_scopes = self.defined_for_scopes
         self.quantities.append(quantity)
 
-    def get_leafs_of_scope(self, scope):
+    def get_leaves_of_scope(self, scope):
         """
-        Function returns a list of all leafs, which are defined for a given scope.
+        Function returns a list of all leaves, which are defined for a given scope.
         This is an overload of the function used for the quantity class.
 
         For the writeout,  loop over all quantities in the group and
         return them all (plus their shifts) in a list.
 
         Args:
-            scope (str): Scope for which the leafs should be returned
+            scope (str): Scope for which the leaves should be returned
         Returns:
-            list. List of leafs
+            list. List of leaves
         """
         output = []
         for quantity in self.quantities:
-            output.extend(quantity.get_leafs_of_scope(scope))
+            output.extend(quantity.get_leaves_of_scope(scope))
         return output
 
 
@@ -266,7 +269,7 @@ class NanoAODQuantity(Quantity):
 
     def get_leaf(self, shift, scope):
         """
-        Overloaded function for the get leafs function to return the
+        Overloaded version for the `get_leaf` function to return the
         shifted versions of the quantity if needed.
 
         Args:
@@ -278,3 +281,14 @@ class NanoAODQuantity(Quantity):
         if shift in self.shifted_naming.keys():
             return self.shifted_naming[shift]
         return self.name
+
+    def get_shifts(self, scope):
+        """
+        Overloaded version of the `get_shifts` function
+
+        Args:
+            scope (str): Scope for which shifts should be returned (not used)
+        Returns:
+            list: List of all shifts
+        """
+        return list(self.shifted_naming.keys())
