@@ -37,6 +37,8 @@ def ResolveSampleDependencies(config, sample):
             if list(config[key].keys())[0].startswith("SAMPLE_"):
                 if "SAMPLE_" + sample in config[key].keys():
                     config[key] = config[key]["SAMPLE_" + sample]
+                elif "SAMPLE_DEFAULT" in config[key].keys():
+                    config[key] = config[key]["SAMPLE_DEFAULT"]
                 else:
                     log.error("Sample {} not available in {}!".format(sample, key))
                     raise Exception
@@ -51,6 +53,8 @@ def ResolveEraDependencies(config, era):
             if list(config[key].keys())[0].startswith("ERA_"):
                 if "ERA_" + era in config[key].keys():
                     config[key] = config[key]["ERA_" + era]
+                elif "ERA_DEFAULT" in config[key].keys():
+                    config[key] = config[key]["ERA_DEFAULT"]
                 else:
                     log.error("Era {} not available in {}!".format(era, key))
                     raise Exception
