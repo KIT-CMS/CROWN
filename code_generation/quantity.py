@@ -167,6 +167,7 @@ class QuantityGroup(Quantity):
     """
     A Quantity Group is a group of quantities, that all have the same settings, but different names.
     """
+
     def __init__(self, name):
         super().__init__(name)
         self.quantities = []
@@ -219,10 +220,10 @@ class NanoAODQuantity(Quantity):
     Normally, these quantities are not suited to be used in the output ntuple,
     are therefore shielded from using them directly as a output.
     """
+
     def __init__(self, name):
         super().__init__(name)
         self.shifted_naming = {}
-
 
     def reserve_scope(self, scope):
         """
@@ -259,7 +260,6 @@ class NanoAODQuantity(Quantity):
         for any_scope in self.children:
             for c in self.children[any_scope]:
                 c.shift(shift_name, any_scope)
-
 
     def get_leaf(self, shift, scope):
         """
