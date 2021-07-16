@@ -3,7 +3,7 @@
 
 RecoilCorrector::RecoilCorrector(std::string filepath) {
     fileName = filepath;
-    TFile *file = new TFile(fileName);
+    TFile *file = new TFile(fileName, "READ");
     if (file->IsZombie()) {
         Logger::get("RecoilCorrector")
             ->debug("file {} is not found...   quitting ", fileName);
