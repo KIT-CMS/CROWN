@@ -147,9 +147,9 @@ def build_config(era, sample):
             "recoil_systematic_shift_up": False,
             "recoil_systematic_shift_down": False,
             "min_jetpt_met_propagation": 15,
-            "isWJets": False,
-            "SAMPLE_Wjets": {
-                "isWJets": True,
+            "isWJets": {
+                "SAMPLE_Wjets": True,
+                "SAMPLE_DEFAULT" : False,
             },
         },
     }
