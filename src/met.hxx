@@ -13,36 +13,6 @@ typedef std::bitset<20> IntBits;
 
 namespace met {
 /**
- * @brief Function to get pT from the met Lorentz vector
- *
- * @param df the input dataframe
- * @param metvector the name of the column containing the met lorentz vector
- * @param outputname name of the new column containing the met pT value
- * @return a new dataframe containing the met pT value
- */
-auto metPt(auto df, const std::string &metvector,
-           const std::string &outputname) {
-    auto GetMetPt = [](const ROOT::Math::PtEtaPhiMVector &met) {
-        return met.Pt();
-    };
-    return df.Define(outputname, GetMetPt, {metvector});
-}
-/**
- * @brief Function to get Phi from the met Lorentz vector
- *
- * @param df the input dataframe
- * @param metvector the name of the column containing the met lorentz vector
- * @param outputname name of the new column containing the met phi value
- * @return a new dataframe containing the met phi value
- */
-auto metPhi(auto df, const std::string &metvector,
-            const std::string &outputname) {
-    auto GetMetPhi = [](const ROOT::Math::PtEtaPhiMVector met) {
-        return met.Phi();
-    };
-    return df.Define(outputname, GetMetPhi, {metvector});
-}
-/**
  * @brief Function used to propagate lepton corrections to the met. If the
  energy of a lepton is corrected (via some scale factor) or due to a shift, this
  change in energy has to be propagated to the met vector, and the met vector has
