@@ -53,8 +53,8 @@ auto propagateLeptonsToMet(auto df, const std::string &met,
         // * MetY_corrected)
         float corr_x = uncorrected_object.Px() - corrected_object.Px();
         float corr_y = uncorrected_object.Py() - corrected_object.Py();
-        float MetX = met.Px() - corr_x;
-        float MetY = met.Py() - corr_y;
+        float MetX = met.Px() + corr_x;
+        float MetY = met.Py() + corr_y;
         Logger::get("propagateLeptonsToMet")->debug("corr_x {}", corr_x);
         Logger::get("propagateLeptonsToMet")->debug("corr_y {}", corr_y);
         Logger::get("propagateLeptonsToMet")->debug("MetX {}", MetX);
@@ -76,14 +76,14 @@ auto propagateLeptonsToMet(auto df, const std::string &met,
         // intermediate column
         Logger::get("propagateLeptonsToMet")
             ->debug("Setting up correction for first lepton {}", p4_1);
-        auto df1 = df.Define(outputname + "_intermidiate", scaleMet,
+        auto df1 = df.Define(outputname + "_intermediate", scaleMet,
                              {met, p4_1_uncorrected, p4_1});
         // after the second lepton correction, the correct output column is used
         Logger::get("propagateLeptonsToMet")
             ->debug("Setting up correction for second lepton {}", p4_2);
         return df1.Define(
             outputname, scaleMet,
-            {outputname + "_intermidiate", p4_2_uncorrected, p4_2});
+            {outputname + "_intermediate", p4_2_uncorrected, p4_2});
     } else {
         // if we do not apply the propagation, just rename the met column to the
         // new outputname and dont change anything else
@@ -147,7 +147,7 @@ auto propagateJetsToMet(auto df, const std::string &met,
         ROOT::Math::PtEtaPhiMVector corrected_jet;
         float corr_x = 0.0;
         float corr_y = 0.0;
-        // now loop though all jets in the event
+        // now loop through all jets in the event
         for (std::size_t index = 0; index < jet_pt.size(); ++index) {
             // only propagate jets above the given pt threshold
             if (jet_pt_corrected.at(index) > min_jet_pt) {
@@ -164,8 +164,8 @@ auto propagateJetsToMet(auto df, const std::string &met,
                 corr_y += uncorrected_jet.Py() - corrected_jet.Py();
             }
         }
-        float MetX = met.Px() - corr_x;
-        float MetY = met.Py() - corr_y;
+        float MetX = met.Px() + corr_x;
+        float MetY = met.Py() + corr_y;
         Logger::get("propagateJetsToMet")->debug("corr_x {}", corr_x);
         Logger::get("propagateJetsToMet")->debug("corr_y {}", corr_y);
         Logger::get("propagateJetsToMet")->debug("MetX {}", MetX);
@@ -206,7 +206,7 @@ meaning of the genparticle status codes is listed in the table below.
  isDirectPromptTauDecayProduct       | 32    | 5
  isDirectHadronDecayProduct          | 64    | 6
  isHardProcess                       | 128   | 7
- fromHardProcess                     | 265   | 8
+ fromHardProcess                     | 256   | 8
  isHardProcessTauDecayProduct        | 512   | 9
  isDirectHardProcessTauDecayProduct  | 1024  | 10
  fromHardProcessBeforeFSR            | 2048  | 11
@@ -328,7 +328,7 @@ auto applyRecoilCorrections(
             Logger::get("RecoilCorrections")->debug("old met {} ", met.Pt());
             corrector->CorrectWithHist(MetX, MetY, genPx, genPy, visPx, visPy,
                                        nJets30, correctedMetX, correctedMetY);
-            // only apply shifts is the correpsonding variables are set
+            // only apply shifts if the correpsonding variables are set
             if (sysType != MetSystematic::SysType::None &&
                 shiftType != MetSystematic::SysShift::Nominal) {
                 Logger::get("RecoilCorrections")
