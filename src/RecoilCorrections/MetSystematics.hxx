@@ -1,5 +1,5 @@
-#ifndef HTT_METSystematic_h
-#define HTT_METSystematic_h
+#ifndef HTT_MetSystematic_h
+#define HTT_MetSystematic_h
 
 #include <TF1.h>
 #include <TFile.h>
@@ -10,18 +10,18 @@
 #include <TString.h>
 #include <assert.h>
 
-class METSystematic {
+class MetSystematic {
 
   public:
-    METSystematic(std::string filepath);
-    ~METSystematic(){};
+    MetSystematic(std::string filepath);
+    ~MetSystematic(){};
 
-    void ApplyMETSystematic(float metPx, float metPy, float genVPx,
+    void ApplyMetSystematic(float metPx, float metPy, float genVPx,
                             float genVPy, float visVPx, float visVPy, int njets,
                             int sysType, int shiftType, float &metShiftPx,
                             float &metShiftPy);
 
-    void ShiftMET(float metPx, float metPy, float genVPx, float genVPy,
+    void ShiftMet(float metPx, float metPy, float genVPx, float genVPy,
                   float visVPx, float visVPy, int njets, int sysType,
                   float sysShift, float &metShiftPx, float &metShiftPy);
 

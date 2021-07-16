@@ -8,7 +8,7 @@ from code_generation.producer import Producer, ProducerGroup
 
 BuildMetVector = Producer(
     name="BuildMetVector",
-    call="lorentzvectors::buildMET({df}, {input}, {output})",
+    call="lorentzvectors::buildMet({df}, {input}, {output})",
     input=[
         nanoAOD.MET_pt,
         nanoAOD.MET_phi,
@@ -61,16 +61,16 @@ MetSumEt = Producer(
     output=[q.metSumEt],
     scopes=["et", "mt", "tt", "em"],
 )
-PropagateLeptonsToMET = Producer(
-    name="PropagateLeptonsToMET",
-    call="met::propagateLeptonsToMET({df}, {input}, {output}, {propagateLeptons})",
+PropagateLeptonsToMet = Producer(
+    name="PropagateLeptonsToMet",
+    call="met::propagateLeptonsToMet({df}, {input}, {output}, {propagateLeptons})",
     input=[q.met_p4, q.p4_1_uncorrected, q.p4_2_uncorrected, q.p4_1, q.p4_2],
     output=[q.met_p4_leptoncorrected],
     scopes=["et", "mt", "tt", "em"],
 )
-PropagateJetsToMET = Producer(
-    name="PropagateJetsToMET",
-    call="met::propagateJetsToMET({df}, {input}, {output}, {propagateJets}, {min_jetpt_met_propagation})",
+PropagateJetsToMet = Producer(
+    name="PropagateJetsToMet",
+    call="met::propagateJetsToMet({df}, {input}, {output}, {propagateJets}, {min_jetpt_met_propagation})",
     input=[
         q.met_p4_leptoncorrected,
         q.Jet_pt_corrected,
@@ -128,8 +128,8 @@ MetCorrections = ProducerGroup(
         MetCov10,
         MetCov11,
         MetSumEt,
-        PropagateLeptonsToMET,
-        PropagateJetsToMET,
+        PropagateLeptonsToMet,
+        PropagateJetsToMet,
         ApplyRecoilCorrections,
         MetPt,
         MetPhi,
