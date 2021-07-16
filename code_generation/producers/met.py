@@ -103,14 +103,14 @@ ApplyRecoilCorrections = Producer(
 )
 MetPt = Producer(
     name="MetPt",
-    call="met::metPt({df}, {input}, {output})",
+    call="quantities::pt({df}, {input}, {output})",
     input=[q.met_p4_recoilcorrected],
     output=[q.met],
     scopes=["et", "mt", "tt", "em"],
 )
 MetPhi = Producer(
     name="MetPhi",
-    call="met::metPhi({df}, {input}, {output})",
+    call="quantities::phi({df}, {input}, {output})",
     input=[q.met_p4_recoilcorrected],
     output=[q.metphi],
     scopes=["et", "mt", "tt", "em"],
