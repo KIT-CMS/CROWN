@@ -68,10 +68,6 @@ auto calculateGenBosonVector(auto df, const std::string &genparticle_pt,
             ROOT::Math::PtEtaPhiMVector genBoson;
             ROOT::Math::PtEtaPhiMVector visgenBoson;
             ROOT::Math::PtEtaPhiMVector genparticle;
-            float genPx = 0.; // generator Z(W) px
-            float genPy = 0.; // generator Z(W) py
-            float visPx = 0.; // visible (generator) Z(W) px
-            float visPy = 0.; // visible (generator) Z(W) py
             // now loop though all genparticles in the event
             for (std::size_t index = 0; index < genparticle_id.size();
                  ++index) {
