@@ -65,6 +65,8 @@ auto calculateGenBosonVector(auto df, const std::string &genparticle_pt,
            const ROOT::RVec<int> &genparticle_id,
            const ROOT::RVec<int> &genparticle_status,
            const ROOT::RVec<int> &genparticle_statusflag) {
+            ROOT::Math::PtEtaPhiMVector genBoson;
+            ROOT::Math::PtEtaPhiMVector visgenBoson;
             ROOT::Math::PtEtaPhiMVector genparticle;
             float genPx = 0.; // generator Z(W) px
             float genPy = 0.; // generator Z(W) py
@@ -89,26 +91,18 @@ auto calculateGenBosonVector(auto df, const std::string &genparticle_pt,
                     genparticle = ROOT::Math::PtEtaPhiMVector(
                         genparticle_pt.at(index), genparticle_eta.at(index),
                         genparticle_phi.at(index), genparticle_mass.at(index));
-                    genPx += genparticle.Px();
-                    genPy += genparticle.Py();
+                    genBoson = genBoson + genparticle;
                     // if the genparticle is no neutrino, we add the x and y
                     // component to the visible generator component as well
                     if (abs(genparticle_id.at(index)) != 12 &&
                         abs(genparticle_id.at(index)) != 14 &&
                         abs(genparticle_id.at(index)) != 16) {
                         Logger::get("getGenMet")->debug("Adding to vis p*");
-                        visPx += genparticle.Px();
-                        visPy += genparticle.Py();
+                        visgenBoson = visgenBoson + genparticle;
                     }
                 }
             }
-            ROOT::Math::PtEtaPhiMVector genBoson;
-            ROOT::Math::PtEtaPhiMVector visgenBoson;
 
-            genBoson.SetPxPyPzE(genPx, genPy, 0,
-                                std::sqrt(genPx * genPx + genPy * genPy));
-            visgenBoson.SetPxPyPzE(visPx, visPy, 0,
-                                   std::sqrt(visPx * visPx + visPy * visPy));
             std::pair<ROOT::Math::PtEtaPhiMVector, ROOT::Math::PtEtaPhiMVector>
                 metpair = {genBoson, visgenBoson};
             return metpair;

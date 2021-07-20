@@ -20,7 +20,7 @@ def AddSystematicShift(
 
 
 # Function for introducing systematic variations to producers and depending quantities by adding an already shifted input quantity
-def SystematicShiftByInputQuantity(config, shiftname, base_producers, external_dict):
+def SystematicShiftByInputQuantity(config, shiftname, external_dict):
     shiftname = "__" + shiftname
     config[shiftname] = copy.deepcopy(config[""])
     for quantity in external_dict.keys():
