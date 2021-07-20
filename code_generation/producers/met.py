@@ -97,7 +97,7 @@ CalculateGenBosonVector = Producer(
         nanoAOD.GenParticle_status,
         nanoAOD.GenParticle_statusFlags,
     ],
-    output=[q.genboson_p4],
+    output=[q.recoil_genboson_p4],
     scopes=["et", "mt", "tt", "em"],
 )
 ApplyRecoilCorrections = Producer(
@@ -105,7 +105,7 @@ ApplyRecoilCorrections = Producer(
     call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down}, {isWJets})',
     input=[
         q.met_p4_jetcorrected,
-        q.genboson_p4,
+        q.recoil_genboson_p4,
         q.Jet_pt_corrected,
     ],
     output=[q.met_p4_recoilcorrected],
