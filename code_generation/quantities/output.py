@@ -117,6 +117,7 @@ idWeight_1 = Quantity("idWeight_1")
 idWeight_2 = Quantity("idWeight_2")
 
 topPtReweightWeight = Quantity("topPtReweightWeight")
+ZPtMassReweightWeight = Quantity("ZPtMassReweightWeight")
 
 ## HTXS quantities
 ggh_NNLO_weight = Quantity("ggh_NNLO_weight")
