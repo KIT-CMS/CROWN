@@ -224,7 +224,7 @@ def build_config(era, sample):
             producers=[QQH_WG1_Uncertainties], samples=["qqh"], scopes=["mt"]
         ),
         AppendProducer(producers=[TopPtReweighting], samples=["ttbar"], scopes=["mt"]),
-        AppendProducer(producers=[ZPtMassReweighting], samples=["emb"], scopes=["mt"]),
+        AppendProducer(producers=[ZPtMassReweighting], samples=["dy"], scopes=["mt"]),
     ]
 
     config["output"] = {
