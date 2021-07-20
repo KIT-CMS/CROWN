@@ -45,6 +45,16 @@ PUweights = Producer(
     scopes=["global"],
 )
 
+ZPtMassReweighting = Producer(
+    name="ZPtMassReweighting",
+    call='reweighting::zPtMassReweighting({df}, {output}, {input}, "{zptmass_file}", "{zptmass_functor}", "{zptmass_arguments}")',
+    input=[
+        q.genboson_p4,
+    ],
+    output=[q.ZPtMassReweightWeight],
+    scopes=["global", "em", "et", "mt", "tt"],
+)
+
 TopPtReweighting = Producer(
     name="TopPtReweighting",
     call="reweighting::topptreweighting({df}, {output}, {input})",

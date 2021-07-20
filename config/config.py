@@ -156,6 +156,13 @@ def build_config(era, sample):
     all_channels = {
         "ggHNNLOweightsRootfile": "data/htxs/NNLOPS_reweight.root",
         "ggH_generator": "powheg",
+        "zptmass_file": {
+            "ERA_2016": "data/zpt/htt_scalefactors_legacy_2016.root",
+            "ERA_2017": "data/zpt/htt_scalefactors_legacy_2017.root",
+            "ERA_2018": "data/zpt/htt_scalefactors_legacy_2018.root",
+        },
+        "zptmass_functor": "zptmass_weight_nom",
+        "zptmass_arguments": "z_gen_mass,z_gen_pt",
     }
     for channel in ["mt"]:  # add em et tt here as soon as they appear in config
         base_config[channel].update(all_channels)
@@ -217,6 +224,7 @@ def build_config(era, sample):
             producers=[QQH_WG1_Uncertainties], samples=["qqh"], scopes=["mt"]
         ),
         AppendProducer(producers=[TopPtReweighting], samples=["ttbar"], scopes=["mt"]),
+        AppendProducer(producers=[ZPtMassReweighting], samples=["emb"], scopes=["mt"]),
     ]
 
     config["output"] = {

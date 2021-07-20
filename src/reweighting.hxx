@@ -3,6 +3,7 @@
 #include "TFile.h"
 #include "TH1.h"
 #include "utility/Logger.hxx"
+#include "utility/RooFunctorThreadsafe.hxx"
 
 /// namespace used for reweighting related functions
 namespace reweighting {
@@ -91,5 +92,53 @@ auto topptreweighting(auto &df, const std::string &weightname,
     auto df1 = df.Define(weightname, ttbarreweightlambda,
                          {gen_pdgids, gen_status, gen_pt});
     return df1;
+}
+
+/**
+ * @brief Function used to evaluate Z pt mass weights
+ *
+ * @param df The input dataframe
+ * @param weightname name of the generated weight
+ * @param gen_boson name of the column that contains a pair of Lorentzvectors,
+ * where the first one is the one of the genboson
+ * @param workspace_file path to the file which contains the workspace to be
+ * read
+ * @param functor_name name of the function from the workspace
+ * @param argset arguments of the function
+ * @return a new dataframe containing the new column
+ */
+auto zPtMassReweighting(auto &df, const std::string &weightname,
+                        const std::string &gen_boson,
+                        const std::string &workspace_file,
+                        const std::string &functor_name,
+                        const std::string &argset) {
+
+    // retrieve pt and mass of gen boson
+    auto df1 = df.Define(gen_boson + "_pt",
+                         [](const std::pair<ROOT::Math::PtEtaPhiMVector,
+                                            ROOT::Math::PtEtaPhiMVector> &p4) {
+                             return (float)p4.first.pt();
+                         },
+                         {gen_boson});
+    auto df2 = df1.Define(gen_boson + "_mass",
+                          [](const std::pair<ROOT::Math::PtEtaPhiMVector,
+                                             ROOT::Math::PtEtaPhiMVector> &p4) {
+                              return (float)p4.first.mass();
+                          },
+                          {gen_boson});
+
+    // set up workspace
+    Logger::get("zPtMassReweighting")
+        ->debug("Setting up functions for zPtMassReweighting");
+    Logger::get("zPtMassReweighting")
+        ->debug("zPtMassReweighting - Function {} // argset {}", functor_name,
+                argset);
+
+    const std::shared_ptr<RooFunctorThreadsafe> weight_function =
+        loadFunctor(workspace_file, functor_name, argset);
+    auto df3 = basefunctions::evaluateWorkspaceFunction(
+        df2, weightname, weight_function, gen_boson + "_mass",
+        gen_boson + "_pt");
+    return df3;
 }
 } // namespace reweighting
