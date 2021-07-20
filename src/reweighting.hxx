@@ -113,7 +113,9 @@ auto zPtMassReweighting(auto &df, const std::string &weightname,
                         const std::string &functor_name,
                         const std::string &argset) {
 
-    // retrieve pt and mass of gen boson
+    // retrieve pt and mass of gen boson reconstructed with the method used by
+    // recoil corrections; resulting quantities are only for the purpose of this
+    // method
     auto df1 = df.Define(gen_boson + "_pt",
                          [](const std::pair<ROOT::Math::PtEtaPhiMVector,
                                             ROOT::Math::PtEtaPhiMVector> &p4) {
