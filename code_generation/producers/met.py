@@ -85,7 +85,7 @@ PropagateJetsToMet = Producer(
     output=[q.met_p4_jetcorrected],
     scopes=["et", "mt", "tt", "em"],
 )
-calculateGenBosonVector = Producer(
+CalculateGenBosonVector = Producer(
     name="calculateGenBosonVector",
     call="met::calculateGenBosonVector({df}, {input}, {output})",
     input=[
@@ -140,7 +140,7 @@ MetCorrections = ProducerGroup(
         MetSumEt,
         PropagateLeptonsToMet,
         PropagateJetsToMet,
-        calculateGenBosonVector,
+        CalculateGenBosonVector,
         ApplyRecoilCorrections,
         MetPt,
         MetPhi,

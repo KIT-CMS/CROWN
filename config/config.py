@@ -149,7 +149,7 @@ def build_config(era, sample):
             "min_jetpt_met_propagation": 15,
             "isWJets": {
                 "SAMPLE_Wjets": True,
-                "SAMPLE_DEFAULT" : False,
+                "SAMPLE_DEFAULT": False,
             },
         },
     }
@@ -325,7 +325,6 @@ def build_config(era, sample):
     SystematicShiftByInputQuantity(
         config,
         "metUnclusteredEnUp",
-        [[BuildMetVector, "mt"]],
         {
             nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
             nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
@@ -334,7 +333,6 @@ def build_config(era, sample):
     SystematicShiftByInputQuantity(
         config,
         "metUnclusteredEnDown",
-        [[BuildMetVector, "mt"]],
         {
             nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
             nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
