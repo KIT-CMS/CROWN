@@ -31,22 +31,12 @@ action() {
     export ANALYSIS_DATA_PATH="$ANALYSIS_PATH/data"
 
 
-
     # luigi
     _addpy "$base/luigi"
     _addbin "$base/luigi/bin"
 
-    # enum34
-    _addpy "$base/enum34-1.1.10"
-
     # six
     _addpy "$base/six"
-
-    # scinum
-    _addpy "$base/scinum"
-
-    # order
-    _addpy "$base/order"
 
     # law
     _addpy "$base/law"
