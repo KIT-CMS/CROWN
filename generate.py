@@ -86,7 +86,7 @@ for era in args.eras:
             .replace("{ERATAG}", '"Era=%s"' % era)
             .replace("{SAMPLETAG}", '"Samplegroup=%s"' % sample_group)
         )
-        with open(executable, "w") as executable_file:
+        with open(path.join(args.output, executable), "w") as executable_file:
             executable_file.write(template)
         executables.append(executable)
 
