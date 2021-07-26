@@ -140,7 +140,7 @@ endfunction()
 find_python_package(GitPython git 3.1)
 
 # Generate the C++ code
-set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(GENERATE_CPP_INPUT_TEMPLATE "${CMAKE_SOURCE_DIR}/code_generation/analysis_template.cxx")
 
 message(STATUS "")
