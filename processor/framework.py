@@ -10,11 +10,20 @@ import law.contrib.htcondor
 law.contrib.load("wlcg")
 
 
-class Task(law.Task):
+class LocalTask(law.Task):
+
+    def local_path(self, *path):
+        parts = (os.getenv("ANALYSIS_DATA_PATH"),) + (self.__class__.__name__,) + path
+        return os.path.join(*parts)
+
+    def local_target(self, *path):
+        return law.LocalFileTarget(self.local_path(*path))
+
+
+class RemoteTask(law.Task):
 
     wlcg_path = luigi.Parameter()
     input_file_name = luigi.Parameter()
-    mc_setting = luigi.Parameter()
 
     def local_path(self, *path):
         parts = (os.getenv("ANALYSIS_DATA_PATH"),) + (self.__class__.__name__,) + path

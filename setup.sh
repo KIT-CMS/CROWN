@@ -1,10 +1,10 @@
-#!/usr/bin/env bash
-
 ############################################################################################
 # This script setups all dependencies necessary for making law executable                  #
 ############################################################################################
 
 action() {
+
+
     # determine the directy of this file
     if [ ! -z "$ZSH_VERSION" ]; then
         local this_file="${(%):-%x}"
@@ -23,7 +23,13 @@ action() {
         [ ! -z "$1" ] && export PATH="$1:$PATH"
     }
 
+    echo "Setup CROWN ..."
+    git clone git@github.com:KIT-CMS/CROWN
 
+    echo "Setting up cvmfs with the version used by CROWN..."
+    source CROWN/init.sh
+
+    echo "Setting up Luigi/Law ..."
     export LAW_HOME="$base/.law"
     export LAW_CONFIG_FILE="$base/law.cfg"
     export LUIGI_CONFIG_PATH="$base/luigi.cfg"
@@ -43,6 +49,8 @@ action() {
     _addbin "$base/law/bin"
     source "$( law completion )"
 
-    source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-gcc9-opt/setup.sh
+
+
+
 }
 action "$@"
