@@ -37,6 +37,7 @@ action() {
     export ANALYSIS_DATA_PATH="$ANALYSIS_PATH/data"
 
 
+
     # luigi
     _addpy "$base/luigi"
     _addbin "$base/luigi/bin"
@@ -48,6 +49,10 @@ action() {
     _addpy "$base/law"
     _addbin "$base/law/bin"
     source "$( law completion )"
+
+    # tasks
+    _addpy "$base/processor"
+    _addpy "$base/processor/tasks"
 
 
 

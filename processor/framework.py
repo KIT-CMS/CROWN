@@ -6,18 +6,39 @@ import re
 import luigi
 import law
 import law.contrib.htcondor
-
+from law.util import interruptable_popen
+from subprocess import PIPE
 law.contrib.load("wlcg")
 
 
-class LocalTask(law.Task):
-
+class Task(law.Task):
     def local_path(self, *path):
         parts = (os.getenv("ANALYSIS_DATA_PATH"),) + (self.__class__.__name__,) + path
         return os.path.join(*parts)
 
     def local_target(self, *path):
         return law.LocalFileTarget(self.local_path(*path))
+
+    def convert_env_to_dict(self, env):
+        my_env = {}
+        for line in env.splitlines():
+            if line.find(" ") < 0:
+                try:
+                    key, value = line.split("=", 1)
+                    my_env[key] = value
+                except ValueError:
+                    pass
+        return my_env
+
+    def set_environment(self, sourcescript):
+        code, out, error = interruptable_popen(
+            "source {}; env".format(sourcescript),
+            shell=True,
+            stdout=PIPE,
+            stderr=PIPE,
+        )
+        my_env = self.convert_env_to_dict(out)
+        return my_env
 
 
 class RemoteTask(law.Task):

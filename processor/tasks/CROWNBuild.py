@@ -5,68 +5,39 @@ import os
 from subprocess import PIPE
 from law.util import interruptable_popen
 
-from processor.framework import LocalTask, RemoteTask
+from framework import Task
 
 
-class CROWNBuild(LocalTask):
+class CROWNBuild(Task):
     """
     Gather and compile CROWN with the given configuration
     """
 
     # configuration variables
-    samples = luigi.Parameter()
-    eras = luigi.Parameter()
+    sampletype = luigi.Parameter()
+    era = luigi.Parameter()
     channels = luigi.Parameter()
     analysis = luigi.Parameter()
-    build_cores = luigi.Parameter()
     shifts = luigi.Parameter()
     build_dir = luigi.Parameter()
-
-    def convert_env_to_dict(self, env):
-        my_env = {}
-        for line in env.splitlines():
-            if line.find(" ") < 0:
-                try:
-                    key, value = line.split("=", 1)
-                    my_env[key] = value
-                except ValueError:
-                    pass
-        return my_env
-
-    def set_environment_variables(self):
-        code, out, error = interruptable_popen(
-            "source {}; env".format(
-                os.path.join(
-                    os.path.dirname(__file__),
-                    "../../",
-                    "setup",
-                    "setup_crown_cmake.sh",
-                )
-            ),
-            shell=True,
-            stdout=PIPE,
-            stderr=PIPE,
-        )
-        my_env = self.convert_env_to_dict(out)
-        return my_env
+    install_dir = luigi.Parameter()
+    env_script = os.path.join(
+        os.path.dirname(__file__), "../../", "setup", "setup_crown_cmake.sh"
+    )
 
     def output(self):
-        return self.local_target("tarball.tar.gz")
-
-    def create_build_directory(dir):
-        dir = os.path.abspath(dir)
-        if not os.path.exists(dir):
-            os.makedirs(dir)
+        return self.local_target("crown_{}_{}.tar.gz".format(self.era, self.sampletype))
 
     def run(self):
-        _samples = str(self.samples)
-        _eras = str(self.eras)
+        _sampletype = str(self.sampletype)
+        _era = str(self.era)
         _channels = str(self.channels)
         _analysis = str(self.analysis)
-        _build_cores = int(self.build_cores)
         _shifts = str(self.shifts)
-        _build_dir = str(self.build_dir)
+        _tag = "{}_{}".format(_era, _sampletype)
 
+        _build_dir = os.path.join(str(self.build_dir), _tag)
+        _install_dir = os.path.join(str(self.install_dir), _tag)
         # find crown
         _crown_path = os.path.abspath("CROWN")
 
@@ -74,13 +45,16 @@ class CROWNBuild(LocalTask):
         if not os.path.exists(_build_dir):
             os.makedirs(_build_dir)
         _build_dir = os.path.abspath(_build_dir)
+        # same for the install directory
+        if not os.path.exists(_install_dir):
+            os.makedirs(_install_dir)
+        _install_dir = os.path.abspath(_install_dir)
 
-        # ensure that the output directory exists
+        # get output file path
         output = self.output()
-        output.parent.touch()
 
         # set environment variables
-        my_env = self.set_environment_variables()
+        my_env = self.set_environment(self.env_script)
 
         # checking cmake path
         code, _cmake_executable, error = interruptable_popen(
@@ -90,22 +64,22 @@ class CROWNBuild(LocalTask):
         # actual payload:
         print("=========================================================")
         print("| Starting cmake step for CROWN")
-        print("| Using cmake {}".format(_cmake_executable))
+        print("| Using cmake {}".format(_cmake_executable.replace("\n", "")))
         print("| Using CROWN {}".format(_crown_path))
         print("| Using build_directory {}".format(_build_dir))
+        print("| Using install directory {}".format(_install_dir))
         print("=========================================================")
 
         # run CROWN build step
-        # _cd_builddir = ["cd" ,"{}".format(_build_dir), "&&"]
-        # cmake command
         _cmake_cmd = ["cmake", _crown_path]
 
         _cmake_args = [
             "-DANALYSIS={ANALYSIS}".format(ANALYSIS=_analysis),
-            "-DSAMPLES={SAMPLES}".format(SAMPLES=_samples),
-            "-DERAS={ERAS}".format(ERAS=_eras),
+            "-DSAMPLES={SAMPLES}".format(SAMPLES=_sampletype),
+            "-DERAS={ERAS}".format(ERAS=_era),
             "-DCHANNELS={CHANNELS}".format(CHANNELS=_channels),
             "-DSHIFTS={SHIFTS}".format(SHIFTS=_shifts),
+            "-DINSTALLDIR={INSTALLDIR}".format(INSTALLDIR=_install_dir),
             "-B{BUILDFOLDER}".format(BUILDFOLDER=_build_dir),
         ]
         print("Executable: {}".format(" ".join(_cmake_cmd + _cmake_args)))
@@ -123,10 +97,9 @@ class CROWNBuild(LocalTask):
         else:
             print("Successful cmake build !")
 
-        print("Starting make with {} cores".format(_build_cores))
-        print("Executable: {}".format(" ".join(["make", "install", "-j{}".format(_build_cores)])))
+        print("Executable: {}".format(" ".join(["make", "install"])))
         code, out, error = interruptable_popen(
-            ["make", "install", "-j{}".format(_build_cores)],
+            ["make", "install"],
             stdout=PIPE,
             stderr=PIPE,
             env=my_env,
@@ -137,5 +110,39 @@ class CROWNBuild(LocalTask):
             print("Output: {}".format(out))
             print("make returned non-zero exit status {}".format(code))
             raise Exception("make failed")
+        else:
+            print("Successful cmake build !")
+
+        # TODO Create Tarball from the install directory\
+        code, out, error = interruptable_popen(
+            ["touch" ,output.basename],
+            stdout=PIPE,
+            stderr=PIPE,
+            env=my_env,
+            cwd=os.path.join(_install_dir),
+        )
+        command = [
+            "tar",
+            "--exclude='*.tar.gz'",
+            "-czvf",
+            output.basename,
+            ".",
+        ]
+        print("Executable: {}".format(" ".join(command)))
+        code, out, error = interruptable_popen(
+            command,
+            stdout=PIPE,
+            stderr=PIPE,
+            env=my_env,
+            cwd=os.path.join(_install_dir),
+        )
+        if code != 0:
+            print("Error when creating tarball {}".format(error))
+            print("Output: {}".format(out))
+            print("tar returned non-zero exit status {}".format(code))
+            raise Exception("tar failed")
+        else:
+            print("Successful tarball creation !")
+        # todo after done, move the created tarball into the tarballs folder
 
         print("=======================================================")
