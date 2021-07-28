@@ -12,6 +12,13 @@ law.contrib.load("wlcg")
 
 
 class Task(law.Task):
+
+    era = luigi.Parameter()
+    sampletype = luigi.Parameter()
+
+    def store_parts(self):
+        return (self.__class__.__name__,)
+
     def local_path(self, *path):
         parts = (os.getenv("ANALYSIS_DATA_PATH"),) + (self.__class__.__name__,) + path
         return os.path.join(*parts)

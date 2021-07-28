@@ -3,24 +3,29 @@ import luigi
 import os
 import CROWNBuild
 import tarfile
-
+import ConfigureDatasets
 from subprocess import PIPE
 from law.util import interruptable_popen
 
 from framework import Task, HTCondorWorkflow
 
 
-class CROWNRun(Task, HTCondorWorkflow):
+class CROWNRun(Task, law.LocalWorkflow):
     """
     Gather and compile CROWN with the given configuration
     """
 
     output_collection_cls = law.SiblingFileCollection
 
-    # configuration variables
-    inputfile = luigi.Parameter()
-    era = luigi.Parameter()
-    sampletype = luigi.Parameter()
+    # # configuration variables
+    # inputfile = luigi.Parameter()
+
+    def workflow_requires(self):
+        return {"datasetinfo": ConfigureDatasets.req(self)}
+
+    def create_branch_map(self):
+        datasets = self.input()['datasetinfo'].load()
+        return {i: info for i, info in enumerate(datasets["filelist"].items())}
 
     def output(self):
         return self.local_target("ntuple_{}.root".format(self.branch))
@@ -30,7 +35,8 @@ class CROWNRun(Task, HTCondorWorkflow):
 
     def run(self):
 
-        _inputfile = str(self.inputfile)
+        info = self.branch_data
+        _inputfile = info
         _outputfile = str(self.output.path())
         _tarballpath = str(self.input["tarball"].path())
         # first unpack the tarball

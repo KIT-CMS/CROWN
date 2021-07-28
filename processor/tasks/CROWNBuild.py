@@ -14,8 +14,6 @@ class CROWNBuild(Task):
     """
 
     # configuration variables
-    sampletype = luigi.Parameter()
-    era = luigi.Parameter()
     channels = luigi.Parameter()
     analysis = luigi.Parameter()
     shifts = luigi.Parameter()
