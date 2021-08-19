@@ -117,7 +117,7 @@ class RooFunctorThreadsafe {
  * functor used for evaluation
  */
 
-auto loadFunctor(const std::string &workspace_name,
+inline auto loadFunctor(const std::string &workspace_name,
                  const std::string &functor_name,
                  const std::string &arguments) {
     // first load the workspace
