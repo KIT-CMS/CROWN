@@ -121,8 +121,9 @@ inline auto loadFunctor(const std::string &workspace_name,
                  const std::string &functor_name,
                  const std::string &arguments) {
     // first load the workspace
-    auto workspacefile = TFile::Open(workspace_name.c_str(), "read");
-    auto workspace = (RooWorkspace *)workspacefile->Get("w");
+    std::unique_ptr<TFile> workspacefile{
+        TFile::Open(workspace_name.c_str(), "read")};
+    auto workspace = workspacefile->Get<RooWorkspace>("w");
     workspacefile->Close();
     auto func = workspace->function(functor_name.c_str());
     auto args = workspace->argSet(arguments.c_str());
