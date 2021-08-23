@@ -39,6 +39,7 @@ args = parser.parse_args()
 executables = []
 eras = ["2018"]
 sample_groups = ["emb"]
+analysisname = args.analysis
 for era in eras:
     for sample_group in sample_groups:
         ## setup logging
@@ -58,8 +59,8 @@ for era in eras:
         root.addHandler(terminal_handler)
 
         ### Setting up executable
-        executable = f"analysis_{sample_group}_{era}.cxx"
-        analysis = importlib.import_module("config." + args.analysis)
+        analysis = importlib.import_module("config." + analysisname)
+        executable = f"{analysisname}_{sample_group}_{era}.cxx"
         root.info("Generating code for {}...".format(sample_group))
         root.info("Configuration used: {}".format(analysis))
         config = analysis.build_config(era, sample_group)
@@ -68,7 +69,7 @@ for era in eras:
             template = template_file.read()
         template = fill_template(template, config)
         template = (
-            template.replace("{ANALYSISTAG}", '"Analysis=%s"' % args.analysis)
+            template.replace("{ANALYSISTAG}", '"Analysis=%s"' % analysisname)
             .replace("{ERATAG}", '"Era=%s"' % era)
             .replace("{SAMPLETAG}", '"Samplegroup=%s"' % sample_group)
         )
