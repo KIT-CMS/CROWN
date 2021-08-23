@@ -15,6 +15,7 @@ class Task(law.Task):
 
     era = luigi.Parameter()
     sampletype = luigi.Parameter()
+    analysis = luigi.Parameter()
 
     def store_parts(self):
         return (self.__class__.__name__,)

@@ -17,11 +17,10 @@ class CROWNRun(Task, law.LocalWorkflow):
 
     output_collection_cls = law.SiblingFileCollection
 
-    # # configuration variables
-    # inputfile = luigi.Parameter()
+    nick = luigi.Parameter()
 
     def workflow_requires(self):
-        return {"datasetinfo": ConfigureDatasets.req(self)}
+        return {"datasetinfo": ConfigureDatasets.req(self, self.nick)}
 
     def create_branch_map(self):
         print(self.input())
@@ -35,17 +34,17 @@ class CROWNRun(Task, law.LocalWorkflow):
         return {"tarball": CROWNBuild.req(self)}
 
     def run(self):
-
+        output = self.output()
         info = self.branch_data
         _inputfile = info
-        _outputfile = str(self.output.path())
-        _tarballpath = str(self.input["tarball"].path())
+        _outputfile = str(output.path)
+        _tarballpath = str(self.input()["tarball"].path)
         # first unpack the tarball
         tar = tarfile.open(_tarballpath, "r:gz")
         tar.extractall()
 
         # set environment using env script
-        my_env = self.set_environment("init.sh")
+        my_env = self.set_environment("./init.sh")
 
         # actual payload:
         print("=========================================================")
@@ -53,9 +52,8 @@ class CROWNRun(Task, law.LocalWorkflow):
         print("| inputfile {}".format(_inputfile))
         print("| outputfile {}".format(_outputfile))
         print("=========================================================")
-
         # run CROWN build step
-        _crown_cmd = ["./crown_{}_{}".format(self.era, self.sampletype)]
+        _crown_cmd = ["./{}_{}_{}".format(self.analysis, self.sampletype, self.era)]
 
         _crown_args = [_inputfile, _outputfile]
         print("Executable: {}".format(" ".join(_crown_cmd + _crown_args)))

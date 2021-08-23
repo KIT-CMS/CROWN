@@ -69,8 +69,7 @@ class ConfigureDatasets(Task):
     """
     Gather information on the selected datasets, for now just mentioning an explicit dataset
     """
-
-    nick = "temp_nick"
+    nick = luigi.Parameter()
     dataset = luigi.Parameter()
     env_script = os.path.join(
         os.path.dirname(__file__), "../../", "setup", "dasclient.sh"
@@ -117,7 +116,6 @@ class ConfigureDatasets(Task):
         sample_dict["version"] = result["dataset"][0]["processing_version"]
         sample_dict["sample_type"] = get_sample_type(sample_dict["datasetname"])
 
-        self.nick = sample_dict["nick"]
         return sample_dict
 
     def read_filelist_from_das(self, nick, phys03, xootd_prefix):
@@ -168,13 +166,18 @@ class ConfigureDatasets(Task):
 
         """
         output = self.output()
+        output.parent.touch()
         # get general sample information from DAS
         sample_configuration = "sample_database/" + output.basename
         # if the filelist is already there, load it
         if os.path.exists(sample_configuration):
             print("Loading sample information from {}".format(sample_configuration))
-            with sample_configuration.open("r") as f:
-                sample_data = yaml.safe_load(f)
+            with open(sample_configuration, 'r') as stream:
+                try:
+                    sample_data = yaml.safe_load(stream)
+                except yaml.YAMLError as exc:
+                    print(exc)
+                    raise Exception("Failed to load sample information")
         # otherwise, query DAS and generate the filelist
         else:
             sample_data = self.get_sample_information_from_das(self.dataset, phys03=False)
