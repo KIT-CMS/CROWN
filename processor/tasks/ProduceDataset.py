@@ -25,7 +25,6 @@ class ProducerDataset(RemoteTask):
     def run(self):
         _dataset = str(self.dataset)
 
-
         # ensure that the output directory exists
         output = self.output()
         output.parent.touch()

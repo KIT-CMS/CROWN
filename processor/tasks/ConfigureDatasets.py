@@ -3,7 +3,6 @@ import luigi
 import os
 import json
 import yaml
-from rich import pretty
 from subprocess import PIPE
 from law.util import interruptable_popen
 from framework import Task
@@ -96,6 +95,11 @@ class ConfigureDatasets(Task):
         code, out, error = interruptable_popen(
             cmd, stdout=PIPE, stderr=PIPE, shell=True, env=self.my_env
         )
+        if code != 0:
+            print("Error when trying to get DAS information {}".format(error))
+            print("Output: {}".format(out))
+            print("DAS query returned non-zero exit status {}".format(code))
+            raise Exception("DAS query failed failed")
         result = json.loads(out)
         result = result[0]
         sample_dict = {}
@@ -143,14 +147,12 @@ class ConfigureDatasets(Task):
         return [
             "{prefix}/{path}".format(prefix=xootd_prefix, path=file)
             for file in filedict.keys()
-        ], sum(filedict.values())
+        ], sum(filedict.values()), len(filedict.keys())
 
     def output(self):
         return self.local_target("sample_database/{}.yaml".format(self.nick))
 
     def run(self):
-        pretty.install()
-
         # set environment variables
         self.my_env = self.set_environment(self.env_script)
 
@@ -165,17 +167,26 @@ class ConfigureDatasets(Task):
         Error handling for failing DAS query
 
         """
-        # get general sample information from DAS
-        sample_data = self.get_sample_information_from_das(self.dataset, phys03=False)
-        sample_data["dbs"] = self.dataset
-        sample_data["nick"] = self.dataset
-        # read filelist information from DAS
-        sample_data["filelist"], sample_data["nevents"] = self.read_filelist_from_das(
-            sample_data["nick"], False, xootd_prefix
-        )
-        # write the output
         output = self.output()
-        file = open("sample_database/" + output.basename, "w")
-        yaml.dump(sample_data, file)
-        file.close()
+        # get general sample information from DAS
+        sample_configuration = "sample_database/" + output.basename
+        # if the filelist is already there, load it
+        if os.path.exists(sample_configuration):
+            print("Loading sample information from {}".format(sample_configuration))
+            with sample_configuration.open("r") as f:
+                sample_data = yaml.safe_load(f)
+        # otherwise, query DAS and generate the filelist
+        else:
+            sample_data = self.get_sample_information_from_das(self.dataset, phys03=False)
+            sample_data["dbs"] = self.dataset
+            sample_data["nick"] = self.dataset
+            # read filelist information from DAS
+            sample_data["filelist"], sample_data["nevents"], sample_data["nfiles"]= self.read_filelist_from_das(
+                sample_data["nick"], False, xootd_prefix
+            )
+            # write the output
+
+            file = open("sample_database/" + output.basename, "w")
+            yaml.dump(sample_data, file)
+            file.close()
         output.dump(sample_data)

@@ -113,7 +113,7 @@ class CROWNBuild(Task):
 
         # TODO Create Tarball from the install directory\
         code, out, error = interruptable_popen(
-            ["touch" ,output.basename],
+            ["touch", output.basename],
             stdout=PIPE,
             stderr=PIPE,
             env=my_env,
@@ -121,9 +121,9 @@ class CROWNBuild(Task):
         )
         command = [
             "tar",
-            "--exclude='*.tar.gz'",
             "-czvf",
             output.basename,
+            "--exclude={}".format(output.basename),
             ".",
         ]
         print("Executable: {}".format(" ".join(command)))

@@ -1,9 +1,9 @@
 import law
 import luigi
 import os
-import CROWNBuild
+from CROWNBuild import CROWNBuild
 import tarfile
-import ConfigureDatasets
+from ConfigureDatasets import ConfigureDatasets
 from subprocess import PIPE
 from law.util import interruptable_popen
 
@@ -24,8 +24,9 @@ class CROWNRun(Task, law.LocalWorkflow):
         return {"datasetinfo": ConfigureDatasets.req(self)}
 
     def create_branch_map(self):
-        datasets = self.input()['datasetinfo'].load()
-        return {i: info for i, info in enumerate(datasets["filelist"].items())}
+        print(self.input())
+        datasets = self.input()["datasetinfo"].load()
+        return {i: info for i, info in enumerate(datasets["filelist"])}
 
     def output(self):
         return self.local_target("ntuple_{}.root".format(self.branch))
