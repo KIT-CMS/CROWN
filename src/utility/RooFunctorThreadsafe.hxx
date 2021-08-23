@@ -97,9 +97,10 @@ class RooFunctorThreadsafe {
 
     mutable std::mutex mutex_;
     std::vector<Executor> executors_;
-    // some of the objects indirectly used by the executors, such as RooDataHists, might be
-    // owned by the RooWorkspace where they came from, so we tie the workspace's lifetime
-    // to the one of the RooFunctorThreadsafe object
+    // some of the objects indirectly used by the executors, such as
+    // RooDataHists, might be owned by the RooWorkspace where they came from, so
+    // we tie the workspace's lifetime to the one of the RooFunctorThreadsafe
+    // object
     std::unique_ptr<RooWorkspace> workspace_;
 
     constexpr static int maxNExecutors = 100;
@@ -124,8 +125,8 @@ class RooFunctorThreadsafe {
  */
 
 inline auto loadFunctor(const std::string &workspace_name,
-                 const std::string &functor_name,
-                 const std::string &arguments) {
+                        const std::string &functor_name,
+                        const std::string &arguments) {
     // first load the workspace
     std::unique_ptr<TFile> workspacefile{
         TFile::Open(workspace_name.c_str(), "read")};
@@ -134,7 +135,8 @@ inline auto loadFunctor(const std::string &workspace_name,
     auto func = workspace->function(functor_name.c_str());
     auto args = workspace->argSet(arguments.c_str());
 
-    auto functor = std::make_shared<RooFunctorThreadsafe>(*func, args, workspace);
+    auto functor =
+        std::make_shared<RooFunctorThreadsafe>(*func, args, workspace);
     return functor;
 }
 
