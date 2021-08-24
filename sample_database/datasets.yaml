@@ -1,0 +1,31 @@
+temp_nick:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: DYJetsToLL_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8
+  datatier: NANOAODSIM
+  dbs: /DYJetsToLL_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ''
+  generators: amcatnloFXFX-pythia8
+  nevents: 85259315
+  nfiles: 85
+  prepid: SMP-RunIISummer20UL18NanoAODv2-00030
+  sample_type: mc
+  status: VALID
+  version: 1
+temp_nick_2:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: DYJetsToLL_1J_TuneCP5_13TeV-amcatnloFXFX-pythia8
+  datatier: NANOAODSIM
+  dbs: /DYJetsToLL_1J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ''
+  generators: amcatnloFXFX-pythia8
+  nevents: 85259315
+  nfiles: 85
+  prepid: SMP-RunIISummer20UL18NanoAODv2-00030
+  sample_type: mc
+  status: VALID
+  version: 1
+
