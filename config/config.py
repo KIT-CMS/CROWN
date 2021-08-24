@@ -21,7 +21,7 @@ from config.utility import (
 )
 
 
-def build_config(era, sample):
+def build_config(era, sample, channels, shifts):
     base_config = {
         "global": {
             "RunLumiEventFilter_Quantities": ["event"],
@@ -148,7 +148,7 @@ def build_config(era, sample):
             "recoil_systematic_shift_down": False,
             "min_jetpt_met_propagation": 15,
             "isWJets": {
-                "SAMPLE_Wjets": True,
+                "SAMPLE_wj": True,
                 "SAMPLE_DEFAULT": False,
             },
         },
