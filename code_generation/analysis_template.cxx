@@ -67,9 +67,10 @@ int main(int argc, char *argv[]) {
     dfconfig.fLazy = true;
     // {RUN_COMMANDS}
     // Add meta-data
-    const std::map<std::string, std::vector<std::string>> output_quanties = {
-        OUTPUT_QUANTITIES};
-    const std::vector<std::string> variations = {SYSTEMATIC_VARIATIONS};
+    // clang-format off
+    const std::map<std::string, std::vector<std::string>> output_quanties = {OUTPUT_QUANTITIES};
+    const std::map<std::string, std::vector<std::string>> variations = {SYSTEMATIC_VARIATIONS};
+    // clang-format on
     const std::string analysis = {ANALYSISTAG};
     const std::string era = {ERATAG};
     const std::string sample = {SAMPLETAG};
@@ -78,12 +79,12 @@ int main(int argc, char *argv[]) {
     for (auto const &x : output_quanties) {
         TFile outputfile(x.first.c_str(), "UPDATE");
         TTree quantities_meta = TTree("quantities", "quantities");
-        for (auto quantity : x.second) {
+        for (auto const &quantity : x.second) {
             quantities_meta.Branch(quantity.c_str(), &setup_clean);
         }
         quantities_meta.Write();
         TTree variations_meta = TTree("variations", "variations");
-        for (auto variation : variations) {
+        for (auto const &variation : variations.at(x.first)) {
             variations_meta.Branch(variation.c_str(), &setup_clean);
         }
         variations_meta.Write();

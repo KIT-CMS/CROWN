@@ -105,10 +105,17 @@ def fill_template(t, config):
         )
     plain_output_lists = "{" + "}, {".join(plain_output_lists) + "}"
     shiftset = set()
-    for q in config["output"][scope]:
-        for shift in q.get_shifts(scope):
-            shiftset.add(shift)
-    shiftlist = '{"' + '", "'.join(shiftset) + '"}'
+    shiftlists = []
+    for scope in config["output"]:
+        for q in config["output"][scope]:
+            for shift in q.get_shifts(scope):
+                shiftset.add(shift)
+        shiftlists.append(
+            '{std::string(output_path) + "test_%s.root", {"' % scope
+            + '", "'.join(shiftset)
+            + '"}}'
+        )
+    shiftlists = "{" + "}, {".join(shiftlists) + "}"
     try:
         repo = Repo("../../CROWN")
         current_commit = repo.head.commit
@@ -121,11 +128,8 @@ def fill_template(t, config):
         t.replace("    // {CODE_GENERATION}", commandlist)
         .replace("    // {RUN_COMMANDS}", runcommands)
         .replace("{NRUNS}", nruns)
-        .replace(
-            "{METADATAFILENAME}", 'std::string(output_path) + "test_%s.root"' % scope
-        )
         .replace("{OUTPUT_QUANTITIES}", plain_output_lists)
-        .replace("{SYSTEMATIC_VARIATIONS}", shiftlist)
+        .replace("{SYSTEMATIC_VARIATIONS}", shiftlists)
         .replace("{COMMITHASH}", '"%s"' % current_commit)
         .replace("{CLEANSETUP}", setup_is_clean)
     )
