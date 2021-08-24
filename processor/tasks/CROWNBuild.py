@@ -18,6 +18,10 @@ class CROWNBuild(Task):
     shifts = luigi.Parameter()
     build_dir = luigi.Parameter()
     install_dir = luigi.Parameter()
+    era = luigi.Parameter()
+    sampletype = luigi.Parameter()
+    analysis = luigi.Parameter()
+
     env_script = os.path.join(
         os.path.dirname(__file__), "../../", "setup", "setup_crown_cmake.sh"
     )

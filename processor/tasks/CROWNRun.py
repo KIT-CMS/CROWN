@@ -20,28 +20,35 @@ class CROWNRun(Task, law.LocalWorkflow):
     nick = luigi.Parameter()
 
     def workflow_requires(self):
-        return {"datasetinfo": ConfigureDatasets.req(self, self.nick)}
-
-    def create_branch_map(self):
-        print(self.input())
-        datasets = self.input()["datasetinfo"].load()
-        return {i: info for i, info in enumerate(datasets["filelist"])}
-
-    def output(self):
-        return self.local_target("ntuple_{}.root".format(self.branch))
+        requirements = super(CROWNRun, self).workflow_requires()
+        requirements["datasetinfo"] = ConfigureDatasets.req(self)
+        return requirements
 
     def requires(self):
-        return {"tarball": CROWNBuild.req(self)}
+        return {"tarball": CROWNBuild.req(self, sampletype=self.sampletype, analysis=self.analysis, era=self.era)}
+
+    def create_branch_map(self):
+        dataset = ConfigureDatasets(nick=self.nick)
+        dataset.run()
+        inputdata = self.input()["datasetinfo"].load()
+        return {i: info for i, info in enumerate(inputdata["filelist"])}
+
+    def output(self):
+        return self.local_target("{}/ntuple_{}.root".format(self.nick, self.branch))
+
 
     def run(self):
         output = self.output()
+        output.parent.touch()
         info = self.branch_data
         _inputfile = info
         _outputfile = str(output.path)
+        _executable = "./{}_{}_{}".format(self.analysis, self.sampletype, self.era)
         _tarballpath = str(self.input()["tarball"].path)
-        # first unpack the tarball
-        tar = tarfile.open(_tarballpath, "r:gz")
-        tar.extractall()
+        # first unpack the tarball if the exec is not there yet
+        if not os.path.exists(_executable):
+            tar = tarfile.open(_tarballpath, "r:gz")
+            tar.extractall()
 
         # set environment using env script
         my_env = self.set_environment("./init.sh")
@@ -52,14 +59,12 @@ class CROWNRun(Task, law.LocalWorkflow):
         print("| inputfile {}".format(_inputfile))
         print("| outputfile {}".format(_outputfile))
         print("=========================================================")
-        # run CROWN build step
-        _crown_cmd = ["./{}_{}_{}".format(self.analysis, self.sampletype, self.era)]
-
+        # run CROWN
         _crown_args = [_inputfile, _outputfile]
-        print("Executable: {}".format(" ".join(_crown_cmd + _crown_args)))
+        print("Executable: {}".format(" ".join([_executable] + _crown_args)))
 
         code, out, error = interruptable_popen(
-            _crown_cmd + _crown_args, stdout=PIPE, stderr=PIPE, env=my_env
+            [_executable] + _crown_args, stdout=PIPE, stderr=PIPE, env=my_env
         )
 
         if code != 0:
