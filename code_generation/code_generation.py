@@ -96,9 +96,14 @@ def fill_template(t, config):
     )
     log.info("Finished generating code.")
     log.info("Prepare meta data.")
-    plain_output_list = (
-        '{"' + '", "'.join([q.name for q in config["output"][scope]]) + '"}'
-    )
+    plain_output_lists = []
+    for scope in config["output"]:
+        plain_output_lists.append(
+            '{std::string(output_path) + "test_%s.root", {"' % scope
+            + '", "'.join([q.name for q in config["output"][scope]])
+            + '"}}'
+        )
+    plain_output_lists = "{" + "}, {".join(plain_output_lists) + "}"
     shiftset = set()
     for q in config["output"][scope]:
         for shift in q.get_shifts(scope):
@@ -119,7 +124,7 @@ def fill_template(t, config):
         .replace(
             "{METADATAFILENAME}", 'std::string(output_path) + "test_%s.root"' % scope
         )
-        .replace("{OUTPUT_QUANTITIES}", plain_output_list)
+        .replace("{OUTPUT_QUANTITIES}", plain_output_lists)
         .replace("{SYSTEMATIC_VARIATIONS}", shiftlist)
         .replace("{COMMITHASH}", '"%s"' % current_commit)
         .replace("{CLEANSETUP}", setup_is_clean)
