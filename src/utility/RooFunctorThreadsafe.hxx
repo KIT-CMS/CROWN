@@ -20,7 +20,9 @@ class RooFunctorThreadsafe {
     // necessary.
 
   public:
-    RooFunctorThreadsafe(RooAbsReal const &function, RooArgSet const &args) {
+    RooFunctorThreadsafe(RooAbsReal const &function, RooArgSet const &args,
+                         RooWorkspace *ws)
+        : workspace_(ws) {
         executors_.emplace_back(function, args);
         // to avoid reallocation for executor vector which is not threadsafe
         executors_.reserve(maxNExecutors);
@@ -95,6 +97,11 @@ class RooFunctorThreadsafe {
 
     mutable std::mutex mutex_;
     std::vector<Executor> executors_;
+    // some of the objects indirectly used by the executors, such as
+    // RooDataHists, might be owned by the RooWorkspace where they came from, so
+    // we tie the workspace's lifetime to the one of the RooFunctorThreadsafe
+    // object
+    std::unique_ptr<RooWorkspace> workspace_;
 
     constexpr static int maxNExecutors = 100;
 };
@@ -117,20 +124,19 @@ class RooFunctorThreadsafe {
  * functor used for evaluation
  */
 
-auto loadFunctor(const std::string &workspace_name,
-                 const std::string &functor_name,
-                 const std::string &arguments) {
+inline auto loadFunctor(const std::string &workspace_name,
+                        const std::string &functor_name,
+                        const std::string &arguments) {
     // first load the workspace
-    auto workspacefile = TFile::Open(workspace_name.c_str(), "read");
-    auto workspace = (RooWorkspace *)workspacefile->Get("w");
+    std::unique_ptr<TFile> workspacefile{
+        TFile::Open(workspace_name.c_str(), "read")};
+    auto workspace = workspacefile->Get<RooWorkspace>("w");
     workspacefile->Close();
     auto func = workspace->function(functor_name.c_str());
     auto args = workspace->argSet(arguments.c_str());
 
-    auto functor = std::make_shared<RooFunctorThreadsafe>(*func, args);
-
-    // we can delete the workspace since we copied the functions out of it
-    delete workspace;
+    auto functor =
+        std::make_shared<RooFunctorThreadsafe>(*func, args, workspace);
     return functor;
 }
 

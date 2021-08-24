@@ -37,7 +37,6 @@ int main(int argc, char *argv[]) {
 
     TStopwatch timer;
     timer.Start();
-    ROOT::EnableImplicitMT(1); // for multithreading
     // ROOT logging
     auto verbosity = ROOT::Experimental::RLogScopedVerbosity(
         ROOT::Detail::RDF::RDFLogChannel(),
@@ -46,7 +45,6 @@ int main(int argc, char *argv[]) {
 
     // file logging
     ROOT::RDataFrame df0("Events", input_path);
-    // for testing, we limit to 1000 events only
     // 1st stage: Good object selection
     Logger::enableFileLogging("logs/main.txt");
     Logger::setLevel(Logger::LogLevel::INFO);
