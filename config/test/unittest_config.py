@@ -22,7 +22,7 @@ from config.utility import (
 )
 
 
-def build_config(era, sample):
+def build_config(era, sample, channels, shifts):
     base_config = {
         "global": {
             "RunLumiEventFilter_Quantities": ["event"],
