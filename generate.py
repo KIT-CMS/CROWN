@@ -53,8 +53,9 @@ if "auto" in args.eras:
     args.eras = ["2016", "2017", "2018"]
 
 executables = []
-for era in args.eras:
-    for sample_group in args.samples:
+analysisname = args.analysis
+for era in eras:
+    for sample_group in sample_groups:
         ## setup logging
         if not path.exists("generation_logs"):
             makedirs("generation_logs")
@@ -72,8 +73,8 @@ for era in args.eras:
         root.addHandler(terminal_handler)
 
         ### Setting up executable
-        executable = f"analysis_{sample_group}_{era}.cxx"
-        analysis = importlib.import_module("config." + args.analysis)
+        analysis = importlib.import_module("config." + analysisname)
+        executable = f"{analysisname}_{sample_group}_{era}.cxx"
         root.info("Generating code for {}...".format(sample_group))
         root.info("Configuration used: {}".format(analysis))
         config = analysis.build_config(era, sample_group, args.channels, args.shifts)
@@ -82,11 +83,11 @@ for era in args.eras:
             template = template_file.read()
         template = fill_template(template, config)
         template = (
-            template.replace("{ANALYSISTAG}", '"Analysis=%s"' % args.analysis)
+            template.replace("{ANALYSISTAG}", '"Analysis=%s"' % analysisname)
             .replace("{ERATAG}", '"Era=%s"' % era)
             .replace("{SAMPLETAG}", '"Samplegroup=%s"' % sample_group)
         )
-        with open(executable, "w") as executable_file:
+        with open(path.join(args.output, executable), "w") as executable_file:
             executable_file.write(template)
         executables.append(executable)
 
