@@ -13,6 +13,7 @@ env:
   BUILD_TYPE: Release
   ANALYSIS: test.unittest_config
   SAMPLES: foo
+  ERAS: 2018
 
 jobs:
   build_project:
@@ -33,7 +34,7 @@ jobs:
 
     - name: Configure CMake
       shell: bash
-      run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES
+      run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES -DERAS=$ERAS
 
     - name: Build
       shell: bash
