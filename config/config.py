@@ -315,6 +315,14 @@ def build_config(era, sample, channels, shifts):
     ResolveEraDependencies(config, era)
     OptimizeProducerOrdering(config)
 
+    # remove channels that are not envoked
+    if "auto" not in channels:
+        available_channels = [x for x in config["producers"] if x != "global"]
+        for channel in available_channels:
+            if channel not in channels:
+                del config["producers"][channel]
+                del config["output"][channel]
+
     AddSystematicShift(
         config,
         "tauES_1prong0pizeroUp",
