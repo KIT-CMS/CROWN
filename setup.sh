@@ -23,8 +23,10 @@ action() {
         [ ! -z "$1" ] && export PATH="$1:$PATH"
     }
 
-    echo "Setup CROWN ..."
-    git clone git@github.com:KIT-CMS/CROWN
+    if [ ! -d CROWN ]; then
+        echo "Setup CROWN ..."
+        git clone git@github.com:KIT-CMS/CROWN
+    fi
 
     echo "Setting up cvmfs with the version used by CROWN..."
     source CROWN/init.sh
