@@ -64,15 +64,10 @@ class ConfigureDatasets(Task):
 
         output = self.output()
         output.parent.touch()
-        # check if sample exists in datasets.yaml
+
         with open(self.dataset_database, "r") as stream:
             sample_db = yaml.safe_load(stream)
-        if self.nick not in sample_db:
-            print("Sample {} not found in {}".format(self.nick, self.dataset_database))
-            raise Exception("Sample not found in DB")
         sample_data = sample_db[self.nick]
-        self.era = sample_data["era"]
-        self.sampletype = sample_data["sample_type"]
 
         sample_configfile = "sample_database/{era}/{type}/{nick}.yaml".format(
             era=sample_data["era"], type=sample_data["sample_type"], nick=self.nick

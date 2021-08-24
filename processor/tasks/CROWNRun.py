@@ -18,6 +18,9 @@ class CROWNRun(Task, law.LocalWorkflow):
     output_collection_cls = law.SiblingFileCollection
 
     nick = luigi.Parameter()
+    sampletype = luigi.Parameter()
+    era = luigi.Parameter()
+    analysis = luigi.Parameter()
 
     def workflow_requires(self):
         requirements = super(CROWNRun, self).workflow_requires()
@@ -25,7 +28,7 @@ class CROWNRun(Task, law.LocalWorkflow):
         return requirements
 
     def requires(self):
-        return {"tarball": CROWNBuild.req(self, sampletype=self.sampletype, analysis=self.analysis, era=self.era)}
+        return {"tarball": CROWNBuild.req(self)}
 
     def create_branch_map(self):
         dataset = ConfigureDatasets(nick=self.nick)
