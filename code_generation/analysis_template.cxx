@@ -67,35 +67,37 @@ int main(int argc, char *argv[]) {
     dfconfig.fLazy = true;
     // {RUN_COMMANDS}
     // Add meta-data
-    const std::string outputfilename = {METADATAFILENAME};
-    const std::vector<std::string> output_quanties = {OUTPUT_QUANTITIES};
+    const std::map<std::string, std::vector<std::string>> output_quanties = {
+        OUTPUT_QUANTITIES};
     const std::vector<std::string> variations = {SYSTEMATIC_VARIATIONS};
     const std::string analysis = {ANALYSISTAG};
     const std::string era = {ERATAG};
     const std::string sample = {SAMPLETAG};
     const std::string commit_hash = {COMMITHASH};
     bool setup_clean = {CLEANSETUP};
-    TFile outputfile(outputfilename.c_str(), "UPDATE");
-    TTree quantities_meta = TTree("quantities", "quantities");
-    for (auto quantity : output_quanties) {
-        quantities_meta.Branch(quantity.c_str(), &setup_clean);
+    for (auto const &x : output_quanties) {
+        TFile outputfile(x.first.c_str(), "UPDATE");
+        TTree quantities_meta = TTree("quantities", "quantities");
+        for (auto quantity : x.second) {
+            quantities_meta.Branch(quantity.c_str(), &setup_clean);
+        }
+        quantities_meta.Write();
+        TTree variations_meta = TTree("variations", "variations");
+        for (auto variation : variations) {
+            variations_meta.Branch(variation.c_str(), &setup_clean);
+        }
+        variations_meta.Write();
+        TTree conditions_meta = TTree("conditions", "conditions");
+        conditions_meta.Branch(analysis.c_str(), &setup_clean);
+        conditions_meta.Branch(era.c_str(), &setup_clean);
+        conditions_meta.Branch(sample.c_str(), &setup_clean);
+        conditions_meta.Write();
+        TTree commit_meta = TTree("commit", "commit");
+        commit_meta.Branch(commit_hash.c_str(), &setup_clean);
+        commit_meta.Fill();
+        commit_meta.Write();
+        outputfile.Close();
     }
-    quantities_meta.Write();
-    TTree variations_meta = TTree("variations", "variations");
-    for (auto variation : variations) {
-        variations_meta.Branch(variation.c_str(), &setup_clean);
-    }
-    variations_meta.Write();
-    TTree conditions_meta = TTree("conditions", "conditions");
-    conditions_meta.Branch(analysis.c_str(), &setup_clean);
-    conditions_meta.Branch(era.c_str(), &setup_clean);
-    conditions_meta.Branch(sample.c_str(), &setup_clean);
-    conditions_meta.Write();
-    TTree commit_meta = TTree("commit", "commit");
-    commit_meta.Branch(commit_hash.c_str(), &setup_clean);
-    commit_meta.Fill();
-    commit_meta.Write();
-    outputfile.Close();
 
     Logger::get("main")->info("Finished Evaluation");
 
