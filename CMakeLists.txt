@@ -23,7 +23,10 @@ endif()
 if (NOT DEFINED SAMPLES)
     message(FATAL_ERROR "Please specify the samples to be used with -DSAMPLES=samples")
 endif()
-message(STATUS "Set up analysis with --config ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --debug ${DEBUG}")
+if (NOT DEFINED ERAS)
+    message(FATAL_ERROR "Please specify the eras to be used with -DSAMPLES=eras")
+endif()
+message(STATUS "Set up analysis with --config ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --debug ${DEBUG}")
 
 # Define the default compiler flags for different build types, if different from the cmake defaults
 set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Set default compiler flags for build type Debug")
@@ -151,11 +154,12 @@ message(STATUS "  Analysis: ${ANALYSIS}")
 message(STATUS "  Channels: ${CHANNELS}")
 message(STATUS "  Shifts: ${SHIFTS}")
 message(STATUS "  Samples: ${SAMPLES}")
+message(STATUS "  Eras: ${ERAS}")
 message(STATUS "")
 
 file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
 execute_process(
-    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --debug ${DEBUG}
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --debug ${DEBUG}
 )
 
 set(GENERATE_CPP_OUTPUT_FILELIST "${GENERATE_CPP_OUTPUT_DIRECTORY}/files.txt")
