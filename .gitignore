@@ -1,3 +1,13 @@
+# Framework specific folders
+data/
+build/
+CROWN/
+.law/
+generation_logs/
+tarballs/
+workdir/
+logs/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
