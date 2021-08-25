@@ -6,6 +6,7 @@ from law.util import interruptable_popen
 from framework import Task
 from framework import console
 
+
 class CROWNBuild(Task):
     """
     Gather and compile CROWN with the given configuration
@@ -44,7 +45,9 @@ class CROWNBuild(Task):
         if os.path.exists(output.path):
             console.log("tarball already existing in {}".format(output.path))
         elif os.path.exists(os.path.join(_install_dir, output.basename)):
-            console.log("tarball already existing in tarball directory {}".format(_install_dir))
+            console.log(
+                "tarball already existing in tarball directory {}".format(_install_dir)
+            )
             output.copy_from_local(os.path.join(_install_dir, output.basename))
         else:
             console.log("Building new tarball")
@@ -91,7 +94,9 @@ class CROWNBuild(Task):
                 "-DINSTALLDIR={INSTALLDIR}".format(INSTALLDIR=_install_dir),
                 "-B{BUILDFOLDER}".format(BUILDFOLDER=_build_dir),
             ]
-            console.log("| Running cmake: {}".format(" ".join(_cmake_cmd + _cmake_args)))
+            console.log(
+                "| Running cmake: {}".format(" ".join(_cmake_cmd + _cmake_args))
+            )
 
             code, out, error = interruptable_popen(
                 _cmake_cmd + _cmake_args, stdout=PIPE, stderr=PIPE, env=my_env

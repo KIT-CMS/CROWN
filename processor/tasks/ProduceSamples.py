@@ -5,6 +5,7 @@ from CROWNRun import CROWNRun
 from framework import Task
 from framework import console
 
+
 class ProduceSamples(Task):
     """
     collective task to trigger ntuple production for a list of samples
@@ -23,7 +24,9 @@ class ProduceSamples(Task):
             with open(self.dataset_database, "r") as stream:
                 sample_db = yaml.safe_load(stream)
             if nick not in sample_db:
-                console.log("Sample {} not found in {}".format(self.nick, self.dataset_database))
+                console.log(
+                    "Sample {} not found in {}".format(self.nick, self.dataset_database)
+                )
                 raise Exception("Sample not found in DB")
             sample_data = sample_db[nick]
             era = str(sample_data["era"])

@@ -8,6 +8,7 @@ from law.util import interruptable_popen
 from framework import Task
 from framework import console
 
+
 def ensure_dir(file_path):
     directory = os.path.dirname(file_path)
     if not os.path.exists(directory):

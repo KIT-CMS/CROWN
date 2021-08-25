@@ -41,7 +41,6 @@ class CROWNRun(Task, law.LocalWorkflow):
     def output(self):
         return self.local_target("{}/ntuple_{}.root".format(self.nick, self.branch))
 
-
     def run(self):
         output = self.output()
         output.parent.touch()
@@ -49,7 +48,9 @@ class CROWNRun(Task, law.LocalWorkflow):
         _workdir = os.path.abspath("workdir")
         _inputfile = info
         _outputfile = str(output.path)
-        _executable = "{}/{}_{}_{}".format(_workdir, self.analysis, self.sampletype, self.era)
+        _executable = "{}/{}_{}_{}".format(
+            _workdir, self.analysis, self.sampletype, self.era
+        )
         _tarballpath = str(self.input()["tarball"].path)
         # first unpack the tarball if the exec is not there yet
         if not os.path.exists(_executable):
@@ -66,9 +67,13 @@ class CROWNRun(Task, law.LocalWorkflow):
         console.log("Executable: {}".format(_executable))
         console.log("inputfile {}".format(_inputfile))
         console.log("outputfile {}".format(_outputfile))
-        console.log("workdir {}".format(_workdir))        # run CROWN
+        console.log("workdir {}".format(_workdir))  # run CROWN
         code, out, error = interruptable_popen(
-            [_executable] + _crown_args, stdout=PIPE, stderr=PIPE, env=my_env, cwd=_workdir,
+            [_executable] + _crown_args,
+            stdout=PIPE,
+            stderr=PIPE,
+            env=my_env,
+            cwd=_workdir,
         )
         if code != 0:
             console.log("Error when running crown {}".format(error))
