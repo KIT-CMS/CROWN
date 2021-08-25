@@ -1,12 +1,10 @@
 import law
 import luigi
 import os
-
 from subprocess import PIPE
 from law.util import interruptable_popen
-
 from framework import Task
-
+from framework import console
 
 class CROWNBuild(Task):
     """
@@ -32,23 +30,24 @@ class CROWNBuild(Task):
     def run(self):
         # get output file path
         output = self.output()
-        print(output.path)
+        output.parent.touch()
+        _sampletype = str(self.sampletype)
+        _era = str(self.era)
+        _channels = str(self.channels)
+        _analysis = str(self.analysis)
+        _shifts = str(self.shifts)
+        _tag = "{}_{}".format(_era, _sampletype)
+        _install_dir = os.path.join(str(self.install_dir), _tag)
+        _build_dir = os.path.join(str(self.build_dir), _tag)
+        _crown_path = os.path.abspath("CROWN")
+
         if os.path.exists(output.path):
-            print("tarball already existing in {}".format(output.path))
+            console.log("tarball already existing in {}".format(output.path))
+        elif os.path.exists(os.path.join(_install_dir, output.basename)):
+            console.log("tarball already existing in tarball directory {}".format(_install_dir))
+            output.copy_from_local(os.path.join(_install_dir, output.basename))
         else:
-            output.parent.touch()
-            _sampletype = str(self.sampletype)
-            _era = str(self.era)
-            _channels = str(self.channels)
-            _analysis = str(self.analysis)
-            _shifts = str(self.shifts)
-            _tag = "{}_{}".format(_era, _sampletype)
-
-            _build_dir = os.path.join(str(self.build_dir), _tag)
-            _install_dir = os.path.join(str(self.install_dir), _tag)
-            # find crown
-            _crown_path = os.path.abspath("CROWN")
-
+            console.log("Building new tarball")
             # create build directory
             if not os.path.exists(_build_dir):
                 os.makedirs(_build_dir)
@@ -67,13 +66,18 @@ class CROWNBuild(Task):
             )
 
             # actual payload:
-            print("=========================================================")
-            print("| Starting cmake step for CROWN")
-            print("| Using cmake {}".format(_cmake_executable.replace("\n", "")))
-            print("| Using CROWN {}".format(_crown_path))
-            print("| Using build_directory {}".format(_build_dir))
-            print("| Using install directory {}".format(_install_dir))
-            print("=========================================================")
+            console.rule("Starting cmake step for CROWN")
+            console.log("Using cmake {}".format(_cmake_executable.replace("\n", "")))
+            console.log("Using CROWN {}".format(_crown_path))
+            console.log("Using build_directory {}".format(_build_dir))
+            console.log("Using install directory {}".format(_install_dir))
+            console.log("Settings used: ")
+            console.log("Analysis: {}".format(_analysis))
+            console.log("Sampletype: {}".format(_sampletype))
+            console.log("Era: {}".format(_era))
+            console.log("Channels: {}".format(_channels))
+            console.log("Shifts: {}".format(_shifts))
+            console.rule("")
 
             # run CROWN build step
             _cmake_cmd = ["cmake", _crown_path]
@@ -87,22 +91,21 @@ class CROWNBuild(Task):
                 "-DINSTALLDIR={INSTALLDIR}".format(INSTALLDIR=_install_dir),
                 "-B{BUILDFOLDER}".format(BUILDFOLDER=_build_dir),
             ]
-            print("Executable: {}".format(" ".join(_cmake_cmd + _cmake_args)))
+            console.log("| Running cmake: {}".format(" ".join(_cmake_cmd + _cmake_args)))
 
             code, out, error = interruptable_popen(
                 _cmake_cmd + _cmake_args, stdout=PIPE, stderr=PIPE, env=my_env
             )
-            print(code, out, error)
             # if successful save Herwig-cache and run-file as tar.gz
             if code != 0:
-                print("Error when running cmake {}".format(error))
-                print("Output: {}".format(out))
-                print("cmake returned non-zero exit status {}".format(code))
+                console.log("Error when running cmake {}".format(error))
+                console.log("Output: {}".format(out))
+                console.log("cmake returned non-zero exit status {}".format(code))
                 raise Exception("cmake failed")
             else:
-                print("Successful cmake build !")
+                console.log("Successful cmake build !")
 
-            print("Executable: {}".format(" ".join(["make", "install"])))
+            console.log("Running make: {}".format(" ".join(["make", "install"])))
             code, out, error = interruptable_popen(
                 ["make", "install"],
                 stdout=PIPE,
@@ -111,14 +114,13 @@ class CROWNBuild(Task):
                 cwd=_build_dir,
             )
             if code != 0:
-                print("Error when running make {}".format(error))
-                print("Output: {}".format(out))
-                print("make returned non-zero exit status {}".format(code))
+                console.log("Error when running make {}".format(error))
+                console.log("Output: {}".format(out))
+                console.log("make returned non-zero exit status {}".format(code))
                 raise Exception("make failed")
             else:
-                print("Successful cmake build !")
+                console.log("Successful build !")
 
-            # TODO Create Tarball from the install directory\
             code, out, error = interruptable_popen(
                 ["touch", output.basename],
                 stdout=PIPE,
@@ -133,7 +135,7 @@ class CROWNBuild(Task):
                 "--exclude={}".format(output.basename),
                 ".",
             ]
-            print("Executable: {}".format(" ".join(command)))
+            console.log("Running tar: {}".format(" ".join(command)))
             code, out, error = interruptable_popen(
                 command,
                 stdout=PIPE,
@@ -142,12 +144,11 @@ class CROWNBuild(Task):
                 cwd=os.path.join(_install_dir),
             )
             if code != 0:
-                print("Error when creating tarball {}".format(error))
-                print("Output: {}".format(out))
-                print("tar returned non-zero exit status {}".format(code))
+                console.log("Error when creating tarball {}".format(error))
+                console.log("Output: {}".format(out))
+                console.log("tar returned non-zero exit status {}".format(code))
                 raise Exception("tar failed")
             else:
-                print("Successful tarball creation ! ")
+                console.rule("Successful tarball creation ! ")
 
             output.copy_from_local(os.path.join(_install_dir, output.basename))
-            print("=======================================================")

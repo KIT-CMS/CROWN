@@ -1,10 +1,9 @@
-from CROWNRun import CROWNRun
 import law
 import luigi
 import yaml
-
+from CROWNRun import CROWNRun
 from framework import Task
-
+from framework import console
 
 class ProduceSamples(Task):
     """
@@ -24,10 +23,10 @@ class ProduceSamples(Task):
             with open(self.dataset_database, "r") as stream:
                 sample_db = yaml.safe_load(stream)
             if nick not in sample_db:
-                print("Sample {} not found in {}".format(self.nick, self.dataset_database))
+                console.log("Sample {} not found in {}".format(self.nick, self.dataset_database))
                 raise Exception("Sample not found in DB")
             sample_data = sample_db[nick]
-            era = sample_data["era"]
+            era = str(sample_data["era"])
             sampletype = sample_data["sample_type"]
             yield CROWNRun.req(self, nick=nick, era=era, sampletype=sampletype)
 

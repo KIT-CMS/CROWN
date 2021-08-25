@@ -9,6 +9,8 @@ import law.contrib.htcondor
 from law.util import interruptable_popen
 from subprocess import PIPE
 law.contrib.load("wlcg")
+from rich.console import Console
+console = Console()
 
 
 class Task(law.Task):
