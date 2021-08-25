@@ -1,2 +1,3 @@
 law==0.1.4
 rich
+tenacity

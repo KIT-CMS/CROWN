@@ -1,17 +1,13 @@
-# -*- coding: utf-8 -*-
-
 import os
-
 import re
 import luigi
 import law
 import law.contrib.htcondor
 from law.util import interruptable_popen
 from subprocess import PIPE
-
-law.contrib.load("wlcg")
 from rich.console import Console
 
+law.contrib.load("wlcg")
 console = Console()
 
 

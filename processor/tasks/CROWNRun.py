@@ -12,6 +12,12 @@ from framework import console
 from framework import Task, HTCondorWorkflow
 
 
+def ensure_dir(file_path):
+    directory = os.path.dirname(file_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+
 class CROWNRun(Task, law.LocalWorkflow):
     """
     Gather and compile CROWN with the given configuration
@@ -46,18 +52,28 @@ class CROWNRun(Task, law.LocalWorkflow):
         output.parent.touch()
         info = self.branch_data
         _workdir = os.path.abspath("workdir")
+        ensure_dir(_workdir)
         _inputfile = info
-        _outputfile = str(output.path)
+        _outputfile = str(output.path).replace(".root", "_running.root")
         _executable = "{}/{}_{}_{}".format(
             _workdir, self.analysis, self.sampletype, self.era
         )
         _tarballpath = str(self.input()["tarball"].path)
         # first unpack the tarball if the exec is not there yet
+        if os.path.exists(
+            "unpacking_{}_{}_{}".format(self.analysis, self.sampletype, self.era)
+        ):
+            time.sleep(5)
         if not os.path.exists(_executable):
+            open(
+                "unpacking_{}_{}_{}".format(self.analysis, self.sampletype, self.era),
+                "a",
+            ).close()
             tar = tarfile.open(_tarballpath, "r:gz")
             tar.extractall("workdir")
-        else:
-            time.sleep(2)
+            os.remove(
+                "unpacking_{}_{}_{}".format(self.analysis, self.sampletype, self.era)
+            )
         # set environment using env script
         my_env = self.set_environment("{}/init.sh".format(_workdir))
         _crown_args = [_inputfile, _outputfile]
@@ -83,5 +99,5 @@ class CROWNRun(Task, law.LocalWorkflow):
         else:
             console.log("Successful")
             console.log("Output: {}".format(out))
-
+        output.move_from_local(_outputfile)
         console.rule("Finished CROWNRun")

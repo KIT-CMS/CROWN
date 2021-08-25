@@ -25,7 +25,7 @@ class ProduceSamples(Task):
                 sample_db = yaml.safe_load(stream)
             if nick not in sample_db:
                 console.log(
-                    "Sample {} not found in {}".format(self.nick, self.dataset_database)
+                    "Sample {} not found in {}".format(nick, self.dataset_database)
                 )
                 raise Exception("Sample not found in DB")
             sample_data = sample_db[nick]
