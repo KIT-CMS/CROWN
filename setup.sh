@@ -25,13 +25,15 @@ action() {
     #check if conda is installed
     if ! command -v conda &> /dev/null
     then
-        echo "conda could not be found, installing conda ..."
-        echo "More information can be found in"
-        echo "https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html"
-        echo "Follow the installer instructions .."
-        curl -O https://repo.anaconda.com/miniconda/$miniconda.sh
-        bash $miniconda.sh
-        rm $miniconda.sh
+        if [ ! -f "miniconda/bin/activate" ]; then
+            echo "conda could not be found, installing conda ..."
+            echo "More information can be found in"
+            echo "https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html"
+            curl -O https://repo.anaconda.com/miniconda/$miniconda.sh
+            bash $miniconda.sh -b -p miniconda
+            rm $miniconda.sh
+        fi
+        source miniconda/bin/activate
     fi
 
     # check if Conda env is running
