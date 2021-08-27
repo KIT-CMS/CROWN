@@ -3,6 +3,7 @@
 ############################################################################################
 action() {
     miniconda="Miniconda3-py39_4.10.3-Linux-x86_64"
+    conda_env_name="KingMaker"
 
     # determine the directy of this file
     if [ ! -z "$ZSH_VERSION" ]; then
@@ -31,7 +32,7 @@ action() {
             echo "https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html"
             curl -O https://repo.anaconda.com/miniconda/$miniconda.sh
             bash $miniconda.sh -b -p miniconda
-            rm $miniconda.sh
+            rm -f $miniconda.sh
         fi
         source miniconda/bin/activate
     fi
@@ -39,22 +40,22 @@ action() {
     # check if Conda env is running
     echo "Setting up conda env"
     #
-    if [ $CONDA_DEFAULT_ENV!="KingMaker" ]; then
-        if conda env list | grep -q "KingMaker"; then
-            echo  "KingMakter env found, activating..."
-            conda activate KingMaker
+    if [ $CONDA_DEFAULT_ENV!=$conda_env_name ]; then
+        if [ -d "miniconda/envs/$conda_env_name" ]; then
+            echo  "$conda_env_name env found, activating..."
+            conda activate $conda_env_name
         else
-            echo "Creating KingMaker env ..."
+            echo "Creating $conda_env_name env from environment.yml..."
             conda env create -f environment.yml
             echo  "KingMakter env found, activating..."
-            conda activate KingMaker
-            conda pack -n KingMaker --output tarballs/conda.tar.gz
+            conda activate $conda_env_name
+            conda pack -n $conda_env_name --output tarballs/conda.tar.gz
         fi
     fi
     # since we need a conda tarball for the remote jobs, create it if it doesn't exist
     if [ ! -f "tarballs/conda.tar.gz" ]; then
         echo "Creating conda.tar.gz"
-        conda pack -n KingMaker --output tarballs/conda.tar.gz
+        conda pack -n $conda_env_name --output tarballs/conda.tar.gz
     fi
 
     if [ ! -d CROWN ]; then
