@@ -2,7 +2,7 @@
 # This script setups all dependencies necessary for making law executable                  #
 ############################################################################################
 action() {
-
+    miniconda="Miniconda3-py39_4.10.3-Linux-x86_64"
 
     # determine the directy of this file
     if [ ! -z "$ZSH_VERSION" ]; then
@@ -25,13 +25,17 @@ action() {
     #check if conda is installed
     if ! command -v conda &> /dev/null
     then
-        echo "conda could not be found, please install conda first on your system"
-        echo "More information can be found in https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html"
-        exit
+        echo "conda could not be found, installing conda ..."
+        echo "More information can be found in"
+        echo "https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html"
+        echo "Follow the installer instructions .."
+        curl -O https://repo.anaconda.com/miniconda/$miniconda.sh
+        bash $miniconda.sh
+        rm $miniconda.sh
     fi
 
     # check if Conda env is running
-    echo "Setting up Conda Env"
+    echo "Setting up conda env"
     #
     if [ $CONDA_DEFAULT_ENV!="KingMaker" ]; then
         if conda env list | grep -q "KingMaker"; then
@@ -42,7 +46,13 @@ action() {
             conda env create -f environment.yml
             echo  "KingMakter env found, activating..."
             conda activate KingMaker
+            conda pack -n KingMaker --output tarballs/conda.tar.gz
         fi
+    fi
+    # since we need a conda tarball for the remote jobs, create it if it doesn't exist
+    if [ ! -f "tarballs/conda.tar.gz" ]; then
+        echo "Creating conda.tar.gz"
+        conda pack -n KingMaker --output tarballs/conda.tar.gz
     fi
 
     if [ ! -d CROWN ]; then
@@ -56,15 +66,6 @@ action() {
     export LUIGI_CONFIG_PATH="$base/luigi.cfg"
     export ANALYSIS_PATH="$base"
     export ANALYSIS_DATA_PATH="$ANALYSIS_PATH/data"
-
-
-
-    # luigi
-    # _addpy "$base/luigi"
-    # _addbin "$base/luigi/bin"
-
-    # # # six
-    # # _addpy "$base/six"
 
     # law
     _addpy "$base/law"

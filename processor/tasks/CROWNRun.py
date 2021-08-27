@@ -18,7 +18,7 @@ def ensure_dir(file_path):
         os.makedirs(directory)
 
 
-class CROWNRun(Task, law.LocalWorkflow):
+class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     """
     Gather and compile CROWN with the given configuration
     """
@@ -33,6 +33,7 @@ class CROWNRun(Task, law.LocalWorkflow):
     def workflow_requires(self):
         requirements = super(CROWNRun, self).workflow_requires()
         requirements["datasetinfo"] = ConfigureDatasets.req(self)
+        requirements["tarball"] = CROWNBuild.req(self)
         return requirements
 
     def requires(self):
@@ -41,11 +42,12 @@ class CROWNRun(Task, law.LocalWorkflow):
     def create_branch_map(self):
         dataset = ConfigureDatasets(nick=self.nick)
         dataset.run()
-        inputdata = self.input()["datasetinfo"].load()
+        with self.input()["datasetinfo"].localize('r') as _file:
+            inputdata = _file.load()
         return {i: info for i, info in enumerate(inputdata["filelist"])}
 
     def output(self):
-        return self.local_target("{}/ntuple_{}.root".format(self.nick, self.branch))
+        return self.remote_target("{}/ntuple_{}.root".format(self.nick, self.branch))
 
     def run(self):
         output = self.output()
@@ -58,7 +60,8 @@ class CROWNRun(Task, law.LocalWorkflow):
         _executable = "{}/{}_{}_{}".format(
             _workdir, self.analysis, self.sampletype, self.era
         )
-        _tarballpath = str(self.input()["tarball"].path)
+        with self.input()['tarball'].localize('r') as _file:
+            _tarballpath = _file.path
         # first unpack the tarball if the exec is not there yet
         if os.path.exists(
             "unpacking_{}_{}_{}".format(self.analysis, self.sampletype, self.era)

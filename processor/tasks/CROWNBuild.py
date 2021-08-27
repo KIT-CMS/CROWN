@@ -26,7 +26,7 @@ class CROWNBuild(Task):
     )
 
     def output(self):
-        return self.local_target("crown_{}_{}.tar.gz".format(self.era, self.sampletype))
+        return self.remote_target("crown_{}_{}.tar.gz".format(self.era, self.sampletype))
 
     def run(self):
         # get output file path

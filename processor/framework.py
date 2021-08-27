@@ -6,12 +6,15 @@ import law.contrib.htcondor
 from law.util import interruptable_popen
 from subprocess import PIPE
 from rich.console import Console
+from law.util import merge_dicts
 
 law.contrib.load("wlcg")
 console = Console()
 
 
 class Task(law.Task):
+    wlcg_path = luigi.Parameter()
+
     def store_parts(self):
         return (self.__class__.__name__,)
 
@@ -43,32 +46,17 @@ class Task(law.Task):
         my_env = self.convert_env_to_dict(out)
         return my_env
 
-
-class RemoteTask(law.Task):
-
-    wlcg_path = luigi.Parameter()
-    input_file_name = luigi.Parameter()
-
-    def local_path(self, *path):
-        parts = (os.getenv("ANALYSIS_DATA_PATH"),) + (self.__class__.__name__,) + path
-        return os.path.join(*parts)
-
-    def local_target(self, *path):
-        return law.LocalFileTarget(self.local_path(*path))
-
     def remote_path(self, *path):
         parts = (
             self.__class__.__name__,
-            self.input_file_name,
         ) + path
         return os.path.join(*parts)
 
     def remote_target(self, *path):
         return law.wlcg.WLCGFileTarget(
-            self.remote_path(*path),
-            law.wlcg.WLCGFileSystem(None, base="{}".format(self.wlcg_path)),
+            path=self.remote_path(*path),
+            fs=law.wlcg.WLCGFileSystem(None, base="{}".format(self.wlcg_path)),
         )
-
 
 class HTCondorJobManager(law.contrib.htcondor.HTCondorJobManager):
 
@@ -94,12 +82,12 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
     htcondor_request_disk = luigi.Parameter()
     wlcg_path = luigi.Parameter()
     bootstrap_file = luigi.Parameter()
-    input_file_name = luigi.Parameter()
 
     output_collection_cls = law.SiblingFileCollection
 
-    def htcondor_create_job_manager(self):
-        return HTCondorJobManager()
+    def htcondor_create_job_manager(self, **kwargs):
+        kwargs = merge_dicts(self.htcondor_job_manager_defaults, kwargs)
+        return HTCondorJobManager(**kwargs)
 
     def htcondor_output_directory(self):
         return law.wlcg.WLCGDirectoryTarget(
@@ -136,9 +124,14 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
         os.system("cd $ANALYSIS_PATH")
         if not os.path.isfile("processor.tar.gz"):
             os.system(
-                "tar --exclude=luigi/.git -czf processor.tar.gz processor luigi.cfg law.cfg luigi law six"
+                "tar --exclude *.pyc -czf processor.tar.gz processor tarballs/conda.tar.gz luigi.cfg law.cfg law sample_database"
             )
         os.chdir(prevdir)
-
-        config.input_files.append(law.util.rel_path(__file__, "../processor.tar.gz"))
+        tarball = law.wlcg.WLCGFileTarget(
+            path=self.remote_path("job_tarball/processor.tar.gz"),
+            fs=law.wlcg.WLCGFileSystem(None, base="{}".format(self.wlcg_path)),
+        )
+        tarball.parent.touch()
+        tarball.copy_from_local(src="processor.tar.gz")
+        config.custom_content.append(("jobtarball", "job_tarball/processor.tar.gz"))
         return config
