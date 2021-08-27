@@ -55,6 +55,7 @@ action() {
     # since we need a conda tarball for the remote jobs, create it if it doesn't exist
     if [ ! -f "tarballs/conda.tar.gz" ]; then
         echo "Creating conda.tar.gz"
+        mkdir -p "tarballs"
         conda pack -n $conda_env_name --output tarballs/conda.tar.gz
     fi
 
