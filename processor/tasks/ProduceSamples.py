@@ -14,6 +14,7 @@ class ProduceSamples(Task):
     sample_list = luigi.Parameter()
     analysis = luigi.Parameter()
     dataset_database = luigi.Parameter()
+    production_tag = luigi.Parameter()
 
     def requires(self):
         # load the list of samples to be processed

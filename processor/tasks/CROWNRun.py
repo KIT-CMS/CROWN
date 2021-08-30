@@ -29,15 +29,18 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     sampletype = luigi.Parameter()
     era = luigi.Parameter()
     analysis = luigi.Parameter()
+    production_tag = luigi.Parameter()
 
     def workflow_requires(self):
         requirements = super(CROWNRun, self).workflow_requires()
         requirements["datasetinfo"] = ConfigureDatasets.req(self)
-        requirements["tarball"] = CROWNBuild.req(self)
+        requirements["tarball"] = CROWNBuild.req(
+            self, production_tag=self.production_tag
+        )
         return requirements
 
     def requires(self):
-        return {"tarball": CROWNBuild.req(self)}
+        return {"tarball": CROWNBuild.req(self, production_tag=self.production_tag)}
 
     def create_branch_map(self):
         dataset = ConfigureDatasets(nick=self.nick)
@@ -47,7 +50,13 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
         return {i: info for i, info in enumerate(inputdata["filelist"])}
 
     def output(self):
-        return self.remote_target("ntuple_{}_{}.root".format(self.nick, self.branch))
+        target = self.remote_target(
+            "{tag}/{nick}/ntuple_{nick}_{branch}.root".format(
+                tag=self.production_tag, nick=self.nick, branch=self.branch
+            )
+        )
+        target.parent.touch()
+        return target
 
     def run(self):
         output = self.output()
@@ -102,5 +111,5 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
         else:
             console.log("Successful")
             console.log("Output: {}".format(out))
-        output.copy_from_local(_outputfile)
+        output.copy_from_local(os.path.join(_workdir, _outputfile))
         console.rule("Finished CROWNRun")

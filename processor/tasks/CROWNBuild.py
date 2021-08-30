@@ -20,15 +20,20 @@ class CROWNBuild(Task):
     era = luigi.Parameter()
     sampletype = luigi.Parameter()
     analysis = luigi.Parameter()
+    production_tag = luigi.Parameter()
 
     env_script = os.path.join(
         os.path.dirname(__file__), "../../", "setup", "setup_crown_cmake.sh"
     )
 
     def output(self):
-        return self.remote_target(
-            "crown_{}_{}.tar.gz".format(self.era, self.sampletype)
+        target = self.remote_target(
+            "{}/crown_{}_{}.tar.gz".format(
+                self.production_tag, self.era, self.sampletype
+            )
         )
+        target.parent.touch()
+        return target
 
     def run(self):
         # get output file path
@@ -46,11 +51,12 @@ class CROWNBuild(Task):
 
         if os.path.exists(output.path):
             console.log("tarball already existing in {}".format(output.path))
-        elif os.path.exists(os.path.join(_install_dir, output.basename)):
-            console.log(
-                "tarball already existing in tarball directory {}".format(_install_dir)
-            )
-            output.copy_from_local(os.path.join(_install_dir, output.basename))
+
+        # elif os.path.exists(os.path.join(_install_dir, output.basename)):
+        #     console.log(
+        #         "tarball already existing in tarball directory {}".format(_install_dir)
+        #     )
+        #     output.copy_from_local(os.path.join(_install_dir, output.basename))
         else:
             console.log("Building new tarball")
             # create build directory
@@ -96,9 +102,9 @@ class CROWNBuild(Task):
                 "-DINSTALLDIR={INSTALLDIR}".format(INSTALLDIR=_install_dir),
                 "-B{BUILDFOLDER}".format(BUILDFOLDER=_build_dir),
             ]
-            console.log(
-                "| Running cmake: {}".format(" ".join(_cmake_cmd + _cmake_args))
-            )
+            console.rule("Running cmake")
+            console.log("{}".format(" ".join(_cmake_cmd + _cmake_args)))
+            console.rule()
 
             code, out, error = interruptable_popen(
                 _cmake_cmd + _cmake_args, stdout=PIPE, stderr=PIPE, env=my_env
@@ -108,11 +114,14 @@ class CROWNBuild(Task):
                 console.log("Error when running cmake {}".format(error))
                 console.log("Output: {}".format(out))
                 console.log("cmake returned non-zero exit status {}".format(code))
+                console.rule()
                 raise Exception("cmake failed")
             else:
-                console.log("Successful cmake build !")
+                console.rule("Successful cmake build !")
 
-            console.log("Running make: {}".format(" ".join(["make", "install"])))
+            console.rule("Running make")
+            console.log("{}".format(" ".join(["make", "install"])))
+            console.rule()
             code, out, error = interruptable_popen(
                 ["make", "install"],
                 stdout=PIPE,
@@ -124,9 +133,10 @@ class CROWNBuild(Task):
                 console.log("Error when running make {}".format(error))
                 console.log("Output: {}".format(out))
                 console.log("make returned non-zero exit status {}".format(code))
+                console.rule()
                 raise Exception("make failed")
             else:
-                console.log("Successful build !")
+                console.rule("Successful build !")
 
             code, out, error = interruptable_popen(
                 ["touch", output.basename],
@@ -142,7 +152,9 @@ class CROWNBuild(Task):
                 "--exclude={}".format(output.basename),
                 ".",
             ]
-            console.log("Running tar: {}".format(" ".join(command)))
+            console.rule("Running tar")
+            console.log("{}".format(" ".join(command)))
+            console.rule()
             code, out, error = interruptable_popen(
                 command,
                 stdout=PIPE,
@@ -154,8 +166,8 @@ class CROWNBuild(Task):
                 console.log("Error when creating tarball {}".format(error))
                 console.log("Output: {}".format(out))
                 console.log("tar returned non-zero exit status {}".format(code))
+                console.rule()
                 raise Exception("tar failed")
             else:
                 console.rule("Successful tarball creation ! ")
-
             output.copy_from_local(os.path.join(_install_dir, output.basename))

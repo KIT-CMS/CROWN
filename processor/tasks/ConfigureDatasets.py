@@ -74,10 +74,9 @@ class ConfigureDatasets(Task):
         sample_configfile = "sample_database/{era}/{type}/{nick}.yaml".format(
             era=sample_data["era"], type=sample_data["sample_type"], nick=self.nick
         )
-        print("Nick: {}".format(self.nick))
+        console.rule("Nick: {}".format(self.nick))
         # if the filelist is already there, load it
         if os.path.exists(sample_configfile):
-            print("Loading from local file")
             with open(sample_configfile, "r") as stream:
                 try:
                     sample_data = yaml.safe_load(stream)
@@ -101,6 +100,7 @@ class ConfigureDatasets(Task):
             yaml.dump(sample_data, file)
             file.close()
 
-        print("Total Files: {}".format(sample_data["nfiles"]))
-        print("Total Events: {}".format(sample_data["nevents"]))
+        console.log("Total Files: {}".format(sample_data["nfiles"]))
+        console.log("Total Events: {}".format(sample_data["nevents"]))
+        console.rule()
         output.dump(sample_data)

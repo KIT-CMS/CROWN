@@ -9,7 +9,7 @@ from rich.console import Console
 from law.util import merge_dicts
 
 law.contrib.load("wlcg")
-console = Console()
+console = Console(width=160)
 
 
 class Task(law.Task):
@@ -80,8 +80,9 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
     htcondor_docker_image = luigi.Parameter()
     htcondor_request_disk = luigi.Parameter()
     wlcg_path = luigi.Parameter()
-    bootstrap_file = luigi.Parameter()
-    if "etp" in os.environ.get("HOST"):
+    bootstrap_file_etp = luigi.Parameter()
+    bootstrap_file_generic = luigi.Parameter()
+    if "etp" in os.uname()[1]:
         etp = True
     else:
         etp = False

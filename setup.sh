@@ -4,7 +4,7 @@
 action() {
     miniconda="Miniconda3-py39_4.10.3-Linux-x86_64"
     conda_env_name="KingMaker"
-
+    fullhostname=$(hostname -f)
     # determine the directy of this file
     if [ ! -z "$ZSH_VERSION" ]; then
         local this_file="${(%):-%x}"
@@ -38,29 +38,31 @@ action() {
     fi
 
     # check if Conda env is running
-    echo "Setting up conda env"
+    echo "Setting up conda.."
     #
-    if [ $CONDA_DEFAULT_ENV!=$conda_env_name ]; then
+    if [ "$CONDA_DEFAULT_ENV" != "$conda_env_name" ]; then
         if [ -d "miniconda/envs/$conda_env_name" ]; then
             echo  "$conda_env_name env found, activating..."
             conda activate $conda_env_name
         else
             echo "Creating $conda_env_name env from environment.yml..."
             conda env create -f environment.yml
-            echo  "KingMakter env found, activating..."
+            echo  "KingMaker env found, activating..."
             conda activate $conda_env_name
             conda pack -n $conda_env_name --output tarballs/conda.tar.gz
         fi
     fi
     # since we need a conda tarball for the remote jobs, create it if it doesn't exist
-    if [ ! -f "tarballs/conda.tar.gz" ]; then
-        echo "Creating conda.tar.gz"
-        mkdir -p "tarballs"
-        conda pack -n $conda_env_name --output tarballs/conda.tar.gz
+    if [[ $fullhostname != *"etp"* ]]; then
+        if [ ! -f "tarballs/conda.tar.gz" ]; then
+            echo "Creating conda.tar.gz"
+            mkdir -p "tarballs"
+            conda pack -n $conda_env_name --output tarballs/conda.tar.gz
+        fi
     fi
 
+    echo "Setup CROWN ..."
     if [ ! -d CROWN ]; then
-        echo "Setup CROWN ..."
         git clone git@github.com:KIT-CMS/CROWN
     fi
 
