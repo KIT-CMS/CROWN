@@ -1,9 +1,3 @@
 [submodule "law"]
 	path = law
 	url = git@github.com:riga/law.git
-[submodule "six"]
-	path = six
-	url = git@github.com:benjaminp/six.git
-[submodule "luigi"]
-	path = luigi
-	url = git@github.com:spotify/luigi.git
