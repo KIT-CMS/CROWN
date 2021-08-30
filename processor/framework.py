@@ -47,9 +47,7 @@ class Task(law.Task):
         return my_env
 
     def remote_path(self, *path):
-        parts = (
-            self.__class__.__name__,
-        ) + path
+        parts = (self.__class__.__name__,) + path
         return os.path.join(*parts)
 
     def remote_target(self, *path):
@@ -57,6 +55,7 @@ class Task(law.Task):
             path=self.remote_path(*path),
             fs=law.wlcg.WLCGFileSystem(None, base="{}".format(self.wlcg_path)),
         )
+
 
 class HTCondorJobManager(law.contrib.htcondor.HTCondorJobManager):
 
@@ -82,6 +81,10 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
     htcondor_request_disk = luigi.Parameter()
     wlcg_path = luigi.Parameter()
     bootstrap_file = luigi.Parameter()
+    if "etp" in os.environ.get("HOST"):
+        etp = True
+    else:
+        etp = False
 
     output_collection_cls = law.SiblingFileCollection
 
@@ -101,7 +104,11 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
         return factory
 
     def htcondor_bootstrap_file(self):
-        return law.util.rel_path(__file__, self.bootstrap_file)
+        if self.etp:
+            hostfile = self.bootstrap_file_etp
+        else:
+            hostfile = self.bootstrap_file_generic
+        return law.util.rel_path(__file__, hostfile)
 
     def htcondor_job_config(self, config, job_num, branches):
         config.custom_content = []
@@ -122,16 +129,25 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
 
         prevdir = os.getcwd()
         os.system("cd $ANALYSIS_PATH")
+        if not self.etp:
+            tarball = law.wlcg.WLCGFileTarget(
+                path=self.remote_path("job_tarball/processor.tar.gz"),
+                fs=law.wlcg.WLCGFileSystem(None, base="{}".format(self.wlcg_path)),
+            )
         if not os.path.isfile("processor.tar.gz"):
             os.system(
-                "tar --exclude *.pyc -czf processor.tar.gz processor tarballs/conda.tar.gz luigi.cfg law.cfg law sample_database"
+                "tar --exclude *.pyc -czf processor.tar.gz processor luigi.cfg law.cfg law sample_database"
             )
+            if not self.etp:
+                tarball.parent.touch()
+                tarball.copy_from_local(src="processor.tar.gz")
         os.chdir(prevdir)
-        tarball = law.wlcg.WLCGFileTarget(
-            path=self.remote_path("job_tarball/processor.tar.gz"),
-            fs=law.wlcg.WLCGFileSystem(None, base="{}".format(self.wlcg_path)),
-        )
-        tarball.parent.touch()
-        tarball.copy_from_local(src="processor.tar.gz")
-        config.custom_content.append(("jobtarball", "job_tarball/processor.tar.gz"))
+        config.input_files.append(law.util.rel_path(__file__, "../processor.tar.gz"))
+        if not self.etp:
+            if not os.path.isfile("tarball_path.txt"):
+                with open("tarball_path.txt", "w") as f:
+                    f.write(self.wlcg_path + tarball.path)
+            config.input_files.append(
+                law.util.rel_path(__file__, "../tarball_path.txt")
+            )
         return config

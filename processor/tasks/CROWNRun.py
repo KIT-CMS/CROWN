@@ -42,12 +42,12 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     def create_branch_map(self):
         dataset = ConfigureDatasets(nick=self.nick)
         dataset.run()
-        with self.input()["datasetinfo"].localize('r') as _file:
+        with self.input()["datasetinfo"].localize("r") as _file:
             inputdata = _file.load()
         return {i: info for i, info in enumerate(inputdata["filelist"])}
 
     def output(self):
-        return self.remote_target("{}/ntuple_{}.root".format(self.nick, self.branch))
+        return self.remote_target("ntuple_{}_{}.root".format(self.nick, self.branch))
 
     def run(self):
         output = self.output()
@@ -56,11 +56,11 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
         _workdir = os.path.abspath("workdir")
         ensure_dir(_workdir)
         _inputfile = info
-        _outputfile = str(output.path).replace(".root", "_running.root")
+        _outputfile = str(output.basename)
         _executable = "{}/{}_{}_{}".format(
             _workdir, self.analysis, self.sampletype, self.era
         )
-        with self.input()['tarball'].localize('r') as _file:
+        with self.input()["tarball"].localize("r") as _file:
             _tarballpath = _file.path
         # first unpack the tarball if the exec is not there yet
         if os.path.exists(
@@ -102,5 +102,5 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
         else:
             console.log("Successful")
             console.log("Output: {}".format(out))
-        output.move_from_local(_outputfile)
+        output.copy_from_local(_outputfile)
         console.rule("Finished CROWNRun")
