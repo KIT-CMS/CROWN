@@ -7,6 +7,8 @@ generation_logs/
 tarballs/
 workdir/
 logs/
+*.tar.gz
+*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
