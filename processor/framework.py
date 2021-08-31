@@ -43,6 +43,13 @@ class Task(law.Task):
             stdout=PIPE,
             stderr=PIPE,
         )
+        if code != 0:
+            console.log("Error when running source {}".format(error))
+            console.log("Output: {}".format(out))
+            console.log("source returned non-zero exit status {}".format(code))
+            console.log("Script: {}".format(sourcescript))
+            console.rule()
+            raise Exception("source failed")
         my_env = self.convert_env_to_dict(out)
         return my_env
 

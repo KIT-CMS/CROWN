@@ -70,7 +70,6 @@ class CROWNBuild(Task):
 
             # set environment variables
             my_env = self.set_environment(self.env_script)
-
             # checking cmake path
             code, _cmake_executable, error = interruptable_popen(
                 ["which", "cmake"], stdout=PIPE, stderr=PIPE, env=my_env
@@ -91,7 +90,7 @@ class CROWNBuild(Task):
             console.rule("")
 
             # run CROWN build step
-            _cmake_cmd = ["cmake", _crown_path]
+            _cmake_cmd = [_cmake_executable.replace("\n", ""), _crown_path]
 
             _cmake_args = [
                 "-DANALYSIS={ANALYSIS}".format(ANALYSIS=_analysis),
@@ -109,6 +108,8 @@ class CROWNBuild(Task):
             code, out, error = interruptable_popen(
                 _cmake_cmd + _cmake_args, stdout=PIPE, stderr=PIPE, env=my_env
             )
+            for stdout_line in iter(code.stdout.readline, ""):
+                yield stdout_line
             # if successful save Herwig-cache and run-file as tar.gz
             if code != 0:
                 console.log("Error when running cmake {}".format(error))

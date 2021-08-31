@@ -49,7 +49,6 @@ action() {
             conda env create -f environment.yml
             echo  "KingMaker env found, activating..."
             conda activate $conda_env_name
-            conda pack -n $conda_env_name --output tarballs/conda.tar.gz
         fi
     fi
     # since we need a conda tarball for the remote jobs, create it if it doesn't exist
@@ -64,6 +63,11 @@ action() {
     echo "Setup CROWN ..."
     if [ ! -d CROWN ]; then
         git clone git@github.com:KIT-CMS/CROWN
+    fi
+
+    # Check is law was cloned, and set it up if not
+    if [ -z "$(ls -A law)" ]; then
+        git submodule update --init --recursive
     fi
 
     echo "Setting up Luigi/Law ..."
