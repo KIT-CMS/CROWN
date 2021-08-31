@@ -9,6 +9,7 @@ workdir/
 logs/
 *.tar.gz
 *.txt
+miniconda/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
