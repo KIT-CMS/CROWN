@@ -27,7 +27,7 @@ class CROWNBuild(Task):
     )
 
     def output(self):
-        target = self.remote_target(
+        target = self.local_target(
             "{}/crown_{}_{}.tar.gz".format(
                 self.production_tag, self.era, self.sampletype
             )
@@ -58,7 +58,7 @@ class CROWNBuild(Task):
         #     )
         #     output.copy_from_local(os.path.join(_install_dir, output.basename))
         else:
-            console.log("Building new tarball")
+            console.rule("Building new tarball")
             # create build directory
             if not os.path.exists(_build_dir):
                 os.makedirs(_build_dir)
@@ -70,11 +70,15 @@ class CROWNBuild(Task):
 
             # set environment variables
             my_env = self.set_environment(self.env_script)
+            # filter out all env variables with "GLOBUS"
+            for env_var in list(my_env.keys()):
+                if "GLOBUS" in env_var:
+                    print(env_var)
+                    del my_env[env_var]
             # checking cmake path
             code, _cmake_executable, error = interruptable_popen(
                 ["which", "cmake"], stdout=PIPE, stderr=PIPE, env=my_env
             )
-
             # actual payload:
             console.rule("Starting cmake step for CROWN")
             console.log("Using cmake {}".format(_cmake_executable.replace("\n", "")))
@@ -87,10 +91,14 @@ class CROWNBuild(Task):
             console.log("Era: {}".format(_era))
             console.log("Channels: {}".format(_channels))
             console.log("Shifts: {}".format(_shifts))
+            console.log(dir())
+            console.log(globals())
+            console.log(locals())
+            console.log(os.environ)
             console.rule("")
 
             # run CROWN build step
-            _cmake_cmd = [_cmake_executable.replace("\n", ""), _crown_path]
+            _cmake_cmd = ["cmake", _crown_path]
 
             _cmake_args = [
                 "-DANALYSIS={ANALYSIS}".format(ANALYSIS=_analysis),
@@ -106,10 +114,8 @@ class CROWNBuild(Task):
             console.rule()
 
             code, out, error = interruptable_popen(
-                _cmake_cmd + _cmake_args, stdout=PIPE, stderr=PIPE, env=my_env
+                _cmake_cmd + _cmake_args, env=my_env,
             )
-            for stdout_line in iter(code.stdout.readline, ""):
-                yield stdout_line
             # if successful save Herwig-cache and run-file as tar.gz
             if code != 0:
                 console.log("Error when running cmake {}".format(error))

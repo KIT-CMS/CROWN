@@ -58,10 +58,11 @@ class Task(law.Task):
         return os.path.join(*parts)
 
     def remote_target(self, *path):
-        return law.wlcg.WLCGFileTarget(
+        target = law.wlcg.WLCGFileTarget(
             path=self.remote_path(*path),
             fs=law.wlcg.WLCGFileSystem(None, base="{}".format(self.wlcg_path)),
         )
+        return target
 
 
 class HTCondorJobManager(law.contrib.htcondor.HTCondorJobManager):
@@ -137,25 +138,28 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
 
         prevdir = os.getcwd()
         os.system("cd $ANALYSIS_PATH")
-        if not self.etp:
-            tarball = law.wlcg.WLCGFileTarget(
-                path=self.remote_path("job_tarball/processor.tar.gz"),
-                fs=law.wlcg.WLCGFileSystem(None, base="{}".format(self.wlcg_path)),
-            )
-        if not os.path.isfile("processor.tar.gz"):
-            os.system(
-                "tar --exclude *.pyc -czf processor.tar.gz processor luigi.cfg law.cfg law sample_database"
-            )
+        tarball = law.wlcg.WLCGFileTarget(
+            path=self.remote_path("job_tarball/processor.tar.gz"),
+            fs=law.wlcg.WLCGFileSystem(None, base="{}".format(self.wlcg_path)),
+        )
+        if not os.path.exists("tarballs"):
+            os.makedirs("tarballs")
+        if not os.path.isfile("tarballs/processor.tar.gz"):
             if not self.etp:
+                os.system(
+                "tar --exclude *.pyc -czf tarballs/processor.tar.gz processor tarballs/conda.tar.gz luigi.cfg law.cfg law sample_database")
+            else:
+                os.system(
+                    "tar --exclude *.pyc -czf tarballs/processor.tar.gz processor luigi.cfg law.cfg law sample_database"
+                )
                 tarball.parent.touch()
-                tarball.copy_from_local(src="processor.tar.gz")
+                tarball.copy_from_local(src="tarballs/processor.tar.gz")
         os.chdir(prevdir)
-        config.input_files.append(law.util.rel_path(__file__, "../processor.tar.gz"))
-        if not self.etp:
-            if not os.path.isfile("tarball_path.txt"):
-                with open("tarball_path.txt", "w") as f:
-                    f.write(self.wlcg_path + tarball.path)
-            config.input_files.append(
-                law.util.rel_path(__file__, "../tarball_path.txt")
-            )
+        # config.input_files.append(law.util.rel_path(__file__, "../processor.tar.gz"))
+        if not os.path.isfile("tarballs/tarball_path.txt"):
+            with open("tarballs/tarball_path.txt", "w") as f:
+                f.write(self.wlcg_path + tarball.path)
+        config.input_files.append(
+            law.util.rel_path(__file__, "../tarballs/tarball_path.txt")
+        )
         return config

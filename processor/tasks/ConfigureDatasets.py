@@ -55,7 +55,9 @@ class ConfigureDatasets(Task):
         )
 
     def output(self):
-        return self.remote_target("sample_database/{}.yaml".format(self.nick))
+        target = self.remote_target("sample_database/{}.yaml".format(self.nick))
+        target.parent.touch()
+        return target
 
     def run(self):
         # set environment variables
