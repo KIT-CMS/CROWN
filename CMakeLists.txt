@@ -15,6 +15,7 @@ if (NOT DEFINED SHIFTS)
     message(STATUS "No shifts specificed, using -DSHIFTS=all")
     set(SHIFTS "all")
 endif()
+
 if (NOT DEFINED DEBUG)
     message(STATUS "No debug mode")
     set(DEBUG "false")
@@ -22,10 +23,13 @@ endif()
 
 if (NOT DEFINED SAMPLES)
     message(FATAL_ERROR "Please specify the samples to be used with -DSAMPLES=samples")
+    set(DEBUG "samples")
 endif()
+
 if (NOT DEFINED ERAS)
-    message(FATAL_ERROR "Please specify the eras to be used with -DSAMPLES=eras")
+    message(FATAL_ERROR "Please specify the eras to be used with -DERAS=eras")
 endif()
+
 message(STATUS "Set up analysis with --config ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --debug ${DEBUG}")
 
 # Define the default compiler flags for different build types, if different from the cmake defaults
@@ -37,10 +41,11 @@ set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options a
 
 # Set the default install directory to the build directory
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} CACHE STRING "Set default install prefix to the build directory")
-
+message(STATUS "Creating Project")
 # Create the project
 project(CROWN CXX)
 
+message(STATUS "Finding Packages")
 # Find ROOT and print details
 find_package(ROOT 6.24 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit)
 
@@ -78,11 +83,13 @@ else ()
     message(FATAL_ERROR "The standard c++17 or higher is required but not found in the ROOT flags: ${ROOT_CXX_FLAGS}")
 endif()
 
+message(STATUS "Including spdlog.")
 # Build the logging library
 include(ExternalProject)
 ExternalProject_Add(spdlog
     PREFIX          spdlog
     GIT_REPOSITORY  https://github.com/gabime/spdlog.git
+    GIT_SHALLOW     1
     GIT_TAG         v1.8.5
     CMAKE_ARGS      -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
                     -DCMAKE_BUILD_TYPE=Release
@@ -90,6 +97,7 @@ ExternalProject_Add(spdlog
     LOG_DOWNLOAD 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
 
+message(STATUS "Configuring spdlog.")
 # Make an imported target out of the build logging library
 add_library(logging STATIC IMPORTED)
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/include") # required because the include dir must be existent for INTERFACE_INCLUDE_DIRECTORIES
