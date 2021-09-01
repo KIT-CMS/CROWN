@@ -1,3 +1,4 @@
+from platform import processor
 import law
 import luigi
 import os
@@ -27,7 +28,7 @@ class CROWNBuild(Task):
     )
 
     def output(self):
-        target = self.local_target(
+        target = self.remote_target(
             "{}/crown_{}_{}.tar.gz".format(
                 self.production_tag, self.era, self.sampletype
             )
@@ -48,15 +49,18 @@ class CROWNBuild(Task):
         _install_dir = os.path.join(str(self.install_dir), _tag)
         _build_dir = os.path.join(str(self.build_dir), _tag)
         _crown_path = os.path.abspath("CROWN")
+        _compile_script = os.path.join(
+            str(os.path.abspath("processor")), "tasks", "compile_crown.sh"
+        )
 
         if os.path.exists(output.path):
             console.log("tarball already existing in {}".format(output.path))
 
-        # elif os.path.exists(os.path.join(_install_dir, output.basename)):
-        #     console.log(
-        #         "tarball already existing in tarball directory {}".format(_install_dir)
-        #     )
-        #     output.copy_from_local(os.path.join(_install_dir, output.basename))
+        elif os.path.exists(os.path.join(_install_dir, output.basename)):
+            console.log(
+                "tarball already existing in tarball directory {}".format(_install_dir)
+            )
+            output.copy_from_local(os.path.join(_install_dir, output.basename))
         else:
             console.rule("Building new tarball")
             # create build directory
@@ -70,11 +74,7 @@ class CROWNBuild(Task):
 
             # set environment variables
             my_env = self.set_environment(self.env_script)
-            # filter out all env variables with "GLOBUS"
-            for env_var in list(my_env.keys()):
-                if "GLOBUS" in env_var:
-                    print(env_var)
-                    del my_env[env_var]
+
             # checking cmake path
             code, _cmake_executable, error = interruptable_popen(
                 ["which", "cmake"], stdout=PIPE, stderr=PIPE, env=my_env
@@ -91,90 +91,34 @@ class CROWNBuild(Task):
             console.log("Era: {}".format(_era))
             console.log("Channels: {}".format(_channels))
             console.log("Shifts: {}".format(_shifts))
-            console.log(dir())
-            console.log(globals())
-            console.log(locals())
-            console.log(os.environ)
             console.rule("")
 
-            # run CROWN build step
-            _cmake_cmd = ["cmake", _crown_path]
-
-            _cmake_args = [
-                "-DANALYSIS={ANALYSIS}".format(ANALYSIS=_analysis),
-                "-DSAMPLES={SAMPLES}".format(SAMPLES=_sampletype),
-                "-DERAS={ERAS}".format(ERAS=_era),
-                "-DCHANNELS={CHANNELS}".format(CHANNELS=_channels),
-                "-DSHIFTS={SHIFTS}".format(SHIFTS=_shifts),
-                "-DINSTALLDIR={INSTALLDIR}".format(INSTALLDIR=_install_dir),
-                "-B{BUILDFOLDER}".format(BUILDFOLDER=_build_dir),
-            ]
-            console.rule("Running cmake")
-            console.log("{}".format(" ".join(_cmake_cmd + _cmake_args)))
-            console.rule()
-
-            code, out, error = interruptable_popen(
-                _cmake_cmd + _cmake_args, env=my_env,
-            )
-            # if successful save Herwig-cache and run-file as tar.gz
-            if code != 0:
-                console.log("Error when running cmake {}".format(error))
-                console.log("Output: {}".format(out))
-                console.log("cmake returned non-zero exit status {}".format(code))
-                console.rule()
-                raise Exception("cmake failed")
-            else:
-                console.rule("Successful cmake build !")
-
-            console.rule("Running make")
-            console.log("{}".format(" ".join(["make", "install"])))
-            console.rule()
-            code, out, error = interruptable_popen(
-                ["make", "install"],
-                stdout=PIPE,
-                stderr=PIPE,
-                env=my_env,
-                cwd=_build_dir,
-            )
-            if code != 0:
-                console.log("Error when running make {}".format(error))
-                console.log("Output: {}".format(out))
-                console.log("make returned non-zero exit status {}".format(code))
-                console.rule()
-                raise Exception("make failed")
-            else:
-                console.rule("Successful build !")
-
-            code, out, error = interruptable_popen(
-                ["touch", output.basename],
-                stdout=PIPE,
-                stderr=PIPE,
-                env=my_env,
-                cwd=os.path.join(_install_dir),
-            )
+            # run crown compilation script
             command = [
-                "tar",
-                "-czvf",
-                output.basename,
-                "--exclude={}".format(output.basename),
-                ".",
+                "bash",
+                _compile_script,
+                _crown_path,  # CROWNFOLDER=$1
+                _analysis,  # ANALYSIS=$2
+                _sampletype,  # SAMPLES=$3
+                _era,  # ERAS=$4
+                _channels,  # CHANNEL=$5
+                _shifts,  # SHIFTS=$6
+                _install_dir,  # INSTALLDIR=$7
+                _build_dir,  # BUILDDIR=$8
+                output.basename,  # TARBALLNAME=$9
             ]
-            console.rule("Running tar")
-            console.log("{}".format(" ".join(command)))
-            console.rule()
             code, out, error = interruptable_popen(
                 command,
+                rich_console=console,
                 stdout=PIPE,
                 stderr=PIPE,
-                env=my_env,
-                cwd=os.path.join(_install_dir),
             )
             if code != 0:
-                console.log("Error when creating tarball {}".format(error))
+                console.log("Error when building crown {}".format(error))
                 console.log("Output: {}".format(out))
                 console.log("tar returned non-zero exit status {}".format(code))
                 console.rule()
-                raise Exception("tar failed")
+                raise Exception("crown build failed")
             else:
-                console.rule("Successful tarball creation ! ")
+                console.rule("Successful crown build ! ")
             output.copy_from_local(os.path.join(_install_dir, output.basename))
