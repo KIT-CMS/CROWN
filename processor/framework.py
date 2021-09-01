@@ -7,6 +7,7 @@ from law.util import interruptable_popen
 from subprocess import PIPE
 from rich.console import Console
 from law.util import merge_dicts
+import socket
 
 law.contrib.load("wlcg")
 console = Console(width=160)
@@ -90,10 +91,6 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
     wlcg_path = luigi.Parameter()
     bootstrap_file_etp = luigi.Parameter()
     bootstrap_file_generic = luigi.Parameter()
-    if "etp" in os.uname()[1]:
-        etp = True
-    else:
-        etp = False
 
     output_collection_cls = law.SiblingFileCollection
 
@@ -113,7 +110,7 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
         return factory
 
     def htcondor_bootstrap_file(self):
-        if self.etp:
+        if "etp" in socket.getfqdn():
             hostfile = self.bootstrap_file_etp
         else:
             hostfile = self.bootstrap_file_generic
@@ -145,21 +142,48 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
         if not os.path.exists("tarballs"):
             os.makedirs("tarballs")
         if not os.path.isfile("tarballs/processor.tar.gz"):
-            if not self.etp:
-                os.system(
-                "tar --exclude *.pyc -czf tarballs/processor.tar.gz processor tarballs/conda.tar.gz luigi.cfg law.cfg law sample_database")
+            command = [
+                    "tar",
+                    "--exclude",
+                    "*.pyc",
+                    "-czf",
+                    "tarballs/processor.tar.gz",
+                    "processor",
+                    "luigi.cfg",
+                    "law.cfg",
+                    "law",
+                    "setup",
+                    "sample_database",
+            ]
+            if "etp" not in socket.getfqdn():
+                console.rule("Creating job tarball for NonETP")
+                command.append("tarballs/conda.tar.gz",)
             else:
-                os.system(
-                    "tar --exclude *.pyc -czf tarballs/processor.tar.gz processor luigi.cfg law.cfg law sample_database"
-                )
-                tarball.parent.touch()
-                tarball.copy_from_local(src="tarballs/processor.tar.gz")
+                console.rule("Creating job tarball for ETP")
+            code, out, error = interruptable_popen(
+                command,
+                rich_console=console,
+                stdout=PIPE,
+                stderr=PIPE,
+            )
+            if code != 0:
+                console.log("Error when taring job {}".format(error))
+                console.log("Output: {}".format(out))
+                console.log("tar returned non-zero exit status {}".format(code))
+                console.rule()
+                os.remove("tarballs/processor.tar.gz")
+                raise Exception("tar failed")
+            else:
+                console.rule("Successful tar!")
+            tarball.parent.touch()
+            tarball.copy_from_local(src="tarballs/processor.tar.gz")
         os.chdir(prevdir)
+        config.custom_content.append(("environment", "tarball_path={}".format(self.wlcg_path + tarball.path)))
         # config.input_files.append(law.util.rel_path(__file__, "../processor.tar.gz"))
-        if not os.path.isfile("tarballs/tarball_path.txt"):
-            with open("tarballs/tarball_path.txt", "w") as f:
-                f.write(self.wlcg_path + tarball.path)
-        config.input_files.append(
-            law.util.rel_path(__file__, "../tarballs/tarball_path.txt")
-        )
+        # if not os.path.isfile("tarballs/tarball_path.txt"):
+        #     with open("tarballs/tarball_path.txt", "w") as f:
+        #         f.write(self.wlcg_path + tarball.path)
+        # config.input_files.append(
+        #     law.util.rel_path(__file__, "../tarballs/tarball_path.txt")
+        # )
         return config

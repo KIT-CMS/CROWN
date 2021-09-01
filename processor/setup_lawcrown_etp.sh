@@ -10,21 +10,18 @@ action(){
 
     SPAWNPOINT=$(pwd)
     conda_env="KingMaker"
-    while read $tarball_path; do
-        echo "Getting conda tarball from $conda_tarball_path"
-    done < "tarball_path*.txt"
+
     echo "------------------------------------------"
     echo " | conda_env = $conda_env"
-    echo " | JOB_TARBALL = $tarball_path"
+    echo " | tarball_path = $tarball_path"
     echo "------------------------------------------"
+
     # initiate conda
     source /etc/profile
     conda activate $conda_env
+
     # first get the conda tarball path from the input textfile:
-    (
-        # source /cvmfs/grid.cern.ch/umd-c7ui-latest/etc/profile.d/setup-c7-ui-example.sh
-        gfal-copy $tarball_path $SPAWNPOINT
-    )
+    gfal-copy $tarball_path $SPAWNPOINT
 
     tar -xzf processor*.tar.gz
     rm processor*.tar.gz

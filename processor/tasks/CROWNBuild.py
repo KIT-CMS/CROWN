@@ -62,7 +62,7 @@ class CROWNBuild(Task):
             )
             output.copy_from_local(os.path.join(_install_dir, output.basename))
         else:
-            console.rule("Building new tarball")
+            console.rule("Building new CROWN tarball")
             # create build directory
             if not os.path.exists(_build_dir):
                 os.makedirs(_build_dir)

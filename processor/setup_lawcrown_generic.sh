@@ -13,17 +13,16 @@ action(){
 
     # on ETP ressources, this is not needed, since we can use a docker image containing the conda environment
     # on other systems, these changes here might be needed
-    # TODO - set $CONDA_TARBALL path correctly
     conda_env_path=$SPAWNPOINT/miniconda/envs/$conda_env
     echo "------------------------------------------"
     echo " | conda_env = $conda_env"
     echo " | conda_env_path = $conda_env_path"
-    echo " | CONDA_TARBALL = $CONDA_TARBALL"
+    echo " | tarball_path = $tarball_path"
     echo "------------------------------------------"
 
     (
         source /cvmfs/grid.cern.ch/umd-c7ui-latest/etc/profile.d/setup-c7-ui-example.sh
-        gfal-copy $CONDA_TARBALL $SPAWNPOINT
+        gfal-copy $tarball_path $SPAWNPOINT
     )
     # untar tarball
     tar -xzf processor*.tar.gz
