@@ -108,10 +108,7 @@ class CROWNBuild(Task):
                 output.basename,  # TARBALLNAME=$9
             ]
             code, out, error = interruptable_popen(
-                command,
-                rich_console=console,
-                stdout=PIPE,
-                stderr=PIPE,
+                command, rich_console=console, stdout=PIPE, stderr=PIPE,
             )
             if code != 0:
                 console.log("Error when building crown {}".format(error))

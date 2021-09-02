@@ -85,5 +85,14 @@ action() {
     # tasks
     _addpy "$base/processor"
     _addpy "$base/processor/tasks"
+
+    # add voms proxy
+    export X509_USER_PROXY=$(voms-proxy-info -path)
+
+    # start a luidigd scheduler if there is one already running
+    if [ -z "$(pgrep -f luigid)" ]; then
+        echo "Starting Luigi scheduler..."
+        luigid --background --logdir logs --state-path luigid_state.pickle
+    fi
 }
 action "$@"

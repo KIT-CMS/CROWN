@@ -69,6 +69,9 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
         _executable = "{}/{}_{}_{}".format(
             _workdir, self.analysis, self.sampletype, self.era
         )
+        console.log(
+            "Getting CROWN tarball from {}".format(self.input()["tarball"].uri())
+        )
         with self.input()["tarball"].localize("r") as _file:
             _tarballpath = _file.path
         # first unpack the tarball if the exec is not there yet
@@ -102,6 +105,7 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
             stderr=PIPE,
             env=my_env,
             cwd=_workdir,
+            rich_console=console,
         )
         if code != 0:
             console.log("Error when running crown {}".format(error))

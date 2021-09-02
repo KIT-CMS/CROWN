@@ -60,49 +60,50 @@ class ConfigureDatasets(Task):
         return target
 
     def run(self):
-        # set environment variables
-        self.my_env = self.set_environment(self.env_script)
-
-        xootd_prefix = "root://cms-xrd-global.cern.ch/"
-        xootd_prefix_gridka = "root://cmsxrootd-kit.gridka.de:1094/"
-
         output = self.output()
-        output.parent.touch()
+        if not output.exists():
+            # set environment variables
+            self.my_env = self.set_environment(self.env_script)
 
-        with open(self.dataset_database, "r") as stream:
-            sample_db = yaml.safe_load(stream)
-        sample_data = sample_db[self.nick]
+            xootd_prefix = "root://cms-xrd-global.cern.ch/"
+            xootd_prefix_gridka = "root://cmsxrootd-kit.gridka.de:1094/"
 
-        sample_configfile = "sample_database/{era}/{type}/{nick}.yaml".format(
-            era=sample_data["era"], type=sample_data["sample_type"], nick=self.nick
-        )
-        console.rule("Nick: {}".format(self.nick))
-        # if the filelist is already there, load it
-        if os.path.exists(sample_configfile):
-            with open(sample_configfile, "r") as stream:
-                try:
-                    sample_data = yaml.safe_load(stream)
-                except yaml.YAMLError as exc:
-                    print(exc)
-                    raise Exception("Failed to load sample information")
-        # otherwise, query DAS and generate the filelist
-        else:
-            print("Loading from DAS")
+            output.parent.touch()
+
+            with open(self.dataset_database, "r") as stream:
+                sample_db = yaml.safe_load(stream)
             sample_data = sample_db[self.nick]
-            sample_data["nick"] = self.nick
-            # read filelist information from DAS
-            (
-                sample_data["filelist"],
-                sample_data["nevents"],
-                sample_data["nfiles"],
-            ) = self.read_filelist_from_das(sample_data["dbs"], False, xootd_prefix)
-            # write the output
-            ensure_dir(sample_configfile)
-            file = open(sample_configfile, "w")
-            yaml.dump(sample_data, file)
-            file.close()
 
-        console.log("Total Files: {}".format(sample_data["nfiles"]))
-        console.log("Total Events: {}".format(sample_data["nevents"]))
-        console.rule()
-        output.dump(sample_data)
+            sample_configfile = "sample_database/{era}/{type}/{nick}.yaml".format(
+                era=sample_data["era"], type=sample_data["sample_type"], nick=self.nick
+            )
+            console.rule("Nick: {}".format(self.nick))
+            # if the filelist is already there, load it
+            if os.path.exists(sample_configfile):
+                with open(sample_configfile, "r") as stream:
+                    try:
+                        sample_data = yaml.safe_load(stream)
+                    except yaml.YAMLError as exc:
+                        print(exc)
+                        raise Exception("Failed to load sample information")
+            # otherwise, query DAS and generate the filelist
+            else:
+                print("Loading from DAS")
+                sample_data = sample_db[self.nick]
+                sample_data["nick"] = self.nick
+                # read filelist information from DAS
+                (
+                    sample_data["filelist"],
+                    sample_data["nevents"],
+                    sample_data["nfiles"],
+                ) = self.read_filelist_from_das(sample_data["dbs"], False, xootd_prefix)
+                # write the output
+                ensure_dir(sample_configfile)
+                file = open(sample_configfile, "w")
+                yaml.dump(sample_data, file)
+                file.close()
+
+            console.log("Total Files: {}".format(sample_data["nfiles"]))
+            console.log("Total Events: {}".format(sample_data["nevents"]))
+            console.rule()
+            output.dump(sample_data)

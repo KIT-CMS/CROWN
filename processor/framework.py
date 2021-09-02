@@ -10,7 +10,7 @@ from law.util import merge_dicts
 import socket
 
 law.contrib.load("wlcg")
-console = Console(width=160)
+console = Console()
 
 
 class Task(law.Task):
@@ -39,10 +39,7 @@ class Task(law.Task):
 
     def set_environment(self, sourcescript):
         code, out, error = interruptable_popen(
-            "source {}; env".format(sourcescript),
-            shell=True,
-            stdout=PIPE,
-            stderr=PIPE,
+            "source {}; env".format(sourcescript), shell=True, stdout=PIPE, stderr=PIPE,
         )
         if code != 0:
             console.log("Error when running source {}".format(error))
@@ -143,17 +140,17 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
             os.makedirs("tarballs")
         if not os.path.isfile("tarballs/processor.tar.gz"):
             command = [
-                    "tar",
-                    "--exclude",
-                    "*.pyc",
-                    "-czf",
-                    "tarballs/processor.tar.gz",
-                    "processor",
-                    "luigi.cfg",
-                    "law.cfg",
-                    "law",
-                    "setup",
-                    "sample_database",
+                "tar",
+                "--exclude",
+                "*.pyc",
+                "-czf",
+                "tarballs/processor.tar.gz",
+                "processor",
+                "luigi.cfg",
+                "law.cfg",
+                "law",
+                "setup",
+                "sample_database",
             ]
             if "etp" not in socket.getfqdn():
                 console.rule("Creating job tarball for NonETP")
@@ -161,10 +158,7 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
             else:
                 console.rule("Creating job tarball for ETP")
             code, out, error = interruptable_popen(
-                command,
-                rich_console=console,
-                stdout=PIPE,
-                stderr=PIPE,
+                command, rich_console=console, stdout=PIPE, stderr=PIPE,
             )
             if code != 0:
                 console.log("Error when taring job {}".format(error))
@@ -178,7 +172,9 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
             tarball.parent.touch()
             tarball.copy_from_local(src="tarballs/processor.tar.gz")
         os.chdir(prevdir)
-        config.custom_content.append(("environment", "tarball_path={}".format(self.wlcg_path + tarball.path)))
+        config.custom_content.append(
+            ("environment", "tarball_path={}".format(self.wlcg_path + tarball.path))
+        )
         # config.input_files.append(law.util.rel_path(__file__, "../processor.tar.gz"))
         # if not os.path.isfile("tarballs/tarball_path.txt"):
         #     with open("tarballs/tarball_path.txt", "w") as f:
