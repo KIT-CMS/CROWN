@@ -26,19 +26,19 @@ is enough.
 
 Currently, the workflow consists of four distinct tasks:
 
-1. [ProduceSamples](processing/tasks/ProduceSamples.py)
+1. [ProduceSamples](processor/tasks/ProduceSamples.py)
     The main task, which is used to steer the Production of multiple samples at once
-2. [CROWNRun](processing/tasks/CROWNRun.py)
+2. [CROWNRun](processor/tasks/CROWNRun.py)
     The task used to run CROWN with a specific file
-3. [CROWNBuild](processing/tasks/CROWNBuild.py)
+3. [CROWNBuild](processor/tasks/CROWNBuild.py)
     This task is used to compile CROWN from source, and create a tarball, which is used by CROWNRun
-4. [ConfigureDatasets](processing/tasks/ConfigureDatasets.py)
+4. [ConfigureDatasets](processor/tasks/ConfigureDatasets.py)
     This task is used to create NanoAOD filelists (if not existent) and readout the needed configuration parameters for each sample. This determines the CROWN tarball that is used for that job
 
 ---
 ## Run KingMaker
 
-Normally, `KingMaker` can be run by running the `ProduceSamples` task. This is done using
+Normally, `KingMaker` can be run by running the `ProduceSamples` task. This is done using e.g.
 
 ```bash
 
