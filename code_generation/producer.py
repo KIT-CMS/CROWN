@@ -229,9 +229,12 @@ class VectorProducer(Producer):
                     raise Exception
             if self.output != None and len(self.output) != n_versions:
                 log.error(
-                    "VectorProducer expects either no output or same amount as entries in config lists (e.g. %s)!"
-                    % self.vec_configs[0]
+                    "{} expects either no output or same amount as entries in config lists !".format(
+                        self
+                    )
                 )
+                log.error("Number of expected outputs: {}".format(n_versions))
+                log.error("List of outputs: {}".format(self.output))
                 raise Exception
             for i in range(n_versions):
                 helper_dict = {}
@@ -313,13 +316,21 @@ class BaseFilter(Producer):
         inputs = []
         for quantity in self.input[scope]:
             inputs.extend(quantity.get_leaves_of_scope(scope))
-        formatdict = {}
-        formatdict["input"] = '"' + '", "'.join(inputs) + '"'
-        formatdict["input_vec"] = '{"' + '","'.join(inputs) + '"}'
-        formatdict["df"] = "{df}"
-        return [
-            self.call.format(**formatdict)
-        ]  # use format (not format_map here) such that missing config entries cause an error
+        config[""][scope]["input"] = '"' + '", "'.join(inputs) + '"'
+        config[""][scope]["input_vec"] = '{"' + '","'.join(inputs) + '"}'
+        config[""][scope]["df"] = "{df}"
+        try:
+            return [
+                self.call.format(**config[""][scope])
+            ]  # use format (not format_map here) such that missing config entries cause an error
+        except KeyError as e:
+            log.error(
+                "Error in {} Basefilter, key {} is not found in configuration".format(
+                    self.name, e
+                )
+            )
+            log.error("Call: {}".format(self.call))
+            raise Exception
 
 
 class ProducerGroup:
