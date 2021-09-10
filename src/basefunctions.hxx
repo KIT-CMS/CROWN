@@ -6,6 +6,7 @@
 #include "utility/Logger.hxx"
 #include "utility/RooFunctorThreadsafe.hxx"
 #include "utility/utility.hxx"
+#include <nlohmann/json.hpp>
 
 enum Channel { MT = 0, ET = 1, TT = 2, EM = 3 };
 
@@ -13,6 +14,47 @@ enum Channel { MT = 0, ET = 1, TT = 2, EM = 3 };
 /// function to be used in a data frame define
 
 namespace basefunctions {
+
+/**
+ * @brief Function to filter events based on their run and luminosity block
+ * values
+ *
+ * @param df the dataframe to filter
+ * @param json_path the path to the golden json file containing all valid runs
+ * ans luminosity blocks
+ * @param run th column containing the run value
+ * @param luminosity the column containing the luminosity block value
+ * @param filtername the name of the filter
+ * @return a filtered dataframe
+ */
+auto JSONFilter(auto &df, const std::string &json_path, const std::string &run,
+                const std::string &luminosity, const std::string &filtername) {
+    std::ifstream i(json_path);
+    nlohmann::json golden_json;
+    i >> golden_json;
+    auto jsonFilterlambda = [golden_json](UInt_t run, UInt_t luminosity) {
+        bool matched = false;
+        // check if the run exists
+        if (golden_json.find(std::to_string(run)) != golden_json.end()) {
+            // now loop over all luminosity blocks and check if the event is
+            // valid
+            for (auto &luminosityrange : golden_json[std::to_string(run)]) {
+                if (luminosity >= luminosityrange[0] &&
+                    luminosity <= luminosityrange[1]) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                Logger::get("JSONFilter")
+                    ->debug("Run {} / luminosity {} not in json file", run,
+                            luminosity);
+            }
+        }
+        return matched;
+    };
+    return df.Filter(jsonFilterlambda, {run, luminosity}, filtername);
+}
 
 /// Function to add an input quantity under a different name
 ///
