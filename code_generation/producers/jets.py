@@ -31,6 +31,29 @@ JetMassCorrection = Producer(
     output=[q.Jet_mass_corrected],
     scopes=["global"],
 )
+# in data, we simply rename the nanoAOD jets to the jet_pt_corrected column
+RenameJetPt = Producer(
+    name="RenameJetPt",
+    call="basefunctions::rename<ROOT::RVec<float>>({df}, {input}, {output})",
+    input=[nanoAOD.Jet_pt],
+    output=[q.Jet_pt_corrected],
+    scopes=["global"],
+)
+RenameJetMass = Producer(
+    name="RenameJetMass",
+    call="basefunctions::rename<ROOT::RVec<float>>({df}, {input}, {output})",
+    input=[nanoAOD.Jet_mass],
+    output=[q.Jet_mass_corrected],
+    scopes=["global"],
+)
+RenameJetsData = ProducerGroup(
+    name="RenameJetsData",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["global"],
+    subproducers=[RenameJetPt, RenameJetMass],
+)
 JetEnergyCorrection = ProducerGroup(
     name="JetEnergyCorrection",
     call=None,

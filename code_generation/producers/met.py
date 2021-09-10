@@ -125,6 +125,13 @@ MetPhi = Producer(
     output=[q.metphi],
     scopes=["et", "mt", "tt", "em"],
 )
+RenameMet = Producer(
+    name="RenameMet",
+    call="basefunctions::rename<ROOT::Math::PtEtaPhiMVector>({df}, {input}, {output})",
+    input=[q.met_p4],
+    output=[q.met_p4_recoilcorrected],
+    scopes=["et", "mt", "tt", "em"],
+)
 MetCorrections = ProducerGroup(
     name="MetCorrections",
     call=None,
@@ -142,6 +149,24 @@ MetCorrections = ProducerGroup(
         PropagateJetsToMet,
         CalculateGenBosonVector,
         ApplyRecoilCorrections,
+        MetPt,
+        MetPhi,
+    ],
+)
+MetForData = ProducerGroup(
+    name="MetForData",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["et", "mt", "tt", "em"],
+    subproducers=[
+        BuildMetVector,
+        MetCov00,
+        MetCov01,
+        MetCov10,
+        MetCov11,
+        MetSumEt,
+        RenameMet,
         MetPt,
         MetPhi,
     ],
