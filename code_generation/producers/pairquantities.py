@@ -142,30 +142,11 @@ decaymode_2 = Producer(
     output=[q.decaymode_2],
     scopes=["mt", "et", "tt"],
 )
-gen_match_2 = Producer(
-    name="gen_match_2",
-    call="quantities::tau::genmatch({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_genMatch],
-    output=[q.gen_match_2],
-    scopes=["mt", "et", "tt"],
-)
 taujet_pt_2 = Producer(
     name="taujet_pt_2",
     call="quantities::tau::matching_jet_pt({df}, {output}, 1, {input})",
     input=[q.ditaupair, nanoAOD.Tau_associatedJet, nanoAOD.Jet_pt],
     output=[q.taujet_pt_2],
-    scopes=["mt", "et", "tt"],
-)
-gen_taujet_pt_2 = Producer(
-    name="gen_taujet_pt_2",
-    call="quantities::tau::matching_genjet_pt({df}, {output}, 1, {input})",
-    input=[
-        q.ditaupair,
-        nanoAOD.Tau_associatedJet,
-        nanoAOD.Jet_associatedGenJet,
-        nanoAOD.GenJet_pt,
-    ],
-    output=[q.gen_taujet_pt_2],
     scopes=["mt", "et", "tt"],
 )
 UnrollLV1 = ProducerGroup(
@@ -192,9 +173,7 @@ UnrollLV2 = ProducerGroup(
         q_2,
         iso_2,
         decaymode_2,
-        gen_match_2,
         taujet_pt_2,
-        gen_taujet_pt_2,
     ],
 )
 DiTauPairQuantities = ProducerGroup(
