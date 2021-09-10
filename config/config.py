@@ -32,6 +32,11 @@ def build_config(era, sample, channels, shifts):
                 "ERA_2017": "data/pileup/Data_Pileup_2017_294927-306462_13TeVSummer17_PromptReco_69p2mbMinBiasXS.root",
                 "ERA_2018": "data/pileup/Data_Pileup_2018_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18.root",
             },
+            "golden_json_file": {
+                "ERA_2016": "data/golden_json/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt",
+                "ERA_2017": "data/golden_json/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt",
+                "ERA_2018": "data/golden_json/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt",
+            },
             "PU_reweighting_hist": "pileup",
             "min_tau_pt": 30.0,
             "max_tau_eta": 2.3,
@@ -129,8 +134,14 @@ def build_config(era, sample, channels, shifts):
             "muon_sf_id_args": "m_pt,m_eta",
             "muon_sf_iso_name": "m_iso_binned_kit_ratio",
             "muon_sf_iso_args": "m_pt,m_eta,m_iso",
-            "propagateLeptons": True,
-            "propagateJets": True,
+            "propagateLeptons": {
+                "SAMPLE_data": False,
+                "SAMPLE_DEFAULT": True,
+            },
+            "propagateJets": {
+                "SAMPLE_data": False,
+                "SAMPLE_DEFAULT": True,
+            },
             "recoil_corrections_file": {
                 "ERA_2016": "data/recoil_corrections/Type1_PuppiMET_2016.root",
                 "ERA_2017": "data/recoil_corrections/Type1_PuppiMET_2017.root",
@@ -141,7 +152,10 @@ def build_config(era, sample, channels, shifts):
                 "ERA_2017": "data/recoil_corrections/PuppiMETSys_2017.root",
                 "ERA_2018": "data/recoil_corrections/PuppiMETSys_2018.root",
             },
-            "applyRecoilCorrections": True,
+            "applyRecoilCorrections": {
+                "SAMPLE_DEFAULT": False,
+                "SAMPLE_wj": True,
+            },
             "apply_recoil_resolution_systematic": False,
             "apply_recoil_response_systematic": False,
             "recoil_systematic_shift_up": False,
@@ -225,6 +239,21 @@ def build_config(era, sample, channels, shifts):
         ),
         AppendProducer(producers=[TopPtReweighting], samples=["ttbar"], scopes=["mt"]),
         AppendProducer(producers=[ZPtMassReweighting], samples=["dy"], scopes=["mt"]),
+        # changes needed for data
+        # global scope
+        AppendProducer(
+            producers=[JSONFilter, RenameJetsData], samples=["data"], scopes=["global"]
+        ),
+        RemoveProducer(
+            producers=[JetEnergyCorrection], samples=["data"], scopes=["global"]
+        ),
+        # channel specific
+        RemoveProducer(
+            producers=[GenDiTauPairQuantities, MetCorrections],
+            samples=["data"],
+            scopes=["mt"],
+        ),
+        AppendProducer(producers=[MetForData], samples=["data"], scopes=["mt"]),
     ]
 
     config["output"] = {
@@ -295,10 +324,6 @@ def build_config(era, sample, channels, shifts):
             q.metcov11,
             GenerateSingleMuonTriggerFlags.output_group,
             GenerateCrossTriggerFlags.output_group,
-            nanoAOD.HTXS_Higgs_pt,
-            nanoAOD.HTXS_njets30,
-            nanoAOD.HTXS_stage_0,
-            nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
             q.pzetamissvis,
             q.mTdileptonMET,
             q.mt_1,
@@ -308,6 +333,15 @@ def build_config(era, sample, channels, shifts):
             q.mt_tot,
         ]
     }
+    if "data" not in sample:
+        config["output"]["mt"].extend(
+            [
+                nanoAOD.HTXS_Higgs_pt,
+                nanoAOD.HTXS_njets30,
+                nanoAOD.HTXS_stage_0,
+                nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
+            ]
+        )
 
     for modifier in config["producer_modifiers"]:
         modifier.apply(sample, config["producers"], config["output"])
