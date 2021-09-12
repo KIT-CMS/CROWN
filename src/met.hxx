@@ -4,6 +4,7 @@
 #include "RecoilCorrections/RecoilCorrector.cxx"
 #include "basefunctions.hxx"
 #include "bitset"
+#include "defaults.hxx"
 #include "utility/Logger.hxx"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
@@ -46,6 +47,8 @@ The meaning of the genparticle statusflag codes is listed in the table below.
  * @param genparticle_status genparticle status
  * @param genparticle_statusflag genparticle statusflag bit (see above)
  * @param outputname name of the new column containing the corrected met
+ * @param is_data for data we cant calculate a genBoson vector, so a default
+value is returned
  * @return a new dataframe containing a pair of lorentz vectors, first is the
 GenBosonVector, second is the visibleGenBosonVector
  */
@@ -56,7 +59,7 @@ auto calculateGenBosonVector(auto df, const std::string &genparticle_pt,
                              const std::string &genparticle_id,
                              const std::string &genparticle_status,
                              const std::string &genparticle_statusflag,
-                             const std::string outputname) {
+                             const std::string outputname, bool is_data) {
     auto calculateGenBosonVector =
         [](const ROOT::RVec<float> &genparticle_pt,
            const ROOT::RVec<float> &genparticle_eta,
@@ -72,8 +75,8 @@ auto calculateGenBosonVector(auto df, const std::string &genparticle_pt,
             for (std::size_t index = 0; index < genparticle_id.size();
                  ++index) {
                 // consider a genparticle,
-                // 1. if it is a lepton and fromHardProcessFinalState --> bit 8
-                // from statusflag and 1 from status
+                // 1. if it is a lepton and fromHardProcessFinalState -->
+                // bit 8 from statusflag and 1 from status
                 // 2. if it is isDirectHardProcessTauDecayProduct --> bit 10
                 // in statusflag
                 Logger::get("getGenMet")
@@ -103,10 +106,14 @@ auto calculateGenBosonVector(auto df, const std::string &genparticle_pt,
                 metpair = {genBoson, visgenBoson};
             return metpair;
         };
-    return df.Define(outputname, calculateGenBosonVector,
-                     {genparticle_pt, genparticle_eta, genparticle_phi,
-                      genparticle_mass, genparticle_id, genparticle_status,
-                      genparticle_statusflag});
+    if (!is_data) {
+        return df.Define(outputname, calculateGenBosonVector,
+                         {genparticle_pt, genparticle_eta, genparticle_phi,
+                          genparticle_mass, genparticle_id, genparticle_status,
+                          genparticle_statusflag});
+    } else {
+        return df.Define(outputname, []() { return default_lorentzvector; });
+    }
 }
 /**
  * @brief Function used to propagate lepton corrections to the met. If the

@@ -20,6 +20,18 @@ from config.utility import (
     AppendProducer,
 )
 
+available_sample_types = [
+    "ggh",
+    "vbf",
+    "rem_htt",
+    "emb",
+    "tt",
+    "vv",
+    "dy",
+    "wj",
+    "data",
+]
+
 
 def build_config(era, sample, channels, shifts):
     base_config = {
@@ -161,10 +173,6 @@ def build_config(era, sample, channels, shifts):
             "recoil_systematic_shift_up": False,
             "recoil_systematic_shift_down": False,
             "min_jetpt_met_propagation": 15,
-            "isWJets": {
-                "SAMPLE_wj": True,
-                "SAMPLE_DEFAULT": False,
-            },
         },
     }
     all_channels = {
@@ -178,9 +186,14 @@ def build_config(era, sample, channels, shifts):
         "zptmass_functor": "zptmass_weight_nom",
         "zptmass_arguments": "z_gen_mass,z_gen_pt",
     }
+    # set the sample type:
+    for sampletype in available_sample_types:
+        if sample == sampletype:
+            all_channels["is_{}".format(sampletype)] = True
+        else:
+            all_channels["is_{}".format(sampletype)] = False
     for channel in ["mt"]:  # add em et tt here as soon as they appear in config
         base_config[channel].update(all_channels)
-
     config = {"": base_config}
 
     config["producers"] = {
@@ -242,18 +255,19 @@ def build_config(era, sample, channels, shifts):
         # changes needed for data
         # global scope
         AppendProducer(
-            producers=[JSONFilter, RenameJetsData], samples=["data"], scopes=["global"]
+            producers=[JSONFilter, RenameJetsData],
+            samples=["data", "emb"],
+            scopes=["global"],
         ),
         RemoveProducer(
-            producers=[JetEnergyCorrection], samples=["data"], scopes=["global"]
+            producers=[JetEnergyCorrection], samples=["data", "emb"], scopes=["global"]
         ),
         # channel specific
         RemoveProducer(
-            producers=[GenDiTauPairQuantities, MetCorrections],
-            samples=["data"],
+            producers=[GenDiTauPairQuantities],
+            samples=["data", "emb"],
             scopes=["mt"],
         ),
-        AppendProducer(producers=[MetForData], samples=["data"], scopes=["mt"]),
     ]
 
     config["output"] = {

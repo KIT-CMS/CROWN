@@ -87,7 +87,7 @@ PropagateJetsToMet = Producer(
 )
 CalculateGenBosonVector = Producer(
     name="calculateGenBosonVector",
-    call="met::calculateGenBosonVector({df}, {input}, {output})",
+    call="met::calculateGenBosonVector({df}, {input}, {output}, {is_data})",
     input=[
         nanoAOD.GenParticle_pt,
         nanoAOD.GenParticle_eta,
@@ -102,7 +102,7 @@ CalculateGenBosonVector = Producer(
 )
 ApplyRecoilCorrections = Producer(
     name="ApplyRecoilCorrections",
-    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down}, {isWJets})',
+    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down}, {is_wj})',
     input=[
         q.met_p4_jetcorrected,
         q.recoil_genboson_p4,
@@ -125,13 +125,6 @@ MetPhi = Producer(
     output=[q.metphi],
     scopes=["et", "mt", "tt", "em"],
 )
-RenameMet = Producer(
-    name="RenameMet",
-    call="basefunctions::rename<ROOT::Math::PtEtaPhiMVector>({df}, {input}, {output})",
-    input=[q.met_p4],
-    output=[q.met_p4_recoilcorrected],
-    scopes=["et", "mt", "tt", "em"],
-)
 MetCorrections = ProducerGroup(
     name="MetCorrections",
     call=None,
@@ -145,28 +138,10 @@ MetCorrections = ProducerGroup(
         MetCov10,
         MetCov11,
         MetSumEt,
+        CalculateGenBosonVector,
         PropagateLeptonsToMet,
         PropagateJetsToMet,
-        CalculateGenBosonVector,
         ApplyRecoilCorrections,
-        MetPt,
-        MetPhi,
-    ],
-)
-MetForData = ProducerGroup(
-    name="MetForData",
-    call=None,
-    input=None,
-    output=None,
-    scopes=["et", "mt", "tt", "em"],
-    subproducers=[
-        BuildMetVector,
-        MetCov00,
-        MetCov01,
-        MetCov10,
-        MetCov11,
-        MetSumEt,
-        RenameMet,
         MetPt,
         MetPhi,
     ],
