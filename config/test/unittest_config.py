@@ -21,6 +21,18 @@ from config.utility import (
     AppendProducer,
 )
 
+available_sample_types = [
+    "ggh",
+    "vbf",
+    "rem_htt",
+    "emb",
+    "tt",
+    "vv",
+    "dy",
+    "wj",
+    "data",
+]
+
 
 def build_config(era, sample, channels, shifts):
     base_config = {
