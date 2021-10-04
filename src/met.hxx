@@ -80,9 +80,9 @@ auto calculateGenBosonVector(auto df, const std::string &genparticle_pt,
                     ->debug("Checking particle {} ", genparticle_id.at(index));
                 if ((abs(genparticle_id.at(index)) >= 11 &&
                      abs(genparticle_id.at(index)) <= 16 &&
-                     (IntBits(genparticle_status.at(index)).test(8)) &&
+                     (IntBits(genparticle_statusflag.at(index)).test(8)) &&
                      genparticle_status.at(index) == 1) ||
-                    (IntBits(genparticle_status.at(index)).test(10))) {
+                    (IntBits(genparticle_statusflag.at(index)).test(10))) {
                     Logger::get("getGenMet")->debug("Adding to gen p*");
                     genparticle = ROOT::Math::PtEtaPhiMVector(
                         genparticle_pt.at(index), genparticle_eta.at(index),
