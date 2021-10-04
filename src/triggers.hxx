@@ -13,7 +13,7 @@ namespace trigger {
 
 /**
  * @brief Function used to try and match a object with a trigger object. An
-oject is successfully matched, if they overlap within the given deltaR cone
+object is successfully matched, if they overlap within the given deltaR cone
 (matchDeltaR), the pt and eta thresholds are met, and the triggerobject id and
 the triggerobject bit are set to the correct value.
 
