@@ -39,7 +39,7 @@ auto rename(auto &df, const std::string &inputname,
 /// \returns a filtered dataframe
 template <class... Flags>
 auto FilterFlagsAny(auto &df, const std::string &filtername,
-                    const Flags &... flags) {
+                    const Flags &...flags) {
     std::vector<std::string> FlagList;
     utility::appendParameterPackToVector(FlagList, flags...);
     const auto nFlags = sizeof...(Flags);
@@ -61,7 +61,7 @@ auto FilterFlagsAny(auto &df, const std::string &filtername,
 /// \returns a dataframe containing the new column
 template <class... Flags>
 auto CombineFlagsAny(auto &df, const std::string &outputflag,
-                     const Flags &... flags) {
+                     const Flags &...flags) {
     std::vector<std::string> FlagList;
     utility::appendParameterPackToVector(FlagList, flags...);
     const auto nFlags = sizeof...(Flags);
@@ -219,7 +219,7 @@ template <class... Inputs>
 auto evaluateWorkspaceFunction(
     auto &df, const std::string &outputname,
     const std::shared_ptr<RooFunctorThreadsafe> &function,
-    const Inputs &... inputs) {
+    const Inputs &...inputs) {
     Logger::get("evaluateWorkspaceFunction")
         ->debug("Starting evaluation for {}", outputname);
     auto getValue = [function](const ROOT::RVec<float> &values) {
