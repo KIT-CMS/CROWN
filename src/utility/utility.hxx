@@ -21,7 +21,7 @@ void appendParameterPackToVector(std::vector<std::string> &v,
 template <class... ParameterPack>
 void appendParameterPackToVector(std::vector<std::string> &v,
                                  const std::string &parameter,
-                                 const ParameterPack &... pack) {
+                                 const ParameterPack &...pack) {
     v.push_back(parameter);
     appendParameterPackToVector(v, pack...);
 }
