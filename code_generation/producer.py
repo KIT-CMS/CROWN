@@ -330,8 +330,17 @@ class ProducerGroup:
         self.call = call
         self.input = input
         self.output = output
-        self.producers = subproducers
         self.scopes = scopes
+        self.producers = {}
+        # if subproducers are given as dict and therefore scope specific transform into dict with all scopes
+        if not isinstance(subproducers, dict):
+            log.debug("Converting subproducer list to dictionary")
+            for scope in self.scopes:
+                self.producers[scope] = subproducers
+        else:
+            self.producers = subproducers
+        # do a consistency check for the scopes
+        self.check_producer_scopes()
         # if input not given as dict and therefore not scope specific transform into dict with all scopes
         if not isinstance(self.input, dict):
             inputdict = {}
@@ -342,26 +351,28 @@ class ProducerGroup:
             self.input = inputdict
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
         if self.call != None:
-            for subproducer in self.producers:
-                # skip producers without output
-                if subproducer.output == None:
-                    continue
-                # if the subproducer does not have an output quantity, we assign an internally tracked quantity
-                if subproducer.output == []:
-                    # create quantities that are produced by subproducers and then collected by the final call of the producer group
-                    subproducer.output = [
-                        q.Quantity("PG_internal_quantity_%i" % self.__class__.PG_count)
-                    ]  # quantities of vector producers will be duplicated later on when config is known
-                    self.__class__.PG_count += 1
-                    if isinstance(subproducer, ProducerGroup):
-                        subproducer.producers[-1].output = subproducer.output
-                    for scope in subproducer.scopes:
-                        for quantity in subproducer.input[scope]:
-                            quantity.adopt(subproducer.output[0], scope)
-                for scope in self.scopes:
+            for scope in self.scopes:
+                for subproducer in self.producers[scope]:
+                    # skip producers without output
+                    if subproducer.output == None:
+                        continue
+                    # if the subproducer does not have an output quantity, we assign an internally tracked quantity
+                    if subproducer.output == []:
+                        # create quantities that are produced by subproducers and then collected by the final call of the producer group
+                        subproducer.output = [
+                            q.Quantity(
+                                "PG_internal_quantity_%i" % self.__class__.PG_count
+                            )
+                        ]  # quantities of vector producers will be duplicated later on when config is known
+                        self.__class__.PG_count += 1
+                        if isinstance(subproducer, ProducerGroup):
+                            subproducer.producers[scope][-1].output = subproducer.output
+                        for scope in subproducer.scopes:
+                            for quantity in subproducer.input[scope]:
+                                quantity.adopt(subproducer.output[0], scope)
                     for output_quantity in subproducer.output:
                         self.input[scope].append(output_quantity)
-            # treat own collection function as subproducer
+                # treat own collection function as subproducer
             self.setup_own_producer()
         log.debug("-----------------------------------------")
         log.debug("| ProducerGroup: {}".format(self.name))
@@ -379,10 +390,14 @@ class ProducerGroup:
             log.debug("| Output: None")
         else:
             log.debug("| Outputs: {}".format([output.name for output in self.output]))
-        log.debug(
-            "| Producers: {}".format([producer.name for producer in self.producers])
-        )
         log.debug("| scopes: {}".format(self.scopes))
+        for scope in self.scopes:
+            log.debug(
+                "| Producers ({}): {}".format(
+                    scope, [producer.name for producer in self.producers[scope]]
+                )
+            )
+
         log.debug("-----------------------------------------")
 
     def __str__(self) -> str:
@@ -391,29 +406,39 @@ class ProducerGroup:
     def __repr__(self) -> str:
         return "ProducerGroup: {}".format(self.name)
 
+    def check_producer_scopes(self):
+        for scope in self.scopes:
+            if scope not in self.producers.keys():
+                raise Exception(
+                    "ProducerGroup {}: scope {} not found in subproducer configuration: {}".format(
+                        self.name, scope, self.producers
+                    )
+                )
+
     def setup_own_producer(self):
-        self.producers.append(
-            Producer(self.name, self.call, self.input, self.output, self.scopes)
-        )
+        for scope in self.scopes:
+            self.producers[scope].append(
+                Producer(self.name, self.call, self.input, self.output, self.scopes)
+            )
 
     # for a producer group, step iteratively
     # through the subproducers and reserve the output there
 
     def reserve_output(self, scope):
-        for subproducer in self.producers:
+        for subproducer in self.producers[scope]:
             subproducer.reserve_output(scope)
 
     def shift(self, name, scope="global"):
-        for producer in self.producers:
+        for producer in self.producers[scope]:
             producer.shift(name, scope)
 
     def ignore_shift(self, name, scope="global"):
-        for producer in self.producers:
+        for producer in self.producers[scope]:
             producer.ignore_shift(name, scope)
 
     def writecalls(self, config, scope):
         calls = []
-        for producer in self.producers:
+        for producer in self.producers[scope]:
             # duplicate outputs of vector subproducers if they were generated automatically
             if self.call != None and hasattr(producer, "vec_configs"):
                 for i in range(len(config[""][scope][producer.vec_configs[0]]) - 1):
@@ -431,7 +456,7 @@ class ProducerGroup:
     def get_inputs(self, scope):
         inputs = []
         log.debug("Getting inputs for {}".format(self.name))
-        for subproducer in self.producers:
+        for subproducer in self.producers[scope]:
             log.debug("  --> ", subproducer, subproducer.get_inputs(scope))
             inputs.extend(subproducer.get_inputs(scope))
         return inputs
@@ -439,7 +464,7 @@ class ProducerGroup:
     def get_outputs(self, scope):
         outputs = []
         log.debug("Getting outputs for {}".format(self.name))
-        for subproducer in self.producers:
+        for subproducer in self.producers[scope]:
             log.debug("  --> ", subproducer, subproducer.get_outputs(scope))
             outputs.extend(subproducer.get_outputs(scope))
         return outputs
@@ -458,4 +483,7 @@ class Filter(ProducerGroup):
         return "Filter: {}".format(self.name)
 
     def setup_own_producer(self):
-        self.producers.append(BaseFilter(self.name, self.call, self.input, self.scopes))
+        for scope in self.scopes:
+            self.producers[scope].append(
+                BaseFilter(self.name, self.call, self.input, self.scopes)
+            )
