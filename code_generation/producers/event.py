@@ -13,7 +13,7 @@ RunLumiEventFilter = VectorProducer(
     call='basefunctions::FilterIntSelection<{RunLumiEventFilter_Quantity_Types}>({df}, "{RunLumiEventFilter_Quantities}", {vec_open}{RunLumiEventFilter_Selections}{vec_close}, "RunLumiEventFilter")',
     input=[],
     output=None,
-    scopes=["general"],
+    scopes=["global"],
     vec_configs=[
         "RunLumiEventFilter_Quantities",
         "RunLumiEventFilter_Quantity_Types",
@@ -52,7 +52,7 @@ ZPtMassReweighting = Producer(
         q.recoil_genboson_p4,
     ],
     output=[q.ZPtMassReweightWeight],
-    scopes=["global", "em", "et", "mt", "tt"],
+    scopes=["global", "em", "et", "mt", "tt", "mm"],
 )
 
 TopPtReweighting = Producer(
@@ -64,7 +64,7 @@ TopPtReweighting = Producer(
         nanoAOD.GenParticle_pt,
     ],
     output=[q.topPtReweightWeight],
-    scopes=["global", "em", "et", "mt", "tt"],
+    scopes=["global", "em", "et", "mt", "tt", "mm"],
 )
 
 DiLeptonVeto = ProducerGroup(
@@ -81,7 +81,7 @@ GGH_NNLO_Reweighting = Producer(
     call='htxs::ggHNLLOWeights({df}, {output}, "{ggHNNLOweightsRootfile}", "{ggH_generator}", {input})',
     input=[nanoAOD.HTXS_Higgs_pt, nanoAOD.HTXS_njets30],
     output=[q.ggh_NNLO_weight],
-    scopes=["global", "em", "et", "mt", "tt"],
+    scopes=["global", "em", "et", "mt", "tt", "mm"],
 )
 
 GGH_WG1_Uncertainties = Producer(
@@ -103,7 +103,7 @@ GGH_WG1_Uncertainties = Producer(
         q.THU_ggH_PT120,
         q.THU_ggH_qmtop,
     ],
-    scopes=["global", "em", "et", "mt", "tt"],
+    scopes=["global", "em", "et", "mt", "tt", "mm"],
 )
 
 QQH_WG1_Uncertainties = Producer(
@@ -124,5 +124,5 @@ QQH_WG1_Uncertainties = Producer(
         q.THU_qqH_25,
         q.THU_qqH_JET01,
     ],
-    scopes=["global", "em", "et", "mt", "tt"],
+    scopes=["global", "em", "et", "mt", "tt", "mm"],
 )
