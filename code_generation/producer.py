@@ -347,7 +347,7 @@ class ProducerGroup:
         if not isinstance(subproducers, dict):
             log.debug("Converting subproducer list to dictionary")
             for scope in self.scopes:
-                self.producers[scope] = [producer for producer in subproducers]
+                self.producers[scope] = subproducers
         else:
             self.producers = subproducers
         # do a consistency check for the scopes
@@ -362,18 +362,9 @@ class ProducerGroup:
             self.input = inputdict
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
         if self.call != None:
-            log.debug("Constructing {}".format(self.name))
-            log.debug(" --> Scopes: {}".format(self.scopes))
             for scope in self.scopes:
-                log.debug("Adding for scope: {}".format(scope))
-                log.debug(" --> Producers {}".format(self.producers[scope]))
                 for subproducer in self.producers[scope]:
                     # skip producers without output
-                    log.debug(
-                        "Adding {} / {} : output: {}".format(
-                            subproducer, scope, subproducer.output
-                        )
-                    )
                     if subproducer.output == None:
                         continue
                     # if the subproducer does not have an output quantity, we assign an internally tracked quantity
@@ -384,21 +375,15 @@ class ProducerGroup:
                                 "PG_internal_quantity_%i" % self.__class__.PG_count
                             )
                         ]  # quantities of vector producers will be duplicated later on when config is known
-                        log.debug(
-                            "Added new internal quantitiy: {}".format(
-                                subproducer.output
-                            )
-                        )
                         self.__class__.PG_count += 1
                         if isinstance(subproducer, ProducerGroup):
                             subproducer.producers[scope][-1].output = subproducer.output
-                        for subproducer_scope in subproducer.scopes:
-                            for quantity in subproducer.input[subproducer_scope]:
-                                quantity.adopt(subproducer.output[0], subproducer_scope)
+                        for scope in subproducer.scopes:
+                            for quantity in subproducer.input[scope]:
+                                quantity.adopt(subproducer.output[0], scope)
                     for output_quantity in subproducer.output:
-                        if output_quantity not in self.input[scope]:
-                            self.input[scope].append(output_quantity)
-            # treat own collection function as subproducer
+                        self.input[scope].append(output_quantity)
+                # treat own collection function as subproducer
             self.setup_own_producer()
         log.debug("-----------------------------------------")
         log.debug("| ProducerGroup: {}".format(self.name))
@@ -442,9 +427,10 @@ class ProducerGroup:
                 )
 
     def setup_own_producer(self):
-        producer = Producer(self.name, self.call, self.input, self.output, self.scopes)
         for scope in self.scopes:
-            self.producers[scope].append(producer)
+            self.producers[scope].append(
+                Producer(self.name, self.call, self.input, self.output, self.scopes)
+            )
 
     # for a producer group, step iteratively
     # through the subproducers and reserve the output there
@@ -483,7 +469,7 @@ class ProducerGroup:
         inputs = []
         log.debug("Getting inputs for {}".format(self.name))
         for subproducer in self.producers[scope]:
-            log.debug("  --> {} {}".format(subproducer, subproducer.get_inputs(scope)))
+            log.debug("  --> ", subproducer, subproducer.get_inputs(scope))
             inputs.extend(subproducer.get_inputs(scope))
         return inputs
 
@@ -491,7 +477,7 @@ class ProducerGroup:
         outputs = []
         log.debug("Getting outputs for {}".format(self.name))
         for subproducer in self.producers[scope]:
-            log.debug("  --> {} {}".format(subproducer, subproducer.get_outputs(scope)))
+            log.debug("  --> ", subproducer, subproducer.get_outputs(scope))
             outputs.extend(subproducer.get_outputs(scope))
         return outputs
 
