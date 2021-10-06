@@ -38,6 +38,34 @@ GoodMTPairFilter = Filter(
     subproducers=[GoodMTPairFlag],
 )
 
+
+MMPairSelection = Producer(
+    name="MMPairSelection",
+    call="pairselection::mumu::PairSelection({df}, {input_vec}, {output})",
+    input=[
+        nanoAOD.Muon_pt,
+        q.good_muons_mask,
+    ],
+    output=[q.ditaupair],
+    scopes=["mm"],
+)
+
+GoodMMPairFlag = Producer(
+    name="GoodMMPairFlag",
+    call="pairselection::flagGoodPairs({df}, {output}, {input})",
+    input=[q.ditaupair],
+    output=[],
+    scopes=["mm"],
+)
+
+GoodMMPairFilter = Filter(
+    name="GoodMMPairFilter",
+    call='basefunctions::FilterFlagsAny({df}, "GoodMuMuPairs", {input})',
+    input=[],
+    scopes=["mm"],
+    subproducers=[GoodMMPairFlag],
+)
+
 LVMu1 = Producer(
     name="LVMu1",
     call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
@@ -49,7 +77,7 @@ LVMu1 = Producer(
         nanoAOD.Muon_mass,
     ],
     output=[q.p4_1],
-    scopes=["mt"],
+    scopes=["mt", "mm"],
 )
 LVMu2 = Producer(
     name="LVMu2",
@@ -62,7 +90,33 @@ LVMu2 = Producer(
         nanoAOD.Muon_mass,
     ],
     output=[q.p4_2],
-    scopes=["mt"],
+    scopes=["mm"],
+)
+LVEl1 = Producer(
+    name="LVEl1",
+    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
+    input=[
+        q.ditaupair,
+        nanoAOD.Electron_pt,
+        nanoAOD.Electron_eta,
+        nanoAOD.Electron_phi,
+        nanoAOD.Electron_mass,
+    ],
+    output=[q.p4_1],
+    scopes=["et", "ee"],
+)
+LVEl2 = Producer(
+    name="LVEl2",
+    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
+    input=[
+        q.ditaupair,
+        nanoAOD.Electron_pt,
+        nanoAOD.Electron_eta,
+        nanoAOD.Electron_phi,
+        nanoAOD.Electron_mass,
+    ],
+    output=[q.p4_2],
+    scopes=["ee"],
 )
 LVTau1 = Producer(
     name="LVTau1",
@@ -75,7 +129,7 @@ LVTau1 = Producer(
         q.Tau_mass_corrected,
     ],
     output=[q.p4_1],
-    scopes=["mt"],
+    scopes=["tt"],
 )
 LVTau2 = Producer(
     name="LVTau2",
@@ -88,7 +142,7 @@ LVTau2 = Producer(
         q.Tau_mass_corrected,
     ],
     output=[q.p4_2],
-    scopes=["mt"],
+    scopes=["mt", "et", "tt"],
 )
 ## uncorrected versions of all particles, used for MET propagation
 LVMu1Uncorrected = Producer(
@@ -102,7 +156,59 @@ LVMu1Uncorrected = Producer(
         nanoAOD.Muon_mass,
     ],
     output=[q.p4_1_uncorrected],
-    scopes=["mt"],
+    scopes=["mt", "mm"],
+)
+LVMu2Uncorrected = Producer(
+    name="LVMu2Uncorrected",
+    call="lorentzvectors::build({df}, {input_vec}, 2, {output})",
+    input=[
+        q.ditaupair,
+        nanoAOD.Muon_pt,
+        nanoAOD.Muon_eta,
+        nanoAOD.Muon_phi,
+        nanoAOD.Muon_mass,
+    ],
+    output=[q.p4_2_uncorrected],
+    scopes=["mm"],
+)
+LVEl1Uncorrected = Producer(
+    name="LVEl1Uncorrected",
+    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
+    input=[
+        q.ditaupair,
+        nanoAOD.Electron_pt,
+        nanoAOD.Electron_eta,
+        nanoAOD.Electron_phi,
+        nanoAOD.Electron_mass,
+    ],
+    output=[q.p4_1_uncorrected],
+    scopes=["mt", "mm"],
+)
+LVEl2Uncorrected = Producer(
+    name="LVEl2Uncorrected",
+    call="lorentzvectors::build({df}, {input_vec}, 2, {output})",
+    input=[
+        q.ditaupair,
+        nanoAOD.Electron_pt,
+        nanoAOD.Electron_eta,
+        nanoAOD.Electron_phi,
+        nanoAOD.Electron_mass,
+    ],
+    output=[q.p4_2_uncorrected],
+    scopes=["mm"],
+)
+LVTau1Uncorrected = Producer(
+    name="LVTau1Uncorrected",
+    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
+    input=[
+        q.ditaupair,
+        nanoAOD.Tau_pt,
+        nanoAOD.Tau_eta,
+        nanoAOD.Tau_phi,
+        nanoAOD.Tau_mass,
+    ],
+    output=[q.p4_1_uncorrected],
+    scopes=["tt"],
 )
 LVTau2Uncorrected = Producer(
     name="LVTau2Uncorrected",
@@ -115,5 +221,5 @@ LVTau2Uncorrected = Producer(
         nanoAOD.Tau_mass,
     ],
     output=[q.p4_2_uncorrected],
-    scopes=["mt"],
+    scopes=["mt", "et", "tt"],
 )
