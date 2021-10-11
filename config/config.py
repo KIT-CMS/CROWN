@@ -300,8 +300,8 @@ def build_config(era, sample, channels, shifts):
             BasicBJetQuantities,
             MTGenDiTauPairQuantities,
             MuonIDIso_SF,
-            GenerateSingleMuonTriggerFlags,
-            GenerateCrossTriggerFlags,
+            MTGenerateSingleMuonTriggerFlags,
+            MTGenerateCrossTriggerFlags,
             LVMu1Uncorrected,
             LVTau2Uncorrected,
             MetCorrections,
@@ -310,37 +310,21 @@ def build_config(era, sample, channels, shifts):
     }
 
     config["producer_modifiers"] = [
-        RemoveProducer(producers=[MuonIDIso_SF], samples=["data"], scopes=["mt"]),
+        RemoveProducer(producers=[MuonIDIso_SF], samples=["data"], scopes=["mt", "mm"]),
         RemoveProducer(
             producers=[PUweights], samples=["data", "emb"], scopes=["global"]
         ),
         AppendProducer(
-            producers=[GGH_NNLO_Reweighting], samples=["ggh"], scopes=["mt"]
+            producers=[GGH_NNLO_Reweighting], samples=["ggh"], scopes=["mt", "mm"]
         ),
         AppendProducer(
-            producers=[GGH_WG1_Uncertainties], samples=["ggh"], scopes=["mt"]
+            producers=[GGH_WG1_Uncertainties], samples=["ggh"], scopes=["mt", "mm"]
         ),
         AppendProducer(
-            producers=[QQH_WG1_Uncertainties], samples=["qqh"], scopes=["mt"]
+            producers=[QQH_WG1_Uncertainties], samples=["qqh"], scopes=["mt", "mm"]
         ),
-        AppendProducer(producers=[TopPtReweighting], samples=["ttbar"], scopes=["mt"]),
-        AppendProducer(producers=[ZPtMassReweighting], samples=["dy"], scopes=["mt"]),
-        # changes needed for data
-        # global scope
-        AppendProducer(
-            producers=[JSONFilter, RenameJetsData],
-            samples=["data", "emb"],
-            scopes=["global"],
-        ),
-        RemoveProducer(
-            producers=[JetEnergyCorrection], samples=["data", "emb"], scopes=["global"]
-        ),
-        # channel specific
-        RemoveProducer(
-            producers=[GenDiTauPairQuantities],
-            samples=["data", "emb"],
-            scopes=["mt"],
-        ),
+        AppendProducer(producers=[TopPtReweighting], samples=["ttbar"], scopes=["mt", "mm"]),
+        AppendProducer(producers=[ZPtMassReweighting], samples=["dy"], scopes=["mt", "mm"]),
     ]
 
     config["output"] = {
@@ -409,8 +393,12 @@ def build_config(era, sample, channels, shifts):
             q.metcov01,
             q.metcov10,
             q.metcov11,
-            GenerateSingleMuonTriggerFlags.output_group,
-            GenerateCrossTriggerFlags.output_group,
+            MTGenerateSingleMuonTriggerFlags.output_group,
+            MTGenerateCrossTriggerFlags.output_group,
+            nanoAOD.HTXS_Higgs_pt,
+            nanoAOD.HTXS_njets30,
+            nanoAOD.HTXS_stage_0,
+            nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
             q.pzetamissvis,
             q.mTdileptonMET,
             q.mt_1,

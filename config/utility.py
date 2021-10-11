@@ -99,6 +99,16 @@ class ProducerRule:
         self.invert = invert
         self.update_output = update_output
 
+    def __str__(self) -> str:
+        return "ProducerRule - update {} for {} in scopes {}".format(
+            self.producers, self.samples, self.scopes
+        )
+
+    def __repr__(self) -> str:
+        return "ProducerRule - update {} for {} in scopes {}".format(
+            self.producers, self.samples, self.scopes
+        )
+
     # Evaluate whether modification should be applied depending on sample and inversion flag
     def applicable(self, sample):
         applicable = sample in self.samples
@@ -134,23 +144,11 @@ class ProducerRule:
 class RemoveProducer(ProducerRule):
     def operate(self, item, item_list):
         try:
-            log.debug("RemoveProducer: Removing {} from list".format(item))
             item_list.remove(item)
         except ValueError:
-            if isinstance(item, Quantity):
-                log.info(
-                    "RemoveProducer: Quantity {} is not in output quantities, removal does not change anything ..".format(
-                        item
-                    )
-                )
-            else:
-                log.info(item_list)
-                log.error(
-                    "RemoveProducer: Producer {} not found in {}!".format(
-                        item, item_list
-                    )
-                )
-                raise Exception
+            log.warning("Error when applying {} ".format(self))
+            log.warning("Cannot remove {} from {}".format(item, item_list))
+            pass
 
 
 # Modifier class that can append producers to lists
