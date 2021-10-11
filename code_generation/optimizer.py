@@ -1,5 +1,5 @@
 from code_generation.quantity import NanoAODQuantity
-from code_generation.producer import Filter
+from code_generation.producer import Filter, BaseFilter
 import logging
 
 log = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ class ProducerOrdering:
     def MoveFiltersUp(self):
         new_ordering = []
         for producer in self.ordering:
-            if isinstance(producer, Filter):
+            if isinstance(producer, Filter) or isinstance(producer, BaseFilter):
                 new_ordering.insert(0, producer)
             else:
                 new_ordering.append(producer)
@@ -244,7 +244,11 @@ class ProducerOrdering:
                         found = True
                         log.debug("found {} in global scope ..".format(input))
             if not found:
-                log.error("{} was not found in any producer output!".format(input))
+                log.error(
+                    "{} (required by {}) was not found in any producer output!".format(
+                        input, producer
+                    )
+                )
                 log.error("Please check if all needed producers are activated !")
                 raise Exception
         return list(producers_to_relocate)

@@ -21,8 +21,8 @@ ElectronEtaCut = Producer(
     scopes=["global"],
 )
 ElectronDxyCut = Producer(
-    name="ElectronDzCut",
-    call="physicsobject::CutDz({df}, {input}, {output}, {max_ele_dxy})",
+    name="ElectronDxyCut",
+    call="physicsobject::CutDxy({df}, {input}, {output}, {max_ele_dxy})",
     input=[nanoAOD.Electron_dxy],
     output=[],
     scopes=["global"],

@@ -1,4 +1,6 @@
+from code_generation.producer import ProducerGroup
 from code_generation.optimizer import ProducerOrdering
+from code_generation.quantity import Quantity
 import copy
 import logging
 
@@ -76,6 +78,18 @@ def CollectProducerOutput(producer):
     return output
 
 
+def ExpandProducerConfig(producer_list):
+    # we expand all producers groups to individual producers
+    full_producerlist = []
+    for producer in producer_list:
+        if isinstance(producer, ProducerGroup):
+            full_producerlist.extend(ExpandProducerConfig(producer.producers))
+        else:
+            full_producerlist.append(producer)
+    # log.info(full_producerlist)
+    return full_producerlist
+
+
 # Base class of modifiers that are used to apply sample specific modifications to the producer lists
 class ProducerRule:
     def __init__(self, producers, samples, scopes, invert=False, update_output=True):
@@ -126,11 +140,23 @@ class ProducerRule:
 class RemoveProducer(ProducerRule):
     def operate(self, item, item_list):
         try:
+            log.debug("RemoveProducer: Removing {} from list".format(item))
             item_list.remove(item)
         except ValueError:
-            log.warning("Error when applying {} ".format(self))
-            log.warning("Cannot remove {} from {}".format(item, item_list))
-            pass
+            if isinstance(item, Quantity):
+                log.info(
+                    "RemoveProducer: Quantity {} is not in output quantities, removal does not change anything ..".format(
+                        item
+                    )
+                )
+            else:
+                log.info(item_list)
+                log.error(
+                    "RemoveProducer: Producer {} not found in {}!".format(
+                        item, item_list
+                    )
+                )
+                raise Exception
 
 
 # Modifier class that can append producers to lists

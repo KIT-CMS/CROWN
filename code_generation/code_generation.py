@@ -72,8 +72,7 @@ def fill_template(t, config):
         )
     runcommands = ""
     for scope in config["output"]:
-        runcommands += '    auto %s_result = %s_df_final.Snapshot("ntuple", std::string(output_path) + "test_%s.root", %s, dfconfig);\n' % (
-            scope,
+        runcommands += '    auto %s_result = %s_df_final.Snapshot("ntuple", std::string(output_path), %s, dfconfig);\n' % (
             scope,
             scope,
             '{"'
@@ -99,7 +98,7 @@ def fill_template(t, config):
     plain_output_lists = []
     for scope in config["output"]:
         plain_output_lists.append(
-            '{std::string(output_path) + "test_%s.root", {"' % scope
+            '{std::string(output_path), {"'
             + '", "'.join([q.name for q in config["output"][scope]])
             + '"}}'
         )
@@ -111,9 +110,7 @@ def fill_template(t, config):
             for shift in q.get_shifts(scope):
                 shiftset.add(shift)
         shiftlists.append(
-            '{std::string(output_path) + "test_%s.root", {"' % scope
-            + '", "'.join(shiftset)
-            + '"}}'
+            '{std::string(output_path), {"' + '", "'.join(shiftset) + '"}}'
         )
     shiftlists = "{" + "}, {".join(shiftlists) + "}"
     try:

@@ -21,8 +21,8 @@ MuonEtaCut = Producer(
     scopes=["global"],
 )
 MuonDxyCut = Producer(
-    name="MuonDzCut",
-    call="physicsobject::CutDz({df}, {input}, {output}, {max_muon_dxy})",
+    name="MuonDxyCut",
+    call="physicsobject::CutDxy({df}, {input}, {output}, {max_muon_dxy})",
     input=[nanoAOD.Muon_dxy],
     output=[],
     scopes=["global"],

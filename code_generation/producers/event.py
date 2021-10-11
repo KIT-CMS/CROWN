@@ -1,6 +1,6 @@
 import code_generation.quantities.output as q
 import code_generation.quantities.nanoAOD as nanoAOD
-from code_generation.producer import Producer, VectorProducer, ProducerGroup
+from code_generation.producer import Producer, VectorProducer, ProducerGroup, BaseFilter
 from code_generation.producers.electrons import DiElectronVeto
 from code_generation.producers.muons import DiMuonVeto
 
@@ -20,6 +20,14 @@ RunLumiEventFilter = VectorProducer(
         "RunLumiEventFilter_Selections",
     ],
 )
+
+JSONFilter = BaseFilter(
+    name="JSONFilter",
+    call='basefunctions::JSONFilter({df}, "{golden_json_file}", {input}, "GoldenJSONFilter")',
+    input=[nanoAOD.run, nanoAOD.luminosityBlock],
+    scopes=["global"],
+)
+
 MetFilter = VectorProducer(
     name="MetFilter",
     call='metfilter::ApplyMetFilter({df}, "{met_filters}", "{met_filters}")',

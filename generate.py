@@ -40,23 +40,19 @@ parser.add_argument(
 parser.add_argument("--debug", type=str, help='set debug mode for building"')
 args = parser.parse_args()
 # Executables for each era and per following processes:
-# ggH
-# vbf
-# remaining htt and hww?
-# emb
-# tt
-# vv and single top
-# DY
-# WJets
-# data
+available_samples = ["ggh", "vbf", "rem_htt", "emb", "tt", "vv", "dy", "wj", "data"]
+available_eras = ["2016", "2017", "2018"]
+
+
 if "auto" in args.samples:
-    args.samples = ["ggh", "vbf", "rem_htt", "emb", "tt", "vv", "dy", "wj", "data"]
+    args.samples = available_samples
 if "auto" in args.eras:
-    args.eras = ["2016", "2017", "2018"]
+    args.eras = available_eras
 
 executables = []
 for era in args.eras:
     for sample_group in args.samples:
+        analysisname = args.analysis
         ## setup logging
         if not path.exists("generation_logs"):
             makedirs("generation_logs")
@@ -74,21 +70,28 @@ for era in args.eras:
         root.addHandler(terminal_handler)
 
         ### Setting up executable
-        executable = f"analysis_{sample_group}_{era}.cxx"
-        analysis = importlib.import_module("config." + args.analysis)
+        analysis = importlib.import_module("config." + analysisname)
+        executable = f"{analysisname}_{sample_group}_{era}.cxx"
         root.info("Generating code for {}...".format(sample_group))
         root.info("Configuration used: {}".format(analysis))
-        config = analysis.build_config(era, sample_group, args.channels, args.shifts)
+        config = analysis.build_config(
+            era,
+            sample_group,
+            args.channels,
+            args.shifts,
+            available_samples,
+            available_eras,
+        )
         # fill code template and write executable
         with open(args.template, "r") as template_file:
             template = template_file.read()
         template = fill_template(template, config)
         template = (
-            template.replace("{ANALYSISTAG}", '"Analysis=%s"' % args.analysis)
+            template.replace("{ANALYSISTAG}", '"Analysis=%s"' % analysisname)
             .replace("{ERATAG}", '"Era=%s"' % era)
             .replace("{SAMPLETAG}", '"Samplegroup=%s"' % sample_group)
         )
-        with open(executable, "w") as executable_file:
+        with open(path.join(args.output, executable), "w") as executable_file:
             executable_file.write(template)
         executables.append(executable)
 

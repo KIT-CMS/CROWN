@@ -127,7 +127,25 @@ gen_m_vis = Producer(
     output=[q.gen_m_vis],
     scopes=["mt", "et", "tt", "em", "mm"],
 )
-
+gen_match_2 = Producer(
+    name="gen_match_2",
+    call="quantities::tau::genmatch({df}, {output}, 1, {input})",
+    input=[q.ditaupair, nanoAOD.Tau_genMatch],
+    output=[q.gen_match_2],
+    scopes=["mt", "et", "tt"],
+)
+gen_taujet_pt_2 = Producer(
+    name="gen_taujet_pt_2",
+    call="quantities::tau::matching_genjet_pt({df}, {output}, 1, {input})",
+    input=[
+        q.ditaupair,
+        nanoAOD.Tau_associatedJet,
+        nanoAOD.Jet_associatedGenJet,
+        nanoAOD.GenJet_pt,
+    ],
+    output=[q.gen_taujet_pt_2],
+    scopes=["mt", "et", "tt"],
+)
 UnrollGenLV1 = ProducerGroup(
     name="UnrollGenLV1",
     call=None,

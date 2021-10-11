@@ -87,7 +87,7 @@ PropagateJetsToMet = Producer(
 )
 CalculateGenBosonVector = Producer(
     name="calculateGenBosonVector",
-    call="met::calculateGenBosonVector({df}, {input}, {output})",
+    call="met::calculateGenBosonVector({df}, {input}, {output}, {is_data})",
     input=[
         nanoAOD.GenParticle_pt,
         nanoAOD.GenParticle_eta,
@@ -102,7 +102,7 @@ CalculateGenBosonVector = Producer(
 )
 ApplyRecoilCorrections = Producer(
     name="ApplyRecoilCorrections",
-    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down}, {isWJets})',
+    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down}, {is_wj})',
     input=[
         q.met_p4_jetcorrected,
         q.recoil_genboson_p4,
@@ -138,9 +138,9 @@ MetCorrections = ProducerGroup(
         MetCov10,
         MetCov11,
         MetSumEt,
+        CalculateGenBosonVector,
         PropagateLeptonsToMet,
         PropagateJetsToMet,
-        CalculateGenBosonVector,
         ApplyRecoilCorrections,
         MetPt,
         MetPhi,

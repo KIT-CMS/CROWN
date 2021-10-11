@@ -22,7 +22,7 @@ from config.utility import (
 )
 
 
-def build_config(era, sample, channels, shifts):
+def build_config(era, sample, channels, shifts, available_sample_types, available_eras):
     base_config = {
         "global": {
             "RunLumiEventFilter_Quantities": ["event"],
@@ -118,6 +118,12 @@ def build_config(era, sample, channels, shifts):
         "ggHNNLOweightsRootfile": "data/htxs/NNLOPS_reweight.root",
         "ggH_generator": "powheg",
     }
+    # set the sample type:
+    for sampletype in available_sample_types:
+        if sample == sampletype:
+            all_channels["is_{}".format(sampletype)] = True
+        else:
+            all_channels["is_{}".format(sampletype)] = False
     for channel in ["mt"]:  # add em et tt here as soon as they appear in config
         base_config[channel].update(all_channels)
 

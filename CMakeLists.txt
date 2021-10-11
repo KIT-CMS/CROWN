@@ -15,6 +15,7 @@ if (NOT DEFINED SHIFTS)
     message(STATUS "No shifts specificed, using -DSHIFTS=all")
     set(SHIFTS "all")
 endif()
+
 if (NOT DEFINED DEBUG)
     message(STATUS "No debug mode")
     set(DEBUG "false")
@@ -22,10 +23,13 @@ endif()
 
 if (NOT DEFINED SAMPLES)
     message(FATAL_ERROR "Please specify the samples to be used with -DSAMPLES=samples")
+    set(DEBUG "samples")
 endif()
+
 if (NOT DEFINED ERAS)
-    message(FATAL_ERROR "Please specify the eras to be used with -DSAMPLES=eras")
+    message(FATAL_ERROR "Please specify the eras to be used with -DERAS=eras")
 endif()
+
 message(STATUS "Set up analysis with --config ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --debug ${DEBUG}")
 
 # Define the default compiler flags for different build types, if different from the cmake defaults
@@ -37,10 +41,11 @@ set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options a
 
 # Set the default install directory to the build directory
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} CACHE STRING "Set default install prefix to the build directory")
-
+message(STATUS "Creating Project")
 # Create the project
 project(CROWN CXX)
 
+message(STATUS "Finding Packages")
 # Find ROOT and print details
 find_package(ROOT 6.24 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit)
 
@@ -78,11 +83,13 @@ else ()
     message(FATAL_ERROR "The standard c++17 or higher is required but not found in the ROOT flags: ${ROOT_CXX_FLAGS}")
 endif()
 
+message(STATUS "Including spdlog.")
 # Build the logging library
 include(ExternalProject)
 ExternalProject_Add(spdlog
     PREFIX          spdlog
     GIT_REPOSITORY  https://github.com/gabime/spdlog.git
+    GIT_SHALLOW     1
     GIT_TAG         v1.8.5
     CMAKE_ARGS      -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
                     -DCMAKE_BUILD_TYPE=Release
@@ -90,6 +97,7 @@ ExternalProject_Add(spdlog
     LOG_DOWNLOAD 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
 
+message(STATUS "Configuring spdlog.")
 # Make an imported target out of the build logging library
 add_library(logging STATIC IMPORTED)
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/include") # required because the include dir must be existent for INTERFACE_INCLUDE_DIRECTORIES
@@ -143,12 +151,17 @@ endfunction()
 find_python_package(GitPython git 3.1)
 
 # Generate the C++ code
-set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+if (NOT DEFINED INSTALLDIR)
+    message(STATUS "No -DINSTALLDIR specified, using default: ${CMAKE_CURRENT_BINARY_DIR}/bin")
+    set(INSTALLDIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
+endif()
+set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(GENERATE_CPP_INPUT_TEMPLATE "${CMAKE_SOURCE_DIR}/code_generation/analysis_template.cxx")
 
 message(STATUS "")
 message(STATUS "Generate C++ code with following settings:")
 message(STATUS "  Output directory: ${GENERATE_CPP_OUTPUT_DIRECTORY}")
+message(STATUS "  Install directory: ${INSTALLDIR}")
 message(STATUS "  Template: ${GENERATE_CPP_INPUT_TEMPLATE}")
 message(STATUS "  Analysis: ${ANALYSIS}")
 message(STATUS "  Channels: ${CHANNELS}")
@@ -159,9 +172,10 @@ message(STATUS "")
 
 file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
 execute_process(
-    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --debug ${DEBUG}
-)
-
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --debug ${DEBUG} RESULT_VARIABLE ret)
+if(ret EQUAL "1")
+    message( FATAL_ERROR "Code Generation Failed - Exiting !")
+endif()
 set(GENERATE_CPP_OUTPUT_FILELIST "${GENERATE_CPP_OUTPUT_DIRECTORY}/files.txt")
 if(NOT EXISTS ${GENERATE_CPP_OUTPUT_FILELIST})
     message(FATAL_ERROR "List of generated C++ files in ${GENERATE_CPP_OUTPUT_FILELIST} does not exist.")
@@ -172,7 +186,9 @@ FILE(READ ${GENERATE_CPP_OUTPUT_FILELIST} FILELIST)
 STRING(REGEX REPLACE "\n" ";" FILELIST ${FILELIST})
 set(TARGET_NAMES "")
 # copy all correction files into the install location
-install(DIRECTORY data/ DESTINATION data)
+install(DIRECTORY data/ DESTINATION ${INSTALLDIR}/data)
+# also copy inish script needed for job tarball
+install(FILES init.sh DESTINATION ${INSTALLDIR})
 foreach(FILENAME ${FILELIST})
     STRING(REGEX REPLACE ".cxx" "" TARGET_NAME ${FILENAME})
     list(APPEND TARGET_NAMES ${TARGET_NAME})
@@ -185,7 +201,8 @@ foreach(FILENAME ${FILELIST})
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
     target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging)
     # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
-    install(TARGETS ${TARGET_NAME} DESTINATION)
+    install(TARGETS ${TARGET_NAME} DESTINATION ${INSTALLDIR})
+
 endforeach()
 
 # Include tests
