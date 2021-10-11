@@ -65,7 +65,7 @@ def ResolveEraDependencies(config, era):
 
 
 # Helper function to retrieve all quantities produced by a producer or producer group
-def CollectProducerOutput(producer):
+def CollectProducerOutput(producer, scope):
     output = []
     if producer.output != None:
         if isinstance(producer.output, list):
@@ -73,17 +73,19 @@ def CollectProducerOutput(producer):
         else:
             output.append(producer.output)
     if hasattr(producer, "producers"):
-        for prod in producer.producers:
-            output.extend(CollectProducerOutput(prod))
+        for prod in producer.producers[scope]:
+            output.extend(CollectProducerOutput(prod, scope))
     return output
 
 
-def ExpandProducerConfig(producer_list):
+def ExpandProducerConfig(producer_list, scope):
     # we expand all producers groups to individual producers
     full_producerlist = []
     for producer in producer_list:
         if isinstance(producer, ProducerGroup):
-            full_producerlist.extend(ExpandProducerConfig(producer.producers))
+            full_producerlist.extend(
+                ExpandProducerConfig(producer.producers[scope], scope)
+            )
         else:
             full_producerlist.append(producer)
     # log.info(full_producerlist)
@@ -100,10 +102,14 @@ class ProducerRule:
         self.update_output = update_output
 
     def __str__(self) -> str:
-        return "ProducerRule - update {} for {} in scopes {}".format(self.producers, self.samples, self.scopes)
+        return "ProducerRule - update {} for {} in scopes {}".format(
+            self.producers, self.samples, self.scopes
+        )
 
     def __repr__(self) -> str:
-        return "ProducerRule - update {} for {} in scopes {}".format(self.producers, self.samples, self.scopes)
+        return "ProducerRule - update {} for {} in scopes {}".format(
+            self.producers, self.samples, self.scopes
+        )
 
     # Evaluate whether modification should be applied depending on sample and inversion flag
     def applicable(self, sample):
@@ -119,12 +125,14 @@ class ProducerRule:
 
     # Method to be called at the level of config generation in order to evaluate conditions and apply the modification
     def apply(self, sample, producer_dict, output_dict=None):
+        log.debug("Applying {} for {}".format(self, sample))
         if self.applicable(sample):
             for scope in self.scopes:
                 for prod in self.producers:
                     self.operate(prod, producer_dict[scope])
+                for prod in self.producers:
                     if self.update_output and output_dict != None:
-                        for q in CollectProducerOutput(prod):
+                        for q in CollectProducerOutput(prod, scope):
                             scopelist = (
                                 [scope]
                                 if scope in output_dict.keys()
@@ -140,7 +148,9 @@ class ProducerRule:
 class RemoveProducer(ProducerRule):
     def operate(self, item, item_list):
         try:
-            log.debug("RemoveProducer: Removing {} from list".format(item))
+            log.debug(
+                "RemoveProducer: Removing {} from list {}".format(item, item_list)
+            )
             item_list.remove(item)
         except ValueError:
             if isinstance(item, Quantity):
@@ -162,6 +172,7 @@ class RemoveProducer(ProducerRule):
 # Modifier class that can append producers to lists
 class AppendProducer(ProducerRule):
     def operate(self, item, item_list):
+        log.debug("AppendProducer: Adding {} to list {}".format(item, item_list))
         item_list.append(item)
 
 

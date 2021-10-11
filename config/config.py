@@ -20,20 +20,8 @@ from config.utility import (
     AppendProducer,
 )
 
-available_sample_types = [
-    "ggh",
-    "vbf",
-    "rem_htt",
-    "emb",
-    "tt",
-    "vv",
-    "dy",
-    "wj",
-    "data",
-]
 
-
-def build_config(era, sample, channels, shifts):
+def build_config(era, sample, channels, shifts, available_sample_types, available_eras):
     base_config = {
         "global": {
             "RunLumiEventFilter_Quantities": ["event"],
@@ -337,7 +325,7 @@ def build_config(era, sample, channels, shifts):
         ),
         # channel specific
         RemoveProducer(
-            producers=[GenDiTauPairQuantities],
+            producers=[MTGenDiTauPairQuantities],
             samples=["data", "emb"],
             scopes=["mt"],
         ),
@@ -500,7 +488,7 @@ def build_config(era, sample, channels, shifts):
             q.pt_tt,
             q.pt_ttjj,
             q.mt_tot,
-        ]
+        ],
     }
     if "data" not in sample:
         config["output"]["mt"].extend(
