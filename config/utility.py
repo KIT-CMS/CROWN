@@ -78,12 +78,12 @@ def CollectProducerOutput(producer):
     return output
 
 
-def ExpandConfig(producer_list):
+def ExpandProducerConfig(producer_list):
     # we expand all producers groups to individual producers
     full_producerlist = []
     for producer in producer_list:
         if isinstance(producer, ProducerGroup):
-            full_producerlist.extend(ExpandConfig(producer.producers))
+            full_producerlist.extend(ExpandProducerConfig(producer.producers))
         else:
             full_producerlist.append(producer)
     # log.info(full_producerlist)
