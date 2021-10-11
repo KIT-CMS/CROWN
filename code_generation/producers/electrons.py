@@ -83,9 +83,10 @@ ExtraElectronsVeto = Producer(
         "et": [q.veto_electrons_mask],
         "mt": [q.base_electrons_mask],
         "tt": [q.base_electrons_mask],
+        "mm": [q.base_electrons_mask],
     },
     output=[q.electron_veto_flag],
-    scopes=["em", "et", "mt", "tt"],
+    scopes=["em", "et", "mt", "tt", "mm"],
 )
 
 ####################

@@ -14,7 +14,7 @@ BuildMetVector = Producer(
         nanoAOD.MET_phi,
     ],
     output=[q.met_p4],
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
 MetCov00 = Producer(
     name="MetCov00",
@@ -23,7 +23,7 @@ MetCov00 = Producer(
         nanoAOD.MET_covXX,
     ],
     output=[q.metcov00],
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
 MetCov01 = Producer(
     name="MetCov01",
@@ -32,7 +32,7 @@ MetCov01 = Producer(
         nanoAOD.MET_covXY,
     ],
     output=[q.metcov01],
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
 MetCov10 = Producer(
     name="MetCov10",
@@ -41,7 +41,7 @@ MetCov10 = Producer(
         nanoAOD.MET_covXY,
     ],
     output=[q.metcov10],
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
 MetCov11 = Producer(
     name="MetCov11",
@@ -50,7 +50,7 @@ MetCov11 = Producer(
         nanoAOD.MET_covYY,
     ],
     output=[q.metcov11],
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
 MetSumEt = Producer(
     name="MetSumEt",
@@ -59,14 +59,14 @@ MetSumEt = Producer(
         nanoAOD.MET_sumEt,
     ],
     output=[q.metSumEt],
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
 PropagateLeptonsToMet = Producer(
     name="PropagateLeptonsToMet",
     call="met::propagateLeptonsToMet({df}, {input}, {output}, {propagateLeptons})",
     input=[q.met_p4, q.p4_1_uncorrected, q.p4_2_uncorrected, q.p4_1, q.p4_2],
     output=[q.met_p4_leptoncorrected],
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
 PropagateJetsToMet = Producer(
     name="PropagateJetsToMet",
@@ -83,7 +83,7 @@ PropagateJetsToMet = Producer(
         nanoAOD.Jet_mass,
     ],
     output=[q.met_p4_jetcorrected],
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
 CalculateGenBosonVector = Producer(
     name="calculateGenBosonVector",
@@ -98,7 +98,7 @@ CalculateGenBosonVector = Producer(
         nanoAOD.GenParticle_statusFlags,
     ],
     output=[q.recoil_genboson_p4],
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
 ApplyRecoilCorrections = Producer(
     name="ApplyRecoilCorrections",
@@ -109,28 +109,28 @@ ApplyRecoilCorrections = Producer(
         q.Jet_pt_corrected,
     ],
     output=[q.met_p4_recoilcorrected],
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
 MetPt = Producer(
     name="MetPt",
     call="quantities::pt({df}, {output}, {input})",
     input=[q.met_p4_recoilcorrected],
     output=[q.met],
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
 MetPhi = Producer(
     name="MetPhi",
     call="quantities::phi({df}, {output}, {input})",
     input=[q.met_p4_recoilcorrected],
     output=[q.metphi],
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
 MetCorrections = ProducerGroup(
     name="MetCorrections",
     call=None,
     input=None,
     output=None,
-    scopes=["et", "mt", "tt", "em"],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
     subproducers=[
         BuildMetVector,
         MetCov00,

@@ -247,4 +247,55 @@ auto PairSelection(auto &df, const std::vector<std::string> &input_vector,
 
 } // end namespace mutau
 
+namespace mumu {
+
+auto PairSelectionAlgo() {
+    Logger::get("PairSelection")->debug("Setting up algorithm");
+    return [](const ROOT::RVec<float> &muonpt,
+              const ROOT::RVec<int> &muonmask) {
+        ROOT::RVec<int>
+            selected_pair; // first entry is the leading muon index, second
+                           // entry is the trailing muon index
+        const auto original_muon_indices = ROOT::VecOps::Nonzero(muonmask);
+        // we need at least two fitting muons
+        if (original_muon_indices.size() < 3) {
+            selected_pair = {-1, -1};
+            return selected_pair;
+        }
+        Logger::get("PairSelection")->debug("Running algorithm on good muons");
+        Logger::get("PairSelection")
+            ->info("original_muon_indices: {}", original_muon_indices);
+        const auto good_pts = ROOT::VecOps::Take(muonpt, original_muon_indices);
+        Logger::get("PairSelection")->info("good_pts: {}", good_pts);
+        const auto index_pt_sorted = ROOT::VecOps::Argsort(good_pts);
+        Logger::get("PairSelection")
+            ->info("index_pt_sorted: {}", index_pt_sorted);
+        const auto muon_indices_sorted =
+            ROOT::VecOps::Take(original_muon_indices, index_pt_sorted);
+
+        Logger::get("PairSelection")
+            ->info("muon_indices_sorted: {}", muon_indices_sorted);
+
+        Logger::get("PairSelection")
+            ->info("Leading MuonPt: {}", muonpt[muon_indices_sorted[0]]);
+        Logger::get("PairSelection")
+            ->info("Trailing MuonPt: {}", muonpt[muon_indices_sorted[1]]);
+
+        selected_pair = {static_cast<int>(muon_indices_sorted[0]),
+                         static_cast<int>(muon_indices_sorted[1])};
+
+        return selected_pair;
+    };
+}
+
+auto PairSelection(auto &df, const std::vector<std::string> &input_vector,
+                   const std::string &pairname) {
+    Logger::get("PairSelection")->debug("Setting up mutau pair building");
+    auto df1 = df.Define(pairname, pairselection::mumu::PairSelectionAlgo(),
+                         input_vector);
+    return df1;
+}
+
+} // end namespace mumu
+
 } // end namespace pairselection

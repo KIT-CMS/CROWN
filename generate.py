@@ -4,8 +4,10 @@ from os import path, makedirs
 import importlib
 import logging
 import logging.handlers
-
+import sys
 from code_generation.code_generation import fill_template
+
+sys.dont_write_bytecode = True
 
 parser = argparse.ArgumentParser(description="Generate the C++ code for a given config")
 parser.add_argument("--template", type=str, help="Path to the template")

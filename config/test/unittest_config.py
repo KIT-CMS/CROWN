@@ -83,8 +83,6 @@ def build_config(era, sample, channels, shifts):
             "min_muon_pt": 23.0,
             "max_muon_eta": 2.1,
             "muon_iso_cut": 0.15,
-            "require_candidate": ["nTau", "nMuon"],
-            "require_candidate_number": [1, 1],
             "deltaR_jet_veto": 0.5,
             "muon_sf_workspace": "data/muon_corrections/htt_scalefactors_legacy_2018_muons.root",
             "muon_sf_id_name": "m_id_kit_ratio",
