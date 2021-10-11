@@ -278,7 +278,7 @@ def build_config(era, sample, channels, shifts):
             BasicBJetQuantities,
             MMGenDiTauPairQuantities,
             MuonIDIso_SF,
-            GenerateSingleMuonTriggerFlags,
+            MMGenerateSingleMuonTriggerFlags,
             LVMu1Uncorrected,
             LVMu2Uncorrected,
             MetCorrections,
@@ -323,8 +323,12 @@ def build_config(era, sample, channels, shifts):
         AppendProducer(
             producers=[QQH_WG1_Uncertainties], samples=["qqh"], scopes=["mt", "mm"]
         ),
-        AppendProducer(producers=[TopPtReweighting], samples=["ttbar"], scopes=["mt", "mm"]),
-        AppendProducer(producers=[ZPtMassReweighting], samples=["dy"], scopes=["mt", "mm"]),
+        AppendProducer(
+            producers=[TopPtReweighting], samples=["ttbar"], scopes=["mt", "mm"]
+        ),
+        AppendProducer(
+            producers=[ZPtMassReweighting], samples=["dy"], scopes=["mt", "mm"]
+        ),
     ]
 
     config["output"] = {
@@ -472,8 +476,7 @@ def build_config(era, sample, channels, shifts):
             q.metcov01,
             q.metcov10,
             q.metcov11,
-            GenerateSingleMuonTriggerFlags.output_group,
-            GenerateCrossTriggerFlags.output_group,
+            MMGenerateSingleMuonTriggerFlags.output_group,
             nanoAOD.HTXS_Higgs_pt,
             nanoAOD.HTXS_njets30,
             nanoAOD.HTXS_stage_0,
@@ -485,7 +488,7 @@ def build_config(era, sample, channels, shifts):
             q.pt_tt,
             q.pt_ttjj,
             q.mt_tot,
-        ]
+        ],
     }
     if "data" not in sample:
         config["output"]["mt"].extend(
