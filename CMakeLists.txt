@@ -152,8 +152,8 @@ find_python_package(GitPython git 3.1)
 
 # Generate the C++ code
 if (NOT DEFINED INSTALLDIR)
-    message(STATUS "No -DINSTALLDIR specified, using builddir: ${CMAKE_CURRENT_BINARY_DIR}")
-    set(INSTALLDIR ${CMAKE_CURRENT_BINARY_DIR})
+    message(STATUS "No -DINSTALLDIR specified, using default: ${CMAKE_CURRENT_BINARY_DIR}/bin")
+    set(INSTALLDIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
 endif()
 set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(GENERATE_CPP_INPUT_TEMPLATE "${CMAKE_SOURCE_DIR}/code_generation/analysis_template.cxx")
