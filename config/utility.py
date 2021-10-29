@@ -1,21 +1,23 @@
 from code_generation.producer import ProducerGroup
 from code_generation.optimizer import ProducerOrdering
-from code_generation.quantity import Quantity
+from code_generation.quantity import NanoAODQuantity, Quantity
+from code_generation.exceptions import *
 import copy
 import logging
+
 
 log = logging.getLogger(__name__)
 
 # Function for introducing systematic variations to producers and depending quantities
 def AddSystematicShift(
-    config, name, change_dict, base_producers, sanetize_producers=[]
+    config, name, change_dict, base_producers, sanitize_producers=[]
 ):
     name = "__" + name
     shift_config = copy.deepcopy(config[""])
     for scope in change_dict:
         shift_config[scope].update(change_dict[scope])
     config[name] = shift_config
-    for producer in sanetize_producers:
+    for producer in sanitize_producers:
         producer[0].ignore_shift(name, producer[1])
     for producer in base_producers:
         producer[0].shift(name, producer[1])
@@ -67,7 +69,7 @@ def ResolveEraDependencies(config, era):
 # Helper function to retrieve all quantities produced by a producer or producer group
 def CollectProducerOutput(producer, scope):
     output = []
-    if producer.output != None:
+    if producer.output is not None:
         if isinstance(producer.output, list):
             output.extend(producer.output)
         else:
@@ -78,10 +80,24 @@ def CollectProducerOutput(producer, scope):
     return output
 
 
-def ExpandProducerConfig(producer_list, scope):
+def CollectProducersOutput(producers, scope):
+    output = []
+    for producer in producers:
+        if producer.output is not None:
+            if isinstance(producer.output, list):
+                output.extend(producer.output)
+            else:
+                output.append(producer.output)
+        if hasattr(producer, "producers"):
+            for prod in producer.producers[scope]:
+                output.extend(CollectProducerOutput(prod, scope))
+    return output
+
+
+def ExpandProducerConfig(producers, scope):
     # we expand all producers groups to individual producers
     full_producerlist = []
-    for producer in producer_list:
+    for producer in producers:
         if isinstance(producer, ProducerGroup):
             full_producerlist.extend(
                 ExpandProducerConfig(producer.producers[scope], scope)
@@ -131,7 +147,7 @@ class ProducerRule:
                 for prod in self.producers:
                     self.operate(prod, producer_dict[scope])
                 for prod in self.producers:
-                    if self.update_output and output_dict != None:
+                    if self.update_output and output_dict is not None:
                         for q in CollectProducerOutput(prod, scope):
                             scopelist = (
                                 [scope]
@@ -183,3 +199,56 @@ def OptimizeProducerOrdering(config):
         ordering = ProducerOrdering(config, scope)
         ordering.Optimize()
         config["producers"][scope] = ordering.ordering
+
+
+"""
+This function is used to validate the set of outputs defined in the config.
+If the output list contains quantities that are not produced by any producer,
+the function will raise an exception.
+
+Args:
+    config: The config dict
+"""
+
+
+def ValidateOutputs(config):
+    global_producers = ExpandProducerConfig(config["producers"]["global"], "global")
+    for scope in set(config["producers"]) - {"global"}:
+        producers = global_producers + ExpandProducerConfig(
+            config["producers"][scope], scope
+        )
+        provided_outputs = [
+            producer.output for producer in producers if producer.output is not None
+        ]
+        provided_outputs = set(
+            output
+            for sublist in provided_outputs
+            for output in sublist
+            if not isinstance(output, NanoAODQuantity)
+        )
+        required_outputs = set(
+            output
+            for output in config["output"][scope]
+            if not isinstance(output, NanoAODQuantity)
+        )
+        # find all outputs that are required but not provided
+        missing_outputs = required_outputs - provided_outputs
+        if len(missing_outputs) > 0:
+            raise InvalidOutputError(scope, missing_outputs)
+
+
+def SetSampleParameters(config, sample, available_sample_types, channels):
+    sample_parameters = {}
+    for sampletype in available_sample_types:
+        if sample == sampletype:
+            sample_parameters["is_{}".format(sampletype)] = True
+        else:
+            sample_parameters["is_{}".format(sampletype)] = False
+    for channel in channels:
+        config[channel].update(sample_parameters)
+
+
+def SetCommonParameters(base_config, commons, channels):
+    for channel in channels:
+        base_config[channel].update(commons)
+    return {"": base_config}
