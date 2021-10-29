@@ -20,19 +20,24 @@ def fill_template(t, config):
         producer.reserve_output("global")
         commandlist += "\n    //" + producer.name + "\n"
         for call in producer.writecalls(config, "global"):
+            log.debug("Adding call for {}".format(producer.name))
+            log.debug("Call: {}".format(call))
             commandlist += (
-                "    auto df%i = " % (df_count + 1)
+                "    auto df{} = ".format(df_count + 1)
                 + call.format_map(
                     SafeDict(
-                        {"df": "df%i" % df_count, "vec_open": "{", "vec_close": "}"}
+                        {
+                            "df": "df{}".format(df_count),
+                            "vec_open": "{",
+                            "vec_close": "}",
+                        }
                     )
                 )
                 + ";\n"
             )
             df_count += 1
-            log.debug("Adding call for {}".format(producer.name))
             log.debug("|---> {}".format(commandlist.split("\n")[-2]))
-    commandlist += "    auto global_df_final = df%i;\n" % df_count
+    commandlist += "    auto global_df_final = df{};\n".format(df_count)
     for scope in config["producers"]:
         if scope == "global":
             continue
@@ -102,7 +107,7 @@ def fill_template(t, config):
             + '", "'.join([q.name for q in config["output"][scope]])
             + '"}}'
         )
-    plain_output_lists = "{" + "}, {".join(plain_output_lists) + "}"
+    output_lists = "{" + "}, {".join(plain_output_lists) + "}"
     shiftset = set()
     shiftlists = []
     for scope in config["output"]:
@@ -125,7 +130,7 @@ def fill_template(t, config):
         t.replace("    // {CODE_GENERATION}", commandlist)
         .replace("    // {RUN_COMMANDS}", runcommands)
         .replace("{NRUNS}", nruns)
-        .replace("{OUTPUT_QUANTITIES}", plain_output_lists)
+        .replace("{OUTPUT_QUANTITIES}", output_lists)
         .replace("{SYSTEMATIC_VARIATIONS}", shiftlists)
         .replace("{COMMITHASH}", '"%s"' % current_commit)
         .replace("{CLEANSETUP}", setup_is_clean)
