@@ -10,6 +10,7 @@ from code_generation.producers.scalefactors import *
 from code_generation.producers.triggers import *
 from code_generation.producers.met import *
 import code_generation.quantities.output as q
+from pprint import pprint
 from config.utility import (
     AddSystematicShift,
     OptimizeProducerOrdering,
@@ -18,10 +19,21 @@ from config.utility import (
     ResolveEraDependencies,
     RemoveProducer,
     AppendProducer,
+    SetSampleParameters,
+    SetCommonParameters,
+    ValidateOutputs,
 )
 
 
-def build_config(era, sample, channels, shifts, available_sample_types, available_eras):
+def build_config(
+    era,
+    sample,
+    channels,
+    shifts,
+    available_sample_types,
+    available_eras,
+    available_channels,
+):
     base_config = {
         "global": {
             "RunLumiEventFilter_Quantities": ["event"],
@@ -217,7 +229,7 @@ def build_config(era, sample, channels, shifts, available_sample_types, availabl
             "min_jetpt_met_propagation": 15,
         },
     }
-    all_channels = {
+    common_config_parameter = {
         "ggHNNLOweightsRootfile": "data/htxs/NNLOPS_reweight.root",
         "ggH_generator": "powheg",
         "zptmass_file": {
@@ -228,15 +240,9 @@ def build_config(era, sample, channels, shifts, available_sample_types, availabl
         "zptmass_functor": "zptmass_weight_nom",
         "zptmass_arguments": "z_gen_mass,z_gen_pt",
     }
-    # set the sample type:
-    for sampletype in available_sample_types:
-        if sample == sampletype:
-            all_channels["is_{}".format(sampletype)] = True
-        else:
-            all_channels["is_{}".format(sampletype)] = False
-    for channel in ["mt"]:  # add em et tt here as soon as they appear in config
-        base_config[channel].update(all_channels)
-    config = {"": base_config}
+
+    SetSampleParameters(base_config, sample, available_sample_types, channels)
+    config = SetCommonParameters(base_config, common_config_parameter, channels)
 
     config["producers"] = {
         "global": [
@@ -393,10 +399,6 @@ def build_config(era, sample, channels, shifts, available_sample_types, availabl
             q.metcov11,
             MTGenerateSingleMuonTriggerFlags.output_group,
             MTGenerateCrossTriggerFlags.output_group,
-            nanoAOD.HTXS_Higgs_pt,
-            nanoAOD.HTXS_njets30,
-            nanoAOD.HTXS_stage_0,
-            nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
             q.pzetamissvis,
             q.mTdileptonMET,
             q.mt_1,
@@ -426,9 +428,6 @@ def build_config(era, sample, channels, shifts, available_sample_types, availabl
             q.mjj,
             q.m_vis,
             q.pt_vis,
-            q.electron_veto_flag,
-            q.muon_veto_flag,
-            q.dimuon_veto,
             q.nbtag,
             q.bpt_1,
             q.bpt_2,
@@ -446,8 +445,6 @@ def build_config(era, sample, channels, shifts, available_sample_types, availabl
             q.q_2,
             q.iso_1,
             q.iso_2,
-            q.decaymode_2,
-            q.gen_match_2,
             q.gen_pt_1,
             q.gen_eta_1,
             q.gen_phi_1,
@@ -459,8 +456,6 @@ def build_config(era, sample, channels, shifts, available_sample_types, availabl
             q.gen_mass_2,
             q.gen_pdgid_2,
             q.gen_m_vis,
-            q.taujet_pt_2,
-            q.gen_taujet_pt_2,
             q.idWeight_1,
             q.isoWeight_1,
             q.met,
@@ -471,10 +466,6 @@ def build_config(era, sample, channels, shifts, available_sample_types, availabl
             q.metcov10,
             q.metcov11,
             MMGenerateSingleMuonTriggerFlags.output_group,
-            nanoAOD.HTXS_Higgs_pt,
-            nanoAOD.HTXS_njets30,
-            nanoAOD.HTXS_stage_0,
-            nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
             q.pzetamissvis,
             q.mTdileptonMET,
             q.mt_1,
@@ -484,22 +475,23 @@ def build_config(era, sample, channels, shifts, available_sample_types, availabl
             q.mt_tot,
         ],
     }
-    if "data" not in sample:
-        config["output"]["mt"].extend(
-            [
-                nanoAOD.HTXS_Higgs_pt,
-                nanoAOD.HTXS_njets30,
-                nanoAOD.HTXS_stage_0,
-                nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
-            ]
-        )
+    if "data" not in sample and "emb" not in sample:
+        for scope in config["output"].keys():
+            config["output"][scope].extend(
+                [
+                    nanoAOD.HTXS_Higgs_pt,
+                    nanoAOD.HTXS_njets30,
+                    nanoAOD.HTXS_stage_0,
+                    nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
+                ]
+            )
 
     for modifier in config["producer_modifiers"]:
         modifier.apply(sample, config["producers"], config["output"])
     ResolveSampleDependencies(config, sample)
     ResolveEraDependencies(config, era)
     OptimizeProducerOrdering(config)
-
+    ValidateOutputs(config)
     # remove channels that are not envoked
     if "auto" not in channels:
         available_channels = [x for x in config["producers"] if x != "global"]
@@ -513,85 +505,86 @@ def build_config(era, sample, channels, shifts, available_sample_types, availabl
         "tauES_1prong0pizeroUp",
         {"global": {"tau_ES_shift_DM0": 1.002}},
         [[TauPtCorrection, "global"]],
-        sanetize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
+        sanitize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
     )
     AddSystematicShift(
         config,
         "tauES_1prong0pizeroDown",
         {"global": {"tau_ES_shift_DM0": 0.998}},
         [[TauPtCorrection, "global"]],
-        sanetize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
+        sanitize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
     )
     # Add MET shifts
-    SystematicShiftByInputQuantity(
-        config,
-        "metUnclusteredEnUp",
-        {
-            nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
-            nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
-        },
-    )
-    SystematicShiftByInputQuantity(
-        config,
-        "metUnclusteredEnDown",
-        {
-            nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
-            nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
-        },
-    )
-    # MET Recoil Shifts
-    AddSystematicShift(
-        config,
-        "metRecoilResponseUp",
-        {
-            "mt": {
-                "apply_recoil_resolution_systematic": False,
-                "apply_recoil_response_systematic": True,
-                "recoil_systematic_shift_up": True,
-                "recoil_systematic_shift_down": False,
-            }
-        },
-        [[ApplyRecoilCorrections, "mt"]],
-    )
-    AddSystematicShift(
-        config,
-        "metRecoilResponseDown",
-        {
-            "mt": {
-                "apply_recoil_resolution_systematic": False,
-                "apply_recoil_response_systematic": True,
-                "recoil_systematic_shift_up": False,
-                "recoil_systematic_shift_down": True,
-            }
-        },
-        [[ApplyRecoilCorrections, "mt"]],
-    )
-    AddSystematicShift(
-        config,
-        "metRecoilResolutionUp",
-        {
-            "mt": {
-                "apply_recoil_resolution_systematic": True,
-                "apply_recoil_response_systematic": False,
-                "recoil_systematic_shift_up": True,
-                "recoil_systematic_shift_down": False,
-            }
-        },
-        [[ApplyRecoilCorrections, "mt"]],
-    )
-    AddSystematicShift(
-        config,
-        "metRecoilResolutionDown",
-        {
-            "mt": {
-                "apply_recoil_resolution_systematic": True,
-                "apply_recoil_response_systematic": False,
-                "recoil_systematic_shift_up": False,
-                "recoil_systematic_shift_down": True,
-            }
-        },
-        [[ApplyRecoilCorrections, "mt"]],
-    )
+    if "data" not in sample and "emb" not in sample:
+        SystematicShiftByInputQuantity(
+            config,
+            "metUnclusteredEnUp",
+            {
+                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
+                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
+            },
+        )
+        SystematicShiftByInputQuantity(
+            config,
+            "metUnclusteredEnDown",
+            {
+                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
+                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
+            },
+        )
+        # MET Recoil Shifts
+        AddSystematicShift(
+            config,
+            "metRecoilResponseUp",
+            {
+                "mt": {
+                    "apply_recoil_resolution_systematic": False,
+                    "apply_recoil_response_systematic": True,
+                    "recoil_systematic_shift_up": True,
+                    "recoil_systematic_shift_down": False,
+                }
+            },
+            [[ApplyRecoilCorrections, "mt"]],
+        )
+        AddSystematicShift(
+            config,
+            "metRecoilResponseDown",
+            {
+                "mt": {
+                    "apply_recoil_resolution_systematic": False,
+                    "apply_recoil_response_systematic": True,
+                    "recoil_systematic_shift_up": False,
+                    "recoil_systematic_shift_down": True,
+                }
+            },
+            [[ApplyRecoilCorrections, "mt"]],
+        )
+        AddSystematicShift(
+            config,
+            "metRecoilResolutionUp",
+            {
+                "mt": {
+                    "apply_recoil_resolution_systematic": True,
+                    "apply_recoil_response_systematic": False,
+                    "recoil_systematic_shift_up": True,
+                    "recoil_systematic_shift_down": False,
+                }
+            },
+            [[ApplyRecoilCorrections, "mt"]],
+        )
+        AddSystematicShift(
+            config,
+            "metRecoilResolutionDown",
+            {
+                "mt": {
+                    "apply_recoil_resolution_systematic": True,
+                    "apply_recoil_response_systematic": False,
+                    "recoil_systematic_shift_up": False,
+                    "recoil_systematic_shift_down": True,
+                }
+            },
+            [[ApplyRecoilCorrections, "mt"]],
+        )
     # Jet energy resolution
     shift_dict = {"JE_reso_shift": 1}
     AddSystematicShift(

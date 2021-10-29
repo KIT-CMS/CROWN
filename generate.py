@@ -40,8 +40,9 @@ parser.add_argument(
 parser.add_argument("--debug", type=str, help='set debug mode for building"')
 args = parser.parse_args()
 # Executables for each era and per following processes:
-available_samples = ["ggh", "vbf", "rem_htt", "emb", "tt", "vv", "dy", "wj", "data"]
+available_samples = ["ggh", "vbf", "rem_htt", "emb", "emb_mc", "tt", "vv", "dy", "wj", "data"]
 available_eras = ["2016", "2017", "2018"]
+available_channels = ["et", "mt", "tt", "em", "ee", "mm"]
 
 
 if "auto" in args.samples:
@@ -81,6 +82,7 @@ for era in args.eras:
             args.shifts,
             available_samples,
             available_eras,
+            available_channels
         )
         # fill code template and write executable
         with open(args.template, "r") as template_file:

@@ -19,10 +19,20 @@ from config.utility import (
     ResolveEraDependencies,
     RemoveProducer,
     AppendProducer,
+    SetSampleParameters,
+    SetCommonParameters,
 )
 
 
-def build_config(era, sample, channels, shifts, available_sample_types, available_eras):
+def build_config(
+    era,
+    sample,
+    channels,
+    shifts,
+    available_sample_types,
+    available_eras,
+    available_channels,
+):
     base_config = {
         "global": {
             "RunLumiEventFilter_Quantities": ["event"],
@@ -114,20 +124,20 @@ def build_config(era, sample, channels, shifts, available_sample_types, availabl
         },
     }
 
-    all_channels = {
+    common_config_parameter = {
         "ggHNNLOweightsRootfile": "data/htxs/NNLOPS_reweight.root",
         "ggH_generator": "powheg",
+        "zptmass_file": {
+            "ERA_2016": "data/zpt/htt_scalefactors_legacy_2016.root",
+            "ERA_2017": "data/zpt/htt_scalefactors_legacy_2017.root",
+            "ERA_2018": "data/zpt/htt_scalefactors_legacy_2018.root",
+        },
+        "zptmass_functor": "zptmass_weight_nom",
+        "zptmass_arguments": "z_gen_mass,z_gen_pt",
     }
-    # set the sample type:
-    for sampletype in available_sample_types:
-        if sample == sampletype:
-            all_channels["is_{}".format(sampletype)] = True
-        else:
-            all_channels["is_{}".format(sampletype)] = False
-    for channel in ["mt"]:  # add em et tt here as soon as they appear in config
-        base_config[channel].update(all_channels)
 
-    config = {"": base_config}
+    SetSampleParameters(base_config, sample, available_sample_types, channels)
+    config = SetCommonParameters(base_config, common_config_parameter, channels)
 
     config["producers"] = {
         "global": [
@@ -153,12 +163,12 @@ def build_config(era, sample, channels, shifts, available_sample_types, availabl
             ExtraElectronsVeto,
             LVMu1,
             LVTau2,
-            DiTauPairQuantities,
+            MTDiTauPairQuantities,
             JetCollection,
             BasicJetQuantities,
             BJetCollection,
             BasicBJetQuantities,
-            GenDiTauPairQuantities,
+            MTGenDiTauPairQuantities,
             MuonIDIso_SF,
             LVMu1Uncorrected,
             LVTau2Uncorrected,
@@ -249,14 +259,14 @@ def build_config(era, sample, channels, shifts, available_sample_types, availabl
         "tauES_1prong0pizeroUp",
         {"global": {"tau_ES_shift_DM0": 1.002}},
         [[TauPtCorrection, "global"]],
-        sanetize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
+        sanitize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
     )
     AddSystematicShift(
         config,
         "tauES_1prong0pizeroDown",
         {"global": {"tau_ES_shift_DM0": 0.998}},
         [[TauPtCorrection, "global"]],
-        sanetize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
+        sanitize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
     )
     # # Jet energy resolution
     shift_dict = {"JE_reso_shift": 1}
