@@ -267,7 +267,8 @@ auto PairSelectionAlgo() {
             ->debug("original_muon_indices: {}", original_muon_indices);
         const auto good_pts = ROOT::VecOps::Take(muonpt, original_muon_indices);
         Logger::get("PairSelection")->debug("good_pts: {}", good_pts);
-        const auto index_pt_sorted = ROOT::VecOps::Argsort(good_pts, [](double x, double y) {return x > y;});
+        const auto index_pt_sorted = ROOT::VecOps::Argsort(
+            good_pts, [](double x, double y) { return x > y; });
         Logger::get("PairSelection")
             ->debug("index_pt_sorted: {}", index_pt_sorted);
         const auto muon_indices_sorted =
