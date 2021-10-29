@@ -33,6 +33,14 @@ class ProducerOrdering:
         self.optimized = False
         self.global_outputs = self.get_global_outputs()
 
+    def __init__(self, global_producers, scope, producer_ordering):
+        self.global_producers = global_producers
+        self.ordering = producer_ordering
+        self.size = len(self.ordering)
+        self.scope = scope
+        self.optimized = False
+        self.global_outputs = self.get_global_outputs()
+
     """
     Helper Function to get the position of a producer in the ordering list
 
