@@ -258,28 +258,28 @@ auto PairSelectionAlgo() {
                            // entry is the trailing muon index
         const auto original_muon_indices = ROOT::VecOps::Nonzero(muonmask);
         // we need at least two fitting muons
-        if (original_muon_indices.size() < 3) {
+        if (original_muon_indices.size() < 2) {
             selected_pair = {-1, -1};
             return selected_pair;
         }
         Logger::get("PairSelection")->debug("Running algorithm on good muons");
         Logger::get("PairSelection")
-            ->info("original_muon_indices: {}", original_muon_indices);
+            ->debug("original_muon_indices: {}", original_muon_indices);
         const auto good_pts = ROOT::VecOps::Take(muonpt, original_muon_indices);
-        Logger::get("PairSelection")->info("good_pts: {}", good_pts);
-        const auto index_pt_sorted = ROOT::VecOps::Argsort(good_pts);
+        Logger::get("PairSelection")->debug("good_pts: {}", good_pts);
+        const auto index_pt_sorted = ROOT::VecOps::Argsort(good_pts, [](double x, double y) {return x > y;});
         Logger::get("PairSelection")
-            ->info("index_pt_sorted: {}", index_pt_sorted);
+            ->debug("index_pt_sorted: {}", index_pt_sorted);
         const auto muon_indices_sorted =
             ROOT::VecOps::Take(original_muon_indices, index_pt_sorted);
 
         Logger::get("PairSelection")
-            ->info("muon_indices_sorted: {}", muon_indices_sorted);
+            ->debug("muon_indices_sorted: {}", muon_indices_sorted);
 
         Logger::get("PairSelection")
-            ->info("Leading MuonPt: {}", muonpt[muon_indices_sorted[0]]);
+            ->debug("Leading MuonPt: {}", muonpt[muon_indices_sorted[0]]);
         Logger::get("PairSelection")
-            ->info("Trailing MuonPt: {}", muonpt[muon_indices_sorted[1]]);
+            ->debug("Trailing MuonPt: {}", muonpt[muon_indices_sorted[1]]);
 
         selected_pair = {static_cast<int>(muon_indices_sorted[0]),
                          static_cast<int>(muon_indices_sorted[1])};
