@@ -155,6 +155,7 @@ class Producer:
                     self.name, e
                 )
             )
+            log.error(config[shift][scope])
             log.error("Call: {}".format(self.call))
             raise Exception
 
