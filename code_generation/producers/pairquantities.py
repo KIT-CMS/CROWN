@@ -212,18 +212,7 @@ taujet_pt_1 = Producer(
     output=[q.taujet_pt_1],
     scopes=["tt"],
 )
-gen_taujet_pt_1 = Producer(
-    name="gen_taujet_pt_1",
-    call="quantities::tau::matching_genjet_pt({df}, {output}, 1, {input})",
-    input=[
-        q.ditaupair,
-        nanoAOD.Tau_associatedJet,
-        nanoAOD.Jet_associatedGenJet,
-        nanoAOD.GenJet_pt,
-    ],
-    output=[q.gen_taujet_pt_1],
-    scopes=["tt"],
-)
+
 tau_decaymode_2 = Producer(
     name="taudecaymode_2",
     call="quantities::tau::decaymode({df}, {output}, 1, {input})",
@@ -243,18 +232,6 @@ taujet_pt_2 = Producer(
     call="quantities::tau::matching_jet_pt({df}, {output}, 1, {input})",
     input=[q.ditaupair, nanoAOD.Tau_associatedJet, nanoAOD.Jet_pt],
     output=[q.taujet_pt_2],
-    scopes=["mt", "et", "tt"],
-)
-gen_taujet_pt_2 = Producer(
-    name="gen_taujet_pt_2",
-    call="quantities::tau::matching_genjet_pt({df}, {output}, 1, {input})",
-    input=[
-        q.ditaupair,
-        nanoAOD.Tau_associatedJet,
-        nanoAOD.Jet_associatedGenJet,
-        nanoAOD.GenJet_pt,
-    ],
-    output=[q.gen_taujet_pt_2],
     scopes=["mt", "et", "tt"],
 )
 UnrollMuLV1 = ProducerGroup(
@@ -309,7 +286,6 @@ UnrollTauLV1 = ProducerGroup(
         tau_decaymode_1,
         tau_gen_match_1,
         taujet_pt_1,
-        gen_taujet_pt_1,
     ],
 )
 UnrollTauLV2 = ProducerGroup(
