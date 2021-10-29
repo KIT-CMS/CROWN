@@ -1,8 +1,11 @@
 import logging
 
+# from functools import total_ordering
+
 log = logging.getLogger(__name__)
 
 
+# @total_ordering
 class Quantity:
     def __init__(self, name):
         self.name = name
@@ -18,7 +21,10 @@ class Quantity:
     def __repr__(self) -> str:
         return self.name
 
-    def reserve_scope(self, scope):
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def reserve_scope(self, scope) -> None:
         """
         Function to reserve a scope for a given quantity. The scopes, in which a quantity is used
         as an output are tracked in the output_scopes list.

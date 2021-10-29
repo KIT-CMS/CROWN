@@ -134,6 +134,18 @@ gen_match_2 = Producer(
     output=[q.gen_match_2],
     scopes=["mt", "et", "tt"],
 )
+gen_taujet_pt_1 = Producer(
+    name="gen_taujet_pt_1",
+    call="quantities::tau::matching_genjet_pt({df}, {output}, 1, {input})",
+    input=[
+        q.ditaupair,
+        nanoAOD.Tau_associatedJet,
+        nanoAOD.Jet_associatedGenJet,
+        nanoAOD.GenJet_pt,
+    ],
+    output=[q.gen_taujet_pt_1],
+    scopes=["tt"],
+)
 gen_taujet_pt_2 = Producer(
     name="gen_taujet_pt_2",
     call="quantities::tau::matching_genjet_pt({df}, {output}, 1, {input})",
@@ -146,25 +158,71 @@ gen_taujet_pt_2 = Producer(
     output=[q.gen_taujet_pt_2],
     scopes=["mt", "et", "tt"],
 )
-UnrollGenLV1 = ProducerGroup(
-    name="UnrollGenLV1",
+UnrollGenMuLV1 = ProducerGroup(
+    name="UnrollGenMuLV1",
     call=None,
     input=None,
     output=None,
-    scopes=["mt", "et", "tt", "em", "mm"],
+    scopes=["mt", "mm"],
     subproducers=[gen_pt_1, gen_eta_1, gen_phi_1, gen_mass_1, gen_pdgid_1],
 )
-UnrollGenLV2 = ProducerGroup(
+UnrollGenMuLV2 = ProducerGroup(
+    name="UnrollGenMuLV2",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["em", "mm"],
+    subproducers=[gen_pt_2, gen_eta_2, gen_phi_2, gen_mass_2, gen_pdgid_2],
+)
+UnrollGenElLV1 = ProducerGroup(
+    name="UnrollGenElLV1",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["em", "ee" "et"],
+    subproducers=[gen_pt_1, gen_eta_1, gen_phi_1, gen_mass_1, gen_pdgid_1],
+)
+UnrollGenElLV2 = ProducerGroup(
+    name="UnrollGenElLV2",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["ee"],
+    subproducers=[gen_pt_2, gen_eta_2, gen_phi_2, gen_mass_2, gen_pdgid_2],
+)
+UnrollGenTauLV1 = ProducerGroup(
+    name="UnrollGenTauLV1",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["tt"],
+    subproducers=[
+        gen_pt_1,
+        gen_eta_1,
+        gen_phi_1,
+        gen_mass_1,
+        gen_pdgid_1,
+        gen_taujet_pt_1,
+    ],
+)
+UnrollGenTauLV2 = ProducerGroup(
     name="UnrollGenLV2",
     call=None,
     input=None,
     output=None,
-    scopes=["mt", "et", "tt", "em", "mm"],
-    subproducers=[gen_pt_2, gen_eta_2, gen_phi_2, gen_mass_2, gen_pdgid_2],
+    scopes=["mt", "et", "tt"],
+    subproducers=[
+        gen_pt_2,
+        gen_eta_2,
+        gen_phi_2,
+        gen_mass_2,
+        gen_pdgid_2,
+        gen_taujet_pt_2,
+    ],
 )
 
 MTGenDiTauPairQuantities = ProducerGroup(
-    name="GenDiTauPairQuantities",
+    name="MTGenDiTauPairQuantities",
     call=None,
     input=None,
     output=None,
@@ -173,8 +231,68 @@ MTGenDiTauPairQuantities = ProducerGroup(
         MTGenPair,
         LVGenParticle1,
         LVGenParticle2,
-        UnrollGenLV1,
-        UnrollGenLV2,
+        UnrollGenMuLV1,
+        UnrollGenTauLV2,
+        gen_m_vis,
+    ],
+)
+ETGenDiTauPairQuantities = ProducerGroup(
+    name="ETGenDiTauPairQuantities",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["et"],
+    subproducers=[
+        MTGenPair,
+        LVGenParticle1,
+        LVGenParticle2,
+        UnrollGenElLV1,
+        UnrollGenTauLV2,
+        gen_m_vis,
+    ],
+)
+TTGenDiTauPairQuantities = ProducerGroup(
+    name="TTGenDiTauPairQuantities",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["tt"],
+    subproducers=[
+        MTGenPair,
+        LVGenParticle1,
+        LVGenParticle2,
+        UnrollGenTauLV1,
+        UnrollGenTauLV2,
+        gen_m_vis,
+    ],
+)
+EMGenDiTauPairQuantities = ProducerGroup(
+    name="EMGenDiTauPairQuantities",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["em"],
+    subproducers=[
+        MTGenPair,
+        LVGenParticle1,
+        LVGenParticle2,
+        UnrollGenElLV1,
+        UnrollGenMuLV2,
+        gen_m_vis,
+    ],
+)
+EEGenDiTauPairQuantities = ProducerGroup(
+    name="EEGenDiTauPairQuantities",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["ee"],
+    subproducers=[
+        MTGenPair,
+        LVGenParticle1,
+        LVGenParticle2,
+        UnrollGenElLV1,
+        UnrollGenElLV2,
         gen_m_vis,
     ],
 )
@@ -188,8 +306,8 @@ MMGenDiTauPairQuantities = ProducerGroup(
         MMGenPair,
         LVGenParticle1,
         LVGenParticle2,
-        UnrollGenLV1,
-        UnrollGenLV2,
+        UnrollGenMuLV1,
+        UnrollGenMuLV2,
         gen_m_vis,
     ],
 )
