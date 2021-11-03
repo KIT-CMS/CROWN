@@ -1,5 +1,7 @@
 import logging
-from config.utility import CollectProducersOutput
+from typing import Union, List, Dict, Set
+from code_generation.producer import Producer, ProducerGroup, CollectProducersOutput
+from code_generation.quantity import Quantity
 
 
 log = logging.getLogger(__name__)
@@ -7,39 +9,57 @@ log = logging.getLogger(__name__)
 
 class ProducerRule:
     def __init__(
-        self, producers, samples, scopes="global", invert=False, update_output=True
+        self,
+        producers: Union[ProducerGroup, Producer, List[Union[ProducerGroup, Producer]]],
+        samples: Union[str, List[str]],
+        scopes: Union[str, List[str]] = "global",
+        invert: bool = False,
+        update_output: bool = True,
     ):
+        if isinstance(producers, ProducerGroup) or isinstance(producers, Producer):
+            producers = [producers]
         self.producers = producers
+        if isinstance(samples, str):
+            samples = [samples]
         self.samples = samples
+        if isinstance(scopes, str):
+            scopes = [scopes]
         self.scopes = scopes
         self.invert = invert
         self.update_output = update_output
         self.global_scope = "global"
 
-    def set_scopes(self, scopes):
+    def set_scopes(self, scopes: Union[str, List[str]]):
+        if isinstance(scopes, str):
+            scopes = [scopes]
         self.scopes = scopes
 
-    def set_global_scope(self, scope):
-        self.global_scope = scope
+    def set_global_scope(self, global_scope: str):
+        self.global_scope = global_scope
 
     # Evaluate whether modification should be applied depending on sample and inversion flag
-    def applicable(self, sample):
+    def is_applicable(self, sample) -> bool:
         applicable = sample in self.samples
         if self.invert:
             applicable = not applicable
         return applicable
 
     # Placeholder for the actual operation on a list. To be overwritten by inheriting classes
-    def update_producers(self, producer, producers_to_be_updated):
+    def update_producers(self, producers_to_be_updated) -> None:
         log.error("Operation not implemented for ProducerRule base class!")
         pass
 
-    def update_outputs(self, output, outputs_to_be_updated):
+    def update_outputs(self, outputs_to_be_updated) -> None:
         log.error("Operation not implemented for ProducerRule base class!")
         pass
 
-    def apply(self, sample, producers_to_be_updated, outputs_to_be_updated):
-        if self.applicable(sample):
+    def apply(
+        self,
+        sample: str,
+        producers_to_be_updated: Dict[str, Set[Union[ProducerGroup, Producer]]],
+        outputs_to_be_updated: Dict[str, Set[Quantity]],
+    ) -> None:
+        if self.is_applicable(sample):
             log.info("For sample {}, applying >> {} ".format(sample, self))
             self.update_producers(producers_to_be_updated)
             self.update_outputs(outputs_to_be_updated)
@@ -57,7 +77,9 @@ class RemoveProducer(ProducerRule):
             self.producers, self.samples, self.scopes
         )
 
-    def update_producers(self, producers_to_be_updated):
+    def update_producers(
+        self, producers_to_be_updated: Dict[str, Set[Union[ProducerGroup, Producer]]]
+    ):
         for scope in self.scopes:
             for producer in self.producers:
                 if producer in producers_to_be_updated[scope]:
@@ -68,7 +90,7 @@ class RemoveProducer(ProducerRule):
                     )
                     producers_to_be_updated[scope].remove(producer)
 
-    def update_outputs(self, outputs_to_be_updated):
+    def update_outputs(self, outputs_to_be_updated: Dict[str, Set[Quantity]]):
         if self.update_output:
             outputs = {}
             # if the producer is in the global scope, we add the output to all running scopes
@@ -85,15 +107,15 @@ class RemoveProducer(ProducerRule):
                 scopes = self.scopes
                 for scope in scopes:
                     outputs[scope] = CollectProducersOutput(self.producers, scope)
-        for scope in scopes:
-            for output in outputs[scope]:
-                if output in outputs_to_be_updated[scope]:
-                    log.debug(
-                        "RemoveProducer: Removing {} from outputs in scope {}".format(
-                            output, scope
+            for scope in scopes:
+                for output in outputs[scope]:
+                    if output in outputs_to_be_updated[scope]:
+                        log.debug(
+                            "RemoveProducer: Removing {} from outputs in scope {}".format(
+                                output, scope
+                            )
                         )
-                    )
-                    outputs_to_be_updated[scope].remove(output)
+                        outputs_to_be_updated[scope].remove(output)
 
 
 # Modifier class that can append producers to lists
@@ -108,7 +130,9 @@ class AppendProducer(ProducerRule):
             self.producers, self.samples, self.scopes
         )
 
-    def update_producers(self, producers_to_be_updated):
+    def update_producers(
+        self, producers_to_be_updated: Dict[str, Set[Union[ProducerGroup, Producer]]]
+    ):
         for scope in self.scopes:
             for producer in self.producers:
                 log.debug(
@@ -118,9 +142,9 @@ class AppendProducer(ProducerRule):
                 )
                 producers_to_be_updated[scope].add(producer)
 
-    def update_outputs(self, outputs_to_be_updated):
+    def update_outputs(self, outputs_to_be_updated: Dict[str, Set[Quantity]]):
         if self.update_output:
-            outputs = {}
+            outputs: Dict[str, Set[Quantity]] = {}
             # if the producer is in the global scope, we add the output to all running scopes
             if self.scopes == [self.global_scope]:
                 log.debug(

@@ -1,5 +1,6 @@
 import code_generation.quantity as q
 import logging
+from typing import Union, List, Dict, Set
 
 log = logging.getLogger(__name__)
 
@@ -514,3 +515,32 @@ class Filter(ProducerGroup):
             self.producers[scope].append(
                 BaseFilter(self.name, self.call, self.input, self.scopes)
             )
+
+
+def CollectProducersOutput(
+    producers: List[Union[ProducerGroup, Producer]], scope: str
+) -> set:
+    output = []
+    for producer in producers:
+        if producer.output is not None:
+            if isinstance(producer.output, list):
+                output.extend(producer.output)
+            else:
+                output.append(producer.output)
+        if isinstance(producer, ProducerGroup):
+            for prod in producer.producers[scope]:
+                output.extend(CollectProducerOutput(prod, scope))
+    return set(output)
+
+
+def CollectProducerOutput(producer: Union[ProducerGroup, Producer], scope: str) -> set:
+    output = []
+    if producer.output is not None:
+        if isinstance(producer.output, list):
+            output.extend(producer.output)
+        else:
+            output.append(producer.output)
+    if isinstance(producer, ProducerGroup):
+        for prod in producer.producers[scope]:
+            output.extend(CollectProducerOutput(prod, scope))
+    return set(output)
