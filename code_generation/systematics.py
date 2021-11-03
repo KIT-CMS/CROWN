@@ -4,7 +4,7 @@ import logging
 log = logging.getLogger(__name__)
 
 """
-    Class containing systematic shifts. A systematic shift is a variation of a 
+    Class containing systematic shifts. A systematic shift is a variation of a
     set of configuration parameters. A dummy shift looks like this:
     SystematicShift(
             name="shiftname",
@@ -34,6 +34,8 @@ log = logging.getLogger(__name__)
         ignore_producers (dict): Dictionary containing the producers that are not affected by the systematic shift. The dictionary keys have to be strings, or tuples, in case the same producer is not affected by the systematic shift in multiple scopes. The dictionary values have to be the ignored producers.
 
 """
+
+
 class SystematicShift(object):
     def __init__(self, name, shift_config, producers, scopes=None, ignore_producers={}):
         self.shiftname = "__" + name
@@ -42,7 +44,7 @@ class SystematicShift(object):
         self.shift_config = self.expand_dict(shift_config)
         self.scopes = self.determine_scopes(scopes)
         self.validate()
-    
+
     """
     Function used to expand dictionaries. If the key is a string, it is returned as is. If the key is a tuple, the tuple is expanded and the resulting dict with one key per tuple entry is returned.
 
@@ -84,14 +86,14 @@ class SystematicShift(object):
             returnstr += "  Shift config: {}\n".format(self.shift_config[scope])
             returnstr += "  ------------ \n"
         return returnstr
-    
+
     """
     Function used to determine the scopes that are affected by the systematic shift.
     If no scope is specified by the user, the scopes are determined from the shift_config, producers and ignore_producers.
 
     Args:
         scopes (set): Set of scopes that are affected by the systematic shift.
-    
+
     Returns:
         set: Set of scopes that are affected by the systematic shift.
     """
@@ -110,7 +112,7 @@ class SystematicShift(object):
         return scopes
 
     """
-    
+
     Helper function used in the validation of the systematic shift. If makes sure, that the provided dict of producers is in a defined format, meaning a dict with one key per scope and a list of producers as value.
 
     Args:
@@ -152,7 +154,7 @@ class SystematicShift(object):
                 "SystematicShift producers must be a dict, list or a single Producer"
             )
         return producer_dict
-    
+
     """
     Function used to validate the systematic shift. The provided producers and ignore_producers are converted into a defined format. If no configuration is provided for a scope, an empty dict is used.
 
@@ -192,7 +194,7 @@ class SystematicShift(object):
             self.producers[scope].append(producer)
         self.validate()
 
-     """
+    """
     Function used to add an ignored producer to the list of ignored producers, which are untouched by the systematic shift. After adding the ignored producer, the shift is validated.
 
     Args:
@@ -202,6 +204,7 @@ class SystematicShift(object):
     Returns:
         None
     """
+
     def add_ignore_producer(self, producer, scopes=None) -> None:
         if scopes is None:
             scopes = self.scopes
@@ -220,6 +223,7 @@ class SystematicShift(object):
     Returns:
         None
     """
+
     def add_scope(self, scope) -> None:
         self.scopes.add(scope)
         self.producers[scope] = []
@@ -248,7 +252,7 @@ class SystematicShift(object):
         None
 
     Returns:
-        set: Set of scopes that are affected by the systematic shift. 
+        set: Set of scopes that are affected by the systematic shift.
     """
 
     def get_scopes(self) -> set:
@@ -262,21 +266,21 @@ class SystematicShift(object):
 
     Returns:
         dict: Configuration for the given scope.
-    """  
+    """
 
     def get_shift_config(self, scope) -> dict:
         return self.shift_config[scope]
-
 
     """
     Function used to apply the systematic shift to the given producers. For the given scope, all producers aer shifted using producer.shift, while, for all ignored producers, the producer.ignore_shift function is called. If the scope is not defined in the shift, no shift is applied.
 
     Args:
         scope: Scope for which the shift should be applied.
-    
+
     Returns:
         None
     """
+
     def apply(self, scope) -> None:
         log.debug("Applying systematic shift \n{}".format(self))
         if scope in self.scopes:
