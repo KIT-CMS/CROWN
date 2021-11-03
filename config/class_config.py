@@ -1,22 +1,19 @@
-from code_generation.configuration import (
-    Configuration,
-    SampleModifier,
-    EraModifier,
-)
+import code_generation.producers.electrons as electrons
+import code_generation.producers.event as event
+import code_generation.producers.genparticles as genparticles
+import code_generation.producers.jets as jets
+import code_generation.producers.met as met
+import code_generation.producers.muons as muons
+import code_generation.producers.pairquantities as pairquantities
+import code_generation.producers.pairselection as pairselection
+import code_generation.producers.scalefactors as scalefactors
+import code_generation.producers.taus as taus
+import code_generation.producers.triggers as triggers
+import code_generation.quantities.output as q
+import code_generation.quantities.nanoAOD as nanoAOD
+from code_generation.configuration import Configuration, EraModifier, SampleModifier
 from code_generation.rules import AppendProducer, RemoveProducer
 from code_generation.systematics import SystematicShift
-from code_generation.producers.jets import *
-from code_generation.producers.taus import *
-from code_generation.producers.muons import *
-from code_generation.producers.electrons import *
-from code_generation.producers.genparticles import *
-from code_generation.producers.pairselection import *
-from code_generation.producers.pairquantities import *
-from code_generation.producers.event import *
-from code_generation.producers.scalefactors import *
-from code_generation.producers.triggers import *
-from code_generation.producers.met import *
-import code_generation.quantities.output as q
 
 
 def build_config(
@@ -71,12 +68,6 @@ def build_config(
             "max_tau_eta": 2.3,
             "max_tau_dz": 0.2,
             "tau_dms": "0,1,10,11",
-            # "tau_id": [
-            #     "Tau_idDeepTau2017v2p1VSjet",
-            #     "Tau_idDeepTau2017v2p1VSe",
-            #     "Tau_idDeepTau2017v2p1VSmu",
-            # ],
-            # "tau_id_idx": [4, 4, 1],
             "vsjet_tau_id_bit": 4,
             "vsele_tau_id_bit": 4,
             "vsmu_tau_id_bit": 1,
@@ -144,7 +135,7 @@ def build_config(
         },
     )
     ###### Channel Specifics ######
-    ## MT/MM channel Muon selection
+    # MT/MM channel Muon selection
     configuration.add_config_parameters(
         ["mt", "mm"],
         {
@@ -271,116 +262,126 @@ def build_config(
         "global",
         [
             # RunLumiEventFilter,
-            Lumi,
-            MetFilter,
-            PUweights,
-            TauEnergyCorrection,
-            GoodTaus,
-            BaseMuons,
-            BaseElectrons,
-            JetEnergyCorrection,
-            GoodJets,
-            GoodBJets,
-            DiLeptonVeto,
+            event.Lumi,
+            event.MetFilter,
+            event.PUweights,
+            taus.TauEnergyCorrection,
+            taus.GoodTaus,
+            muons.BaseMuons,
+            electrons.BaseElectrons,
+            jets.JetEnergyCorrection,
+            jets.GoodJets,
+            jets.GoodBJets,
+            event.DiLeptonVeto,
         ],
     )
     configuration.add_producers(
         "mm",
         [
-            GoodMuons,
-            MMPairSelection,
-            GoodMMPairFilter,
-            LVMu1,
-            LVMu2,
-            MMDiTauPairQuantities,
-            JetCollection,
-            BasicJetQuantities,
-            BJetCollection,
-            BasicBJetQuantities,
-            MMGenDiTauPairQuantities,
-            MuonIDIso_SF,
-            MMGenerateSingleMuonTriggerFlags,
-            LVMu1Uncorrected,
-            LVMu2Uncorrected,
-            MetCorrections,
-            DiTauPairMETQuantities,
+            muons.GoodMuons,
+            pairselection.MMPairSelection,
+            pairselection.GoodMMPairFilter,
+            pairselection.LVMu1,
+            pairselection.LVMu2,
+            pairselection.LVMu1Uncorrected,
+            pairselection.LVMu2Uncorrected,
+            pairquantities.MMDiTauPairQuantities,
+            jets.JetCollection,
+            jets.BasicJetQuantities,
+            jets.BJetCollection,
+            jets.BasicBJetQuantities,
+            genparticles.MMGenDiTauPairQuantities,
+            scalefactors.MuonIDIso_SF,
+            triggers.MMGenerateSingleMuonTriggerFlags,
+            met.MetCorrections,
+            pairquantities.DiTauPairMETQuantities,
         ],
     )
     configuration.add_producers(
         "mt",
         [
-            GoodMuons,
-            MTPairSelection,
-            GoodMTPairFilter,
-            VetoMuons,
-            ExtraMuonsVeto,
-            ExtraElectronsVeto,
-            LVMu1,
-            LVTau2,
-            MTDiTauPairQuantities,
-            JetCollection,
-            BasicJetQuantities,
-            BJetCollection,
-            BasicBJetQuantities,
-            MTGenDiTauPairQuantities,
-            MuonIDIso_SF,
-            MTGenerateSingleMuonTriggerFlags,
-            MTGenerateCrossTriggerFlags,
-            LVMu1Uncorrected,
-            LVTau2Uncorrected,
-            MetCorrections,
-            DiTauPairMETQuantities,
+            muons.GoodMuons,
+            pairselection.MTPairSelection,
+            pairselection.GoodMTPairFilter,
+            muons.VetoMuons,
+            muons.ExtraMuonsVeto,
+            electrons.ExtraElectronsVeto,
+            pairselection.LVMu1,
+            pairselection.LVTau2,
+            pairselection.LVMu1Uncorrected,
+            pairselection.LVTau2Uncorrected,
+            pairquantities.MTDiTauPairQuantities,
+            jets.JetCollection,
+            jets.BasicJetQuantities,
+            jets.BJetCollection,
+            jets.BasicBJetQuantities,
+            genparticles.MTGenDiTauPairQuantities,
+            scalefactors.MuonIDIso_SF,
+            triggers.MTGenerateSingleMuonTriggerFlags,
+            triggers.MTGenerateCrossTriggerFlags,
+            met.MetCorrections,
+            pairquantities.DiTauPairMETQuantities,
         ],
     )
     configuration.add_modification_rule(
-        ["mt", "mm"], RemoveProducer(producers=[MuonIDIso_SF], samples=["data"])
+        ["mt", "mm"],
+        RemoveProducer(producers=[scalefactors.MuonIDIso_SF], samples=["data"]),
     )
     configuration.add_modification_rule(
         "global",
-        RemoveProducer(producers=[PUweights], samples=["data", "emb", "emb_mc"]),
+        RemoveProducer(producers=[event.PUweights], samples=["data", "emb", "emb_mc"]),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"], AppendProducer(producers=[GGH_NNLO_Reweighting], samples=["ggh"])
+        ["mt", "mm"],
+        AppendProducer(producers=[event.GGH_NNLO_Reweighting], samples=["ggh"]),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"], AppendProducer(producers=[GGH_WG1_Uncertainties], samples=["ggh"])
+        ["mt", "mm"],
+        AppendProducer(producers=[event.GGH_WG1_Uncertainties], samples=["ggh"]),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"], AppendProducer(producers=[QQH_WG1_Uncertainties], samples=["qqh"])
+        ["mt", "mm"],
+        AppendProducer(producers=[event.QQH_WG1_Uncertainties], samples=["qqh"]),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"], AppendProducer(producers=[TopPtReweighting], samples=["ttbar"])
+        ["mt", "mm"],
+        AppendProducer(producers=[event.TopPtReweighting], samples=["ttbar"]),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"], AppendProducer(producers=[ZPtMassReweighting], samples=["dy"])
+        ["mt", "mm"],
+        AppendProducer(producers=[event.ZPtMassReweighting], samples=["dy"]),
     )
     # changes needed for data
     # global scope
     configuration.add_modification_rule(
         "global",
-        AppendProducer(producers=[RenameJetsData], samples=["data", "emb", "emb_mc"]),
+        AppendProducer(
+            producers=[jets.RenameJetsData], samples=["data", "emb", "emb_mc"]
+        ),
     )
     configuration.add_modification_rule(
         "global",
-        AppendProducer(producers=[JSONFilter], samples=["data", "emb"]),
+        AppendProducer(producers=[event.JSONFilter], samples=["data", "emb"]),
     )
     configuration.add_modification_rule(
         "global",
         RemoveProducer(
-            producers=[JetEnergyCorrection], samples=["data", "emb", "emb_mc"]
+            producers=[jets.JetEnergyCorrection], samples=["data", "emb", "emb_mc"]
         ),
     )
     # channel specific
     configuration.add_modification_rule(
         "mt",
         RemoveProducer(
-            producers=[MTGenDiTauPairQuantities], samples=["data", "emb", "emb_mc"]
+            producers=[genparticles.MTGenDiTauPairQuantities],
+            samples=["data", "emb", "emb_mc"],
         ),
     )
     configuration.add_modification_rule(
         "mm",
         RemoveProducer(
-            producers=[MMGenDiTauPairQuantities], samples=["data", "emb", "emb_mc"]
+            producers=[genparticles.MMGenDiTauPairQuantities],
+            samples=["data", "emb", "emb_mc"],
         ),
     )
 
@@ -451,8 +452,8 @@ def build_config(
             q.metcov01,
             q.metcov10,
             q.metcov11,
-            MTGenerateSingleMuonTriggerFlags.output_group,
-            MTGenerateCrossTriggerFlags.output_group,
+            triggers.MTGenerateSingleMuonTriggerFlags.output_group,
+            triggers.MTGenerateCrossTriggerFlags.output_group,
             q.pzetamissvis,
             q.mTdileptonMET,
             q.mt_1,
@@ -522,7 +523,7 @@ def build_config(
             q.metcov01,
             q.metcov10,
             q.metcov11,
-            MMGenerateSingleMuonTriggerFlags.output_group,
+            triggers.MMGenerateSingleMuonTriggerFlags.output_group,
             q.pzetamissvis,
             q.mTdileptonMET,
             q.mt_1,
@@ -532,14 +533,6 @@ def build_config(
             q.mt_tot,
         ],
     )
-    configuration.optimize()
-    configuration.add_shift(
-    SystematicShift(
-    name="tauES_1prong0pizeroDown",
-    shift_config={"global": {"tau_ES_shift_DM0": 0.998}},
-    producers={"global": TauPtCorrection},
-    ignore_producers={"mt": [LVMu1, VetoMuons]},
-    ))
     # if "data" not in sample and "emb" not in sample:
     #     for scope in config["output"].keys():
     #         config["output"][scope].extend(
@@ -551,34 +544,28 @@ def build_config(
     #             ]
     #         )
 
-    # for modifier in config["producer_modifiers"]:
-    #     modifier.apply(sample, config["producers"], config["output"])
-    # ResolveSampleDependencies(config, sample)
-    # ResolveEraDependencies(config, era)
-    # OptimizeProducerOrdering(config)
-    # ValidateOutputs(config)
-    # # remove channels that are not envoked
-    # if "auto" not in channels:
-    #     available_channels = [x for x in config["producers"] if x != "global"]
-    #     for channel in available_channels:
-    #         if channel not in channels:
-    #             del config["producers"][channel]
-    #             del config["output"][channel]
-
-    # AddSystematicShift(
-    #     config,
-    #     "tauES_1prong0pizeroUp",
-    #     {"global": {"tau_ES_shift_DM0": 1.002}},
-    #     [[TauPtCorrection, "global"]],
-    #     sanitize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
-    # )
-    # AddSystematicShift(
-    #     config,
-    #     "tauES_1prong0pizeroDown",
-    #     {"global": {"tau_ES_shift_DM0": 0.998}},
-    #     [[TauPtCorrection, "global"]],
-    #     sanitize_producers=[[LVMu1, "mt"], [VetoMuons, "mt"]],
-    # )
+    #########################
+    # TES Shifts
+    #########################
+    configuration.add_shift(
+        SystematicShift(
+            name="tauES_1prong0pizeroDown",
+            shift_config={"global": {"tau_ES_shift_DM0": 0.998}},
+            producers={"global": taus.TauPtCorrection},
+            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="tauES_1prong0pizeroUp",
+            shift_config={"global": {"tau_ES_shift_DM0": 1.002}},
+            producers={"global": taus.TauPtCorrection},
+            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+        )
+    )
+    #########################
+    # MET Shifts
+    #########################
     # # Add MET shifts
     # if "data" not in sample and "emb" not in sample:
     #     SystematicShiftByInputQuantity(
@@ -597,68 +584,99 @@ def build_config(
     #             nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
     #         },
     #     )
-    #     # MET Recoil Shifts
-    #     AddSystematicShift(
-    #         config,
-    #         "metRecoilResponseUp",
-    #         {
-    #             "mt": {
-    #                 "apply_recoil_resolution_systematic": False,
-    #                 "apply_recoil_response_systematic": True,
-    #                 "recoil_systematic_shift_up": True,
-    #                 "recoil_systematic_shift_down": False,
-    #             }
-    #         },
-    #         [[ApplyRecoilCorrections, "mt"]],
-    #     )
-    #     AddSystematicShift(
-    #         config,
-    #         "metRecoilResponseDown",
-    #         {
-    #             "mt": {
-    #                 "apply_recoil_resolution_systematic": False,
-    #                 "apply_recoil_response_systematic": True,
-    #                 "recoil_systematic_shift_up": False,
-    #                 "recoil_systematic_shift_down": True,
-    #             }
-    #         },
-    #         [[ApplyRecoilCorrections, "mt"]],
-    #     )
-    #     AddSystematicShift(
-    #         config,
-    #         "metRecoilResolutionUp",
-    #         {
-    #             "mt": {
-    #                 "apply_recoil_resolution_systematic": True,
-    #                 "apply_recoil_response_systematic": False,
-    #                 "recoil_systematic_shift_up": True,
-    #                 "recoil_systematic_shift_down": False,
-    #             }
-    #         },
-    #         [[ApplyRecoilCorrections, "mt"]],
-    #     )
-    #     AddSystematicShift(
-    #         config,
-    #         "metRecoilResolutionDown",
-    #         {
-    #             "mt": {
-    #                 "apply_recoil_resolution_systematic": True,
-    #                 "apply_recoil_response_systematic": False,
-    #                 "recoil_systematic_shift_up": False,
-    #                 "recoil_systematic_shift_down": True,
-    #             }
-    #         },
-    #         [[ApplyRecoilCorrections, "mt"]],
-    #     )
-    # # Jet energy resolution
-    # shift_dict = {"JE_reso_shift": 1}
-    # AddSystematicShift(
-    #     config, "jerUncUp", {"global": shift_dict}, [[JetEnergyCorrection, "global"]]
-    # )
-    # shift_dict = {"JE_reso_shift": -1}
-    # AddSystematicShift(
-    #     config, "jerUncDown", {"global": shift_dict}, [[JetEnergyCorrection, "global"]]
-    # )
+    #########################
+    # MET Recoil Shifts
+    #########################
+    configuration.add_shift(
+        SystematicShift(
+            name="metRecoilResponseUp",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "apply_recoil_resolution_systematic": False,
+                    "apply_recoil_response_systematic": True,
+                    "recoil_systematic_shift_up": True,
+                    "recoil_systematic_shift_down": False,
+                },
+            },
+            producers={
+                ("et", "mt", "tt", "em", "ee", "mm"): met.ApplyRecoilCorrections
+            },
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="metRecoilResponseDown",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "apply_recoil_resolution_systematic": False,
+                    "apply_recoil_response_systematic": True,
+                    "recoil_systematic_shift_up": False,
+                    "recoil_systematic_shift_down": True,
+                },
+            },
+            producers={
+                ("et", "mt", "tt", "em", "ee", "mm"): met.ApplyRecoilCorrections
+            },
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="metRecoilResolutionUp",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "apply_recoil_resolution_systematic": True,
+                    "apply_recoil_response_systematic": False,
+                    "recoil_systematic_shift_up": True,
+                    "recoil_systematic_shift_down": False,
+                },
+            },
+            producers={
+                ("et", "mt", "tt", "em", "ee", "mm"): met.ApplyRecoilCorrections
+            },
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="metRecoilResolutionDown",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "apply_recoil_resolution_systematic": True,
+                    "apply_recoil_response_systematic": False,
+                    "recoil_systematic_shift_up": False,
+                    "recoil_systematic_shift_down": True,
+                },
+            },
+            producers={
+                ("et", "mt", "tt", "em", "ee", "mm"): met.ApplyRecoilCorrections
+            },
+        )
+    )
+    #########################
+    # Jet energy resolution
+    #########################
+    configuration.add_shift(
+        SystematicShift(
+            name="jerUncUp",
+            shift_config={
+                "global": {"JE_reso_shift": 1},
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="jerUncDown",
+            shift_config={
+                "global": {"JE_reso_shift": -1},
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+
+    #########################
+    # Finalize and validate the configuration
+    #########################
+    configuration.optimize()
     configuration.validate()
     configuration.report()
     return configuration.dump_dict()
