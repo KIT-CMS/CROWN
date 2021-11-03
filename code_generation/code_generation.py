@@ -77,9 +77,19 @@ def fill_template(t, config):
         )
     runcommands = ""
     for scope in config["output"]:
-        runcommands += '    auto %s_result = %s_df_final.Snapshot("ntuple", std::string(output_path), %s, dfconfig);\n' % (
-            scope,
-            scope,
+        # runcommands += '    auto %s_result = %s_df_final.Snapshot("ntuple", std::string(output_path), %s, dfconfig);\n' % (
+        #     scope,
+        #     scope,
+        #     '{"'
+        #     + '", "'.join(
+        #         [
+        #             '", "'.join(q.get_leaves_of_scope(scope))
+        #             for q in config["output"][scope]
+        #         ]
+        #     )
+        #     + '"}',
+        # )
+        outputstring = (
             '{"'
             + '", "'.join(
                 [
@@ -87,7 +97,14 @@ def fill_template(t, config):
                     for q in config["output"][scope]
                 ]
             )
-            + '"}',
+            + '"}'
+        )
+        outputname = "outputpath_{scope}".format(scope=scope)
+        runcommands += '    std::string {outputname} = std::regex_replace(std::string(output_path), std::regex("\\\\.root"), "_{scope}.root"); ;\n'.format(
+            scope=scope, outputname=outputname
+        )
+        runcommands += '    auto {scope}_result = {scope}_df_final.Snapshot("ntuple", {outputname}, {outputstring}, dfconfig);\n'.format(
+            scope=scope, outputname=outputname, outputstring=outputstring
         )
     for scope in config["output"]:
         runcommands += "    %s_result.GetValue();\n" % scope
@@ -102,22 +119,26 @@ def fill_template(t, config):
     log.info("Prepare meta data.")
     plain_output_lists = []
     for scope in config["output"]:
+        outputname = "outputpath_{scope}".format(scope=scope)
         plain_output_lists.append(
-            '{std::string(output_path), {"'
+            '{{ {outputname}, {{"'.format(outputname=outputname)
             + '", "'.join([q.name for q in config["output"][scope]])
-            + '"}}'
+            + '"} }'
         )
-    output_lists = "{" + "}, {".join(plain_output_lists) + "}"
+    output_lists = "{" + " , ".join(plain_output_lists) + " }"
     shiftset = set()
     shiftlists = []
     for scope in config["output"]:
+        outputname = "outputpath_{scope}".format(scope=scope)
         for q in config["output"][scope]:
             for shift in q.get_shifts(scope):
                 shiftset.add(shift)
         shiftlists.append(
-            '{std::string(output_path), {"' + '", "'.join(shiftset) + '"}}'
+            '{{ {outputname}, {{"'.format(outputname=outputname)
+            + '", "'.join(shiftset)
+            + '"} }'
         )
-    shiftlists = "{" + "}, {".join(shiftlists) + "}"
+    shiftlists = "{" + " , ".join(shiftlists) + " }"
     try:
         repo = Repo("../../CROWN")
         current_commit = repo.head.commit

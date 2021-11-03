@@ -18,6 +18,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <string>
+#include <regex>
 
 static std::vector<std::string> varSet = {"run", "luminosityBlock", "event"};
 
