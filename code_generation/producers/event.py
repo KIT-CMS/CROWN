@@ -1,6 +1,6 @@
-import code_generation.quantities.output as q
 import code_generation.quantities.nanoAOD as nanoAOD
-from code_generation.producer import Producer, VectorProducer, ProducerGroup, BaseFilter
+import code_generation.quantities.output as q
+from code_generation.producer import BaseFilter, Producer, ProducerGroup, VectorProducer
 from code_generation.producers.electrons import DiElectronVeto
 from code_generation.producers.muons import DiMuonVeto
 
