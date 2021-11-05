@@ -17,7 +17,9 @@ TConfiguration = Dict[
     str, Union[List[Union[str, int, float, bool]], str, int, float, bool, Modifier]
 ]
 
-"""
+
+class SystematicShift(object):
+    """
     Class containing systematic shifts. A systematic shift is a variation of a
     set of configuration parameters. A dummy shift looks like this:
     SystematicShift(
@@ -47,10 +49,8 @@ TConfiguration = Dict[
 
         ignore_producers (dict): Dictionary containing the producers that are not affected by the systematic shift. The dictionary keys have to be strings, or tuples, in case the same producer is not affected by the systematic shift in multiple scopes. The dictionary values have to be the ignored producers.
 
-"""
+    """
 
-
-class SystematicShift(object):
     def __init__(
         self,
         name: str,
@@ -71,20 +71,21 @@ class SystematicShift(object):
         self.scopes: Set[str] = self.determine_scopes(scopes)
         self.validate()
 
-    """
-    Function used to expand dictionaries. If the key is a string, it is returned as is. If the key is a tuple, the tuple is expanded and the resulting dict with one key per tuple entry is returned.
-
-    Args:
-        dict_to_expand (dict): Dictionary to expand.
-
-    Returns:
-        dict: Expanded dictionary.
-    """
-
     def expand_producer_dict(
         self,
         dict_to_expand: Dict[Union[str, Tuple[Any]], TProducerInput],
     ) -> Dict[str, TProducerInput]:
+        """
+        Function used to expand dictionaries. If the key is a string,
+        it is returned as is. If the key is a tuple, the tuple is expanded
+        and the resulting dict with one key per tuple entry is returned.
+
+        Args:
+            dict_to_expand (dict): Dictionary to expand.
+
+        Returns:
+            dict: Expanded dictionary.
+        """
         exanded_dict: Dict[str, TProducerInput] = {}
         for key in dict_to_expand.keys():
             if not (isinstance(key, str) or isinstance(key, tuple)):
@@ -104,6 +105,17 @@ class SystematicShift(object):
         self,
         dict_to_expand: Dict[Union[str, Tuple[Any]], TConfiguration],
     ) -> Dict[str, TConfiguration]:
+        """
+        Function used to expand the configuration dictionary.
+        If the key is a string, it is returned as is. If the key is a tuple,
+        the tuple is expanded and the resulting dict with one key per tuple entry is returned.
+
+        Args:
+            dict_to_expand (dict): Dictionary to expand.
+
+        Returns:
+            dict: Expanded dictionary.
+        """
         exanded_dict: Dict[str, TConfiguration] = {}
         for key in dict_to_expand:
             if not (isinstance(key, str) or isinstance(key, tuple)):
@@ -139,18 +151,18 @@ class SystematicShift(object):
             returnstr += "  ------------ \n"
         return returnstr
 
-    """
-    Function used to determine the scopes that are affected by the systematic shift.
-    If no scope is specified by the user, the scopes are determined from the shift_config, producers and ignore_producers.
-
-    Args:
-        scopes (set): Set of scopes that are affected by the systematic shift.
-
-    Returns:
-        set: Set of scopes that are affected by the systematic shift.
-    """
-
     def determine_scopes(self, scopes: Union[List[str], str, None]) -> Set[str]:
+        """
+        Function used to determine the scopes that are affected by the systematic shift.
+        If no scope is specified by the user, the scopes are determined from the shift_config,
+        producers and ignore_producers.
+
+        Args:
+            scopes (set): Set of scopes that are affected by the systematic shift.
+
+        Returns:
+            set: Set of scopes that are affected by the systematic shift.
+        """
         if scopes is None:
             scope_set: Set[str] = (
                 set(self.shift_config.keys())
@@ -163,21 +175,23 @@ class SystematicShift(object):
             scope_set = set(scopes)
         return scope_set
 
-    """
-
-    Helper function used in the validation of the systematic shift. If makes sure, that the provided dict of producers is in a defined format, meaning a dict with one key per scope and a list of producers as value.
-
-    Args:
-        producers: Producers can be a single Producer object, a list of Producer objects or a dict with one key per scope and a list of producers as value.
-
-    Returns:
-        dict: Dictionary containing the producers with one key per scope and a list of producers as value.
-
-    """
-
     def convert_to_dict(
         self, producers: TProducerInput, scopes: Set[str]
     ) -> TProducerListStore:
+        """
+
+        Helper function used in the validation of the systematic shift. If makes sure,
+        that the provided dict of producers is in a defined format, meaning a dict with one key per
+        scope and a list of producers as value.
+
+        Args:
+            producers: Producers can be a single Producer object, a list of Producer objects or a dict
+            with one key per scope and a list of producers as value.
+
+        Returns:
+            dict: Dictionary containing the producers with one key per scope and a list of producers as value.
+
+        """
         producer_dict: TProducerListStore = {}
         if isinstance(producers, Producer):
             for scope in scopes:
@@ -209,17 +223,18 @@ class SystematicShift(object):
             )
         return producer_dict
 
-    """
-    Function used to validate the systematic shift. The provided producers and ignore_producers are converted into a defined format. If no configuration is provided for a scope, an empty dict is used.
-
-    Args:
-        None
-
-    Returns:
-        None
-    """
-
     def validate(self) -> None:
+        """
+        Function used to validate the systematic shift. The provided producers
+        and ignore_producers are converted into a defined format. If no
+        configuration is provided for a scope, an empty dict is used.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.producers = self.convert_to_dict(self.producers, self.scopes)
         self.ignore_producers = self.convert_to_dict(self.ignore_producers, self.scopes)
         unconfigured_scopes = set(self.scopes) - set(self.shift_config.keys())
@@ -228,22 +243,23 @@ class SystematicShift(object):
             for scope in unconfigured_scopes:
                 self.shift_config[scope] = {}
 
-    """
-    Function used to add a producer to the list of producers affected by the systematic shift. After adding the producer, the shift is validated.
-
-    Args:
-        producer: Producer to add.
-        scope: Scope to which the producer should be added. If no sopce is provided, the producer is added to all scopes of the systematic.
-
-    Returns:
-        None
-    """
-
     def add_producer(
         self,
         producer: Union[Producer, ProducerGroup],
         input_scope: Union[List[str], None] = None,
     ) -> None:
+        """
+        Function used to add a producer to the list of producers affected by the
+        systematic shift. After adding the producer, the shift is validated.
+
+        Args:
+            producer: Producer to add.
+            scope: Scope to which the producer should be added. If no sopce is
+            provided, the producer is added to all scopes of the systematic.
+
+        Returns:
+            None
+        """
         scopes: Set[str] = self.scopes
         if isinstance(input_scope, str):
             scopes = set([input_scope])
@@ -251,20 +267,21 @@ class SystematicShift(object):
             self.producers[scope].append(producer)
         self.validate()
 
-    """
-    Function used to add an ignored producer to the list of ignored producers, which are untouched by the systematic shift. After adding the ignored producer, the shift is validated.
-
-    Args:
-        producer: Producer to ignore.
-        scope: Scope to which the ignored producer should be added. If no sopce is provided, the ignored producer is added to all scopes of the systematic.
-
-    Returns:
-        None
-    """
-
     def add_ignore_producer(
         self, producer: TProducerInput, scopes: Union[str, None] = None
     ) -> None:
+        """
+        Function used to add an ignored producer to the list of ignored producers,
+        which are untouched by the systematic shift. After adding the ignored producer, the shift is validated.
+
+        Args:
+            producer: Producer to ignore.
+            scope: Scope to which the ignored producer should be added. If no sopce is
+            provided, the ignored producer is added to all scopes of the systematic.
+
+        Returns:
+            None
+        """
         if scopes is None:
             scopes = self.scopes
         if isinstance(scopes, str):
@@ -273,74 +290,70 @@ class SystematicShift(object):
             self.ignore_producers[scope].append(producer)
         self.validate()
 
-    """
-    Function used to add a scope to the list of scopes affected by the systematic shift. After adding the scope, the shift is validated.
-
-    Args:
-        scope: Scope to add.
-
-    Returns:
-        None
-    """
-
     def add_scope(self, scope: str) -> None:
+        """
+        Function used to add a scope to the list of scopes affected
+        by the systematic shift. After adding the scope, the shift is validated.
+
+        Args:
+            scope: Scope to add.
+
+        Returns:
+            None
+        """
         self.scopes.add(scope)
         self.producers[scope] = []
         self.ignore_producers[scope] = []
         self.validate()
 
-    """
-    Function used to add a configuration to the list of configurations for a scope. After adding the configuration, the shift is validated.
-
-    Args:
-        config: Configuration to add.
-        scope: Scope to which the configuration should be added.
-
-    Returns:
-        None
-    """
-
     def add_config(self, config: TConfiguration, scope: str) -> None:
+        """
+        Function used to add a configuration to the list of configurations for a scope. After adding the configuration, the shift is validated.
+
+        Args:
+            config: Configuration to add.
+            scope: Scope to which the configuration should be added.
+
+        Returns:
+            None
+        """
         self.shift_config[scope] = config
         self.validate()
 
-    """
-    This function returns a set of all scopes that are affected by the systematic shift.
-
-    Args:
-        None
-
-    Returns:
-        set: Set of scopes that are affected by the systematic shift.
-    """
-
     def get_scopes(self) -> Set[str]:
+        """
+        This function returns a set of all scopes that are affected by the systematic shift.
+
+        Args:
+            None
+
+        Returns:
+            set: Set of scopes that are affected by the systematic shift.
+        """
         return self.scopes
 
-    """
-    This function returns the configuration for a given scope.
-
-    Args:
-        scope: Scope for which the configuration should be returned.
-
-    Returns:
-        dict: Configuration for the given scope.
-    """
-
     def get_shift_config(self, scope: str) -> TConfiguration:
+        """
+        This function returns the configuration for a given scope.
+
+        Args:
+            scope: Scope for which the configuration should be returned.
+
+        Returns:
+            dict: Configuration for the given scope.
+        """
         return self.shift_config[scope]
 
-    """
-    Function used to apply the systematic shift to the given producers. For the given scope, all producers aer shifted using producer.shift, while, for all ignored producers, the producer.ignore_shift function is called. If the scope is not defined in the shift, no shift is applied.
-
-    Args:
-        scope: Scope for which the shift should be applied.
-
-    Returns:
-        None
-    """
-
     def apply(self, scope: str) -> None:
+        """
+        Function used to apply the systematic shift to the given producers. For the given scope, all producers aer shifted using producer.shift, while, for all ignored producers, the producer.ignore_shift function is called. If the scope is not defined in the shift, no shift is applied.
+
+        Args:
+            scope: Scope for which the shift should be applied.
+
+        Returns:
+            None
+        """
         log.debug("Applying systematic shift \n{}".format(self))
         if scope in self.scopes:
             for producer in self.ignore_producers[scope]:
