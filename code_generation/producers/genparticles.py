@@ -2,7 +2,6 @@ import code_generation.quantities.output as q
 import code_generation.quantities.nanoAOD as nanoAOD
 from code_generation.producer import Producer, ProducerGroup
 
-
 ####################
 # Set of producers to get the genParticles from the ditaupair
 ####################
