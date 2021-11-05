@@ -1,3 +1,7 @@
+from __future__ import annotations  # needed for type annotations in > python 3.7
+
+from typing import List
+
 import code_generation.producers.electrons as electrons
 import code_generation.producers.event as event
 import code_generation.producers.genparticles as genparticles
@@ -9,21 +13,22 @@ import code_generation.producers.pairselection as pairselection
 import code_generation.producers.scalefactors as scalefactors
 import code_generation.producers.taus as taus
 import code_generation.producers.triggers as triggers
-import code_generation.quantities.output as q
 import code_generation.quantities.nanoAOD as nanoAOD
-from code_generation.configuration import Configuration, EraModifier, SampleModifier
+import code_generation.quantities.output as q
+from code_generation.configuration import Configuration
+from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.rules import AppendProducer, RemoveProducer
 from code_generation.systematics import SystematicShift
 
 
 def build_config(
-    era,
-    sample,
-    channels,
-    shifts,
-    available_sample_types,
-    available_eras,
-    available_channels,
+    era: str,
+    sample: str,
+    channels: List[str],
+    shifts: List[str],
+    available_sample_types: List[str],
+    available_eras: List[str],
+    available_channels: List[str],
 ):
 
     configuration = Configuration(
@@ -325,48 +330,47 @@ def build_config(
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        RemoveProducer(producers=[scalefactors.MuonIDIso_SF], samples=["data"]),
+        RemoveProducer(producers=scalefactors.MuonIDIso_SF, samples=["data"]),
     )
     configuration.add_modification_rule(
         "global",
-        RemoveProducer(producers=[event.PUweights], samples=["data", "emb", "emb_mc"]),
+        RemoveProducer(producers=event.PUweights, samples=["data", "emb", "emb_mc"]),
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        AppendProducer(producers=[event.GGH_NNLO_Reweighting], samples=["ggh"]),
+        AppendProducer(
+            producers=[event.GGH_NNLO_Reweighting, event.GGH_WG1_Uncertainties],
+            samples=["ggh"],
+        ),
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        AppendProducer(producers=[event.GGH_WG1_Uncertainties], samples=["ggh"]),
+        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples=["qqh"]),
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        AppendProducer(producers=[event.QQH_WG1_Uncertainties], samples=["qqh"]),
+        AppendProducer(producers=event.TopPtReweighting, samples=["ttbar"]),
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        AppendProducer(producers=[event.TopPtReweighting], samples=["ttbar"]),
-    )
-    configuration.add_modification_rule(
-        ["mt", "mm"],
-        AppendProducer(producers=[event.ZPtMassReweighting], samples=["dy"]),
+        AppendProducer(producers=event.ZPtMassReweighting, samples=["dy"]),
     )
     # changes needed for data
     # global scope
     configuration.add_modification_rule(
         "global",
         AppendProducer(
-            producers=[jets.RenameJetsData], samples=["data", "emb", "emb_mc"]
+            producers=jets.RenameJetsData, samples=["data", "emb", "emb_mc"]
         ),
     )
     configuration.add_modification_rule(
         "global",
-        AppendProducer(producers=[event.JSONFilter], samples=["data", "emb"]),
+        AppendProducer(producers=event.JSONFilter, samples=["data", "emb"]),
     )
     configuration.add_modification_rule(
         "global",
         RemoveProducer(
-            producers=[jets.JetEnergyCorrection], samples=["data", "emb", "emb_mc"]
+            producers=jets.JetEnergyCorrection, samples=["data", "emb", "emb_mc"]
         ),
     )
     # channel specific
