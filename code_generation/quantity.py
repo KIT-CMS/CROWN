@@ -1,18 +1,18 @@
-import logging
+from __future__ import annotations  # needed for type annotations in > python 3.7
 
-# from functools import total_ordering
+import logging
+from typing import Dict, List, Set, Union
 
 log = logging.getLogger(__name__)
 
 
-# @total_ordering
 class Quantity:
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
-        self.shifts = {}
-        self.ignored_shifts = {}
-        self.children = {}
-        self.defined_for_scopes = []
+        self.shifts: Dict[str, Set[str]] = {}
+        self.ignored_shifts: Dict[str, Set[str]] = {}
+        self.children: Dict[str, List[Quantity]] = {}
+        self.defined_for_scopes: List[str] = []
         log.debug("Setting up new Quantity {}".format(self.name))
 
     def __str__(self) -> str:
@@ -21,10 +21,10 @@ class Quantity:
     def __repr__(self) -> str:
         return self.name
 
-    def __lt__(self, other):
+    def __lt__(self, other: Quantity) -> bool:
         return self.name < other.name
 
-    def reserve_scope(self, scope) -> None:
+    def reserve_scope(self, scope: str) -> None:
         """
         Function to reserve a scope for a given quantity. The scopes, in which a quantity is used
         as an output are tracked in the output_scopes list.
@@ -42,7 +42,7 @@ class Quantity:
             )
             raise Exception
 
-    def get_leaf(self, shift, scope):
+    def get_leaf(self, shift: str, scope: str) -> str:
         """
         Function to get the leaf of a given shift within a given scope.
         A leaf is the name of the quantity used for that scope/shift combination.
@@ -58,7 +58,7 @@ class Quantity:
             return self.name + shift
         return self.name
 
-    def get_leaves_of_scope(self, scope):
+    def get_leaves_of_scope(self, scope: str) -> List[str]:
         """
         Function returns a list of all leaves, which are defined for a given scope.
 
@@ -72,7 +72,7 @@ class Quantity:
         ]
         return result
 
-    def shift(self, name, scope):
+    def shift(self, name: str, scope: str) -> None:
         """
         Function to define a shift for a given scope. If the shift is marked as ignored, nothing will be added.
         When a new shift is defined, all child quantities of a given quantity will be shifted as well.
@@ -101,7 +101,7 @@ class Quantity:
                     for c in self.children[scope]:
                         c.shift(name, scope)
 
-    def ignore_shift(self, name, scope):
+    def ignore_shift(self, name: str, scope: str) -> None:
         """
         Function to ignore a shift for a given scope.
 
@@ -116,7 +116,7 @@ class Quantity:
             self.ignored_shifts[scope] = set()
         self.ignored_shifts[scope].add(name)
 
-    def copy(self, name):
+    def copy(self, name: str) -> Quantity:
         """
         Generate a copy of the current quantity with a new name.
 
@@ -132,7 +132,7 @@ class Quantity:
         copy.defined_for_scopes = self.defined_for_scopes
         return copy
 
-    def adopt(self, child, scope):
+    def adopt(self, child: Quantity, scope: str) -> None:
         """
         Adopt a child quantity to the current quantity.
         An adopted quantity will inherit all shifts of the partent quantity.
@@ -150,7 +150,7 @@ class Quantity:
             self.children[scope] = []
         self.children[scope].append(child)
 
-    def get_shifts(self, scope):
+    def get_shifts(self, scope: str) -> List[str]:
         """
         Function returns a list of all shifts, which are defined for a given scope.
 
@@ -179,18 +179,18 @@ class QuantityGroup(Quantity):
     A Quantity Group is a group of quantities, that all have the same settings, but different names.
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(name)
-        self.quantities = []
+        self.quantities: List[Quantity] = []
 
-    def copy(self, name):
+    def copy(self, name: str) -> Quantity:
         """
         Copy is not allowed for Quantity Groups.
         """
         log.error("Copy is not allowed for a Quantity Group !")
         raise Exception
 
-    def add(self, name):
+    def add(self, name: str):
         """
         Function to add a new Quantity to the group. This quantity contains the identical shifts as the group itself
 
@@ -206,7 +206,7 @@ class QuantityGroup(Quantity):
         quantity.defined_for_scopes = self.defined_for_scopes
         self.quantities.append(quantity)
 
-    def get_leaves_of_scope(self, scope):
+    def get_leaves_of_scope(self, scope: str) -> List[str]:
         """
         Function returns a list of all leaves, which are defined for a given scope.
         This is an overload of the function used for the quantity class.
@@ -219,7 +219,7 @@ class QuantityGroup(Quantity):
         Returns:
             list. List of leaves
         """
-        output = []
+        output: List[str] = []
         for quantity in self.quantities:
             output.extend(quantity.get_leaves_of_scope(scope))
         return output
@@ -232,11 +232,11 @@ class NanoAODQuantity(Quantity):
     are therefore shielded from using them directly as a output.
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(name)
-        self.shifted_naming = {}
+        self.shifted_naming: Dict[str, str] = {}
 
-    def reserve_scope(self, scope):
+    def reserve_scope(self, scope: str) -> None:
         """
         Function used to ensure, that NanoAOD quantities are not used as output
         in a producer. If this is attempted, an Exception will be raised.
@@ -253,7 +253,7 @@ class NanoAODQuantity(Quantity):
         )
         raise Exception
 
-    def register_external_shift(self, shift_name, external_name):
+    def register_external_shift(self, shift_name: str, external_name: str) -> None:
         """
         Function used to register a NanoAOD quantity as a shift of another quantity.
         Iif the shifted version of a quantity already exists in the input,
@@ -272,7 +272,7 @@ class NanoAODQuantity(Quantity):
             for c in self.children[any_scope]:
                 c.shift(shift_name, any_scope)
 
-    def get_leaf(self, shift, scope):
+    def get_leaf(self, shift: str, scope: str) -> str:
         """
         Overloaded version for the `get_leaf` function to return the
         shifted versions of the quantity if needed.
@@ -287,7 +287,7 @@ class NanoAODQuantity(Quantity):
             return self.shifted_naming[shift]
         return self.name
 
-    def get_shifts(self, scope):
+    def get_shifts(self, scope: str) -> List[str]:
         """
         Overloaded version of the `get_shifts` function
 
@@ -297,3 +297,10 @@ class NanoAODQuantity(Quantity):
             list: List of all shifts
         """
         return list(self.shifted_naming.keys())
+
+
+# Definitions for type annotations
+QuantitiesInput = Union[
+    Quantity, NanoAODQuantity, List[Union[Quantity, NanoAODQuantity]]
+]
+QuantitiesStore = Dict[str, Set[Quantity]]

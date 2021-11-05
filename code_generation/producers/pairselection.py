@@ -6,7 +6,6 @@ from code_generation.producer import Producer, Filter
 # Set of producers used for contruction of MT good pairs and the coressponding lorentz vectors
 ####################
 
-
 MTPairSelection = Producer(
     name="MTPairSelection",
     call="pairselection::mutau::PairSelection({df}, {input_vec}, {output})",
@@ -37,7 +36,6 @@ GoodMTPairFilter = Filter(
     scopes=["mt"],
     subproducers=[GoodMTPairFlag],
 )
-
 
 MMPairSelection = Producer(
     name="MMPairSelection",
