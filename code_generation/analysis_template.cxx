@@ -17,8 +17,8 @@
 #include <ROOT/RLogger.hxx>
 #include <TFile.h>
 #include <TTree.h>
-#include <string>
 #include <regex>
+#include <string>
 
 static std::vector<std::string> varSet = {"run", "luminosityBlock", "event"};
 
