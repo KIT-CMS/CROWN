@@ -40,6 +40,12 @@ class ProducerRule:
             scopes = [scopes]
         self.scopes = scopes
 
+    def affected_scopes(self) -> List[str]:
+        return self.scopes
+
+    def affected_producers(self) -> List[Union[Producer, ProducerGroup]]:
+        return self.producers
+
     def set_global_scope(self, global_scope: str) -> None:
         self.global_scope = global_scope
 
