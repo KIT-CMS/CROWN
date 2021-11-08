@@ -5,13 +5,29 @@ from code_generation.exceptions import (
     EraConfigurationError,
 )
 
+ConfigurationParameters = Union[str, int, float, bool]
+
+ModifierDict = Dict[
+    str,
+    Union[
+        List[ConfigurationParameters],
+        List[Dict[str, ConfigurationParameters]],
+        Dict[str, ConfigurationParameters],
+        ConfigurationParameters,
+    ],
+]
+ModifierResolved = Union[
+    List[ConfigurationParameters],
+    Dict[str, ConfigurationParameters],
+    List[Dict[str, ConfigurationParameters]],
+    ConfigurationParameters,
+    None,
+]
+
 
 class Modifier(object):
-    def __init__(self, modifier_dict: Dict[str, Union[str, int, float, bool]]):
+    def __init__(self, modifier_dict: ModifierDict):
         self.modifier_dict = modifier_dict
-
-    def apply(self, configstr: str) -> Dict[str, Union[str, int, float, bool]]:
-        pass
 
     def __str__(self) -> str:
         return "Modifier: {}".format(self.modifier_dict)
@@ -23,15 +39,15 @@ class Modifier(object):
 class SampleModifier(Modifier):
     def __init__(
         self,
-        modifier_dict: Dict[str, Union[str, int, float, bool]],
-        default: Union[bool, None] = None,
+        modifier_dict: ModifierDict,
+        default: Union[str, int, float, bool, None] = None,
     ):
         super(SampleModifier, self).__init__(modifier_dict)
         self.modifier_dict = modifier_dict
         self.default = default
         self.samples: List[str] = list(self.modifier_dict.keys())
 
-    def apply(self, configstr: str) -> Dict[str, Union[str, int, float, bool]]:
+    def apply(self, configstr: str) -> ModifierResolved:
         if configstr in self.samples:
             return self.modifier_dict[configstr]
         elif self.default is not None:
@@ -43,15 +59,15 @@ class SampleModifier(Modifier):
 class EraModifier(Modifier):
     def __init__(
         self,
-        modifier_dict: Dict[str, Union[str, int, float, bool]],
-        default: Union[bool, None] = None,
+        modifier_dict: ModifierDict,
+        default: Union[str, int, float, bool, None] = None,
     ):
         super(EraModifier, self).__init__(modifier_dict)
         self.modifier_dict = modifier_dict
         self.default = default
         self.eras = list(self.modifier_dict.keys())
 
-    def apply(self, configstr: str) -> Dict[str, Union[str, int, float, bool]]:
+    def apply(self, configstr: str) -> ModifierResolved:
         if configstr in self.eras:
             return self.modifier_dict[configstr]
         elif self.default is not None:

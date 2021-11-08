@@ -662,7 +662,7 @@ def build_config(
         SystematicShift(
             name="jerUncUp",
             shift_config={
-                "global": {"JE_reso_shift": 1},
+                ("et", "mt", "tt", "em", "ee", "mm"): {"JE_reso_shift": 1},
             },
             producers={"global": jets.JetEnergyCorrection},
         )
@@ -671,7 +671,7 @@ def build_config(
         SystematicShift(
             name="jerUncDown",
             shift_config={
-                "global": {"JE_reso_shift": -1},
+                ("et", "mt", "tt", "em", "ee", "mm"): {"JE_reso_shift": -1},
             },
             producers={"global": jets.JetEnergyCorrection},
         )

@@ -3,18 +3,28 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 import logging
 from typing import Any, Dict, List, Set, Tuple, Union
 
-from code_generation.modifiers import Modifier
+from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.producer import (
     Producer,
     ProducerGroup,
     TProducerInput,
-    TProducerListStore,
+    TProducerStore,
 )
 
 log = logging.getLogger(__name__)
 
 TConfiguration = Dict[
-    str, Union[List[Union[str, int, float, bool]], str, int, float, bool, Modifier]
+    str,
+    Union[
+        List[Union[str, int, float, bool, Dict[Any, Any]]],
+        str,
+        int,
+        float,
+        bool,
+        EraModifier,
+        SampleModifier,
+        Dict[Any, Any],
+    ],
 ]
 
 
@@ -54,27 +64,30 @@ class SystematicShift(object):
     def __init__(
         self,
         name: str,
-        shift_config: Dict[Union[str, Tuple[Any]], TConfiguration],
-        producers: Dict[Union[str, Tuple[Any]], TProducerInput],
+        shift_config: Dict[Union[str, Tuple[str]], TConfiguration],
+        producers: Dict[Union[str, Tuple[str]], TProducerInput],
         scopes: Union[List[str], None] = None,
-        ignore_producers: Dict[Union[str, Tuple[Any]], TProducerInput] = {},
+        ignore_producers: Dict[Union[str, Tuple[str]], TProducerInput] = {},
     ):
-        self.shiftname = "__" + name
-        self.producers: TProducerListStore = self.expand_producer_dict(producers)
-        self.producer_scopes: TProducerListStore = {}
-        self.ignore_producers: TProducerListStore = self.expand_producer_dict(
-            ignore_producers
-        )
-        self.shift_config: Dict[str, TConfiguration] = self.expand_configuration_dict(
-            shift_config
-        )
+        self.shiftname: str = "__" + name
+        self.input_producers: Dict[
+            str, Union[Producer, List[Producer]]
+        ] = self.expand_producer_dict_keys(producers)
+        self.input_ignore_producers: Dict[
+            str, Union[Producer, List[Producer]]
+        ] = self.expand_producer_dict_keys(ignore_producers)
+        self.producers: TProducerStore = {}
+        self.ignore_producers: TProducerStore = {}
+        self.shift_config: Dict[
+            str, TConfiguration
+        ] = self.expand_configuration_dict_keys(shift_config)
         self.scopes: Set[str] = self.determine_scopes(scopes)
         self.validate()
 
-    def expand_producer_dict(
+    def expand_producer_dict_keys(
         self,
-        dict_to_expand: Dict[Union[str, Tuple[Any]], TProducerInput],
-    ) -> Dict[str, TProducerInput]:
+        dict_to_expand: Dict[Union[str, Tuple[str]], TProducerInput],
+    ) -> Dict[str, Union[Producer, List[Producer]]]:
         """
         Function used to expand dictionaries. If the key is a string,
         it is returned as is. If the key is a tuple, the tuple is expanded
@@ -85,15 +98,16 @@ class SystematicShift(object):
 
         Returns:
             dict: Expanded dictionary.
+        TProducerListStore = Dict[str, Dict[str, List[Union[Producer, ProducerGroup]]]]
         """
-        exanded_dict: Dict[str, TProducerInput] = {}
+        exanded_dict: Dict[str, Union[Producer, List[Producer]]] = {}
         for key in dict_to_expand.keys():
-            if not (isinstance(key, str) or isinstance(key, tuple)):
-                errormsg = "Producer dict key {} must be a string or tuple for shift {}".format(
-                    key, self.shiftname
-                )
-                raise ValueError(errormsg)
-            elif isinstance(key, str):
+            # if not (isinstance(key, str) or isinstance(key, tuple)):
+            #     errormsg = "Producer dict key {} must be a string or tuple for shift {}".format(
+            #         key, self.shiftname
+            #     )
+            #     raise ValueError(errormsg)
+            if isinstance(key, str):
                 scopes = (key,)
             else:
                 scopes = key
@@ -101,9 +115,9 @@ class SystematicShift(object):
                 exanded_dict[scope] = dict_to_expand[key]
         return exanded_dict
 
-    def expand_configuration_dict(
+    def expand_configuration_dict_keys(
         self,
-        dict_to_expand: Dict[Union[str, Tuple[Any]], TConfiguration],
+        dict_to_expand: Dict[Union[str, Tuple[str]], TConfiguration],
     ) -> Dict[str, TConfiguration]:
         """
         Function used to expand the configuration dictionary.
@@ -118,12 +132,12 @@ class SystematicShift(object):
         """
         exanded_dict: Dict[str, TConfiguration] = {}
         for key in dict_to_expand:
-            if not (isinstance(key, str) or isinstance(key, tuple)):
-                errormsg = "Configuration dict key {} must be a string or tuple for shift {}".format(
-                    key, self.shiftname
-                )
-                raise ValueError(errormsg)
-            elif isinstance(key, str):
+            # if not (isinstance(key, str) or isinstance(key, tuple)):
+            #     errormsg = "Configuration dict key {} must be a string or tuple for shift {}".format(
+            #         key, self.shiftname
+            #     )
+            #     raise ValueError(errormsg)
+            if isinstance(key, str):
                 scopes = (key,)
             else:
                 scopes = key
@@ -133,22 +147,20 @@ class SystematicShift(object):
 
     def __str__(self) -> str:
         returnstr = "SystematicShift: {}\n".format(self.shiftname)
-        for scope in self.scopes:
-            returnstr += "  Scope: {}\n".format(scope)
-            returnstr += "  Producers: {}\n".format(self.producers[scope])
-            returnstr += "  Ignore producers: {}\n".format(self.ignore_producers[scope])
-            returnstr += "  Shift config: {}\n".format(self.shift_config[scope])
-            returnstr += "  ------------ \n"
+        returnstr += "  Scopes: {}\n".format(self.scopes)
+        returnstr += "  Producers: {}\n".format(self.producers)
+        returnstr += "  Ignore producers: {}\n".format(self.ignore_producers)
+        returnstr += "  Shift config: {}\n".format(self.shift_config)
+        returnstr += "  ------------ \n"
         return returnstr
 
     def __repr__(self) -> str:
         returnstr = "SystematicShift: {}\n".format(self.shiftname)
-        for scope in self.scopes:
-            returnstr += "  Scope: {}\n".format(scope)
-            returnstr += "  Producers: {}\n".format(self.producers[scope])
-            returnstr += "  Ignore producers: {}\n".format(self.ignore_producers[scope])
-            returnstr += "  Shift config: {}\n".format(self.shift_config[scope])
-            returnstr += "  ------------ \n"
+        returnstr += "  Scopes: {}\n".format(self.scopes)
+        returnstr += "  Producers: {}\n".format(self.producers)
+        returnstr += "  Ignore producers: {}\n".format(self.ignore_producers)
+        returnstr += "  Shift config: {}\n".format(self.shift_config)
+        returnstr += "  ------------ \n"
         return returnstr
 
     def determine_scopes(self, scopes: Union[List[str], str, None]) -> Set[str]:
@@ -166,8 +178,8 @@ class SystematicShift(object):
         if scopes is None:
             scope_set: Set[str] = (
                 set(self.shift_config.keys())
-                | set(self.producers.keys())
-                | set(self.ignore_producers.keys())
+                | set(self.input_producers.keys())
+                | set(self.input_ignore_producers.keys())
             )
         elif isinstance(scopes, str):
             scope_set = set(scopes)
@@ -175,9 +187,9 @@ class SystematicShift(object):
             scope_set = set(scopes)
         return scope_set
 
-    def convert_to_dict(
-        self, producers: TProducerInput, scopes: Set[str]
-    ) -> TProducerListStore:
+    def normalize_inputs(
+        self, input_producers: Dict[str, Union[Producer, List[Producer]]]
+    ) -> TProducerStore:
         """
 
         Helper function used in the validation of the systematic shift. If makes sure,
@@ -192,36 +204,47 @@ class SystematicShift(object):
             dict: Dictionary containing the producers with one key per scope and a list of producers as value.
 
         """
-        producer_dict: TProducerListStore = {}
-        if isinstance(producers, Producer):
-            for scope in scopes:
-                producer_dict[scope] = [producers]
-        elif isinstance(producers, list):
-            for scope in scopes:
-                producer_dict[scope] = [producer for producer in producers]
-        elif isinstance(producers, dict):
-            for scope in scopes:
-                try:
-                    if isinstance(producers[scope], Producer):
-                        producer_dict[scope] = [producers[scope]]
-                    elif isinstance(producers[scope], list):
-                        producer_dict[scope] = producers[scope]
-                    else:
-                        raise ValueError(
-                            "Producer must be a list or Producer for {}".format(self)
-                        )
-                except KeyError:
-                    producer_dict[scope] = []
-                    log.debug(
-                        "Setting empy Producer set for shift {} in scope {}".format(
-                            self.shiftname, scope
-                        )
+        temp_dict: Dict[str, List[Producer]] = {}
+        resolved_dict: TProducerStore = {}
+        scopes = input_producers.keys()
+        for scope in scopes:
+            temp_input = input_producers[scope]
+            if isinstance(temp_input, Producer) or isinstance(
+                temp_input, ProducerGroup
+            ):
+                temp_dict[scope] = [temp_input]
+            else:
+                temp_dict[scope] = temp_input
+            # else:
+            #     for key in temp_input.keys():
+            #         if key == scope:
+            #             temp = input_producers[key]
+            #             if isinstance(temp, Producer):
+            #                 temp_dict[scope].append(temp)
+            #             if isinstance(temp, list):
+            #                 temp_dict[scope] = temp
+            #             else:
+            #                 errormsg = "Producer {} is not a Producer object or a list of Producer objects".format(
+            #                     temp
+            #                 )
+            #                 raise ValueError(errormsg)
+
+        for scope in scopes:
+            resolved_dict[scope] = []
+            try:
+                temp = temp_dict[scope]
+                if isinstance(temp, Producer):
+                    resolved_dict[scope] = [temp]
+                else:
+                    resolved_dict[scope] = temp
+            except KeyError:
+                resolved_dict[scope] = []
+                log.debug(
+                    "Setting empy Producer set for shift {} in scope {}".format(
+                        self.shiftname, scope
                     )
-        if not isinstance(producers, dict):
-            raise ValueError(
-                "SystematicShift producers must be a dict, list or a single Producer"
-            )
-        return producer_dict
+                )
+        return resolved_dict
 
     def validate(self) -> None:
         """
@@ -235,8 +258,10 @@ class SystematicShift(object):
         Returns:
             None
         """
-        self.producers = self.convert_to_dict(self.producers, self.scopes)
-        self.ignore_producers = self.convert_to_dict(self.ignore_producers, self.scopes)
+        log.debug("Validating systematic shift {}".format(self.shiftname))
+        log.debug(" input Producers: {}".format(self.input_producers))
+        self.producers = self.normalize_inputs(self.input_producers)
+        self.ignore_producers = self.normalize_inputs(self.input_ignore_producers)
         unconfigured_scopes = set(self.scopes) - set(self.shift_config.keys())
         # for uncongured scopes, set an empty config
         if len(unconfigured_scopes) > 0:
@@ -245,7 +270,7 @@ class SystematicShift(object):
 
     def add_producer(
         self,
-        producer: Union[Producer, ProducerGroup],
+        producer: Producer,
         input_scope: Union[List[str], None] = None,
     ) -> None:
         """
@@ -265,10 +290,11 @@ class SystematicShift(object):
             scopes = set([input_scope])
         for scope in scopes:
             self.producers[scope].append(producer)
-        self.validate()
 
     def add_ignore_producer(
-        self, producer: TProducerInput, scopes: Union[str, None] = None
+        self,
+        producer: Producer,
+        scopes: Union[str, None, Set[str], List[str]] = None,
     ) -> None:
         """
         Function used to add an ignored producer to the list of ignored producers,
@@ -285,10 +311,9 @@ class SystematicShift(object):
         if scopes is None:
             scopes = self.scopes
         if isinstance(scopes, str):
-            scopes = [scopes]
+            scopes = set(scopes)
         for scope in scopes:
             self.ignore_producers[scope].append(producer)
-        self.validate()
 
     def add_scope(self, scope: str) -> None:
         """
@@ -302,8 +327,8 @@ class SystematicShift(object):
             None
         """
         self.scopes.add(scope)
-        self.producers[scope] = []
-        self.ignore_producers[scope] = []
+        self.input_producers[scope] = []
+        self.input_ignore_producers[scope] = []
         self.validate()
 
     def add_config(self, config: TConfiguration, scope: str) -> None:
@@ -356,7 +381,9 @@ class SystematicShift(object):
         """
         log.debug("Applying systematic shift \n{}".format(self))
         if scope in self.scopes:
-            for producer in self.ignore_producers[scope]:
-                producer.ignore_shift(self.shiftname, scope)
-            for producer in self.producers[scope]:
-                producer.shift(self.shiftname, scope)
+            if scope in self.ignore_producers.keys():
+                for producer in self.ignore_producers[scope]:
+                    producer.ignore_shift(self.shiftname, scope)
+            if scope in self.producers.keys():
+                for producer in self.producers[scope]:
+                    producer.shift(self.shiftname, scope)
