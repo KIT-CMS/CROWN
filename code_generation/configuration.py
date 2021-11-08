@@ -17,7 +17,7 @@ from code_generation.producer import (
     TProducerStore,
 )
 from code_generation.quantity import NanoAODQuantity, QuantitiesInput, QuantitiesStore
-from code_generation.rules import ProducerRule
+from code_generation.rules import ProducerRule, RemoveProducer
 from code_generation.systematics import SystematicShift
 
 log = logging.getLogger(__name__)
@@ -349,6 +349,16 @@ class Configuration(object):
         """
         for rule in self.rules:
             rule.apply(self.sample, self.producers, self.outputs)
+            # also update the set of available outputs
+            for scope in rule.affected_scopes():
+                if isinstance(rule, RemoveProducer):
+                    self.available_outputs[scope] - CollectProducersOutput(
+                        rule.affected_producers(), scope
+                    )
+                else:
+                    self.available_outputs[scope].update(
+                        CollectProducersOutput(rule.affected_producers(), scope)
+                    )
 
     def optimize(self) -> None:
         """
