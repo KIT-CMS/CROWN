@@ -19,9 +19,9 @@ class ProducerOrdering:
 
     def __init__(
         self,
-        global_producers: List[Union[Producer, ProducerGroup]],
+        global_producers: List[Producer],
         scope: str,
-        producer_ordering: List[Union[Producer, ProducerGroup]],
+        producer_ordering: List[Producer],
     ):
         """
         Init function
@@ -30,15 +30,15 @@ class ProducerOrdering:
             config: The configuration dictionary
             scope: The scope of the producer ordering
         """
-        self.global_producers: List[Union[Producer, ProducerGroup]] = global_producers
-        self.ordering: List[Union[Producer, ProducerGroup]] = producer_ordering
+        self.global_producers: List[Producer] = global_producers
+        self.ordering: List[Producer] = producer_ordering
         self.size = len(self.ordering)
         self.scope = scope
         self.optimized: bool = False
-        self.optimized_ordering = []
+        self.optimized_ordering: List[Producer] = []
         self.global_outputs = self.get_global_outputs()
 
-    def get_position(self, producer: Union[Producer, ProducerGroup]) -> int:
+    def get_position(self, producer: Producer) -> int:
         """
         Helper Function to get the position of a producer in the ordering list
 
@@ -54,7 +54,7 @@ class ProducerOrdering:
         raise Exception("Producer not in ordering")
         return -1
 
-    def get_producer(self, position: int) -> Union[Producer, ProducerGroup]:
+    def get_producer(self, position: int) -> Producer:
         """
         Helper function to get the producer at a given position
 
@@ -98,7 +98,7 @@ class ProducerOrdering:
         Returns:
             None
         """
-        new_ordering: List[Union[Producer, ProducerGroup]] = []
+        new_ordering: List[Producer] = []
         for producer in self.ordering:
             if isinstance(producer, Filter) or isinstance(producer, BaseFilter):
                 new_ordering.insert(0, producer)
@@ -110,7 +110,7 @@ class ProducerOrdering:
             log.debug(" --> {}. : {}".format(i, prod))
         self.ordering = new_ordering
 
-    def Optimize(self):
+    def Optimize(self) -> None:
         """
         The main function of this class. During the optimization,
         finding a correct ordering is attempted. This is done as follows:
@@ -229,9 +229,7 @@ class ProducerOrdering:
                 log.debug("Input {} not in outputs".format(input))
         return wrong_inputs
 
-    def find_inputs(
-        self, producer: Union[Producer, ProducerGroup], inputs: List[Quantity]
-    ) -> List[Union[Producer, ProducerGroup]]:
+    def find_inputs(self, producer: Producer, inputs: List[Quantity]) -> List[Producer]:
         """
         Function used to locate the producers responsible for creating the given inputs.
         The function return a list of producers, that have to be run before the tested producer.
@@ -244,7 +242,7 @@ class ProducerOrdering:
         Returns:
             producers_to_relocate: A list of producers, that have to be run before the given producer
         """
-        producers_to_relocate: Set[Union[Producer, ProducerGroup]] = set()
+        producers_to_relocate: Set[Producer] = set()
         log.debug("Trying to find inputs {}".format(inputs))
         for input in inputs:
             found = False
@@ -277,10 +275,10 @@ class ProducerOrdering:
 
     def relocate_producer(
         self,
-        producer: Union[Producer, ProducerGroup],
+        producer: Producer,
         old_position: int,
         new_position: int,
-    ):
+    ) -> None:
         """
         Function used to relocate a producer to a given position.
 

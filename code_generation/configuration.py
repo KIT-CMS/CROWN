@@ -9,7 +9,7 @@ from code_generation.exceptions import (
     InvalidOutputError,
     SampleConfigurationError,
 )
-from code_generation.modifiers import EraModifier, Modifier, SampleModifier
+from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.optimizer import ProducerOrdering
 from code_generation.producer import (
     CollectProducersOutput,
@@ -29,7 +29,17 @@ ChannelList = Union[str, List[str]]
 ShiftList = Union[str, List[str]]
 SamplesList = Union[str, List[str]]
 TConfiguration = Dict[
-    str, Union[List[Union[str, int, float, bool]], str, int, float, bool, Modifier]
+    str,
+    Union[
+        List[Union[str, int, float, bool, Dict[Any, Any]]],
+        str,
+        int,
+        float,
+        bool,
+        EraModifier,
+        SampleModifier,
+        Dict[Any, Any],
+    ],
 ]
 
 
@@ -252,7 +262,8 @@ class Configuration(object):
         for scope in scopes_to_shift:
             shift.apply(scope)
             config_change = shift.get_shift_config(scope)
-            self.shifts[scope][shift.shiftname] = config_change
+            shiftname = shift.shiftname
+            self.shifts[scope][shiftname] = config_change
 
     def add_modification_rule(self, scopes: ScopeList, rule: ProducerRule) -> None:
         """
@@ -274,7 +285,7 @@ class Configuration(object):
         rule.set_global_scope(self.global_scope)
         self.rules.add(rule)
 
-    def resolve_modifiers(self, configuration_dict: TConfiguration) -> TConfiguration:
+    def resolve_modifiers(self, configuration_dict: Dict[Any, Any]) -> TConfiguration:
         """
         Function used to resolve mofifiers used in the configuration. This function is called by the add_config_parameters function.
 
@@ -474,13 +485,16 @@ class Configuration(object):
             returndict[""][scope] = self.config_parameters[scope]
             returndict["producers"][scope] = self.producers[scope]
             if scope is not self.global_scope:
-                log.info(sorted(list(self.outputs[scope])))
+                log.debug(
+                    "Final set of outputs : {}".format(
+                        sorted(list(self.outputs[scope]))
+                    )
+                )
                 returndict["output"][scope] = sorted(list(self.outputs[scope]))
-                # returndict["output"][scope] = self.outputs[scope]
             # add systematic shifts
             for shift in self.shifts[scope]:
                 log.warning("Adding shift {} in scope {}".format(shift, scope))
-                log.warning("  {}".format(self.shifts[scope][shift]))
+                log.debug("  {}".format(self.shifts[scope][shift]))
                 try:
                     returndict[shift][scope] = (
                         self.config_parameters[scope] | self.shifts[scope][shift]

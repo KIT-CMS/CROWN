@@ -61,3 +61,15 @@ class EraConfigurationError(ConfigurationError):
             era, available_eras
         )
         super().__init__(self.message)
+
+
+class InvalidProducerConfigurationError(ConfigurationError):
+    """
+    Exception raised when the producer configuration provided by the user is not valid.
+    """
+
+    def __init__(self, producer: str):
+        self.message = "Producer {} is not setup properly".format(
+            producer,
+        )
+        super().__init__(self.message)
