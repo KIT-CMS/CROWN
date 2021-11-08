@@ -83,7 +83,7 @@ class RemoveProducer(ProducerRule):
             self.producers, self.samples, self.scopes
         )
 
-    def update_producers(self, producers_to_be_updated: TProducerStore):
+    def update_producers(self, producers_to_be_updated: TProducerStore) -> None:
         for scope in self.scopes:
             for producer in self.producers:
                 if producer in producers_to_be_updated[scope]:
@@ -94,7 +94,7 @@ class RemoveProducer(ProducerRule):
                     )
                     producers_to_be_updated[scope].remove(producer)
 
-    def update_outputs(self, outputs_to_be_updated: QuantitiesStore):
+    def update_outputs(self, outputs_to_be_updated: QuantitiesStore) -> None:
         if self.update_output:
             outputs: QuantitiesStore = {}
             # if the producer is in the global scope, we add the output to all running scopes
@@ -134,7 +134,7 @@ class AppendProducer(ProducerRule):
             self.producers, self.samples, self.scopes
         )
 
-    def update_producers(self, producers_to_be_updated: TProducerStore):
+    def update_producers(self, producers_to_be_updated: TProducerStore) -> None:
         for scope in self.scopes:
             for producer in self.producers:
                 log.debug(
@@ -144,7 +144,7 @@ class AppendProducer(ProducerRule):
                 )
                 producers_to_be_updated[scope].append(producer)
 
-    def update_outputs(self, outputs_to_be_updated: QuantitiesStore):
+    def update_outputs(self, outputs_to_be_updated: QuantitiesStore) -> None:
         if self.update_output:
             outputs: QuantitiesStore = {}
             # if the producer is in the global scope, we add the output to all running scopes

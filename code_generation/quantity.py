@@ -24,6 +24,12 @@ class Quantity:
     def __lt__(self, other: Quantity) -> bool:
         return self.name < other.name
 
+    def add(self, name: str) -> None:
+        """
+        Function is not used for a base quantity
+        """
+        pass
+
     def reserve_scope(self, scope: str) -> None:
         """
         Function to reserve a scope for a given quantity. The scopes, in which a quantity is used
@@ -190,7 +196,7 @@ class QuantityGroup(Quantity):
         log.error("Copy is not allowed for a Quantity Group !")
         raise Exception
 
-    def add(self, name: str):
+    def add(self, name: str) -> None:
         """
         Function to add a new Quantity to the group. This quantity contains the identical shifts as the group itself
 

@@ -1,15 +1,16 @@
+from __future__ import annotations  # needed for type annotations in > python 3.7
+
 import logging
+from typing import Any, Dict, List, Set
+
 from git import Repo
+
+from code_generation.producer import SafeDict
 
 log = logging.getLogger(__name__)
 
 
-class SafeDict(dict):
-    def __missing__(self, key):
-        return "{" + key + "}"
-
-
-def fill_template(t, config):
+def fill_template(t: str, config: Dict[Any, Any]) -> str:
     # generate list of commands
     commandlist = ""  # string to be placed into code template
     df_count = 0  # enumerate dataframes
@@ -77,18 +78,6 @@ def fill_template(t, config):
         )
     runcommands = ""
     for scope in config["output"]:
-        # runcommands += '    auto %s_result = %s_df_final.Snapshot("ntuple", std::string(output_path), %s, dfconfig);\n' % (
-        #     scope,
-        #     scope,
-        #     '{"'
-        #     + '", "'.join(
-        #         [
-        #             '", "'.join(q.get_leaves_of_scope(scope))
-        #             for q in config["output"][scope]
-        #         ]
-        #     )
-        #     + '"}',
-        # )
         outputstring = (
             '{"'
             + '", "'.join(
@@ -117,7 +106,7 @@ def fill_template(t, config):
     )
     log.info("Finished generating code.")
     log.info("Prepare meta data.")
-    plain_output_lists = []
+    plain_output_lists: List[str] = []
     for scope in config["output"]:
         outputname = "outputpath_{scope}".format(scope=scope)
         plain_output_lists.append(
@@ -126,8 +115,8 @@ def fill_template(t, config):
             + '"} }'
         )
     output_lists = "{" + " , ".join(plain_output_lists) + " }"
-    shiftset = set()
-    shiftlists = []
+    shiftset: Set[str] = set()
+    shiftlists: List[str] = []
     for scope in config["output"]:
         outputname = "outputpath_{scope}".format(scope=scope)
         for q in config["output"][scope]:
@@ -138,7 +127,7 @@ def fill_template(t, config):
             + '", "'.join(shiftset)
             + '"} }'
         )
-    shiftlists = "{" + " , ".join(shiftlists) + " }"
+    shifts = "{" + " , ".join(shiftlists) + " }"
     try:
         repo = Repo("../../CROWN")
         current_commit = repo.head.commit
@@ -152,7 +141,7 @@ def fill_template(t, config):
         .replace("    // {RUN_COMMANDS}", runcommands)
         .replace("{NRUNS}", nruns)
         .replace("{OUTPUT_QUANTITIES}", output_lists)
-        .replace("{SYSTEMATIC_VARIATIONS}", shiftlists)
+        .replace("{SYSTEMATIC_VARIATIONS}", shifts)
         .replace("{COMMITHASH}", '"%s"' % current_commit)
         .replace("{CLEANSETUP}", setup_is_clean)
     )

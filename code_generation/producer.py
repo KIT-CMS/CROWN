@@ -2,13 +2,14 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 
 import logging
 from typing import Any, Dict, List, Set, Union
+from code_generation.exceptions import InvalidProducerConfigurationError
 
 import code_generation.quantity as q
 
 log = logging.getLogger(__name__)
 
 
-class SafeDict(dict):
+class SafeDict(Dict[Any, Any]):
     def __missing__(self, key: Any) -> Any:
         return "{" + key + "}"
 
@@ -102,7 +103,7 @@ class Producer:
         for entry in self.output:
             entry.shift(name, scope)
 
-    def ignore_shift(self, name: str, scope: str = "global"):
+    def ignore_shift(self, name: str, scope: str = "global") -> None:
         if scope not in self.scopes:
             log.error(
                 "Trying to add shift %s to producer %s in scope %s, but producer does not exist in given scope!"
@@ -125,6 +126,11 @@ class Producer:
             config[shift][scope]["output"] = ""
             config[shift][scope]["output_vec"] = ""
         else:
+            log.debug("writecall l 128")
+            log.debug("output: {}".format(self.output))
+            log.debug("name: {}".format(self.name))
+            log.debug("shift: {}".format(shift))
+            log.debug("Scopes: {}".format(config[shift].keys()))
             config[shift][scope]["output"] = (
                 '"' + '","'.join([x.get_leaf(shift, scope) for x in self.output]) + '"'
             )
@@ -199,7 +205,7 @@ class Producer:
             raise Exception
         return self.input[scope]
 
-    def get_outputs(self, scope: str) -> List[q.Quantity]:
+    def get_outputs(self, scope: str) -> List[Union[q.QuantityGroup, q.Quantity]]:
         if scope not in self.scopes:
             log.error(
                 "Exception ({}): Tried to get producer outputs in scope {}, which the producer is not forseen for!".format(
@@ -296,7 +302,8 @@ class TriggerVectorProducer(Producer):
             log.error("TriggerVectorProducer can only use one scope per instance !")
             raise Exception
         super().__init__(name, call, input, [q.QuantityGroup(name)], scope)
-        self.output: List[q.QuantityGroup] = self.output
+        if self.output is None:
+            raise InvalidProducerConfigurationError(self.name)
 
     def __str__(self) -> str:
         return "TriggerVectorProducer: {}".format(self.name)
@@ -305,9 +312,12 @@ class TriggerVectorProducer(Producer):
         return "TriggerVectorProducer: {}".format(self.name)
 
     @property
-    def output_group(self):
+    def output_group(self) -> q.QuantityGroup:
         if self.output is None:
             raise Exception("TriggerVectorProducer has no output!")
+        if not isinstance(self.output[0], q.QuantityGroup):
+            log.error("TriggerVectorProducer expects a QuantityGroup as output!")
+            raise Exception
         return self.output[0]
 
     def writecalls(
@@ -315,6 +325,11 @@ class TriggerVectorProducer(Producer):
     ) -> List[str]:
         n_versions = len(config[""][scope][self.vec_config])
         log.debug("Number of trigger producers to be created {}".format(n_versions))
+        if self.output is None:
+            raise InvalidProducerConfigurationError(self.name)
+        if not isinstance(self.output[0], q.QuantityGroup):
+            log.error("TriggerVectorProducer expects a QuantityGroup as output!")
+            raise Exception
         for i in range(n_versions):
             self.output[0].add(config[""][scope][self.vec_config][i][self.outputname])
         basecall = self.call
@@ -382,7 +397,7 @@ class BaseFilter(Producer):
             raise Exception
 
 
-class ProducerGroup:
+class ProducerGroup(Producer):
     PG_count = 1  # counter for internal quantities used by ProducerGroups
 
     def __init__(
@@ -519,13 +534,22 @@ class ProducerGroup:
         for producer in self.producers[scope]:
             producer.ignore_shift(name, scope)
 
+    def writecall(
+        self, config: Dict[str, Dict[str, Dict[str, str]]], scope: str, shift: str = ""
+    ) -> str:
+        raise NotImplementedError("This function is not supported to a ProducerGroup!")
+
     def writecalls(
         self, config: Dict[str, Dict[str, Dict[str, str]]], scope: str
     ) -> List[str]:
         calls: List[str] = []
         for producer in self.producers[scope]:
             # duplicate outputs of vector subproducers if they were generated automatically
-            if self.call is not None and isinstance(producer, VectorProducer):
+            if (
+                self.call is not None
+                and isinstance(producer, VectorProducer)
+                and producer.output is not None
+            ):
                 for i in range(len(config[""][scope][producer.vec_configs[0]]) - 1):
                     producer.output.append(
                         producer.output[0].copy(
@@ -610,7 +634,7 @@ def CollectProducerOutput(
     return set(output)
 
 
-TProducerInput = Union[Producer, ProducerGroup, List[Union[Producer, ProducerGroup]]]
-TProducerSet = Union[Producer, ProducerGroup, Set[Union[Producer, ProducerGroup]]]
-TProducerStore = Dict[str, List[Union[Producer, ProducerGroup]]]
+TProducerInput = Union[Producer, List[Producer]]
+TProducerSet = Union[Producer, Set[Producer]]
+TProducerStore = Dict[str, List[Producer]]
 TProducerListStore = Dict[str, TProducerStore]
