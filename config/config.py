@@ -676,6 +676,294 @@ def build_config(
             producers={"global": jets.JetEnergyCorrection},
         )
     )
+    #########################
+    # Jet energy scale
+    #########################
+    JEC_sources = '{"SinglePionECAL", "SinglePionHCAL", "AbsoluteMPFBias", "AbsoluteScale", "Fragmentation", "PileUpDataMC", "RelativeFSR", "PileUpPtRef"}'
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncAbsoluteUp",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": 1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncAbsoluteDown",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": -1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+
+    JEC_sources = '{"AbsoluteStat", "TimePtEta", "RelativeStatFSR"}'
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncAbsoluteYearUp",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": 1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncAbsoluteYearDown",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": -1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+
+    JEC_sources = '{"FlavorQCD"}'
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncFlavorQCDUp",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": 1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncFlavorQCDDown",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": -1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+
+    JEC_sources = '{"PileUpPtEC1", "PileUpPtBB", "RelativePtBB"}'
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncBBEC1Up",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": 1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncBBEC1Down",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": -1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+
+    JEC_sources = '{"RelativeJEREC1", "RelativePtEC1", "RelativeStatEC"}'
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncBBEC1YearUp",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": 1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncBBEC1YearDown",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": -1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+
+    JEC_sources = '{"RelativePtHF", "PileUpPtHF", "RelativeJERHF"}'
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncHFUp",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": 1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncHFDown",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": -1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+
+    JEC_sources = '{"RelativeStatHF"}'
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncHFYearUp",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": 1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncHFYearDown",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": -1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+
+    JEC_sources = '{"PileUpPtEC2"}'
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncEC2Up",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": 1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncEC2Down",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": -1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+
+    JEC_sources = '{"RelativeJEREC2", "RelativePtEC2"}'
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUnjecUncEC2YearUpcHFUp",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": 1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncEC2YearDown",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": -1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+
+    JEC_sources = '{"RelativeBal"}'
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncRelativeBalUp",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": 1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncRelativeBalDown",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": -1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+
+    JEC_sources = '{"RelativeSample"}'
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncRelativeSampleYearUp",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": 1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="jecUncRelativeSampleYearDown",
+            shift_config={
+                ("et", "mt", "tt", "em", "ee", "mm"): {
+                    "JE_scale_shift": -1,
+                    "JEC_shift_sources": JEC_sources,
+                }
+            },
+            producers={"global": jets.JetEnergyCorrection},
+        )
+    )
 
     #########################
     # Finalize and validate the configuration
