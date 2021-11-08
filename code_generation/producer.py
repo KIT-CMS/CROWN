@@ -267,7 +267,7 @@ class VectorProducer(Producer):
                 log.error("List of outputs: {}".format(self.output))
                 raise Exception
             for i in range(n_versions):
-                helper_dict = {}
+                helper_dict: Dict[Any, Any] = {}
                 for key in self.vec_configs:
                     helper_dict[key] = config[shift][scope][key][i]
                 if self.output is not None:
@@ -397,26 +397,26 @@ class BaseFilter(Producer):
             raise Exception
 
 
-class ProducerGroup(Producer):
+class ProducerGroup:
     PG_count = 1  # counter for internal quantities used by ProducerGroups
 
     def __init__(
         self,
         name: str,
-        call: str,
-        input: Union[List[q.Quantity], Dict[str, List[q.Quantity]]],
+        call: Union[str, None],
+        input: Union[List[q.Quantity], Dict[str, List[q.Quantity]], None],
         output: Union[List[q.Quantity], None],
         scopes: List[str],
         subproducers: Union[
-            List[Union[Producer, ProducerGroup]],
-            Dict[str, List[Union[Producer, ProducerGroup]]],
+            List[Producer | ProducerGroup],
+            Dict[str, List[Producer | ProducerGroup]],
         ],
     ):
         self.name = name
         self.call = call
         self.output = output
         self.scopes = scopes
-        self.producers: Dict[str, List[Union[Producer, ProducerGroup]]] = {}
+        self.producers: Dict[str, List[Producer | ProducerGroup]] = {}
         # if subproducers are given as dict and therefore scope specific transform into dict with all scopes
         if not isinstance(subproducers, dict):
             log.debug("Converting subproducer list to dictionary")
@@ -433,7 +433,7 @@ class ProducerGroup(Producer):
                 inputdict[scope] = input.copy() if isinstance(input, list) else input
             self.input = inputdict
         else:
-            self.input = input
+            self.input = dict(input)
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
         if self.call is not None:
             log.debug("Constructing {}".format(self.name))
@@ -588,13 +588,14 @@ class Filter(ProducerGroup):
         input: Union[List[q.Quantity], Dict[str, List[q.Quantity]]],
         scopes: List[str],
         subproducers: Union[
-            List[Union[Producer, ProducerGroup]],
-            Dict[str, List[Union[Producer, ProducerGroup]]],
+            List[Producer | ProducerGroup],
+            Dict[str, List[Producer | ProducerGroup]],
         ],
     ):
         self.__class__.PG_count = ProducerGroup.PG_count
         super().__init__(name, call, input, None, scopes, subproducers)
         ProducerGroup.PG_count = self.__class__.PG_count
+        self.call: str = call
 
     def __str__(self) -> str:
         return "Filter: {}".format(self.name)
@@ -634,7 +635,7 @@ def CollectProducerOutput(
     return set(output)
 
 
-TProducerInput = Union[Producer, List[Producer]]
-TProducerSet = Union[Producer, Set[Producer]]
-TProducerStore = Dict[str, List[Producer]]
+TProducerInput = Union[Producer, ProducerGroup, List[Union[Producer, ProducerGroup]]]
+TProducerSet = Union[Producer, ProducerGroup, Set[Union[Producer, ProducerGroup]]]
+TProducerStore = Dict[str, List[Union[Producer, ProducerGroup]]]
 TProducerListStore = Dict[str, TProducerStore]
