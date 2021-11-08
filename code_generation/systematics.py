@@ -64,10 +64,10 @@ class SystematicShift(object):
     def __init__(
         self,
         name: str,
-        shift_config: Dict[Union[str, Tuple[str]], TConfiguration],
-        producers: Dict[Union[str, Tuple[str]], TProducerInput],
+        shift_config: Dict[Union[str, Tuple[str, ...]], TConfiguration],
+        producers: Dict[Union[str, Tuple[str, ...]], TProducerInput],
         scopes: Union[List[str], None] = None,
-        ignore_producers: Dict[Union[str, Tuple[str]], TProducerInput] = {},
+        ignore_producers: Dict[Union[str, Tuple[str, ...]], TProducerInput] = {},
     ):
         self.shiftname: str = "__" + name
         self.input_producers: Dict[
@@ -86,7 +86,7 @@ class SystematicShift(object):
 
     def expand_producer_dict_keys(
         self,
-        dict_to_expand: Dict[Union[str, Tuple[str]], TProducerInput],
+        dict_to_expand: Dict[Union[str, Tuple[str, ...]], TProducerInput],
     ) -> Dict[str, Union[Producer, List[Producer]]]:
         """
         Function used to expand dictionaries. If the key is a string,
@@ -117,7 +117,7 @@ class SystematicShift(object):
 
     def expand_configuration_dict_keys(
         self,
-        dict_to_expand: Dict[Union[str, Tuple[str]], TConfiguration],
+        dict_to_expand: Dict[Union[str, Tuple[str, ...]], TConfiguration],
     ) -> Dict[str, TConfiguration]:
         """
         Function used to expand the configuration dictionary.
