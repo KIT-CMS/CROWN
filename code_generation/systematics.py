@@ -387,3 +387,16 @@ class SystematicShift(object):
             if scope in self.producers.keys():
                 for producer in self.producers[scope]:
                     producer.shift(self.shiftname, scope)
+
+
+# TODO: add function for shifting by relacing an input quantity with a shifted one
+
+# # Function for introducing systematic variations to producers and depending quantities by adding an already shifted input quantity
+# def SystematicShiftByInputQuantity(config, shiftname, external_dict):
+#     shiftname = "__" + shiftname
+#     config[shiftname] = copy.deepcopy(config[""])
+#     for quantity in external_dict.keys():
+#         quantity.register_external_shift(
+#             shift_name=shiftname,
+#             external_name=external_dict[quantity],
+#         )
