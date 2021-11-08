@@ -12,7 +12,7 @@ on:
 env:
   BUILD_TYPE: Release
   ANALYSIS: test.unittest_config
-  SAMPLES: ggh
+  SAMPLES: dy
   ERAS: 2018
   CHANNELS: "mt;mm"
 
