@@ -19,9 +19,9 @@ class ProducerOrdering:
 
     def __init__(
         self,
-        global_producers: List[Producer],
+        global_producers: List[Producer | ProducerGroup],
         scope: str,
-        producer_ordering: List[Producer],
+        producer_ordering: List[Producer | ProducerGroup],
     ):
         """
         Init function
@@ -30,15 +30,15 @@ class ProducerOrdering:
             config: The configuration dictionary
             scope: The scope of the producer ordering
         """
-        self.global_producers: List[Producer] = global_producers
-        self.ordering: List[Producer] = producer_ordering
+        self.global_producers: List[Producer | ProducerGroup] = global_producers
+        self.ordering: List[Producer | ProducerGroup] = producer_ordering
         self.size = len(self.ordering)
         self.scope = scope
         self.optimized: bool = False
-        self.optimized_ordering: List[Producer] = []
+        self.optimized_ordering: List[Producer | ProducerGroup] = []
         self.global_outputs = self.get_global_outputs()
 
-    def get_position(self, producer: Producer) -> int:
+    def get_position(self, producer: Producer | ProducerGroup) -> int:
         """
         Helper Function to get the position of a producer in the ordering list
 
@@ -54,7 +54,7 @@ class ProducerOrdering:
         raise Exception("Producer not in ordering")
         return -1
 
-    def get_producer(self, position: int) -> Producer:
+    def get_producer(self, position: int) -> Producer | ProducerGroup:
         """
         Helper function to get the producer at a given position
 
@@ -98,7 +98,7 @@ class ProducerOrdering:
         Returns:
             None
         """
-        new_ordering: List[Producer] = []
+        new_ordering: List[Producer | ProducerGroup] = []
         for producer in self.ordering:
             if isinstance(producer, Filter) or isinstance(producer, BaseFilter):
                 new_ordering.insert(0, producer)
@@ -229,7 +229,9 @@ class ProducerOrdering:
                 log.debug("Input {} not in outputs".format(input))
         return wrong_inputs
 
-    def find_inputs(self, producer: Producer, inputs: List[Quantity]) -> List[Producer]:
+    def find_inputs(
+        self, producer: Producer | ProducerGroup, inputs: List[Quantity]
+    ) -> List[Producer | ProducerGroup]:
         """
         Function used to locate the producers responsible for creating the given inputs.
         The function return a list of producers, that have to be run before the tested producer.
@@ -242,7 +244,7 @@ class ProducerOrdering:
         Returns:
             producers_to_relocate: A list of producers, that have to be run before the given producer
         """
-        producers_to_relocate: Set[Producer] = set()
+        producers_to_relocate: Set[Producer | ProducerGroup] = set()
         log.debug("Trying to find inputs {}".format(inputs))
         for input in inputs:
             found = False
@@ -275,7 +277,7 @@ class ProducerOrdering:
 
     def relocate_producer(
         self,
-        producer: Producer,
+        producer: Producer | ProducerGroup,
         old_position: int,
         new_position: int,
     ) -> None:

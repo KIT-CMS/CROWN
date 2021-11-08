@@ -71,10 +71,10 @@ class SystematicShift(object):
     ):
         self.shiftname: str = "__" + name
         self.input_producers: Dict[
-            str, Union[Producer, List[Producer]]
+            str, Union[Producer, ProducerGroup, List[Producer | ProducerGroup]]
         ] = self.expand_producer_dict_keys(producers)
         self.input_ignore_producers: Dict[
-            str, Union[Producer, List[Producer]]
+            str, Union[Producer, ProducerGroup, List[Producer | ProducerGroup]]
         ] = self.expand_producer_dict_keys(ignore_producers)
         self.producers: TProducerStore = {}
         self.ignore_producers: TProducerStore = {}
@@ -87,7 +87,7 @@ class SystematicShift(object):
     def expand_producer_dict_keys(
         self,
         dict_to_expand: Dict[Union[str, Tuple[str, ...]], TProducerInput],
-    ) -> Dict[str, Union[Producer, List[Producer]]]:
+    ) -> Dict[str, Union[Producer, ProducerGroup, List[Producer | ProducerGroup]]]:
         """
         Function used to expand dictionaries. If the key is a string,
         it is returned as is. If the key is a tuple, the tuple is expanded
@@ -100,7 +100,9 @@ class SystematicShift(object):
             dict: Expanded dictionary.
         TProducerListStore = Dict[str, Dict[str, List[Union[Producer, ProducerGroup]]]]
         """
-        exanded_dict: Dict[str, Union[Producer, List[Producer]]] = {}
+        exanded_dict: Dict[
+            str, Union[Producer, ProducerGroup, List[Producer | ProducerGroup]]
+        ] = {}
         for key in dict_to_expand.keys():
             # if not (isinstance(key, str) or isinstance(key, tuple)):
             #     errormsg = "Producer dict key {} must be a string or tuple for shift {}".format(
@@ -188,7 +190,10 @@ class SystematicShift(object):
         return scope_set
 
     def normalize_inputs(
-        self, input_producers: Dict[str, Union[Producer, List[Producer]]]
+        self,
+        input_producers: Dict[
+            str, Union[Producer, ProducerGroup, List[Producer | ProducerGroup]]
+        ],
     ) -> TProducerStore:
         """
 
@@ -204,7 +209,7 @@ class SystematicShift(object):
             dict: Dictionary containing the producers with one key per scope and a list of producers as value.
 
         """
-        temp_dict: Dict[str, List[Producer]] = {}
+        temp_dict: Dict[str, List[Producer | ProducerGroup]] = {}
         resolved_dict: TProducerStore = {}
         scopes = input_producers.keys()
         for scope in scopes:
