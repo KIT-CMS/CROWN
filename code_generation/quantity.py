@@ -259,7 +259,9 @@ class NanoAODQuantity(Quantity):
         )
         raise Exception
 
-    def register_external_shift(self, shift_name: str, external_name: str) -> None:
+    def register_external_shift(
+        self, shift_name: str, external_name: Union[str, NanoAODQuantity]
+    ) -> None:
         """
         Function used to register a NanoAOD quantity as a shift of another quantity.
         Iif the shifted version of a quantity already exists in the input,
@@ -273,7 +275,10 @@ class NanoAODQuantity(Quantity):
             None
         """
         if shift_name not in self.shifted_naming.keys():
-            self.shifted_naming[shift_name] = external_name
+            if isinstance(external_name, NanoAODQuantity):
+                self.shifted_naming[shift_name] = str(external_name)
+            else:
+                self.shifted_naming[shift_name] = external_name
         for any_scope in self.children:
             for c in self.children[any_scope]:
                 c.shift(shift_name, any_scope)

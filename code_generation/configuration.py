@@ -18,7 +18,7 @@ from code_generation.producer import (
 )
 from code_generation.quantity import NanoAODQuantity, QuantitiesInput, QuantitiesStore
 from code_generation.rules import ProducerRule, RemoveProducer
-from code_generation.systematics import SystematicShift
+from code_generation.systematics import SystematicShift, SystematicShiftByQuantity
 
 log = logging.getLogger(__name__)
 # type aliases
@@ -244,7 +244,9 @@ class Configuration(object):
         for scope in scopes:
             self.outputs[scope].update(output)
 
-    def add_shift(self, shift: SystematicShift) -> None:
+    def add_shift(
+        self, shift: Union[SystematicShift, SystematicShiftByQuantity]
+    ) -> None:
         """
         Function used to add a systematics shift to the configuration. During this step, the shift is validated and applied.
 
