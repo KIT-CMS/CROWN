@@ -18,7 +18,7 @@ import code_generation.quantities.output as q
 from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.rules import AppendProducer, RemoveProducer
-from code_generation.systematics import SystematicShift
+from code_generation.systematics import SystematicShift, SystematicShiftByQuantity
 
 
 def build_config(
@@ -570,24 +570,27 @@ def build_config(
     #########################
     # MET Shifts
     #########################
-    # # Add MET shifts
-    # if "data" not in sample and "emb" not in sample:
-    #     SystematicShiftByInputQuantity(
-    #         config,
-    #         "metUnclusteredEnUp",
-    #         {
-    #             nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
-    #             nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
-    #         },
-    #     )
-    #     SystematicShiftByInputQuantity(
-    #         config,
-    #         "metUnclusteredEnDown",
-    #         {
-    #             nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
-    #             nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
-    #         },
-    #     )
+    if "data" not in sample and "emb" not in sample:
+        configuration.add_shift(
+            SystematicShiftByQuantity(
+                name="metUnclusteredEnUp",
+                quantity_change={
+                    nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
+                    nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
+                },
+                scopes=["et", "mt", "tt", "em", "ee", "mm"],
+            )
+        )
+        configuration.add_shift(
+            SystematicShiftByQuantity(
+                name="metUnclusteredEnDown",
+                quantity_change={
+                    nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
+                    nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
+                },
+                scopes=["et", "mt", "tt", "em", "ee", "mm"],
+            )
+        )
     #########################
     # MET Recoil Shifts
     #########################

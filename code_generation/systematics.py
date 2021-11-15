@@ -10,6 +10,7 @@ from code_generation.producer import (
     TProducerInput,
     TProducerStore,
 )
+from code_generation.quantity import NanoAODQuantity
 
 log = logging.getLogger(__name__)
 
@@ -395,6 +396,48 @@ class SystematicShift(object):
 
 
 # TODO: add function for shifting by relacing an input quantity with a shifted one
+
+
+class SystematicShiftByQuantity(SystematicShift):
+    """
+    Class used to define a systematic shift that is defined by a quantity.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        quantity_change: Dict[NanoAODQuantity, Union[str, NanoAODQuantity]],
+        scopes: Union[List[str], None] = None,
+    ):
+        """
+        Constructor for the SystematicShiftByQuantity class.
+
+        Args:
+            name: Name of the systematic shift.
+            quantity_change: Dictionary of quantities that should be changed.
+            scopes: List of scopes that are affected by the systematic shift.
+        """
+        super().__init__(name, {}, {}, scopes, {})
+        self.quantity_change: Dict[
+            NanoAODQuantity, Union[str, NanoAODQuantity]
+        ] = quantity_change
+        self.quantities: Set[NanoAODQuantity] = set(quantity_change.keys())
+
+    def apply(self, scope: str) -> None:
+        """
+        Function used to apply the systematic shift to the given producers. For the given scope, all producers aer shifted using producer.shift, while, for all ignored producers, the producer.ignore_shift function is called. If the scope is not defined in the shift, no shift is applied.
+
+        Args:
+            scope: Scope for which the shift should be applied.
+
+        Returns:
+            None
+        """
+        for quantity in self.quantities:
+            quantity.register_external_shift(
+                shift_name=self.shiftname, external_name=self.quantity_change[quantity]
+            )
+
 
 # # Function for introducing systematic variations to producers and depending quantities by adding an already shifted input quantity
 # def SystematicShiftByInputQuantity(config, shiftname, external_dict):
