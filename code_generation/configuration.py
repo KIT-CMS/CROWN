@@ -245,27 +245,34 @@ class Configuration(object):
             self.outputs[scope].update(output)
 
     def add_shift(
-        self, shift: Union[SystematicShift, SystematicShiftByQuantity]
+        self,
+        shift: Union[SystematicShift, SystematicShiftByQuantity],
+        samples: Union[str, List[str], None] = None,
     ) -> None:
         """
         Function used to add a systematics shift to the configuration. During this step, the shift is validated and applied.
 
         Args:
             shift: The shift to be added. This must be a SystematicShift object.
+            samples: The samples to which the shift should be applied. This can be a list of samples or a single sample.
+                If ths option is not set, the shift is applied, regardless of the sample type.
 
         Returns:
             None
         """
         if not isinstance(shift, SystematicShift):
             raise TypeError("shift must be of type SystematicShift")
-        scopes_to_shift: ScopeList = [
-            scope for scope in shift.get_scopes() if scope in self.scopes
-        ]
-        for scope in scopes_to_shift:
-            shift.apply(scope)
-            config_change = shift.get_shift_config(scope)
-            shiftname = shift.shiftname
-            self.shifts[scope][shiftname] = config_change
+        if isinstance(samples, str):
+            samples = [samples]
+        if samples is None or self.sample in samples:
+            scopes_to_shift: ScopeList = [
+                scope for scope in shift.get_scopes() if scope in self.scopes
+            ]
+            for scope in scopes_to_shift:
+                shift.apply(scope)
+                config_change = shift.get_shift_config(scope)
+                shiftname = shift.shiftname
+                self.shifts[scope][shiftname] = config_change
 
     def add_modification_rule(self, scopes: ScopeList, rule: ProducerRule) -> None:
         """

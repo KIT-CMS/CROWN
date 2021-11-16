@@ -3,6 +3,7 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 from typing import List
 
 import code_generation.producers.electrons as electrons
+import code_generation.producers.embedding as emb
 import code_generation.producers.event as event
 import code_generation.producers.genparticles as genparticles
 import code_generation.producers.jets as jets
@@ -330,7 +331,7 @@ def build_config(
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        RemoveProducer(producers=scalefactors.MuonIDIso_SF, samples=["data"]),
+        RemoveProducer(producers=scalefactors.MuonIDIso_SF, samples="data"),
     )
     configuration.add_modification_rule(
         "global",
@@ -340,20 +341,20 @@ def build_config(
         ["mt", "mm"],
         AppendProducer(
             producers=[event.GGH_NNLO_Reweighting, event.GGH_WG1_Uncertainties],
-            samples=["ggh"],
+            samples="ggh",
         ),
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples=["qqh"]),
+        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="qqh"),
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        AppendProducer(producers=event.TopPtReweighting, samples=["ttbar"]),
+        AppendProducer(producers=event.TopPtReweighting, samples="ttbar"),
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        AppendProducer(producers=event.ZPtMassReweighting, samples=["dy"]),
+        AppendProducer(producers=event.ZPtMassReweighting, samples="dy"),
     )
     # changes needed for data
     # global scope
@@ -366,6 +367,10 @@ def build_config(
     configuration.add_modification_rule(
         "global",
         AppendProducer(producers=event.JSONFilter, samples=["data", "emb"]),
+    )
+    configuration.add_modification_rule(
+        "global",
+        AppendProducer(producers=emb.EmbeddingQuantities, samples=["emb", "emb_mc"]),
     )
     configuration.add_modification_rule(
         "global",
@@ -570,27 +575,36 @@ def build_config(
     #########################
     # MET Shifts
     #########################
-    if "data" not in sample and "emb" not in sample:
-        configuration.add_shift(
-            SystematicShiftByQuantity(
-                name="metUnclusteredEnUp",
-                quantity_change={
-                    nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
-                    nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
-                },
-                scopes=["et", "mt", "tt", "em", "ee", "mm"],
-            )
-        )
-        configuration.add_shift(
-            SystematicShiftByQuantity(
-                name="metUnclusteredEnDown",
-                quantity_change={
-                    nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
-                    nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
-                },
-                scopes=["et", "mt", "tt", "em", "ee", "mm"],
-            )
-        )
+    configuration.add_shift(
+        SystematicShiftByQuantity(
+            name="metUnclusteredEnUp",
+            quantity_change={
+                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
+                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
+            },
+            scopes=["et", "mt", "tt", "em", "ee", "mm"],
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
+    )
+    configuration.add_shift(
+        SystematicShiftByQuantity(
+            name="metUnclusteredEnDown",
+            quantity_change={
+                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
+                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
+            },
+            scopes=["et", "mt", "tt", "em", "ee", "mm"],
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
+    )
     #########################
     # MET Recoil Shifts
     #########################
@@ -608,7 +622,12 @@ def build_config(
             producers={
                 ("et", "mt", "tt", "em", "ee", "mm"): met.ApplyRecoilCorrections
             },
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -624,7 +643,12 @@ def build_config(
             producers={
                 ("et", "mt", "tt", "em", "ee", "mm"): met.ApplyRecoilCorrections
             },
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -640,7 +664,12 @@ def build_config(
             producers={
                 ("et", "mt", "tt", "em", "ee", "mm"): met.ApplyRecoilCorrections
             },
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -656,7 +685,12 @@ def build_config(
             producers={
                 ("et", "mt", "tt", "em", "ee", "mm"): met.ApplyRecoilCorrections
             },
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     #########################
     # Jet energy resolution
@@ -668,7 +702,12 @@ def build_config(
                 ("et", "mt", "tt", "em", "ee", "mm"): {"JE_reso_shift": 1},
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -677,7 +716,12 @@ def build_config(
                 ("et", "mt", "tt", "em", "ee", "mm"): {"JE_reso_shift": -1},
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     #########################
     # Jet energy scale
@@ -693,7 +737,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -705,7 +754,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
 
     JEC_sources = '{"AbsoluteStat", "TimePtEta", "RelativeStatFSR"}'
@@ -719,7 +773,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -731,7 +790,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
 
     JEC_sources = '{"FlavorQCD"}'
@@ -745,7 +809,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -757,7 +826,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
 
     JEC_sources = '{"PileUpPtEC1", "PileUpPtBB", "RelativePtBB"}'
@@ -771,7 +845,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -783,7 +862,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
 
     JEC_sources = '{"RelativeJEREC1", "RelativePtEC1", "RelativeStatEC"}'
@@ -797,7 +881,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -809,7 +898,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
 
     JEC_sources = '{"RelativePtHF", "PileUpPtHF", "RelativeJERHF"}'
@@ -823,7 +917,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -835,7 +934,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
 
     JEC_sources = '{"RelativeStatHF"}'
@@ -849,7 +953,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -861,7 +970,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
 
     JEC_sources = '{"PileUpPtEC2"}'
@@ -875,7 +989,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -887,7 +1006,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
 
     JEC_sources = '{"RelativeJEREC2", "RelativePtEC2"}'
@@ -901,7 +1025,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -913,7 +1042,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
 
     JEC_sources = '{"RelativeBal"}'
@@ -927,7 +1061,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -939,7 +1078,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
 
     JEC_sources = '{"RelativeSample"}'
@@ -953,7 +1097,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
@@ -965,7 +1114,12 @@ def build_config(
                 }
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
     )
 
     #########################
