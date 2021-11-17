@@ -10,7 +10,7 @@ KingMaker is the workflow management for producing ntuples with the [CROWN](gith
 Setting up KingMaker should be straight forward:
 
 ```sh
-git clone --recursive git@github.com:harrypuuter/KingMaker.git
+git clone --recursive git@github.com:KIT-CMS/KingMaker.git
 cd KingMaker
 source setup.sh
 ```
