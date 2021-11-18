@@ -107,7 +107,7 @@ class Configuration(object):
         """
         missing_channels = self.channels - self.available_channels
         if len(missing_channels) > 0:
-            raise ChannelConfigurationError(self.channels, missing_channels)
+            raise ChannelConfigurationError(missing_channels, self.available_channels)
 
     def validate_sample_type(self) -> None:
         """

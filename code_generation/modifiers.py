@@ -65,7 +65,7 @@ class EraModifier(Modifier):
         super(EraModifier, self).__init__(modifier_dict)
         self.modifier_dict = modifier_dict
         self.default = default
-        self.eras = list(self.modifier_dict.keys())
+        self.eras: List[str] = list(self.modifier_dict.keys())
 
     def apply(self, configstr: str) -> ModifierResolved:
         if configstr in self.eras:
