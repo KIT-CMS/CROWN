@@ -334,7 +334,9 @@ class Configuration(object):
         Returns:
             None
         """
-        for scope in self.scopes:
+        # we have to use a seperate list, because we cannot modify the list while iterating over it without breaking stuff
+        scopes_to_test = [scope for scope in self.scopes]
+        for scope in scopes_to_test:
             if (len(self.producers[scope]) == 0) or (
                 scope not in self.channels and scope is not self.global_scope
             ):
