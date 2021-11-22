@@ -334,8 +334,7 @@ class Configuration(object):
         Returns:
             None
         """
-        scopes_to_test = [scope for scope in self.scopes]
-        for scope in scopes_to_test:
+        for scope in self.scopes:
             if (len(self.producers[scope]) == 0) or (
                 scope not in self.channels and scope is not self.global_scope
             ):
@@ -345,6 +344,7 @@ class Configuration(object):
                 del self.outputs[scope]
                 del self.shifts[scope]
                 del self.config_parameters[scope]
+                del self.available_outputs[scope]
 
     def apply_rules(self) -> None:
         """
