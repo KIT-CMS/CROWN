@@ -28,7 +28,9 @@ class ProducerOrdering:
 
         Args:
             config: The configuration dictionary
+            global_producers: The list of producers in the global scope
             scope: The scope of the producer ordering
+            producer_ordering: The producer ordering to be optimized
         """
         self.global_producers: List[Producer | ProducerGroup] = global_producers
         self.ordering: List[Producer | ProducerGroup] = producer_ordering
@@ -150,17 +152,17 @@ class ProducerOrdering:
             wrongProducer, wrong_inputs = self.check_ordering()
             if wrongProducer is not None:
                 producers_to_relocate = self.find_inputs(wrongProducer, wrong_inputs)
-                if len(producers_to_relocate) == 0:
-                    self.optimized = True
-                    break
-                else:
-                    for producer_to_relocate in producers_to_relocate:
-                        counter += 1
-                        self.relocate_producer(
-                            producer_to_relocate,
-                            self.get_position(producer_to_relocate),
-                            self.get_position(wrongProducer),
-                        )
+                # if len(producers_to_relocate) == 0:
+                #     self.optimized = True
+                #     break
+                # else:
+                for producer_to_relocate in producers_to_relocate:
+                    counter += 1
+                    self.relocate_producer(
+                        producer_to_relocate,
+                        self.get_position(producer_to_relocate),
+                        self.get_position(wrongProducer),
+                    )
         self.optimized_ordering = self.ordering
         log.info(
             "Optimization for scope {} done after {} steps: {}".format(

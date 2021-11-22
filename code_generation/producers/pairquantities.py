@@ -97,7 +97,7 @@ tau_dxy_1 = Producer(
     name="tau_dxy_1",
     call="quantities::dxy({df}, {output}, 0, {input})",
     input=[q.ditaupair, nanoAOD.Tau_dxy],
-    output=[q.dxy_2],
+    output=[q.dxy_1],
     scopes=["tt"],
 )
 tau_dxy_2 = Producer(
@@ -193,21 +193,21 @@ tau_iso_2 = Producer(
 )
 tau_decaymode_1 = Producer(
     name="decaymode_1",
-    call="quantities::tau::decaymode({df}, {output}, 1, {input})",
+    call="quantities::tau::decaymode({df}, {output}, 0, {input})",
     input=[q.ditaupair, nanoAOD.Tau_decayMode],
     output=[q.decaymode_1],
     scopes=["tt"],
 )
 tau_gen_match_1 = Producer(
     name="gen_match_1",
-    call="quantities::tau::genmatch({df}, {output}, 1, {input})",
+    call="quantities::tau::genmatch({df}, {output}, 0, {input})",
     input=[q.ditaupair, nanoAOD.Tau_genMatch],
     output=[q.gen_match_1],
     scopes=["tt"],
 )
 taujet_pt_1 = Producer(
     name="taujet_pt_1",
-    call="quantities::tau::matching_jet_pt({df}, {output}, 1, {input})",
+    call="quantities::tau::matching_jet_pt({df}, {output}, 0, {input})",
     input=[q.ditaupair, nanoAOD.Tau_associatedJet, nanoAOD.Jet_pt],
     output=[q.taujet_pt_1],
     scopes=["tt"],

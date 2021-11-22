@@ -221,21 +221,6 @@ class SystematicShift(object):
                 temp_dict[scope] = [temp_input]
             else:
                 temp_dict[scope] = temp_input
-            # else:
-            #     for key in temp_input.keys():
-            #         if key == scope:
-            #             temp = input_producers[key]
-            #             if isinstance(temp, Producer):
-            #                 temp_dict[scope].append(temp)
-            #             if isinstance(temp, list):
-            #                 temp_dict[scope] = temp
-            #             else:
-            #                 errormsg = "Producer {} is not a Producer object or a list of Producer objects".format(
-            #                     temp
-            #                 )
-            #                 raise ValueError(errormsg)
-
-        for scope in scopes:
             resolved_dict[scope] = []
             try:
                 temp = temp_dict[scope]
@@ -246,7 +231,7 @@ class SystematicShift(object):
             except KeyError:
                 resolved_dict[scope] = []
                 log.debug(
-                    "Setting empy Producer set for shift {} in scope {}".format(
+                    "Setting empty Producer set for shift {} in scope {}".format(
                         self.shiftname, scope
                     )
                 )
@@ -395,9 +380,6 @@ class SystematicShift(object):
                     producer.shift(self.shiftname, scope)
 
 
-# TODO: add function for shifting by relacing an input quantity with a shifted one
-
-
 class SystematicShiftByQuantity(SystematicShift):
     """
     Class used to define a systematic shift that is defined by a quantity.
@@ -437,14 +419,3 @@ class SystematicShiftByQuantity(SystematicShift):
             quantity.register_external_shift(
                 shift_name=self.shiftname, external_name=self.quantity_change[quantity]
             )
-
-
-# # Function for introducing systematic variations to producers and depending quantities by adding an already shifted input quantity
-# def SystematicShiftByInputQuantity(config, shiftname, external_dict):
-#     shiftname = "__" + shiftname
-#     config[shiftname] = copy.deepcopy(config[""])
-#     for quantity in external_dict.keys():
-#         quantity.register_external_shift(
-#             shift_name=shiftname,
-#             external_name=external_dict[quantity],
-#         )
