@@ -135,7 +135,7 @@ gen_match_2 = Producer(
 )
 gen_taujet_pt_1 = Producer(
     name="gen_taujet_pt_1",
-    call="quantities::tau::matching_genjet_pt({df}, {output}, 1, {input})",
+    call="quantities::tau::matching_genjet_pt({df}, {output}, 0, {input})",
     input=[
         q.ditaupair,
         nanoAOD.Tau_associatedJet,
@@ -178,7 +178,7 @@ UnrollGenElLV1 = ProducerGroup(
     call=None,
     input=None,
     output=None,
-    scopes=["em", "ee" "et"],
+    scopes=["em", "ee", "et"],
     subproducers=[gen_pt_1, gen_eta_1, gen_phi_1, gen_mass_1, gen_pdgid_1],
 )
 UnrollGenElLV2 = ProducerGroup(

@@ -158,7 +158,7 @@ LVMu1Uncorrected = Producer(
 )
 LVMu2Uncorrected = Producer(
     name="LVMu2Uncorrected",
-    call="lorentzvectors::build({df}, {input_vec}, 2, {output})",
+    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
     input=[
         q.ditaupair,
         nanoAOD.Muon_pt,
@@ -180,11 +180,11 @@ LVEl1Uncorrected = Producer(
         nanoAOD.Electron_mass,
     ],
     output=[q.p4_1_uncorrected],
-    scopes=["mt", "mm"],
+    scopes=["em", "et", "ee"],
 )
 LVEl2Uncorrected = Producer(
     name="LVEl2Uncorrected",
-    call="lorentzvectors::build({df}, {input_vec}, 2, {output})",
+    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
     input=[
         q.ditaupair,
         nanoAOD.Electron_pt,
@@ -193,7 +193,7 @@ LVEl2Uncorrected = Producer(
         nanoAOD.Electron_mass,
     ],
     output=[q.p4_2_uncorrected],
-    scopes=["mm"],
+    scopes=["ee"],
 )
 LVTau1Uncorrected = Producer(
     name="LVTau1Uncorrected",
