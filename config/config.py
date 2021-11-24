@@ -488,15 +488,6 @@ def build_config(
         "mm",
         [
             triggers.MMGenerateSingleMuonTriggerFlags.output_group,
-            # q.emb_genweight,
-            # q.emb_initialMETEt,
-            # q.emb_initialMETphi,
-            # q.emb_initialPuppiMETEt,
-            # q.emb_initialPuppiMETphi,
-            # q.emb_isMediumLeadingMuon,
-            # q.emb_isMediumTrailingMuon,
-            # q.emb_isTightLeadingMuon,
-            # q.emb_isTightTrailingMuon,
         ],
     )
     # if "data" not in sample and "emb" not in sample:
