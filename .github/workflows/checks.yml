@@ -20,87 +20,87 @@ jobs:
   build_project:
     runs-on: ubuntu-20.04
     container:
-        image: rootproject/root:6.24.06-arch
-        options: --user 0 # run as root
+      image: rootproject/root:6.24.06-arch
+      options: --user 0 # run as root
 
     steps:
-    - name: Install missing software
-      run: pacman -Syu --noconfirm cmake make git python-pip --ignore=root
+      - name: Install missing software
+        run: pacman -Syu --noconfirm cmake make git python-pip --ignore=root
 
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Create Build Environment
-      shell: bash
-      run: cmake -E make_directory ${{github.workspace}}/build
+      - name: Create Build Environment
+        shell: bash
+        run: cmake -E make_directory ${{github.workspace}}/build
 
-    - name: Configure CMake
-      shell: bash
-      run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES -DERAS=$ERAS -DCHANNELS=$CHANNELS
+      - name: Configure CMake
+        shell: bash
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES -DERAS=$ERAS -DCHANNELS=$CHANNELS
 
-    - name: Build
-      shell: bash
-      run: cd ${{github.workspace}}/build && make install
+      - name: Build
+        shell: bash
+        run: cd ${{github.workspace}}/build && make install
 
-    - name: Test
-      shell: bash
-      run: cd ${{github.workspace}}/build && ctest -V
+      - name: Test
+        shell: bash
+        run: cd ${{github.workspace}}/build && ctest -V
 
   python_format:
     runs-on: ubuntu-20.04
     container:
-        image: rootproject/root:6.24.00-arch
-        options: --user 0 # run as root
+      image: rootproject/root:6.24.06-arch
+      options: --user 0 # run as root
 
     steps:
-    - name: Install missing software
-      run: pacman -Syu --noconfirm git python-pip && pip install black
+      - name: Install missing software
+        run: pacman -Syu --noconfirm git python-pip && pip install black
 
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Check Python formatting
-      shell: bash
-      run: cd $GITHUB_WORKSPACE && bash checks/python-formatting.sh
+      - name: Check Python formatting
+        shell: bash
+        run: cd $GITHUB_WORKSPACE && bash checks/python-formatting.sh
 
   cpp_format:
     runs-on: ubuntu-20.04
     container:
-        image: rootproject/root:6.24.00-arch
-        options: --user 0 # run as root
+      image: rootproject/root:6.24.06-arch
+      options: --user 0 # run as root
 
     steps:
-    - name: Install missing software
-      run: pacman -Syu --noconfirm git python-pip && pip install clang-format
+      - name: Install missing software
+        run: pacman -Syu --noconfirm git python-pip && pip install clang-format
 
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Check C++ formatting
-      shell: bash
-      run: cd $GITHUB_WORKSPACE && bash checks/cpp-formatting.sh
+      - name: Check C++ formatting
+        shell: bash
+        run: cd $GITHUB_WORKSPACE && bash checks/cpp-formatting.sh
 
   docs:
     runs-on: ubuntu-20.04
     container:
-        image: rootproject/root:6.24.00-arch
-        options: --user 0 # run as root
+      image: rootproject/root:6.24.06-arch
+      options: --user 0 # run as root
 
     steps:
-    - name: Install missing software
-      run: pacman -Syu --noconfirm git cmake make doxygen python-pip && pip install breathe==4.29 sphinx_rtd_theme==0.5
+      - name: Install missing software
+        run: pacman -Syu --noconfirm git cmake make doxygen python-pip && pip install breathe==4.29 sphinx_rtd_theme==0.5
 
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Create Build Environment
-      shell: bash
-      run: cmake -E make_directory ${{github.workspace}}/build
+      - name: Create Build Environment
+        shell: bash
+        run: cmake -E make_directory ${{github.workspace}}/build
 
-    - name: Configure CMake
-      shell: bash
-      run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE/docs
+      - name: Configure CMake
+        shell: bash
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE/docs
 
-    - name: Build docs
-      shell: bash
-      run: cd ${{github.workspace}}/build && make
+      - name: Build docs
+        shell: bash
+        run: cd ${{github.workspace}}/build && make
 
-    - name: Publish
-      shell: bash
-      run: echo "TODO"
+      - name: Publish
+        shell: bash
+        run: echo "TODO"
