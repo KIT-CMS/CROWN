@@ -90,6 +90,10 @@ MET_phi = NanoAODQuantity("PuppiMET_phi")
 MET_pt = NanoAODQuantity("PuppiMET_pt")
 MET_sumEt = NanoAODQuantity("PuppiMET_sumEt")
 
+PFMET_phi = NanoAODQuantity("MET_phi")
+PFMET_pt = NanoAODQuantity("MET_pt")
+PFMET_sumEt = NanoAODQuantity("MET_sumEt")
+
 ## Embedding Quantities
 genWeight = NanoAODQuantity("genWeight")
 TauEmbedding_initialMETEt = NanoAODQuantity("TauEmbedding_initialMETEt")
@@ -100,3 +104,8 @@ TauEmbedding_isMediumLeadingMuon = NanoAODQuantity("TauEmbedding_isMediumLeading
 TauEmbedding_isMediumTrailingMuon = NanoAODQuantity("TauEmbedding_isMediumTrailingMuon")
 TauEmbedding_isTightLeadingMuon = NanoAODQuantity("TauEmbedding_isTightLeadingMuon")
 TauEmbedding_isTightTrailingMuon = NanoAODQuantity("TauEmbedding_isTightTrailingMuon")
+TauEmbedding_InitialPairCandidates = NanoAODQuantity(
+    "TauEmbedding_nInitialPairCandidates"
+)
+TauEmbedding_SelectionOldMass = NanoAODQuantity("TauEmbedding_SelectionOldMass")
+TauEmbedding_SelectionNewMass = NanoAODQuantity("TauEmbedding_SelectionNewMass")

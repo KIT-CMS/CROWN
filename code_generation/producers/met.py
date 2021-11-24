@@ -16,6 +16,16 @@ BuildMetVector = Producer(
     output=[q.met_p4],
     scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
+BuildPFMetVector = Producer(
+    name="BuildPFMetVector",
+    call="lorentzvectors::buildMet({df}, {input}, {output})",
+    input=[
+        nanoAOD.PFMET_pt,
+        nanoAOD.PFMET_phi,
+    ],
+    output=[q.pfmet_p4],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
+)
 MetCov00 = Producer(
     name="MetCov00",
     call="basefunctions::rename<float>({df}, {input}, {output})",
@@ -125,6 +135,34 @@ MetPhi = Producer(
     output=[q.metphi],
     scopes=["et", "mt", "tt", "em", "mm", "ee"],
 )
+MetPt_uncorrected = Producer(
+    name="MetPt_uncorrected",
+    call="quantities::pt({df}, {output}, {input})",
+    input=[q.met_p4],
+    output=[q.met_uncorrected],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
+)
+MetPhi_uncorrected = Producer(
+    name="MetPhi_uncorrected",
+    call="quantities::phi({df}, {output}, {input})",
+    input=[q.met_p4],
+    output=[q.metphi_uncorrected],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
+)
+PFMetPt_uncorrected = Producer(
+    name="PFMetPt_uncorrected",
+    call="quantities::pt({df}, {output}, {input})",
+    input=[q.pfmet_p4],
+    output=[q.pfmet_uncorrected],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
+)
+PFMetPhi_uncorrected = Producer(
+    name="PFMetPhi_uncorrected",
+    call="quantities::phi({df}, {output}, {input})",
+    input=[q.pfmet_p4],
+    output=[q.pfmetphi_uncorrected],
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
+)
 MetCorrections = ProducerGroup(
     name="MetCorrections",
     call=None,
@@ -132,7 +170,6 @@ MetCorrections = ProducerGroup(
     output=None,
     scopes=["et", "mt", "tt", "em", "mm", "ee"],
     subproducers=[
-        BuildMetVector,
         MetCov00,
         MetCov01,
         MetCov10,
@@ -144,5 +181,20 @@ MetCorrections = ProducerGroup(
         ApplyRecoilCorrections,
         MetPt,
         MetPhi,
+    ],
+)
+UncorrectedMet = ProducerGroup(
+    name="MetCorrections",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["et", "mt", "tt", "em", "mm", "ee"],
+    subproducers=[
+        BuildPFMetVector,
+        BuildMetVector,
+        MetPt_uncorrected,
+        MetPhi_uncorrected,
+        PFMetPt_uncorrected,
+        PFMetPhi_uncorrected,
     ],
 )
