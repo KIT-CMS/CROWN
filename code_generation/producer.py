@@ -126,7 +126,7 @@ class Producer:
             config[shift][scope]["output"] = ""
             config[shift][scope]["output_vec"] = ""
         else:
-            log.debug("writecall l 128")
+            log.debug("Writing call for {}".format(self.name))
             log.debug("output: {}".format(self.output))
             log.debug("name: {}".format(self.name))
             log.debug("shift: {}".format(shift))
