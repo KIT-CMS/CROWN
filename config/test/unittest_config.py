@@ -232,6 +232,7 @@ def build_config(
     configuration.add_producers(
         "mm",
         [
+            met.UncorrectedMet,
             muons.GoodMuons,
             pairselection.MMPairSelection,
             pairselection.GoodMMPairFilter,
@@ -253,6 +254,7 @@ def build_config(
     configuration.add_producers(
         "mt",
         [
+            met.UncorrectedMet,
             muons.GoodMuons,
             pairselection.MTPairSelection,
             pairselection.GoodMTPairFilter,
@@ -276,7 +278,7 @@ def build_config(
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        RemoveProducer(producers=scalefactors.MuonIDIso_SF, samples=["data"]),
+        RemoveProducer(producers=scalefactors.MuonIDIso_SF, samples="data"),
     )
     configuration.add_modification_rule(
         "global",
@@ -286,20 +288,20 @@ def build_config(
         ["mt", "mm"],
         AppendProducer(
             producers=[event.GGH_NNLO_Reweighting, event.GGH_WG1_Uncertainties],
-            samples=["ggh"],
+            samples="ggh",
         ),
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples=["qqh"]),
+        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="qqh"),
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        AppendProducer(producers=event.TopPtReweighting, samples=["ttbar"]),
+        AppendProducer(producers=event.TopPtReweighting, samples="ttbar"),
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
-        AppendProducer(producers=event.ZPtMassReweighting, samples=["dy"]),
+        AppendProducer(producers=event.ZPtMassReweighting, samples="dy"),
     )
     # changes needed for data
     # global scope
@@ -421,6 +423,39 @@ def build_config(
         ],
     )
     #########################
+    # MET Shifts
+    #########################
+    configuration.add_shift(
+        SystematicShiftByQuantity(
+            name="metUnclusteredEnUp",
+            quantity_change={
+                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
+                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
+            },
+            scopes=["et", "mt", "tt", "em", "ee", "mm"],
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
+    )
+    configuration.add_shift(
+        SystematicShiftByQuantity(
+            name="metUnclusteredEnDown",
+            quantity_change={
+                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
+                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
+            },
+            scopes=["et", "mt", "tt", "em", "ee", "mm"],
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "emb", "emb_mc"]
+        ],
+    )
+    #########################
     # Jet energy resolution
     #########################
     configuration.add_shift(
@@ -439,26 +474,6 @@ def build_config(
                 "global": {"JE_reso_shift": -1},
             },
             producers={"global": jets.JetEnergyCorrection},
-        )
-    )
-    configuration.add_shift(
-        SystematicShiftByQuantity(
-            name="metUnclusteredEnUp",
-            quantity_change={
-                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
-                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
-            },
-            scopes=["et", "mt", "tt", "em", "ee", "mm"],
-        )
-    )
-    configuration.add_shift(
-        SystematicShiftByQuantity(
-            name="metUnclusteredEnDown",
-            quantity_change={
-                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
-                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
-            },
-            scopes=["et", "mt", "tt", "em", "ee", "mm"],
         )
     )
 
