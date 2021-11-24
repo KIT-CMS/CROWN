@@ -67,6 +67,27 @@ TauEmbeddingIsTightTrailingMuon = Producer(
     output=[q.emb_isTightTrailingMuon],
     scopes=["global"],
 )
+TauEmbeddingnInitialPairCandidates = Producer(
+    name="TauEmbeddingInitialPairCandidates",
+    call="basefunctions::rename<Float_t>({df}, {input}, {output})",
+    input=[nanoAOD.TauEmbedding_InitialPairCandidates],
+    output=[q.emb_InitialPairCandidates],
+    scopes=["global"],
+)
+TauEmbeddingSelectionOldMass = Producer(
+    name="TauEmbeddingSelectionOldMass",
+    call="basefunctions::rename<Float_t>({df}, {input}, {output})",
+    input=[nanoAOD.TauEmbedding_SelectionOldMass],
+    output=[q.emb_SelectionOldMass],
+    scopes=["global"],
+)
+TauEmbeddingSelectionNewMass = Producer(
+    name="TauEmbeddingSelectionNewMass",
+    call="basefunctions::rename<Float_t>({df}, {input}, {output})",
+    input=[nanoAOD.TauEmbedding_SelectionNewMass],
+    output=[q.emb_SelectionNewMass],
+    scopes=["global"],
+)
 
 EmbeddingQuantities = ProducerGroup(
     name="EmbeddingQuantities",
@@ -84,5 +105,8 @@ EmbeddingQuantities = ProducerGroup(
         TauEmbeddingIsMediumTrailingMuon,
         TauEmbeddingIsTightLeadingMuon,
         TauEmbeddingIsTightTrailingMuon,
+        TauEmbeddingnInitialPairCandidates,
+        TauEmbeddingSelectionOldMass,
+        TauEmbeddingSelectionNewMass,
     ],
 )
