@@ -154,6 +154,15 @@ metcov00 = Quantity("metcov00")
 metcov01 = Quantity("metcov01")
 metcov10 = Quantity("metcov10")
 metcov11 = Quantity("metcov11")
+met_uncorrected = Quantity("met_uncorrected")
+metphi_uncorrected = Quantity("metphi_uncorrected")
+
+## PFMET quantities
+pfmet = Quantity("pfmet")
+pfmet_p4 = Quantity("pfmet_p4")
+pfmetphi = Quantity("pfmetphi")
+pfmet_uncorrected = Quantity("pfmet_uncorrected")
+pfmetphi_uncorrected = Quantity("pfmetphi_uncorrected")
 
 ## embedding quantities
 emb_genweight = Quantity("emb_genweight")
@@ -165,3 +174,6 @@ emb_isMediumLeadingMuon = Quantity("emb_isMediumLeadingMuon")
 emb_isMediumTrailingMuon = Quantity("emb_isMediumTrailingMuon")
 emb_isTightLeadingMuon = Quantity("emb_isTightLeadingMuon")
 emb_isTightTrailingMuon = Quantity("emb_isTightTrailingMuon")
+emb_InitialPairCandidates = Quantity("emb_InitialPairCandidates")
+emb_SelectionOldMass = Quantity("emb_SelectionOldMass")
+emb_SelectionNewMass = Quantity("emb_SelectionNewMass")
