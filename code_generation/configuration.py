@@ -268,11 +268,22 @@ class Configuration(object):
             scopes_to_shift: ScopeList = [
                 scope for scope in shift.get_scopes() if scope in self.scopes
             ]
-            for scope in scopes_to_shift:
-                shift.apply(scope)
-                config_change = shift.get_shift_config(scope)
-                shiftname = shift.shiftname
-                self.shifts[scope][shiftname] = config_change
+            if self.global_scope in scopes_to_shift:
+                for scope in self.scopes + [self.global_scope]:
+                    if scope in shift.get_scopes():
+                        shift.apply(scope)
+                        self.shifts[scope][shift.shiftname] = shift.get_shift_config(
+                            scope
+                        )
+                    else:
+                        shift.apply(self.global_scope)
+                        self.shifts[scope][shift.shiftname] = shift.get_shift_config(
+                            self.global_scope
+                        )
+            else:
+                for scope in scopes_to_shift:
+                    shift.apply(scope)
+                    self.shifts[scope][shift.shiftname] = shift.get_shift_config(scope)
 
     def add_modification_rule(self, scopes: ScopeList, rule: ProducerRule) -> None:
         """

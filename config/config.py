@@ -284,6 +284,7 @@ def build_config(
     configuration.add_producers(
         "mm",
         [
+            met.UncorrectedMet,
             muons.GoodMuons,
             pairselection.MMPairSelection,
             pairselection.GoodMMPairFilter,
@@ -306,6 +307,7 @@ def build_config(
     configuration.add_producers(
         "mt",
         [
+            met.UncorrectedMet,
             muons.GoodMuons,
             pairselection.MTPairSelection,
             pairselection.GoodMTPairFilter,
@@ -383,19 +385,19 @@ def build_config(
         "mt",
         RemoveProducer(
             producers=[genparticles.MTGenDiTauPairQuantities],
-            samples=["data", "emb", "emb_mc"],
+            samples=["data"],
         ),
     )
     configuration.add_modification_rule(
         "mm",
         RemoveProducer(
             producers=[genparticles.MMGenDiTauPairQuantities],
-            samples=["data", "emb", "emb_mc"],
+            samples=["data"],
         ),
     )
 
     configuration.add_outputs(
-        "mt",
+        ["mt", "mm"],
         [
             nanoAOD.run,
             q.lumi,
@@ -417,9 +419,6 @@ def build_config(
             q.mjj,
             q.m_vis,
             q.pt_vis,
-            q.electron_veto_flag,
-            q.muon_veto_flag,
-            q.dimuon_veto,
             q.nbtag,
             q.bpt_1,
             q.bpt_2,
@@ -437,8 +436,6 @@ def build_config(
             q.q_2,
             q.iso_1,
             q.iso_2,
-            q.decaymode_2,
-            q.gen_match_2,
             q.gen_pt_1,
             q.gen_eta_1,
             q.gen_phi_1,
@@ -450,19 +447,19 @@ def build_config(
             q.gen_mass_2,
             q.gen_pdgid_2,
             q.gen_m_vis,
-            q.taujet_pt_2,
-            q.gen_taujet_pt_2,
             q.idWeight_1,
             q.isoWeight_1,
             q.met,
             q.metphi,
+            q.met_uncorrected,
+            q.metphi_uncorrected,
+            q.pfmet_uncorrected,
+            q.pfmetphi_uncorrected,
             q.metSumEt,
             q.metcov00,
             q.metcov01,
             q.metcov10,
             q.metcov11,
-            triggers.MTGenerateSingleMuonTriggerFlags.output_group,
-            triggers.MTGenerateCrossTriggerFlags.output_group,
             q.pzetamissvis,
             q.mTdileptonMET,
             q.mt_1,
@@ -473,73 +470,33 @@ def build_config(
         ],
     )
     configuration.add_outputs(
+        "mt",
+        [
+            triggers.MTGenerateSingleMuonTriggerFlags.output_group,
+            triggers.MTGenerateCrossTriggerFlags.output_group,
+            q.taujet_pt_2,
+            q.gen_taujet_pt_2,
+            q.decaymode_2,
+            q.gen_match_2,
+            q.muon_veto_flag,
+            q.dimuon_veto,
+            q.electron_veto_flag,
+        ],
+    )
+
+    configuration.add_outputs(
         "mm",
         [
-            nanoAOD.run,
-            q.lumi,
-            nanoAOD.event,
-            q.puweight,
-            q.pt_1,
-            q.pt_2,
-            q.eta_1,
-            q.eta_2,
-            q.phi_1,
-            q.phi_2,
-            q.njets,
-            q.jpt_1,
-            q.jpt_2,
-            q.jeta_1,
-            q.jeta_2,
-            q.jphi_1,
-            q.jphi_2,
-            q.mjj,
-            q.m_vis,
-            q.pt_vis,
-            q.nbtag,
-            q.bpt_1,
-            q.bpt_2,
-            q.beta_1,
-            q.beta_2,
-            q.bphi_1,
-            q.bphi_2,
-            q.mass_1,
-            q.mass_2,
-            q.dxy_1,
-            q.dxy_2,
-            q.dz_1,
-            q.dz_2,
-            q.q_1,
-            q.q_2,
-            q.iso_1,
-            q.iso_2,
-            q.gen_pt_1,
-            q.gen_eta_1,
-            q.gen_phi_1,
-            q.gen_mass_1,
-            q.gen_pdgid_1,
-            q.gen_pt_2,
-            q.gen_eta_2,
-            q.gen_phi_2,
-            q.gen_mass_2,
-            q.gen_pdgid_2,
-            q.gen_m_vis,
-            q.idWeight_1,
-            q.isoWeight_1,
-            q.met,
-            q.metphi,
-            q.metSumEt,
-            q.metcov00,
-            q.metcov01,
-            q.metcov10,
-            q.metcov11,
             triggers.MMGenerateSingleMuonTriggerFlags.output_group,
-            q.pzetamissvis,
-            q.mTdileptonMET,
-            q.mt_1,
-            q.mt_2,
-            q.pt_tt,
-            q.pt_ttjj,
-            q.mt_tot,
+            # q.emb_genweight,
+            # q.emb_initialMETEt,
+            # q.emb_initialMETphi,
+            # q.emb_initialPuppiMETEt,
+            # q.emb_initialPuppiMETphi,
+            # q.emb_isMediumLeadingMuon,
+            # q.emb_isMediumTrailingMuon,
+            # q.emb_isTightLeadingMuon,
+            # q.emb_isTightTrailingMuon,
         ],
     )
     # if "data" not in sample and "emb" not in sample:
@@ -699,7 +656,7 @@ def build_config(
         SystematicShift(
             name="jerUncUp",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {"JE_reso_shift": 1},
+                "global": {"JE_reso_shift": 1},
             },
             producers={"global": jets.JetEnergyCorrection},
         ),
@@ -713,7 +670,7 @@ def build_config(
         SystematicShift(
             name="jerUncDown",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {"JE_reso_shift": -1},
+                "global": {"JE_reso_shift": -1},
             },
             producers={"global": jets.JetEnergyCorrection},
         ),
@@ -731,7 +688,7 @@ def build_config(
         SystematicShift(
             name="jecUncAbsoluteUp",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": 1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -748,7 +705,7 @@ def build_config(
         SystematicShift(
             name="jecUncAbsoluteDown",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": -1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -767,7 +724,7 @@ def build_config(
         SystematicShift(
             name="jecUncAbsoluteYearUp",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": 1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -784,7 +741,7 @@ def build_config(
         SystematicShift(
             name="jecUncAbsoluteYearDown",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": -1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -803,7 +760,7 @@ def build_config(
         SystematicShift(
             name="jecUncFlavorQCDUp",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": 1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -820,7 +777,7 @@ def build_config(
         SystematicShift(
             name="jecUncFlavorQCDDown",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": -1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -839,7 +796,7 @@ def build_config(
         SystematicShift(
             name="jecUncBBEC1Up",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": 1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -856,7 +813,7 @@ def build_config(
         SystematicShift(
             name="jecUncBBEC1Down",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": -1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -875,7 +832,7 @@ def build_config(
         SystematicShift(
             name="jecUncBBEC1YearUp",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": 1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -892,7 +849,7 @@ def build_config(
         SystematicShift(
             name="jecUncBBEC1YearDown",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": -1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -911,7 +868,7 @@ def build_config(
         SystematicShift(
             name="jecUncHFUp",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": 1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -928,7 +885,7 @@ def build_config(
         SystematicShift(
             name="jecUncHFDown",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": -1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -947,7 +904,7 @@ def build_config(
         SystematicShift(
             name="jecUncHFYearUp",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": 1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -964,7 +921,7 @@ def build_config(
         SystematicShift(
             name="jecUncHFYearDown",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": -1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -983,7 +940,7 @@ def build_config(
         SystematicShift(
             name="jecUncEC2Up",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": 1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -1000,7 +957,7 @@ def build_config(
         SystematicShift(
             name="jecUncEC2Down",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": -1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -1019,7 +976,7 @@ def build_config(
         SystematicShift(
             name="jecUnjecUncEC2YearUpcHFUp",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": 1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -1036,7 +993,7 @@ def build_config(
         SystematicShift(
             name="jecUncEC2YearDown",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": -1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -1055,7 +1012,7 @@ def build_config(
         SystematicShift(
             name="jecUncRelativeBalUp",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": 1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -1072,7 +1029,7 @@ def build_config(
         SystematicShift(
             name="jecUncRelativeBalDown",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": -1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -1091,7 +1048,7 @@ def build_config(
         SystematicShift(
             name="jecUncRelativeSampleYearUp",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": 1,
                     "JEC_shift_sources": JEC_sources,
                 }
@@ -1108,7 +1065,7 @@ def build_config(
         SystematicShift(
             name="jecUncRelativeSampleYearDown",
             shift_config={
-                ("et", "mt", "tt", "em", "ee", "mm"): {
+                "global": {
                     "JE_scale_shift": -1,
                     "JEC_shift_sources": JEC_sources,
                 }
