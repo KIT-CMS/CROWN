@@ -173,7 +173,7 @@ BJetCollection = ProducerGroup(
 
 ##########################
 # Basic Jet Quantities
-# njets, pt, eta, phi
+# njets, pt, eta, phi, b-tag value
 ##########################
 
 LVJet1 = Producer(
@@ -251,6 +251,24 @@ jphi_2 = Producer(
     output=[q.jphi_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
+jtag_value_1 = Producer(
+    name="jtag_value_1",
+    call="quantities::jet::btagValue({df}, {output}, {input}, 0)",
+    input=[
+        nanoAOD.BJet_discriminator,
+        q.good_jet_collection],
+    output=[q.jtag_value_1],
+    scopes=["mt", "et", "tt", "em", "mm", "ee"],
+)
+jtag_value_2 = Producer(
+    name="jtag_value_2",
+    call="quantities::jet::btagValue({df}, {output}, {input}, 1)",
+    input=[
+        nanoAOD.BJet_discriminator,
+        q.good_jet_collection],
+    output=[q.jtag_value_2],
+    scopes=["mt", "et", "tt", "em", "mm", "ee"],
+)
 mjj = Producer(
     name="jphi_2",
     call="quantities::m_vis({df}, {output}, {input_vec})",
@@ -271,16 +289,18 @@ BasicJetQuantities = ProducerGroup(
         jpt_1,
         jeta_1,
         jphi_1,
+        jtag_value_1,
         jpt_2,
         jeta_2,
         jphi_2,
+        jtag_value_2,
         mjj,
     ],
 )
 
 ##########################
 # Basic b-Jet Quantities
-# nbtag, pt, eta, phi
+# nbtag, pt, eta, phi, b-tag value
 ##########################
 
 LVBJet1 = Producer(
@@ -358,6 +378,24 @@ bphi_2 = Producer(
     output=[q.bphi_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
+btag_value_1 = Producer(
+    name="btag_value_1",
+    call="quantities::jet::btagValue({df}, {output}, {input}, 0)",
+    input=[
+        nanoAOD.BJet_discriminator,
+        q.good_bjet_collection],
+    output=[q.btag_value_1],
+    scopes=["mt", "et", "tt", "em", "mm", "ee"],
+)
+btag_value_2 = Producer(
+    name="btag_value_2",
+    call="quantities::jet::btagValue({df}, {output}, {input}, 1)",
+    input=[
+        nanoAOD.BJet_discriminator,
+        q.good_bjet_collection],
+    output=[q.btag_value_2],
+    scopes=["mt", "et", "tt", "em", "mm", "ee"],
+)
 BasicBJetQuantities = ProducerGroup(
     name="BasicBJetQuantities",
     call=None,
@@ -371,8 +409,10 @@ BasicBJetQuantities = ProducerGroup(
         bpt_1,
         beta_1,
         bphi_1,
+        btag_value_1,
         bpt_2,
         beta_2,
         bphi_2,
+        btag_value_2,
     ],
 )

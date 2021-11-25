@@ -293,5 +293,35 @@ auto NumberOfJets(auto &df, const std::string &outputname,
                      },
                      {jetcollection});
 }
+/// Function to writeout the value of the btagger for a jet. The tag value is
+/// identified via the discriminant of e.g. the DeepJet tagger from nanoAOD
+///
+/// \param[in] df the input dataframe
+/// \param[out] outputname the name of the produced quantity
+/// \param[in] btagcolumn name of the column that contains btag values of
+/// the jets
+/// \param[in] jetcollection name of the vector that contains jet indices of the
+/// jets belonging to the collection, its length constitutes the output quantity
+/// \param position The position in the jet collection vector, which is used to
+/// store the index of the particle in the particle quantity vectors.
+///
+/// \returns a dataframe with the new column
+
+auto btagValue(auto &df, const std::string &outputname,
+               const std::string &btagcolumn, const std::string &jetcollection,
+               const int &position) {
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<float> &btagvalues,
+                                const ROOT::RVec<int> &jetcollection) {
+                         float btagValue = default_float;
+                         try {
+                             const int index = jetcollection.at(position);
+                             btagValue = btagvalues.at(index);
+                         } catch (const std::out_of_range &e) {
+                         }
+                         return btagValue;
+                     },
+                     {btagcolumn, jetcollection});
+}
 } // end namespace jet
 } // end namespace quantities
