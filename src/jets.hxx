@@ -282,7 +282,7 @@ namespace jet {
 /// \param[in] jetcollection name of the vector that contains jet indices of the
 /// jets belonging to the collection, its length constitutes the output quantity
 ///
-/// \return a dataframe containing a list of jet indices sorted by pt
+/// \return a dataframe containing the number of jets in the jet collection
 auto NumberOfJets(auto &df, const std::string &outputname,
                   const std::string &jetcollection) {
     return df.Define(outputname,
