@@ -77,8 +77,10 @@ auto OrderJetsByPt(auto &df, const std::string &output_col,
             Logger::get("OrderJetsByPt")->debug("Jetpt after {}", good_jets_pt);
             // we have to convert the result into an RVec of ints since argsort
             // gives back an unsigned long vector
-            auto temp =
-                ROOT::VecOps::Argsort(ROOT::VecOps::Nonzero(good_jets_pt));
+            auto temp = ROOT::VecOps::Intersect(
+                ROOT::VecOps::Argsort(good_jets_pt,
+                                      [](double x, double y) { return x > y; }),
+                ROOT::VecOps::Nonzero(good_jets_pt));
             Logger::get("OrderJetsByPt")->debug("jet Indices {}", temp);
             ROOT::RVec<int> result(temp.size());
             std::transform(temp.begin(), temp.end(), result.begin(),
