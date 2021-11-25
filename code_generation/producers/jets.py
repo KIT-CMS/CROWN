@@ -254,18 +254,14 @@ jphi_2 = Producer(
 jtag_value_1 = Producer(
     name="jtag_value_1",
     call="quantities::jet::btagValue({df}, {output}, {input}, 0)",
-    input=[
-        nanoAOD.BJet_discriminator,
-        q.good_jet_collection],
+    input=[nanoAOD.BJet_discriminator, q.good_jet_collection],
     output=[q.jtag_value_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 jtag_value_2 = Producer(
     name="jtag_value_2",
     call="quantities::jet::btagValue({df}, {output}, {input}, 1)",
-    input=[
-        nanoAOD.BJet_discriminator,
-        q.good_jet_collection],
+    input=[nanoAOD.BJet_discriminator, q.good_jet_collection],
     output=[q.jtag_value_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
@@ -381,18 +377,14 @@ bphi_2 = Producer(
 btag_value_1 = Producer(
     name="btag_value_1",
     call="quantities::jet::btagValue({df}, {output}, {input}, 0)",
-    input=[
-        nanoAOD.BJet_discriminator,
-        q.good_bjet_collection],
+    input=[nanoAOD.BJet_discriminator, q.good_bjet_collection],
     output=[q.btag_value_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 btag_value_2 = Producer(
     name="btag_value_2",
     call="quantities::jet::btagValue({df}, {output}, {input}, 1)",
-    input=[
-        nanoAOD.BJet_discriminator,
-        q.good_bjet_collection],
+    input=[nanoAOD.BJet_discriminator, q.good_bjet_collection],
     output=[q.btag_value_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
