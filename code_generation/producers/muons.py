@@ -101,6 +101,13 @@ GoodMuons = ProducerGroup(
         GoodMuonIsoCut,
     ],
 )
+NumberOfGoodMuons = Producer(
+    name="NumberOfGoodMuons",
+    call="quantities::NumberOfGoodLeptons({df}, {output}, {input})",
+    input=[q.good_muons_mask],
+    output=[q.nmuons],
+    scopes=["mt", "em", "mm"],
+)
 VetoMuons = Producer(
     name="VetoMuons",
     call="physicsobject::VetoCandInMask({df}, {output}, {input}, {mu_idx})",

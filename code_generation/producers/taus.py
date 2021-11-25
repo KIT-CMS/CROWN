@@ -108,3 +108,10 @@ GoodTaus = ProducerGroup(
         VsMuonTauIDCut,
     ],
 )
+NumberOfGoodTaus = Producer(
+    name="NumberOfGoodTaus",
+    call="quantities::NumberOfGoodLeptons({df}, {output}, {input})",
+    input=[q.good_taus_mask],
+    output=[q.ntaus],
+    scopes=["mt", "et", "tt"],
+)

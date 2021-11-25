@@ -88,6 +88,13 @@ ExtraElectronsVeto = Producer(
     output=[q.electron_veto_flag],
     scopes=["em", "et", "mt", "tt", "mm"],
 )
+NumberOfGoodElectrons = Producer(
+    name="NumberOfGoodElectrons",
+    call="quantities::NumberOfGoodLeptons({df}, {output}, {input})",
+    input=[q.good_electrons_mask],
+    output=[q.nelectrons],
+    scopes=["et", "em", "ee"],
+)
 
 ####################
 # Set of producers used for di-electron veto

@@ -415,6 +415,22 @@ auto pdgid(auto &df, const std::string &outputname, const int &position,
         },
         {pairname, pdgidcolumn});
 }
+/// Function to determine number of good leptons
+///
+/// \param[in] df the input dataframe
+/// \param[out] outputname the name of the produced quantity
+/// \param[in] goodleptons name of the vector that contains a lepton mask of
+/// good leptons, its length of non-zero values constitutes the output quantity
+///
+/// \return a dataframe containing the number of good leptons in an event
+auto NumberOfGoodLeptons(auto &df, const std::string &outputname,
+                         const std::string &goodleptons) {
+    return df.Define(outputname,
+                     [](const ROOT::RVec<int> &goodleptons) {
+                         return (int)ROOT::VecOps::Nonzero(goodleptons).size();
+                     },
+                     {goodleptons});
+}
 /// namespace for tau specific quantities
 namespace tau {
 /// Function to writeout the decaymode of a tau. The particle is identified
