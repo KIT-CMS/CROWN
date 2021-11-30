@@ -45,9 +45,9 @@ def build_config(
     configuration.add_config_parameters(
         "global",
         {
-            "RunLumiEventFilter_Quantities": ["event"],
-            "RunLumiEventFilter_Quantity_Types": ["ULong64_t"],
-            "RunLumiEventFilter_Selections": ["271361"],
+            "RunLumiEventFilter_Quantities": ["event", "luminosityBlock"],
+            "RunLumiEventFilter_Quantity_Types": ["ULong64_t", "UInt_t"],
+            "RunLumiEventFilter_Selections": ["3", "318"],
             "PU_reweighting_file": EraModifier(
                 {
                     "2016": "data/pileup/Data_Pileup_2016_271036-284044_13TeVMoriond17_23Sep2016ReReco_69p2mbMinBiasXS.root",
@@ -145,7 +145,7 @@ def build_config(
     configuration.add_config_parameters(
         ["mt", "mm"],
         {
-            "mu_idx": 0,
+            "muon_index_in_pair": 0,
             "min_muon_pt": 23.0,
             "max_muon_eta": 2.1,
             "muon_iso_cut": 0.15,
@@ -154,6 +154,15 @@ def build_config(
             "muon_sf_id_args": "m_pt,m_eta",
             "muon_sf_iso_name": "m_iso_binned_kit_ratio",
             "muon_sf_iso_args": "m_pt,m_eta,m_iso",
+        },
+    )
+    configuration.add_config_parameters(
+        ["mm"],
+        {
+            "min_muon_pt": 20.0,
+            "max_muon_eta": 2.1,
+            "muon_iso_cut": 0.15,
+            "second_muon_index_in_pair": 1,
         },
     )
     ## MT/MM channel misc settings
@@ -267,7 +276,7 @@ def build_config(
     configuration.add_producers(
         "global",
         [
-            # RunLumiEventFilter,
+            # event.RunLumiEventFilter,
             event.Lumi,
             event.MetFilter,
             event.PUweights,
@@ -286,7 +295,10 @@ def build_config(
         [
             met.UncorrectedMet,
             muons.GoodMuons,
-            pairselection.MMPairSelection,
+            muons.VetoMuons,
+            muons.VetoSecondMuon,
+            muons.ExtraMuonsVeto,
+            pairselection.ZMMPairSelection,
             pairselection.GoodMMPairFilter,
             pairselection.LVMu1,
             pairselection.LVMu2,
@@ -467,6 +479,8 @@ def build_config(
             q.pt_tt,
             q.pt_ttjj,
             q.mt_tot,
+            q.muon_veto_flag,
+            q.dimuon_veto,
         ],
     )
     configuration.add_outputs(
