@@ -89,9 +89,13 @@ auto buildgenpair(auto &df, const std::string &recopair,
  * @param df the Dataframe
  * @param statusflags the column containing the status flags of the gen
  particles
+ * @param status the column containing the status of the genparticles (status=1
+ means stable)
  * @param pdgids the column containing the PDGID of the gen particles
  * @param motherids the column containing the index of the mother particle of
  the gen particles
+ * @param pts the column containing the pt of the gen particles (used for
+ sorting the particles by pt)
  * @param genpair the output column containing the index of the two selected gen
  particles
  * @param mother_pdgid the PDGID of the mother particle
@@ -195,7 +199,7 @@ auto buildtruegenpair(auto &df, const std::string &statusflags,
                     break;
                 }
             }
-            for (const auto &gen_candidate_2 : gen_candidates_1) {
+            for (const auto &gen_candidate_2 : gen_candidates_2) {
                 if (check_mother(genparticles, gen_candidate_2.index,
                                  mother_pdgid)) {
                     genpair[1] = gen_candidate_2.index;
@@ -229,10 +233,10 @@ auto buildtruegenpair(auto &df, const std::string &statusflags,
 ///
 /// \param df The input dataframe
 /// \param flagname The name of the generated flag column
-/// \param pairname The name of the column, containing the particle
-/// indices index of the particle in the particle quantity vectors.
-///
-/// \returns a dataframe with the new flag
+/// \param pairname The name of the column, containing the indices of the
+/// particles in the particle quantity vectors.
+/// \returns a dataframe with the
+/// new flag
 auto flagGoodPairs(auto &df, const std::string &flagname,
                    const std::string &pairname) {
     using namespace ROOT::VecOps;
@@ -255,9 +259,12 @@ auto flagGoodPairs(auto &df, const std::string &flagname,
 /// -# pt of the second particle
 ///
 /// \param lep1pt `ROOT::RVec<float>` containing pts of the first
-/// particle \param lep1iso `ROOT::RVec<float>` containing isolations of
-/// the first particle \param lep2pt `ROOT::RVec<float>` containing pts
-/// of the second particle \param lep2iso `ROOT::RVec<float>` containing
+/// particle
+/// \param lep1iso `ROOT::RVec<float>` containing isolations of
+/// the first particle
+/// \param lep2pt `ROOT::RVec<float>` containing pts
+/// of the second particle
+/// \param lep2iso `ROOT::RVec<float>` containing
 /// isolations of the second particle
 ///
 /// \returns true or false based on the particle ordering.
@@ -513,7 +520,8 @@ auto ZBosonPairSelectionAlgo() {
         auto selected_mu_indices = std::vector<int>{};
         if (original_muon_indices.size() > 2) {
             Logger::get("ZBosonPairSelectionAlgo")
-                ->debug("Running algorithm to find Z Boson muon pairs");
+                ->debug("More than two potential muons found. running "
+                        "algorithm to find Z Boson muon pairs");
             Logger::get("ZBosonPairSelectionAlgo")
                 ->debug("original_muon_indices: {}", original_muon_indices);
             for (auto &fourVec : fourVecs) {
