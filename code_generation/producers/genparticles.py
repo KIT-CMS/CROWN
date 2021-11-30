@@ -19,6 +19,19 @@ MMGenPair = Producer(
     output=[q.gen_ditaupair],
     scopes=["mm"],
 )
+MMTrueGenPair = Producer(
+    name="GenPair",
+    call="pairselection::buildtruegenpair({df}, {input}, {output}, {truegen_mother_pdgid}, {truegen_daughter_1_pdgid}, {truegen_daugher_2_pdgid})",
+    input=[
+        nanoAOD.GenParticle_statusFlags,
+        nanoAOD.GenParticle_status,
+        nanoAOD.GenParticle_pdgId,
+        nanoAOD.GenParticle_motherid,
+        nanoAOD.GenParticle_pt,
+    ],
+    output=[q.truegenpair],
+    scopes=["mm"],
+)
 ####################
 # Set of general producers for Gen DiTauPair Quantities
 ####################
@@ -34,7 +47,7 @@ LVGenParticle1 = Producer(
         nanoAOD.GenParticle_mass,
     ],
     output=[q.gen_p4_1],
-    scopes=["mt", "et", "tt", "em", "mm"],
+    scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 LVGenParticle2 = Producer(
     name="LVGenParticle2",
@@ -47,6 +60,46 @@ LVGenParticle2 = Producer(
         nanoAOD.GenParticle_mass,
     ],
     output=[q.gen_p4_2],
+    scopes=["mt", "et", "tt", "em", "mm", "ee"],
+)
+LVTrueGenParticle1 = Producer(
+    name="LVTrueGenParticle1",
+    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
+    input=[
+        q.truegenpair,
+        nanoAOD.GenParticle_pt,
+        nanoAOD.GenParticle_eta,
+        nanoAOD.GenParticle_phi,
+        nanoAOD.GenParticle_mass,
+    ],
+    output=[q.gen_p4_1],
+    scopes=["mt", "et", "tt", "em", "mm", "ee"],
+)
+LVTrueGenParticle2 = Producer(
+    name="LVTrueGenParticle2",
+    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
+    input=[
+        q.truegenpair,
+        nanoAOD.GenParticle_pt,
+        nanoAOD.GenParticle_eta,
+        nanoAOD.GenParticle_phi,
+        nanoAOD.GenParticle_mass,
+    ],
+    output=[q.gen_p4_2],
+    scopes=["mt", "et", "tt", "em", "mm"],
+)
+gen_pt_1 = Producer(
+    name="gen_pt_1",
+    call="quantities::pt({df}, {output}, {input})",
+    input=[q.gen_p4_1],
+    output=[q.gen_pt_1],
+    scopes=["mt", "et", "tt", "em", "mm"],
+)
+gen_pt_2 = Producer(
+    name="gen_pt_2",
+    call="quantities::pt({df}, {output}, {input})",
+    input=[q.gen_p4_2],
+    output=[q.gen_pt_2],
     scopes=["mt", "et", "tt", "em", "mm"],
 )
 gen_pt_1 = Producer(
@@ -163,7 +216,7 @@ UnrollGenMuLV1 = ProducerGroup(
     input=None,
     output=None,
     scopes=["mt", "mm"],
-    subproducers=[gen_pt_1, gen_eta_1, gen_phi_1, gen_mass_1, gen_pdgid_1],
+    subproducers=[gen_pt_1, gen_eta_1, gen_phi_1, gen_mass_1],
 )
 UnrollGenMuLV2 = ProducerGroup(
     name="UnrollGenMuLV2",
@@ -171,7 +224,7 @@ UnrollGenMuLV2 = ProducerGroup(
     input=None,
     output=None,
     scopes=["em", "mm"],
-    subproducers=[gen_pt_2, gen_eta_2, gen_phi_2, gen_mass_2, gen_pdgid_2],
+    subproducers=[gen_pt_2, gen_eta_2, gen_phi_2, gen_mass_2],
 )
 UnrollGenElLV1 = ProducerGroup(
     name="UnrollGenElLV1",
@@ -305,6 +358,21 @@ MMGenDiTauPairQuantities = ProducerGroup(
         MMGenPair,
         LVGenParticle1,
         LVGenParticle2,
+        UnrollGenMuLV1,
+        UnrollGenMuLV2,
+        gen_m_vis,
+    ],
+)
+MMTrueGenDiTauPairQuantities = ProducerGroup(
+    name="GenDiTauPairQuantities",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["mm"],
+    subproducers=[
+        MMTrueGenPair,
+        LVTrueGenParticle1,
+        LVTrueGenParticle2,
         UnrollGenMuLV1,
         UnrollGenMuLV2,
         gen_m_vis,
