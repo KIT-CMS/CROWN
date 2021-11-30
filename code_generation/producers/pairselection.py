@@ -47,6 +47,19 @@ MMPairSelection = Producer(
     output=[q.ditaupair],
     scopes=["mm"],
 )
+ZMMPairSelection = Producer(
+    name="MMPairSelection",
+    call="pairselection::mumu::ZBosonPairSelection({df}, {input_vec}, {output})",
+    input=[
+        nanoAOD.Muon_pt,
+        nanoAOD.Muon_eta,
+        nanoAOD.Muon_phi,
+        nanoAOD.Muon_mass,
+        q.good_muons_mask,
+    ],
+    output=[q.ditaupair],
+    scopes=["mm"],
+)
 
 GoodMMPairFlag = Producer(
     name="GoodMMPairFlag",
