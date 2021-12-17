@@ -37,8 +37,11 @@ int main(int argc, char *argv[]) {
         gErrorIgnoreLevel = 6001; // ignore all ROOT errors
     }
     if (argc < 3) {
-        Logger::get("main")->critical("Require at least two arguments: N input "
-                                      "files and a single output file");
+        Logger::get("main")->critical(
+            "Require at least two arguments: a single output file and N input "
+            "files \n"
+            "Example:\n"
+            "./analysis output.root /path/to/inputfiles/*.root");
         return 1;
     }
     if (argc > 3) {
