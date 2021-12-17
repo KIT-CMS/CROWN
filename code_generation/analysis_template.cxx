@@ -23,32 +23,41 @@
 static std::vector<std::string> varSet = {"run", "luminosityBlock", "event"};
 
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        Logger::get("main")->critical(
-            "Require exactly two additional input arguments (the input and "
-            "output paths to the ROOT files) but got {}",
-            argc - 1);
+    bool verbose = false;
+    // ROOT logging
+    if (verbose) {
+        auto verbosity = ROOT::Experimental::RLogScopedVerbosity(
+            ROOT::Detail::RDF::RDFLogChannel(),
+            ROOT::Experimental::ELogLevel::kInfo);
+        RooTrace::verbose(kTRUE);
+        Logger::setLevel(Logger::LogLevel::DEBUG);
+    } else {
+        RooTrace::verbose(kFALSE);
+        Logger::setLevel(Logger::LogLevel::INFO);
+        gErrorIgnoreLevel = 6001; // ignore all ROOT errors
+    }
+    if (argc < 3) {
+        Logger::get("main")->critical("Require at least two arguments: N input "
+                                      "files and a single output file");
         return 1;
     }
-
-    const auto input_path = argv[1];
-    Logger::get("main")->info("Input file: {}", input_path);
-    const auto output_path = argv[2];
+    if (argc > 3) {
+        Logger::get("main")->info("Running with {} input files", argc - 2);
+    }
+    std::vector<std::string> input_files;
+    for (int i = 2; i < argc; i++) {
+        Logger::get("main")->info("input_file {}: {}", i - 1, argv[i]);
+        input_files.push_back(std::string(argv[i]));
+    }
+    const auto output_path = argv[1];
     Logger::get("main")->info("Output directory: {}", output_path);
-
     TStopwatch timer;
     timer.Start();
-    // ROOT logging
-    auto verbosity = ROOT::Experimental::RLogScopedVerbosity(
-        ROOT::Detail::RDF::RDFLogChannel(),
-        ROOT::Experimental::ELogLevel::kInfo);
-    RooTrace::verbose(kTRUE);
 
     // file logging
-    ROOT::RDataFrame df0("Events", input_path);
-    // 1st stage: Good object selection
     Logger::enableFileLogging("logs/main.txt");
-    Logger::setLevel(Logger::LogLevel::INFO);
+    // initialize df
+    ROOT::RDataFrame df0("Events", input_files);
     Logger::get("main")->info("Starting Setup of Dataframe");
 
     // auto df_final = df0;
