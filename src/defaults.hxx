@@ -1,6 +1,8 @@
 #ifndef GUARDDEFAULTS_H
 #define GUARDDEFAULTS_H
 
+#include <Math/Vector4D.h>
+
 int default_int = -10;
 int default_pdgid = -999;
 float default_float = -10.0;
