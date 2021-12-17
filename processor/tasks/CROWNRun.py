@@ -30,6 +30,7 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     era = luigi.Parameter()
     analysis = luigi.Parameter()
     production_tag = luigi.Parameter()
+    files_per_task = luigi.IntParameter(default=1)
 
     def workflow_requires(self):
         requirements = super(CROWNRun, self).workflow_requires()
@@ -47,7 +48,12 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
         dataset.run()
         with self.input()["datasetinfo"].localize("r") as _file:
             inputdata = _file.load()
-        return {i: info for i, info in enumerate(inputdata["filelist"])}
+        branch_map = {}
+        for i, filename in enumerate(inputdata["filelist"]):
+            if (int(i / self.files_per_task)) not in branch_map:
+                branch_map[int(i / self.files_per_task)] = []
+            branch_map[int(i / self.files_per_task)].append(filename)
+        return branch_map
 
     def output(self):
         target = self.remote_target(
@@ -64,7 +70,7 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
         info = self.branch_data
         _workdir = os.path.abspath("workdir")
         ensure_dir(_workdir)
-        _inputfile = info
+        _inputfiles = info
         _outputfile = str(output.basename)
         _executable = "{}/{}_{}_{}".format(
             _workdir, self.analysis, self.sampletype, self.era
@@ -91,12 +97,12 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
             )
         # set environment using env script
         my_env = self.set_environment("{}/init.sh".format(_workdir))
-        _crown_args = [_inputfile, _outputfile]
+        _crown_args = [_outputfile] + _inputfiles
         _executable = "./{}_{}_{}".format(self.analysis, self.sampletype, self.era)
         # actual payload:
         console.rule("Starting CROWNRun")
         console.log("Executable: {}".format(_executable))
-        console.log("inputfile {}".format(_inputfile))
+        console.log("inputfile {}".format(_inputfiles))
         console.log("outputfile {}".format(_outputfile))
         console.log("workdir {}".format(_workdir))  # run CROWN
         code, out, error = interruptable_popen(
