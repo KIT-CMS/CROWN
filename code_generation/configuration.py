@@ -22,12 +22,6 @@ from code_generation.systematics import SystematicShift, SystematicShiftByQuanti
 
 log = logging.getLogger(__name__)
 # type aliases
-ScopeSet = Set[str]
-ScopeList = Union[str, List[str]]
-EraList = Union[str, List[str]]
-ChannelList = Union[str, List[str]]
-ShiftList = Union[str, List[str]]
-SamplesList = Union[str, List[str]]
 TConfiguration = Dict[
     str,
     Union[
@@ -54,11 +48,11 @@ class Configuration(object):
         self,
         era: str,
         sample: str,
-        channels: ChannelList,
-        shifts: ShiftList,
-        available_sample_types: SamplesList,
-        available_eras: EraList,
-        available_channels: ChannelList,
+        channels: Union[str, List[str]],
+        shifts: Union[str, List[str]],
+        available_sample_types: Union[str, List[str]],
+        available_eras: Union[str, List[str]],
+        available_channels: Union[str, List[str]],
     ):
         """
 
@@ -67,9 +61,10 @@ class Configuration(object):
         Args:
             era: The era of the sample.
             sample: The sample type of the sample.
-            channels: The channels to be used in the configuration. Each channel is considered a scope in CROWN.
-            By default, the global scope will always be added and run first, all other scopes will be run in
-            parallel as children of the global scope.
+            channels: The channels to be used in the configuration.
+                Each channel is considered a scope in CROWN.
+                By default, the global scope will always be added and run first, all other scopes will be run in
+                parallel as children of the global scope.
             shifts: The systematics to be used in the configuration.
             available_sample_types: The available sample types.
             available_eras: The available eras.
@@ -95,7 +90,7 @@ class Configuration(object):
 
         self.setup_defaults()
 
-    def validate_channels(self) -> None:
+    def _validate_channels(self) -> None:
         """
         Function to validate the selected channels. If the channel is not available, an error is raised.
 
@@ -109,7 +104,7 @@ class Configuration(object):
         if len(missing_channels) > 0:
             raise ChannelConfigurationError(missing_channels, self.available_channels)
 
-    def validate_sample_type(self) -> None:
+    def _validate_sample_type(self) -> None:
         """
         Function to validate the selected sample type. If the sample type is not available, an error is raised.
 
@@ -122,7 +117,7 @@ class Configuration(object):
         if self.sample not in self.available_sample_types:
             raise SampleConfigurationError(self.sample, self.available_sample_types)
 
-    def validate_era(self) -> None:
+    def _validate_era(self) -> None:
         """
         Function to validate the selected era. If the era is not available, an error is raised.
 
@@ -135,10 +130,10 @@ class Configuration(object):
         if self.era not in self.available_eras:
             raise EraConfigurationError(self.era, self.available_eras)
 
-    def set_sample_parameters(self) -> None:
+    def _set_sample_parameters(self) -> None:
         """
         Helper function to add sample type variables to the configuration.
-        The variables look like "is_${sampletype}" and can be used in all producer
+        The variables look like ``is_${sampletype}`` and can be used in all producer
         calls to check the type of the sample.
 
         Args:
@@ -158,7 +153,7 @@ class Configuration(object):
 
     def setup_defaults(self) -> None:
         """
-        Function used to add some defaults to the configuration. This function is called by the __init__ function.
+        Function used to add some defaults to the configuration. This function is called by the ``__init__`` function.
         For all configured channels, the nessessay variables are added to the configuration.
         The validation of the initial settings is also done here.
 
@@ -168,9 +163,9 @@ class Configuration(object):
         Returns:
             None
         """
-        self.validate_channels()
-        self.validate_sample_type()
-        self.validate_era()
+        self._validate_channels()
+        self._validate_sample_type()
+        self._validate_era()
         self.scopes = [self.global_scope]
         for channel in self.available_channels:
             self.scopes.append(channel)
@@ -180,10 +175,10 @@ class Configuration(object):
             self.shifts[scope] = {}
             self.available_outputs[scope] = set()
             self.config_parameters[scope] = {}
-        self.set_sample_parameters()
+        self._set_sample_parameters()
 
     def add_config_parameters(
-        self, scopes: ScopeList, parameters: TConfiguration
+        self, scopes: Union[str, List[str]], parameters: TConfiguration
     ) -> None:
         """
         Function to add new config parameters to the configuration. Modifiers are used to
@@ -191,8 +186,8 @@ class Configuration(object):
 
         Args:
             scopes: The scopes to which the parameters should be added. This can be a list of scopes or a single scope.
-            parameters: The parameters to be added. This must be a dictionary of parameters. If multiple scopes are given,
-            the parameters are added to all scopes.
+            parameters: The parameters to be added. This must be a dictionary of parameters.
+                If multiple scopes are given, the parameters are added to all scopes.
 
         Returns:
             None
@@ -202,15 +197,16 @@ class Configuration(object):
         for scope in scopes:
             self.config_parameters[scope].update(self.resolve_modifiers(parameters))
 
-    def add_producers(self, scopes: ScopeList, producers: TProducerInput) -> None:
+    def add_producers(
+        self, scopes: Union[str, List[str]], producers: TProducerInput
+    ) -> None:
         """
         Function used to add producers to the configuration. Internally, a set of all
         available outputs is updated, which is later used to check if all required ouputs are available.
 
         Args:
             scopes: The scopes to which the producers should be added. This can be a list of scopes or a single scope.
-            producers: The producers to be added. This must be a list of producers. If multiple scopes are given,
-            the producers are added to all scopes.
+            producers: The producers to be added. If multiple scopes are given, the producers are added to all scopes.
 
         Returns:
             None
@@ -225,14 +221,16 @@ class Configuration(object):
                 CollectProducersOutput(producers, scope)
             )
 
-    def add_outputs(self, scopes: ScopeList, output: QuantitiesInput) -> None:
+    def add_outputs(
+        self, scopes: Union[str, List[str]], output: QuantitiesInput
+    ) -> None:
         """
         Function used to add outputs to the configuration.
 
         Args:
-            scopes: The scopes to which the outputs should be added. This can be a list of scopes or a single scope.
-            outputs: The outputs to be added. This must be a list of outputs. If multiple scopes are given,
-            the outputs are added to all scopes.
+            scopes: The scopes to which the outputs should be added.
+                This can be a list of scopes or a single scope.
+            output: The outputs to be added. If multiple scopes are given, the outputs are added to all scopes.
 
         Returns:
             None
@@ -265,7 +263,7 @@ class Configuration(object):
         if isinstance(samples, str):
             samples = [samples]
         if samples is None or self.sample in samples:
-            scopes_to_shift: ScopeList = [
+            scopes_to_shift: Union[str, List[str]] = [
                 scope for scope in shift.get_scopes() if scope in self.scopes
             ]
             if self.global_scope in scopes_to_shift:
@@ -285,7 +283,9 @@ class Configuration(object):
                     shift.apply(scope)
                     self.shifts[scope][shift.shiftname] = shift.get_shift_config(scope)
 
-    def add_modification_rule(self, scopes: ScopeList, rule: ProducerRule) -> None:
+    def add_modification_rule(
+        self, scopes: Union[str, List[str]], rule: ProducerRule
+    ) -> None:
         """
         Function used to add a rule to the configuration.
 
@@ -334,9 +334,9 @@ class Configuration(object):
             resolved_dict.update({key: resolved_value})
         return resolved_dict
 
-    def remove_empty_scopes(self) -> None:
+    def _remove_empty_scopes(self) -> None:
         """
-        Function used to remove empty scopes from the configuration. This function is called by the optimize function,
+        Internal function used to remove empty scopes from the configuration. This function is called by the optimize function,
         which should be called after all configuration changes have been made.
 
         Args:
@@ -359,15 +359,11 @@ class Configuration(object):
                 del self.config_parameters[scope]
                 del self.available_outputs[scope]
 
-    def apply_rules(self) -> None:
+    def _apply_rules(self) -> None:
         """
-        Function used to apply all rules to the configuration. This function is called by the optimize function.
+        Internal function used to apply all rules to the configuration.
+        This function is called by the optimize function.
 
-        Args:
-            None
-
-        Returns:
-            None
         """
         for rule in self.rules:
             rule.apply(self.sample, self.producers, self.outputs)
@@ -385,9 +381,10 @@ class Configuration(object):
     def optimize(self) -> None:
         """
         Function used to optimize the configuration. Optimizaion steps are:
-        - Remove empty scopes
-        - Apply rules
-        - Optimizing producer ordering (this does not change the configuration, but only the order of producers)
+
+            1. Remove empty scopes
+            2. Apply rules
+            3. Optimizing producer ordering (this does not change the configuration, but only the order of producers)
 
         Args:
             None
@@ -395,8 +392,8 @@ class Configuration(object):
         Returns:
             None
         """
-        self.apply_rules()
-        self.remove_empty_scopes()
+        self._apply_rules()
+        self._remove_empty_scopes()
         for scope in self.scopes:
             log.debug("Optimizing Producer Ordering in scope {}".format(scope))
             ordering = ProducerOrdering(
@@ -407,7 +404,7 @@ class Configuration(object):
             ordering.Optimize()
             self.producers[scope] = ordering.optimized_ordering
 
-    def validate_outputs(self) -> None:
+    def _validate_outputs(self) -> None:
         """
         Function used to validate the defined outputs. If an output is requested in the configuration,
         but is not available, since no producer will be able to produce it, an error is raised.
@@ -436,7 +433,8 @@ class Configuration(object):
     def validate(self) -> None:
         """
         Function used to validate the configuration. During the validation, the following steps are performed:
-        - Validate the outputs
+
+            - Validate the outputs
 
         Args:
             None
@@ -444,7 +442,7 @@ class Configuration(object):
         Returns:
             None
         """
-        self.validate_outputs()
+        self._validate_outputs()
 
     def report(self) -> None:
         """

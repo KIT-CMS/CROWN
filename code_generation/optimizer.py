@@ -117,18 +117,22 @@ class ProducerOrdering:
         The main function of this class. During the optimization,
         finding a correct ordering is attempted. This is done as follows:
 
-        1. Bring all filters to the beginning of the ordering
-        2. Check if the ordering is already correct. The ordering is correct,
-            if, for all producers in the ordering, all inputs can be found in
-            the outputs of preceding producers. If the scope is not global,
-            all outputs from producers in the global scope are also considered.
-        3. If the ordering is correct, return.
-        4. If the ordering is not correct,
-            4.1. find all inputs, that have to be produced before the wrong producer
-            4.2. put one producer, which is responsible for creating the input, in front of the wrong producer
-            4.3. repeat from step 2
+        1. Bring all filters to the beginning of the ordering.
 
-        The sorting algorithm should take at most 2*(number of producers) steps.
+        2. Check if the ordering is already correct. The ordering is correct,
+           if, for all producers in the ordering, all inputs can be found in
+           the outputs of preceding producers. If the scope is not global,
+           all outputs from producers in the global scope are also considered.
+
+        3. If the ordering is correct, return.
+
+        4. If the ordering is not correct,
+
+            1. find all inputs, that have to be produced before the wrong producer
+            2. put one producer, which is responsible for creating the input, in front of the wrong producer
+            3. repeat from step 2
+
+        The sorting algorithm should take at most ``2*(number of producers)`` steps.
         If this limit is reached, the optimization is
         considered to be failed and an Exception is raised.
         If a missing input cant be found in all outputs,

@@ -1,4 +1,4 @@
-How to generate the files used for testing
+How to generate dummy NanoAOD samples
 ==========================================
 
 We use self-generated NanoAOD samples for testing, which can be produced with the open source CMSSW framework (see https://github.com/cms-sw/cmssw). The following script generates a file from scratch using fast simulation (see https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideFastSimulationExamples).

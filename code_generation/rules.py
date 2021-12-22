@@ -22,6 +22,15 @@ class ProducerRule:
         invert: bool = False,
         update_output: bool = True,
     ):
+        """ProducerRule is a base class for all rules that modify producers.
+
+        Args:
+            producers: A list of producers or producer groups to be modified.
+            samples: A list of samples, for which the rule should be applied.
+            scopes: The scopes, in which the rule should be applied. Defaults to "global".
+            invert: If set, the invert of the rule is applied. Defaults to False.
+            update_output: If set, the output quantities are updated. Defaults to True.
+        """
         if isinstance(producers, ProducerGroup) or isinstance(producers, Producer):
             producers = [producers]
         self.producers = producers

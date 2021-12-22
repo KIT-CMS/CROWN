@@ -1,5 +1,5 @@
-New C++ functions
-==================
+Writing C++ functions
+======================
 
 
 Writing a new producer consists of two parts. First, the C++ function to act on the ROOT Dataframe has to be created. In principle, the interface of the function is completely arbitrary, but a few things should be remembered, to make the new producer align with the design of the existing ones.
