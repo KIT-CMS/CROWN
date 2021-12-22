@@ -30,35 +30,38 @@ TConfiguration = Dict[
 
 
 class SystematicShift(object):
-    """
-    Class containing systematic shifts. A systematic shift is a variation of a
-    set of configuration parameters. A dummy shift looks like this:
-    SystematicShift(
-            name="shiftname",
-            shift_config={
-                ("scope1", "scope2"): {
-                    "paramter1": True,
-                    "paramter2": 42.0,
+    """Class containing systematic shifts. A systematic shift is a variation of a set of configuration parameters.
+
+    A dummy shift looks like this::
+
+        SystematicShift(
+                name="shiftname",
+                shift_config={
+                    ("scope1", "scope2"): {
+                        "paramter1": True,
+                        "paramter2": 42.0,
+                    },
                 },
-            },
-            producers={
-                "scope1": modified_producer1,
-                "scope2": modified_producer2,
-            },
-            ignore_producers={
-                "scope1": ignored_producer1,
-                "scope2": ignored_producer2,
-            },
-        )
+                producers={
+                    "scope1": modified_producer1,
+                    "scope2": modified_producer2,
+                },
+                ignore_producers={
+                    "scope1": ignored_producer1,
+                    "scope2": ignored_producer2,
+                },
+            )
 
     Args:
         name (str): Name of the systematic shift.
 
-        shift_config (dict): Dictionary containing the configuration parameters. The dictionary keys have to be strings, or tuples, in case the same configuration change is used for multiple scopes. The dictionary values have to be dictionaries containing the changed configuration parameters.
+        shift_config: Dictionary containing the configuration parameters. The dictionary keys have to be strings, or tuples, in case the same configuration change is used for multiple scopes. The dictionary values have to be dictionaries containing the changed configuration parameters.
 
-        producers (dict): Dictionary containing the producers that are affected by the systematic shift. The dictionary keys have to be strings, or tuples, in case the same producer is affected by the systematic shift in multiple scopes. The dictionary values have to be the modified producers.
+        producers: Dictionary containing the producers that are affected by the systematic shift. The dictionary keys have to be strings, or tuples, in case the same producer is affected by the systematic shift in multiple scopes. The dictionary values have to be the modified producers.
 
-        ignore_producers (dict): Dictionary containing the producers that are not affected by the systematic shift. The dictionary keys have to be strings, or tuples, in case the same producer is not affected by the systematic shift in multiple scopes. The dictionary values have to be the ignored producers.
+        ignore_producers: Dictionary containing the producers that are not affected by the systematic shift. The dictionary keys have to be strings, or tuples, in case the same producer is not affected by the systematic shift in multiple scopes. The dictionary values have to be the ignored producers.
+
+        scopes (List[str], optional): List of scopes that are affected by the systematic shift. If not given, all scopes are affected.
 
     """
 
@@ -204,7 +207,7 @@ class SystematicShift(object):
 
         Args:
             producers: Producers can be a single Producer object, a list of Producer objects or a dict
-            with one key per scope and a list of producers as value.
+                with one key per scope and a list of producers as value.
 
         Returns:
             dict: Dictionary containing the producers with one key per scope and a list of producers as value.
@@ -271,7 +274,7 @@ class SystematicShift(object):
         Args:
             producer: Producer to add.
             scope: Scope to which the producer should be added. If no sopce is
-            provided, the producer is added to all scopes of the systematic.
+                provided, the producer is added to all scopes of the systematic.
 
         Returns:
             None
@@ -294,7 +297,7 @@ class SystematicShift(object):
         Args:
             producer: Producer to ignore.
             scope: Scope to which the ignored producer should be added. If no sopce is
-            provided, the ignored producer is added to all scopes of the systematic.
+                provided, the ignored producer is added to all scopes of the systematic.
 
         Returns:
             None

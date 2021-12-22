@@ -1,8 +1,8 @@
 Documentation of Namespaces from C++
 =====================================
 
-Quantities
-***********
+Pairquantities
+***************
 .. doxygennamespace:: quantities
    :members:
 

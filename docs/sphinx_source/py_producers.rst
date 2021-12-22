@@ -1,5 +1,5 @@
-Implementing new producers in the python part
-=============================================
+Implementing the python interface for a new Producer
+======================================================
 
 C++ functions that are supposed to be used by the code generation, referred to as producers, need a corresponding python object defined producer.py_.
 There are different types of producer classes available.

@@ -23,6 +23,7 @@ class Producer:
         output: Union[List[q.Quantity], None],
         scopes: List[str],
     ):
+        """Docstrings to be added ...."""
         log.debug("Setting up a new producer {}".format(name))
 
         # sanity checks

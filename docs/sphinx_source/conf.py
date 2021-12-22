@@ -14,7 +14,6 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath("../../"))
-sys.path.insert(0, os.path.abspath("../../code_generation"))
 
 ## for read the docs
 import subprocess, os
@@ -94,8 +93,13 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosectionlabel",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.coverage",
 ]
 # ...
+
+autodoc_typehints = "description"
+autoclass_content = "both"
 
 # Breathe Configuration
 breathe_default_project = "CROWN"
