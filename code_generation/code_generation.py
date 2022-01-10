@@ -145,3 +145,42 @@ def fill_template(t: str, config: Dict[Any, Any]) -> str:
         .replace("{COMMITHASH}", '"%s"' % current_commit)
         .replace("{CLEANSETUP}", setup_is_clean)
     )
+
+
+def set_tags(template: str, analysisname: str, era: str, sample_group: str) -> str:
+    """
+    Function used to set the tags in the template.
+
+    Args:
+        template: The template to be modified.
+        analysisname: The name of the analysis.
+        era: The era of the analysis.
+        sample_group: The sample group of the analysis.
+
+    Returns:
+        The modified template.
+    """
+    return (
+        template.replace("{ANALYSISTAG}", '"Analysis=%s"' % analysisname)
+        .replace("{ERATAG}", '"Era=%s"' % era)
+        .replace("{SAMPLETAG}", '"Samplegroup=%s"' % sample_group)
+    )
+
+
+def set_thead_flag(template: str, threads: int) -> str:
+    """
+    Set the multithreading flag in the template if the number of threads is greater than 1.
+
+    Args:
+        template: The template to be modified.
+        threads: The number of threads to be used.
+
+    Returns:
+        The modified template.
+    """
+    if threads > 1:
+        return template.replace(
+            "// {MULTITHREADING}", "ROOT::EnableImplicitMT({});".format(threads)
+        )
+    else:
+        return template.replace("// {MULTITHREADING}", "")

@@ -63,6 +63,10 @@ int main(int argc, char *argv[]) {
     ROOT::RDataFrame df0("Events", input_files);
     Logger::get("main")->info("Starting Setup of Dataframe");
 
+    // set mutlithreading if  is enabled using ROOT::EnableImplicitMT(ncores)
+
+    // {MULTITHREADING}
+
     // auto df_final = df0;
 
     // {CODE_GENERATION}

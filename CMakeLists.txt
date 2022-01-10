@@ -30,7 +30,12 @@ if (NOT DEFINED ERAS)
     message(FATAL_ERROR "Please specify the eras to be used with -DERAS=eras")
 endif()
 
-message(STATUS "Set up analysis with --config ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --debug ${DEBUG}")
+if (NOT DEFINED THREADS)
+    message(STATUS "No threads set, using single threaded mode with -DTHREADS=1")
+    set(THREADS "1")
+endif()
+
+message(STATUS "Set up analysis with --config ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --debug ${DEBUG} --threads ${THREADS}")
 
 # Define the default compiler flags for different build types, if different from the cmake defaults
 set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Set default compiler flags for build type Debug")
@@ -172,7 +177,7 @@ message(STATUS "")
 
 file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
 execute_process(
-    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --debug ${DEBUG} RESULT_VARIABLE ret)
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --threads ${THREADS} --debug ${DEBUG} RESULT_VARIABLE ret)
 if(ret EQUAL "1")
     message( FATAL_ERROR "Code Generation Failed - Exiting !")
 endif()
