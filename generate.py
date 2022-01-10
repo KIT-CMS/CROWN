@@ -5,7 +5,7 @@ import importlib
 import logging
 import logging.handlers
 import sys
-from code_generation.code_generation import fill_template
+from code_generation.code_generation import fill_template, set_tags, set_thead_flag
 
 sys.dont_write_bytecode = True
 
@@ -37,7 +37,8 @@ parser.add_argument(
     nargs="+",
     help='Eras to be processed. To select all, choose "auto"',
 )
-parser.add_argument("--debug", type=str, help='set debug mode for building"')
+parser.add_argument("--threads", type=int, help="number of threads to be used")
+parser.add_argument("--debug", type=str, help="set debug mode for building")
 args = parser.parse_args()
 # Executables for each era and per following processes:
 available_samples = [
@@ -98,12 +99,12 @@ for era in args.eras:
         # fill code template and write executable
         with open(args.template, "r") as template_file:
             template = template_file.read()
+        # generate the code using the analysis config and the template
         template = fill_template(template, config)
-        template = (
-            template.replace("{ANALYSISTAG}", '"Analysis=%s"' % analysisname)
-            .replace("{ERATAG}", '"Era=%s"' % era)
-            .replace("{SAMPLETAG}", '"Samplegroup=%s"' % sample_group)
-        )
+        # set analysis, era and sampletags
+        template = set_tags(template, analysisname, era, sample_group)
+        # if the number of threads is greater than one, add the threading flag in the code
+        template = set_thead_flag(template, args.threads)
         with open(path.join(args.output, executable), "w") as executable_file:
             executable_file.write(template)
         executables.append(executable)
