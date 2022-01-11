@@ -56,16 +56,18 @@ int main(int argc, char *argv[]) {
     Logger::get("main")->info("Output directory: {}", output_path);
     TStopwatch timer;
     timer.Start();
+    int quantile = 10000;
 
     // file logging
     Logger::enableFileLogging("logs/main.txt");
-    // initialize df
-    ROOT::RDataFrame df0("Events", input_files);
-    Logger::get("main")->info("Starting Setup of Dataframe");
 
     // set mutlithreading if  is enabled using ROOT::EnableImplicitMT(ncores)
 
     // {MULTITHREADING}
+
+    // initialize df
+    ROOT::RDataFrame df0("Events", input_files);
+    Logger::get("main")->info("Starting Setup of Dataframe");
 
     // auto df_final = df0;
 
@@ -82,6 +84,7 @@ int main(int argc, char *argv[]) {
     Logger::get("main")->info("Starting Evaluation");
     ROOT::RDF::RSnapshotOptions dfconfig;
     dfconfig.fLazy = true;
+
     // {RUN_COMMANDS}
     // Add meta-data
     // clang-format off

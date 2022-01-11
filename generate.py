@@ -5,7 +5,12 @@ import importlib
 import logging
 import logging.handlers
 import sys
-from code_generation.code_generation import fill_template, set_tags, set_thead_flag
+from code_generation.code_generation import (
+    fill_template,
+    set_tags,
+    set_thead_flag,
+    set_process_tracking,
+)
 
 sys.dont_write_bytecode = True
 
@@ -105,6 +110,8 @@ for era in args.eras:
         template = set_tags(template, analysisname, era, sample_group)
         # if the number of threads is greater than one, add the threading flag in the code
         template = set_thead_flag(template, args.threads)
+        # generate the code for the process tracking in the df
+        template = set_process_tracking(template, args.channels)
         with open(path.join(args.output, executable), "w") as executable_file:
             executable_file.write(template)
         executables.append(executable)

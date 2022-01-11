@@ -96,6 +96,7 @@ def fill_template(t: str, config: Dict[Any, Any]) -> str:
             scope=scope, outputname=outputname, outputstring=outputstring
         )
     for scope in config["output"]:
+        runcommands += "{PROGRESS_CALLBACK}\n"
         runcommands += "    %s_result.GetValue();\n" % scope
         runcommands += '    Logger::get("main")->info("%s:");\n' % scope
         runcommands += "    %s_cutReport->Print();\n" % scope
@@ -184,3 +185,36 @@ def set_thead_flag(template: str, threads: int) -> str:
         )
     else:
         return template.replace("// {MULTITHREADING}", "")
+
+
+def set_process_tracking(template: str, channels: List[str]) -> str:
+    """This function replaces the template placeholder for the process tracking with the correct process tracking.
+
+    Args:
+        template: The template to be modified.
+        channels: The list of channels to be used.
+
+    Returns:
+        The modified template.
+    """
+    tracking = ""
+    for channel in channels:
+        tracking += "    ULong64_t {ch}_progress = 0;\n".format(ch=channel)
+        tracking += "    ULong64_t {ch}_processed = 0;\n".format(ch=channel)
+        tracking += "    std::mutex {ch}_bar_mutex;\n".format(ch=channel)
+        tracking += "    auto c = {ch}_df_final.Count();\n".format(ch=channel)
+        tracking += "    c.OnPartialResultSlot(quantile, [&{ch}_progress, &{ch}_bar_mutex, &{ch}_processed, &quantile](unsigned int /*slot*/, ULong64_t _c) {{".format(
+            ch=channel
+        )
+        tracking += (
+            "\n        std::lock_guard<std::mutex> lg({ch}_bar_mutex);\n".format(
+                ch=channel
+            )
+        )
+        tracking += "        {ch}_progress += _c;\n".format(ch=channel)
+        tracking += "        {ch}_processed += quantile;\n".format(ch=channel)
+        tracking += '        Logger::get("main - {ch} Channel")->info("{{}} Events selected and processed ... ( {{}} Events in total) ", {ch}_progress,{ch}_processed);\n'.format(
+            ch=channel
+        )
+        tracking += "    });\n"
+    return template.replace("{PROGRESS_CALLBACK}", tracking)
