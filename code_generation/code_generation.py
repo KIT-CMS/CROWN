@@ -199,11 +199,10 @@ def set_process_tracking(template: str, channels: List[str]) -> str:
     """
     tracking = ""
     for channel in channels:
-        tracking += "    ULong64_t {ch}_progress = 0;\n".format(ch=channel)
         tracking += "    ULong64_t {ch}_processed = 0;\n".format(ch=channel)
         tracking += "    std::mutex {ch}_bar_mutex;\n".format(ch=channel)
         tracking += "    auto c = {ch}_df_final.Count();\n".format(ch=channel)
-        tracking += "    c.OnPartialResultSlot(quantile, [&{ch}_progress, &{ch}_bar_mutex, &{ch}_processed, &quantile](unsigned int /*slot*/, ULong64_t _c) {{".format(
+        tracking += "    c.OnPartialResultSlot(quantile, [&{ch}_bar_mutex, &{ch}_processed, &quantile](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
             ch=channel
         )
         tracking += (
@@ -211,9 +210,8 @@ def set_process_tracking(template: str, channels: List[str]) -> str:
                 ch=channel
             )
         )
-        tracking += "        {ch}_progress += _c;\n".format(ch=channel)
         tracking += "        {ch}_processed += quantile;\n".format(ch=channel)
-        tracking += '        Logger::get("main - {ch} Channel")->info("{{}} Events selected and processed ... ( {{}} Events in total) ", {ch}_progress,{ch}_processed);\n'.format(
+        tracking += '        Logger::get("main - {ch} Channel")->info("{{}} Events processed ...", {ch}_processed);\n'.format(
             ch=channel
         )
         tracking += "    });\n"
