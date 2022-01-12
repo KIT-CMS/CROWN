@@ -41,6 +41,7 @@ def build_config(
         available_eras,
         available_channels,
     )
+
     # first add default parameters necessary for all scopes
     configuration.add_config_parameters(
         "global",
@@ -298,6 +299,7 @@ def build_config(
             muons.VetoMuons,
             muons.VetoSecondMuon,
             muons.ExtraMuonsVeto,
+            muons.NumberOfGoodMuons,
             pairselection.ZMMPairSelection,
             pairselection.GoodMMPairFilter,
             pairselection.LVMu1,
@@ -435,7 +437,6 @@ def build_config(
             q.mjj,
             q.m_vis,
             q.pt_vis,
-            q.ntaus,
             q.nmuons,
             q.nbtag,
             q.bpt_1,
@@ -494,6 +495,7 @@ def build_config(
     configuration.add_outputs(
         "mt",
         [
+            q.ntaus,
             triggers.MTGenerateSingleMuonTriggerFlags.output_group,
             triggers.MTGenerateCrossTriggerFlags.output_group,
             q.taujet_pt_2,
