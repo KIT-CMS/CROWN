@@ -154,17 +154,6 @@ function(find_python_package PYPINAME NAME MIN_VERSION)
 endfunction()
 
 find_python_package(GitPython git 3.1)
-find_python_package(correctionlib correctionlib 2.1)
-execute_process(COMMAND correction config --cmake
-    OUTPUT_VARIABLE CORRECTION_LIB_ARGS
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-message(STATUS "Correctionline library path: ${CORRECTION_LIB_ARGS}")
-string(REPLACE -Dcorrectionlib_DIR= "" CORRECTIONLIBPATH ${CORRECTION_LIB_ARGS})
-message(STATUS "Correctionline library path: ${CORRECTIONLIBPATH}")
-find_package(correctionlib REQUIRED PATHS ${CORRECTIONLIBPATH})
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads)
-find_package(ZLIB)
 # Generate the C++ code
 if (NOT DEFINED INSTALLDIR)
     message(STATUS "No -DINSTALLDIR specified, using default: ${CMAKE_CURRENT_BINARY_DIR}/bin")
@@ -214,7 +203,7 @@ foreach(FILENAME ${FILELIST})
     add_executable(${TARGET_NAME} ${FULL_PATH})
     # target_precompile_headers(${TARGET_NAME} PRIVATE jets.hxx lorentzvectors.hxx metfilter.hxx pairselection.hxx quantities.hxx)
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
-    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib)
+    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging)
     # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
     install(TARGETS ${TARGET_NAME} DESTINATION ${INSTALLDIR})
 
