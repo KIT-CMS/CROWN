@@ -14,6 +14,12 @@ from code_generation.code_generation import (
 
 sys.dont_write_bytecode = True
 
+
+class SplitArgs(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, values.split(","))
+
+
 parser = argparse.ArgumentParser(description="Generate the C++ code for a given config")
 parser.add_argument("--template", type=str, help="Path to the template")
 parser.add_argument("--output", type=str, help="Path to the output directory")
@@ -21,31 +27,29 @@ parser.add_argument("--analysis", type=str, help="Name of the analysis config")
 parser.add_argument(
     "--channels",
     type=str,
-    nargs="+",
-    help='Channels to be activated. To select all, choose "auto"',
+    action=SplitArgs,
+    help='Channels to be activated. To select multiple channels, provide a comma separated list. To select all, choose "auto"',
 )
 parser.add_argument(
     "--shifts",
     type=str,
-    nargs="*",
-    help='Shifts to be activated. To select all, choose "auto"',
+    action=SplitArgs,
+    help='Shifts to be activated. To select multiple shifts, provide a comma separated list. To select all, choose "all"',
 )
 parser.add_argument(
-    "--samples",
+    "--sample",
     type=str,
-    nargs="+",
-    help='Samples to be processed. To select all, choose "auto"',
+    help="Sample to be processed",
 )
 parser.add_argument(
-    "--eras",
+    "--era",
     type=str,
-    nargs="+",
-    help='Eras to be processed. To select all, choose "auto"',
+    help="Era to be processed",
 )
 parser.add_argument("--threads", type=int, help="number of threads to be used")
 parser.add_argument("--debug", type=str, help="set debug mode for building")
 args = parser.parse_args()
-# Executables for each era and per following processes:
+
 available_samples = [
     "ggh",
     "vbf",
@@ -61,62 +65,72 @@ available_samples = [
 available_eras = ["2016", "2017", "2018"]
 available_channels = ["et", "mt", "tt", "em", "ee", "mm"]
 
+## setup variables
+shifts = set([shift.lower() for shift in args.shifts])
+sample_group = args.sample
+era = args.era
+channels = list(set([channel.lower() for channel in args.channels]))
 
-if "auto" in args.samples:
-    args.samples = available_samples
-if "auto" in args.eras:
-    args.eras = available_eras
+## Setup Logging
+root = logging.getLogger()
+root.setLevel("INFO")
+if args.debug != "false":
+    root.setLevel("DEBUG")
+## setup logging
+if not path.exists("generation_logs"):
+    makedirs("generation_logs")
+terminal_handler = logging.StreamHandler()
+terminal_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+root.addHandler(terminal_handler)
+handler = logging.handlers.WatchedFileHandler(
+    "generation_logs/generation_{era}_{sample}.log".format(
+        era=era, sample=sample_group
+    ),
+    "w",
+)
+handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+root.addHandler(handler)
+## load analysis config
+analysisname = args.analysis
+analysis = importlib.import_module("config." + analysisname)
+## Setting up executable
+executable = f"{analysisname}_{sample_group}_{era}.cxx"
+root.info("Generating code for {}...".format(sample_group))
+root.info("Configuration used: {}".format(analysis))
+root.info("Era: {}".format(era))
+root.info("Shifts: {}".format(shifts))
+config = analysis.build_config(
+    era,
+    sample_group,
+    channels,
+    shifts,
+    available_samples,
+    available_eras,
+    available_channels,
+)
+## fill code template and write executable
+with open(args.template, "r") as template_file:
+    template = template_file.read()
+# generate the code using the analysis config and the template
+template = fill_template(template, config)
+# set analysis, era and sampletags
+template = set_tags(template, analysisname, era, sample_group)
+# if the number of threads is greater than one, add the threading flag in the code
+template = set_thead_flag(template, args.threads)
+# generate the code for the process tracking in the df
+template = set_process_tracking(template, channels)
+with open(path.join(args.output, executable), "w") as executable_file:
+    executable_file.write(template)
 
-executables = []
-for era in args.eras:
-    for sample_group in args.samples:
-        analysisname = args.analysis
-        ## setup logging
-        if not path.exists("generation_logs"):
-            makedirs("generation_logs")
-        handler = logging.handlers.WatchedFileHandler(
-            "generation_logs/generation_{sample}.log".format(sample=sample_group), "w"
-        )
-        terminal_handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
-        terminal_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
-        root = logging.getLogger()
-        root.setLevel("INFO")
-        if args.debug != "false":
-            root.setLevel("DEBUG")
-        root.addHandler(handler)
-        root.addHandler(terminal_handler)
-
-        ### Setting up executable
-        analysis = importlib.import_module("config." + analysisname)
-        executable = f"{analysisname}_{sample_group}_{era}.cxx"
-        root.info("Generating code for {}...".format(sample_group))
-        root.info("Configuration used: {}".format(analysis))
-        config = analysis.build_config(
-            era,
-            sample_group,
-            args.channels,
-            args.shifts,
-            available_samples,
-            available_eras,
-            available_channels,
-        )
-        # fill code template and write executable
-        with open(args.template, "r") as template_file:
-            template = template_file.read()
-        # generate the code using the analysis config and the template
-        template = fill_template(template, config)
-        # set analysis, era and sampletags
-        template = set_tags(template, analysisname, era, sample_group)
-        # if the number of threads is greater than one, add the threading flag in the code
-        template = set_thead_flag(template, args.threads)
-        # generate the code for the process tracking in the df
-        template = set_process_tracking(template, args.channels)
-        with open(path.join(args.output, executable), "w") as executable_file:
-            executable_file.write(template)
-        executables.append(executable)
-
-with open(path.join(args.output, "files.txt"), "w") as f:
-    for filename in executables:
-        # copyfile(args.template, path.join(args.output, filename))
-        f.write(filename + "\n")
+# append the executable name to the files.txt file
+# if the file does not exist, create it
+if not path.exists(path.join(args.output, "files.txt")):
+    with open(path.join(args.output, "files.txt"), "w") as f:
+        f.write(f"{executable}\n")
+else:
+    with open(path.join(args.output, "files.txt"), "r+") as f:
+        for line in f:
+            if executable in line:
+                break
+        else:
+            f.write(f"{executable}\n")
