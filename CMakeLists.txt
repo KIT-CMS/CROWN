@@ -12,7 +12,7 @@ if (NOT DEFINED CHANNELS)
 endif()
 
 if (NOT DEFINED SHIFTS)
-    message(STATUS "No shifts specificed, using -DSHIFTS=all. If you want to run nominal only, use -DSHIFTS=nominal")
+    message(STATUS "No shifts specificed, using -DSHIFTS=all. If you want to run nominal only, use -DSHIFTS=none")
     set(SHIFTS "all")
 endif()
 
