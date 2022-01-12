@@ -73,3 +73,20 @@ class InvalidProducerConfigurationError(ConfigurationError):
             producer,
         )
         super().__init__(self.message)
+
+
+class InvalidShiftError(ConfigurationError):
+    """
+    Exception raised when the shift configuration provided by the user is not valid.
+    """
+
+    def __init__(self, shift: str, sample: str, scope: Union[str, None] = None):
+        if scope is None:
+            self.message = "Shift {} is not setup properly or not available for sampletype {}".format(
+                shift, sample
+            )
+        else:
+            self.message = "Shift {} is not setup for scope {} or not available for sampletype {}".format(
+                shift, scope, sample
+            )
+        super().__init__(self.message)

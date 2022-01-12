@@ -5,9 +5,11 @@ from typing import Any, Dict, List, Set, Union
 
 from code_generation.exceptions import (
     ChannelConfigurationError,
+    ConfigurationError,
     EraConfigurationError,
     InvalidOutputError,
     SampleConfigurationError,
+    InvalidShiftError,
 )
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.optimizer import ProducerOrdering
@@ -22,6 +24,12 @@ from code_generation.systematics import SystematicShift, SystematicShiftByQuanti
 
 log = logging.getLogger(__name__)
 # type aliases
+ScopeSet = Set[str]
+ScopeList = Union[str, List[str]]
+EraList = Union[str, List[str]]
+ChannelList = Union[str, List[str]]
+ShiftList = Set[str]
+SamplesList = Union[str, List[str]]
 TConfiguration = Dict[
     str,
     Union[
@@ -74,11 +82,12 @@ class Configuration(object):
         self.era = era
         self.sample = sample
         self.channels = set(channels)
-        self.selected_shifts = set(shifts)
+        self.selected_shifts = shifts
         self.available_sample_types = set(available_sample_types)
         self.available_eras = set(available_eras)
         self.available_channels = set(available_channels)
         self.available_outputs: QuantitiesStore = {}
+        self.available_shifts: Dict[str, Set[str]] = {}
         self.global_scope = "global"
 
         self.producers: TProducerStore = {}
@@ -175,6 +184,7 @@ class Configuration(object):
             self.shifts[scope] = {}
             self.available_outputs[scope] = set()
             self.config_parameters[scope] = {}
+            self.available_shifts[scope] = set()
         self._set_sample_parameters()
 
     def add_config_parameters(
@@ -258,30 +268,75 @@ class Configuration(object):
         Returns:
             None
         """
-        if not isinstance(shift, SystematicShift):
-            raise TypeError("shift must be of type SystematicShift")
-        if isinstance(samples, str):
-            samples = [samples]
-        if samples is None or self.sample in samples:
-            scopes_to_shift: Union[str, List[str]] = [
-                scope for scope in shift.get_scopes() if scope in self.scopes
-            ]
-            if self.global_scope in scopes_to_shift:
-                for scope in self.scopes + [self.global_scope]:
-                    if scope in shift.get_scopes():
+        if self.valid_shift(shift):
+            log.debug("Shift {} is valid".format(shift.shiftname))
+            if not isinstance(shift, SystematicShift):
+                raise TypeError("shift must be of type SystematicShift")
+            if isinstance(samples, str):
+                samples = [samples]
+            if samples is None or self.sample in samples:
+                scopes_to_shift: ScopeList = [
+                    scope for scope in shift.get_scopes() if scope in self.scopes
+                ]
+                if self.global_scope in scopes_to_shift:
+                    for scope in self.scopes:
+                        if scope in shift.get_scopes():
+                            self.add_available_shift(shift, scope)
+                            shift.apply(scope)
+                            self.shifts[scope][
+                                shift.shiftname
+                            ] = shift.get_shift_config(scope)
+                        else:
+                            self.add_available_shift(shift, scope)
+                            shift.apply(self.global_scope)
+                            self.shifts[scope][
+                                shift.shiftname
+                            ] = shift.get_shift_config(self.global_scope)
+                else:
+                    for scope in scopes_to_shift:
+                        self.add_available_shift(shift, scope)
                         shift.apply(scope)
                         self.shifts[scope][shift.shiftname] = shift.get_shift_config(
                             scope
                         )
-                    else:
-                        shift.apply(self.global_scope)
-                        self.shifts[scope][shift.shiftname] = shift.get_shift_config(
-                            self.global_scope
-                        )
-            else:
-                for scope in scopes_to_shift:
-                    shift.apply(scope)
-                    self.shifts[scope][shift.shiftname] = shift.get_shift_config(scope)
+
+    def valid_shift(
+        self, shift: Union[SystematicShift, SystematicShiftByQuantity]
+    ) -> bool:
+        """
+        Function to check if a shift is valid. A shift is condisered valid, if its name
+        matches the name of the shifts prodivded in self.selected_shifts.
+        If none is selected, all shifts are invalid, if all is selected, all shifts are valid.
+
+        Args:
+            shift: The shift to be checked.
+
+        Returns:
+            bool: True if the shift is valid, False otherwise.
+        """
+        if len(self.selected_shifts) == 1 and "all" in self.selected_shifts:
+            return True
+        elif len(self.selected_shifts) == 1 and "none" in self.selected_shifts:
+            return False
+        else:
+            return any(
+                [
+                    shiftname.lower() in shift.shiftname.lower()
+                    for shiftname in self.selected_shifts
+                ]
+            )
+
+    def add_available_shift(
+        self, shift: Union[SystematicShift, SystematicShiftByQuantity], scope
+    ) -> None:
+        """Add a shift to the set of available shifts
+
+        Args:
+            shift: The shift to be added.
+            scope: The scope to which the shift should be added.
+        """
+        log.debug("Adding shift {} to scope {}".format(shift.shiftname, scope))
+        self.available_shifts[scope].add(shift.shiftname.lower())
 
     def add_modification_rule(
         self, scopes: Union[str, List[str]], rule: ProducerRule
@@ -430,11 +485,46 @@ class Configuration(object):
             if len(missing_outputs) > 0:
                 raise InvalidOutputError(scope, missing_outputs)
 
+    def validate_all_shifts(self) -> None:
+        """
+        Function to validate the set of selected shifts against the set of available shifts.
+        If a shift is required, that is not set, an error is raised.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        if len(self.selected_shifts) == 0:
+            raise ConfigurationError("No shifts selected")
+        elif len(self.selected_shifts) == 1 and "all" in self.selected_shifts:
+            log.info("All shifts are selected")
+        elif len(self.selected_shifts) == 1 and "none" in self.selected_shifts:
+            log.info("Nominal is selected, no shifts will be applied")
+            for scope in self.scopes:
+                self.shifts[scope] = {}
+        else:
+            for scope in self.available_shifts:
+                for shift in self.selected_shifts:
+                    if len(self.available_shifts[scope]) == 0:
+                        raise InvalidShiftError(shift, self.sample)
+                    log.debug("Validating shift {} in scope {}".format(shift, scope))
+                    if not any(
+                        [
+                            shift in available_shift
+                            for available_shift in self.available_shifts[scope]
+                        ]
+                    ):
+                        raise InvalidShiftError(shift, self.sample, scope)
+        log.info("Shift configuration is valid")
+
     def validate(self) -> None:
         """
         Function used to validate the configuration. During the validation, the following steps are performed:
 
             - Validate the outputs
+            - Validate the shifts
 
         Args:
             None
@@ -443,6 +533,7 @@ class Configuration(object):
             None
         """
         self._validate_outputs()
+        self.validate_all_shifts()
 
     def report(self) -> None:
         """
@@ -454,7 +545,7 @@ class Configuration(object):
         Returns:
             None
         """
-        running_scopes = list(self.channels) + [self.global_scope]
+        running_scopes = self.scopes
         total_producers = sum([len(self.producers[scope]) for scope in running_scopes])
         total_quantities = sum([len(self.outputs[scope]) for scope in running_scopes])
         total_shifts = sum([len(self.shifts[scope]) for scope in running_scopes])
@@ -511,7 +602,7 @@ class Configuration(object):
         returndict[""] = {}
         returndict["output"] = {}
         returndict["producers"] = {}
-        for scope in self.scopes + [self.global_scope]:
+        for scope in self.scopes:
             returndict[""][scope] = self.config_parameters[scope]
             returndict["producers"][scope] = self.producers[scope]
             if scope is not self.global_scope:
@@ -522,16 +613,17 @@ class Configuration(object):
                 )
                 returndict["output"][scope] = sorted(list(self.outputs[scope]))
             # add systematic shifts
-            for shift in self.shifts[scope]:
-                log.warning("Adding shift {} in scope {}".format(shift, scope))
-                log.debug("  {}".format(self.shifts[scope][shift]))
-                try:
-                    returndict[shift][scope] = (
-                        self.config_parameters[scope] | self.shifts[scope][shift]
-                    )
-                except KeyError:
-                    returndict[shift] = {}
-                    returndict[shift][scope] = (
-                        self.config_parameters[scope] | self.shifts[scope][shift]
-                    )
+            if len(self.shifts[scope]) > 0:
+                for shift in self.shifts[scope]:
+                    log.warning("Adding shift {} in scope {}".format(shift, scope))
+                    log.debug("  {}".format(self.shifts[scope][shift]))
+                    try:
+                        returndict[shift][scope] = (
+                            self.config_parameters[scope] | self.shifts[scope][shift]
+                        )
+                    except KeyError:
+                        returndict[shift] = {}
+                        returndict[shift][scope] = (
+                            self.config_parameters[scope] | self.shifts[scope][shift]
+                        )
         return returndict

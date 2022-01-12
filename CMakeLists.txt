@@ -7,12 +7,12 @@ endif()
 message(STATUS "Set up analysis for config ${ANALYSIS}.")
 
 if (NOT DEFINED CHANNELS)
-    message(STATUS "No channel specificed, build the four main channels using -DCHANNELS=et;mt;tt;em")
-    set(CHANNELS "et;mt;tt;em")
+    message(STATUS "No channel specificed, build the four main channels using -DCHANNELS=et,mt,tt,em")
+    set(CHANNELS "et,mt,tt,em")
 endif()
 
 if (NOT DEFINED SHIFTS)
-    message(STATUS "No shifts specificed, using -DSHIFTS=all")
+    message(STATUS "No shifts specificed, using -DSHIFTS=all. If you want to run nominal only, use -DSHIFTS=nominal")
     set(SHIFTS "all")
 endif()
 
@@ -35,7 +35,9 @@ if (NOT DEFINED THREADS)
     set(THREADS "1")
 endif()
 
-message(STATUS "Set up analysis with --config ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --debug ${DEBUG} --threads ${THREADS}")
+string (REPLACE "," ";" ERAS "${ERAS}")
+string (REPLACE "," ";" SAMPLES "${SAMPLES}")
+message(STATUS "Set up analysis with --config ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --threads ${THREADS} --debug ${DEBUG}")
 
 # Define the default compiler flags for different build types, if different from the cmake defaults
 set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Set default compiler flags for build type Debug")
@@ -175,11 +177,18 @@ message(STATUS "  Eras: ${ERAS}")
 message(STATUS "")
 
 file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
-execute_process(
-    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --threads ${THREADS} --debug ${DEBUG} RESULT_VARIABLE ret)
-if(ret EQUAL "1")
-    message( FATAL_ERROR "Code Generation Failed - Exiting !")
-endif()
+# loop over all samples and eras and generate code for each one of them
+foreach (ERA IN LISTS ERAS)
+    foreach (SAMPLE IN LISTS SAMPLES)
+        execute_process(
+            COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --sample ${SAMPLE} --era ${ERA} --threads ${THREADS} --debug ${DEBUG} RESULT_VARIABLE ret)
+        if(ret EQUAL "1")
+            message( FATAL_ERROR "Code Generation Failed - Exiting !")
+        endif()
+    endforeach()
+endforeach()
+
+
 set(GENERATE_CPP_OUTPUT_FILELIST "${GENERATE_CPP_OUTPUT_DIRECTORY}/files.txt")
 if(NOT EXISTS ${GENERATE_CPP_OUTPUT_FILELIST})
     message(FATAL_ERROR "List of generated C++ files in ${GENERATE_CPP_OUTPUT_FILELIST} does not exist.")
