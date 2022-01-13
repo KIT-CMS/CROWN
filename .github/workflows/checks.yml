@@ -14,7 +14,8 @@ env:
   ANALYSIS: test.unittest_config
   SAMPLES: dy
   ERAS: 2018
-  CHANNELS: "mt;mm"
+  CHANNELS: "mt,mm"
+  SHIFTS: "tauES"
 
 jobs:
   build_project:
@@ -38,7 +39,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES -DERAS=$ERAS -DCHANNELS=$CHANNELS
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES -DERAS=$ERAS -DCHANNELS=$CHANNELS -DSHIFTS=$SHIFTS
 
       - name: Build
         shell: bash
