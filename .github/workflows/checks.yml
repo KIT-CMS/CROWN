@@ -15,7 +15,7 @@ env:
   SAMPLES: dy
   ERAS: 2018
   CHANNELS: "mt,mm"
-  SHIFTS: "tauES"
+  SHIFTS: "tauES,metUnclusteredEnUp"
 
 jobs:
   build_project:
