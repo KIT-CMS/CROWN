@@ -24,6 +24,9 @@ jobs:
       options: --user 0 # run as root
 
     steps:
+      - name: update Arch keyring
+        run: pacman -S archlinux-keyring --noconfirm
+
       - name: Install missing software
         run: pacman -Syu --noconfirm cmake make git python-pip --ignore=root
 
@@ -52,6 +55,9 @@ jobs:
       options: --user 0 # run as root
 
     steps:
+      - name: update Arch keyring
+        run: pacman -S archlinux-keyring --noconfirm
+
       - name: Install missing software
         run: pacman -Syu --noconfirm git python-pip && pip install black
 
@@ -68,6 +74,9 @@ jobs:
       options: --user 0 # run as root
 
     steps:
+      - name: update Arch keyring
+        run: pacman -S archlinux-keyring --noconfirm
+
       - name: Install missing software
         run: pacman -Syu --noconfirm git python-pip && pip install clang-format
 
@@ -84,8 +93,14 @@ jobs:
       options: --user 0 # run as root
 
     steps:
+      - name: update Arch keyring
+        run: pacman -S archlinux-keyring --noconfirm
+
       - name: Install missing software
-        run: pacman -Syu --noconfirm git cmake make doxygen python-pip && pip install breathe==4.31 sphinx_rtd_theme==0.5
+        run: pacman -Syu --noconfirm git cmake make doxygen python-pip
+
+      - name: install docs related packages
+        run: pip install breathe==4.31 sphinx_rtd_theme==0.5
 
       - uses: actions/checkout@v2
 
