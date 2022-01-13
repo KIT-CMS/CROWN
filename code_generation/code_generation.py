@@ -95,8 +95,8 @@ def fill_template(t: str, config: Dict[Any, Any]) -> str:
         runcommands += '    auto {scope}_result = {scope}_df_final.Snapshot("ntuple", {outputname}, {outputstring}, dfconfig);\n'.format(
             scope=scope, outputname=outputname, outputstring=outputstring
         )
+    runcommands += "{PROGRESS_CALLBACK}\n"
     for scope in config["output"]:
-        runcommands += "{PROGRESS_CALLBACK}\n"
         runcommands += "    %s_result.GetValue();\n" % scope
         runcommands += '    Logger::get("main")->info("%s:");\n' % scope
         runcommands += "    %s_cutReport->Print();\n" % scope
