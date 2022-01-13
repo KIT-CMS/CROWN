@@ -119,7 +119,7 @@ Both have a similar interface. The basic structure on how to include a modifier 
 
 In this example, the parameter ``applyRecoilCorrections`` is added to the parameter list of the producers ``mm`` and ``mt``. Due to the configuration of the modifier, the parameter will be set to ``True`` for the samples of the type ``wj``. For all other samples, the default value ``False`` is set.
 
-Internally, the revolving of modifiers is done using the :py:func:`~code_generation.configuration.Configuration.resolve_modifiers` function, which is called automatically by the :py:func:`~code_generation.configuration.Configuration.add_config_parameters` function.
+Internally, the resolving of modifiers is done using the :py:func:`~code_generation.configuration.Configuration.resolve_modifiers` function, which is called automatically by the :py:func:`~code_generation.configuration.Configuration.add_config_parameters` function.
 
 Output Quantities
 ******************
@@ -163,7 +163,7 @@ The set of producers to be run can be defined using the :py:func:`~code_generati
         ]
     )
 
-In this example, the producers ``GoodMuons``, ``VetoMuons``, ``MMPairSelection`` and ``GoodMMPairFilter`` are added to the list of producers ``mm``. The producers added here can be both a :py:class:`~code_generation.producer.Producer` or a :py:class:`~code_generation.producers.ProducerGroup`. Also, the oder of the producers is not important. Using the :py:func:`~code_generation.configuration.Configuration.optimize` function, the producers ordering will be optimized, such that filters are always run first, and that producers that depend on other producers are run after the producers that they depend on.
+In this example, the producers ``GoodMuons``, ``VetoMuons``, ``MMPairSelection`` and ``GoodMMPairFilter`` are added to the list of producers ``mm``. The producers added here can be both a :py:class:`~code_generation.producer.Producer` or a :py:class:`~code_generation.producers.ProducerGroup`. Also, the order of the producers is not important. Using the :py:func:`~code_generation.configuration.Configuration.optimize` function, the producers ordering will be optimized, such that filters are always run first, and that producers that depend on other producers are run after the producers that they depend on.
 
 The collection of available producers can be found in the :py:mod:`code_generation.producers` folder. An explanation on how producers are setup and linked to their corresponding C++ function is given in :ref:`Implementing the python interface for a new Producer`.
 
