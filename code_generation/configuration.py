@@ -24,12 +24,6 @@ from code_generation.systematics import SystematicShift, SystematicShiftByQuanti
 
 log = logging.getLogger(__name__)
 # type aliases
-ScopeSet = Set[str]
-ScopeList = Union[str, List[str]]
-EraList = Union[str, List[str]]
-ChannelList = Union[str, List[str]]
-ShiftList = Set[str]
-SamplesList = Union[str, List[str]]
 TConfiguration = Dict[
     str,
     Union[
@@ -268,39 +262,39 @@ class Configuration(object):
         Returns:
             None
         """
-        if self.valid_shift(shift):
+        if self._is_valid_shift(shift):
             log.debug("Shift {} is valid".format(shift.shiftname))
             if not isinstance(shift, SystematicShift):
                 raise TypeError("shift must be of type SystematicShift")
             if isinstance(samples, str):
                 samples = [samples]
             if samples is None or self.sample in samples:
-                scopes_to_shift: ScopeList = [
+                scopes_to_shift = [
                     scope for scope in shift.get_scopes() if scope in self.scopes
                 ]
                 if self.global_scope in scopes_to_shift:
                     for scope in self.scopes:
                         if scope in shift.get_scopes():
-                            self.add_available_shift(shift, scope)
+                            self._add_available_shift(shift, scope)
                             shift.apply(scope)
                             self.shifts[scope][
                                 shift.shiftname
                             ] = shift.get_shift_config(scope)
                         else:
-                            self.add_available_shift(shift, scope)
+                            self._add_available_shift(shift, scope)
                             shift.apply(self.global_scope)
                             self.shifts[scope][
                                 shift.shiftname
                             ] = shift.get_shift_config(self.global_scope)
                 else:
                     for scope in scopes_to_shift:
-                        self.add_available_shift(shift, scope)
+                        self._add_available_shift(shift, scope)
                         shift.apply(scope)
                         self.shifts[scope][shift.shiftname] = shift.get_shift_config(
                             scope
                         )
 
-    def valid_shift(
+    def _is_valid_shift(
         self, shift: Union[SystematicShift, SystematicShiftByQuantity]
     ) -> bool:
         """
@@ -326,7 +320,7 @@ class Configuration(object):
                 ]
             )
 
-    def add_available_shift(
+    def _add_available_shift(
         self, shift: Union[SystematicShift, SystematicShiftByQuantity], scope
     ) -> None:
         """Add a shift to the set of available shifts
@@ -485,7 +479,7 @@ class Configuration(object):
             if len(missing_outputs) > 0:
                 raise InvalidOutputError(scope, missing_outputs)
 
-    def validate_all_shifts(self) -> None:
+    def _validate_all_shifts(self) -> None:
         """
         Function to validate the set of selected shifts against the set of available shifts.
         If a shift is required, that is not set, an error is raised.
@@ -533,7 +527,7 @@ class Configuration(object):
             None
         """
         self._validate_outputs()
-        self.validate_all_shifts()
+        self._validate_all_shifts()
 
     def report(self) -> None:
         """
