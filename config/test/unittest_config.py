@@ -432,6 +432,25 @@ def build_config(
         ],
     )
     #########################
+    # TES Shifts
+    #########################
+    configuration.add_shift(
+        SystematicShift(
+            name="tauES_1prong0pizeroDown",
+            shift_config={"global": {"tau_ES_shift_DM0": 0.998}},
+            producers={"global": taus.TauPtCorrection},
+            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="tauES_1prong0pizeroUp",
+            shift_config={"global": {"tau_ES_shift_DM0": 1.002}},
+            producers={"global": taus.TauPtCorrection},
+            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+        )
+    )
+    #########################
     # MET Shifts
     #########################
     configuration.add_shift(
