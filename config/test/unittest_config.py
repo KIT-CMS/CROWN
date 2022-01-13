@@ -143,7 +143,7 @@ def build_config(
     configuration.add_config_parameters(
         ["mt", "mm"],
         {
-            "mu_idx": 0,
+            "muon_index_in_pair": 0,
             "min_muon_pt": 23.0,
             "max_muon_eta": 2.1,
             "muon_iso_cut": 0.15,
@@ -152,6 +152,15 @@ def build_config(
             "muon_sf_id_args": "m_pt,m_eta",
             "muon_sf_iso_name": "m_iso_binned_kit_ratio",
             "muon_sf_iso_args": "m_pt,m_eta,m_iso",
+        },
+    )
+    configuration.add_config_parameters(
+        ["mm"],
+        {
+            "min_muon_pt": 20.0,
+            "max_muon_eta": 2.1,
+            "muon_iso_cut": 0.15,
+            "second_muon_index_in_pair": 1,
         },
     )
     ## MT/MM channel misc settings
