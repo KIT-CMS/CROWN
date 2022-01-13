@@ -43,11 +43,21 @@ In order to create a new executable, first create a build directory
 
    mkdir build && cd build
 
-and then run `cmake` to setup the Makefiles
+and then run `cmake` to setup the Makefiles. For the cmake command a minimal set of options has to be provided:
 
 .. code-block:: console
 
-   cmake ..
+   cmake .. -DANALYSIS=config -DSAMPLES=emb -DERAS=2018
+
+The options that are currently available are:
+
+   * :code:`-DANALYSIS=config`: The analysis configuration to be used. This is the name of the python configuration file. The file has to be located in the :code:`config` directory and the path is provided in the python import syntax so e.g. :code:`subfolder.myspecialconfig`
+   * :code:`-DSAMPLES=emb`: The samples to be used. This is a single sample or a comma separated list of sample names.
+   * :code:`-DERAS=2018`: The era to be used. This is a single era or a comma separated list of era names.
+   * :code:`-DTHREADS=20`: The number of threads to be used. Defaults to single threading.
+   * :code:`-DSHIFTS=all`: The shifts to be used. Defaults to all shifts. If set to :code:`all`, all shifts are used, if set to :code:`none`, no shifts are used, so only nominal is produced. If set to a comma separated list of shifts, only those shifts are used. If set to only a substring matching multiple shifts, all shifts matching that string will be produced e.g. :code:`-DSHIFTS=tauES` will produce all shifts containing :code:`tauES` in the name.
+   * :code:`-DDEBUG=True`: If the variable is set to anything, the code generation will run with debug information.
+
 
 and compile the executable using
 
