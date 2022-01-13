@@ -499,18 +499,24 @@ class Configuration(object):
             for scope in self.scopes:
                 self.shifts[scope] = {}
         else:
+            # check if all selected shifts are available
             for scope in self.available_shifts:
-                for shift in self.selected_shifts:
-                    if len(self.available_shifts[scope]) == 0:
-                        raise InvalidShiftError(shift, self.sample)
-                    log.debug("Validating shift {} in scope {}".format(shift, scope))
-                    if not any(
-                        [
-                            shift in available_shift
-                            for available_shift in self.available_shifts[scope]
-                        ]
-                    ):
-                        raise InvalidShiftError(shift, self.sample, scope)
+                # we do not need to check the global scope, since shifts from
+                # the global scope are always propagated down to all scopes
+                if scope is not self.global_scope:
+                    for shift in self.selected_shifts:
+                        if len(self.available_shifts[scope]) == 0:
+                            raise InvalidShiftError(shift, self.sample)
+                        log.debug(
+                            "Validating shift {} in scope {}".format(shift, scope)
+                        )
+                        if not any(
+                            [
+                                shift in available_shift
+                                for available_shift in self.available_shifts[scope]
+                            ]
+                        ):
+                            raise InvalidShiftError(shift, self.sample, scope)
         log.info("Shift configuration is valid")
 
     def validate(self) -> None:
