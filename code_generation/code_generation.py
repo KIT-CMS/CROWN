@@ -201,8 +201,8 @@ def set_process_tracking(template: str, channels: List[str]) -> str:
     for channel in channels:
         tracking += "    ULong64_t {ch}_processed = 0;\n".format(ch=channel)
         tracking += "    std::mutex {ch}_bar_mutex;\n".format(ch=channel)
-        tracking += "    auto c = {ch}_df_final.Count();\n".format(ch=channel)
-        tracking += "    c.OnPartialResultSlot(quantile, [&{ch}_bar_mutex, &{ch}_processed, &quantile](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
+        tracking += "    auto c_{ch} = {ch}_df_final.Count();\n".format(ch=channel)
+        tracking += "    c_{ch}.OnPartialResultSlot(quantile, [&{ch}_bar_mutex, &{ch}_processed, &quantile](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
             ch=channel
         )
         tracking += (
