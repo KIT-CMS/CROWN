@@ -20,6 +20,13 @@ Muon_1_Iso_SF = Producer(
     output=[q.isoWeight_1],
     scopes=["mt", "mm"],
 )
+Muon_1_Iso_SF_UL = Producer(
+    name="MuonIso_SF_UL",
+    call='scalefactor::muon::iso_ul({df}, {input}, "{muon_sf_iso_year_id}", "{muon_sf_iso_varation}", {output}, "{muon_sf_file}", "{muon_sf_name}")',
+    input=[q.pt_1, q.eta_1],
+    output=[q.isoWeightUL_1],
+    scopes=["mt", "mm"],
+)
 Muon_2_ID_SF = Producer(
     name="MuonID_SF",
     call='scalefactor::muon::id({df}, {input}, {output}, "{muon_sf_workspace}", "{muon_sf_id_name}", "{muon_sf_id_args}")',

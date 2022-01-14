@@ -3,6 +3,7 @@
 #include "RooWorkspace.h"
 #include "TFile.h"
 #include "basefunctions.hxx"
+#include "correction.h"
 #include "utility/Logger.hxx"
 #include "utility/RooFunctorThreadsafe.hxx"
 /// namespace used for scale factor related functions
@@ -60,6 +61,37 @@ auto iso(auto &df, const std::string &pt, const std::string &eta,
         loadFunctor(workspace_name, iso_functor_name, iso_arguments);
     auto df1 = basefunctions::evaluateWorkspaceFunction(
         df, iso_output, iso_function, pt, eta, iso);
+    return df1;
+}
+/**
+ * @brief Function used to evaluate iso scale factors from muons with
+ * correctionlib
+ *
+ * @param df The input dataframe
+ * @param pt muon pt
+ * @param eta muon eta
+ * @param year_id id for the year of data taking and mc compaign
+ * @param variation id for the variation of the scale factor "sf" for nominal
+ * and "systup"/"systdown" for the up/down variation
+ * @param iso_output name of the iso scale factor column
+ * @param sf_file path to the file with the scale factors
+ * @param sf_name name of the scale factor
+ * @return a new dataframe containing the new column
+ */
+auto iso_ul(auto &df, const std::string &pt, const std::string &eta,
+            const std::string &year_id, const std::string &variation,
+            const std::string &iso_output, const std::string &sf_file,
+            const std::string &sf_name) {
+
+    auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(sf_name);
+    auto df1 = df.Define(
+        iso_output,
+        [evaluator, year_id, variation](const float &pt, const float &eta) {
+            auto sf =
+                evaluator->evaluate({year_id, std::abs(eta), pt, variation});
+            return sf;
+        },
+        {pt, eta});
     return df1;
 }
 } // namespace muon
