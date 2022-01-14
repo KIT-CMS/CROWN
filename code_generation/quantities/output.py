@@ -123,6 +123,7 @@ gen_pdgid_2 = Quantity("gen_pdgid_2")
 
 gen_m_vis = Quantity("gen_m_vis")
 isoWeight_1 = Quantity("isoWeight_1")
+isoWeightUL_1 = Quantity("isoWeightUL_1")
 isoWeight_2 = Quantity("isoWeight_2")
 idWeight_1 = Quantity("idWeight_1")
 idWeight_2 = Quantity("idWeight_2")
