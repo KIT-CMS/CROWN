@@ -156,6 +156,21 @@ function(find_python_package PYPINAME NAME MIN_VERSION)
 endfunction()
 
 find_python_package(GitPython git 3.1)
+# Adding correctionlib for scale factor evaluation
+#find_python_package(correctionlib correctionlib 2.1)
+execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${_pip_args} git+https://github.com/cms-nanoAOD/correctionlib.git)
+execute_process(COMMAND correction config --cmake
+    OUTPUT_VARIABLE CORRECTION_LIB_ARGS
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+message(STATUS "Correctionline library path: ${CORRECTION_LIB_ARGS}")
+string(REPLACE -Dcorrectionlib_DIR= "" CORRECTIONLIBPATH ${CORRECTION_LIB_ARGS})
+message(STATUS "Correctionline library path: ${CORRECTIONLIBPATH}")
+find_package(correctionlib REQUIRED PATHS ${CORRECTIONLIBPATH})
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads)
+find_package(ZLIB)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 # Generate the C++ code
 if (NOT DEFINED INSTALLDIR)
     message(STATUS "No -DINSTALLDIR specified, using default: ${CMAKE_CURRENT_BINARY_DIR}/bin")
@@ -211,8 +226,22 @@ foreach(FILENAME ${FILELIST})
     message(STATUS "Add build target for file ${FILENAME}.")
     add_executable(${TARGET_NAME} ${FULL_PATH})
     # target_precompile_headers(${TARGET_NAME} PRIVATE jets.hxx lorentzvectors.hxx metfilter.hxx pairselection.hxx quantities.hxx)
-    target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
-    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging)
+    #target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} ${CORRECTIONLIBPATH})
+    #target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib)
+
+    # Adds a pre-build event to the Target copying the correctionlib.so file into the /lib folder in the install directory
+    add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CORRECTIONLIBPATH}/../lib/libcorrectionlib.so"
+            ${INSTALLDIR}/lib/libcorrectionlib.so)
+    target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} $ORIGIN/lib/)
+    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib)
+    # Find shared libraries next to the executable in the /lib folder
+    set_target_properties(${TARGET_NAME} PROPERTIES
+        BUILD_WITH_INSTALL_RPATH FALSE
+        LINK_FLAGS "-Wl,-rpath,$ORIGIN/lib")
+
+
     # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
     install(TARGETS ${TARGET_NAME} DESTINATION ${INSTALLDIR})
 
