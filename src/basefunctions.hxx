@@ -247,6 +247,24 @@ auto FilterJetID(const int &index) {
         return mask;
     };
 }
+/// Function to filter the Jet pileup ID in NanoAOD. This ID is applied on jets
+/// below a given pt threshold. The jet pileup ID has 4 possible values:
+/// 0==fail, 4==pass loose, 6==pass loose and medium, 7==pass loose, medium and
+/// tight
+///
+/// \param PUindex The index to be used for comparison
+/// \param PUptcut The pt threshold to be used for comparison
+///
+/// \returns a lambda function to be used in RDF Define
+auto FilterJetPUID(const int &PUindex, const float &PUptcut) {
+    return [PUindex, PUptcut](const ROOT::RVec<Int_t> &PUIDs,
+                              const ROOT::RVec<float> &jet_pts) {
+        ROOT::RVec<int> tmp_mask1 = PUIDs >= PUindex;
+        ROOT::RVec<int> tmp_mask2 = jet_pts >= PUptcut;
+        ROOT::RVec<int> mask = (tmp_mask1 + tmp_mask2) > 0;
+        return mask;
+    };
+}
 /// Function to evaluate a `RooWorkspace` function and put the output into a new
 /// dataframe column
 ///
