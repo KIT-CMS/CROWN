@@ -50,6 +50,7 @@ Jet_phi = NanoAODQuantity("Jet_phi")
 Jet_pt = NanoAODQuantity("Jet_pt")
 Jet_mass = NanoAODQuantity("Jet_mass")
 Jet_ID = NanoAODQuantity("Jet_jetId")
+Jet_PUID = NanoAODQuantity("Jet_puId")
 Jet_associatedGenJet = NanoAODQuantity("Jet_genJetIdx")
 BJet_discriminator = NanoAODQuantity("Jet_btagDeepFlavB")
 

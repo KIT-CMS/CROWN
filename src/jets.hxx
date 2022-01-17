@@ -97,7 +97,7 @@ auto OrderJetsByPt(auto &df, const std::string &output_col,
 namespace physicsobject {
 namespace jet {
 
-/// Function to cut jets based on the tau ID
+/// Function to cut jets based on the jet ID
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to the
@@ -108,6 +108,23 @@ namespace jet {
 auto CutID(auto &df, const std::string &maskname, const std::string &nameID,
            const int &idxID) {
     auto df1 = df.Define(maskname, basefunctions::FilterJetID(idxID), {nameID});
+    return df1;
+}
+/// Function to cut jets based on the jet pileup ID
+///
+/// \param[in] df the input dataframe
+/// \param[out] maskname the name of the new mask to be added as column to the
+/// dataframe \param[in] nameID name of the ID column in the NanoAOD \param[in]
+/// idxID bitvalue of the WP the has to be passed \param[in] jet_pt name of the
+/// input jet pts \param[in] jet_pt_cut threshold for the input jet pts
+///
+/// \return a dataframe containing the new mask
+auto CutPUID(auto &df, const std::string &maskname, const std::string &nameID,
+             const std::string &jet_pt, const int &idxID,
+             const float &jet_pt_cut) {
+    auto df1 =
+        df.Define(maskname, basefunctions::FilterJetPUID(idxID, jet_pt_cut),
+                  {nameID, jet_pt});
     return df1;
 }
 
