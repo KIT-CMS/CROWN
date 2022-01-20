@@ -353,14 +353,14 @@ auto PairSelectionAlgo(const float &mindeltaR) {
                        const ROOT::RVec<float> &muon_iso,
                        const ROOT::RVec<int> &tau_mask,
                        const ROOT::RVec<int> &muon_mask) {
-        ROOT::RVec<int> selected_pair; // first entry is the muon index,
-                                       // second entry is the tau index
+        // first entry is the muon index,
+        // second entry is the tau index
+        ROOT::RVec<int> selected_pair = {-1, -1};
         const auto original_tau_indices = ROOT::VecOps::Nonzero(tau_mask);
         const auto original_muon_indices = ROOT::VecOps::Nonzero(muon_mask);
 
         if (original_tau_indices.size() == 0 or
             original_muon_indices.size() == 0) {
-            selected_pair = {-1, -1};
             return selected_pair;
         }
         Logger::get("PairSelection")
@@ -476,7 +476,8 @@ auto PairSelectionAlgo(const float &mindeltaR) {
     - tau_mask containing the flags whether the tau is a good tau or not
     - muon_mask containing the flags whether the muon is a good tau or not
  * @param pairname name of the new column containing the pair index
- * @param mindeltaR the seperation between the two muons has to be larger than
+ * @param mindeltaR the seperation between the muon at the tau has to be larger
+ than
  * this value
  * @return a new dataframe with the pair index column added
  */
@@ -509,11 +510,12 @@ auto PairSelectionAlgo(const float &mindeltaR) {
                        const ROOT::RVec<float> &muon_phi,
                        const ROOT::RVec<float> &muon_mass,
                        const ROOT::RVec<int> &muon_mask) {
-        ROOT::RVec<int> selected_pair;
+        // first entry is the leading muon index,
+        // second entry is the trailing muon index
+        ROOT::RVec<int> selected_pair = {-1, -1};
         const auto original_muon_indices = ROOT::VecOps::Nonzero(muon_mask);
         // we need at least two fitting muons
         if (original_muon_indices.size() < 2) {
-            selected_pair = {-1, -1};
             return selected_pair;
         }
         const auto good_pts =
@@ -585,13 +587,12 @@ auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
                        const ROOT::RVec<float> &muon_phi,
                        const ROOT::RVec<float> &muon_mass,
                        const ROOT::RVec<int> &muon_mask) {
-        ROOT::RVec<int> selected_pair; // first entry is the leading
-                                       // muon index, second entry
-                                       // is the trailing muon index
+        // first entry is the leading muon index,
+        // second entry is the trailing muon index
+        ROOT::RVec<int> selected_pair = {-1, -1};
         const auto original_muon_indices = ROOT::VecOps::Nonzero(muon_mask);
         // we need at least two fitting muons
         if (original_muon_indices.size() < 2) {
-            selected_pair = {-1, -1};
             return selected_pair;
         }
         Logger::get("ZBosonPairSelectionAlgo")
