@@ -8,7 +8,7 @@ from code_generation.producer import Producer, Filter
 
 MTPairSelection = Producer(
     name="MTPairSelection",
-    call="pairselection::mutau::PairSelection({df}, {input_vec}, {output}, 0.5)",
+    call="pairselection::mutau::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
     input=[
         q.Tau_pt_corrected,
         nanoAOD.Tau_eta,
@@ -45,7 +45,7 @@ GoodMTPairFilter = Filter(
 
 MMPairSelection = Producer(
     name="MMPairSelection",
-    call="pairselection::mumu::PairSelection({df}, {input_vec}, {output}, 0.5)",
+    call="pairselection::mumu::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
     input=[
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,
@@ -58,7 +58,7 @@ MMPairSelection = Producer(
 )
 ZMMPairSelection = Producer(
     name="MMPairSelection",
-    call="pairselection::mumu::ZBosonPairSelection({df}, {input_vec}, {output}, 0.5)",
+    call="pairselection::mumu::ZBosonPairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
     input=[
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,

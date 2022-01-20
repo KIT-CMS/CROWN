@@ -171,6 +171,7 @@ def build_config(
         ["mt", "mm"],
         {
             "deltaR_jet_veto": 0.5,
+            "pairselection_min_dR": 0.5,
         },
     )
     ## MT/MM channel MET selection
