@@ -8,11 +8,17 @@ from code_generation.producer import Producer, Filter
 
 MTPairSelection = Producer(
     name="MTPairSelection",
-    call="pairselection::mutau::PairSelection({df}, {input_vec}, {output})",
+    call="pairselection::mutau::PairSelection({df}, {input_vec}, {output}, 0.5)",
     input=[
         q.Tau_pt_corrected,
+        nanoAOD.Tau_eta,
+        nanoAOD.Tau_phi,
+        nanoAOD.Tau_mass,
         nanoAOD.Tau_IDraw,
         nanoAOD.Muon_pt,
+        nanoAOD.Muon_eta,
+        nanoAOD.Muon_phi,
+        nanoAOD.Muon_mass,
         nanoAOD.Muon_iso,
         q.good_taus_mask,
         q.good_muons_mask,
@@ -39,9 +45,12 @@ GoodMTPairFilter = Filter(
 
 MMPairSelection = Producer(
     name="MMPairSelection",
-    call="pairselection::mumu::PairSelection({df}, {input_vec}, {output})",
+    call="pairselection::mumu::PairSelection({df}, {input_vec}, {output}, 0.5)",
     input=[
         nanoAOD.Muon_pt,
+        nanoAOD.Muon_eta,
+        nanoAOD.Muon_phi,
+        nanoAOD.Muon_mass,
         q.good_muons_mask,
     ],
     output=[q.ditaupair],
@@ -49,7 +58,7 @@ MMPairSelection = Producer(
 )
 ZMMPairSelection = Producer(
     name="MMPairSelection",
-    call="pairselection::mumu::ZBosonPairSelection({df}, {input_vec}, {output})",
+    call="pairselection::mumu::ZBosonPairSelection({df}, {input_vec}, {output}, 0.5)",
     input=[
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,
