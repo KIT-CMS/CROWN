@@ -474,7 +474,7 @@ auto PairSelectionAlgo(const float &mindeltaR) {
     - muon_mass
     - muon_iso
     - tau_mask containing the flags whether the tau is a good tau or not
-    - muon_mask containing the flags whether the muon is a good tau or not
+    - muon_mask containing the flags whether the muon is a good muon or not
  * @param pairname name of the new column containing the pair index
  * @param mindeltaR the seperation between the muon at the tau has to be larger
  than
@@ -675,7 +675,7 @@ auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
     - muon_eta
     - muon_phi
     - muon_mass
-    - muon_mask containing the flags whether the muon is a good tau or not
+    - muon_mask containing the flags whether the muon is a good muon or not
  * @param pairname name of the new column containing the pair index
  * @param mindeltaR the seperation between the two muons has to be larger than
  * this value
@@ -700,7 +700,7 @@ auto PairSelection(auto &df, const std::vector<std::string> &input_vector,
     - muon_eta
     - muon_phi
     - muon_mass
-    - muon_mask containing the flags whether the muon is a good tau or not
+    - muon_mask containing the flags whether the muon is a good muon or not
  * @param pairname name of the new column containing the pair index
  * @param mindeltaR the seperation between the two muons has to be larger than
  * this value
