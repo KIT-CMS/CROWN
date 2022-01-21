@@ -10,7 +10,7 @@ from law.util import merge_dicts
 import socket
 
 law.contrib.load("wlcg")
-console = Console()
+console = Console(width=120)
 
 
 class Task(law.Task):
@@ -39,7 +39,10 @@ class Task(law.Task):
 
     def set_environment(self, sourcescript):
         code, out, error = interruptable_popen(
-            "source {}; env".format(sourcescript), shell=True, stdout=PIPE, stderr=PIPE,
+            "source {}; env".format(sourcescript),
+            shell=True,
+            stdout=PIPE,
+            stderr=PIPE,
         )
         if code != 0:
             console.log("Error when running source {}".format(error))
@@ -56,11 +59,14 @@ class Task(law.Task):
         return os.path.join(*parts)
 
     def remote_target(self, *path):
-        target = law.wlcg.WLCGFileTarget(
-            path=self.remote_path(*path),
-            fs=law.wlcg.WLCGFileSystem(None, base="{}".format(self.wlcg_path)),
-        )
+        target = law.wlcg.WLCGFileTarget(path=self.remote_path(*path))
         return target
+
+    def remote_targets(self, paths):
+        targets = []
+        for path in paths:
+            targets.append(law.wlcg.WLCGFileTarget(path=self.remote_path(path)))
+        return targets
 
 
 class HTCondorJobManager(law.contrib.htcondor.HTCondorJobManager):
@@ -133,8 +139,7 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
         prevdir = os.getcwd()
         os.system("cd $ANALYSIS_PATH")
         tarball = law.wlcg.WLCGFileTarget(
-            path=self.remote_path("job_tarball/processor.tar.gz"),
-            fs=law.wlcg.WLCGFileSystem(None, base="{}".format(self.wlcg_path)),
+            path=self.remote_path("job_tarball/processor.tar.gz")
         )
         if not os.path.exists("tarballs"):
             os.makedirs("tarballs")
@@ -154,11 +159,16 @@ class HTCondorWorkflow(law.contrib.htcondor.HTCondorWorkflow):
             ]
             if "etp" not in socket.getfqdn():
                 console.rule("Creating job tarball for NonETP")
-                command.append("tarballs/conda.tar.gz",)
+                command.append(
+                    "tarballs/conda.tar.gz",
+                )
             else:
                 console.rule("Creating job tarball for ETP")
             code, out, error = interruptable_popen(
-                command, rich_console=console, stdout=PIPE, stderr=PIPE,
+                command,
+                rich_console=console,
+                stdout=PIPE,
+                stderr=PIPE,
             )
             if code != 0:
                 console.log("Error when taring job {}".format(error))

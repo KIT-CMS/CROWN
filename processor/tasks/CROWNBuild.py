@@ -14,7 +14,7 @@ class CROWNBuild(Task):
     """
 
     # configuration variables
-    channels = luigi.Parameter()
+    channels = luigi.ListParameter()
     shifts = luigi.Parameter()
     build_dir = luigi.Parameter()
     install_dir = luigi.Parameter()
@@ -42,7 +42,7 @@ class CROWNBuild(Task):
         output.parent.touch()
         _sampletype = str(self.sampletype)
         _era = str(self.era)
-        _channels = str(self.channels)
+        _channels = ",".join(self.channels)
         _analysis = str(self.analysis)
         _shifts = str(self.shifts)
         _tag = "{}_{}".format(_era, _sampletype)
@@ -108,7 +108,10 @@ class CROWNBuild(Task):
                 output.basename,  # TARBALLNAME=$9
             ]
             code, out, error = interruptable_popen(
-                command, rich_console=console, stdout=PIPE, stderr=PIPE,
+                command,
+                rich_console=console,
+                stdout=PIPE,
+                stderr=PIPE,
             )
             if code != 0:
                 console.log("Error when building crown {}".format(error))
@@ -119,3 +122,4 @@ class CROWNBuild(Task):
             else:
                 console.rule("Successful crown build ! ")
             output.copy_from_local(os.path.join(_install_dir, output.basename))
+        console.rule("Finished CROWNRun")
