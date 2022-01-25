@@ -39,51 +39,54 @@ description can be found in the corresponding NanoAOD producer
 
 Electrons                           | Value | Bit (value used in the config)
 ------------------------------------|-------|-------
+ignore matching                     |  -    | -1
 no match                            |  0    | -
-CaloIdL_TrackIdL_IsoVL              |  1    | 1
-1e (WPTight)                        |  2    | 2
-1e (WPLoose)                        |  4    | 3
-OverlapFilter PFTau                 |  8    | 4
-2e                                  |  16   | 5
-1e-1mu                              |  32   | 6
-1e-1tau                             |  64   | 7
-3e                                  |  128  | 8
-2e-1mu                              |  256  | 9
-1e-2mu                              |  512  | 10
-1e (32_L1DoubleEG_AND_L1SingleEGOr) |  1024 | 11
+CaloIdL_TrackIdL_IsoVL              |  1    | 0
+1e (WPTight)                        |  2    | 1
+1e (WPLoose)                        |  4    | 2
+OverlapFilter PFTau                 |  8    | 3
+2e                                  |  16   | 4
+1e-1mu                              |  32   | 5
+1e-1tau                             |  64   | 6
+3e                                  |  128  | 7
+2e-1mu                              |  256  | 8
+1e-2mu                              |  512  | 9
+1e (32_L1DoubleEG_AND_L1SingleEGOr) |  1024 | 10
 
 Muons               | Value | Bit (value used in the config)
 --------------------|-------|-------
+ignore matching     |  -    | -1
 no match            |  0    | -
-TrkIsoVVL           |  1    | 1
-Iso                 |  2    | 2
-OverlapFilter PFTau |  4    | 3
-1mu                 |  8    | 4
-2mu                 |  16   | 5
-1mu-1e              |  32   | 6
-1mu-1tau            |  64   | 7
-3mu                 |  128  | 8
-2mu-1e              |  256  | 9
-1mu-2e              |  512  | 10
+TrkIsoVVL           |  1    | 0
+Iso                 |  2    | 1
+OverlapFilter PFTau |  4    | 2
+1mu                 |  8    | 3
+2mu                 |  16   | 4
+1mu-1e              |  32   | 5
+1mu-1tau            |  64   | 6
+3mu                 |  128  | 7
+2mu-1e              |  256  | 8
+1mu-2e              |  512  | 9
 
 Taus                 | Value | Bit (value used in the config)
 ---------------------|-------|-------
+ignore matching      |  -    | -1
 no match             |  0    | -
-LooseChargedIso      |  1    | 1
-MediumChargedIso     |  2    | 2
-TightChargedIso      |  4    | 3
-TightID OOSC photons |  8    | 4
-HPS                  |  16   | 5
-single-tau + tau+MET |  32   | 6
-di-tau               |  64   | 7
-e-tau                |  128  | 8
-mu-tau               |  256  | 9
-VBF+di-tau for Tau   |  512  | 10
+LooseChargedIso      |  1    | 0
+MediumChargedIso     |  2    | 1
+TightChargedIso      |  4    | 2
+TightID OOSC photons |  8    | 3
+HPS                  |  16   | 4
+single-tau + tau+MET |  32   | 5
+di-tau               |  64   | 6
+e-tau                |  128  | 7
+mu-tau               |  256  | 8
+VBF+di-tau for Tau   |  512  | 9
 
 jets                                    | Value | Bit (value used in the config)
 ----------------------------------------|-------|-------
 no match                                |  0    | -
-VBF cross-cleaned from loose iso PFTau |  1    | 1
+VBF cross-cleaned from loose iso PFTau  |  1    | 0
  * @param particle the `ROOT::Math::PtEtaPhiMVector` vector of the object to
 match
  * @param triggerobject_pts `ROOT::RVec<float>` of trigger object pts
@@ -127,8 +130,8 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
         bool deltaR = ROOT::Math::VectorUtil::DeltaR(triggerobject, particle) <
                       matchDeltaR;
         // if we don't want to do any matching here, the triggerbut_cut value is
-        // 0
-        bool bit = (triggerbit_cut == 0) |
+        // -1
+        bool bit = (triggerbit_cut == -1) |
                    (IntBits(triggerobject_bits[idx]).test(triggerbit_cut));
         bool id = triggerobject_ids[idx] == trigger_particle_id_cut;
         bool pt = triggerobject_pts[idx] > pt_cut;
