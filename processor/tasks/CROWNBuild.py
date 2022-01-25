@@ -29,8 +29,8 @@ class CROWNBuild(Task):
 
     def output(self):
         target = self.remote_target(
-            "{}/crown_{}_{}.tar.gz".format(
-                self.production_tag, self.era, self.sampletype
+            "{}/crown_{}_{}_{}.tar.gz".format(
+                self.production_tag, self.analysis, self.era, self.sampletype
             )
         )
         target.parent.touch()
