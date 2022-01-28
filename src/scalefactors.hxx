@@ -64,6 +64,37 @@ auto iso(auto &df, const std::string &pt, const std::string &eta,
     return df1;
 }
 /**
+ * @brief Function used to evaluate id scale factors from muons with
+ * correctionlib
+ *
+ * @param df The input dataframe
+ * @param pt muon pt
+ * @param eta muon eta
+ * @param year_id id for the year of data taking and mc compaign
+ * @param variation id for the variation of the scale factor "sf" for nominal
+ * and "systup"/"systdown" for up/down variation
+ * @param id_output name of the id scale factor column
+ * @param sf_file path to the file with the muon scale factors
+ * @param sf_name name of the muon id scale factor
+ * @return a new dataframe containing the new column
+ */
+auto id_ul(auto &df, const std::string &pt, const std::string &eta,
+            const std::string &year_id, const std::string &variation,
+            const std::string &id_output, const std::string &sf_file,
+            const std::string &sf_name) {
+
+    auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(sf_name);
+    auto df1 = df.Define(
+        id_output,
+        [evaluator, year_id, variation](const float &pt, const float &eta) {
+            auto sf =
+                evaluator->evaluate({year_id, std::abs(eta), pt, variation});
+            return sf;
+        },
+        {pt, eta});
+    return df1;
+}
+/**
  * @brief Function used to evaluate iso scale factors from muons with
  * correctionlib
  *
@@ -72,10 +103,10 @@ auto iso(auto &df, const std::string &pt, const std::string &eta,
  * @param eta muon eta
  * @param year_id id for the year of data taking and mc compaign
  * @param variation id for the variation of the scale factor "sf" for nominal
- * and "systup"/"systdown" for the up/down variation
+ * and "systup"/"systdown" the up/down variation
  * @param iso_output name of the iso scale factor column
- * @param sf_file path to the file with the scale factors
- * @param sf_name name of the scale factor
+ * @param sf_file path to the file with the muon scale factors
+ * @param sf_name name of the muon iso scale factor
  * @return a new dataframe containing the new column
  */
 auto iso_ul(auto &df, const std::string &pt, const std::string &eta,
