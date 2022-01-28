@@ -157,8 +157,9 @@ endfunction()
 
 find_python_package(GitPython git 3.1)
 # Adding correctionlib for scale factor evaluation
-#find_python_package(correctionlib correctionlib 2.1)
-execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${_pip_args} git+https://github.com/cms-nanoAOD/correctionlib.git)
+# for now the official pip package has some problem 
+# in the future "find_python_package(correctionlib correctionlib X.X)" should hopefully work  
+execute_process(COMMAND pip install --user git+https://github.com/cms-nanoAOD/correctionlib.git)
 execute_process(COMMAND correction config --cmake
     OUTPUT_VARIABLE CORRECTION_LIB_ARGS
     OUTPUT_STRIP_TRAILING_WHITESPACE)
