@@ -68,12 +68,53 @@ BaseElectrons = ProducerGroup(
 # Set of producers used for more specific selection of electrons in channels
 ####################
 
+GoodElectronPtCut = Producer(
+    name="GoodElectronPtCut",
+    call="physicsobject::CutPt({df}, {input}, {output}, {min_electron_pt})",
+    input=[nanoAOD.Electron_pt],
+    output=[],
+    scopes=["em", "et", "ee"],
+)
+GoodElectronEtaCut = Producer(
+    name="GoodElectronEtaCut",
+    call="physicsobject::CutEta({df}, {input}, {output}, {max_electron_eta})",
+    input=[nanoAOD.Electron_eta],
+    output=[],
+    scopes=["em", "et", "ee"],
+)
+GoodElectronIsoCut = Producer(
+    name="GoodElectronIsoCut",
+    call="physicsobject::electron::CutIsolation({df}, {output}, {input}, {electron_iso_cut})",
+    input=[nanoAOD.Electron_iso],
+    output=[],
+    scopes=["em", "et", "ee"],
+)
+GoodElectrons = ProducerGroup(
+    name="GoodElectrons",
+    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    input=[q.base_electrons_mask],
+    output=[q.good_electrons_mask],
+    scopes=["em", "et", "ee"],
+    subproducers=[
+        GoodElectronPtCut,
+        GoodElectronEtaCut,
+        GoodElectronIsoCut,
+    ],
+)
+
 VetoElectrons = Producer(
     name="VetoElectrons",
-    call="physicsobject::VetoCandInMask({df}, {output}, {input}, {ele_idx})",
+    call="physicsobject::VetoCandInMask({df}, {output}, {input}, {electron_index_in_pair})",
     input=[q.base_electrons_mask, q.ditaupair],
     output=[q.veto_electrons_mask],
-    scopes=["em", "et"],
+    scopes=["em", "et", "ee"],
+)
+VetoSecondElectron = Producer(
+    name="VetoSecondElectron",
+    call="physicsobject::VetoCandInMask({df}, {output}, {input}, {second_electron_index_in_pair})",
+    input=[q.veto_electrons_mask, q.ditaupair],
+    output=[q.veto_electrons_mask_2],
+    scopes=["mm"],
 )
 ExtraElectronsVeto = Producer(
     name="ExtraElectronsVeto",
@@ -84,9 +125,10 @@ ExtraElectronsVeto = Producer(
         "mt": [q.base_electrons_mask],
         "tt": [q.base_electrons_mask],
         "mm": [q.base_electrons_mask],
+        "ee": [q.veto_electrons_mask_2],
     },
     output=[q.electron_veto_flag],
-    scopes=["em", "et", "mt", "tt", "mm"],
+    scopes=["em", "et", "mt", "tt", "mm", "ee"],
 )
 NumberOfGoodElectrons = Producer(
     name="NumberOfGoodElectrons",

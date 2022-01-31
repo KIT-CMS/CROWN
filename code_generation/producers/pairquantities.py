@@ -93,6 +93,20 @@ muon_dxy_2 = Producer(
     output=[q.dxy_2],
     scopes=["em", "mm"],
 )
+electron_dxy_1 = Producer(
+    name="electron_dxy_1",
+    call="quantities::dxy({df}, {output}, 0, {input})",
+    input=[q.ditaupair, nanoAOD.Electron_dxy],
+    output=[q.dxy_1],
+    scopes=["et", "ee"],
+)
+electron_dxy_2 = Producer(
+    name="electron_dxy_2",
+    call="quantities::dxy({df}, {output}, 1, {input})",
+    input=[q.ditaupair, nanoAOD.Electron_dxy],
+    output=[q.dxy_2],
+    scopes=["ee"],
+)
 tau_dxy_1 = Producer(
     name="tau_dxy_1",
     call="quantities::dxy({df}, {output}, 0, {input})",
@@ -120,6 +134,20 @@ muon_dz_2 = Producer(
     input=[q.ditaupair, nanoAOD.Muon_dz],
     output=[q.dz_2],
     scopes=["em", "mm"],
+)
+electron_dz_1 = Producer(
+    name="electron_dz_1",
+    call="quantities::dz({df}, {output}, 0, {input})",
+    input=[q.ditaupair, nanoAOD.Electron_dz],
+    output=[q.dz_1],
+    scopes=["et", "ee"],
+)
+electron_dz_2 = Producer(
+    name="electron_dz_2",
+    call="quantities::dz({df}, {output}, 1, {input})",
+    input=[q.ditaupair, nanoAOD.Electron_dz],
+    output=[q.dz_2],
+    scopes=["ee"],
 )
 tau_dz_1 = Producer(
     name="tau_dz_1",
@@ -149,6 +177,20 @@ muon_q_2 = Producer(
     output=[q.q_2],
     scopes=["em", "mm"],
 )
+electron_q_1 = Producer(
+    name="electron_q_1",
+    call="quantities::charge({df}, {output}, 0, {input})",
+    input=[q.ditaupair, nanoAOD.Electron_charge],
+    output=[q.q_1],
+    scopes=["et", "ee"],
+)
+electron_q_2 = Producer(
+    name="electron_q_2",
+    call="quantities::charge({df}, {output}, 1, {input})",
+    input=[q.ditaupair, nanoAOD.Electron_charge],
+    output=[q.q_2],
+    scopes=["ee"],
+)
 tau_q_1 = Producer(
     name="tau_q_1",
     call="quantities::charge({df}, {output}, 0, {input})",
@@ -176,6 +218,20 @@ muon_iso_2 = Producer(
     input=[q.ditaupair, nanoAOD.Muon_iso],
     output=[q.iso_2],
     scopes=["em", "mm"],
+)
+electron_iso_1 = Producer(
+    name="electron_iso_1",
+    call="quantities::isolation({df}, {output}, 0, {input})",
+    input=[q.ditaupair, nanoAOD.Electron_iso],
+    output=[q.iso_1],
+    scopes=["et", "ee"],
+)
+electron_iso_2 = Producer(
+    name="electron_iso_2",
+    call="quantities::isolation({df}, {output}, 1, {input})",
+    input=[q.ditaupair, nanoAOD.Electron_iso],
+    output=[q.iso_2],
+    scopes=["ee"],
 )
 tau_iso_1 = Producer(
     name="tau_iso_1",
@@ -268,6 +324,40 @@ UnrollMuLV2 = ProducerGroup(
         muon_iso_2,
     ],
 )
+UnrollElLV1 = ProducerGroup(
+    name="UnrollElLV1",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["et", "ee"],
+    subproducers=[
+        pt_1,
+        eta_1,
+        phi_1,
+        mass_1,
+        electron_dxy_1,
+        electron_dz_1,
+        electron_q_1,
+        electron_iso_1,
+    ],
+)
+UnrollElLV2 = ProducerGroup(
+    name="UnrollElLV2",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["ee"],
+    subproducers=[
+        pt_2,
+        eta_2,
+        phi_2,
+        mass_2,
+        electron_dxy_2,
+        electron_dz_2,
+        electron_q_2,
+        electron_iso_2,
+    ],
+)
 UnrollTauLV1 = ProducerGroup(
     name="UnrollTauLV1",
     call=None,
@@ -324,7 +414,14 @@ MMDiTauPairQuantities = ProducerGroup(
     scopes=["mm"],
     subproducers=[UnrollMuLV1, UnrollMuLV2, m_vis, pt_vis],
 )
-
+ETDiTauPairQuantities = ProducerGroup(
+    name="DiTauPairQuantities",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["et"],
+    subproducers=[UnrollElLV1, UnrollTauLV2, m_vis, pt_vis],
+)
 ## advanced event quantities (can be caluculated when ditau pair and met and all jets are determined)
 ## leptons: q.p4_1, q.p4_2
 ## met: met_p4_recoilcorrected
