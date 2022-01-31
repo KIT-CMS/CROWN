@@ -6,18 +6,46 @@ from code_generation.producer import Producer, ProducerGroup
 # Set of producers to get the genParticles from the ditaupair
 ####################
 MTGenPair = Producer(
-    name="GenPair",
+    name="MTGenPair",
     call="pairselection::buildgenpair({df}, {input}, {output})",
     input=[q.ditaupair, nanoAOD.Muon_indexToGen, nanoAOD.Tau_indexToGen],
     output=[q.gen_ditaupair],
     scopes=["mt"],
 )
+ETGenPair = Producer(
+    name="ETGenPair",
+    call="pairselection::buildgenpair({df}, {input}, {output})",
+    input=[q.ditaupair, nanoAOD.Electron_indexToGen, nanoAOD.Tau_indexToGen],
+    output=[q.gen_ditaupair],
+    scopes=["et"],
+)
+TTGenPair = Producer(
+    name="TTGenPair",
+    call="pairselection::buildgenpair({df}, {input}, {output})",
+    input=[q.ditaupair, nanoAOD.Tau_indexToGen, nanoAOD.Tau_indexToGen],
+    output=[q.gen_ditaupair],
+    scopes=["tt"],
+)
+EMGenPair = Producer(
+    name="EMGenPair",
+    call="pairselection::buildgenpair({df}, {input}, {output})",
+    input=[q.ditaupair, nanoAOD.Electron_indexToGen, nanoAOD.Muon_indexToGen],
+    output=[q.gen_ditaupair],
+    scopes=["em"],
+)
 MMGenPair = Producer(
-    name="GenPair",
+    name="MMGenPair",
     call="pairselection::buildgenpair({df}, {input}, {output})",
     input=[q.ditaupair, nanoAOD.Muon_indexToGen, nanoAOD.Muon_indexToGen],
     output=[q.gen_ditaupair],
     scopes=["mm"],
+)
+EEGenPair = Producer(
+    name="EEGenPair",
+    call="pairselection::buildgenpair({df}, {input}, {output})",
+    input=[q.ditaupair, nanoAOD.Electron_indexToGen, nanoAOD.Electron_indexToGen],
+    output=[q.gen_ditaupair],
+    scopes=["ee"],
 )
 MMTrueGenPair = Producer(
     name="GenPair",
@@ -295,7 +323,7 @@ ETGenDiTauPairQuantities = ProducerGroup(
     output=None,
     scopes=["et"],
     subproducers=[
-        MTGenPair,
+        ETGenPair,
         LVGenParticle1,
         LVGenParticle2,
         UnrollGenElLV1,
@@ -310,7 +338,7 @@ TTGenDiTauPairQuantities = ProducerGroup(
     output=None,
     scopes=["tt"],
     subproducers=[
-        MTGenPair,
+        TTGenPair,
         LVGenParticle1,
         LVGenParticle2,
         UnrollGenTauLV1,
@@ -325,7 +353,7 @@ EMGenDiTauPairQuantities = ProducerGroup(
     output=None,
     scopes=["em"],
     subproducers=[
-        MTGenPair,
+        EMGenPair,
         LVGenParticle1,
         LVGenParticle2,
         UnrollGenElLV1,
@@ -340,7 +368,7 @@ EEGenDiTauPairQuantities = ProducerGroup(
     output=None,
     scopes=["ee"],
     subproducers=[
-        MTGenPair,
+        EEGenPair,
         LVGenParticle1,
         LVGenParticle2,
         UnrollGenElLV1,

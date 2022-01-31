@@ -157,6 +157,21 @@ def build_config(
             "muon_sf_iso_args": "m_pt,m_eta,m_iso",
         },
     )
+    # ET/EM channel electron selection
+    configuration.add_config_parameters(
+        ["et", "em"],
+        {
+            "electron_index_in_pair": 0,
+            "min_electron_pt": 25.0,
+            "max_electron_eta": 2.1,
+            "electron_iso_cut": 0.3,
+            # "muon_sf_workspace": "data/muon_corrections/htt_scalefactors_legacy_2018_muons.root",
+            # "muon_sf_id_name": "m_id_kit_ratio",
+            # "muon_sf_id_args": "m_pt,m_eta",
+            # "muon_sf_iso_name": "m_iso_binned_kit_ratio",
+            # "muon_sf_iso_args": "m_pt,m_eta,m_iso",
+        },
+    )
     configuration.add_config_parameters(
         ["mm"],
         {
@@ -166,17 +181,17 @@ def build_config(
             "second_muon_index_in_pair": 1,
         },
     )
-    ## MT/MM channel misc settings
+    ## all channels misc settings
     configuration.add_config_parameters(
-        ["mt", "mm"],
+        channels,
         {
             "deltaR_jet_veto": 0.5,
             "pairselection_min_dR": 0.5,
         },
     )
-    ## MT/MM channel MET selection
+    ## all channels MET selection
     configuration.add_config_parameters(
-        ["mt", "mm"],
+        channels,
         {
             "propagateLeptons": SampleModifier(
                 {"data": False, "emb": False},
@@ -237,7 +252,7 @@ def build_config(
                     ],
                 }
             ),
-            "cross_trigger": EraModifier(
+            "mutau_cross_trigger": EraModifier(
                 {
                     "2018": [
                         {
@@ -253,6 +268,64 @@ def build_config(
                             "p2_trigger_particle_id": 15,
                             "max_deltaR_triggermatch": 0.4,
                         }
+                    ],
+                }
+            ),
+        },
+    )
+    ## MT, MM channel trigger setup
+    configuration.add_config_parameters(
+        ["et", "ee"],
+        {
+            "singleelectron_trigger": EraModifier(
+                {
+                    "2018": [
+                        {
+                            "flagname": "singleelectron_27",
+                            "hlt_path": "HLT_Ele27_WPTight_Gsf",
+                            "ptcut": 28,
+                            "etacut": 2.1,
+                            "filterbit": 1,
+                            "trigger_particle_id": 11,
+                            "max_deltaR_triggermatch": 0.4,
+                        },
+                        {
+                            "flagname": "singleelectron_32",
+                            "hlt_path": "HLT_Ele32_WPTight_Gsf",
+                            "ptcut": 33,
+                            "etacut": 2.1,
+                            "filterbit": 1,
+                            "trigger_particle_id": 11,
+                            "max_deltaR_triggermatch": 0.4,
+                        },
+                        {
+                            "flagname": "singleelectron_35",
+                            "hlt_path": "HLT_Ele35_WPTight_Gsf",
+                            "ptcut": 36,
+                            "etacut": 2.1,
+                            "filterbit": 1,
+                            "trigger_particle_id": 11,
+                            "max_deltaR_triggermatch": 0.4,
+                        },
+                    ],
+                }
+            ),
+            "eltau_cross_trigger": EraModifier(
+                {
+                    "2018": [
+                        {
+                            "flagname": "trg_crossele_ele24tau30_hps",
+                            "hlt_path": "HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTauHPS30_eta2p1_CrossL1",
+                            "p1_ptcut": 25,
+                            "p2_ptcut": 32,
+                            "p1_etacut": 2.5,
+                            "p2_etacut": 2.1,
+                            "p1_filterbit": 6,
+                            "p1_trigger_particle_id": 13,
+                            "p2_filterbit": 6,
+                            "p2_trigger_particle_id": 11,
+                            "max_deltaR_triggermatch": 0.4,
+                        },
                     ],
                 }
             ),
@@ -348,6 +421,35 @@ def build_config(
             pairquantities.DiTauPairMETQuantities,
         ],
     )
+    configuration.add_producers(
+        "et",
+        [
+            met.UncorrectedMet,
+            electrons.GoodElectrons,
+            pairselection.ETPairSelection,
+            pairselection.GoodETPairFilter,
+            taus.NumberOfGoodTaus,
+            electrons.NumberOfGoodElectrons,
+            electrons.VetoElectrons,
+            electrons.ExtraElectronsVeto,
+            muons.ExtraMuonsVeto,
+            pairselection.LVEl1,
+            pairselection.LVTau2,
+            pairselection.LVEl1Uncorrected,
+            pairselection.LVTau2Uncorrected,
+            pairquantities.ETDiTauPairQuantities,
+            jets.JetCollection,
+            jets.BasicJetQuantities,
+            jets.BJetCollection,
+            jets.BasicBJetQuantities,
+            genparticles.ETGenDiTauPairQuantities,
+            # scalefactors.MuonIDIso_SF,
+            triggers.ETGenerateSingleMuonTriggerFlags,
+            triggers.ETGenerateCrossTriggerFlags,
+            met.MetCorrections,
+            pairquantities.DiTauPairMETQuantities,
+        ],
+    )
     configuration.add_modification_rule(
         ["mt", "mm"],
         RemoveProducer(producers=scalefactors.MuonIDIso_SF, samples="data"),
@@ -357,22 +459,22 @@ def build_config(
         RemoveProducer(producers=event.PUweights, samples=["data", "emb", "emb_mc"]),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"],
+        channels,
         AppendProducer(
             producers=[event.GGH_NNLO_Reweighting, event.GGH_WG1_Uncertainties],
             samples="ggh",
         ),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"],
+        channels,
         AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="qqh"),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"],
+        channels,
         AppendProducer(producers=event.TopPtReweighting, samples="ttbar"),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"],
+        channels,
         AppendProducer(producers=event.ZPtMassReweighting, samples="dy"),
     )
     # changes needed for data
@@ -406,6 +508,13 @@ def build_config(
         ),
     )
     configuration.add_modification_rule(
+        "et",
+        RemoveProducer(
+            producers=[genparticles.ETGenDiTauPairQuantities],
+            samples=["data"],
+        ),
+    )
+    configuration.add_modification_rule(
         "mm",
         RemoveProducer(
             producers=[genparticles.MMGenDiTauPairQuantities],
@@ -414,7 +523,7 @@ def build_config(
     )
 
     configuration.add_outputs(
-        ["mt", "mm"],
+        channels,
         [
             nanoAOD.run,
             q.lumi,
@@ -438,7 +547,6 @@ def build_config(
             q.mjj,
             q.m_vis,
             q.pt_vis,
-            q.nmuons,
             q.nbtag,
             q.bpt_1,
             q.bpt_2,
@@ -469,8 +577,6 @@ def build_config(
             q.gen_mass_2,
             q.gen_pdgid_2,
             q.gen_m_vis,
-            q.idWeight_1,
-            q.isoWeight_1,
             q.met,
             q.metphi,
             q.met_uncorrected,
@@ -489,13 +595,12 @@ def build_config(
             q.pt_tt,
             q.pt_ttjj,
             q.mt_tot,
-            q.muon_veto_flag,
-            q.dimuon_veto,
         ],
     )
     configuration.add_outputs(
         "mt",
         [
+            q.nmuons,
             q.ntaus,
             triggers.MTGenerateSingleMuonTriggerFlags.output_group,
             triggers.MTGenerateCrossTriggerFlags.output_group,
@@ -506,13 +611,38 @@ def build_config(
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
+            q.idWeight_1,
+            q.isoWeight_1,
+        ],
+    )
+    configuration.add_outputs(
+        "et",
+        [
+            q.nelectrons,
+            q.ntaus,
+            triggers.ETGenerateSingleMuonTriggerFlags.output_group,
+            triggers.ETGenerateCrossTriggerFlags.output_group,
+            q.taujet_pt_2,
+            q.gen_taujet_pt_2,
+            q.decaymode_2,
+            q.gen_match_2,
+            q.muon_veto_flag,
+            q.dimuon_veto,
+            q.electron_veto_flag,
+            # q.idWeight_1,
+            # q.isoWeight_1,
         ],
     )
 
     configuration.add_outputs(
         "mm",
         [
+            q.nmuons,
             triggers.MMGenerateSingleMuonTriggerFlags.output_group,
+            # q.idWeight_1,
+            # q.isoWeight_1,
+            # q.idWeight_2,
+            # q.isoWeight_2,
         ],
     )
     # if "data" not in sample and "emb" not in sample:
@@ -534,7 +664,10 @@ def build_config(
             name="tauES_1prong0pizeroDown",
             shift_config={"global": {"tau_ES_shift_DM0": 0.998}},
             producers={"global": taus.TauPtCorrection},
-            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+            ignore_producers={
+                "mt": [pairselection.LVMu1, muons.VetoMuons],
+                "et": [pairselection.LVEl1, electrons.VetoElectrons],
+            },
         )
     )
     configuration.add_shift(
@@ -542,7 +675,10 @@ def build_config(
             name="tauES_1prong0pizeroUp",
             shift_config={"global": {"tau_ES_shift_DM0": 1.002}},
             producers={"global": taus.TauPtCorrection},
-            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+            ignore_producers={
+                "mt": [pairselection.LVMu1, muons.VetoMuons],
+                "et": [pairselection.LVEl1, electrons.VetoElectrons],
+            },
         )
     )
     #########################

@@ -39,6 +39,7 @@ Electron_phi = NanoAODQuantity("Electron_phi")
 Electron_mass = NanoAODQuantity("Electron_mass")
 Electron_iso = NanoAODQuantity("Electron_pfRelIso03_all")
 Electron_charge = NanoAODQuantity("Electron_charge")
+Electron_indexToGen = NanoAODQuantity("Electron_genPartIdx")
 
 GenJet_pt = NanoAODQuantity("GenJet_pt")
 GenJet_eta = NanoAODQuantity("GenJet_eta")
