@@ -72,8 +72,15 @@ MuonIDIso_SF = ProducerGroup(
     scopes=["mt", "em", "mm"],
     subproducers={
         "mt": [
+<<<<<<< HEAD
             Muon_1_ID_SF,
             Muon_1_Iso_SF,
+=======
+            #Muon_1_ID_SF,
+            #Muon_1_Iso_SF,
+            Muon_1_ID_SF_UL,
+            Muon_1_Iso_SF_UL,
+>>>>>>> adding tau energy correction and tau id calculation with correctionlib
         ],
         "em": [
             Muon_2_ID_SF,
@@ -189,4 +196,17 @@ TauID_SF = ProducerGroup(
             Tau_2_VsMuTauID_SF,
         ],
     },
+)
+
+############################
+# Tau ID/ISO SF
+# The readout is done via correctionlib
+############################
+
+Tau_2_VsJetTauID_SF = Producer(
+    name="VsJetTauID_SF",
+    call='scalefactor::tau::id({df}, {input}, "{vsJet_WP}", "{tau_sf_variation}", "{tau_sf_dependence}", {output}, "{tau_sf_file}", "DeepTau2017v2p1VSjet", {vec_open}{tau_dms}{vec_close})',
+    input=[q.pt_2, q.decaymode_2, q.gen_match_2],
+    output=[q.vsJetTauIDWeight_2],
+    scopes=["mt"],
 )

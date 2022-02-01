@@ -130,6 +130,7 @@ idWeight_1 = Quantity("idWeight_1")
 idWeight_2 = Quantity("idWeight_2")
 idWeightUL_1 = Quantity("idWeightUL_1")
 idWeightUL_2 = Quantity("idWeightUL_2")
+vsJetTauIDWeight_2 = Quantity("vsJetTauIDWeight_2")
 
 topPtReweightWeight = Quantity("topPtReweightWeight")
 ZPtMassReweightWeight = Quantity("ZPtMassReweightWeight")
