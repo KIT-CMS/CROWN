@@ -3,7 +3,7 @@ from code_generation.producer import Producer, ProducerGroup
 
 ############################
 # Muon ID, ISO SF
-# The readout is done via RooWorkspaces
+# The readout is done via RooWorkspaces or correctionlib (with *_UL)
 ############################
 
 Muon_1_ID_SF = Producer(
@@ -70,8 +70,8 @@ MuonIDIso_SF = ProducerGroup(
     scopes=["mt", "em", "mm"],
     subproducers={
         "mt": [
-            Muon_1_ID_SF,
-            Muon_1_Iso_SF,
+            #Muon_1_ID_SF,
+            #Muon_1_Iso_SF,
             Muon_1_ID_SF_UL,
             Muon_1_Iso_SF_UL,
         ],
@@ -92,4 +92,17 @@ MuonIDIso_SF = ProducerGroup(
             Muon_2_Iso_SF_UL,
         ],
     },
+)
+
+############################
+# Tau ID/ISO SF
+# The readout is done via correctionlib
+############################
+
+Tau_2_VsJetTauID_SF = Producer(
+    name="VsJetTauID_SF",
+    call='scalefactor::tau::id({df}, {input}, "{vsJet_WP}", "{tau_sf_variation}", "{tau_sf_dependence}", {output}, "{tau_sf_file}", "DeepTau2017v2p1VSjet", {vec_open}{tau_dms}{vec_close})',
+    input=[q.pt_2, q.decaymode_2, q.gen_match_2],
+    output=[q.vsJetTauIDWeight_2],
+    scopes=["mt"],
 )
