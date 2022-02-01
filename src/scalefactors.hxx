@@ -85,7 +85,6 @@ auto id(auto &df, const std::string &pt, const std::string &eta,
         const std::string &year_id, const std::string &variation,
         const std::string &id_output, const std::string &sf_file,
         const std::string &sf_name) {
-
     Logger::get("muonIdSF")->debug("Setting up functions for muon id sf");
     Logger::get("muonIdSF")->debug("ID - Name {}", sf_name);
     auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(sf_name);
@@ -124,7 +123,6 @@ auto iso(auto &df, const std::string &pt, const std::string &eta,
          const std::string &year_id, const std::string &variation,
          const std::string &iso_output, const std::string &sf_file,
          const std::string &sf_name) {
-
     Logger::get("muonIsoSF")->debug("Setting up functions for muon iso sf");
     Logger::get("muonIsoSF")->debug("ISO - Name {}", sf_name);
     auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(sf_name);

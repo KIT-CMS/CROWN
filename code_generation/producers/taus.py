@@ -28,6 +28,18 @@ TauPtCorrection = Producer(
     output=[q.Tau_pt_corrected],
     scopes=["global"],
 )
+TauPtCorrection_ul = Producer(
+    name="TauPtCorrection",
+    call='physicsobject::tau::PtCorrection_ul({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_variation}", {vec_open}{tau_dms}{vec_close})',
+    input=[
+        nanoAOD.Tau_pt,
+        nanoAOD.Tau_eta,
+        nanoAOD.Tau_decayMode,
+        nanoAOD.Tau_genMatch,
+    ],
+    output=[q.Tau_pt_corrected],
+    scopes=["global"],
+)
 TauMassCorrection = Producer(
     name="TauMassCorrection",
     call="physicsobject::ObjectMassCorrectionWithPt({df}, {output}, {input})",
@@ -54,6 +66,14 @@ TauEnergyCorrection = ProducerGroup(
     output=None,
     scopes=["global"],
     subproducers=[TauPtCorrection, TauMassCorrection],
+)
+TauEnergyCorrection_ul = ProducerGroup(
+    name="TauEnergyCorrection",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["global"],
+    subproducers=[TauPtCorrection_ul, TauMassCorrection],
 )
 TauPtCut = Producer(
     name="TauPtCut",
