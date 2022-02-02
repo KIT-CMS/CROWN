@@ -2,6 +2,8 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 
 import logging
 from typing import Any, Dict, List, Set, Union
+
+from pydantic import ConfigError
 from code_generation.exceptions import InvalidProducerConfigurationError
 
 import code_generation.quantity as q
@@ -619,8 +621,15 @@ def CollectProducersOutput(
         if producer.output is not None:
             output |= set(producer.output)
         if isinstance(producer, ProducerGroup):
-            for prod in producer.producers[scope]:
-                output |= CollectProducerOutput(prod, scope)
+            try:
+                for prod in producer.producers[scope]:
+                    output |= CollectProducerOutput(prod, scope)
+            except KeyError:
+                raise ConfigError(
+                    "Scope {} not found in subproducer configuration: {}".format(
+                        scope, producer.producers
+                    )
+                )
     return set(output)
 
 
@@ -631,8 +640,15 @@ def CollectProducerOutput(
     if producer.output is not None:
         output |= set(producer.output)
     if isinstance(producer, ProducerGroup):
-        for prod in producer.producers[scope]:
-            output |= CollectProducerOutput(prod, scope)
+        try:
+            for prod in producer.producers[scope]:
+                output |= CollectProducerOutput(prod, scope)
+        except KeyError:
+            raise ConfigError(
+                "Scope {} not found in subproducer configuration: {}".format(
+                    scope, producer.producers
+                )
+            )
     return set(output)
 
 
