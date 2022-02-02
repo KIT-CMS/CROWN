@@ -14,7 +14,7 @@ env:
   ANALYSIS: test.unittest_config
   SAMPLES: dy
   ERAS: 2018
-  CHANNELS: "mt,mm"
+  CHANNELS: "mt,mm,et"
   SHIFTS: "tauES,metUnclusteredEnUp"
 
 jobs:
