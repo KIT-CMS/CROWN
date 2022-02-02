@@ -154,6 +154,21 @@ def build_config(
             "muon_sf_iso_args": "m_pt,m_eta,m_iso",
         },
     )
+    # ET/EM channel electron selection
+    configuration.add_config_parameters(
+        ["et", "em"],
+        {
+            "electron_index_in_pair": 0,
+            "min_electron_pt": 25.0,
+            "max_electron_eta": 2.1,
+            "electron_iso_cut": 0.3,
+            # "muon_sf_workspace": "data/muon_corrections/htt_scalefactors_legacy_2018_muons.root",
+            # "muon_sf_id_name": "m_id_kit_ratio",
+            # "muon_sf_id_args": "m_pt,m_eta",
+            # "muon_sf_iso_name": "m_iso_binned_kit_ratio",
+            # "muon_sf_iso_args": "m_pt,m_eta,m_iso",
+        },
+    )
     configuration.add_config_parameters(
         ["mm"],
         {
@@ -165,7 +180,7 @@ def build_config(
     )
     ## MT/MM channel misc settings
     configuration.add_config_parameters(
-        ["mt", "mm"],
+        channels,
         {
             "deltaR_jet_veto": 0.5,
             "pairselection_min_dR": 0.5,
@@ -173,7 +188,7 @@ def build_config(
     )
     ## MT/MM channel MET selection
     configuration.add_config_parameters(
-        ["mt", "mm"],
+        channels,
         {
             "propagateLeptons": SampleModifier(
                 {"data": False, "emb": False},
@@ -286,6 +301,33 @@ def build_config(
             pairquantities.DiTauPairMETQuantities,
         ],
     )
+    configuration.add_producers(
+        "et",
+        [
+            met.UncorrectedMet,
+            electrons.GoodElectrons,
+            pairselection.ETPairSelection,
+            pairselection.GoodETPairFilter,
+            taus.NumberOfGoodTaus,
+            electrons.NumberOfGoodElectrons,
+            electrons.VetoElectrons,
+            electrons.ExtraElectronsVeto,
+            muons.ExtraMuonsVeto,
+            pairselection.LVEl1,
+            pairselection.LVTau2,
+            pairselection.LVEl1Uncorrected,
+            pairselection.LVTau2Uncorrected,
+            pairquantities.ETDiTauPairQuantities,
+            jets.JetCollection,
+            jets.BasicJetQuantities,
+            jets.BJetCollection,
+            jets.BasicBJetQuantities,
+            genparticles.ETGenDiTauPairQuantities,
+            # scalefactors.MuonIDIso_SF,
+            met.MetCorrections,
+            pairquantities.DiTauPairMETQuantities,
+        ],
+    )
     configuration.add_modification_rule(
         ["mt", "mm"],
         RemoveProducer(producers=scalefactors.MuonIDIso_SF, samples="data"),
@@ -295,22 +337,22 @@ def build_config(
         RemoveProducer(producers=event.PUweights, samples=["data", "emb", "emb_mc"]),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"],
+        channels,
         AppendProducer(
             producers=[event.GGH_NNLO_Reweighting, event.GGH_WG1_Uncertainties],
             samples="ggh",
         ),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"],
+        channels,
         AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="qqh"),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"],
+        channels,
         AppendProducer(producers=event.TopPtReweighting, samples="ttbar"),
     )
     configuration.add_modification_rule(
-        ["mt", "mm"],
+        channels,
         AppendProducer(producers=event.ZPtMassReweighting, samples="dy"),
     )
     # changes needed for data
@@ -348,7 +390,7 @@ def build_config(
     )
 
     configuration.add_outputs(
-        ["mt", "mm"],
+        channels,
         [
             nanoAOD.run,
             q.lumi,
@@ -423,6 +465,20 @@ def build_config(
     configuration.add_outputs(
         "mt",
         [
+            q.taujet_pt_2,
+            q.gen_taujet_pt_2,
+            q.decaymode_2,
+            q.gen_match_2,
+            q.muon_veto_flag,
+            q.dimuon_veto,
+            q.electron_veto_flag,
+        ],
+    )
+    configuration.add_outputs(
+        "et",
+        [
+            q.nelectrons,
+            q.ntaus,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
             q.decaymode_2,
