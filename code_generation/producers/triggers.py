@@ -36,8 +36,8 @@ MTGenerateSingleMuonTriggerFlags = TriggerVectorProducer(
     scope=["mt"],
     vec_config="singlemoun_trigger",
 )
-ETGenerateSingleMuonTriggerFlags = TriggerVectorProducer(
-    name="ETGenerateSingleMuonTriggerFlags",
+ETGenerateSingleElectronTriggerFlags = TriggerVectorProducer(
+    name="ETGenerateSingleElectronTriggerFlags",
     call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
     input=[
         q.p4_1,
@@ -51,8 +51,8 @@ ETGenerateSingleMuonTriggerFlags = TriggerVectorProducer(
     scope=["et"],
     vec_config="singleelectron_trigger",
 )
-EMGenerateSingleMuonTriggerFlags = TriggerVectorProducer(
-    name="EMGenerateSingleMuonTriggerFlags",
+EMGenerateSingleElectronTriggerFlags = TriggerVectorProducer(
+    name="EMGenerateSingleElectronTriggerFlags",
     call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
     input=[
         q.p4_2,
