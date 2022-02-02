@@ -273,7 +273,7 @@ def build_config(
             ),
         },
     )
-    ## MT, MM channel trigger setup
+    ## ET, EE channel trigger setup
     configuration.add_config_parameters(
         ["et", "ee"],
         {
@@ -444,7 +444,7 @@ def build_config(
             jets.BasicBJetQuantities,
             genparticles.ETGenDiTauPairQuantities,
             # scalefactors.MuonIDIso_SF,
-            triggers.ETGenerateSingleMuonTriggerFlags,
+            triggers.ETGenerateSingleElectronTriggerFlags,
             triggers.ETGenerateCrossTriggerFlags,
             met.MetCorrections,
             pairquantities.DiTauPairMETQuantities,
@@ -620,7 +620,7 @@ def build_config(
         [
             q.nelectrons,
             q.ntaus,
-            triggers.ETGenerateSingleMuonTriggerFlags.output_group,
+            triggers.ETGenerateSingleElectronTriggerFlags.output_group,
             triggers.ETGenerateCrossTriggerFlags.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,

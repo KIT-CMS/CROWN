@@ -604,7 +604,7 @@ namespace elmu {
  or not
     - muon_mask containing the flags whether the muon is a good muon or not
  * @param pairname name of the new column containing the pair index
- * @param mindeltaR the seperation between the electron and the tau has to be
+ * @param mindeltaR the seperation between the electron and the muon has to be
  larger than
  * this value
  * @return a new dataframe with the pair index column added
