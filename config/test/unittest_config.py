@@ -440,8 +440,6 @@ def build_config(
             q.gen_mass_2,
             q.gen_pdgid_2,
             q.gen_m_vis,
-            q.idWeight_1,
-            q.isoWeight_1,
             q.met,
             q.metphi,
             q.met_uncorrected,
@@ -472,6 +470,8 @@ def build_config(
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
+            q.idWeight_1,
+            q.isoWeight_1,
         ],
     )
     configuration.add_outputs(
