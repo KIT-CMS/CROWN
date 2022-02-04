@@ -278,7 +278,7 @@ auto compareForPairs(const ROOT::RVec<float> &lep1pt,
         Logger::get("PairSelectionCompare")->debug("lep1 Iso: {}", lep1iso);
         Logger::get("PairSelectionCompare")->debug("lep2 Pt: {}", lep2pt);
         Logger::get("PairSelectionCompare")->debug("lep2 Iso: {}", lep2iso);
-
+        bool result = false;
         Logger::get("PairSelectionCompare")
             ->debug("Next pair: {}, {}", std::to_string(value_next.first),
                     std::to_string(value_next.second));
@@ -287,43 +287,47 @@ auto compareForPairs(const ROOT::RVec<float> &lep1pt,
                     std::to_string(value_previous.first),
                     std::to_string(value_previous.second));
         const auto i1_next = value_next.first;
-        const auto i1_previous = value_previous.second;
-
+        const auto i1_previous = value_previous.first;
+        Logger::get("PairSelectionCompare")
+            ->debug("i1_next: {}, i1_previous : {}", i1_next, i1_previous);
         // start with lep1 isolation
         const auto iso1_next = lep1iso.at(i1_next);
         const auto iso1_previous = lep1iso.at(i1_previous);
         Logger::get("PairSelectionCompare")
             ->debug("Isolations: {}, {}", iso1_next, iso1_previous);
         if (not utility::ApproxEqual(iso1_next, iso1_previous)) {
-            return iso1_next > iso1_previous;
+            result = iso1_next > iso1_previous;
         } else {
             // if too similar, compare lep1 pt
             Logger::get("PairSelectionCompare")
-                ->debug("Isolation lep 1 too similar, taking pt");
+                ->debug("Isolation lep 1 too similar, taking pt 1");
             const auto pt1_next = lep1pt.at(i1_next);
             const auto pt1_previous = lep1pt.at(i1_previous);
             if (not utility::ApproxEqual(pt1_next, pt1_previous)) {
-                return pt1_next > pt1_previous;
+                result = pt1_next > pt1_previous;
             } else {
                 // if too similar, compare lep2 iso
-                const auto i2_next = value_next.first;
+                const auto i2_next = value_next.second;
                 const auto i2_previous = value_previous.second;
                 Logger::get("PairSelectionCompare")
                     ->debug("Pt lep 1 too similar, taking lep2 iso");
                 const auto iso2_next = lep2iso.at(i2_next);
                 const auto iso2_previous = lep2iso.at(i2_previous);
                 if (not utility::ApproxEqual(iso2_next, iso2_previous)) {
-                    return iso2_next > iso2_previous;
+                    result = iso2_next > iso2_previous;
                 } else {
                     // if too similar, compare lep2 pt
                     Logger::get("PairSelectionCompare")
-                        ->debug("Isolation lep 2 too similar, taking pt");
+                        ->debug("Isolation lep 2 too similar, taking pt 2");
                     const auto pt2_next = lep2pt.at(i2_next);
                     const auto pt2_previous = lep2pt.at(i2_previous);
-                    return pt2_next > pt2_previous;
+                    result = pt2_next > pt2_previous;
                 }
             }
         }
+        Logger::get("PairSelectionCompare")
+            ->debug("Returning result {}", result);
+        return result;
     };
 }
 
@@ -380,21 +384,18 @@ auto PairSelectionAlgo(const float &mindeltaR) {
             selected_lepton_pt,
             selected_tau_pt); // Gives indices of mu-tau pair
         Logger::get("semileptonic::PairSelectionAlgo")
-            ->debug("Pairs: ", pair_indices);
+            ->debug("Pairs: {} {}", pair_indices[0], pair_indices[1]);
 
         const auto pairs = ROOT::VecOps::Construct<std::pair<UInt_t, UInt_t>>(
             pair_indices[0], pair_indices[1]);
         Logger::get("semileptonic::PairSelectionAlgo")
             ->debug("Pairs size: {}", pairs.size());
-        Logger::get("semileptonic::PairSelectionAlgo")
-            ->debug("Constituents pair 0: {} {}", pairs[0].first,
-                    pairs[0].second);
-
-        if (pairs.size() > 1) {
+        int counter = 0;
+        for (auto &pair : pairs) {
+            counter++;
             Logger::get("semileptonic::PairSelectionAlgo")
-                ->debug("Constituents pair 1: {} {}",
-                        std::to_string(pairs[1].first),
-                        std::to_string(pairs[1].second));
+                ->debug("Constituents pair {}. : {} {}", counter, pair.first,
+                        pair.second);
         }
 
         const auto sorted_pairs = ROOT::VecOps::Sort(
