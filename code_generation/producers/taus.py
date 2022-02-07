@@ -6,9 +6,9 @@ from code_generation.producer import Producer, ProducerGroup, VectorProducer
 # Set of producers used for selection of good taus
 ####################
 
-TauPtCorrection = Producer(
+TauPtCorrection_old = Producer(
     name="TauPtCorrection",
-    call="physicsobject::tau::PtCorrection({df}, {output}, {input}, {tau_ES_shift_DM0}, {tau_ES_shift_DM1}, {tau_ES_shift_DM10}, {tau_ES_shift_DM11})",
+    call="physicsobject::tau::PtCorrection_old({df}, {output}, {input}, {tau_ES_shift_DM0}, {tau_ES_shift_DM1}, {tau_ES_shift_DM10}, {tau_ES_shift_DM11})",
     input=[
         nanoAOD.Tau_pt,
         nanoAOD.Tau_decayMode,
@@ -16,9 +16,9 @@ TauPtCorrection = Producer(
     output=[q.Tau_pt_corrected],
     scopes=["global"],
 )
-TauPtCorrection_ul = Producer(
+TauPtCorrection = Producer(
     name="TauPtCorrection",
-    call='physicsobject::tau::PtCorrection_ul({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_variation}", {vec_open}{tau_dms}{vec_close})',
+    call='physicsobject::tau::PtCorrection({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_variation}", {vec_open}{tau_dms}{vec_close})',
     input=[
         nanoAOD.Tau_pt,
         nanoAOD.Tau_eta,
@@ -39,6 +39,14 @@ TauMassCorrection = Producer(
     output=[q.Tau_mass_corrected],
     scopes=["global"],
 )
+TauEnergyCorrection_old = ProducerGroup(
+    name="TauEnergyCorrection",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["global"],
+    subproducers=[TauPtCorrection_old, TauMassCorrection],
+)
 TauEnergyCorrection = ProducerGroup(
     name="TauEnergyCorrection",
     call=None,
@@ -46,14 +54,6 @@ TauEnergyCorrection = ProducerGroup(
     output=None,
     scopes=["global"],
     subproducers=[TauPtCorrection, TauMassCorrection],
-)
-TauEnergyCorrection_ul = ProducerGroup(
-    name="TauEnergyCorrection",
-    call=None,
-    input=None,
-    output=None,
-    scopes=["global"],
-    subproducers=[TauPtCorrection_ul, TauMassCorrection],
 )
 TauPtCut = Producer(
     name="TauPtCut",

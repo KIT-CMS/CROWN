@@ -64,12 +64,21 @@ def build_config(
                 }
             ),
             "PU_reweighting_hist": "pileup",
-            "met_filters": ["Flag_goodVertices", "Flag_METFilters"],
+            "met_filters": [               
+                "Flag_goodVertices", 
+                "Flag_globalSuperTightHalo2016Filter", 
+                "Flag_HBHENoiseFilter", 
+                "Flag_HBHENoiseIsoFilter",
+                "Flag_EcalDeadCellTriggerPrimitiveFilter", 
+                "Flag_BadPFMuonFilter", 
+                "Flag_ecalBadCalibFilter",  # only for 2017/18
+                "Flag_eeBadScFilter",
+            ],
         },
     )
     # Tau base selection:
     configuration.add_config_parameters(
-        "global",
+        ["global","mt","tt", "et"],
         {
             "min_tau_pt": 30.0,
             "max_tau_eta": 2.3,
@@ -78,10 +87,18 @@ def build_config(
             "vsjet_tau_id_bit": 4,
             "vsele_tau_id_bit": 4,
             "vsmu_tau_id_bit": 1,
-            "tau_ES_shift_DM0": 1.0,
-            "tau_ES_shift_DM1": 1.0,
-            "tau_ES_shift_DM10": 1.0,
-            "tau_ES_shift_DM11": 1.0,
+            #"tau_ES_shift_DM0": 1.0,
+            #"tau_ES_shift_DM1": 1.0,
+            #"tau_ES_shift_DM10": 1.0,
+            #"tau_ES_shift_DM11": 1.0,
+            "tau_sf_file": EraModifier(
+                {
+                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
+                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
+                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
+                }
+            ),
+            "tau_ES_variation": "nom", # or "up"/"down" for up/down variation
         },
     )
     # muon base selection:
@@ -115,6 +132,8 @@ def build_config(
             "min_jet_pt": 30,
             "max_jet_eta": 4.7,
             "jet_id": 2,  # second bit is tight JetID
+            "jet_puid": 4, # 0==fail, 4==pass(loose), 6==pass(loose,medium), 7==pass(loose,medium,tight) !check 2016 -> inverted ID
+            "jet_puid_ptcut": 50, # recommended to apply puID only for jets below 50 GeV
             "JEC_shift_sources": '{""}',
             "JE_scale_shift": 0,
             "JE_reso_shift": 0,
@@ -142,6 +161,61 @@ def build_config(
         },
     )
     ###### Channel Specifics ######
+    # MT/TT channel tau ID flags and SFs
+    configuration.add_config_parameters(
+        ["mt", "tt", "et"],
+        {
+            "vsjet_tau_id": [
+                {
+                    "tau_1_vsjet_sf_outputname": "tau_1_vsjet_sf_Medium",
+                    "tau_2_vsjet_sf_outputname": "tau_2_vsjet_sf_Medium",
+                    "vsjet_tau_id_WP": "Medium",
+                    "tau_1_vsjet_id_outputname": "tau_1_vsjet_flag_Medium",
+                    "tau_2_vsjet_id_outputname": "tau_2_vsjet_flag_Medium",
+                    "vsjet_tau_id_WPbit": 5,
+                },
+            ],
+            "vsele_tau_id": [
+                {
+                    "tau_1_vsele_sf_outputname": "tau_1_vsele_sf_VVLoose",
+                    "tau_2_vsele_sf_outputname": "tau_2_vsele_sf_VVLoose",
+                    "vsele_tau_id_WP": "VVLoose",
+                    "tau_1_vsele_id_outputname": "tau_1_vsele_flag_VVLoose",
+                    "tau_2_vsele_id_outputname": "tau_2_vsele_flag_VVLoose",
+                    "vsele_tau_id_WPbit": 2,
+                },
+                {
+                    "tau_1_vsele_sf_outputname": "tau_1_vsele_sf_Tight",
+                    "tau_2_vsele_sf_outputname": "tau_2_vsele_sf_Tight",
+                    "vsele_tau_id_WP": "Tight",
+                    "tau_1_vsele_id_outputname": "tau_1_vsele_flag_Tight",
+                    "tau_2_vsele_id_outputname": "tau_2_vsele_flag_Tight",
+                    "vsele_tau_id_WPbit": 6,
+                },
+            ],
+            "vsmu_tau_id": [
+                {
+                    "tau_1_vsmu_sf_outputname": "tau_1_vsmu_sf_VLoose",
+                    "tau_2_vsmu_sf_outputname": "tau_2_vsmu_sf_VLoose",
+                    "vsmu_tau_id_WP": "VLoose",
+                    "tau_1_vsmu_id_outputname": "tau_1_vsmu_flag_VLoose",
+                    "tau_2_vsmu_id_outputname": "tau_2_vsmu_flag_VLoose",
+                    "vsmu_tau_id_WPbit": 1,
+                },
+                {
+                    "tau_1_vsmu_sf_outputname": "tau_1_vsmu_sf_Tight",
+                    "tau_2_vsmu_sf_outputname": "tau_2_vsmu_sf_Tight",
+                    "vsmu_tau_id_WP": "Tight",
+                    "tau_1_vsmu_id_outputname": "tau_1_vsmu_flag_Tight",
+                    "tau_2_vsmu_id_outputname": "tau_2_vsmu_flag_Tight",
+                    "vsmu_tau_id_WPbit": 4,
+                },
+            ],
+            "tau_sf_variation": "nom", # or "up"/"down" for up/down variation
+            "tau_sf_dependence": "pt", # or "dm", "eta"
+        },
+    )
+
     # MT/MM channel Muon selection
     configuration.add_config_parameters(
         ["mt", "mm"],
@@ -150,11 +224,28 @@ def build_config(
             "min_muon_pt": 23.0,
             "max_muon_eta": 2.1,
             "muon_iso_cut": 0.15,
-            "muon_sf_workspace": "data/muon_corrections/htt_scalefactors_legacy_2018_muons.root",
-            "muon_sf_id_name": "m_id_kit_ratio",
-            "muon_sf_id_args": "m_pt,m_eta",
-            "muon_sf_iso_name": "m_iso_binned_kit_ratio",
-            "muon_sf_iso_args": "m_pt,m_eta,m_iso",
+            #"muon_sf_workspace": "data/muon_corrections/htt_scalefactors_legacy_2018_muons.root",
+            #"muon_sf_id_name": "m_id_kit_ratio",
+            #"muon_sf_id_args": "m_pt,m_eta",
+            #"muon_sf_iso_name": "m_iso_binned_kit_ratio",
+            #"muon_sf_iso_args": "m_pt,m_eta,m_iso",
+            "muon_sf_file": EraModifier(
+                {
+                    "2016": "data/jsonpog-integration/POG/MUO/2016postVFP_UL/muon_Z.json.gz",
+                    "2017": "data/jsonpog-integration/POG/MUO/2017_UL/muon_Z.json.gz",
+                    "2018": "data/jsonpog-integration/POG/MUO/2018_UL/muon_Z.json.gz",
+                }
+            ),
+            "muon_id_sf_name": "NUM_MediumID_DEN_TrackerMuons",
+            "muon_iso_sf_name": "NUM_TightRelIso_DEN_MediumID",
+            "muon_sf_year_id": EraModifier(
+                {
+                    "2016": "2016postVFP_UL",
+                    "2017": "2017_UL",
+                    "2018": "2018_UL",
+                }
+            ),
+            "muon_sf_varation": "sf", # "sf" is nominal, "systup"/"systdown" are up/down variations
         },
     )
     # ET/EM channel electron selection
@@ -365,7 +456,7 @@ def build_config(
             event.Lumi,
             event.MetFilter,
             event.PUweights,
-            taus.TauEnergyCorrection,
+            taus.TauEnergyCorrection, # or TauEnergyCorrection_old for previous implementation
             taus.GoodTaus,
             muons.BaseMuons,
             electrons.BaseElectrons,
@@ -396,7 +487,7 @@ def build_config(
             jets.BJetCollection,
             jets.BasicBJetQuantities,
             genparticles.MMGenDiTauPairQuantities,
-            scalefactors.MuonIDIso_SF,
+            scalefactors.MuonIDIso_SF,  # or MuonIDIso_SF_old for previous implementation
             triggers.MMGenerateSingleMuonTriggerFlags,
             met.MetCorrections,
             pairquantities.DiTauPairMETQuantities,
@@ -424,7 +515,8 @@ def build_config(
             jets.BJetCollection,
             jets.BasicBJetQuantities,
             genparticles.MTGenDiTauPairQuantities,
-            scalefactors.MuonIDIso_SF,
+            scalefactors.MuonIDIso_SF,  # or MuonIDIso_SF_old for previous implementation
+            scalefactors.TauID_SF,
             triggers.MTGenerateSingleMuonTriggerFlags,
             triggers.MTGenerateCrossTriggerFlags,
             met.MetCorrections,
@@ -612,6 +704,12 @@ def build_config(
         [
             q.nmuons,
             q.ntaus,
+            scalefactors.Tau_2_VsJetTauID_SF.output_group,
+            scalefactors.Tau_2_VsEleTauID_SF.output_group,
+            scalefactors.Tau_2_VsMuTauID_SF.output_group,
+            pairquantities.VsJetTauIDFlag_2.output_group,
+            pairquantities.VsEleTauIDFlag_2.output_group,
+            pairquantities.VsMuTauIDFlag_2.output_group,
             # triggers.MTGenerateSingleMuonTriggerFlags.output_group,
             triggers.MTGenerateCrossTriggerFlags.output_group,
             q.taujet_pt_2,
@@ -669,10 +767,26 @@ def build_config(
     #########################
     # TES Shifts
     #########################
+    # configuration.add_shift(
+    #     SystematicShift(
+    #         name="tauES_1prong0pizeroDown",
+    #         shift_config={"global": {"tau_ES_shift_DM0": 0.998}},
+    #         producers={"global": taus.TauPtCorrection},
+    #         ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+    #     )
+    # )
+    # configuration.add_shift(
+    #     SystematicShift(
+    #         name="tauES_1prong0pizeroUp",
+    #         shift_config={"global": {"tau_ES_shift_DM0": 1.002}},
+    #         producers={"global": taus.TauPtCorrection},
+    #         ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+    #     )
+    # )
     configuration.add_shift(
         SystematicShift(
-            name="tauES_1prong0pizeroDown",
-            shift_config={"global": {"tau_ES_shift_DM0": 0.998}},
+            name="tauES_Down",
+            shift_config={"global": {"tau_ES_variation": "down"}},
             producers={"global": taus.TauPtCorrection},
             ignore_producers={
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
@@ -682,8 +796,8 @@ def build_config(
     )
     configuration.add_shift(
         SystematicShift(
-            name="tauES_1prong0pizeroUp",
-            shift_config={"global": {"tau_ES_shift_DM0": 1.002}},
+            name="tauES_Up",
+            shift_config={"global": {"tau_ES_variation": "up"}},
             producers={"global": taus.TauPtCorrection},
             ignore_producers={
                 "mt": [pairselection.LVMu1, muons.VetoMuons],

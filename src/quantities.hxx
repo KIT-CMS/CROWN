@@ -1,3 +1,4 @@
+#include "basefunctions.hxx"
 #include "defaults.hxx"
 #include "utility/Logger.hxx"
 #include "vectoroperations.hxx"
@@ -542,6 +543,38 @@ auto matching_genjet_pt(auto &df, const std::string &outputname,
                          return genjetpt.at(genjetindex, default_float);
                      },
                      {pairname, taujet_index, genjet_index, genjetpt_column});
+}
+/// Function to writeout a flag if a tau passes a specific tau id cut. The
+/// particle is identified via the index stored in the pair vector
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the flag
+/// \param position index of the position in the pair vector
+/// \param pairname name of the column containing the pair vector
+/// \param nameID name of the ID column in the NanoAOD
+/// \param idxID bitvalue of the WP the has to be passed
+///
+/// \returns a dataframe with the new column
+
+auto TauIDFlag(auto &df, const std::string &outputname, const int &position,
+               const std::string &pairname, const std::string &nameID,
+               const int &idxID) {
+    return df.Define(
+        outputname,
+        [position, idxID](const ROOT::RVec<int> &pair,
+                          const ROOT::RVec<int> &IDs) {
+            Logger::get("tauIDFlag")
+                ->debug(
+                    "position tau in pair {}, pair {}, id bit {}, vsjet ids {}",
+                    position, pair, idxID, IDs);
+            if (pair.at(position) >= 0) {
+                const int index = pair.at(position);
+                const auto ID = IDs.at(index);
+                return std::min(1, int(ID & 1 << idxID - 1));
+            } else
+                return (int)0;
+        },
+        {pairname, nameID});
 }
 } // end namespace tau
 } // end namespace quantities

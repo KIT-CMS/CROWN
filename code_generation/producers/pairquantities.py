@@ -1,6 +1,6 @@
 import code_generation.quantities.output as q
 import code_generation.quantities.nanoAOD as nanoAOD
-from code_generation.producer import Producer, ProducerGroup
+from code_generation.producer import Producer, ProducerGroup, ExtendedVectorProducer
 
 ####################
 # Set of general producers for DiTauPair Quantities
@@ -268,6 +268,30 @@ taujet_pt_1 = Producer(
     output=[q.taujet_pt_1],
     scopes=["tt"],
 )
+VsJetTauIDFlag_1 = ExtendedVectorProducer(
+    name="VsJetTauIDFlag_1",
+    call="quantities::tau::TauIDFlag({df}, {output}, 0, {input}, {vsjet_tau_id_WPbit})",
+    input=[q.ditaupair, nanoAOD.Tau_ID_vsJet],
+    output="tau_1_vsjet_id_outputname",
+    scope=["tt"],
+    vec_config="vsjet_tau_id",
+)
+VsEleTauIDFlag_1 = ExtendedVectorProducer(
+    name="VsEleTauIDFlag_1",
+    call="quantities::tau::TauIDFlag({df}, {output}, 0, {input}, {vsele_tau_id_WPbit})",
+    input=[q.ditaupair, nanoAOD.Tau_ID_vsEle],
+    output="tau_1_vsele_id_outputname",
+    scope=["tt"],
+    vec_config="vsele_tau_id",
+)
+VsMuTauIDFlag_1 = ExtendedVectorProducer(
+    name="VsMuTauIDFlag_1",
+    call="quantities::tau::TauIDFlag({df}, {output}, 0, {input}, {vsmu_tau_id_WPbit})",
+    input=[q.ditaupair, nanoAOD.Tau_ID_vsMu],
+    output="tau_1_vsmu_id_outputname",
+    scope=["tt"],
+    vec_config="vsmu_tau_id",
+)
 
 tau_decaymode_2 = Producer(
     name="taudecaymode_2",
@@ -290,6 +314,31 @@ taujet_pt_2 = Producer(
     output=[q.taujet_pt_2],
     scopes=["mt", "et", "tt"],
 )
+VsJetTauIDFlag_2 = ExtendedVectorProducer(
+    name="VsJetTauIDFlag_2",
+    call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsjet_tau_id_WPbit})",
+    input=[q.ditaupair, nanoAOD.Tau_ID_vsJet],
+    output="tau_2_vsjet_id_outputname",
+    scope=["mt"],
+    vec_config="vsjet_tau_id",
+)
+VsEleTauIDFlag_2 = ExtendedVectorProducer(
+    name="VsEleTauIDFlag_2",
+    call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsele_tau_id_WPbit})",
+    input=[q.ditaupair, nanoAOD.Tau_ID_vsEle],
+    output="tau_2_vsele_id_outputname",
+    scope=["mt"],
+    vec_config="vsele_tau_id",
+)
+VsMuTauIDFlag_2 = ExtendedVectorProducer(
+    name="VsMuTauIDFlag_2",
+    call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsmu_tau_id_WPbit})",
+    input=[q.ditaupair, nanoAOD.Tau_ID_vsMu],
+    output="tau_2_vsmu_id_outputname",
+    scope=["mt"],
+    vec_config="vsmu_tau_id",
+)
+
 UnrollMuLV1 = ProducerGroup(
     name="UnrollMuLV1",
     call=None,
@@ -376,6 +425,9 @@ UnrollTauLV1 = ProducerGroup(
         tau_decaymode_1,
         tau_gen_match_1,
         taujet_pt_1,
+        VsJetTauIDFlag_1,
+        VsEleTauIDFlag_1,
+        VsMuTauIDFlag_1,
     ],
 )
 UnrollTauLV2 = ProducerGroup(
@@ -396,6 +448,9 @@ UnrollTauLV2 = ProducerGroup(
         tau_decaymode_2,
         tau_gen_match_2,
         taujet_pt_2,
+        VsJetTauIDFlag_2,
+        VsEleTauIDFlag_2,
+        VsMuTauIDFlag_2,
     ],
 )
 MTDiTauPairQuantities = ProducerGroup(
