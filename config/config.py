@@ -523,7 +523,7 @@ def build_config(
             jets.BJetCollection,
             jets.BasicBJetQuantities,
             genparticles.MMGenDiTauPairQuantities,
-            scalefactors.MuonIDIso_SF,
+            scalefactors.MuonIDIso_SF,  # or MuonIDIso_SF_old for previous implementation
             triggers.MMGenerateSingleMuonTriggerFlags,
             met.MetCorrections,
             pairquantities.DiTauPairMETQuantities,
