@@ -12,14 +12,14 @@ Muon_1_ID_SF_RooWorkspace = Producer(
     name="MuonID_SF_RooWorkspace",
     call='scalefactor::muon::id_rooworkspace({df}, {input}, {output}, "{muon_sf_workspace}", "{muon_sf_id_name}", "{muon_sf_id_args}")',
     input=[q.pt_1, q.eta_1],
-    output=[q.idWeight_1],
+    output=[q.idWeight_old_1],
     scopes=["mt", "mm"],
 )
 Muon_1_Iso_SF_RooWorkspace = Producer(
     name="MuonIso_SF_RooWorkspace",
     call='scalefactor::muon::iso_rooworkspace({df}, {input}, {output}, "{muon_sf_workspace}", "{muon_sf_iso_name}", "{muon_sf_iso_args}")',
     input=[q.pt_1, q.eta_1, q.iso_1],
-    output=[q.isoWeight_1],
+    output=[q.isoWeight_old_1],
     scopes=["mt", "mm"],
 )
 Muon_1_ID_SF = Producer(
@@ -40,14 +40,14 @@ Muon_2_ID_SF_RooWorkspace = Producer(
     name="MuonID_SF_RooWorkspace",
     call='scalefactor::muon::id_rooworkspace({df}, {input}, {output}, "{muon_sf_workspace}", "{muon_sf_id_name}", "{muon_sf_id_args}")',
     input=[q.pt_2, q.eta_2],
-    output=[q.idWeight_2],
+    output=[q.idWeight_old_2],
     scopes=["em", "mm"],
 )
 Muon_2_Iso_SF_RooWorkspace = Producer(
     name="MuonIso_SF_RooWorkspace",
     call='scalefactor::muon::iso_rooworkspace({df}, {input}, {output}, "{muon_sf_workspace}", "{muon_sf_iso_name}", "{muon_sf_iso_args}")',
     input=[q.pt_2, q.eta_2, q.iso_2],
-    output=[q.isoWeight_2],
+    output=[q.isoWeight_old_2],
     scopes=["em", "mm"],
 )
 Muon_2_ID_SF = Producer(
@@ -72,15 +72,8 @@ MuonIDIso_SF = ProducerGroup(
     scopes=["mt", "em", "mm"],
     subproducers={
         "mt": [
-<<<<<<< HEAD
             Muon_1_ID_SF,
             Muon_1_Iso_SF,
-=======
-            #Muon_1_ID_SF,
-            #Muon_1_Iso_SF,
-            Muon_1_ID_SF_UL,
-            Muon_1_Iso_SF_UL,
->>>>>>> adding tau energy correction and tau id calculation with correctionlib
         ],
         "em": [
             Muon_2_ID_SF,
@@ -196,17 +189,4 @@ TauID_SF = ProducerGroup(
             Tau_2_VsMuTauID_SF,
         ],
     },
-)
-
-############################
-# Tau ID/ISO SF
-# The readout is done via correctionlib
-############################
-
-Tau_2_VsJetTauID_SF = Producer(
-    name="VsJetTauID_SF",
-    call='scalefactor::tau::id({df}, {input}, "{vsJet_WP}", "{tau_sf_variation}", "{tau_sf_dependence}", {output}, "{tau_sf_file}", "DeepTau2017v2p1VSjet", {vec_open}{tau_dms}{vec_close})',
-    input=[q.pt_2, q.decaymode_2, q.gen_match_2],
-    output=[q.vsJetTauIDWeight_2],
-    scopes=["mt"],
 )
