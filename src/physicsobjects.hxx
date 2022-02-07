@@ -339,10 +339,10 @@ auto CutTauID(auto &df, const std::string &maskname, const std::string &nameID,
 /// name of the tau decay mode quantity
 ///
 /// \return a dataframe containing the new mask
-auto PtCorrection(auto &df, const std::string &corrected_pt,
-                  const std::string &pt, const std::string &decayMode,
-                  const float &sf_dm0, const float &sf_dm1,
-                  const float &sf_dm10, const float &sf_dm11) {
+auto PtCorrection_old(auto &df, const std::string &corrected_pt,
+                      const std::string &pt, const std::string &decayMode,
+                      const float &sf_dm0, const float &sf_dm1,
+                      const float &sf_dm10, const float &sf_dm11) {
     auto tau_pt_correction_lambda =
         [sf_dm0, sf_dm1, sf_dm10, sf_dm11](const ROOT::RVec<float> &pt_values,
                                            const ROOT::RVec<int> &decay_modes) {
@@ -378,11 +378,11 @@ auto PtCorrection(auto &df, const std::string &corrected_pt,
 /// variation ("nom","up","down")
 ///
 /// \return a dataframe containing the new mask
-auto PtCorrection_ul(auto &df, const std::string &corrected_pt,
-                     const std::string &pt, const std::string &eta,
-                     const std::string &decayMode, const std::string &genMatch,
-                     const std::string &sf_file, const std::string &variation,
-                     const std::vector<int> &SelectedDMs) {
+auto PtCorrection(auto &df, const std::string &corrected_pt,
+                  const std::string &pt, const std::string &eta,
+                  const std::string &decayMode, const std::string &genMatch,
+                  const std::string &sf_file, const std::string &variation,
+                  const std::vector<int> &SelectedDMs) {
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at("tau_energy_scale");
     auto tau_pt_correction_lambda = [evaluator, variation, SelectedDMs](
