@@ -1,12 +1,12 @@
 import code_generation.quantities.output as q
 import code_generation.quantities.nanoAOD as nanoAOD
-from code_generation.producer import TriggerVectorProducer
+from code_generation.producer import ExtendedVectorProducer
 
 ####################
 # Set of producers used for trigger flags
 ####################
 
-MMGenerateSingleMuonTriggerFlags = TriggerVectorProducer(
+MMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
     name="MMGenerateSingleMuonTriggerFlags",
     call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
     input=[
@@ -21,7 +21,7 @@ MMGenerateSingleMuonTriggerFlags = TriggerVectorProducer(
     scope=["mm"],
     vec_config="singlemoun_trigger",
 )
-MTGenerateSingleMuonTriggerFlags = TriggerVectorProducer(
+MTGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
     name="MTGenerateSingleMuonTriggerFlags",
     call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
     input=[
@@ -36,7 +36,7 @@ MTGenerateSingleMuonTriggerFlags = TriggerVectorProducer(
     scope=["mt"],
     vec_config="singlemoun_trigger",
 )
-ETGenerateSingleElectronTriggerFlags = TriggerVectorProducer(
+ETGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
     name="ETGenerateSingleElectronTriggerFlags",
     call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
     input=[
@@ -51,8 +51,8 @@ ETGenerateSingleElectronTriggerFlags = TriggerVectorProducer(
     scope=["et"],
     vec_config="singleelectron_trigger",
 )
-EMGenerateSingleElectronTriggerFlags = TriggerVectorProducer(
-    name="EMGenerateSingleElectronTriggerFlags",
+EMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
+    name="EMGenerateSingleMuonTriggerFlags",
     call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
     input=[
         q.p4_2,
@@ -66,7 +66,7 @@ EMGenerateSingleElectronTriggerFlags = TriggerVectorProducer(
     scope=["em"],
     vec_config="singlemoun_trigger",
 )
-MTGenerateCrossTriggerFlags = TriggerVectorProducer(
+MTGenerateCrossTriggerFlags = ExtendedVectorProducer(
     name="GenerateCrossTriggerFlags",
     call='trigger::GenerateDoubleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {p1_ptcut}, {p2_ptcut}, {p1_etacut}, {p2_etacut}, {p1_trigger_particle_id}, {p2_trigger_particle_id}, {p1_filterbit}, {p2_filterbit}, {max_deltaR_triggermatch})',
     input=[
