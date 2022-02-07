@@ -288,7 +288,7 @@ class VectorProducer(Producer):
         return calls
 
 
-class TriggerVectorProducer(Producer):
+class ExtendedVectorProducer(Producer):
     def __init__(
         self,
         name: str,
@@ -304,24 +304,24 @@ class TriggerVectorProducer(Producer):
         if not isinstance(scope, list):
             scope = [scope]
         if len(scope) != 1:
-            log.error("TriggerVectorProducer can only use one scope per instance !")
+            log.error("ExtendedVectorProducer can only use one scope per instance !")
             raise Exception
         super().__init__(name, call, input, [q.QuantityGroup(name)], scope)
         if self.output is None:
             raise InvalidProducerConfigurationError(self.name)
 
     def __str__(self) -> str:
-        return "TriggerVectorProducer: {}".format(self.name)
+        return "ExtendedVectorProducer: {}".format(self.name)
 
     def __repr__(self) -> str:
-        return "TriggerVectorProducer: {}".format(self.name)
+        return "ExtendedVectorProducer: {}".format(self.name)
 
     @property
     def output_group(self) -> q.QuantityGroup:
         if self.output is None:
-            raise Exception("TriggerVectorProducer has no output!")
+            raise Exception("ExtendedVectorProducer has no output!")
         if not isinstance(self.output[0], q.QuantityGroup):
-            log.error("TriggerVectorProducer expects a QuantityGroup as output!")
+            log.error("ExtendedVectorProducer expects a QuantityGroup as output!")
             raise Exception
         return self.output[0]
 
@@ -329,11 +329,11 @@ class TriggerVectorProducer(Producer):
         self, config: Dict[str, Dict[str, Dict[str, Any]]], scope: str
     ) -> List[str]:
         n_versions = len(config[""][scope][self.vec_config])
-        log.debug("Number of trigger producers to be created {}".format(n_versions))
+        log.debug("Number of extended producers to be created {}".format(n_versions))
         if self.output is None:
             raise InvalidProducerConfigurationError(self.name)
         if not isinstance(self.output[0], q.QuantityGroup):
-            log.error("TriggerVectorProducer expects a QuantityGroup as output!")
+            log.error("ExtendedVectorProducer expects a QuantityGroup as output!")
             raise Exception
         for i in range(n_versions):
             self.output[0].add(config[""][scope][self.vec_config][i][self.outputname])
