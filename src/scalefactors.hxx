@@ -153,7 +153,7 @@ Description of the bit map used to define the tau id working points of the
 DeepTau2017v2p1 tagger.
 vsJets                              | Value | Bit (value used in the config)
 ------------------------------------|-------|-------
-no ID selection                     |  -    | -
+no ID selection (takes every tau)   |  0    | -
 VVVLoose                            |  1    | 1
 VVLoose                             |  2    | 2
 VLoose                              |  4    | 3
@@ -165,7 +165,7 @@ VVTight                             |  128  | 8
 
 vsElectrons                         | Value | Bit (value used in the config)
 ------------------------------------|-------|-------
-no ID selection                     |  -    | -
+no ID selection (takes every tau)   |  0    | -
 VVVLoose                            |  1    | 1
 VVLoose                             |  2    | 2
 VLoose                              |  4    | 3
@@ -177,7 +177,7 @@ VVTight                             |  128  | 8
 
 vsMuons                             | Value | Bit (value used in the config)
 ------------------------------------|-------|-------
-no ID selection                     |  -    | -
+no ID selection (takes every tau)   |  0    | -
 VLoose                              |  1    | 1
 Loose                               |  2    | 2
 Medium                              |  4    | 3
