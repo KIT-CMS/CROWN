@@ -24,7 +24,7 @@ First clone the Repository
 
 .. code-block:: console
 
-   git clone git@github.com:KIT-CMS/CROWN.git
+   git clone --recurse-submodules git@github.com:KIT-CMS/CROWN.git
 
 and source the current LCG stack (at the moment we use a nightly build)
 
