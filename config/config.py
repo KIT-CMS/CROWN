@@ -252,6 +252,11 @@ def build_config(
                     ],
                 }
             ),
+        },
+    )
+    configuration.add_config_parameters(
+        ["mt"],
+        {
             "mutau_cross_trigger": EraModifier(
                 {
                     "2018": [
@@ -259,12 +264,12 @@ def build_config(
                             "flagname": "trg_crossmuon_mu20tau27_hps",
                             "hlt_path": "HLT_IsoMu20_eta2p1_LooseChargedIsoPFTauHPS27_eta2p1_CrossL1",
                             "p1_ptcut": 21,
-                            "p2_ptcut": 32,
                             "p1_etacut": 2.5,
-                            "p2_etacut": 2.1,
                             "p1_filterbit": 3,
                             "p1_trigger_particle_id": 13,
-                            "p2_filterbit": -1,
+                            "p2_ptcut": 32,
+                            "p2_etacut": 2.1,
+                            "p2_filterbit": 4,
                             "p2_trigger_particle_id": 15,
                             "max_deltaR_triggermatch": 0.4,
                         }
@@ -310,6 +315,11 @@ def build_config(
                     ],
                 }
             ),
+        },
+    )
+    configuration.add_config_parameters(
+        ["et"],
+        {
             "eltau_cross_trigger": EraModifier(
                 {
                     "2018": [
@@ -320,10 +330,10 @@ def build_config(
                             "p2_ptcut": 32,
                             "p1_etacut": 2.5,
                             "p2_etacut": 2.1,
-                            "p1_filterbit": 6,
-                            "p1_trigger_particle_id": 13,
-                            "p2_filterbit": 6,
-                            "p2_trigger_particle_id": 11,
+                            "p1_filterbit": 1,
+                            "p1_trigger_particle_id": 11,
+                            "p2_filterbit": 4,
+                            "p2_trigger_particle_id": 15,
                             "max_deltaR_triggermatch": 0.4,
                         },
                     ],
@@ -602,10 +612,10 @@ def build_config(
         [
             q.nmuons,
             q.ntaus,
-            triggers.MTGenerateSingleMuonTriggerFlags.output_group,
+            # triggers.MTGenerateSingleMuonTriggerFlags.output_group,
             triggers.MTGenerateCrossTriggerFlags.output_group,
             q.taujet_pt_2,
-            q.gen_taujet_pt_2,
+            # q.gen_taujet_pt_2,
             q.decaymode_2,
             q.gen_match_2,
             q.muon_veto_flag,
@@ -620,10 +630,10 @@ def build_config(
         [
             q.nelectrons,
             q.ntaus,
-            triggers.ETGenerateSingleElectronTriggerFlags.output_group,
-            triggers.ETGenerateCrossTriggerFlags.output_group,
+            # triggers.ETGenerateSingleElectronTriggerFlags.output_group,
+            # triggers.ETGenerateCrossTriggerFlags.output_group,
             q.taujet_pt_2,
-            q.gen_taujet_pt_2,
+            # q.gen_taujet_pt_2,
             q.decaymode_2,
             q.gen_match_2,
             q.muon_veto_flag,
