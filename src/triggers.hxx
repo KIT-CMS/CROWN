@@ -106,11 +106,11 @@ encoding is explained above.
  */
 
 bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
-                   ROOT::RVec<float> triggerobject_pts,
-                   ROOT::RVec<float> triggerobject_etas,
-                   ROOT::RVec<float> triggerobject_phis,
-                   ROOT::RVec<int> triggerobject_bits,
-                   ROOT::RVec<int> triggerobject_ids, const float matchDeltaR,
+                   ROOT::RVec<float> &triggerobject_pts,
+                   ROOT::RVec<float> &triggerobject_etas,
+                   ROOT::RVec<float> &triggerobject_phis,
+                   ROOT::RVec<int> &triggerobject_bits,
+                   ROOT::RVec<int> &triggerobject_ids, const float &matchDeltaR,
                    const float &pt_cut, const float &eta_cut,
                    const int &trigger_particle_id_cut,
                    const int &triggerbit_cut) {
@@ -131,7 +131,9 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
                       matchDeltaR;
         // if we don't want to do any matching here, the triggerbut_cut value is
         // -1
-        bool bit = (triggerbit_cut == -1) |
+        Logger::get("CheckTriggerMatch")
+            ->debug("bit Value: {}", triggerobject_bits[idx]);
+        bool bit = (triggerbit_cut == -1) ||
                    (IntBits(triggerobject_bits[idx]).test(triggerbit_cut));
         bool id = triggerobject_ids[idx] == trigger_particle_id_cut;
         bool pt = triggerobject_pts[idx] > pt_cut;
@@ -302,46 +304,49 @@ auto GenerateDoubleTriggerFlag(
     const int &p2_trigger_particle_id_cut, const int &p1_triggerbit_cut,
     const int &p2_triggerbit_cut, const float &DeltaR_threshold) {
 
-    auto triggermatch =
-        [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut, p2_eta_cut,
-         p1_trigger_particle_id_cut, p2_trigger_particle_id_cut,
-         p1_triggerbit_cut, p2_triggerbit_cut](
-            bool hltpath, const ROOT::Math::PtEtaPhiMVector &particle1_p4,
-            const ROOT::Math::PtEtaPhiMVector &particle2_p4,
-            ROOT::RVec<int> triggerobject_bits,
-            ROOT::RVec<int> triggerobject_ids,
-            ROOT::RVec<float> triggerobject_pts,
-            ROOT::RVec<float> triggerobject_etas,
-            ROOT::RVec<float> triggerobject_phis) {
-            Logger::get("GenerateDoubleTriggerFlag")->debug("Checking Trigger");
-            bool result = false;
-            bool match_result_p1 = false;
-            bool match_result_p2 = false;
-            if (hltpath) {
-                Logger::get("GenerateDoubleTriggerFlag")
-                    ->debug("Checking Triggerobject match with particles ....");
-                match_result_p1 = matchParticle(
-                    particle1_p4, triggerobject_pts, triggerobject_etas,
-                    triggerobject_phis, triggerobject_bits, triggerobject_ids,
-                    DeltaR_threshold, p1_pt_cut, p1_eta_cut,
-                    p1_trigger_particle_id_cut, p1_triggerbit_cut);
-                match_result_p2 = matchParticle(
-                    particle2_p4, triggerobject_pts, triggerobject_etas,
-                    triggerobject_phis, triggerobject_bits, triggerobject_ids,
-                    DeltaR_threshold, p2_pt_cut, p2_eta_cut,
-                    p2_trigger_particle_id_cut, p2_triggerbit_cut);
-            }
-            result = hltpath & match_result_p1 & match_result_p2;
+    auto triggermatch = [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut,
+                         p2_eta_cut, p1_trigger_particle_id_cut,
+                         p2_trigger_particle_id_cut, p1_triggerbit_cut,
+                         p2_triggerbit_cut](
+                            bool hltpath,
+                            const ROOT::Math::PtEtaPhiMVector &particle1_p4,
+                            const ROOT::Math::PtEtaPhiMVector &particle2_p4,
+                            ROOT::RVec<int> triggerobject_bits,
+                            ROOT::RVec<int> triggerobject_ids,
+                            ROOT::RVec<float> triggerobject_pts,
+                            ROOT::RVec<float> triggerobject_etas,
+                            ROOT::RVec<float> triggerobject_phis) {
+        Logger::get("GenerateDoubleTriggerFlag")->debug("Checking Trigger");
+        bool result = false;
+        bool match_result_p1 = false;
+        bool match_result_p2 = false;
+        if (hltpath) {
             Logger::get("GenerateDoubleTriggerFlag")
-                ->debug("---> HLT Match: {}", hltpath);
-            Logger::get("GenerateDoubleTriggerFlag")
-                ->debug("---> Total Match P1: {}", match_result_p1);
-            Logger::get("GenerateDoubleTriggerFlag")
-                ->debug("---> Total Match P2: {}", match_result_p2);
-            Logger::get("GenerateDoubleTriggerFlag")
-                ->debug("--->>>> result: {}", result);
-            return result;
-        };
+                ->debug("Checking Triggerobject match with particles ....");
+            Logger::get("GenerateDoubleTriggerFlag")->debug("First particle");
+            match_result_p1 = matchParticle(
+                particle1_p4, triggerobject_pts, triggerobject_etas,
+                triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                DeltaR_threshold, p1_pt_cut, p1_eta_cut,
+                p1_trigger_particle_id_cut, p1_triggerbit_cut);
+            Logger::get("GenerateDoubleTriggerFlag")->debug("Second particle");
+            match_result_p2 = matchParticle(
+                particle2_p4, triggerobject_pts, triggerobject_etas,
+                triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                DeltaR_threshold, p2_pt_cut, p2_eta_cut,
+                p2_trigger_particle_id_cut, p2_triggerbit_cut);
+        }
+        result = hltpath & match_result_p1 & match_result_p2;
+        Logger::get("GenerateDoubleTriggerFlag")
+            ->debug("---> HLT Match: {}", hltpath);
+        Logger::get("GenerateDoubleTriggerFlag")
+            ->debug("---> Total Match P1: {}", match_result_p1);
+        Logger::get("GenerateDoubleTriggerFlag")
+            ->debug("---> Total Match P2: {}", match_result_p2);
+        Logger::get("GenerateDoubleTriggerFlag")
+            ->debug("--->>>> result: {}", result);
+        return result;
+    };
     auto df1 =
         df.Define(triggerflag_name, triggermatch,
                   {hltpath, particle1_p4, particle2_p4, triggerobject_bits,
