@@ -562,17 +562,17 @@ auto TauIDFlag(auto &df, const std::string &outputname, const int &position,
     return df.Define(
         outputname,
         [position, idxID](const ROOT::RVec<int> &pair,
-                          const ROOT::RVec<int> &IDs) {
+                          const ROOT::RVec<UChar_t> &IDs) {
             Logger::get("tauIDFlag")
                 ->debug(
                     "position tau in pair {}, pair {}, id bit {}, vsjet ids {}",
                     position, pair, idxID, IDs);
-            if (pair.at(position) >= 0) {
-                const int index = pair.at(position);
-                const auto ID = IDs.at(index);
+            const int index = pair.at(position);
+            const auto ID = IDs.at(index, default_int);
+            if (ID != default_int)
                 return std::min(1, int(ID & 1 << idxID - 1));
-            } else
-                return (int)0;
+            else
+                return int(ID);
         },
         {pairname, nameID});
 }
