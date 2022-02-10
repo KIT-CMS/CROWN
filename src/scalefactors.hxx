@@ -165,7 +165,6 @@ VTight                              |  64   | 7
 VVTight                             |  128  | 8
  * @param df The input dataframe
  * @param pt tau pt
- * @param eta tau eta
  * @param decayMode decay mode of the tau
  * @param genMatch column with genmatch values (from prompt e, prompt mu,
  * tau->e, tau->mu, had. tau)
@@ -207,8 +206,7 @@ auto id_vsJet(auto &df, const std::string &pt, const std::string &decayMode,
         }
         return sf;
     };
-    auto df1 =
-        df.Define(id_output, idSF_calculator, {pt, eta, decayMode, genMatch});
+    auto df1 = df.Define(id_output, idSF_calculator, {pt, decayMode, genMatch});
     return df1;
 }
 /**

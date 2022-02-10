@@ -12,14 +12,14 @@ Muon_1_ID_SF_RooWorkspace = Producer(
     name="MuonID_SF_RooWorkspace",
     call='scalefactor::muon::id_rooworkspace({df}, {input}, {output}, "{muon_sf_workspace}", "{muon_sf_id_name}", "{muon_sf_id_args}")',
     input=[q.pt_1, q.eta_1],
-    output=[q.idWeight_old_1],
+    output=[q.idWeight_1],
     scopes=["mt", "mm"],
 )
 Muon_1_Iso_SF_RooWorkspace = Producer(
     name="MuonIso_SF_RooWorkspace",
     call='scalefactor::muon::iso_rooworkspace({df}, {input}, {output}, "{muon_sf_workspace}", "{muon_sf_iso_name}", "{muon_sf_iso_args}")',
     input=[q.pt_1, q.eta_1, q.iso_1],
-    output=[q.isoWeight_old_1],
+    output=[q.isoWeight_1],
     scopes=["mt", "mm"],
 )
 Muon_1_ID_SF = Producer(
@@ -40,14 +40,14 @@ Muon_2_ID_SF_RooWorkspace = Producer(
     name="MuonID_SF_RooWorkspace",
     call='scalefactor::muon::id_rooworkspace({df}, {input}, {output}, "{muon_sf_workspace}", "{muon_sf_id_name}", "{muon_sf_id_args}")',
     input=[q.pt_2, q.eta_2],
-    output=[q.idWeight_old_2],
+    output=[q.idWeight_2],
     scopes=["em", "mm"],
 )
 Muon_2_Iso_SF_RooWorkspace = Producer(
     name="MuonIso_SF_RooWorkspace",
     call='scalefactor::muon::iso_rooworkspace({df}, {input}, {output}, "{muon_sf_workspace}", "{muon_sf_iso_name}", "{muon_sf_iso_args}")',
     input=[q.pt_2, q.eta_2, q.iso_2],
-    output=[q.isoWeight_old_2],
+    output=[q.isoWeight_2],
     scopes=["em", "mm"],
 )
 Muon_2_ID_SF = Producer(
