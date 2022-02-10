@@ -339,10 +339,10 @@ auto CutTauID(auto &df, const std::string &maskname, const std::string &nameID,
 /// name of the tau decay mode quantity
 ///
 /// \return a dataframe containing the new mask
-auto PtCorrection_old(auto &df, const std::string &corrected_pt,
-                      const std::string &pt, const std::string &decayMode,
-                      const float &sf_dm0, const float &sf_dm1,
-                      const float &sf_dm10, const float &sf_dm11) {
+auto PtCorrection_byValue(auto &df, const std::string &corrected_pt,
+                          const std::string &pt, const std::string &decayMode,
+                          const float &sf_dm0, const float &sf_dm1,
+                          const float &sf_dm10, const float &sf_dm11) {
     auto tau_pt_correction_lambda =
         [sf_dm0, sf_dm1, sf_dm10, sf_dm11](const ROOT::RVec<float> &pt_values,
                                            const ROOT::RVec<int> &decay_modes) {
@@ -374,40 +374,45 @@ auto PtCorrection_old(auto &df, const std::string &corrected_pt,
 /// \param[in] decayMode decay mode of the tau
 /// \param[in] genMatch column with genmatch values (from prompt e, prompt mu,
 /// tau->e, tau->mu, had. tau) \param[in] sf_file path to the file with the tau
-/// energy correction \param[in] variation name of the tau energy correction
+/// energy correction
+/// \param[in] jsonESname name of the tau energy correction in the json file
+/// \param[in] idAlgorithm name of the used tau id algorithm
+/// \param[in] variation name of the tau energy correction
 /// variation ("nom","up","down")
 ///
 /// \return a dataframe containing the new mask
 auto PtCorrection(auto &df, const std::string &corrected_pt,
                   const std::string &pt, const std::string &eta,
                   const std::string &decayMode, const std::string &genMatch,
-                  const std::string &sf_file, const std::string &variation,
+                  const std::string &sf_file, const std::string &jsonESname,
+                  const std::string &idAlgorithm, const std::string &variation,
                   const std::vector<int> &SelectedDMs) {
     auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at("tau_energy_scale");
-    auto tau_pt_correction_lambda = [evaluator, variation, SelectedDMs](
-                                        const ROOT::RVec<float> &pt_values,
-                                        const ROOT::RVec<float> &eta_values,
-                                        const ROOT::RVec<int> &decay_modes,
-                                        const ROOT::RVec<UChar_t> &genmatch) {
-        ROOT::RVec<float> corrected_pt_values(pt_values.size());
-        for (int i = 0; i < pt_values.size(); i++) {
-            // only considering wanted tau decay modes
-            if (std::find(SelectedDMs.begin(), SelectedDMs.end(),
-                          decay_modes.at(i)) != SelectedDMs.end()) {
-                auto sf = evaluator->evaluate(
-                    {pt_values.at(i), std::abs(eta_values.at(i)),
-                     decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                     "DeepTau2017v2p1", variation});
-                corrected_pt_values[i] = pt_values.at(i) * sf;
-            } else
-                corrected_pt_values[i] = pt_values.at(i);
-            Logger::get("tauEnergyCorrection")
-                ->debug("tau pt before {}, tau pt after {}", pt_values.at(i),
-                        corrected_pt_values.at(i));
-        }
-        return corrected_pt_values;
-    };
+        correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
+    auto tau_pt_correction_lambda =
+        [evaluator, idAlgorithm, variation,
+         SelectedDMs](const ROOT::RVec<float> &pt_values,
+                      const ROOT::RVec<float> &eta_values,
+                      const ROOT::RVec<int> &decay_modes,
+                      const ROOT::RVec<UChar_t> &genmatch) {
+            ROOT::RVec<float> corrected_pt_values(pt_values.size());
+            for (int i = 0; i < pt_values.size(); i++) {
+                // only considering wanted tau decay modes
+                if (std::find(SelectedDMs.begin(), SelectedDMs.end(),
+                              decay_modes.at(i)) != SelectedDMs.end()) {
+                    auto sf = evaluator->evaluate(
+                        {pt_values.at(i), std::abs(eta_values.at(i)),
+                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
+                         idAlgorithm, variation});
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                } else
+                    corrected_pt_values[i] = pt_values.at(i);
+                Logger::get("tauEnergyCorrection")
+                    ->debug("tau pt before {}, tau pt after {}",
+                            pt_values.at(i), corrected_pt_values.at(i));
+            }
+            return corrected_pt_values;
+        };
     auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda,
                          {pt, eta, decayMode, genMatch});
     return df1;
