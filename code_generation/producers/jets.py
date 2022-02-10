@@ -99,7 +99,7 @@ JetIDCut = Producer(
 )
 JetPUIDCut = Producer(
     name="JetPUIDCut",
-    call="physicsobject::jet::CutPUID({df}, {output}, {input}, {jet_puid}, {jet_puid_ptcut})",
+    call="physicsobject::jet::CutPUID({df}, {output}, {input}, {jet_puid}, {jet_puid_max_pt})",
     input=[nanoAOD.Jet_PUID,
            q.Jet_pt_corrected],
     output=[q.jet_puid_mask],
