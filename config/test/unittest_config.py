@@ -79,6 +79,16 @@ def build_config(
             "tau_ES_shift_DM1": 1.0,
             "tau_ES_shift_DM10": 1.0,
             "tau_ES_shift_DM11": 1.0,
+            "tau_sf_file": EraModifier(
+                {
+                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
+                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
+                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
+                }
+            ),
+            "tau_ES_json_name": "tau_energy_scale",
+            "tau_id_algorithm": "DeepTau2017v2p1",
+            "tau_ES_variation": "nom",
         },
     )
     # muon base selection:
@@ -139,6 +149,56 @@ def build_config(
         },
     )
     ###### Channel Specifics ######
+    # MT/TT/ET channel tau ID flags and SFs
+    configuration.add_config_parameters(
+        ["mt", "tt", "et"],
+        {
+            "tau_dms": "0,1,10,11",
+            "tau_sf_file": EraModifier(
+                {
+                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
+                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
+                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
+                }
+            ),
+            "vsjet_tau_id": [
+                {
+                    "tau_id_discriminator": "DeepTau2017v2p1VSjet",
+                    "tau_1_vsjet_sf_outputname": "tau_1_vsjet_sf_Medium",
+                    "tau_2_vsjet_sf_outputname": "tau_2_vsjet_sf_Medium",
+                    "vsjet_tau_id_WP": "Medium",
+                    "tau_1_vsjet_id_outputname": "tau_1_vsjet_flag_Medium",
+                    "tau_2_vsjet_id_outputname": "tau_2_vsjet_flag_Medium",
+                    "vsjet_tau_id_WPbit": 5,
+                },
+            ],
+            "vsele_tau_id": [
+                {
+                    "tau_id_discriminator": "DeepTau2017v2p1VSe",
+                    "tau_1_vsele_sf_outputname": "tau_1_vsele_sf_VVLoose",
+                    "tau_2_vsele_sf_outputname": "tau_2_vsele_sf_VVLoose",
+                    "vsele_tau_id_WP": "VVLoose",
+                    "tau_1_vsele_id_outputname": "tau_1_vsele_flag_VVLoose",
+                    "tau_2_vsele_id_outputname": "tau_2_vsele_flag_VVLoose",
+                    "vsele_tau_id_WPbit": 2,
+                },
+            ],
+            "vsmu_tau_id": [
+                {
+                    "tau_id_discriminator": "DeepTau2017v2p1VSmu",
+                    "tau_1_vsmu_sf_outputname": "tau_1_vsmu_sf_VLoose",
+                    "tau_2_vsmu_sf_outputname": "tau_2_vsmu_sf_VLoose",
+                    "vsmu_tau_id_WP": "VLoose",
+                    "tau_1_vsmu_id_outputname": "tau_1_vsmu_flag_VLoose",
+                    "tau_2_vsmu_id_outputname": "tau_2_vsmu_flag_VLoose",
+                    "vsmu_tau_id_WPbit": 1,
+                },
+            ],
+            "tau_sf_variation": "nom",
+            "tau_vsjet_sf_dependence": "pt",
+        },
+    )
+
     # MT/MM channel Muon selection
     configuration.add_config_parameters(
         ["mt", "mm"],
@@ -152,6 +212,23 @@ def build_config(
             "muon_sf_id_args": "m_pt,m_eta",
             "muon_sf_iso_name": "m_iso_binned_kit_ratio",
             "muon_sf_iso_args": "m_pt,m_eta,m_iso",
+            "muon_sf_file": EraModifier(
+                {
+                    "2016": "data/jsonpog-integration/POG/MUO/2016postVFP_UL/muon_Z.json.gz",
+                    "2017": "data/jsonpog-integration/POG/MUO/2017_UL/muon_Z.json.gz",
+                    "2018": "data/jsonpog-integration/POG/MUO/2018_UL/muon_Z.json.gz",
+                }
+            ),
+            "muon_id_sf_name": "NUM_MediumID_DEN_TrackerMuons",
+            "muon_iso_sf_name": "NUM_TightRelIso_DEN_MediumID",
+            "muon_sf_year_id": EraModifier(
+                {
+                    "2016": "2016postVFP_UL",
+                    "2017": "2017_UL",
+                    "2018": "2018_UL",
+                }
+            ),
+            "muon_sf_varation": "sf",
         },
     )
     # ET/EM channel electron selection
