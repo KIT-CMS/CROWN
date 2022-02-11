@@ -161,7 +161,8 @@ find_python_package(GitPython git 3.1)
 # in the future "find_python_package(correctionlib correctionlib X.X)" should hopefully work  
 execute_process(COMMAND pip install --user git+https://github.com/cms-nanoAOD/correctionlib.git)
 # needed only for build project checks
-execute_process(COMMAND export PATH="/github/home/.local/bin:$PATH")
+list(APPEND PATH "/github/home/.local/bin:${PATH}")
+message(STATUS "All paths in PATH: ${PATH}")
 execute_process(COMMAND correction config --cmake
     OUTPUT_VARIABLE CORRECTION_LIB_ARGS
     OUTPUT_STRIP_TRAILING_WHITESPACE)
