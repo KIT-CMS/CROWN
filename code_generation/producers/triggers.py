@@ -82,7 +82,7 @@ MTGenerateCrossTriggerFlags = ExtendedVectorProducer(
     scope=["mt"],
     vec_config="mutau_cross_trigger",
 )
-ETGenerateCrossTriggerFlags = TriggerVectorProducer(
+ETGenerateCrossTriggerFlags = ExtendedVectorProducer(
     name="GenerateCrossTriggerFlags",
     call='trigger::GenerateDoubleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {p1_ptcut}, {p2_ptcut}, {p1_etacut}, {p2_etacut}, {p1_trigger_particle_id}, {p2_trigger_particle_id}, {p1_filterbit}, {p2_filterbit}, {max_deltaR_triggermatch})',
     input=[
