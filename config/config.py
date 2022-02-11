@@ -762,6 +762,12 @@ def build_config(
         [
             q.nelectrons,
             q.ntaus,
+            scalefactors.Tau_2_VsJetTauID_SF.output_group,
+            scalefactors.Tau_2_VsEleTauID_SF.output_group,
+            scalefactors.Tau_2_VsMuTauID_SF.output_group,
+            pairquantities.VsJetTauIDFlag_2.output_group,
+            pairquantities.VsEleTauIDFlag_2.output_group,
+            pairquantities.VsMuTauIDFlag_2.output_group,
             # triggers.ETGenerateSingleElectronTriggerFlags.output_group,
             # triggers.ETGenerateCrossTriggerFlags.output_group,
             q.taujet_pt_2,
@@ -1284,7 +1290,7 @@ def build_config(
     JEC_sources = '{"RelativeJEREC2", "RelativePtEC2"}'
     configuration.add_shift(
         SystematicShift(
-            name="jecUnjecUncEC2YearUpcHFUp",
+            name="jecUncEC2YearUp",
             shift_config={
                 "global": {
                     "JE_scale_shift": 1,
