@@ -100,8 +100,7 @@ JetIDCut = Producer(
 JetPUIDCut = Producer(
     name="JetPUIDCut",
     call="physicsobject::jet::CutPUID({df}, {output}, {input}, {jet_puid}, {jet_puid_max_pt})",
-    input=[nanoAOD.Jet_PUID,
-           q.Jet_pt_corrected],
+    input=[nanoAOD.Jet_PUID, q.Jet_pt_corrected],
     output=[q.jet_puid_mask],
     scopes=["global"],
 )
@@ -123,8 +122,7 @@ GoodJets = ProducerGroup(
 GoodBJets = ProducerGroup(
     name="GoodBJets",
     call="physicsobject::CombineMasks({df}, {output}, {input})",
-    input=[q.jet_id_mask,
-           q.jet_puid_mask],
+    input=[q.jet_id_mask, q.jet_puid_mask],
     output=[q.good_bjets_mask],
     scopes=["global"],
     subproducers=[BJetPtCut, BJetEtaCut, BTagCut],

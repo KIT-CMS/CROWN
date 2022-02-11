@@ -168,7 +168,7 @@ TauID_SF = ProducerGroup(
     call=None,
     input=None,
     output=None,
-    scopes=["tt", "mt" , "et"],
+    scopes=["tt", "mt", "et"],
     subproducers={
         "tt": [
             Tau_1_VsJetTauID_SF,

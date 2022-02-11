@@ -65,33 +65,39 @@ def build_config(
             ),
             "PU_reweighting_hist": "pileup",
             "met_filters": EraModifier(
-                { 
-                    "2016": ["Flag_goodVertices", 
-                             "Flag_globalSuperTightHalo2016Filter", 
-                             "Flag_HBHENoiseFilter", 
-                             "Flag_HBHENoiseIsoFilter",
-                             "Flag_EcalDeadCellTriggerPrimitiveFilter", 
-                             "Flag_BadPFMuonFilter", 
-                             #"Flag_BadPFMuonDzFilter", # only since nanoAODv9 available
-                             "Flag_eeBadScFilter"],
-                    "2018": ["Flag_goodVertices", 
-                             "Flag_globalSuperTightHalo2016Filter", 
-                             "Flag_HBHENoiseFilter", 
-                             "Flag_HBHENoiseIsoFilter",
-                             "Flag_EcalDeadCellTriggerPrimitiveFilter", 
-                             "Flag_BadPFMuonFilter", 
-                             #"Flag_BadPFMuonDzFilter", # only since nanoAODv9 available
-                             "Flag_eeBadScFilter",
-                             "Flag_ecalBadCalibFilter"],
-                    "2018": ["Flag_goodVertices", 
-                             "Flag_globalSuperTightHalo2016Filter", 
-                             "Flag_HBHENoiseFilter", 
-                             "Flag_HBHENoiseIsoFilter",
-                             "Flag_EcalDeadCellTriggerPrimitiveFilter", 
-                             "Flag_BadPFMuonFilter", 
-                             #"Flag_BadPFMuonDzFilter", # only since nanoAODv9 available
-                             "Flag_eeBadScFilter",
-                             "Flag_ecalBadCalibFilter"],
+                {
+                    "2016": [
+                        "Flag_goodVertices",
+                        "Flag_globalSuperTightHalo2016Filter",
+                        "Flag_HBHENoiseFilter",
+                        "Flag_HBHENoiseIsoFilter",
+                        "Flag_EcalDeadCellTriggerPrimitiveFilter",
+                        "Flag_BadPFMuonFilter",
+                        # "Flag_BadPFMuonDzFilter", # only since nanoAODv9 available
+                        "Flag_eeBadScFilter",
+                    ],
+                    "2018": [
+                        "Flag_goodVertices",
+                        "Flag_globalSuperTightHalo2016Filter",
+                        "Flag_HBHENoiseFilter",
+                        "Flag_HBHENoiseIsoFilter",
+                        "Flag_EcalDeadCellTriggerPrimitiveFilter",
+                        "Flag_BadPFMuonFilter",
+                        # "Flag_BadPFMuonDzFilter", # only since nanoAODv9 available
+                        "Flag_eeBadScFilter",
+                        "Flag_ecalBadCalibFilter",
+                    ],
+                    "2018": [
+                        "Flag_goodVertices",
+                        "Flag_globalSuperTightHalo2016Filter",
+                        "Flag_HBHENoiseFilter",
+                        "Flag_HBHENoiseIsoFilter",
+                        "Flag_EcalDeadCellTriggerPrimitiveFilter",
+                        "Flag_BadPFMuonFilter",
+                        # "Flag_BadPFMuonDzFilter", # only since nanoAODv9 available
+                        "Flag_eeBadScFilter",
+                        "Flag_ecalBadCalibFilter",
+                    ],
                 }
             ),
         },
@@ -107,10 +113,10 @@ def build_config(
             "vsjet_tau_id_bit": 4,
             "vsele_tau_id_bit": 4,
             "vsmu_tau_id_bit": 1,
-            #"tau_ES_shift_DM0": 1.0,
-            #"tau_ES_shift_DM1": 1.0,
-            #"tau_ES_shift_DM10": 1.0,
-            #"tau_ES_shift_DM11": 1.0,
+            # "tau_ES_shift_DM0": 1.0,
+            # "tau_ES_shift_DM1": 1.0,
+            # "tau_ES_shift_DM10": 1.0,
+            # "tau_ES_shift_DM11": 1.0,
             "tau_sf_file": EraModifier(
                 {
                     "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
@@ -120,7 +126,7 @@ def build_config(
             ),
             "tau_ES_json_name": "tau_energy_scale",
             "tau_id_algorithm": "DeepTau2017v2p1",
-            "tau_ES_variation": "nom", # or "up"/"down" for up/down variation
+            "tau_ES_variation": "nom",  # or "up"/"down" for up/down variation
         },
     )
     # muon base selection:
@@ -154,8 +160,8 @@ def build_config(
             "min_jet_pt": 30,
             "max_jet_eta": 4.7,
             "jet_id": 2,  # second bit is tight JetID
-            "jet_puid": 4, # 0==fail, 4==pass(loose), 6==pass(loose,medium), 7==pass(loose,medium,tight) !check 2016 -> inverted ID
-            "jet_puid_max_pt": 50, # recommended to apply puID only for jets below 50 GeV
+            "jet_puid": 4,  # 0==fail, 4==pass(loose), 6==pass(loose,medium), 7==pass(loose,medium,tight) !check 2016 -> inverted ID
+            "jet_puid_max_pt": 50,  # recommended to apply puID only for jets below 50 GeV
             "JEC_shift_sources": '{""}',
             "JE_scale_shift": 0,
             "JE_reso_shift": 0,
@@ -246,8 +252,8 @@ def build_config(
                     "vsmu_tau_id_WPbit": 4,
                 },
             ],
-            "tau_sf_variation": "nom", # or "up"/"down" for up/down variation
-            "tau_vsjet_sf_dependence": "pt", # or "dm", "eta"
+            "tau_sf_variation": "nom",  # or "up"/"down" for up/down variation
+            "tau_vsjet_sf_dependence": "pt",  # or "dm", "eta"
         },
     )
 
@@ -275,7 +281,7 @@ def build_config(
                     "2018": "2018_UL",
                 }
             ),
-            "muon_sf_varation": "sf", # "sf" is nominal, "systup"/"systdown" are up/down variations
+            "muon_sf_varation": "sf",  # "sf" is nominal, "systup"/"systdown" are up/down variations
         },
     )
     # ET/EM channel electron selection
@@ -486,7 +492,7 @@ def build_config(
             event.Lumi,
             event.MetFilter,
             event.PUweights,
-            taus.TauEnergyCorrection, # or TauEnergyCorrection_old for previous implementation
+            taus.TauEnergyCorrection,  # or TauEnergyCorrection_byValue for previous implementation
             taus.GoodTaus,
             muons.BaseMuons,
             electrons.BaseElectrons,
@@ -517,7 +523,7 @@ def build_config(
             jets.BJetCollection,
             jets.BasicBJetQuantities,
             genparticles.MMGenDiTauPairQuantities,
-            scalefactors.MuonIDIso_SF,  
+            scalefactors.MuonIDIso_SF,
             triggers.MMGenerateSingleMuonTriggerFlags,
             met.MetCorrections,
             pairquantities.DiTauPairMETQuantities,
@@ -545,7 +551,7 @@ def build_config(
             jets.BJetCollection,
             jets.BasicBJetQuantities,
             genparticles.MTGenDiTauPairQuantities,
-            scalefactors.MuonIDIso_SF, 
+            scalefactors.MuonIDIso_SF,
             scalefactors.TauID_SF,
             triggers.MTGenerateSingleMuonTriggerFlags,
             triggers.MTGenerateCrossTriggerFlags,
