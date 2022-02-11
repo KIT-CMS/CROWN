@@ -448,6 +448,15 @@ UnrollTauLV2 = ProducerGroup(
         tau_decaymode_2,
         tau_gen_match_2,
         taujet_pt_2,
+    ],
+)
+MTTauIDFlags = ProducerGroup(
+    name="MTTauIDFlags",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["mt"],
+    subproducers=[
         VsJetTauIDFlag_2,
         VsEleTauIDFlag_2,
         VsMuTauIDFlag_2,
