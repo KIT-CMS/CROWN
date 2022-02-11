@@ -122,6 +122,8 @@ def build_config(
             "min_jet_pt": 30,
             "max_jet_eta": 4.7,
             "jet_id": 2,  # second bit is tight JetID
+            "jet_puid": 4,  # 0==fail, 4==pass(loose), 6==pass(loose,medium), 7==pass(loose,medium,tight) !check 2016 -> inverted ID
+            "jet_puid_max_pt": 50,
             "JEC_shift_sources": '{""}',
             "JE_scale_shift": 0,
             "JE_reso_shift": 0,
