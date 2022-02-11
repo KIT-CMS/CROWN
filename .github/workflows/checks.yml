@@ -37,6 +37,9 @@ jobs:
         shell: bash
         run: cmake -E make_directory ${{github.workspace}}/build
 
+      - name: adding a system path
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+        
       - name: Configure CMake
         shell: bash
         run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES -DERAS=$ERAS -DCHANNELS=$CHANNELS -DSHIFTS=$SHIFTS
