@@ -185,25 +185,32 @@ auto id_vsJet(auto &df, const std::string &pt, const std::string &decayMode,
               const std::string &sf_dependence, const std::string &id_output,
               const std::string &sf_file, const std::string &sf_name) {
 
-    Logger::get("TauIDsf")->debug("Setting up function for tau id vsJet sf");
-    Logger::get("TauIDsf")->debug("ID - Name {}", sf_name);
+    Logger::get("TauIDvsJetSF")
+        ->debug("Setting up function for tau id vsJet sf");
+    Logger::get("TauIDvsJetSF")->debug("ID - Name {}", sf_name);
     auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(sf_name);
     auto idSF_calculator = [evaluator, wp, variation, sf_dependence,
                             selectedDMs,
                             sf_name](const float &pt, const int &decayMode,
                                      const UChar_t &genMatch) {
         double sf = 1.;
-        Logger::get("TauIDsf")->debug("ID - decayMode {}", decayMode);
+        Logger::get("TauIDvsJetSF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes default
         // values due to tau energy correction shifts below good tau pt
         // selection)
         if (std::find(selectedDMs.begin(), selectedDMs.end(), decayMode) !=
             selectedDMs.end()) {
-            Logger::get("TauIDsf")->debug("ID - pt {}, genMatch {}", pt,
-                                          genMatch);
+            Logger::get("TauIDvsJetSF")
+                ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, "
+                        "variation {}, "
+                        "sf_dependence {}",
+                        sf_name, pt, decayMode, genMatch, wp, variation,
+                        sf_dependence);
             sf = evaluator->evaluate({pt, decayMode, static_cast<int>(genMatch),
                                       wp, variation, sf_dependence});
+            Logger::get("TauIDvsJetSF")->debug("Scale Factor {}", sf);
         }
+
         return sf;
     };
     auto df1 = df.Define(id_output, idSF_calculator, {pt, decayMode, genMatch});
@@ -255,24 +262,26 @@ auto id_vsEleMu(auto &df, const std::string &eta, const std::string &decayMode,
                 const std::string &variation, const std::string &id_output,
                 const std::string &sf_file, const std::string &sf_name) {
 
-    Logger::get("TauIDsf")->debug(
-        "Setting up function for tau id vsEle/vsMu sf");
-    Logger::get("TauIDsf")->debug("ID - Name {}", sf_name);
+    Logger::get("TauIDvsLepSF")
+        ->debug("Setting up function for tau id vsEle/vsMu sf");
+    Logger::get("TauIDvsLepSF")->debug("ID - Name {}", sf_name);
     auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(sf_name);
     auto idSF_calculator = [evaluator, wp, variation, selectedDMs,
                             sf_name](const float &eta, const int &decayMode,
                                      const UChar_t &genMatch) {
         double sf = 1.;
-        Logger::get("TauIDsf")->debug("ID - decayMode {}", decayMode);
+        Logger::get("TauIDvsLepSF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes
         // default values due to tau energy correction shifts below good tau
         // pt selection)
         if (std::find(selectedDMs.begin(), selectedDMs.end(), decayMode) !=
             selectedDMs.end()) {
-            Logger::get("TauIDsf")->debug("ID - eta {}, genMatch {}", eta,
-                                          genMatch);
+            Logger::get("TauIDvsLepSF")
+                ->debug("ID {} - eta {}, genMatch {}, wp {}, variation {} ",
+                        sf_name, eta, genMatch, wp, variation);
             sf = evaluator->evaluate(
                 {std::abs(eta), static_cast<int>(genMatch), wp, variation});
+            Logger::get("TauIDvsLepSF")->debug("Scale Factor {}", sf);
         }
         return sf;
     };
