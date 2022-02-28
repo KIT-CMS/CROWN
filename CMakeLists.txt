@@ -155,11 +155,22 @@ function(find_python_package PYPINAME NAME MIN_VERSION)
     message(STATUS "Found Python package ${PYPINAME} (require ${MIN_VERSION}, found ${PACKAGE_VERSION})")
 endfunction()
 
+function(install_correctionlib)
+    execute_process(COMMAND "${Python_EXECUTABLE}" "-c" "import correctionlib; print(correctionlib.__version__)"
+                    RESULT_VARIABLE PACKAGE_NOT_FOUND
+                    OUTPUT_VARIABLE PACKAGE_VERSION
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(${PACKAGE_NOT_FOUND} EQUAL 1)
+        execute_process(COMMAND pip install --user git+https://github.com/cms-nanoAOD/correctionlib.git)
+    endif()
+    message(STATUS "Found correctionlib !")
+endfunction()
+
 find_python_package(GitPython git 3.1)
 # Adding correctionlib for scale factor evaluation
 # for now the official pip package has some problem 
 # in the future "find_python_package(correctionlib correctionlib X.X)" should hopefully work  
-execute_process(COMMAND pip install --user git+https://github.com/cms-nanoAOD/correctionlib.git)
+install_correctionlib()
 execute_process(COMMAND correction config --cmake
     OUTPUT_VARIABLE CORRECTION_LIB_ARGS
     OUTPUT_STRIP_TRAILING_WHITESPACE)
