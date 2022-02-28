@@ -331,12 +331,12 @@ def build_config(
             jets.GoodJets,
             jets.GoodBJets,
             event.DiLeptonVeto,
+            met.MetBasics,
         ],
     )
     configuration.add_producers(
         "mm",
         [
-            met.UncorrectedMet,
             muons.GoodMuons,
             pairselection.MMPairSelection,
             pairselection.GoodMMPairFilter,
@@ -358,7 +358,6 @@ def build_config(
     configuration.add_producers(
         "mt",
         [
-            met.UncorrectedMet,
             muons.GoodMuons,
             pairselection.MTPairSelection,
             pairselection.GoodMTPairFilter,
@@ -383,7 +382,6 @@ def build_config(
     configuration.add_producers(
         "et",
         [
-            met.UncorrectedMet,
             electrons.GoodElectrons,
             pairselection.ETPairSelection,
             pairselection.GoodETPairFilter,

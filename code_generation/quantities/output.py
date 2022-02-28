@@ -174,6 +174,9 @@ pfmet_p4 = Quantity("pfmet_p4")
 pfmetphi = Quantity("pfmetphi")
 pfmet_uncorrected = Quantity("pfmet_uncorrected")
 pfmetphi_uncorrected = Quantity("pfmetphi_uncorrected")
+pfmet_p4_leptoncorrected = Quantity("pfmet_p4_leptoncorrected")
+pfmet_p4_jetcorrected = Quantity("pfmet_p4_jetcorrected")
+pfmet_p4_recoilcorrected = Quantity("pfmet_p4_recoilcorrected")
 
 ## embedding quantities
 emb_genweight = Quantity("emb_genweight")

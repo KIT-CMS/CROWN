@@ -398,12 +398,12 @@ def build_config(
             jets.GoodJets,
             jets.GoodBJets,
             event.DiLeptonVeto,
+            met.MetBasics,
         ],
     )
     configuration.add_producers(
         "mm",
         [
-            met.UncorrectedMet,
             muons.GoodMuons,
             muons.VetoMuons,
             muons.VetoSecondMuon,
@@ -430,7 +430,6 @@ def build_config(
     configuration.add_producers(
         "mt",
         [
-            met.UncorrectedMet,
             muons.GoodMuons,
             pairselection.MTPairSelection,
             pairselection.GoodMTPairFilter,
@@ -454,13 +453,13 @@ def build_config(
             triggers.MTGenerateSingleMuonTriggerFlags,
             triggers.MTGenerateCrossTriggerFlags,
             met.MetCorrections,
+            met.PFMetCorrections,
             pairquantities.DiTauPairMETQuantities,
         ],
     )
     configuration.add_producers(
         "et",
         [
-            met.UncorrectedMet,
             electrons.GoodElectrons,
             pairselection.ETPairSelection,
             pairselection.GoodETPairFilter,
@@ -483,6 +482,7 @@ def build_config(
             triggers.ETGenerateSingleElectronTriggerFlags,
             triggers.ETGenerateCrossTriggerFlags,
             met.MetCorrections,
+            met.PFMetCorrections,
             pairquantities.DiTauPairMETQuantities,
         ],
     )
@@ -619,6 +619,8 @@ def build_config(
             q.gen_m_vis,
             q.met,
             q.metphi,
+            q.pfmet,
+            q.pfmetphi,
             q.met_uncorrected,
             q.metphi_uncorrected,
             q.pfmet_uncorrected,
