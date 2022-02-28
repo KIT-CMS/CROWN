@@ -380,6 +380,17 @@ class Configuration(object):
                 resolved_value = configuration_dict[key].apply(self.era)
             else:
                 resolved_value = configuration_dict[key]
+            # after resolving, step down iterately, if nested Modifiers are used
+            if isinstance(resolved_value, list):
+                for i, value in enumerate(resolved_value):
+                    if isinstance(value, dict):
+                        resolved_value[i] = self.resolve_modifiers(value)
+                    elif isinstance(value, SampleModifier):
+                        resolved_value[i] = value.apply(self.sample)
+                    elif isinstance(value, EraModifier):
+                        resolved_value[i] = value.apply(self.era)
+                    else:
+                        resolved_value[i] = value
             resolved_dict.update({key: resolved_value})
         return resolved_dict
 
@@ -479,6 +490,49 @@ class Configuration(object):
             if len(missing_outputs) > 0:
                 raise InvalidOutputError(scope, missing_outputs)
 
+    def _remove_empty_configkeys(self, config) -> None:
+        """
+        Function used to remove empty configuration parameters from the configuration. Empty parameters are
+        * empty list: []
+        * empty dict: {}
+        * empty string: ""
+        * Nonetype: None
+
+            Args:
+                None
+
+            Returns:
+                None
+        """
+        for key in config:
+            if isinstance(config[key], dict):
+                self._remove_empty_configkeys(config[key])
+            # special case for extended vector producers, here we can have a list, that contains empty dicts
+            elif isinstance(config[key], list):
+                for i, value in enumerate(config[key]):
+                    if value == {}:
+                        log.info(
+                            "Removing {}, (from {}) since it is an empty configuration parameter".format(
+                                config[key][i], key
+                            )
+                        )
+                        del config[key][i]
+                    if isinstance(value, dict):
+                        self._remove_empty_configkeys(value)
+
+            elif (
+                config[key] is None
+                or config[key] == ""
+                or config[key] == []
+                or config[key] == {}
+            ):
+                log.info(
+                    "Removing {} since it is an empty configuration parameter".format(
+                        key
+                    )
+                )
+                del config[key]
+
     def _validate_all_shifts(self) -> None:
         """
         Function to validate the set of selected shifts against the set of available shifts.
@@ -533,6 +587,7 @@ class Configuration(object):
             None
         """
         self._validate_outputs()
+        self._remove_empty_configkeys(self.config_parameters)
         self._validate_all_shifts()
 
     def report(self) -> None:
