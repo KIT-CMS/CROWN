@@ -469,6 +469,14 @@ def build_config(
     configuration.add_outputs(
         channels,
         [
+            q.is_data,
+            q.is_emb,
+            q.is_tt,
+            q.is_dy,
+            q.is_wj,
+            q.is_ggh,
+            q.is_vbf,
+            q.is_vv,
             nanoAOD.run,
             q.lumi,
             nanoAOD.event,
