@@ -16,6 +16,7 @@ import code_generation.producers.taus as taus
 import code_generation.producers.triggers as triggers
 import code_generation.quantities.nanoAOD as nanoAOD
 import code_generation.quantities.output as q
+from config.tau_triggersetup import add_diTauTriggerSetup
 from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.rules import AppendProducer, RemoveProducer
@@ -76,7 +77,7 @@ def build_config(
                         # "Flag_BadPFMuonDzFilter", # only since nanoAODv9 available
                         "Flag_eeBadScFilter",
                     ],
-                    "2018": [
+                    "2017": [
                         "Flag_goodVertices",
                         "Flag_globalSuperTightHalo2016Filter",
                         "Flag_HBHENoiseFilter",
@@ -204,53 +205,68 @@ def build_config(
             "vsjet_tau_id": [
                 {
                     "tau_id_discriminator": "DeepTau2017v2p1VSjet",
-                    "tau_1_vsjet_sf_outputname": "tau_1_vsjet_sf_Medium",
-                    "tau_2_vsjet_sf_outputname": "tau_2_vsjet_sf_Medium",
-                    "vsjet_tau_id_WP": "Medium",
-                    "tau_1_vsjet_id_outputname": "tau_1_vsjet_flag_Medium",
-                    "tau_2_vsjet_id_outputname": "tau_2_vsjet_flag_Medium",
-                    "vsjet_tau_id_WPbit": 5,
-                },
+                    "tau_1_vsjet_sf_outputname": "id_wgt_tau_vsJet_{wp}_1".format(
+                        wp=wp
+                    ),
+                    "tau_2_vsjet_sf_outputname": "id_wgt_tau_vsJet_{wp}_2".format(
+                        wp=wp
+                    ),
+                    "vsjet_tau_id_WP": "{wp}".format(wp=wp),
+                    "tau_1_vsjet_id_outputname": "id_tau_vsJet_{wp}_1".format(wp=wp),
+                    "tau_2_vsjet_id_outputname": "id_tau_vsJet_{wp}_2".format(wp=wp),
+                    "vsjet_tau_id_WPbit": bit,
+                }
+                for wp, bit in {
+                    "VVVLoose": 1,
+                    "VVLoose": 2,
+                    "VLoose": 3,
+                    "Loose": 4,
+                    "Medium": 5,
+                    "Tight": 6,
+                    "VTight": 7,
+                    "VVTight": 8,
+                }.items()
             ],
             "vsele_tau_id": [
                 {
                     "tau_id_discriminator": "DeepTau2017v2p1VSe",
-                    "tau_1_vsele_sf_outputname": "tau_1_vsele_sf_VVLoose",
-                    "tau_2_vsele_sf_outputname": "tau_2_vsele_sf_VVLoose",
-                    "vsele_tau_id_WP": "VVLoose",
-                    "tau_1_vsele_id_outputname": "tau_1_vsele_flag_VVLoose",
-                    "tau_2_vsele_id_outputname": "tau_2_vsele_flag_VVLoose",
-                    "vsele_tau_id_WPbit": 2,
-                },
-                {
-                    "tau_id_discriminator": "DeepTau2017v2p1VSe",
-                    "tau_1_vsele_sf_outputname": "tau_1_vsele_sf_Tight",
-                    "tau_2_vsele_sf_outputname": "tau_2_vsele_sf_Tight",
-                    "vsele_tau_id_WP": "Tight",
-                    "tau_1_vsele_id_outputname": "tau_1_vsele_flag_Tight",
-                    "tau_2_vsele_id_outputname": "tau_2_vsele_flag_Tight",
-                    "vsele_tau_id_WPbit": 6,
-                },
+                    "tau_1_vsele_sf_outputname": "id_wgt_tau_vsEle_{wp}_1".format(
+                        wp=wp
+                    ),
+                    "tau_2_vsele_sf_outputname": "id_wgt_tau_vsEle_{wp}_2".format(
+                        wp=wp
+                    ),
+                    "vsele_tau_id_WP": "{wp}".format(wp=wp),
+                    "tau_1_vsele_id_outputname": "id_tau_vsEle_{wp}_1".format(wp=wp),
+                    "tau_2_vsele_id_outputname": "id_tau_vsEle_{wp}_2".format(wp=wp),
+                    "vsele_tau_id_WPbit": bit,
+                }
+                for wp, bit in {
+                    "VVLoose": 2,
+                    "VLoose": 3,
+                    "Loose": 4,
+                    "Medium": 5,
+                    "Tight": 6,
+                    "VTight": 7,
+                    "VVTight": 8,
+                }.items()
             ],
             "vsmu_tau_id": [
                 {
                     "tau_id_discriminator": "DeepTau2017v2p1VSmu",
-                    "tau_1_vsmu_sf_outputname": "tau_1_vsmu_sf_VLoose",
-                    "tau_2_vsmu_sf_outputname": "tau_2_vsmu_sf_VLoose",
-                    "vsmu_tau_id_WP": "VLoose",
-                    "tau_1_vsmu_id_outputname": "tau_1_vsmu_flag_VLoose",
-                    "tau_2_vsmu_id_outputname": "tau_2_vsmu_flag_VLoose",
-                    "vsmu_tau_id_WPbit": 1,
-                },
-                {
-                    "tau_id_discriminator": "DeepTau2017v2p1VSmu",
-                    "tau_1_vsmu_sf_outputname": "tau_1_vsmu_sf_Tight",
-                    "tau_2_vsmu_sf_outputname": "tau_2_vsmu_sf_Tight",
-                    "vsmu_tau_id_WP": "Tight",
-                    "tau_1_vsmu_id_outputname": "tau_1_vsmu_flag_Tight",
-                    "tau_2_vsmu_id_outputname": "tau_2_vsmu_flag_Tight",
-                    "vsmu_tau_id_WPbit": 4,
-                },
+                    "tau_1_vsmu_sf_outputname": "id_wgt_tau_vsMu_{wp}_1".format(wp=wp),
+                    "tau_2_vsmu_sf_outputname": "id_wgt_tau_vsMu_{wp}_2".format(wp=wp),
+                    "vsmu_tau_id_WP": "{wp}".format(wp=wp),
+                    "tau_1_vsmu_id_outputname": "id_tau_vsMu_{wp}_1".format(wp=wp),
+                    "tau_2_vsmu_id_outputname": "id_tau_vsMu_{wp}_2".format(wp=wp),
+                    "vsmu_tau_id_WPbit": bit,
+                }
+                for wp, bit in {
+                    "VLoose": 1,
+                    "Loose": 2,
+                    "Medium": 3,
+                    "Tight": 4,
+                }.items()
             ],
             "tau_sf_variation": "nom",  # or "up"/"down" for up/down variation
             "tau_vsjet_sf_dependence": "pt",  # or "dm", "eta"
@@ -348,124 +364,6 @@ def build_config(
             "recoil_systematic_shift_up": False,
             "recoil_systematic_shift_down": False,
             "min_jetpt_met_propagation": 15,
-        },
-    )
-
-    ## MT, MM channel trigger setup
-    configuration.add_config_parameters(
-        ["mt", "mm"],
-        {
-            "singlemoun_trigger": EraModifier(
-                {
-                    "2018": [
-                        {
-                            "flagname": "singlemuon_24",
-                            "hlt_path": "HLT_IsoMu24",
-                            "ptcut": 25,
-                            "etacut": 2.5,
-                            "filterbit": 3,
-                            "trigger_particle_id": 13,
-                            "max_deltaR_triggermatch": 0.4,
-                        },
-                        {
-                            "flagname": "singlemuon_27",
-                            "hlt_path": "HLT_IsoMu27",
-                            "ptcut": 28,
-                            "etacut": 2.5,
-                            "filterbit": 3,
-                            "trigger_particle_id": 13,
-                            "max_deltaR_triggermatch": 0.4,
-                        },
-                    ],
-                }
-            ),
-        },
-    )
-    configuration.add_config_parameters(
-        ["mt"],
-        {
-            "mutau_cross_trigger": EraModifier(
-                {
-                    "2018": [
-                        {
-                            "flagname": "trg_crossmuon_mu20tau27_hps",
-                            "hlt_path": "HLT_IsoMu20_eta2p1_LooseChargedIsoPFTauHPS27_eta2p1_CrossL1",
-                            "p1_ptcut": 21,
-                            "p1_etacut": 2.5,
-                            "p1_filterbit": 3,
-                            "p1_trigger_particle_id": 13,
-                            "p2_ptcut": 32,
-                            "p2_etacut": 2.1,
-                            "p2_filterbit": 4,
-                            "p2_trigger_particle_id": 15,
-                            "max_deltaR_triggermatch": 0.4,
-                        }
-                    ],
-                }
-            ),
-        },
-    )
-    ## ET, EE channel trigger setup
-    configuration.add_config_parameters(
-        ["et", "ee"],
-        {
-            "singleelectron_trigger": EraModifier(
-                {
-                    "2018": [
-                        {
-                            "flagname": "singleelectron_27",
-                            "hlt_path": "HLT_Ele27_WPTight_Gsf",
-                            "ptcut": 28,
-                            "etacut": 2.1,
-                            "filterbit": 1,
-                            "trigger_particle_id": 11,
-                            "max_deltaR_triggermatch": 0.4,
-                        },
-                        {
-                            "flagname": "singleelectron_32",
-                            "hlt_path": "HLT_Ele32_WPTight_Gsf",
-                            "ptcut": 33,
-                            "etacut": 2.1,
-                            "filterbit": 1,
-                            "trigger_particle_id": 11,
-                            "max_deltaR_triggermatch": 0.4,
-                        },
-                        {
-                            "flagname": "singleelectron_35",
-                            "hlt_path": "HLT_Ele35_WPTight_Gsf",
-                            "ptcut": 36,
-                            "etacut": 2.1,
-                            "filterbit": 1,
-                            "trigger_particle_id": 11,
-                            "max_deltaR_triggermatch": 0.4,
-                        },
-                    ],
-                }
-            ),
-        },
-    )
-    configuration.add_config_parameters(
-        ["et"],
-        {
-            "eltau_cross_trigger": EraModifier(
-                {
-                    "2018": [
-                        {
-                            "flagname": "trg_crossele_ele24tau30_hps",
-                            "hlt_path": "HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTauHPS30_eta2p1_CrossL1",
-                            "p1_ptcut": 25,
-                            "p2_ptcut": 32,
-                            "p1_etacut": 2.5,
-                            "p2_etacut": 2.1,
-                            "p1_filterbit": 1,
-                            "p1_trigger_particle_id": 11,
-                            "p2_filterbit": 4,
-                            "p2_trigger_particle_id": 15,
-                            "max_deltaR_triggermatch": 0.4,
-                        },
-                    ],
-                }
-            ),
         },
     )
 
@@ -829,6 +727,12 @@ def build_config(
     #         ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
     #     )
     # )
+
+    #########################
+    # Import triggersetup   #
+    #########################
+    add_diTauTriggerSetup(configuration)
+
     configuration.add_shift(
         SystematicShift(
             name="tauES_Down",
