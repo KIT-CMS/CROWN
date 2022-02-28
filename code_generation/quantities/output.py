@@ -192,3 +192,14 @@ emb_isTightTrailingMuon = Quantity("emb_isTightTrailingMuon")
 emb_InitialPairCandidates = Quantity("emb_InitialPairCandidates")
 emb_SelectionOldMass = Quantity("emb_SelectionOldMass")
 emb_SelectionNewMass = Quantity("emb_SelectionNewMass")
+
+
+# sample flags
+is_data = Quantity("is_data")
+is_emb = Quantity("is_emb")
+is_tt = Quantity("is_tt")
+is_dy = Quantity("is_dy")
+is_wj = Quantity("is_wj")
+is_ggh = Quantity("is_ggh")
+is_vbf = Quantity("is_vbf")
+is_vv = Quantity("is_vv")

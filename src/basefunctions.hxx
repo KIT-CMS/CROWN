@@ -69,6 +69,18 @@ auto rename(auto &df, const std::string &inputname,
             const std::string &outputname) {
     return df.Define(outputname, [](const T &q) { return q; }, {inputname});
 }
+/// Function to add a new quantity with a defined value
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column
+/// \param value the value to be added
+///
+/// \returns a dataframe with the new column
+
+template <typename T>
+auto DefineQuantity(auto &df, const std::string &outputname, T const &value) {
+    return df.Define(outputname, [value]() { return value; }, {});
+}
 /// This function filters events, where neither of the input flags is true.
 /// This is used to filter events which do not pass an underlying requirement in
 /// any systematic variation.
@@ -325,6 +337,7 @@ auto UnrollVectorQuantity(auto &df, const std::string &name,
         {name});
     return UnrollVectorQuantity<T>(df1, name, names, idx + 1);
 }
+
 } // namespace basefunctions
 
 #endif /* GUARDBASEFUNCTIONS_H */

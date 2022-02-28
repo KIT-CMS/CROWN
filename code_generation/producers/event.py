@@ -28,6 +28,73 @@ JSONFilter = BaseFilter(
     scopes=["global"],
 )
 
+is_data = Producer(
+    name="isData",
+    input=[],
+    call="basefunctions::DefineQuantity({df}, {output}, {is_data})",
+    output=[q.is_data],
+    scopes=["global"],
+)
+
+is_emb = Producer(
+    name="is_emb",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_emb})",
+    input=[],
+    output=[q.is_emb],
+    scopes=["global"],
+)
+is_tt = Producer(
+    name="is_tt",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_tt})",
+    input=[],
+    output=[q.is_tt],
+    scopes=["global"],
+)
+is_dy = Producer(
+    name="is_dy",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_dy})",
+    input=[],
+    output=[q.is_dy],
+    scopes=["global"],
+)
+is_wj = Producer(
+    name="is_wj",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_wj})",
+    input=[],
+    output=[q.is_wj],
+    scopes=["global"],
+)
+is_ggh = Producer(
+    name="is_ggh",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_ggh})",
+    input=[],
+    output=[q.is_ggh],
+    scopes=["global"],
+)
+is_vbf = Producer(
+    name="is_vbf",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_vbf})",
+    input=[],
+    output=[q.is_vbf],
+    scopes=["global"],
+)
+is_vv = Producer(
+    name="is_vv",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_vv})",
+    input=[],
+    output=[q.is_vv],
+    scopes=["global"],
+)
+
+SampleFlags = ProducerGroup(
+    name="SampleFlags",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["global"],
+    subproducers=[is_data, is_emb, is_tt, is_dy, is_wj, is_ggh, is_vbf, is_vv],
+)
+
 MetFilter = VectorProducer(
     name="MetFilter",
     call='metfilter::ApplyMetFilter({df}, "{met_filters}", "{met_filters}")',
