@@ -111,7 +111,14 @@ CalculateGenBosonVector = Producer(
         nanoAOD.GenParticle_status,
         nanoAOD.GenParticle_statusFlags,
     ],
-    output=[q.recoil_genboson_p4],
+    output=[q.recoil_genboson_p4_vec],
+    scopes=["global"],
+)
+GenBosonMass = Producer(
+    name="GenBosonMass",
+    call="met::genBosonMass({df}, {output}, {input})",
+    input=[q.recoil_genboson_p4_vec],
+    output=[q.genbosonmass],
     scopes=["global"],
 )
 MetBasics = ProducerGroup(
@@ -132,7 +139,8 @@ MetBasics = ProducerGroup(
         MetCov10,
         MetCov11,
         MetSumEt,
-        CalculateGenBosonVector
+        CalculateGenBosonVector,
+        GenBosonMass,
     ],
 )
 
@@ -191,7 +199,7 @@ ApplyRecoilCorrections = Producer(
     call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down}, {is_wj})',
     input=[
         q.met_p4_jetcorrected,
-        q.recoil_genboson_p4,
+        q.recoil_genboson_p4_vec,
         q.Jet_pt_corrected,
     ],
     output=[q.met_p4_recoilcorrected],
@@ -202,7 +210,7 @@ ApplyRecoilCorrectionsPFMet = Producer(
     call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down}, {is_wj})',
     input=[
         q.pfmet_p4_jetcorrected,
-        q.recoil_genboson_p4,
+        q.recoil_genboson_p4_vec,
         q.Jet_pt_corrected,
     ],
     output=[q.pfmet_p4_recoilcorrected],

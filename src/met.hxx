@@ -115,6 +115,27 @@ auto calculateGenBosonVector(auto df, const std::string &genparticle_pt,
         return df.Define(outputname, []() { return default_lorentzvector; });
     }
 }
+/// Function to calculate the mass from the genboson double vector and add it to
+/// the dataframe
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the mass value
+/// \param inputvector name of the column containing the genboson vector
+///
+/// \returns a dataframe with the new column
+
+auto genBosonMass(auto &df, const std::string &outputname,
+                  const std::string &inputvector) {
+    return df.Define(outputname,
+                     [](const std::pair<ROOT::Math::PtEtaPhiMVector,
+                                        ROOT::Math::PtEtaPhiMVector> &metpair) {
+                         if (metpair.first.pt() <
+                             0.0) // negative pt is used to mark invalid LVs
+                             return default_float;
+                         return (float)metpair.first.mass();
+                     },
+                     {inputvector});
+}
 /**
  * @brief Function used to propagate lepton corrections to the met. If the
  energy of a lepton is corrected (via some scale factor) or due to a shift,

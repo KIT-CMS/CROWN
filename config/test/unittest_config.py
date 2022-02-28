@@ -519,6 +519,8 @@ def build_config(
             q.gen_m_vis,
             q.met,
             q.metphi,
+            q.pfmet,
+            q.pfmetphi,
             q.met_uncorrected,
             q.metphi_uncorrected,
             q.pfmet_uncorrected,
@@ -535,6 +537,7 @@ def build_config(
             q.pt_tt,
             q.pt_ttjj,
             q.mt_tot,
+            q.genbosonmass,
         ],
     )
     configuration.add_outputs(
