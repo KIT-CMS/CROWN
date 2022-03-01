@@ -188,6 +188,18 @@ class QuantityGroup(Quantity):
     def __init__(self, name: str):
         super().__init__(name)
         self.quantities: List[Quantity] = []
+        self.vec_config: str = ""
+
+    def set_vec_config(self, vec_config: str) -> None:
+        """
+        Function to set the vec config key
+
+        Args:
+            vec_config (str): Name of the vec config key
+        Returns:
+            None
+        """
+        self.vec_config = vec_config
 
     def copy(self, name: str) -> Quantity:
         """

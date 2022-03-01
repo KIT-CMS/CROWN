@@ -18,7 +18,12 @@ from code_generation.producer import (
     TProducerInput,
     TProducerStore,
 )
-from code_generation.quantity import NanoAODQuantity, QuantitiesInput, QuantitiesStore
+from code_generation.quantity import (
+    NanoAODQuantity,
+    QuantitiesInput,
+    QuantitiesStore,
+    QuantityGroup,
+)
 from code_generation.rules import ProducerRule, RemoveProducer
 from code_generation.systematics import SystematicShift, SystematicShiftByQuantity
 
@@ -602,7 +607,18 @@ class Configuration(object):
         """
         running_scopes = self.scopes
         total_producers = sum([len(self.producers[scope]) for scope in running_scopes])
-        total_quantities = sum([len(self.outputs[scope]) for scope in running_scopes])
+        # if a ExtendedVectorProducer is used, count the correct number of output quantities to be written out
+        total_quantities = [
+            sum(
+                [
+                    len(self.config_parameters[scope][output.vec_config])
+                    if isinstance(output, QuantityGroup)
+                    else 1
+                    for output in self.outputs[scope]
+                ]
+            )
+            for scope in running_scopes
+        ]
         total_shifts = sum([len(self.shifts[scope]) for scope in running_scopes])
         log.info("------------------------------------")
         log.info("Configuration Report")
@@ -610,13 +626,12 @@ class Configuration(object):
         log.info("  Sample: {}".format(self.sample))
         log.info("  Era: {}".format(self.era))
         log.info("  Channels: {}".format(self.channels))
-
         log.info("  Total number of producers: {}".format(total_producers))
         for scope in running_scopes:
             log.info("       {}: {}".format(scope, len(self.producers[scope])))
-        log.info("  Total number of quantities: {}".format(total_quantities))
-        for scope in running_scopes:
-            log.info("       {}: {}".format(scope, len(self.outputs[scope])))
+        log.info("  Total number of quantities: {}".format(sum(total_quantities)))
+        for i, scope in enumerate(running_scopes):
+            log.info("       {}: {}".format(scope, total_quantities[i]))
         log.info("  Total number of shifts: {}".format(total_shifts))
         for scope in running_scopes:
             log.info("       {}: {}".format(scope, len(self.shifts[scope])))

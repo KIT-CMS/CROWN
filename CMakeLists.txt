@@ -171,6 +171,7 @@ find_python_package(GitPython git 3.1)
 # for now the official pip package has some problem 
 # in the future "find_python_package(correctionlib correctionlib X.X)" should hopefully work  
 install_correctionlib()
+message(STATUS "Setting up correctionlib ...")
 execute_process(COMMAND correction config --cmake
     OUTPUT_VARIABLE CORRECTION_LIB_ARGS
     OUTPUT_STRIP_TRAILING_WHITESPACE)
