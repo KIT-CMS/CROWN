@@ -112,6 +112,14 @@ Lumi = Producer(
     scopes=["global"],
 )
 
+npartons = Producer(
+    name="npartons",
+    call="basefunctions::rename<UChar_t>({df}, {input}, {output})",
+    input=[nanoAOD.LHE_Njets],
+    output=[q.npartons],
+    scopes=["global"],
+)
+
 PUweights = Producer(
     name="PUweights",
     call='reweighting::puweights({df}, {output}, {input}, "{PU_reweighting_file}", "{PU_reweighting_hist}")',

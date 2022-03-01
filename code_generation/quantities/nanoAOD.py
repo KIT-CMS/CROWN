@@ -3,6 +3,7 @@ from code_generation.quantity import NanoAODQuantity
 run = NanoAODQuantity("run")
 luminosityBlock = NanoAODQuantity("luminosityBlock")
 event = NanoAODQuantity("event")
+LHE_Njets = NanoAODQuantity("LHE_Njets")
 
 Tau_pt = NanoAODQuantity("Tau_pt")
 Tau_eta = NanoAODQuantity("Tau_eta")

@@ -321,6 +321,7 @@ def build_config(
         [
             # RunLumiEventFilter,
             event.Lumi,
+            event.npartons,
             event.MetFilter,
             event.PUweights,
             taus.TauEnergyCorrection,
@@ -411,7 +412,10 @@ def build_config(
     )
     configuration.add_modification_rule(
         "global",
-        RemoveProducer(producers=event.PUweights, samples=["data", "emb", "emb_mc"]),
+        RemoveProducer(
+            producers=[event.PUweights, event.npartons],
+            samples=["data", "emb", "emb_mc"],
+        ),
     )
     configuration.add_modification_rule(
         channels,
@@ -478,6 +482,7 @@ def build_config(
             q.is_vbf,
             q.is_vv,
             nanoAOD.run,
+            q.npartons,
             q.lumi,
             nanoAOD.event,
             q.puweight,
