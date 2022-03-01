@@ -689,8 +689,8 @@ def build_config(
             pairquantities.VsJetTauIDFlag_2.output_group,
             pairquantities.VsEleTauIDFlag_2.output_group,
             pairquantities.VsMuTauIDFlag_2.output_group,
-            # triggers.ETGenerateSingleElectronTriggerFlags.output_group,
-            # triggers.ETGenerateCrossTriggerFlags.output_group,
+            triggers.ETGenerateSingleElectronTriggerFlags.output_group,
+            triggers.ETGenerateCrossTriggerFlags.output_group,
             q.taujet_pt_2,
             # q.gen_taujet_pt_2,
             q.decaymode_2,
@@ -714,16 +714,18 @@ def build_config(
             # q.isoWeight_2,
         ],
     )
-    # if "data" not in sample and "emb" not in sample:
-    #     for scope in config["output"].keys():
-    #         config["output"][scope].extend(
-    #             [
-    #                 nanoAOD.HTXS_Higgs_pt,
-    #                 nanoAOD.HTXS_njets30,
-    #                 nanoAOD.HTXS_stage_0,
-    #                 nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
-    #             ]
-    #         )
+    if "data" not in sample and "emb" not in sample:
+        configuration.add_outputs(
+            channels,
+            [
+                nanoAOD.HTXS_Higgs_pt,
+                nanoAOD.HTXS_Higgs_y,
+                nanoAOD.HTXS_njets30,
+                nanoAOD.HTXS_stage_0,
+                nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
+                nanoAOD.HTXS_stage1_2_fine_cat_pTjet30GeV,
+            ],
+        )
 
     #########################
     # TES Shifts

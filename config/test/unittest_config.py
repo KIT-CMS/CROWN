@@ -581,6 +581,18 @@ def build_config(
             q.electron_veto_flag,
         ],
     )
+    if "data" not in sample and "emb" not in sample:
+        configuration.add_outputs(
+            channels,
+            [
+                nanoAOD.HTXS_Higgs_pt,
+                nanoAOD.HTXS_Higgs_y,
+                nanoAOD.HTXS_njets30,
+                nanoAOD.HTXS_stage_0,
+                nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
+                nanoAOD.HTXS_stage1_2_fine_cat_pTjet30GeV,
+            ],
+        )
     #########################
     # TES Shifts
     #########################
