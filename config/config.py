@@ -389,6 +389,7 @@ def build_config(
             # event.RunLumiEventFilter,
             event.SampleFlags,
             event.Lumi,
+            event.npartons,
             event.MetFilter,
             event.PUweights,
             taus.TauEnergyCorrection,  # or TauEnergyCorrection_byValue for previous implementation
@@ -497,7 +498,10 @@ def build_config(
     )
     configuration.add_modification_rule(
         "global",
-        RemoveProducer(producers=event.PUweights, samples=["data", "emb", "emb_mc"]),
+        RemoveProducer(
+            producers=[event.PUweights, event.npartons],
+            samples=["data", "emb", "emb_mc"],
+        ),
     )
     configuration.add_modification_rule(
         channels,
@@ -576,6 +580,7 @@ def build_config(
             q.is_vv,
             nanoAOD.run,
             q.lumi,
+            q.npartons,
             nanoAOD.event,
             q.puweight,
             q.pt_1,
@@ -660,7 +665,7 @@ def build_config(
             pairquantities.VsJetTauIDFlag_2.output_group,
             pairquantities.VsEleTauIDFlag_2.output_group,
             pairquantities.VsMuTauIDFlag_2.output_group,
-            # triggers.MTGenerateSingleMuonTriggerFlags.output_group,
+            triggers.MTGenerateSingleMuonTriggerFlags.output_group,
             triggers.MTGenerateCrossTriggerFlags.output_group,
             q.taujet_pt_2,
             # q.gen_taujet_pt_2,
