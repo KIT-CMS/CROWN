@@ -319,7 +319,7 @@ VsJetTauIDFlag_2 = ExtendedVectorProducer(
     call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsjet_tau_id_WPbit})",
     input=[q.ditaupair, nanoAOD.Tau_ID_vsJet],
     output="tau_2_vsjet_id_outputname",
-    scope=["mt"],
+    scope=["et", "mt", "tt"],
     vec_config="vsjet_tau_id",
 )
 VsEleTauIDFlag_2 = ExtendedVectorProducer(
@@ -327,7 +327,7 @@ VsEleTauIDFlag_2 = ExtendedVectorProducer(
     call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsele_tau_id_WPbit})",
     input=[q.ditaupair, nanoAOD.Tau_ID_vsEle],
     output="tau_2_vsele_id_outputname",
-    scope=["mt"],
+    scope=["et", "mt", "tt"],
     vec_config="vsele_tau_id",
 )
 VsMuTauIDFlag_2 = ExtendedVectorProducer(
@@ -335,7 +335,7 @@ VsMuTauIDFlag_2 = ExtendedVectorProducer(
     call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsmu_tau_id_WPbit})",
     input=[q.ditaupair, nanoAOD.Tau_ID_vsMu],
     output="tau_2_vsmu_id_outputname",
-    scope=["mt"],
+    scope=["et", "mt", "tt"],
     vec_config="vsmu_tau_id",
 )
 
@@ -448,39 +448,57 @@ UnrollTauLV2 = ProducerGroup(
         tau_decaymode_2,
         tau_gen_match_2,
         taujet_pt_2,
-    ],
-)
-MTTauIDFlags = ProducerGroup(
-    name="MTTauIDFlags",
-    call=None,
-    input=None,
-    output=None,
-    scopes=["mt"],
-    subproducers=[
         VsJetTauIDFlag_2,
         VsEleTauIDFlag_2,
         VsMuTauIDFlag_2,
     ],
 )
-MTTauIDFlags = ProducerGroup(
-    name="MTTauIDFlags",
-    call=None,
-    input=None,
-    output=None,
-    scopes=["mt"],
-    subproducers=[
-        VsJetTauIDFlag_2,
-        VsEleTauIDFlag_2,
-        VsMuTauIDFlag_2,
-    ],
-)
+# MTTauIDFlags = ProducerGroup(
+#     name="MTTauIDFlags",
+#     call=None,
+#     input=None,
+#     output=None,
+#     scopes=["mt"],
+#     subproducers=[
+#         VsJetTauIDFlag_2,
+#         VsEleTauIDFlag_2,
+#         VsMuTauIDFlag_2,
+#     ],
+# )
+# ETTauIDFlags = ProducerGroup(
+#     name="ETTauIDFlags",
+#     call=None,
+#     input=None,
+#     output=None,
+#     scopes=["et"],
+#     subproducers=[
+#         VsJetTauIDFlag_2,
+#         VsEleTauIDFlag_2,
+#         VsMuTauIDFlag_2,
+#     ],
+# )
+# TTTauIDFlags = ProducerGroup(
+#     name="ETTauIDFlags",
+#     call=None,
+#     input=None,
+#     output=None,
+#     scopes=["tt"],
+#     subproducers=[
+#         VsJetTauIDFlag_1,
+#         VsEleTauIDFlag_1,
+#         VsMuTauIDFlag_1,
+#         VsJetTauIDFlag_2,
+#         VsEleTauIDFlag_2,
+#         VsMuTauIDFlag_2,
+#     ],
+# )
 MTDiTauPairQuantities = ProducerGroup(
     name="DiTauPairQuantities",
     call=None,
     input=None,
     output=None,
     scopes=["mt"],
-    subproducers=[UnrollMuLV1, UnrollTauLV2, m_vis, pt_vis, MTTauIDFlags],
+    subproducers=[UnrollMuLV1, UnrollTauLV2, m_vis, pt_vis],
 )
 MMDiTauPairQuantities = ProducerGroup(
     name="DiTauPairQuantities",
@@ -497,6 +515,14 @@ ETDiTauPairQuantities = ProducerGroup(
     output=None,
     scopes=["et"],
     subproducers=[UnrollElLV1, UnrollTauLV2, m_vis, pt_vis],
+)
+TTDiTauPairQuantities = ProducerGroup(
+    name="DiTauPairQuantities",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["tt"],
+    subproducers=[UnrollTauLV1, UnrollTauLV2, m_vis, pt_vis],
 )
 ## advanced event quantities (can be caluculated when ditau pair and met and all jets are determined)
 ## leptons: q.p4_1, q.p4_2

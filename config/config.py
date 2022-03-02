@@ -111,13 +111,6 @@ def build_config(
             "max_tau_eta": 2.3,
             "max_tau_dz": 0.2,
             "tau_dms": "0,1,10,11",
-            "vsjet_tau_id_bit": 4,
-            "vsele_tau_id_bit": 4,
-            "vsmu_tau_id_bit": 1,
-            # "tau_ES_shift_DM0": 1.0,
-            # "tau_ES_shift_DM1": 1.0,
-            # "tau_ES_shift_DM10": 1.0,
-            # "tau_ES_shift_DM11": 1.0,
             "tau_sf_file": EraModifier(
                 {
                     "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
@@ -273,6 +266,53 @@ def build_config(
         },
     )
 
+    # MT / ET tau selection
+    configuration.add_config_parameters(
+        ["et", "mt"],
+        {
+            "min_tau_pt": 30.0,
+            "max_tau_eta": 2.3,
+            "max_tau_dz": 0.2,
+            "tau_dms": "0,1,10,11",
+            "vsjet_tau_id_bit": 4,
+            "vsele_tau_id_bit": 4,
+            "vsmu_tau_id_bit": 1,
+            "tau_sf_file": EraModifier(
+                {
+                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
+                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
+                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
+                }
+            ),
+            "tau_ES_json_name": "tau_energy_scale",
+            "tau_id_algorithm": "DeepTau2017v2p1",
+            "tau_ES_variation": "nom",  # or "up"/"down" for up/down variation
+        },
+    )
+    # TT tau selection:
+    configuration.add_config_parameters(
+        ["tt"],
+        {
+            "min_tau_pt": 35.0,
+            "max_tau_eta": 2.3,
+            "max_tau_dz": 0.2,
+            "tau_dms": "0,1,10,11",
+            "vsjet_tau_id_bit": 4,
+            "vsele_tau_id_bit": 4,
+            "vsmu_tau_id_bit": 1,
+            "tau_sf_file": EraModifier(
+                {
+                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
+                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
+                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
+                }
+            ),
+            "tau_ES_json_name": "tau_energy_scale",
+            "tau_id_algorithm": "DeepTau2017v2p1",
+            "tau_ES_variation": "nom",  # or "up"/"down" for up/down variation
+        },
+    )
+
     # MT/MM channel Muon selection
     configuration.add_config_parameters(
         ["mt", "mm"],
@@ -393,7 +433,7 @@ def build_config(
             event.MetFilter,
             event.PUweights,
             taus.TauEnergyCorrection,  # or TauEnergyCorrection_byValue for previous implementation
-            taus.GoodTaus,
+            taus.BaseTaus,
             muons.BaseMuons,
             electrons.BaseElectrons,
             jets.JetEnergyCorrection,
@@ -401,6 +441,19 @@ def build_config(
             jets.GoodBJets,
             event.DiLeptonVeto,
             met.MetBasics,
+        ],
+    )
+    # common
+    configuration.add_producers(
+        channels,
+        [
+            jets.JetCollection,
+            jets.BasicJetQuantities,
+            jets.BJetCollection,
+            jets.BasicBJetQuantities,
+            met.MetCorrections,
+            met.PFMetCorrections,
+            pairquantities.DiTauPairMETQuantities,
         ],
     )
     configuration.add_producers(
@@ -418,74 +471,73 @@ def build_config(
             pairselection.LVMu1Uncorrected,
             pairselection.LVMu2Uncorrected,
             pairquantities.MMDiTauPairQuantities,
-            jets.JetCollection,
-            jets.BasicJetQuantities,
-            jets.BJetCollection,
-            jets.BasicBJetQuantities,
             genparticles.MMGenDiTauPairQuantities,
             scalefactors.MuonIDIso_SF,
             triggers.MMGenerateSingleMuonTriggerFlags,
-            met.MetCorrections,
-            pairquantities.DiTauPairMETQuantities,
         ],
     )
     configuration.add_producers(
         "mt",
         [
             muons.GoodMuons,
-            pairselection.MTPairSelection,
-            pairselection.GoodMTPairFilter,
-            taus.NumberOfGoodTaus,
             muons.NumberOfGoodMuons,
             muons.VetoMuons,
             muons.ExtraMuonsVeto,
+            taus.GoodTaus,
+            taus.NumberOfGoodTaus,
             electrons.ExtraElectronsVeto,
+            pairselection.MTPairSelection,
+            pairselection.GoodMTPairFilter,
             pairselection.LVMu1,
             pairselection.LVTau2,
             pairselection.LVMu1Uncorrected,
             pairselection.LVTau2Uncorrected,
             pairquantities.MTDiTauPairQuantities,
-            jets.JetCollection,
-            jets.BasicJetQuantities,
-            jets.BJetCollection,
-            jets.BasicBJetQuantities,
             genparticles.MTGenDiTauPairQuantities,
             scalefactors.MuonIDIso_SF,
             scalefactors.TauID_SF,
             triggers.MTGenerateSingleMuonTriggerFlags,
             triggers.MTGenerateCrossTriggerFlags,
-            met.MetCorrections,
-            met.PFMetCorrections,
-            pairquantities.DiTauPairMETQuantities,
         ],
     )
     configuration.add_producers(
         "et",
         [
             electrons.GoodElectrons,
-            pairselection.ETPairSelection,
-            pairselection.GoodETPairFilter,
+            taus.GoodTaus,
             taus.NumberOfGoodTaus,
             electrons.NumberOfGoodElectrons,
             electrons.VetoElectrons,
             electrons.ExtraElectronsVeto,
             muons.ExtraMuonsVeto,
+            pairselection.ETPairSelection,
+            pairselection.GoodETPairFilter,
             pairselection.LVEl1,
             pairselection.LVTau2,
             pairselection.LVEl1Uncorrected,
             pairselection.LVTau2Uncorrected,
             pairquantities.ETDiTauPairQuantities,
-            jets.JetCollection,
-            jets.BasicJetQuantities,
-            jets.BJetCollection,
-            jets.BasicBJetQuantities,
             genparticles.ETGenDiTauPairQuantities,
-            # scalefactors.MuonIDIso_SF,
+            scalefactors.TauID_SF,
             triggers.ETGenerateSingleElectronTriggerFlags,
             triggers.ETGenerateCrossTriggerFlags,
-            met.MetCorrections,
-            met.PFMetCorrections,
-            pairquantities.DiTauPairMETQuantities,
+        ],
+    )
+    configuration.add_producers(
+        "tt",
+        [
+            taus.GoodTaus,
+            taus.NumberOfGoodTaus,
+            pairselection.TTPairSelection,
+            pairselection.GoodTTPairFilter,
+            pairselection.LVTau1,
+            pairselection.LVTau2,
+            pairselection.LVTau1Uncorrected,
+            pairselection.LVTau2Uncorrected,
+            pairquantities.TTDiTauPairQuantities,
+            genparticles.TTGenDiTauPairQuantities,
+            scalefactors.TauID_SF,
+            triggers.TTGenerateDoubleTriggerFlags,
         ],
     )
     configuration.add_modification_rule(
@@ -556,6 +608,13 @@ def build_config(
         "et",
         RemoveProducer(
             producers=[genparticles.ETGenDiTauPairQuantities],
+            samples=["data"],
+        ),
+    )
+    configuration.add_modification_rule(
+        "tt",
+        RemoveProducer(
+            producers=[genparticles.TTGenDiTauPairQuantities],
             samples=["data"],
         ),
     )
@@ -700,6 +759,35 @@ def build_config(
             q.electron_veto_flag,
             # q.idWeight_1,
             # q.isoWeight_1,
+        ],
+    )
+    configuration.add_outputs(
+        "tt",
+        [
+            q.ntaus,
+            scalefactors.Tau_1_VsJetTauID_SF.output_group,
+            scalefactors.Tau_1_VsEleTauID_SF.output_group,
+            scalefactors.Tau_1_VsMuTauID_SF.output_group,
+            scalefactors.Tau_2_VsJetTauID_SF.output_group,
+            scalefactors.Tau_2_VsEleTauID_SF.output_group,
+            scalefactors.Tau_2_VsMuTauID_SF.output_group,
+            pairquantities.VsJetTauIDFlag_1.output_group,
+            pairquantities.VsEleTauIDFlag_1.output_group,
+            pairquantities.VsMuTauIDFlag_1.output_group,
+            pairquantities.VsJetTauIDFlag_2.output_group,
+            pairquantities.VsEleTauIDFlag_2.output_group,
+            pairquantities.VsMuTauIDFlag_2.output_group,
+            triggers.TTGenerateDoubleTriggerFlags.output_group,
+            q.taujet_pt_1,
+            q.taujet_pt_2,
+            # q.gen_taujet_pt_2,
+            q.decaymode_1,
+            q.decaymode_2,
+            q.gen_match_1,
+            q.gen_match_2,
+            # q.muon_veto_flag,
+            # q.dimuon_veto,
+            # q.electron_veto_flag,
         ],
     )
 

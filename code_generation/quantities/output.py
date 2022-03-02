@@ -3,6 +3,7 @@ from code_generation.quantity import Quantity
 lumi = Quantity("lumi")
 puweight = Quantity("puweight")
 
+base_taus_mask = Quantity("base_taus_mask")
 good_taus_mask = Quantity("good_taus_mask")
 base_muons_mask = Quantity("base_muons_mask")
 good_muons_mask = Quantity("good_muons_mask")

@@ -123,6 +123,41 @@ GoodETPairFilter = Filter(
     subproducers=[GoodETPairFlag],
 )
 
+####################
+## TauTau Pair Selection
+####################
+TTPairSelection = Producer(
+    name="TTPairSelection",
+    call="pairselection::tautau::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
+    input=[
+        q.Tau_pt_corrected,
+        nanoAOD.Tau_eta,
+        nanoAOD.Tau_phi,
+        nanoAOD.Tau_mass,
+        nanoAOD.Tau_IDraw,
+        q.good_taus_mask,
+    ],
+    output=[q.ditaupair],
+    scopes=["tt"],
+)
+
+GoodTTPairFlag = Producer(
+    name="GoodTTPairFlag",
+    call="pairselection::flagGoodPairs({df}, {output}, {input})",
+    input=[q.ditaupair],
+    output=[],
+    scopes=["tt"],
+)
+
+GoodTTPairFilter = Filter(
+    name="GoodTTPairFilter",
+    call='basefunctions::FilterFlagsAny({df}, "GoodTauTauPairs", {input})',
+    input=[],
+    scopes=["tt"],
+    subproducers=[GoodTTPairFlag],
+)
+
+
 LVMu1 = Producer(
     name="LVMu1",
     call="lorentzvectors::build({df}, {input_vec}, 0, {output})",

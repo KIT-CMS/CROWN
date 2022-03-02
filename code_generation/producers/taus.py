@@ -1,6 +1,33 @@
 import code_generation.quantities.output as q
 import code_generation.quantities.nanoAOD as nanoAOD
-from code_generation.producer import Producer, ProducerGroup, VectorProducer
+from code_generation.producer import Producer, ProducerGroup
+
+
+#############
+# Tau ID cuts
+#############
+
+VsJetTauIDCut = Producer(
+    name="VsJetTauIDCut",
+    call="physicsobject::tau::CutTauID({df}, {output}, {input}, {vsjet_tau_id_bit})",
+    input=[nanoAOD.Tau_ID_vsJet],
+    output=[],
+    scopes=["et", "mt", "tt"],
+)
+VsElectronTauIDCut = Producer(
+    name="VsElectronTauIDCut",
+    call="physicsobject::tau::CutTauID({df}, {output}, {input}, {vsele_tau_id_bit})",
+    input=[nanoAOD.Tau_ID_vsEle],
+    output=[],
+    scopes=["et", "mt", "tt"],
+)
+VsMuonTauIDCut = Producer(
+    name="VsMuonTauIDCut",
+    call="physicsobject::tau::CutTauID({df}, {output}, {input}, {vsmu_tau_id_bit})",
+    input=[nanoAOD.Tau_ID_vsMu],
+    output=[],
+    scopes=["et", "mt", "tt"],
+)
 
 ####################
 # Set of producers used for selection of good taus
@@ -91,38 +118,56 @@ TauDMCut = Producer(
 #     scopes=["global"],
 #     vec_configs=["tau_id", "tau_id_idx"],
 # )
-VsJetTauIDCut = Producer(
-    name="VsJetTauIDCut",
-    call="physicsobject::tau::CutTauID({df}, {output}, {input}, {vsjet_tau_id_bit})",
-    input=[nanoAOD.Tau_ID_vsJet],
-    output=[],
+BaseTaus = ProducerGroup(
+    name="BaseTaus",
+    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    input=[],
+    output=[q.base_taus_mask],
     scopes=["global"],
+    subproducers=[TauPtCut, TauEtaCut, TauDzCut, TauDMCut],
 )
-VsElectronTauIDCut = Producer(
-    name="VsElectronTauIDCut",
-    call="physicsobject::tau::CutTauID({df}, {output}, {input}, {vsele_tau_id_bit})",
-    input=[nanoAOD.Tau_ID_vsEle],
+######
+# Good taus selection for nonglobal scope
+######
+GoodTauPtCut = Producer(
+    name="GoodTauPtCut",
+    call="physicsobject::CutPt({df}, {input}, {output}, {min_tau_pt})",
+    input=[q.Tau_pt_corrected],
     output=[],
-    scopes=["global"],
+    scopes=["et", "mt", "tt"],
 )
-VsMuonTauIDCut = Producer(
-    name="VsMuonTauIDCut",
-    call="physicsobject::tau::CutTauID({df}, {output}, {input}, {vsmu_tau_id_bit})",
-    input=[nanoAOD.Tau_ID_vsMu],
+GoodTauEtaCut = Producer(
+    name="GoodTauEtaCut",
+    call="physicsobject::CutEta({df}, {input}, {output}, {max_tau_eta})",
+    input=[nanoAOD.Tau_eta],
     output=[],
-    scopes=["global"],
+    scopes=["et", "mt", "tt"],
+)
+GoodTauDzCut = Producer(
+    name="GoodTauDzCut",
+    call="physicsobject::CutDz({df}, {input}, {output}, {max_tau_dz})",
+    input=[nanoAOD.Tau_dz],
+    output=[],
+    scopes=["et", "mt", "tt"],
+)
+GoodTauDMCut = Producer(
+    name="GoodTauDMCut",
+    call="physicsobject::tau::CutDecayModes({df}, {output}, {input}, {vec_open}{tau_dms}{vec_close})",
+    input=[nanoAOD.Tau_decayMode],
+    output=[],
+    scopes=["et", "mt", "tt"],
 )
 GoodTaus = ProducerGroup(
     name="GoodTaus",
     call="physicsobject::CombineMasks({df}, {output}, {input})",
     input=[],
     output=[q.good_taus_mask],
-    scopes=["global"],
+    scopes=["et", "mt", "tt"],
     subproducers=[
-        TauPtCut,
-        TauEtaCut,
-        TauDzCut,
-        TauDMCut,
+        GoodTauPtCut,
+        GoodTauEtaCut,
+        GoodTauDzCut,
+        GoodTauDMCut,
         VsJetTauIDCut,
         VsElectronTauIDCut,
         VsMuonTauIDCut,
