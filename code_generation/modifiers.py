@@ -1,5 +1,5 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Any
 from code_generation.exceptions import (
     SampleConfigurationError,
     EraConfigurationError,
@@ -14,6 +14,7 @@ ModifierDict = Dict[
         List[Dict[str, ConfigurationParameters]],
         Dict[str, ConfigurationParameters],
         ConfigurationParameters,
+        List[Any],
     ],
 ]
 ModifierResolved = Union[
@@ -45,7 +46,7 @@ class SampleModifier(Modifier):
     def __init__(
         self,
         modifier_dict: ModifierDict,
-        default: Union[str, int, float, bool, None] = None,
+        default: Union[str, int, float, bool, Dict, None] = None,
     ):
         """A Sample Modifier is a Modifier, that modifies the configuration based on the given sample
 
@@ -80,7 +81,7 @@ class EraModifier(Modifier):
     def __init__(
         self,
         modifier_dict: ModifierDict,
-        default: Union[str, int, float, bool, None] = None,
+        default: Union[str, int, float, bool, Dict, None] = None,
     ):
         """A Era Modifier is a Modifier, that modifies the configuration based on the given sample
 
