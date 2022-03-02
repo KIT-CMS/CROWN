@@ -1,6 +1,7 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 
 import logging
+import copy
 from typing import Any, Dict, List, Set, Union
 
 from code_generation.exceptions import (
@@ -514,14 +515,17 @@ class Configuration(object):
                 self._remove_empty_configkeys(config[key])
             # special case for extended vector producers, here we can have a list, that contains empty dicts
             elif isinstance(config[key], list):
-                for i, value in enumerate(config[key]):
+                subdict = copy.deepcopy(config[key])
+                for i, value in enumerate(subdict):
+
                     if value == {}:
                         log.info(
                             "Removing {}, (from {}) since it is an empty configuration parameter".format(
-                                config[key][i], key
+                                value, key
                             )
                         )
-                        del config[key][i]
+                        config[key].remove(value)
+                    # does this work ?
                     if isinstance(value, dict):
                         self._remove_empty_configkeys(value)
 

@@ -303,9 +303,6 @@ class ExtendedVectorProducer(Producer):
         self.vec_config = vec_config
         if not isinstance(scope, list):
             scope = [scope]
-        if len(scope) != 1:
-            log.error("ExtendedVectorProducer can only use one scope per instance !")
-            raise Exception
         quantity_group = q.QuantityGroup(name)
         # set the vec config key of the quantity group
         quantity_group.set_vec_config(vec_config)
