@@ -114,7 +114,7 @@ VetoSecondElectron = Producer(
     call="physicsobject::VetoCandInMask({df}, {output}, {input}, {second_electron_index_in_pair})",
     input=[q.veto_electrons_mask, q.ditaupair],
     output=[q.veto_electrons_mask_2],
-    scopes=["mm"],
+    scopes=["ee"],
 )
 ExtraElectronsVeto = Producer(
     name="ExtraElectronsVeto",
