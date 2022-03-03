@@ -15,6 +15,7 @@ from code_generation.exceptions import (
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.optimizer import ProducerOrdering
 from code_generation.producer import (
+    ProducerGroup,
     CollectProducersOutput,
     TProducerInput,
     TProducerStore,
@@ -91,6 +92,7 @@ class Configuration(object):
         self.global_scope = "global"
 
         self.producers: TProducerStore = {}
+        self.unpacked_producers: TProducerStore = {}
         self.scopes: List[str] = []
         self.outputs: QuantitiesStore = {}
         self.shifts: Dict[str, Dict[str, TConfiguration]] = {}
@@ -180,6 +182,7 @@ class Configuration(object):
             self.scopes.append(channel)
         for scope in self.scopes:
             self.producers[scope] = []
+            self.unpacked_producers[scope] = {}
             self.outputs[scope] = set()
             self.shifts[scope] = {}
             self.available_outputs[scope] = set()
@@ -230,6 +233,37 @@ class Configuration(object):
             self.available_outputs[scope].update(
                 CollectProducersOutput(producers, scope)
             )
+            self.unpack_producergroups(scope, producers)
+
+    def unpack_producergroups(
+        self,
+        scope: str,
+        producers: TProducerInput,
+        producername: Union[str, None] = None,
+    ) -> None:
+        """
+        Function used to add producers to the configuration. Internally, a set of all
+        available outputs is updated, which is later used to check if all required ouputs are available.
+
+        Args:
+            scope: The scope to which the producers should be added.
+            producers: The producers to be added.
+
+        Returns:
+            None
+        """
+        if not isinstance(producers, list):
+            if producername is None:
+                self.unpacked_producers[scope][producers] = producers
+            else:
+                self.unpacked_producers[scope][producers] = producername
+        else:
+            for producer in producers:
+                if isinstance(producer, ProducerGroup):
+                    for sub_producer in producer.producers[scope]:
+                        self.unpack_producergroups(
+                            scope=scope, producers=sub_producer, producername=producer
+                        )
 
     def add_outputs(
         self, scopes: Union[str, List[str]], output: QuantitiesInput
@@ -432,7 +466,9 @@ class Configuration(object):
 
         """
         for rule in self.rules:
-            rule.apply(self.sample, self.producers, self.outputs)
+            rule.apply(
+                self.sample, self.producers, self.unpacked_producers, self.outputs
+            )
             # also update the set of available outputs
             for scope in rule.affected_scopes():
                 if isinstance(rule, RemoveProducer):
