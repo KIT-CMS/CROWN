@@ -872,7 +872,7 @@ def build_config(
                 nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
                 nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
             },
-            scopes=["et", "mt", "tt", "em", "ee", "mm"],
+            scopes=["global"],
         ),
         samples=[
             sample
@@ -887,7 +887,7 @@ def build_config(
                 nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
                 nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
             },
-            scopes=["et", "mt", "tt", "em", "ee", "mm"],
+            scopes=["global"],
         ),
         samples=[
             sample
