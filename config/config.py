@@ -443,6 +443,14 @@ def build_config(
             met.MetBasics,
         ],
     )
+    ## add prefiring
+    if era != "2018":
+        configuration.add_producers(
+            "global",
+            [
+                event.PrefiringWeight,
+            ],
+        )
     # common
     configuration.add_producers(
         channels,
@@ -895,6 +903,28 @@ def build_config(
             if sample not in ["data", "emb", "emb_mc"]
         ],
     )
+    #########################
+    # Prefiring Shifts
+    #########################
+    if era != "2018":
+        configuration.add_shift(
+            SystematicShiftByQuantity(
+                name="prefiringDown",
+                quantity_change={
+                    nanoAOD.prefireWeight: "L1PreFiringWeight_Dn",
+                },
+                scopes=["global"],
+            )
+        )
+        configuration.add_shift(
+            SystematicShiftByQuantity(
+                name="prefiringUp",
+                quantity_change={
+                    nanoAOD.prefireWeight: "L1PreFiringWeight_Up",
+                },
+                scopes=["global"],
+            )
+        )
     #########################
     # MET Recoil Shifts
     #########################
