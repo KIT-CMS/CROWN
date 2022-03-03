@@ -78,11 +78,12 @@ class ProducerRule:
         self,
         sample: str,
         producers_to_be_updated: TProducerStore,
+        unpacked_producers: TProducerStore,
         outputs_to_be_updated: QuantitiesStore,
     ) -> None:
         if self.is_applicable(sample):
-            log.info("For sample {}, applying >> {} ".format(sample, self))
-            self.update_producers(producers_to_be_updated)
+            log.debug("For sample {}, applying >> {} ".format(sample, self))
+            self.update_producers(producers_to_be_updated, unpacked_producers)
             self.update_outputs(outputs_to_be_updated)
 
 
@@ -98,7 +99,14 @@ class RemoveProducer(ProducerRule):
             self.producers, self.samples, self.scopes
         )
 
-    def update_producers(self, producers_to_be_updated: TProducerStore) -> None:
+    def update_producers(
+        self,
+        producers_to_be_updated: TProducerStore,
+        unpacked_producers: TProducerStore,
+    ) -> None:
+        log.debug("Producers to be updated: {}".format(producers_to_be_updated))
+        log.debug("scopes: {}".format(self.scopes))
+        log.debug("Producers to be removed: {}".format(self.producers))
         for scope in self.scopes:
             for producer in self.producers:
                 if producer in producers_to_be_updated[scope]:
@@ -108,6 +116,45 @@ class RemoveProducer(ProducerRule):
                         )
                     )
                     producers_to_be_updated[scope].remove(producer)
+                else:
+                    # in this case, the producer does not exist, possibly because it is part of a producer group,
+                    # so we have to check this further
+                    if producer in unpacked_producers[scope].keys():
+                        # if the producer is part of a producer group, we have to remove the whole group
+                        # and add all remaining producers from the group to the list of producers to be updated
+                        log.debug("Found {} within a producer group".format(producer))
+                        corresponding_producer_group = unpacked_producers[scope][
+                            producer
+                        ]
+                        log.debug(
+                            "Removing {} from producer group {}".format(
+                                producer, corresponding_producer_group
+                            )
+                        )
+                        log.debug(
+                            "Replacing {} with its unpacked producers".format(
+                                corresponding_producer_group
+                            )
+                        )
+                        producers_to_be_updated[scope].remove(
+                            corresponding_producer_group
+                        )
+                        for unpacked_producer in unpacked_producers[scope]:
+                            if (
+                                unpacked_producers[scope][unpacked_producer]
+                                == corresponding_producer_group
+                            ):
+                                producers_to_be_updated[scope].append(unpacked_producer)
+                        # now remove the producer we initially wanted to remove
+                        log.debug(producers_to_be_updated[scope])
+                        producers_to_be_updated[scope].remove(producer)
+
+                    else:
+                        raise ConnectionError(
+                            "Producer {} not found in scope {}, cannot apply \n {}".format(
+                                producer, scope, self
+                            )
+                        )
 
     def update_outputs(self, outputs_to_be_updated: QuantitiesStore) -> None:
         if self.update_output:
@@ -149,7 +196,11 @@ class AppendProducer(ProducerRule):
             self.producers, self.samples, self.scopes
         )
 
-    def update_producers(self, producers_to_be_updated: TProducerStore) -> None:
+    def update_producers(
+        self,
+        producers_to_be_updated: TProducerStore,
+        unpacked_producers: TProducerStore,
+    ) -> None:
         for scope in self.scopes:
             for producer in self.producers:
                 log.debug(

@@ -217,12 +217,13 @@ class QuantityGroup(Quantity):
         Returns:
             None
         """
-        quantity = Quantity(name)
-        quantity.shifts = self.shifts
-        quantity.children = self.children
-        quantity.ignored_shifts = self.ignored_shifts
-        quantity.defined_for_scopes = self.defined_for_scopes
-        self.quantities.append(quantity)
+        if name not in [q.name for q in self.quantities]:
+            quantity = Quantity(name)
+            quantity.shifts = self.shifts
+            quantity.children = self.children
+            quantity.ignored_shifts = self.ignored_shifts
+            quantity.defined_for_scopes = self.defined_for_scopes
+            self.quantities.append(quantity)
 
     def get_leaves_of_scope(self, scope: str) -> List[str]:
         """
