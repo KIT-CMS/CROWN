@@ -32,7 +32,7 @@ PrefireingWeight = Producer(
     name="PrefireingWeight",
     call="basefunctions::rename<Float_t>({df}, {input}, {output})",
     input=[nanoAOD.prefireWeight],
-    output=q.prefireWeight,
+    output=[q.prefireweight],
     scopes=["global"],
 )
 
