@@ -161,7 +161,7 @@ function(install_correctionlib)
                     OUTPUT_VARIABLE PACKAGE_VERSION
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
     if(${PACKAGE_NOT_FOUND} EQUAL 1)
-        execute_process(COMMAND pip install --user git+https://github.com/cms-nanoAOD/correctionlib.git)
+        execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${_pip_args} git+https://github.com/cms-nanoAOD/correctionlib.git)
     endif()
     message(STATUS "Found correctionlib !")
 endfunction()
