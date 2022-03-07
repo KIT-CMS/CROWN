@@ -448,7 +448,7 @@ def build_config(
         configuration.add_producers(
             "global",
             [
-                event.PrefiringWeight,
+                event.PrefireingWeight,
             ],
         )
     # common
