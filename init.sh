@@ -1,3 +1,13 @@
+# add ~/.local/bin to path if it is not already there
+pathappend() {
+  for ARG in "$@"
+  do
+    if [ -d "$ARG" ] && [[ ":$PATH:" != *":$ARG:"* ]]; then
+        PATH="${PATH:+"$PATH:"}$ARG"
+    fi
+  done
+}
+pathappend "~/.local/bin"
 if uname -a | grep -E 'el7' -q
 then
     # source /cvmfs/sft.cern.ch/lcg/views/LCG_99/x86_64-centos7-clang10-opt/setup.sh
