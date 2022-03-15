@@ -83,7 +83,7 @@ class EraModifier(Modifier):
         modifier_dict: ModifierDict,
         default: Union[str, int, float, bool, Dict, None] = None,
     ):
-        """A Era Modifier is a Modifier, that modifies the configuration based on the given sample
+        """A Era Modifier is a Modifier, that modifies the configuration based on the given era
 
         Args:
             modifier_dict : A dict containing the information, how a parameter should be modified based on the sample.
