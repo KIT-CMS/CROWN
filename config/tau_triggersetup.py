@@ -289,6 +289,7 @@ def add_diTauTriggerSetup(configuration):
             ),
         },
     )
+
     ## TT channel trigger setup
     configuration.add_config_parameters(
         ["tt"],
@@ -517,6 +518,72 @@ def add_diTauTriggerSetup(configuration):
                     ],
                 }
             ),
+        },
+    )
+
+    ## TT singletau trigger
+    configuration.add_config_parameters(
+        ["tt"],
+        {
+            "singletau_trigger_leading": EraModifier(
+                {
+                    "2018": [
+                        {
+                            "flagname": "trg_single_tau180_1",
+                            "hlt_path": "HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1",
+                            "ptcut": 180,
+                            "etacut": 2.1,
+                            "filterbit": 5,
+                            "trigger_particle_id": 15,
+                            "max_deltaR_triggermatch": 0.4,
+                        }
+                    ],
+                    "2017": [
+                        {
+                            "flagname": "trg_single_tau180_1",
+                            "hlt_path": "HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1",
+                            "ptcut": 180,
+                            "etacut": 2.1,
+                            "filterbit": 5,
+                            "trigger_particle_id": 15,
+                            "max_deltaR_triggermatch": 0.4,
+                        }
+                    ],
+                }
+            )
+        },
+    )
+
+    ## trailing singletau trigger
+    configuration.add_config_parameters(
+        ["et", "mt", "tt"],
+        {
+            "singletau_trigger_trailing": EraModifier(
+                {
+                    "2018": [
+                        {
+                            "flagname": "trg_single_tau180_2",
+                            "hlt_path": "HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1",
+                            "ptcut": 180,
+                            "etacut": 2.1,
+                            "filterbit": 5,
+                            "trigger_particle_id": 15,
+                            "max_deltaR_triggermatch": 0.4,
+                        }
+                    ],
+                    "2017": [
+                        {
+                            "flagname": "trg_single_tau180_2",
+                            "hlt_path": "HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1",
+                            "ptcut": 180,
+                            "etacut": 2.1,
+                            "filterbit": 5,
+                            "trigger_particle_id": 15,
+                            "max_deltaR_triggermatch": 0.4,
+                        }
+                    ],
+                }
+            )
         },
     )
 

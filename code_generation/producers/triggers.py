@@ -51,6 +51,36 @@ ETGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
     scope=["et"],
     vec_config="singleelectron_trigger",
 )
+GenerateSingleLeadingTauTriggerFlags = ExtendedVectorProducer(
+    name="GenerateSingleLeadingTauTriggerFlags",
+    call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
+    input=[
+        q.p4_1,
+        nanoAOD.TriggerObject_bit,
+        nanoAOD.TriggerObject_id,
+        nanoAOD.TriggerObject_pt,
+        nanoAOD.TriggerObject_eta,
+        nanoAOD.TriggerObject_phi,
+    ],
+    output="flagname",
+    scope=["tt"],
+    vec_config="singletau_trigger_leading",
+)
+GenerateSingleTrailingTauTriggerFlags = ExtendedVectorProducer(
+    name="GenerateSingleTrailingTauTriggerFlags",
+    call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
+    input=[
+        q.p4_2,
+        nanoAOD.TriggerObject_bit,
+        nanoAOD.TriggerObject_id,
+        nanoAOD.TriggerObject_pt,
+        nanoAOD.TriggerObject_eta,
+        nanoAOD.TriggerObject_phi,
+    ],
+    output="flagname",
+    scope=["et", "mt", "tt"],
+    vec_config="singletau_trigger_trailing",
+)
 EMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
     name="EMGenerateSingleMuonTriggerFlags",
     call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
