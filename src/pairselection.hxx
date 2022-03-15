@@ -689,7 +689,6 @@ auto PairSelection(auto &df, const std::vector<std::string> &input_vector,
                    const std::string &pairname, const float &mindeltaR) {
     Logger::get("tautau::PairSelection")
         ->debug("Setting up TauTau pair building");
-    // TODO Implement the fully hadronic tau pair selection algorithm
     auto df1 = df.Define(
         pairname, pairselection::fullhadronic::PairSelectionAlgo(mindeltaR),
         input_vector);

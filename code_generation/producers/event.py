@@ -28,8 +28,8 @@ JSONFilter = BaseFilter(
     scopes=["global"],
 )
 
-PrefireingWeight = Producer(
-    name="PrefireingWeight",
+PrefireWeight = Producer(
+    name="PrefireWeight",
     call="basefunctions::rename<Float_t>({df}, {input}, {output})",
     input=[nanoAOD.prefireWeight],
     output=[q.prefireweight],
