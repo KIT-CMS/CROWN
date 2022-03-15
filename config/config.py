@@ -506,6 +506,7 @@ def build_config(
             scalefactors.TauID_SF,
             triggers.MTGenerateSingleMuonTriggerFlags,
             triggers.MTGenerateCrossTriggerFlags,
+            triggers.GenerateSingleTrailingTauTriggerFlags,
         ],
     )
     configuration.add_producers(
@@ -529,6 +530,7 @@ def build_config(
             scalefactors.TauID_SF,
             triggers.ETGenerateSingleElectronTriggerFlags,
             triggers.ETGenerateCrossTriggerFlags,
+            triggers.GenerateSingleTrailingTauTriggerFlags,
         ],
     )
     configuration.add_producers(
@@ -546,6 +548,8 @@ def build_config(
             genparticles.TTGenDiTauPairQuantities,
             scalefactors.TauID_SF,
             triggers.TTGenerateDoubleTriggerFlags,
+            triggers.GenerateSingleTrailingTauTriggerFlags,
+            triggers.GenerateSingleLeadingTauTriggerFlags,
         ],
     )
     configuration.add_modification_rule(
@@ -734,6 +738,7 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             triggers.MTGenerateSingleMuonTriggerFlags.output_group,
             triggers.MTGenerateCrossTriggerFlags.output_group,
+            triggers.GenerateSingleTrailingTauTriggerFlags.output_group,
             q.taujet_pt_2,
             # q.gen_taujet_pt_2,
             q.decaymode_2,
@@ -758,6 +763,7 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             triggers.ETGenerateSingleElectronTriggerFlags.output_group,
             triggers.ETGenerateCrossTriggerFlags.output_group,
+            triggers.GenerateSingleTrailingTauTriggerFlags.output_group,
             q.taujet_pt_2,
             # q.gen_taujet_pt_2,
             q.decaymode_2,
@@ -786,6 +792,8 @@ def build_config(
             pairquantities.VsEleTauIDFlag_2.output_group,
             pairquantities.VsMuTauIDFlag_2.output_group,
             triggers.TTGenerateDoubleTriggerFlags.output_group,
+            triggers.GenerateSingleTrailingTauTriggerFlags.output_group,
+            triggers.GenerateSingleLeadingTauTriggerFlags.output_group,
             q.taujet_pt_1,
             q.taujet_pt_2,
             # q.gen_taujet_pt_2,
