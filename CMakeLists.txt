@@ -54,7 +54,10 @@ project(CROWN CXX)
 
 message(STATUS "Finding Packages")
 # Find ROOT and print details
-find_package(ROOT 6.24 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit)
+find_package(ROOT 6.26 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit)
+# add OpenMP and MPI
+find_package(OpenMP)
+find_package(MPI)
 
 message(STATUS "")
 message(STATUS "Found ROOT with following settings:")
@@ -86,6 +89,11 @@ if (${ROOT_CXX_FLAGS} MATCHES "\\-std\\=c\\+\\+17")
 elseif (${ROOT_CXX_FLAGS} MATCHES "\\-std\\=c\\+\\+20")
     message(STATUS "Set c++20 as the C++ standard.")
     set(CMAKE_CXX_STANDARD 20)
+elseif (${ROOT_CXX_FLAGS} MATCHES "\\-std\\=c\\+\\+14")
+    message(STATUS "c++14 found, setting c++17 as the C++ standard.")
+    # string (REPLACE "-std=c++14" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+    set(CMAKE_CXX_STANDARD 14)
 else ()
     message(FATAL_ERROR "The standard c++17 or higher is required but not found in the ROOT flags: ${ROOT_CXX_FLAGS}")
 endif()
@@ -125,7 +133,7 @@ message(STATUS "  Compiler flags from build type: ${CMAKE_CXX_FLAGS_${CMAKE_BUIL
 message(STATUS "")
 
 # Find Python 3
-find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
+find_package(Python 3.9 REQUIRED COMPONENTS Interpreter)
 
 # detect virtualenv and set Pip args accordingly
 if(DEFINED ENV{VIRTUAL_ENV} OR DEFINED ENV{CONDA_PREFIX})

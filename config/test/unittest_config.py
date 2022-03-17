@@ -19,6 +19,11 @@ from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.rules import AppendProducer, RemoveProducer
 from code_generation.systematics import SystematicShift, SystematicShiftByQuantity
 
+#####################
+# Notes on the test:
+# - Triggers are not included, since they are not available in the test sample
+# - no LHE information available --> no npartons
+
 
 def build_config(
     era: str,
@@ -72,13 +77,6 @@ def build_config(
             "max_tau_eta": 2.3,
             "max_tau_dz": 0.2,
             "tau_dms": "0,1,10,11",
-            "vsjet_tau_id_bit": 4,
-            "vsele_tau_id_bit": 4,
-            "vsmu_tau_id_bit": 1,
-            "tau_ES_shift_DM0": 1.0,
-            "tau_ES_shift_DM1": 1.0,
-            "tau_ES_shift_DM10": 1.0,
-            "tau_ES_shift_DM11": 1.0,
             "tau_sf_file": EraModifier(
                 {
                     "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
@@ -166,38 +164,118 @@ def build_config(
             "vsjet_tau_id": [
                 {
                     "tau_id_discriminator": "DeepTau2017v2p1VSjet",
-                    "tau_1_vsjet_sf_outputname": "tau_1_vsjet_sf_Medium",
-                    "tau_2_vsjet_sf_outputname": "tau_2_vsjet_sf_Medium",
-                    "vsjet_tau_id_WP": "Medium",
-                    "tau_1_vsjet_id_outputname": "tau_1_vsjet_flag_Medium",
-                    "tau_2_vsjet_id_outputname": "tau_2_vsjet_flag_Medium",
-                    "vsjet_tau_id_WPbit": 5,
-                },
+                    "tau_1_vsjet_sf_outputname": "id_wgt_tau_vsJet_{wp}_1".format(
+                        wp=wp
+                    ),
+                    "tau_2_vsjet_sf_outputname": "id_wgt_tau_vsJet_{wp}_2".format(
+                        wp=wp
+                    ),
+                    "vsjet_tau_id_WP": "{wp}".format(wp=wp),
+                    "tau_1_vsjet_id_outputname": "id_tau_vsJet_{wp}_1".format(wp=wp),
+                    "tau_2_vsjet_id_outputname": "id_tau_vsJet_{wp}_2".format(wp=wp),
+                    "vsjet_tau_id_WPbit": bit,
+                }
+                for wp, bit in {
+                    "VVVLoose": 1,
+                    "VVLoose": 2,
+                    "VLoose": 3,
+                    "Loose": 4,
+                    "Medium": 5,
+                    "Tight": 6,
+                    "VTight": 7,
+                    "VVTight": 8,
+                }.items()
             ],
             "vsele_tau_id": [
                 {
                     "tau_id_discriminator": "DeepTau2017v2p1VSe",
-                    "tau_1_vsele_sf_outputname": "tau_1_vsele_sf_VVLoose",
-                    "tau_2_vsele_sf_outputname": "tau_2_vsele_sf_VVLoose",
-                    "vsele_tau_id_WP": "VVLoose",
-                    "tau_1_vsele_id_outputname": "tau_1_vsele_flag_VVLoose",
-                    "tau_2_vsele_id_outputname": "tau_2_vsele_flag_VVLoose",
-                    "vsele_tau_id_WPbit": 2,
-                },
+                    "tau_1_vsele_sf_outputname": "id_wgt_tau_vsEle_{wp}_1".format(
+                        wp=wp
+                    ),
+                    "tau_2_vsele_sf_outputname": "id_wgt_tau_vsEle_{wp}_2".format(
+                        wp=wp
+                    ),
+                    "vsele_tau_id_WP": "{wp}".format(wp=wp),
+                    "tau_1_vsele_id_outputname": "id_tau_vsEle_{wp}_1".format(wp=wp),
+                    "tau_2_vsele_id_outputname": "id_tau_vsEle_{wp}_2".format(wp=wp),
+                    "vsele_tau_id_WPbit": bit,
+                }
+                for wp, bit in {
+                    "VVLoose": 2,
+                    "VLoose": 3,
+                    "Loose": 4,
+                    "Medium": 5,
+                    "Tight": 6,
+                    "VTight": 7,
+                    "VVTight": 8,
+                }.items()
             ],
             "vsmu_tau_id": [
                 {
                     "tau_id_discriminator": "DeepTau2017v2p1VSmu",
-                    "tau_1_vsmu_sf_outputname": "tau_1_vsmu_sf_VLoose",
-                    "tau_2_vsmu_sf_outputname": "tau_2_vsmu_sf_VLoose",
-                    "vsmu_tau_id_WP": "VLoose",
-                    "tau_1_vsmu_id_outputname": "tau_1_vsmu_flag_VLoose",
-                    "tau_2_vsmu_id_outputname": "tau_2_vsmu_flag_VLoose",
-                    "vsmu_tau_id_WPbit": 1,
-                },
+                    "tau_1_vsmu_sf_outputname": "id_wgt_tau_vsMu_{wp}_1".format(wp=wp),
+                    "tau_2_vsmu_sf_outputname": "id_wgt_tau_vsMu_{wp}_2".format(wp=wp),
+                    "vsmu_tau_id_WP": "{wp}".format(wp=wp),
+                    "tau_1_vsmu_id_outputname": "id_tau_vsMu_{wp}_1".format(wp=wp),
+                    "tau_2_vsmu_id_outputname": "id_tau_vsMu_{wp}_2".format(wp=wp),
+                    "vsmu_tau_id_WPbit": bit,
+                }
+                for wp, bit in {
+                    "VLoose": 1,
+                    "Loose": 2,
+                    "Medium": 3,
+                    "Tight": 4,
+                }.items()
             ],
-            "tau_sf_variation": "nom",
-            "tau_vsjet_sf_dependence": "pt",
+            "tau_sf_variation": "nom",  # or "up"/"down" for up/down variation
+            "tau_vsjet_sf_dependence": "pt",  # or "dm", "eta"
+        },
+    )
+
+    # MT / ET tau selection
+    configuration.add_config_parameters(
+        ["et", "mt"],
+        {
+            "min_tau_pt": 30.0,
+            "max_tau_eta": 2.3,
+            "max_tau_dz": 0.2,
+            "tau_dms": "0,1,10,11",
+            "vsjet_tau_id_bit": 4,
+            "vsele_tau_id_bit": 4,
+            "vsmu_tau_id_bit": 1,
+            "tau_sf_file": EraModifier(
+                {
+                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
+                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
+                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
+                }
+            ),
+            "tau_ES_json_name": "tau_energy_scale",
+            "tau_id_algorithm": "DeepTau2017v2p1",
+            "tau_ES_variation": "nom",  # or "up"/"down" for up/down variation
+        },
+    )
+    # TT tau selection:
+    configuration.add_config_parameters(
+        ["tt"],
+        {
+            "min_tau_pt": 35.0,
+            "max_tau_eta": 2.3,
+            "max_tau_dz": 0.2,
+            "tau_dms": "0,1,10,11",
+            "vsjet_tau_id_bit": 4,
+            "vsele_tau_id_bit": 4,
+            "vsmu_tau_id_bit": 1,
+            "tau_sf_file": EraModifier(
+                {
+                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
+                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
+                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
+                }
+            ),
+            "tau_ES_json_name": "tau_energy_scale",
+            "tau_id_algorithm": "DeepTau2017v2p1",
+            "tau_ES_variation": "nom",  # or "up"/"down" for up/down variation
         },
     )
 
@@ -257,7 +335,7 @@ def build_config(
             "second_muon_index_in_pair": 1,
         },
     )
-    ## MT/MM channel misc settings
+    ## all channels misc settings
     configuration.add_config_parameters(
         channels,
         {
@@ -265,7 +343,7 @@ def build_config(
             "pairselection_min_dR": 0.5,
         },
     )
-    ## MT/MM channel MET selection
+    ## all channels MET selection
     configuration.add_config_parameters(
         channels,
         {
@@ -320,12 +398,13 @@ def build_config(
         "global",
         [
             # RunLumiEventFilter,
+            event.SampleFlags,
             event.Lumi,
-            event.npartons,
+            # event.npartons, # not available in nanoAOD test sample
             event.MetFilter,
             event.PUweights,
             taus.TauEnergyCorrection,
-            taus.GoodTaus,
+            taus.BaseTaus,
             muons.BaseMuons,
             electrons.BaseElectrons,
             jets.JetEnergyCorrection,
@@ -335,10 +414,27 @@ def build_config(
             met.MetBasics,
         ],
     )
+    # common
+    configuration.add_producers(
+        channels,
+        [
+            jets.JetCollection,
+            jets.BasicJetQuantities,
+            jets.BJetCollection,
+            jets.BasicBJetQuantities,
+            met.MetCorrections,
+            met.PFMetCorrections,
+            pairquantities.DiTauPairMETQuantities,
+        ],
+    )
     configuration.add_producers(
         "mm",
         [
             muons.GoodMuons,
+            muons.VetoMuons,
+            muons.VetoSecondMuon,
+            muons.ExtraMuonsVeto,
+            muons.NumberOfGoodMuons,
             pairselection.MMPairSelection,
             pairselection.GoodMMPairFilter,
             pairselection.LVMu1,
@@ -346,77 +442,85 @@ def build_config(
             pairselection.LVMu1Uncorrected,
             pairselection.LVMu2Uncorrected,
             pairquantities.MMDiTauPairQuantities,
-            jets.JetCollection,
-            jets.BasicJetQuantities,
-            jets.BJetCollection,
-            jets.BasicBJetQuantities,
             genparticles.MMGenDiTauPairQuantities,
             scalefactors.MuonIDIso_SF,
-            met.MetCorrections,
-            pairquantities.DiTauPairMETQuantities,
         ],
     )
     configuration.add_producers(
         "mt",
         [
             muons.GoodMuons,
-            pairselection.MTPairSelection,
-            pairselection.GoodMTPairFilter,
+            muons.NumberOfGoodMuons,
             muons.VetoMuons,
             muons.ExtraMuonsVeto,
+            taus.GoodTaus,
+            taus.NumberOfGoodTaus,
             electrons.ExtraElectronsVeto,
+            pairselection.MTPairSelection,
+            pairselection.GoodMTPairFilter,
             pairselection.LVMu1,
             pairselection.LVTau2,
             pairselection.LVMu1Uncorrected,
             pairselection.LVTau2Uncorrected,
             pairquantities.MTDiTauPairQuantities,
-            jets.JetCollection,
-            jets.BasicJetQuantities,
-            jets.BJetCollection,
-            jets.BasicBJetQuantities,
             genparticles.MTGenDiTauPairQuantities,
             scalefactors.MuonIDIso_SF,
-            met.MetCorrections,
-            pairquantities.DiTauPairMETQuantities,
+            scalefactors.TauID_SF,
         ],
     )
     configuration.add_producers(
         "et",
         [
             electrons.GoodElectrons,
-            pairselection.ETPairSelection,
-            pairselection.GoodETPairFilter,
+            taus.GoodTaus,
             taus.NumberOfGoodTaus,
             electrons.NumberOfGoodElectrons,
             electrons.VetoElectrons,
             electrons.ExtraElectronsVeto,
             muons.ExtraMuonsVeto,
+            pairselection.ETPairSelection,
+            pairselection.GoodETPairFilter,
             pairselection.LVEl1,
             pairselection.LVTau2,
             pairselection.LVEl1Uncorrected,
             pairselection.LVTau2Uncorrected,
             pairquantities.ETDiTauPairQuantities,
-            jets.JetCollection,
-            jets.BasicJetQuantities,
-            jets.BJetCollection,
-            jets.BasicBJetQuantities,
             genparticles.ETGenDiTauPairQuantities,
-            # scalefactors.MuonIDIso_SF,
-            met.MetCorrections,
-            pairquantities.DiTauPairMETQuantities,
+            scalefactors.TauID_SF,
         ],
+    )
+    configuration.add_producers(
+        "tt",
+        [
+            taus.GoodTaus,
+            taus.NumberOfGoodTaus,
+            pairselection.TTPairSelection,
+            pairselection.GoodTTPairFilter,
+            pairselection.LVTau1,
+            pairselection.LVTau2,
+            pairselection.LVTau1Uncorrected,
+            pairselection.LVTau2Uncorrected,
+            pairquantities.TTDiTauPairQuantities,
+            genparticles.TTGenDiTauPairQuantities,
+            scalefactors.TauID_SF,
+        ],
+    )
+    configuration.add_modification_rule(
+        ["et", "mt", "tt"],
+        RemoveProducer(producers=scalefactors.TauID_SF, samples="data"),
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
         RemoveProducer(producers=scalefactors.MuonIDIso_SF, samples="data"),
     )
-    configuration.add_modification_rule(
-        "global",
-        RemoveProducer(
-            producers=[event.PUweights, event.npartons],
-            samples=["data", "emb", "emb_mc"],
-        ),
-    )
+    # not available in test sample
+    # configuration.add_modification_rule(
+    #     "global",
+    #     RemoveProducer(
+    #         producers=[event.PUweights, event.npartons],
+    #         samples=["data", "emb", "emb_mc"],
+    #     ),
+    # )
     configuration.add_modification_rule(
         channels,
         AppendProducer(
@@ -463,6 +567,20 @@ def build_config(
         ),
     )
     configuration.add_modification_rule(
+        "et",
+        RemoveProducer(
+            producers=[genparticles.ETGenDiTauPairQuantities],
+            samples="data",
+        ),
+    )
+    configuration.add_modification_rule(
+        "tt",
+        RemoveProducer(
+            producers=[genparticles.TTGenDiTauPairQuantities],
+            samples="data",
+        ),
+    )
+    configuration.add_modification_rule(
         "mm",
         RemoveProducer(
             producers=[genparticles.MMGenDiTauPairQuantities],
@@ -482,8 +600,8 @@ def build_config(
             q.is_vbf,
             q.is_vv,
             nanoAOD.run,
-            q.npartons,
             q.lumi,
+            # q.npartons, # not available in nanoAOD test sample
             nanoAOD.event,
             q.puweight,
             q.pt_1,
@@ -499,6 +617,8 @@ def build_config(
             q.jeta_2,
             q.jphi_1,
             q.jphi_2,
+            q.jtag_value_1,
+            q.jtag_value_2,
             q.mjj,
             q.m_vis,
             q.pt_vis,
@@ -509,6 +629,8 @@ def build_config(
             q.beta_2,
             q.bphi_1,
             q.bphi_2,
+            q.btag_value_1,
+            q.btag_value_2,
             q.mass_1,
             q.mass_2,
             q.dxy_1,
@@ -556,6 +678,14 @@ def build_config(
     configuration.add_outputs(
         "mt",
         [
+            q.nmuons,
+            q.ntaus,
+            scalefactors.Tau_2_VsJetTauID_SF.output_group,
+            scalefactors.Tau_2_VsEleTauID_SF.output_group,
+            scalefactors.Tau_2_VsMuTauID_SF.output_group,
+            pairquantities.VsJetTauIDFlag_2.output_group,
+            pairquantities.VsEleTauIDFlag_2.output_group,
+            pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
             q.decaymode_2,
@@ -572,6 +702,12 @@ def build_config(
         [
             q.nelectrons,
             q.ntaus,
+            scalefactors.Tau_2_VsJetTauID_SF.output_group,
+            scalefactors.Tau_2_VsEleTauID_SF.output_group,
+            scalefactors.Tau_2_VsMuTauID_SF.output_group,
+            pairquantities.VsJetTauIDFlag_2.output_group,
+            pairquantities.VsEleTauIDFlag_2.output_group,
+            pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
             q.decaymode_2,
@@ -581,18 +717,50 @@ def build_config(
             q.electron_veto_flag,
         ],
     )
-    if "data" not in sample and "emb" not in sample:
-        configuration.add_outputs(
-            channels,
-            [
-                nanoAOD.HTXS_Higgs_pt,
-                nanoAOD.HTXS_Higgs_y,
-                nanoAOD.HTXS_njets30,
-                nanoAOD.HTXS_stage_0,
-                nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
-                nanoAOD.HTXS_stage1_2_fine_cat_pTjet30GeV,
-            ],
-        )
+    configuration.add_outputs(
+        "tt",
+        [
+            q.ntaus,
+            scalefactors.Tau_1_VsJetTauID_SF.output_group,
+            scalefactors.Tau_1_VsEleTauID_SF.output_group,
+            scalefactors.Tau_1_VsMuTauID_SF.output_group,
+            scalefactors.Tau_2_VsJetTauID_SF.output_group,
+            scalefactors.Tau_2_VsEleTauID_SF.output_group,
+            scalefactors.Tau_2_VsMuTauID_SF.output_group,
+            pairquantities.VsJetTauIDFlag_1.output_group,
+            pairquantities.VsEleTauIDFlag_1.output_group,
+            pairquantities.VsMuTauIDFlag_1.output_group,
+            pairquantities.VsJetTauIDFlag_2.output_group,
+            pairquantities.VsEleTauIDFlag_2.output_group,
+            pairquantities.VsMuTauIDFlag_2.output_group,
+            q.taujet_pt_1,
+            q.taujet_pt_2,
+            q.decaymode_1,
+            q.decaymode_2,
+            q.gen_match_1,
+            q.gen_match_2,
+        ],
+    )
+
+    configuration.add_outputs(
+        "mm",
+        [
+            q.nmuons,
+        ],
+    )
+    # not available in nanoAOD test sample
+    # if "data" not in sample and "emb" not in sample:
+    #     configuration.add_outputs(
+    #         channels,
+    #         [
+    #             nanoAOD.HTXS_Higgs_pt,
+    #             nanoAOD.HTXS_Higgs_y,
+    #             nanoAOD.HTXS_njets30,
+    #             nanoAOD.HTXS_stage_0,
+    #             nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
+    #             nanoAOD.HTXS_stage1_2_fine_cat_pTjet30GeV,
+    #         ],
+    #     )
     #########################
     # TES Shifts
     #########################
@@ -622,7 +790,7 @@ def build_config(
                 nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
                 nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
             },
-            scopes=["et", "mt", "tt", "em", "ee", "mm"],
+            scopes=["global"],
         ),
         samples=[
             sample
@@ -637,7 +805,7 @@ def build_config(
                 nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
                 nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
             },
-            scopes=["et", "mt", "tt", "em", "ee", "mm"],
+            scopes=["global"],
         ),
         samples=[
             sample
@@ -666,6 +834,10 @@ def build_config(
             producers={"global": jets.JetEnergyCorrection},
         )
     )
+
+    #########################
+    # Test specific removals
+    #########################
 
     #########################
     # Finalize and validate the configuration

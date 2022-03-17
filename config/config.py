@@ -105,7 +105,7 @@ def build_config(
     )
     # Tau base selection:
     configuration.add_config_parameters(
-        ["global"],
+        "global",
         {
             "min_tau_pt": 30.0,
             "max_tau_eta": 2.3,

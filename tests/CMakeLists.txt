@@ -9,6 +9,6 @@ foreach(TARGET_NAME ${TARGET_NAMES})
     message(STATUS "Add test for target ${TARGET_NAME}")
     add_test(NAME ${TARGET_NAME}
              WORKING_DIRECTORY ${INSTALLDIR}
-             COMMAND ${TARGET_NAME} nanoAOD.root output_${TARGET_NAME}.root)
+             COMMAND ${TARGET_NAME} output_${TARGET_NAME}.root nanoAOD.root)
     set_tests_properties(${TARGET_NAME} PROPERTIES FIXTURES_REQUIRED download_sample)
 endforeach()

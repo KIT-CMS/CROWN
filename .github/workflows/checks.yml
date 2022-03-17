@@ -21,7 +21,7 @@ jobs:
   build_project:
     runs-on: ubuntu-20.04
     container:
-      image: rootproject/root:6.24.06-arch
+      image: rootproject/root:6.26.00-arch
       options: --user 0 # run as root
 
     steps:
@@ -29,9 +29,33 @@ jobs:
         run: pacman -Sy archlinux-keyring --noconfirm
 
       - name: Install missing software
-        run: pacman -Syu --noconfirm cmake make git python-pip --ignore=root
+        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi --ignore=root
 
-      - uses: actions/checkout@v2
+      # - name: apt update
+      #   run: apt-get -y update
+
+      # - name: add python 3.9 from deadsnakes
+      #   run: apt-get install -y software-properties-common && add-apt-repository -y ppa:deadsnakes/ppa
+
+      # - name: Install python 3.9
+      #   run: apt-get install -y python3.9 python3.9-dev python3.9-venv
+
+      # - name: apt update
+      #   run: apt-get -y update
+
+      # - name: Install missing software
+      #   run: apt-get install -y make git build-essential mlocate
+
+      - name: Install python packages
+        run: python -m ensurepip --default-pip && python -m pip install GitPython && python -m pip install numpy --upgrade && python -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
+
+      - name: Clone project
+        uses: actions/checkout@v3
+        with:
+          ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
+          submodules: "recursive"
+          ssh-strict: "false"
+          ssh-known-hosts: "[gitlab.cern.ch]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubVS0czgKaPkC5cfB75CI3XjgWBv7pj2ILiZezVf8okkCAYr+bf4w6VrH2pyv3NRUW5Mm8U/3zoSNcrYIqhFFpz6R62/3xt8hMrPKJKstbt1lSIr8QhEyD24SJEKugMi560BWRPkTzXrrFgxz0X4vuKKytpvihRsccZ7F1JaX76UCWEJ3Xr2BFCEnnN6gj9nvFr4gvSMneunWVLGw2KcHwS1OJfnWBlp3fB0rYWSxZAoVjcjZjvv3hioEftaTapff2PkdQIX//N9Cc555FzdmMzixTvU5j/i+QvjxWVbEBNSKI6te6udC4fYUZMePs2QQnqw9mXUQtaQtw+HV7utuw=="
 
       - name: Create Build Environment
         shell: bash
@@ -39,7 +63,7 @@ jobs:
 
       - name: adding a system path
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-        
+
       - name: Configure CMake
         shell: bash
         run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES -DERAS=$ERAS -DCHANNELS=$CHANNELS -DSHIFTS=$SHIFTS
@@ -55,15 +79,15 @@ jobs:
   python_format:
     runs-on: ubuntu-20.04
     container:
-      image: rootproject/root:6.24.06-arch
+      image: rootproject/root:6.26.00-ubuntu20.04
       options: --user 0 # run as root
 
     steps:
-      - name: update Arch keyring
-        run: pacman -Sy archlinux-keyring --noconfirm
+      - name: apt update
+        run: apt-get -y update
 
       - name: Install missing software
-        run: pacman -Syu --noconfirm git python-pip && pip install black
+        run: apt-get install -y git python3-pip && pip install black
 
       - uses: actions/checkout@v2
 
@@ -74,15 +98,15 @@ jobs:
   cpp_format:
     runs-on: ubuntu-20.04
     container:
-      image: rootproject/root:6.24.06-arch
+      image: rootproject/root:6.26.00-ubuntu20.04
       options: --user 0 # run as root
 
     steps:
-      - name: update Arch keyring
-        run: pacman -Sy archlinux-keyring --noconfirm
+      - name: apt update
+        run: apt-get -y update
 
       - name: Install missing software
-        run: pacman -Syu --noconfirm git python-pip && pip install clang-format
+        run: apt-get install -y git python3-pip && pip install clang-format
 
       - uses: actions/checkout@v2
 
@@ -93,15 +117,15 @@ jobs:
   docs:
     runs-on: ubuntu-20.04
     container:
-      image: rootproject/root:6.24.06-arch
+      image: rootproject/root:6.26.00-ubuntu20.04
       options: --user 0 # run as root
 
     steps:
-      - name: update Arch keyring
-        run: pacman -Sy archlinux-keyring --noconfirm
+      - name: apt update
+        run: apt-get -y update
 
       - name: Install missing software
-        run: pacman -Syu --noconfirm git cmake make doxygen python-pip
+        run: apt-get install -y git cmake make doxygen python3-pip
 
       - name: install docs related packages
         run: pip install breathe==4.31 sphinx_rtd_theme==0.5
