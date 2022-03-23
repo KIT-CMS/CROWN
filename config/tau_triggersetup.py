@@ -4,7 +4,7 @@ from code_generation.modifiers import EraModifier, SampleModifier
 def add_diTauTriggerSetup(configuration):
     ## MT, MM channel trigger setup
     configuration.add_config_parameters(
-        ["mt", "mm"],
+        ["mt", "mm", "em"],
         {
             "singlemoun_trigger": EraModifier(
                 {
@@ -138,7 +138,7 @@ def add_diTauTriggerSetup(configuration):
     )
     ## ET, EE channel trigger setup
     configuration.add_config_parameters(
-        ["et", "ee"],
+        ["et", "ee", "em"],
         {
             "singleelectron_trigger": EraModifier(
                 {

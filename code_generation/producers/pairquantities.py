@@ -98,7 +98,7 @@ electron_dxy_1 = Producer(
     call="quantities::dxy({df}, {output}, 0, {input})",
     input=[q.ditaupair, nanoAOD.Electron_dxy],
     output=[q.dxy_1],
-    scopes=["et", "ee"],
+    scopes=["et", "ee", "em"],
 )
 electron_dxy_2 = Producer(
     name="electron_dxy_2",
@@ -140,7 +140,7 @@ electron_dz_1 = Producer(
     call="quantities::dz({df}, {output}, 0, {input})",
     input=[q.ditaupair, nanoAOD.Electron_dz],
     output=[q.dz_1],
-    scopes=["et", "ee"],
+    scopes=["et", "ee", "em"],
 )
 electron_dz_2 = Producer(
     name="electron_dz_2",
@@ -182,7 +182,7 @@ electron_q_1 = Producer(
     call="quantities::charge({df}, {output}, 0, {input})",
     input=[q.ditaupair, nanoAOD.Electron_charge],
     output=[q.q_1],
-    scopes=["et", "ee"],
+    scopes=["et", "ee", "em"],
 )
 electron_q_2 = Producer(
     name="electron_q_2",
@@ -224,7 +224,7 @@ electron_iso_1 = Producer(
     call="quantities::isolation({df}, {output}, 0, {input})",
     input=[q.ditaupair, nanoAOD.Electron_iso],
     output=[q.iso_1],
-    scopes=["et", "ee"],
+    scopes=["et", "ee", "em"],
 )
 electron_iso_2 = Producer(
     name="electron_iso_2",
@@ -378,7 +378,7 @@ UnrollElLV1 = ProducerGroup(
     call=None,
     input=None,
     output=None,
-    scopes=["et", "ee"],
+    scopes=["et", "ee", "em"],
     subproducers=[
         pt_1,
         eta_1,
@@ -453,47 +453,12 @@ UnrollTauLV2 = ProducerGroup(
         VsMuTauIDFlag_2,
     ],
 )
-# MTTauIDFlags = ProducerGroup(
-#     name="MTTauIDFlags",
-#     call=None,
-#     input=None,
-#     output=None,
-#     scopes=["mt"],
-#     subproducers=[
-#         VsJetTauIDFlag_2,
-#         VsEleTauIDFlag_2,
-#         VsMuTauIDFlag_2,
-#     ],
-# )
-# ETTauIDFlags = ProducerGroup(
-#     name="ETTauIDFlags",
-#     call=None,
-#     input=None,
-#     output=None,
-#     scopes=["et"],
-#     subproducers=[
-#         VsJetTauIDFlag_2,
-#         VsEleTauIDFlag_2,
-#         VsMuTauIDFlag_2,
-#     ],
-# )
-# TTTauIDFlags = ProducerGroup(
-#     name="ETTauIDFlags",
-#     call=None,
-#     input=None,
-#     output=None,
-#     scopes=["tt"],
-#     subproducers=[
-#         VsJetTauIDFlag_1,
-#         VsEleTauIDFlag_1,
-#         VsMuTauIDFlag_1,
-#         VsJetTauIDFlag_2,
-#         VsEleTauIDFlag_2,
-#         VsMuTauIDFlag_2,
-#     ],
-# )
+#####################
+# Producer Groups
+#####################
+
 MTDiTauPairQuantities = ProducerGroup(
-    name="DiTauPairQuantities",
+    name="MTDiTauPairQuantities",
     call=None,
     input=None,
     output=None,
@@ -501,7 +466,7 @@ MTDiTauPairQuantities = ProducerGroup(
     subproducers=[UnrollMuLV1, UnrollTauLV2, m_vis, pt_vis],
 )
 MMDiTauPairQuantities = ProducerGroup(
-    name="DiTauPairQuantities",
+    name="MMDiTauPairQuantities",
     call=None,
     input=None,
     output=None,
@@ -509,7 +474,7 @@ MMDiTauPairQuantities = ProducerGroup(
     subproducers=[UnrollMuLV1, UnrollMuLV2, m_vis, pt_vis],
 )
 ETDiTauPairQuantities = ProducerGroup(
-    name="DiTauPairQuantities",
+    name="ETDiTauPairQuantities",
     call=None,
     input=None,
     output=None,
@@ -517,12 +482,20 @@ ETDiTauPairQuantities = ProducerGroup(
     subproducers=[UnrollElLV1, UnrollTauLV2, m_vis, pt_vis],
 )
 TTDiTauPairQuantities = ProducerGroup(
-    name="DiTauPairQuantities",
+    name="TTDiTauPairQuantities",
     call=None,
     input=None,
     output=None,
     scopes=["tt"],
     subproducers=[UnrollTauLV1, UnrollTauLV2, m_vis, pt_vis],
+)
+EMDiTauPairQuantities = ProducerGroup(
+    name="EMDiTauPairQuantities",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["em"],
+    subproducers=[UnrollElLV1, UnrollMuLV2, m_vis, pt_vis],
 )
 ## advanced event quantities (can be caluculated when ditau pair and met and all jets are determined)
 ## leptons: q.p4_1, q.p4_2
