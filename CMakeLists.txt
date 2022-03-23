@@ -185,17 +185,13 @@ message(STATUS "Setting up correctionlib ...")
 execute_process(COMMAND correction config --cmake
     OUTPUT_VARIABLE CORRECTION_LIB_ARGS
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-# message(STATUS "Correctionline library path: ${CORRECTION_LIB_ARGS}")
 string(REPLACE -Dcorrectionlib_DIR= "" CORRECTIONLIBPATH ${CORRECTION_LIB_ARGS})
-
 # if correctionlib comes from cvmfs, change the correctionlibpath accordingly
 if (${CORRECTIONLIBPATH} MATCHES "^/cvmfs/")
     message(STATUS "Setting up correctionlib from cvmfs ...")
     set(USING_CVMFS TRUE)
     find_package(correctionlib)
-    # find_library(CORRECTIONLIBPATH correctionlib)
-    # temporary solution until the top thing works
-    set(CORRECTIONLIBPATH $ENV{LCIO}/lib)
+    find_library(CORRECTION_LIB_PATH correctionlib)
 else()
     message(STATUS "Setting up correctionlib from local setup ...")
     set(USING_CVMFS FALSE)
@@ -205,7 +201,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
 find_package(ZLIB)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-message(STATUS "Correctionlib library path: ${CORRECTIONLIBPATH}")
+message(STATUS "Correctionlib library path: ${CORRECTION_LIB_PATH}")
 
 # Generate the C++ code
 if (NOT DEFINED INSTALLDIR)
@@ -261,24 +257,14 @@ foreach(FILENAME ${FILELIST})
     # Add build target
     message(STATUS "Add build target for file ${FILENAME}.")
     add_executable(${TARGET_NAME} ${FULL_PATH})
-    # target_precompile_headers(${TARGET_NAME} PRIVATE jets.hxx lorentzvectors.hxx metfilter.hxx pairselection.hxx quantities.hxx)
-    #target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} ${CORRECTIONLIBPATH})
-    #target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib)
 
     # Adds a pre-build event to the Target copying the correctionlib.so file into the /lib folder in the install directory
-    if (NOT ${USING_CVMFS})
-        add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${CORRECTIONLIBPATH}/../lib/libcorrectionlib.so"
-                ${INSTALLDIR}/lib/libcorrectionlib.so)
-    else()
-        add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${CORRECTIONLIBPATH}/libcorrectionlib.so"
-                ${INSTALLDIR}/lib/libcorrectionlib.so)
-    endif()
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} $ORIGIN/lib/)
     target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib)
+    add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CORRECTION_LIB_PATH}"
+        ${INSTALLDIR}/lib/libcorrectionlib.so)
     # Find shared libraries next to the executable in the /lib folder
     set_target_properties(${TARGET_NAME} PROPERTIES
         BUILD_WITH_INSTALL_RPATH FALSE
