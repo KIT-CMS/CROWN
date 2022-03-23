@@ -66,11 +66,14 @@ auto VetoOverlappingJets(auto &df, const std::string &output_col,
 ///
 /// \return a dataframe containing a list of jet indices sorted by pt
 auto OrderJetsByPt(auto &df, const std::string &output_col,
-                   const std::string &jet_pt, const std::string &jetmask) {
+                   const std::string &jet_pt, const std::string &jetmask_name) {
     auto df1 = df.Define(
         output_col,
-        [](const ROOT::RVec<int> &jetmask, const ROOT::RVec<float> &jet_pt) {
-            Logger::get("OrderJetsByPt")->debug("Ordering good jets by pt");
+        [output_col, jetmask_name](const ROOT::RVec<int> &jetmask,
+                                   const ROOT::RVec<float> &jet_pt) {
+            Logger::get("OrderJetsByPt")
+                ->debug("Ordering good jets from {} by pt, output stored in {}",
+                        jetmask_name, output_col);
             Logger::get("OrderJetsByPt")->debug("Jetpt before {}", jet_pt);
             Logger::get("OrderJetsByPt")->debug("Mask {}", jetmask);
             auto good_jets_pt =
@@ -89,7 +92,7 @@ auto OrderJetsByPt(auto &df, const std::string &output_col,
             Logger::get("OrderJetsByPt")->debug("jet Indices int {}", result);
             return result;
         },
-        {jetmask, jet_pt});
+        {jetmask_name, jet_pt});
     return df1;
 }
 } // end namespace jet
@@ -305,6 +308,7 @@ auto NumberOfJets(auto &df, const std::string &outputname,
                   const std::string &jetcollection) {
     return df.Define(outputname,
                      [](const ROOT::RVec<int> &jetcollection) {
+                         Logger::get("NumberOfJets")->debug("Counting jets");
                          Logger::get("NumberOfJets")
                              ->debug("NJets {}", jetcollection.size());
                          return (int)jetcollection.size();
