@@ -20,8 +20,8 @@ MTPairSelection = Producer(
         nanoAOD.Muon_phi,
         nanoAOD.Muon_mass,
         nanoAOD.Muon_iso,
-        q.good_taus_mask,
         q.good_muons_mask,
+        q.good_taus_mask,
     ],
     output=[q.ditaupair],
     scopes=["mt"],
@@ -100,8 +100,8 @@ ETPairSelection = Producer(
         nanoAOD.Electron_phi,
         nanoAOD.Electron_mass,
         nanoAOD.Electron_iso,
-        q.good_taus_mask,
         q.good_electrons_mask,
+        q.good_taus_mask,
     ],
     output=[q.ditaupair],
     scopes=["et"],
@@ -156,6 +156,46 @@ GoodTTPairFilter = Filter(
     scopes=["tt"],
     subproducers=[GoodTTPairFlag],
 )
+####################
+## ElMu Pair Selection
+####################
+
+EMPairSelection = Producer(
+    name="EMPairSelection",
+    call="pairselection::elmu::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
+    input=[
+        nanoAOD.Electron_pt,
+        nanoAOD.Electron_eta,
+        nanoAOD.Electron_phi,
+        nanoAOD.Electron_mass,
+        nanoAOD.Electron_iso,
+        nanoAOD.Muon_pt,
+        nanoAOD.Muon_eta,
+        nanoAOD.Muon_phi,
+        nanoAOD.Muon_mass,
+        nanoAOD.Muon_iso,
+        q.good_electrons_mask,
+        q.good_muons_mask,
+    ],
+    output=[q.ditaupair],
+    scopes=["em"],
+)
+
+GoodEMPairFlag = Producer(
+    name="GoodEMPairFlag",
+    call="pairselection::flagGoodPairs({df}, {output}, {input})",
+    input=[q.ditaupair],
+    output=[],
+    scopes=["em"],
+)
+
+GoodEMPairFilter = Filter(
+    name="GoodEMPairFilter",
+    call='basefunctions::FilterFlagsAny({df}, "GoodElMuPairs", {input})',
+    input=[],
+    scopes=["em"],
+    subproducers=[GoodEMPairFlag],
+)
 
 
 LVMu1 = Producer(
@@ -182,7 +222,7 @@ LVMu2 = Producer(
         nanoAOD.Muon_mass,
     ],
     output=[q.p4_2],
-    scopes=["mm"],
+    scopes=["mm", "em"],
 )
 LVEl1 = Producer(
     name="LVEl1",
@@ -195,7 +235,7 @@ LVEl1 = Producer(
         nanoAOD.Electron_mass,
     ],
     output=[q.p4_1],
-    scopes=["et", "ee"],
+    scopes=["et", "ee", "em"],
 )
 LVEl2 = Producer(
     name="LVEl2",
@@ -261,7 +301,7 @@ LVMu2Uncorrected = Producer(
         nanoAOD.Muon_mass,
     ],
     output=[q.p4_2_uncorrected],
-    scopes=["mm"],
+    scopes=["mm", "em"],
 )
 LVEl1Uncorrected = Producer(
     name="LVEl1Uncorrected",

@@ -321,6 +321,12 @@ def build_config(
             "min_muon_pt": 23.0,
             "max_muon_eta": 2.1,
             "muon_iso_cut": 0.15,
+        },
+    )
+    # Muon scale factors configuration
+    configuration.add_config_parameters(
+        ["mt", "mm", "em"],
+        {
             "muon_sf_file": EraModifier(
                 {
                     "2016": "data/jsonpog-integration/POG/MUO/2016postVFP_UL/muon_Z.json.gz",
@@ -342,17 +348,26 @@ def build_config(
     )
     # ET/EM channel electron selection
     configuration.add_config_parameters(
-        ["et", "em"],
+        ["et"],
         {
             "electron_index_in_pair": 0,
             "min_electron_pt": 25.0,
             "max_electron_eta": 2.1,
             "electron_iso_cut": 0.3,
-            # "muon_sf_workspace": "data/muon_corrections/htt_scalefactors_legacy_2018_muons.root",
-            # "muon_sf_id_name": "m_id_kit_ratio",
-            # "muon_sf_id_args": "m_pt,m_eta",
-            # "muon_sf_iso_name": "m_iso_binned_kit_ratio",
-            # "muon_sf_iso_args": "m_pt,m_eta,m_iso",
+        },
+    )
+    # EM Channel selection
+    configuration.add_config_parameters(
+        ["em"],
+        {
+            "electron_index_in_pair": 0,
+            "min_electron_pt": 25.0,
+            "max_electron_eta": 2.1,
+            "electron_iso_cut": 0.3,
+            "muon_index_in_pair": 1,
+            "min_muon_pt": 23.0,
+            "max_muon_eta": 2.1,
+            "muon_iso_cut": 0.15,
         },
     )
     configuration.add_config_parameters(
@@ -364,6 +379,7 @@ def build_config(
             "second_muon_index_in_pair": 1,
         },
     )
+
     ## all channels misc settings
     configuration.add_config_parameters(
         channels,
@@ -552,6 +568,31 @@ def build_config(
             triggers.GenerateSingleLeadingTauTriggerFlags,
         ],
     )
+    configuration.add_producers(
+        "em",
+        [
+            electrons.GoodElectrons,
+            electrons.NumberOfGoodElectrons,
+            electrons.VetoElectrons,
+            electrons.ExtraElectronsVeto,
+            muons.GoodMuons,
+            muons.NumberOfGoodMuons,
+            muons.VetoMuons,
+            muons.ExtraMuonsVeto,
+            pairselection.EMPairSelection,
+            pairselection.GoodEMPairFilter,
+            pairselection.LVEl1,
+            pairselection.LVMu2,
+            pairselection.LVEl1Uncorrected,
+            pairselection.LVMu2Uncorrected,
+            pairquantities.EMDiTauPairQuantities,
+            genparticles.EMGenDiTauPairQuantities,
+            scalefactors.MuonIDIso_SF,
+            triggers.EMGenerateSingleElectronTriggerFlags,
+            triggers.EMGenerateSingleMuonTriggerFlags,
+            triggers.EMGenerateCrossTriggerFlags,
+        ],
+    )
     configuration.add_modification_rule(
         ["et", "mt", "tt"],
         RemoveProducer(producers=scalefactors.TauID_SF, samples="data"),
@@ -627,6 +668,13 @@ def build_config(
         "tt",
         RemoveProducer(
             producers=[genparticles.TTGenDiTauPairQuantities],
+            samples=["data"],
+        ),
+    )
+    configuration.add_modification_rule(
+        "em",
+        RemoveProducer(
+            producers=[genparticles.EMGenDiTauPairQuantities],
             samples=["data"],
         ),
     )
@@ -804,6 +852,19 @@ def build_config(
             # q.muon_veto_flag,
             # q.dimuon_veto,
             # q.electron_veto_flag,
+        ],
+    )
+    configuration.add_outputs(
+        "em",
+        [
+            q.nelectrons,
+            q.nmuons,
+            triggers.EMGenerateSingleElectronTriggerFlags.output_group,
+            triggers.EMGenerateSingleMuonTriggerFlags.output_group,
+            triggers.EMGenerateCrossTriggerFlags.output_group,
+            q.muon_veto_flag,
+            q.dimuon_veto,
+            q.electron_veto_flag,
         ],
     )
 

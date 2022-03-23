@@ -331,7 +331,7 @@ auto compareForPairs(const ROOT::RVec<float> &lep1pt,
     };
 }
 
-/// namespace for pairs in the MuTau channel
+/// namespace for semileptonic pair selection
 namespace semileptonic {
 
 /// Implementation of the pair selection algorithm. First, only events
@@ -356,8 +356,8 @@ auto PairSelectionAlgo(const float &mindeltaR) {
                        const ROOT::RVec<float> &lepton_phi,
                        const ROOT::RVec<float> &lepton_mass,
                        const ROOT::RVec<float> &lepton_iso,
-                       const ROOT::RVec<int> &tau_mask,
-                       const ROOT::RVec<int> &lepton_mask) {
+                       const ROOT::RVec<int> &lepton_mask,
+                       const ROOT::RVec<int> &tau_mask) {
         // first entry is the lepton index,
         // second entry is the tau index
         ROOT::RVec<int> selected_pair = {-1, -1};
@@ -585,6 +585,141 @@ auto PairSelectionAlgo(const float &mindeltaR) {
 
 } // end namespace fullhadronic
 
+// namespace for full leptonic pairselection
+namespace leptonic {
+
+/// Implementation of the pair selection algorithm. First, only events
+/// that contain at least one goodElectron and one goodMuon are considered.
+/// Events contain at least one good Electron and one good Muon, if the
+/// electron_mask and the moun_mask both have nonzero elements. These masks are
+/// constructed using the functions from the physicsobject namespace
+/// (e.g. physicsobject::CutPt).
+///
+/// \returns an `ROOT::RVec<int>` with two values, the first one beeing
+/// the electron index and the second one beeing the muon index.
+auto PairSelectionAlgo(const float &mindeltaR) {
+    Logger::get("semileptonic::PairSelectionAlgo")
+        ->debug("Setting up algorithm");
+    return [mindeltaR](const ROOT::RVec<float> &electron_pt,
+                       const ROOT::RVec<float> &electron_eta,
+                       const ROOT::RVec<float> &electron_phi,
+                       const ROOT::RVec<float> &electron_mass,
+                       const ROOT::RVec<float> &electron_iso,
+                       const ROOT::RVec<float> &muon_pt,
+                       const ROOT::RVec<float> &muon_eta,
+                       const ROOT::RVec<float> &muon_phi,
+                       const ROOT::RVec<float> &muon_mass,
+                       const ROOT::RVec<float> &muon_iso,
+                       const ROOT::RVec<int> &electron_mask,
+                       const ROOT::RVec<int> &muon_mask) {
+        // first entry is the electron index,
+        // second entry is the muon index
+        ROOT::RVec<int> selected_pair = {-1, -1};
+        const auto original_electron_indices =
+            ROOT::VecOps::Nonzero(electron_mask);
+        const auto original_muon_indices = ROOT::VecOps::Nonzero(muon_mask);
+
+        if (original_electron_indices.size() == 0 or
+            original_muon_indices.size() == 0) {
+            return selected_pair;
+        }
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("Running algorithm on good electrons and muons");
+
+        const auto selected_electron_pt =
+            ROOT::VecOps::Take(electron_pt, original_electron_indices);
+        const auto selected_electron_iso =
+            ROOT::VecOps::Take(electron_iso, original_electron_indices);
+        const auto selected_muon_pt =
+            ROOT::VecOps::Take(muon_pt, original_muon_indices);
+        const auto selected_muon_iso =
+            ROOT::VecOps::Take(muon_iso, original_muon_indices);
+
+        const auto pair_indices = ROOT::VecOps::Combinations(
+            selected_electron_pt,
+            selected_muon_pt); // Gives indices of el-mu pair
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("Pairs: {} {}", pair_indices[0], pair_indices[1]);
+
+        const auto pairs = ROOT::VecOps::Construct<std::pair<UInt_t, UInt_t>>(
+            pair_indices[0], pair_indices[1]);
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("Pairs size: {}", pairs.size());
+        int counter = 0;
+        for (auto &pair : pairs) {
+            counter++;
+            Logger::get("leptonic::PairSelectionAlgo")
+                ->debug("Constituents pair {}. : {} {}", counter, pair.first,
+                        pair.second);
+        }
+
+        const auto sorted_pairs = ROOT::VecOps::Sort(
+            pairs,
+            compareForPairs(selected_electron_pt, -1. * selected_electron_iso,
+                            selected_muon_pt, -1 * selected_muon_iso));
+
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("Original electronPt: {}", electron_pt);
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("Original electronIso: {}", electron_iso);
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("Original muonPt: {}", muon_pt);
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("Original muonIso: {}", muon_iso);
+
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("Selected electronPt: {}", selected_electron_pt);
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("Selected electronIso: {}", selected_electron_iso);
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("Selected muonPt: {}", selected_muon_pt);
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("Selected muonIso: {}", selected_muon_iso);
+
+        // construct the four vectors of the selected electrons and muons to
+        // check deltaR and reject a pair if the candidates are too close
+
+        for (auto &candidate : sorted_pairs) {
+            auto electronindex = original_electron_indices[candidate.first];
+            ROOT::Math::PtEtaPhiMVector electron = ROOT::Math::PtEtaPhiMVector(
+                electron_pt.at(electronindex), electron_eta.at(electronindex),
+                electron_phi.at(electronindex),
+                electron_mass.at(electronindex));
+            Logger::get("leptonic::PairSelectionAlgo")
+                ->debug("{} electron vector: {}", electronindex, electron);
+            auto muonindex = original_muon_indices[candidate.second];
+            ROOT::Math::PtEtaPhiMVector muon = ROOT::Math::PtEtaPhiMVector(
+                muon_pt.at(muonindex), muon_eta.at(muonindex),
+                muon_phi.at(muonindex), muon_mass.at(muonindex));
+            Logger::get("leptonic::PairSelectionAlgo")
+                ->debug("{} muon vector: {}", muonindex, muon);
+            Logger::get("leptonic::PairSelectionAlgo")
+                ->debug("DeltaR: {}",
+                        ROOT::Math::VectorUtil::DeltaR(electron, muon));
+            if (ROOT::Math::VectorUtil::DeltaR(electron, muon) > mindeltaR) {
+                Logger::get("leptonic::PairSelectionAlgo")
+                    ->debug("Selected original pair indices: electron = {} , "
+                            "muon = {}",
+                            electronindex, muonindex);
+                Logger::get("leptonic::PairSelectionAlgo")
+                    ->debug("electronPt = {} , muonPt = {} ", electron.Pt(),
+                            muon.Pt());
+                Logger::get("leptonic::PairSelectionAlgo")
+                    ->debug("electronIso = {} , muonIso = {} ",
+                            electron_iso[electronindex], muon_iso[muonindex]);
+                selected_pair = {static_cast<int>(electronindex),
+                                 static_cast<int>(muonindex)};
+                break;
+            }
+        }
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("Final pair {} {}", selected_pair[0], selected_pair[1]);
+
+        return selected_pair;
+    };
+}
+
+} // namespace leptonic
 namespace mutau {
 
 /**
@@ -728,12 +863,10 @@ namespace elmu {
 auto PairSelection(auto &df, const std::vector<std::string> &input_vector,
                    const std::string &pairname, const float &mindeltaR) {
     Logger::get("elmu::PairSelection")->debug("Setting up elmu pair building");
-    // TODO Implement the fully leptonic tau pair selection algorithm
-    // auto df1 =
-    //     df.Define(pairname,
-    //     pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
-    //               input_vector);
-    return df;
+    auto df1 = df.Define(pairname,
+                         pairselection::leptonic::PairSelectionAlgo(mindeltaR),
+                         input_vector);
+    return df1;
 }
 
 } // namespace elmu
