@@ -3,10 +3,10 @@
 
 #include <Math/Vector4D.h>
 
-int default_int = -10;
-int default_pdgid = -999;
-float default_float = -10.0;
-UChar_t default_uchar = -10;
+const int default_int = -10;
+const int default_pdgid = -999;
+const float default_float = -10.0;
+const UChar_t default_uchar = -10;
 auto default_lorentzvector = ROOT::Math::PtEtaPhiMVector(
     default_float, default_float, default_float, default_float);
 

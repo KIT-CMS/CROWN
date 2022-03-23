@@ -28,13 +28,14 @@ auto buildparticle(auto &df, const std::vector<std::string> &quantities,
                    const std::string &outputname, const int &position) {
     auto df1 = df.Define(
         outputname,
-        [position](const ROOT::RVec<int> &pair, const ROOT::RVec<float> &pts,
-                   const ROOT::RVec<float> &etas, const ROOT::RVec<float> &phis,
-                   const ROOT::RVec<float> &masses) {
+        [position, outputname](
+            const ROOT::RVec<int> &pair, const ROOT::RVec<float> &pts,
+            const ROOT::RVec<float> &etas, const ROOT::RVec<float> &phis,
+            const ROOT::RVec<float> &masses) {
             // the index of the particle is stored in the pair vector
             ROOT::Math::PtEtaPhiMVector p4;
             Logger::get("lorentzvectors")
-                ->debug("starting to build 4vectors !");
+                ->debug("starting to build 4vector {}!", outputname);
             try {
                 const int index = pair.at(position);
                 Logger::get("lorentzvectors")->debug("pair {}", pair);

@@ -121,15 +121,19 @@ auto CombineMasks(auto &df, const std::string &maskname,
 auto VetoCandInMask(auto &df, const std::string &outputmaskname,
                     const std::string &inputmaskname,
                     const std::string &ditaupair, const int index) {
-    return df.Define(
-        outputmaskname,
-        [index](const ROOT::RVec<int> &mask, const ROOT::RVec<int> &pair) {
-            auto newmask = mask;
-            if (pair.at(index) >= 0)
-                newmask.at(pair.at(index)) = 0;
-            return newmask;
-        },
-        {inputmaskname, ditaupair});
+    return df.Define(outputmaskname,
+                     [index, inputmaskname](const ROOT::RVec<int> &mask,
+                                            const ROOT::RVec<int> &pair) {
+                         Logger::get("VetoCandInMask")
+                             ->debug("Vetoing the selected candidate (index "
+                                     "{}) from the mask {}",
+                                     index, inputmaskname);
+                         auto newmask = mask;
+                         if (pair.at(index) >= 0)
+                             newmask.at(pair.at(index)) = 0;
+                         return newmask;
+                     },
+                     {inputmaskname, ditaupair});
 }
 
 /// Function to filter events based on a mask. If the mask contains at least
