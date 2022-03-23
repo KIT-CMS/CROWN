@@ -16,11 +16,6 @@ if (NOT DEFINED SHIFTS)
     set(SHIFTS "all")
 endif()
 
-if (NOT DEFINED DEBUG)
-    message(STATUS "No debug mode")
-    set(DEBUG "false")
-endif()
-
 if (NOT DEFINED SAMPLES)
     message(FATAL_ERROR "Please specify the samples to be used with -DSAMPLES=samples")
     set(DEBUG "samples")
@@ -44,7 +39,14 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Set default compiler flags for buil
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "Set default compiler flags for build type Release")
 
 # The build type should be set so that the correct compiler flags are chosen
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
+if (NOT DEFINED DEBUG)
+    message(STATUS "No debug mode")
+    set(DEBUG "false")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
+else()
+    message(STATUS "Debug mode")
+    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
+endif()
 
 # Set the default install directory to the build directory
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} CACHE STRING "Set default install prefix to the build directory")
@@ -177,20 +179,33 @@ endfunction()
 find_python_package(GitPython git 3.1)
 # Adding correctionlib for scale factor evaluation
 # for now the official pip package has some problem 
-# in the future "find_python_package(correctionlib correctionlib X.X)" should hopefully work  
+# in the future "find_python_package(correctionlib correctionlib X.X)" should hopefully work
 install_correctionlib()
 message(STATUS "Setting up correctionlib ...")
 execute_process(COMMAND correction config --cmake
     OUTPUT_VARIABLE CORRECTION_LIB_ARGS
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-message(STATUS "Correctionline library path: ${CORRECTION_LIB_ARGS}")
+# message(STATUS "Correctionline library path: ${CORRECTION_LIB_ARGS}")
 string(REPLACE -Dcorrectionlib_DIR= "" CORRECTIONLIBPATH ${CORRECTION_LIB_ARGS})
-message(STATUS "Correctionline library path: ${CORRECTIONLIBPATH}")
-find_package(correctionlib REQUIRED PATHS ${CORRECTIONLIBPATH})
+
+# if correctionlib comes from cvmfs, change the correctionlibpath accordingly
+if (${CORRECTIONLIBPATH} MATCHES "^/cvmfs/")
+    message(STATUS "Setting up correctionlib from cvmfs ...")
+    set(USING_CVMFS TRUE)
+    find_package(correctionlib)
+    # find_library(CORRECTIONLIBPATH correctionlib)
+    # temporary solution until the top thing works
+    set(CORRECTIONLIBPATH $ENV{LCIO}/lib)
+else()
+    message(STATUS "Setting up correctionlib from local setup ...")
+    set(USING_CVMFS FALSE)
+    find_package(correctionlib REQUIRED PATHS ${CORRECTIONLIBPATH})
+endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
 find_package(ZLIB)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+message(STATUS "Correctionlib library path: ${CORRECTIONLIBPATH}")
 
 # Generate the C++ code
 if (NOT DEFINED INSTALLDIR)
@@ -251,10 +266,17 @@ foreach(FILENAME ${FILELIST})
     #target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib)
 
     # Adds a pre-build event to the Target copying the correctionlib.so file into the /lib folder in the install directory
-    add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CORRECTIONLIBPATH}/../lib/libcorrectionlib.so"
-            ${INSTALLDIR}/lib/libcorrectionlib.so)
+    if (NOT ${USING_CVMFS})
+        add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CORRECTIONLIBPATH}/../lib/libcorrectionlib.so"
+                ${INSTALLDIR}/lib/libcorrectionlib.so)
+    else()
+        add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CORRECTIONLIBPATH}/libcorrectionlib.so"
+                ${INSTALLDIR}/lib/libcorrectionlib.so)
+    endif()
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} $ORIGIN/lib/)
     target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib)
     # Find shared libraries next to the executable in the /lib folder
