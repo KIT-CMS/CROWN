@@ -346,6 +346,30 @@ def build_config(
             "muon_sf_varation": "sf",  # "sf" is nominal, "systup"/"systdown" are up/down variations
         },
     )
+    # electron scale factors configuration
+    configuration.add_config_parameters(
+        ["et", "ee", "em"],
+        {
+            "ele_sf_file": EraModifier(
+                {
+                    "2016preVFP": "data/jsonpog-integration/POG/EGM/2016preVFP_UL/electron.json.gz",
+                    "2016postVFP": "data/jsonpog-integration/POG/EGM/2016postVFP_UL/electron.json.gz",
+                    "2017": "data/jsonpog-integration/POG/EGM/2017_UL/electron.json.gz",
+                    "2018": "data/jsonpog-integration/POG/EGM/2018_UL/electron.json.gz",
+                }
+            ),
+            "ele_id_sf_name": "UL-Electron-ID-SF",
+            "ele_sf_year_id": EraModifier(
+                {
+                    "2016preVFP": "2016preVFP",
+                    "2016postVFP": "2016postVFP",
+                    "2017": "2017",
+                    "2018": "2018",
+                }
+            ),
+            "ele_sf_varation": "sf",  # "sf" is nominal, "sfup"/"sfdown" are up/down variations
+        },
+    )
     # ET/EM channel electron selection
     configuration.add_config_parameters(
         ["et"],
@@ -544,6 +568,7 @@ def build_config(
             pairquantities.ETDiTauPairQuantities,
             genparticles.ETGenDiTauPairQuantities,
             scalefactors.TauID_SF,
+            scalefactors.EleID_SF,
             triggers.ETGenerateSingleElectronTriggerFlags,
             triggers.ETGenerateCrossTriggerFlags,
             triggers.GenerateSingleTrailingTauTriggerFlags,
@@ -588,6 +613,7 @@ def build_config(
             pairquantities.EMDiTauPairQuantities,
             genparticles.EMGenDiTauPairQuantities,
             scalefactors.MuonIDIso_SF,
+            scalefactors.EleID_SF,
             triggers.EMGenerateSingleElectronTriggerFlags,
             triggers.EMGenerateSingleMuonTriggerFlags,
             triggers.EMGenerateCrossTriggerFlags,
@@ -794,8 +820,8 @@ def build_config(
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
-            q.idWeight_1,
-            q.isoWeight_1,
+            q.id_wgt_mu_1,
+            q.iso_wgt_mu_1,
         ],
     )
     configuration.add_outputs(
@@ -819,8 +845,8 @@ def build_config(
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
-            # q.idWeight_1,
-            # q.isoWeight_1,
+            q.id_wgt_ele_wp90nonIso_1,
+            q.id_wgt_ele_wp80nonIso_1,
         ],
     )
     configuration.add_outputs(
@@ -865,6 +891,10 @@ def build_config(
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
+            q.id_wgt_ele_wp90nonIso_1,
+            q.id_wgt_ele_wp80nonIso_1,
+            q.id_wgt_mu_2,
+            q.iso_wgt_mu_2,
         ],
     )
 
@@ -873,10 +903,10 @@ def build_config(
         [
             q.nmuons,
             triggers.MMGenerateSingleMuonTriggerFlags.output_group,
-            # q.idWeight_1,
-            # q.isoWeight_1,
-            # q.idWeight_2,
-            # q.isoWeight_2,
+            q.id_wgt_mu_1,
+            q.iso_wgt_mu_1,
+            q.id_wgt_mu_2,
+            q.iso_wgt_mu_2,
         ],
     )
     if "data" not in sample and "emb" not in sample:

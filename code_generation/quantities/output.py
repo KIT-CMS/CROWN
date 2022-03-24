@@ -122,12 +122,7 @@ gen_eta_2 = Quantity("gen_eta_2")
 gen_phi_2 = Quantity("gen_phi_2")
 gen_mass_2 = Quantity("gen_mass_2")
 gen_pdgid_2 = Quantity("gen_pdgid_2")
-
 gen_m_vis = Quantity("gen_m_vis")
-isoWeight_1 = Quantity("isoWeight_1")
-isoWeight_2 = Quantity("isoWeight_2")
-idWeight_1 = Quantity("idWeight_1")
-idWeight_2 = Quantity("idWeight_2")
 
 topPtReweightWeight = Quantity("topPtReweightWeight")
 ZPtMassReweightWeight = Quantity("ZPtMassReweightWeight")
@@ -206,3 +201,14 @@ is_wj = Quantity("is_wj")
 is_ggh = Quantity("is_ggh")
 is_vbf = Quantity("is_vbf")
 is_vv = Quantity("is_vv")
+
+# Electron Weights
+id_wgt_ele_wp90nonIso_1 = Quantity("id_wgt_ele_wp90nonIso_1")
+id_wgt_ele_wp90nonIso_2 = Quantity("id_wgt_ele_wp90nonIso_2")
+id_wgt_ele_wp80nonIso_1 = Quantity("id_wgt_ele_wp80nonIso_1")
+id_wgt_ele_wp80nonIso_2 = Quantity("id_wgt_ele_wp80nonIso_2")
+# Muon weights
+id_wgt_mu_1 = Quantity("id_wgt_mu_1")
+id_wgt_mu_2 = Quantity("id_wgt_mu_2")
+iso_wgt_mu_1 = Quantity("iso_wgt_mu_1")
+iso_wgt_mu_2 = Quantity("iso_wgt_mu_2")
