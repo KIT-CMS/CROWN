@@ -68,7 +68,15 @@ auto iso_rooworkspace(auto &df, const std::string &pt, const std::string &eta,
 }
 /**
  * @brief Function used to evaluate id scale factors from muons with
- * correctionlib
+ * correctionlib. Configuration:
+ * - [UL2018 Muon
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2018_UL.html)
+ * - [UL2017 Muon
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2017_UL.html)
+ * - [UL2016preVFP Muon
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2016preVFP_UL.html)
+ * - [UL2016postVFP Muon
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2016postVFP_UL.html)
  *
  * @param df The input dataframe
  * @param pt muon pt
@@ -107,7 +115,15 @@ auto id(auto &df, const std::string &pt, const std::string &eta,
 }
 /**
  * @brief Function used to evaluate iso scale factors from muons with
- * correctionlib
+ * correctionlib. Configurations:
+ * - [UL2018 Muon
+ * Iso](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2018_UL.html)
+ * - [UL2017 Muon
+ * Iso](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2017_UL.html)
+ * - [UL2016preVFP Muon
+ * Iso](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2016preVFP_UL.html)
+ * - [UL2016postVFP Muon
+ * Iso](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2016postVFP_UL.html)
  *
  * @param df The input dataframe
  * @param pt muon pt
@@ -290,4 +306,56 @@ auto id_vsEleMu(auto &df, const std::string &eta, const std::string &decayMode,
     return df1;
 }
 } // namespace tau
+
+namespace electron {
+/**
+ * @brief Function used to evaluate id scale factors of electrons with
+ * correctionlib, configurations:
+ * - [UL2018 Electron
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/EGM_electron_Run2_UL/EGM_electron_2018_UL.html)
+ * - [UL2017 Electron
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/EGM_electron_Run2_UL/EGM_electron_2017_UL.html)
+ * - [UL2016preVFP Electron
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/EGM_electron_Run2_UL/EGM_electron_2016preVFP_UL.html)
+ * - [UL2016postVFP Electron
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/EGM_electron_Run2_UL/EGM_electron_2016postVFP_UL.html)
+ * @param df The input dataframe
+ * @param pt electron pt
+ * @param eta electron eta
+ * @param year_id id for the year of data taking and mc compaign
+ * @param wp wp of the electron id
+ * @param variation id for the variation of the scale factor. Available Values:
+ * sf, sfdown, sfup
+ * @param id_output name of the id scale factor column
+ * @param sf_file path to the file with the electron scale factors
+ * @param sf_name name of the electron id scale factor
+ * @return a new dataframe containing the new column
+ */
+auto id(auto &df, const std::string &pt, const std::string &eta,
+        const std::string &year_id, const std::string &wp,
+        const std::string &variation, const std::string &id_output,
+        const std::string &sf_file, const std::string &sf_name) {
+
+    Logger::get("electronIDSF")
+        ->debug("Setting up functions for electron id sf with correctionlib");
+    Logger::get("electronIDSF")->debug("ID - Name {}", sf_name);
+    auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(sf_name);
+    auto df1 = df.Define(
+        id_output,
+        [evaluator, year_id, sf_name, wp, variation](const float &pt,
+                                                     const float &eta) {
+            Logger::get("electronIDSF")
+                ->debug("Year {}, Name {}, WP {}", year_id, sf_name, wp);
+            Logger::get("electronIDSF")->debug("ID - pt {}, eta {}", pt, eta);
+            double sf = 1.;
+            if (pt >= 0.0) {
+                sf = evaluator->evaluate({year_id, variation, wp, eta, pt});
+            }
+            Logger::get("electronIDSF")->debug("Scale Factor {}", sf);
+            return sf;
+        },
+        {pt, eta});
+    return df1;
+}
+} // namespace electron
 } // namespace scalefactor
