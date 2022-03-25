@@ -1,13 +1,13 @@
 #!/bin/bash
 
 EXECUTABLE=$1
-INPUTFILE=$2
-OUTPUTFILE=$3
+OUTPUTFILE=$2
+INPUTFILE=$3
 GRAPHNAME=$4
 
 # Record samples with perf
 # perf record -g $EXECUTABLE
-perf record --call-graph dwarf $EXECUTABLE $INPUTFILE $OUTPUTFILE
+perf record --call-graph dwarf $EXECUTABLE $OUTPUTFILE $INPUTFILE
 # Convert the data to be readable for flamegraphs
 perf script > out.perf
 BASE_URL=https://raw.githubusercontent.com/eguiraud/FlameGraph/160b531f4c5ef0fec37e2b719ec609842a02aa99/
