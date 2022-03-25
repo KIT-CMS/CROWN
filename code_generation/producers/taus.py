@@ -45,7 +45,7 @@ TauPtCorrection_byValue = Producer(
 )
 TauPtCorrection = Producer(
     name="TauPtCorrection",
-    call='physicsobject::tau::PtCorrection({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_json_name}", "{tau_id_algorithm}", "{tau_ES_variation}", {vec_open}{tau_dms}{vec_close})',
+    call='physicsobject::tau::PtCorrection({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_json_name}", "{tau_id_algorithm}", "{tau_ES_shift_DM0}", "{tau_ES_shift_DM1}", "{tau_ES_shift_DM10}", "{tau_ES_shift_DM11}", {vec_open}{tau_dms}{vec_close})',
     input=[
         nanoAOD.Tau_pt,
         nanoAOD.Tau_eta,
