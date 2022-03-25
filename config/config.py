@@ -105,7 +105,7 @@ def build_config(
     )
     # Tau base selection:
     configuration.add_config_parameters(
-        "global",
+        ["global", "et", "mt", "tt"],
         {
             "min_tau_pt": 30.0,
             "max_tau_eta": 2.3,
@@ -120,7 +120,10 @@ def build_config(
             ),
             "tau_ES_json_name": "tau_energy_scale",
             "tau_id_algorithm": "DeepTau2017v2p1",
-            "tau_ES_variation": "nom",  # or "up"/"down" for up/down variation
+            "tau_ES_shift_DM0": "nom",
+            "tau_ES_shift_DM1": "nom",
+            "tau_ES_shift_DM10": "nom",
+            "tau_ES_shift_DM11": "nom",              
         },
     )
     # muon base selection:
@@ -187,14 +190,6 @@ def build_config(
     configuration.add_config_parameters(
         ["mt", "tt", "et"],
         {
-            "tau_dms": "0,1,10,11",
-            "tau_sf_file": EraModifier(
-                {
-                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
-                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
-                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
-                }
-            ),
             "vsjet_tau_id": [
                 {
                     "tau_id_discriminator": "DeepTau2017v2p1VSjet",
@@ -277,16 +272,6 @@ def build_config(
             "vsjet_tau_id_bit": 4,
             "vsele_tau_id_bit": 4,
             "vsmu_tau_id_bit": 1,
-            "tau_sf_file": EraModifier(
-                {
-                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
-                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
-                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
-                }
-            ),
-            "tau_ES_json_name": "tau_energy_scale",
-            "tau_id_algorithm": "DeepTau2017v2p1",
-            "tau_ES_variation": "nom",  # or "up"/"down" for up/down variation
         },
     )
     # TT tau selection:
@@ -296,20 +281,9 @@ def build_config(
             "min_tau_pt": 35.0,
             "max_tau_eta": 2.3,
             "max_tau_dz": 0.2,
-            "tau_dms": "0,1,10,11",
             "vsjet_tau_id_bit": 4,
             "vsele_tau_id_bit": 4,
             "vsmu_tau_id_bit": 1,
-            "tau_sf_file": EraModifier(
-                {
-                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
-                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
-                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
-                }
-            ),
-            "tau_ES_json_name": "tau_energy_scale",
-            "tau_id_algorithm": "DeepTau2017v2p1",
-            "tau_ES_variation": "nom",  # or "up"/"down" for up/down variation
         },
     )
 
@@ -925,50 +899,76 @@ def build_config(
     #########################
     # TES Shifts
     #########################
-    # configuration.add_shift(
-    #     SystematicShift(
-    #         name="tauES_1prong0pizeroDown",
-    #         shift_config={"global": {"tau_ES_shift_DM0": 0.998}},
-    #         producers={"global": taus.TauPtCorrection},
-    #         ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
-    #     )
-    # )
-    # configuration.add_shift(
-    #     SystematicShift(
-    #         name="tauES_1prong0pizeroUp",
-    #         shift_config={"global": {"tau_ES_shift_DM0": 1.002}},
-    #         producers={"global": taus.TauPtCorrection},
-    #         ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
-    #     )
-    # )
+    configuration.add_shift(
+        SystematicShift(
+            name="tauES_1prong0pizeroDown",
+            shift_config={"global": {"tau_ES_shift_DM0": "down"}},
+            producers={"global": taus.TauPtCorrection},
+            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="tauES_1prong0pizeroUp",
+            shift_config={"global": {"tau_ES_shift_DM0": "up"}},
+            producers={"global": taus.TauPtCorrection},
+            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="tauES_1prong1pizeroDown",
+            shift_config={"global": {"tau_ES_shift_DM1": "down"}},
+            producers={"global": taus.TauPtCorrection},
+            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="tauES_1prong1pizeroUp",
+            shift_config={"global": {"tau_ES_shift_DM1": "up"}},
+            producers={"global": taus.TauPtCorrection},
+            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="tauES_3prong0pizeroDown",
+            shift_config={"global": {"tau_ES_shift_DM10": "down"}},
+            producers={"global": taus.TauPtCorrection},
+            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="tauES_3prong0pizeroUp",
+            shift_config={"global": {"tau_ES_shift_DM10": "up"}},
+            producers={"global": taus.TauPtCorrection},
+            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="tauES_3prong1pizeroDown",
+            shift_config={"global": {"tau_ES_shift_DM11": "down"}},
+            producers={"global": taus.TauPtCorrection},
+            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="tauES_3prong1pizeroUp",
+            shift_config={"global": {"tau_ES_shift_DM11": "up"}},
+            producers={"global": taus.TauPtCorrection},
+            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+        )
+    )
 
     #########################
     # Import triggersetup   #
     #########################
     add_diTauTriggerSetup(configuration)
 
-    configuration.add_shift(
-        SystematicShift(
-            name="tauES_Down",
-            shift_config={"global": {"tau_ES_variation": "down"}},
-            producers={"global": taus.TauPtCorrection},
-            ignore_producers={
-                "mt": [pairselection.LVMu1, muons.VetoMuons],
-                "et": [pairselection.LVEl1, electrons.VetoElectrons],
-            },
-        )
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="tauES_Up",
-            shift_config={"global": {"tau_ES_variation": "up"}},
-            producers={"global": taus.TauPtCorrection},
-            ignore_producers={
-                "mt": [pairselection.LVMu1, muons.VetoMuons],
-                "et": [pairselection.LVEl1, electrons.VetoElectrons],
-            },
-        )
-    )
     #########################
     # MET Shifts
     #########################
