@@ -236,6 +236,6 @@ EleID_SF = ProducerGroup(
             Ele_2_IDWP90_SF,
             Ele_2_IDWP80_SF,
         ],
-        "et": [Ele_2_IDWP90_SF, Ele_2_IDWP80_SF],
+        "et": [Ele_1_IDWP90_SF, Ele_1_IDWP80_SF],
     },
 )

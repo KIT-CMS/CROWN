@@ -370,7 +370,7 @@ def build_config(
             "ele_sf_varation": "sf",  # "sf" is nominal, "sfup"/"sfdown" are up/down variations
         },
     )
-    # ET/EM channel electron selection
+    # ET channel electron selection
     configuration.add_config_parameters(
         ["et"],
         {
