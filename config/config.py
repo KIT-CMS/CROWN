@@ -105,11 +105,16 @@ def build_config(
     )
     # Tau base selection:
     configuration.add_config_parameters(
-        ["global", "et", "mt", "tt"],
+        "global",
         {
             "min_tau_pt": 30.0,
             "max_tau_eta": 2.3,
             "max_tau_dz": 0.2,
+        },
+    )
+    configuration.add_config_parameters(
+        ["global", "et", "mt", "tt"],
+        {
             "tau_dms": "0,1,10,11",
             "tau_sf_file": EraModifier(
                 {
@@ -904,7 +909,7 @@ def build_config(
             name="tauES_1prong0pizeroDown",
             shift_config={"global": {"tau_ES_shift_DM0": "down"}},
             producers={"global": taus.TauPtCorrection},
-            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+            ignore_producers={["et", "em", "mt"]: [pairselection.LVMu1, muons.VetoMuons]},
         )
     )
     configuration.add_shift(
@@ -912,7 +917,7 @@ def build_config(
             name="tauES_1prong0pizeroUp",
             shift_config={"global": {"tau_ES_shift_DM0": "up"}},
             producers={"global": taus.TauPtCorrection},
-            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+            ignore_producers={["et", "em", "mt"]: [pairselection.LVMu1, muons.VetoMuons]},
         )
     )
     configuration.add_shift(
@@ -920,7 +925,7 @@ def build_config(
             name="tauES_1prong1pizeroDown",
             shift_config={"global": {"tau_ES_shift_DM1": "down"}},
             producers={"global": taus.TauPtCorrection},
-            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+            ignore_producers={["et", "em", "mt"]: [pairselection.LVMu1, muons.VetoMuons]},
         )
     )
     configuration.add_shift(
@@ -928,7 +933,7 @@ def build_config(
             name="tauES_1prong1pizeroUp",
             shift_config={"global": {"tau_ES_shift_DM1": "up"}},
             producers={"global": taus.TauPtCorrection},
-            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+            ignore_producers={["et", "em", "mt"]: [pairselection.LVMu1, muons.VetoMuons]},
         )
     )
     configuration.add_shift(
@@ -936,7 +941,7 @@ def build_config(
             name="tauES_3prong0pizeroDown",
             shift_config={"global": {"tau_ES_shift_DM10": "down"}},
             producers={"global": taus.TauPtCorrection},
-            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+            ignore_producers={["et", "em", "mt"]: [pairselection.LVMu1, muons.VetoMuons]},
         )
     )
     configuration.add_shift(
@@ -944,7 +949,7 @@ def build_config(
             name="tauES_3prong0pizeroUp",
             shift_config={"global": {"tau_ES_shift_DM10": "up"}},
             producers={"global": taus.TauPtCorrection},
-            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+            ignore_producers={["et", "em", "mt"]: [pairselection.LVMu1, muons.VetoMuons]},
         )
     )
     configuration.add_shift(
@@ -952,7 +957,7 @@ def build_config(
             name="tauES_3prong1pizeroDown",
             shift_config={"global": {"tau_ES_shift_DM11": "down"}},
             producers={"global": taus.TauPtCorrection},
-            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+            ignore_producers={["et", "em", "mt"]: [pairselection.LVMu1, muons.VetoMuons]},
         )
     )
     configuration.add_shift(
@@ -960,7 +965,7 @@ def build_config(
             name="tauES_3prong1pizeroUp",
             shift_config={"global": {"tau_ES_shift_DM11": "up"}},
             producers={"global": taus.TauPtCorrection},
-            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+            ignore_producers={["et", "em", "mt"]": [pairselection.LVMu1, muons.VetoMuons]},
         )
     )
 
