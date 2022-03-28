@@ -94,7 +94,7 @@ def build_config(
             "tau_ES_shift_DM0": "nom",
             "tau_ES_shift_DM1": "nom",
             "tau_ES_shift_DM10": "nom",
-            "tau_ES_shift_DM11": "nom",              
+            "tau_ES_shift_DM11": "nom",
         },
     )
     # muon base selection:
@@ -679,8 +679,8 @@ def build_config(
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
-            q.idWeight_1,
-            q.isoWeight_1,
+            q.id_wgt_mu_1,
+            q.iso_wgt_mu_1,
         ],
     )
     configuration.add_outputs(
@@ -755,7 +755,11 @@ def build_config(
             name="tauES_1prong0pizeroDown",
             shift_config={"global": {"tau_ES_shift_DM0": "down"}},
             producers={"global": taus.TauPtCorrection},
-            ignore_producers={["et", "em", "mt"]: [pairselection.LVMu1, muons.VetoMuons]},
+            ignore_producers={
+                "et": [pairselection.LVMu1, muons.VetoMuons],
+                "em": [pairselection.LVMu1, muons.VetoMuons],
+                "mt": [pairselection.LVMu1, muons.VetoMuons],
+            },
         )
     )
     #########################
