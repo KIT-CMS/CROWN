@@ -76,6 +76,11 @@ def build_config(
             "min_tau_pt": 30.0,
             "max_tau_eta": 2.3,
             "max_tau_dz": 0.2,
+        },
+    )
+    configuration.add_config_parameters(
+        ["global", "et", "mt", "tt"],
+        {
             "tau_dms": "0,1,10,11",
             "tau_sf_file": EraModifier(
                 {
@@ -86,7 +91,10 @@ def build_config(
             ),
             "tau_ES_json_name": "tau_energy_scale",
             "tau_id_algorithm": "DeepTau2017v2p1",
-            "tau_ES_variation": "nom",
+            "tau_ES_shift_DM0": "nom",
+            "tau_ES_shift_DM1": "nom",
+            "tau_ES_shift_DM10": "nom",
+            "tau_ES_shift_DM11": "nom",              
         },
     )
     # muon base selection:
@@ -239,20 +247,9 @@ def build_config(
             "min_tau_pt": 30.0,
             "max_tau_eta": 2.3,
             "max_tau_dz": 0.2,
-            "tau_dms": "0,1,10,11",
             "vsjet_tau_id_bit": 4,
             "vsele_tau_id_bit": 4,
             "vsmu_tau_id_bit": 1,
-            "tau_sf_file": EraModifier(
-                {
-                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
-                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
-                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
-                }
-            ),
-            "tau_ES_json_name": "tau_energy_scale",
-            "tau_id_algorithm": "DeepTau2017v2p1",
-            "tau_ES_variation": "nom",  # or "up"/"down" for up/down variation
         },
     )
     # TT tau selection:
@@ -262,20 +259,9 @@ def build_config(
             "min_tau_pt": 35.0,
             "max_tau_eta": 2.3,
             "max_tau_dz": 0.2,
-            "tau_dms": "0,1,10,11",
             "vsjet_tau_id_bit": 4,
             "vsele_tau_id_bit": 4,
             "vsmu_tau_id_bit": 1,
-            "tau_sf_file": EraModifier(
-                {
-                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
-                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
-                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
-                }
-            ),
-            "tau_ES_json_name": "tau_energy_scale",
-            "tau_id_algorithm": "DeepTau2017v2p1",
-            "tau_ES_variation": "nom",  # or "up"/"down" for up/down variation
         },
     )
 
@@ -767,17 +753,9 @@ def build_config(
     configuration.add_shift(
         SystematicShift(
             name="tauES_1prong0pizeroDown",
-            shift_config={"global": {"tau_ES_shift_DM0": 0.998}},
+            shift_config={"global": {"tau_ES_shift_DM0": "down"}},
             producers={"global": taus.TauPtCorrection},
-            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
-        )
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="tauES_1prong0pizeroUp",
-            shift_config={"global": {"tau_ES_shift_DM0": 1.002}},
-            producers={"global": taus.TauPtCorrection},
-            ignore_producers={"mt": [pairselection.LVMu1, muons.VetoMuons]},
+            ignore_producers={["et", "em", "mt"]: [pairselection.LVMu1, muons.VetoMuons]},
         )
     )
     #########################
