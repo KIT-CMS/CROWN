@@ -90,7 +90,7 @@ auto iso_rooworkspace(auto &df, const std::string &pt, const std::string &eta,
  * @return a new dataframe containing the new column
  */
 auto id(auto &df, const std::string &pt, const std::string &eta,
-        const std::string &year_id, const std::string &variation,
+        const std::string &year_id, const std::string &variation, 
         const std::string &id_output, const std::string &sf_file,
         const std::string &sf_name) {
 
@@ -187,7 +187,7 @@ VVTight                             |  128  | 8
  * @param selectedDMs list of allowed decay modes for which a scale factor
  * should be calculated
  * @param wp working point of the ID cut
- * @param variation id for the variation of the scale factor "sf" for nominal
+ * @param variation_jet id for the variation of the scale factor "sf" for nominal
  * and "systup"/"systdown" the up/down variation
  * @param sf_dependence "pt", "dm" or "eta" based scale factors
  * @param id_output name of the id scale factor column
@@ -197,7 +197,7 @@ VVTight                             |  128  | 8
  */
 auto id_vsJet(auto &df, const std::string &pt, const std::string &decayMode,
               const std::string &genMatch, const std::vector<int> &selectedDMs,
-              const std::string &wp, const std::string &variation,
+              const std::string &wp, const std::string &variation_jet,
               const std::string &sf_dependence, const std::string &id_output,
               const std::string &sf_file, const std::string &sf_name) {
 
@@ -205,7 +205,7 @@ auto id_vsJet(auto &df, const std::string &pt, const std::string &decayMode,
         ->debug("Setting up function for tau id vsJet sf");
     Logger::get("TauIDvsJetSF")->debug("ID - Name {}", sf_name);
     auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(sf_name);
-    auto idSF_calculator = [evaluator, wp, variation, sf_dependence,
+    auto idSF_calculator = [evaluator, wp, variation_jet, sf_dependence,
                             selectedDMs,
                             sf_name](const float &pt, const int &decayMode,
                                      const UChar_t &genMatch) {
@@ -220,10 +220,10 @@ auto id_vsJet(auto &df, const std::string &pt, const std::string &decayMode,
                 ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, "
                         "variation {}, "
                         "sf_dependence {}",
-                        sf_name, pt, decayMode, genMatch, wp, variation,
+                        sf_name, pt, decayMode, genMatch, wp, variation_jet,
                         sf_dependence);
             sf = evaluator->evaluate({pt, decayMode, static_cast<int>(genMatch),
-                                      wp, variation, sf_dependence});
+                                      wp, variation_jet, sf_dependence});
             Logger::get("TauIDvsJetSF")->debug("Scale Factor {}", sf);
         }
 
@@ -233,7 +233,7 @@ auto id_vsJet(auto &df, const std::string &pt, const std::string &decayMode,
     return df1;
 }
 /**
- * @brief Function used to evaluate vsEle/vsMu tau id scale factors with
+ * @brief Function used to evaluate vsEle tau id scale factors with
  * correctionlib
 
 Description of the bit map used to define the tau id working points of the
@@ -265,24 +265,24 @@ Tight                               |  8    | 4
  * @param selectedDMs list of allowed decay modes for which a scale factor
  * should be calculated
  * @param wp working point of the ID cut
- * @param variation id for the variation of the scale factor "sf" for nominal
+ * @param variation_ele id for the variation of the scale factor "sf" for nominal
  * and "systup"/"systdown" the up/down variation
  * @param id_output name of the id scale factor column
  * @param sf_file path to the file with the tau scale factors
  * @param sf_name name of the tau id scale factor
  * @return a new dataframe containing the new column
  */
-auto id_vsEleMu(auto &df, const std::string &eta, const std::string &decayMode,
+auto id_vsEle(auto &df, const std::string &eta, const std::string &decayMode,
                 const std::string &genMatch,
                 const std::vector<int> &selectedDMs, const std::string &wp,
-                const std::string &variation, const std::string &id_output,
+                const std::string &variation_ele, const std::string &id_output,
                 const std::string &sf_file, const std::string &sf_name) {
 
     Logger::get("TauIDvsLepSF")
-        ->debug("Setting up function for tau id vsEle/vsMu sf");
+        ->debug("Setting up function for tau id vsEle sf");
     Logger::get("TauIDvsLepSF")->debug("ID - Name {}", sf_name);
     auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(sf_name);
-    auto idSF_calculator = [evaluator, wp, variation, selectedDMs,
+    auto idSF_calculator = [evaluator, wp, variation_ele, selectedDMs,
                             sf_name](const float &eta, const int &decayMode,
                                      const UChar_t &genMatch) {
         double sf = 1.;
@@ -294,9 +294,82 @@ auto id_vsEleMu(auto &df, const std::string &eta, const std::string &decayMode,
             selectedDMs.end()) {
             Logger::get("TauIDvsLepSF")
                 ->debug("ID {} - eta {}, genMatch {}, wp {}, variation {} ",
-                        sf_name, eta, genMatch, wp, variation);
+                        sf_name, eta, genMatch, wp, variation_ele);
             sf = evaluator->evaluate(
-                {std::abs(eta), static_cast<int>(genMatch), wp, variation});
+                {std::abs(eta), static_cast<int>(genMatch), wp, variation_ele});
+            Logger::get("TauIDvsLepSF")->debug("Scale Factor {}", sf);
+        }
+        return sf;
+    };
+    auto df1 =
+        df.Define(id_output, idSF_calculator, {eta, decayMode, genMatch});
+    return df1;
+}
+/**
+ * @brief Function used to evaluate vsMu tau id scale factors with
+ * correctionlib
+
+Description of the bit map used to define the tau id working points of the
+DeepTau2017v2p1 tagger.
+vsElectrons                         | Value | Bit (value used in the config)
+------------------------------------|-------|-------
+no ID selection (takes every tau)   |  0    | -
+VVVLoose                            |  1    | 1
+VVLoose                             |  2    | 2
+VLoose                              |  4    | 3
+Loose                               |  8    | 4
+Medium                              |  16   | 5
+Tight                               |  32   | 6
+VTight                              |  64   | 7
+VVTight                             |  128  | 8
+
+vsMuons                             | Value | Bit (value used in the config)
+------------------------------------|-------|-------
+no ID selection (takes every tau)   |  0    | -
+VLoose                              |  1    | 1
+Loose                               |  2    | 2
+Medium                              |  4    | 3
+Tight                               |  8    | 4
+ * @param df The input dataframe
+ * @param eta tau eta
+ * @param decayMode decay mode of the tau
+ * @param genMatch column with genmatch values (from prompt e, prompt mu,
+ * tau->e, tau->mu, had. tau)
+ * @param selectedDMs list of allowed decay modes for which a scale factor
+ * should be calculated
+ * @param wp working point of the ID cut
+ * @param variation_mu id for the variation of the scale factor "sf" for nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param id_output name of the id scale factor column
+ * @param sf_file path to the file with the tau scale factors
+ * @param sf_name name of the tau id scale factor
+ * @return a new dataframe containing the new column
+ */
+auto id_vsMu(auto &df, const std::string &eta, const std::string &decayMode,
+                const std::string &genMatch,
+                const std::vector<int> &selectedDMs, const std::string &wp,
+                const std::string &variation_mu, const std::string &id_output,
+                const std::string &sf_file, const std::string &sf_name) {
+
+    Logger::get("TauIDvsLepSF")
+        ->debug("Setting up function for tau id vsMu sf");
+    Logger::get("TauIDvsLepSF")->debug("ID - Name {}", sf_name);
+    auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(sf_name);
+    auto idSF_calculator = [evaluator, wp, variation_mu, selectedDMs,
+                            sf_name](const float &eta, const int &decayMode,
+                                     const UChar_t &genMatch) {
+        double sf = 1.;
+        Logger::get("TauIDvsLepSF")->debug("ID - decayMode {}", decayMode);
+        // only calculate SFs for allowed tau decay modes (also excludes
+        // default values due to tau energy correction shifts below good tau
+        // pt selection)
+        if (std::find(selectedDMs.begin(), selectedDMs.end(), decayMode) !=
+            selectedDMs.end()) {
+            Logger::get("TauIDvsLepSF")
+                ->debug("ID {} - eta {}, genMatch {}, wp {}, variation {} ",
+                        sf_name, eta, genMatch, wp, variation_mu);
+            sf = evaluator->evaluate(
+                {std::abs(eta), static_cast<int>(genMatch), wp, variation_mu});
             Logger::get("TauIDvsLepSF")->debug("Scale Factor {}", sf);
         }
         return sf;

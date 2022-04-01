@@ -261,7 +261,9 @@ def build_config(
                     "Tight": 4,
                 }.items()
             ],
-            "tau_sf_variation": "nom",  # or "up"/"down" for up/down variation
+            "tau_sf_vsjet_variation": "nom",
+            "tau_sf_vsele_variation": "nom",  # or "up"/"down" for up/down variation
+            "tau_sf_vsmu_variation": "nom",
             "tau_vsjet_sf_dependence": "pt",  # or "dm", "eta"
         },
     )
@@ -900,25 +902,69 @@ def build_config(
                 nanoAOD.HTXS_stage1_2_fine_cat_pTjet30GeV,
             ],
         )
-
+    #########################
+    # Jet/Ele/Mu fake rate Shifts
+    #########################
+    configuration.add_shift(
+        SystematicShift(
+            name="CMSFakeJetDown",
+            shift_config={("et", "mt", "tt"): {"tau_sf_vsjet_variation": "down"}},
+            producers={("et", "mt", "tt"): scalefactors.TauID_SF},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="CMSFakeJetUp",
+            shift_config={("et", "mt", "tt"): {"tau_sf_vsjet_variation": "up"}},
+            producers={("et", "mt", "tt"): scalefactors.TauID_SF},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="CMSFakeEleDown",
+            shift_config={("et", "mt", "tt"): {"tau_sf_vsele_variation": "down"}},
+            producers={("et", "mt", "tt"): scalefactors.TauID_SF},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="CMSFakeEleUp",
+            shift_config={("et", "mt", "tt"): {"tau_sf_vsele_variation": "up"}},
+            producers={("et", "mt", "tt"): scalefactors.TauID_SF},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="CMSFakeMuDown",
+            shift_config={("et", "mt", "tt"): {"tau_sf_vmu_variation": "down"}},
+            producers={("et", "mt", "tt"): scalefactors.TauID_SF},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="CMSFakeMuUp",
+            shift_config={("et", "mt", "tt"): {"tau_sf_vsmu_variation": "up"}},
+            producers={("et", "mt", "tt"): scalefactors.TauID_SF},
+        )
+    )
     #########################
     # TES Shifts
     #########################
     configuration.add_shift(
         SystematicShift(
-            name="tauES_1prong0pizeroDown",
+            name="tauEs1prong0pizeroDown",
             shift_config={"global": {"tau_ES_shift_DM0": "down"}},
             producers={"global": taus.TauPtCorrection},
             ignore_producers={
                 # "et": [pairselection.LVMu1, muons.VetoMuons],
-                # "em": [pairselection.LVMu1, muons.VetoMuons],
+                # "em": [pairselection.LVMu2, muons.VetoMuons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
             },
         )
     )
     configuration.add_shift(
         SystematicShift(
-            name="tauES_1prong0pizeroUp",
+            name="tauEs1prong0pizeroUp",
             shift_config={"global": {"tau_ES_shift_DM0": "up"}},
             producers={"global": taus.TauPtCorrection},
             ignore_producers={
@@ -930,7 +976,7 @@ def build_config(
     )
     configuration.add_shift(
         SystematicShift(
-            name="tauES_1prong1pizeroDown",
+            name="tauEs1prong1pizeroDown",
             shift_config={"global": {"tau_ES_shift_DM1": "down"}},
             producers={"global": taus.TauPtCorrection},
             ignore_producers={
@@ -942,7 +988,7 @@ def build_config(
     )
     configuration.add_shift(
         SystematicShift(
-            name="tauES_1prong1pizeroUp",
+            name="tauEs1prong1pizeroUp",
             shift_config={"global": {"tau_ES_shift_DM1": "up"}},
             producers={"global": taus.TauPtCorrection},
             ignore_producers={
@@ -954,7 +1000,7 @@ def build_config(
     )
     configuration.add_shift(
         SystematicShift(
-            name="tauES_3prong0pizeroDown",
+            name="tauEs3prong0pizeroDown",
             shift_config={"global": {"tau_ES_shift_DM10": "down"}},
             producers={"global": taus.TauPtCorrection},
             ignore_producers={
@@ -966,7 +1012,7 @@ def build_config(
     )
     configuration.add_shift(
         SystematicShift(
-            name="tauES_3prong0pizeroUp",
+            name="tauEs3prong0pizeroUp",
             shift_config={"global": {"tau_ES_shift_DM10": "up"}},
             producers={"global": taus.TauPtCorrection},
             ignore_producers={
@@ -978,7 +1024,7 @@ def build_config(
     )
     configuration.add_shift(
         SystematicShift(
-            name="tauES_3prong1pizeroDown",
+            name="tauEs3prong1pizeroDown",
             shift_config={"global": {"tau_ES_shift_DM11": "down"}},
             producers={"global": taus.TauPtCorrection},
             ignore_producers={
@@ -990,7 +1036,7 @@ def build_config(
     )
     configuration.add_shift(
         SystematicShift(
-            name="tauES_3prong1pizeroUp",
+            name="tauEs3prong1pizeroUp",
             shift_config={"global": {"tau_ES_shift_DM11": "up"}},
             producers={"global": taus.TauPtCorrection},
             ignore_producers={
