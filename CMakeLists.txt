@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.10)
 if (NOT DEFINED ANALYSIS)
     message(FATAL_ERROR "Please specify the config to be used with -DANALYSIS=my_config_name")
 endif()
-message(STATUS "Set up analysis for config ${ANALYSIS}.")
 
 if (NOT DEFINED CHANNELS)
     message(STATUS "No channel specificed, build the four main channels using -DCHANNELS=et,mt,tt,em")
@@ -16,9 +15,18 @@ if (NOT DEFINED SHIFTS)
     set(SHIFTS "all")
 endif()
 
+if (NOT DEFINED DEBUG)
+    message(STATUS "No Debug mode set, activate with -DDEBUG=true --> compile with debug symbols and run code generation with debug output")
+    set(DEBUG "false")
+endif()
+
+if (NOT DEFINED OPTIMIZED)
+    message(STATUS "No Optimization not set, building with -DOPTIMIZED=true --> slower build times but faster runtimes")
+    set(OPTIMIZED "true")
+endif()
+
 if (NOT DEFINED SAMPLES)
     message(FATAL_ERROR "Please specify the samples to be used with -DSAMPLES=samples")
-    set(DEBUG "samples")
 endif()
 
 if (NOT DEFINED ERAS)
@@ -29,31 +37,46 @@ if (NOT DEFINED THREADS)
     message(STATUS "No threads set, using single threaded mode with -DTHREADS=1")
     set(THREADS "1")
 endif()
+message(STATUS "---------------------------------------------")
+message(STATUS "|> Set up analysis for channels ${CHANNELS}.")
+message(STATUS "|> Set up analysis for config ${ANALYSIS}.")
+message(STATUS "|> Set up analysis for samples ${SAMPLES}.")
+message(STATUS "|> Set up analysis for eras ${ERAS}.")
+message(STATUS "|> Set up analysis for shifts ${SHIFTS}.")
+message(STATUS "|> Set up analysis with ${THREADS} threads.")
+message(STATUS "|> Set up analysis with debug mode : ${DEBUG}.")
+message(STATUS "|> Set up analysis with optimization mode : ${OPTIMIZED}.")
+message(STATUS "---------------------------------------------")
+# Define the default compiler flags for different build types, if different from the cmake defaults
+# The build type should be set so that the correct compiler flags are chosen
+if(DEBUG STREQUAL "true")
+    message(STATUS "Debug mode")
+    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Set default compiler flags for build type Debug")
+else()
+    set(DEBUG "false")
+    if(OPTIMIZED STREQUAL "true")
+        message(STATUS "Optimized mode")
+        set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
+        set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "Set default compiler flags for build type Release")
+    else()
+        message(STATUS "Unoptimized mode")
+        set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
+        set(CMAKE_CXX_FLAGS_RELEASE "-O1 -DNDEBUG" CACHE STRING "Set default compiler flags for build type Release")
+    endif()
+endif()
+
 
 string (REPLACE "," ";" ERAS "${ERAS}")
 string (REPLACE "," ";" SAMPLES "${SAMPLES}")
 message(STATUS "Set up analysis with --config ${ANALYSIS} --channels ${CHANNELS} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --threads ${THREADS} --debug ${DEBUG}")
 
-# Define the default compiler flags for different build types, if different from the cmake defaults
-set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Set default compiler flags for build type Debug")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "Set default compiler flags for build type Release")
-
-# The build type should be set so that the correct compiler flags are chosen
-if (NOT DEFINED DEBUG)
-    message(STATUS "No debug mode")
-    set(DEBUG "false")
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
-else()
-    message(STATUS "Debug mode")
-    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
-endif()
 
 # Set the default install directory to the build directory
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} CACHE STRING "Set default install prefix to the build directory")
 message(STATUS "Creating Project")
 # Create the project
 project(CROWN CXX)
-
 message(STATUS "Finding Packages")
 # Find ROOT and print details
 find_package(ROOT 6.26 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit)
@@ -112,6 +135,7 @@ ExternalProject_Add(spdlog
                     -DCMAKE_BUILD_TYPE=Release
                     -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}
     LOG_DOWNLOAD 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
+    BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib64/libspdlog.a
 )
 
 message(STATUS "Configuring spdlog.")
