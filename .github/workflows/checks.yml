@@ -29,7 +29,7 @@ jobs:
         run: pacman -Sy archlinux-keyring --noconfirm
 
       - name: Install missing software
-        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi mingw-w64-x86_64-ninja --ignore=root
+        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi ninja --ignore=root
 
       # - name: apt update
       #   run: apt-get -y update
