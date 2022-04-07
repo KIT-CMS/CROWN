@@ -23,9 +23,9 @@
 static std::vector<std::string> varSet = {"run", "luminosityBlock", "event"};
 
 int main(int argc, char *argv[]) {
-    bool verbose = false;
+    // {DEBUGLEVEL}
     // ROOT logging
-    if (verbose) {
+    if (debug) {
         auto verbosity = ROOT::Experimental::RLogScopedVerbosity(
             ROOT::Detail::RDF::RDFLogChannel(),
             ROOT::Experimental::ELogLevel::kInfo);
