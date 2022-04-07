@@ -58,14 +58,16 @@ The options that are currently available are:
    * :code:`-DSHIFTS=all`: The shifts to be used. Defaults to all shifts. If set to :code:`all`, all shifts are used, if set to :code:`none`, no shifts are used, so only nominal is produced. If set to a comma separated list of shifts, only those shifts are used. If set to only a substring matching multiple shifts, all shifts matching that string will be produced e.g. :code:`-DSHIFTS=tauES` will produce all shifts containing :code:`tauES` in the name.
    * :code:`-DDEBUG=true`: If set to true, the code generation will run with debug information and the executable will be compiled with debug flags
    * :code:`-DOPTIMIZED=true`: If set to true, the compiler will run with :code:`-O3`, resulting in slower build times but faster runtimes. Should be used for developements, but not in production.
-
+   * :code:`-DGENERATOR=Ninja`: The generator to be used. Defaults to Ninja. to set the generator to regular make files use :code:`-DGENERATOR="Unix Makefiles"`
 
 and compile the executable using
 
 .. code-block:: console
 
-   make install
+   ninja install
 
+By default, the ninja_ build system is used for CROWN. However, the usage of other build systems is also possible and can be specified using the :code:`-G=` option, e.g. for regular makefiles use :code:`-DGENERATOR="Unix Makefiles"`, and then use the :code:`make install` command to compile the executable.
+.. _ninja: https://ninja-build.org/
 
 Creating Documentation
 ***********************
