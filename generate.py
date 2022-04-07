@@ -10,6 +10,7 @@ from code_generation.code_generation import (
     set_tags,
     set_thead_flag,
     set_process_tracking,
+    set_debug_flag,
 )
 
 sys.dont_write_bytecode = True
@@ -74,7 +75,7 @@ channels = list(set([channel.lower() for channel in args.channels]))
 ## Setup Logging
 root = logging.getLogger()
 root.setLevel("INFO")
-if args.debug != "false":
+if args.debug == "true":
     root.setLevel("DEBUG")
 ## setup logging
 if not path.exists("generation_logs"):
@@ -119,6 +120,8 @@ template = set_tags(template, analysisname, era, sample_group)
 template = set_thead_flag(template, args.threads)
 # generate the code for the process tracking in the df
 template = set_process_tracking(template, channels)
+# set debug flag if running in debug mode
+template = set_debug_flag(template, args.debug)
 with open(path.join(args.output, executable), "w") as executable_file:
     executable_file.write(template)
 

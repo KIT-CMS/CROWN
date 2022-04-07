@@ -216,3 +216,23 @@ def set_process_tracking(template: str, channels: List[str]) -> str:
         )
         tracking += "    });\n"
     return template.replace("{PROGRESS_CALLBACK}", tracking)
+
+def set_debug_flag(template: str, debug: str) -> str:
+    """
+    Set the debug flag in the template if the debug variable is set to true
+
+    Args:
+        template: The template to be modified.
+        debug: The number of threads to be used.
+
+    Returns:
+        The modified template.
+    """
+    if debug == "true":
+        return template.replace(
+            "    // {DEBUGLEVEL}", "    bool debug = true;"
+        )
+    else:
+        return template.replace(
+            "    // {DEBUGLEVEL}", "    bool debug = false;"
+        )
