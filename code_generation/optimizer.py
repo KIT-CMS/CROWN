@@ -54,7 +54,6 @@ class ProducerOrdering:
             if prod == producer:
                 return i
         raise Exception("Producer not in ordering")
-        return -1
 
     def get_producer(self, position: int) -> Producer | ProducerGroup:
         """

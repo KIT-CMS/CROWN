@@ -133,7 +133,7 @@ def fill_template(t: str, config: Dict[Any, Any]) -> str:
         repo = Repo("../../CROWN")
         current_commit = repo.head.commit
         setup_is_clean = "false" if repo.is_dirty() else "true"
-    except:
+    except ValueError:
         current_commit = "undefined"
         setup_is_clean = "false"
     log.info("Finished preparing meta data.")

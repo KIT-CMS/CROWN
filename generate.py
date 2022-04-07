@@ -1,5 +1,4 @@
 import argparse
-from shutil import copyfile
 from os import path, makedirs
 import importlib
 import logging
