@@ -13,3 +13,5 @@ else
 fi
 # add ~/.local/bin to path if it is not already there
 pathadd "${HOME}/.local/bin/"
+# set the cmake generator to Ninja
+export CMAKE_GENERATOR="Ninja"

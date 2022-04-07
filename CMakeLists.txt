@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
-# Check that config name is given with -DCONFIG, needed to generate the C++ code
+# unset some cached variables
+unset(CMAKE_BUILD_TYPE CACHE)
+unset(CMAKE_CXX_FLAGS_RELEASE CACHE)
+
+# Check that config name is given with -DANALYSIS, needed to generate the C++ code
 if (NOT DEFINED ANALYSIS)
     message(FATAL_ERROR "Please specify the config to be used with -DANALYSIS=my_config_name")
 endif()
@@ -35,12 +39,6 @@ endif()
 if (NOT DEFINED THREADS)
     message(STATUS "No threads set, using single threaded mode with -DTHREADS=1")
     set(THREADS "1")
-endif()
-
-if (NOT DEFINED GENERATOR)
-    set(CMAKE_GENERATOR "Ninja")
-else()
-    set(CMAKE_GENERATOR "${GENERATOR}")
 endif()
 
 message(STATUS "---------------------------------------------")
