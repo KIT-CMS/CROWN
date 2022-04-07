@@ -68,11 +68,9 @@ class ProducerRule:
     # Placeholder for the actual operation on a list. To be overwritten by inheriting classes
     def update_producers(self, producers_to_be_updated: TProducerStore) -> None:
         log.error("Operation not implemented for ProducerRule base class!")
-        pass
 
     def update_outputs(self, outputs_to_be_updated: QuantitiesStore) -> None:
         log.error("Operation not implemented for ProducerRule base class!")
-        pass
 
     def apply(
         self,

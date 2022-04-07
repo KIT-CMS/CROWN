@@ -130,20 +130,6 @@ gen_pt_2 = Producer(
     output=[q.gen_pt_2],
     scopes=["mt", "et", "tt", "em", "mm"],
 )
-gen_pt_1 = Producer(
-    name="gen_pt_1",
-    call="quantities::pt({df}, {output}, {input})",
-    input=[q.gen_p4_1],
-    output=[q.gen_pt_1],
-    scopes=["mt", "et", "tt", "em", "mm"],
-)
-gen_pt_2 = Producer(
-    name="gen_pt_2",
-    call="quantities::pt({df}, {output}, {input})",
-    input=[q.gen_p4_2],
-    output=[q.gen_pt_2],
-    scopes=["mt", "et", "tt", "em", "mm"],
-)
 gen_eta_1 = Producer(
     name="gen_eta_1",
     call="quantities::eta({df}, {output}, {input})",
