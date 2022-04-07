@@ -29,7 +29,7 @@ jobs:
         run: pacman -Sy archlinux-keyring --noconfirm
 
       - name: Install missing software
-        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi --ignore=root
+        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi mingw-w64-x86_64-ninja --ignore=root
 
       # - name: apt update
       #   run: apt-get -y update
@@ -66,11 +66,11 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES -DERAS=$ERAS -DCHANNELS=$CHANNELS -DSHIFTS=$SHIFTS
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES -DERAS=$ERAS -DCHANNELS=$CHANNELS -DSHIFTS=$SHIFTS -DOPTIMIZED=false
 
       - name: Build
         shell: bash
-        run: cd ${{github.workspace}}/build && make install
+        run: cd ${{github.workspace}}/build && ninja install
 
       - name: Test
         shell: bash
