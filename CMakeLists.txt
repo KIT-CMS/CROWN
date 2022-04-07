@@ -69,7 +69,7 @@ else()
     else()
         message(STATUS "Unoptimized mode")
         set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
-        set(CMAKE_CXX_FLAGS_RELEASE "-O1 -DNDEBUG" CACHE STRING "Set default compiler flags for build type Release")
+        set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG" CACHE STRING "Set default compiler flags for build type Release")
     endif()
 endif()
 
