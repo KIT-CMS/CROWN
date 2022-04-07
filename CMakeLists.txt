@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.10)
-
 # Check that config name is given with -DCONFIG, needed to generate the C++ code
 if (NOT DEFINED ANALYSIS)
     message(FATAL_ERROR "Please specify the config to be used with -DANALYSIS=my_config_name")
@@ -37,6 +36,13 @@ if (NOT DEFINED THREADS)
     message(STATUS "No threads set, using single threaded mode with -DTHREADS=1")
     set(THREADS "1")
 endif()
+
+if (NOT DEFINED GENERATOR)
+    set(CMAKE_GENERATOR "Ninja")
+else()
+    set(CMAKE_GENERATOR "${GENERATOR}")
+endif()
+
 message(STATUS "---------------------------------------------")
 message(STATUS "|> Set up analysis for channels ${CHANNELS}.")
 message(STATUS "|> Set up analysis for config ${ANALYSIS}.")
@@ -46,6 +52,7 @@ message(STATUS "|> Set up analysis for shifts ${SHIFTS}.")
 message(STATUS "|> Set up analysis with ${THREADS} threads.")
 message(STATUS "|> Set up analysis with debug mode : ${DEBUG}.")
 message(STATUS "|> Set up analysis with optimization mode : ${OPTIMIZED}.")
+message(STATUS "|> generator is set to ${CMAKE_GENERATOR}")
 message(STATUS "---------------------------------------------")
 # Define the default compiler flags for different build types, if different from the cmake defaults
 # The build type should be set so that the correct compiler flags are chosen
