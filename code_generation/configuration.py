@@ -599,12 +599,12 @@ class Configuration(object):
         else:
             # check if all selected shifts are available
             for scope in self.available_shifts:
+                if len(self.available_shifts[scope]) == 0:
+                    continue
                 # we do not need to check the global scope, since shifts from
                 # the global scope are always propagated down to all scopes
-                if scope is not self.global_scope:
+                if scope in self.initiated_scopes:
                     for shift in self.selected_shifts:
-                        if len(self.available_shifts[scope]) == 0:
-                            raise InvalidShiftError(shift, self.sample)
                         log.debug(
                             "Validating shift {} in scope {}".format(shift, scope)
                         )
