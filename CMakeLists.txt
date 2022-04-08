@@ -140,6 +140,7 @@ ExternalProject_Add(spdlog
                     -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}
     LOG_DOWNLOAD 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
     BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib64/libspdlog.a
+    BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libspdlog.a
 )
 
 message(STATUS "Configuring spdlog.")
