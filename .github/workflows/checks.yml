@@ -14,7 +14,7 @@ env:
   ANALYSIS: test.unittest_config
   SAMPLES: dy
   ERAS: 2018
-  CHANNELS: "mt,mm,et"
+  SCOPES: "mt,mm,et"
   SHIFTS: "tauES,metUnclusteredEnUp"
 
 jobs:
@@ -66,7 +66,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES -DERAS=$ERAS -DCHANNELS=$CHANNELS -DSHIFTS=$SHIFTS -DOPTIMIZED=false -G Ninja
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$SHIFTS -DOPTIMIZED=false -G Ninja
 
       - name: Build
         shell: bash
