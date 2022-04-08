@@ -116,48 +116,56 @@ MuonIDIso_SF_RooWorkspace = ProducerGroup(
 # The readout is done via correctionlib
 ############################
 Tau_1_VsJetTauID_SF = ExtendedVectorProducer(
-    name="VsJetTauID_SF",
-    call='scalefactor::tau::id_vsJet({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsjet_tau_id_WP}", "{tau_sf_vsjet_variation}", "{tau_vsjet_sf_dependence}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
+    name="Tau_1_VsJetTauID_SF",
+    call='scalefactor::tau::id_vsJet_tt({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsjet_tau_id_WP}", "{tau_sf_vsjet_tauDM0}", "{tau_sf_vsjet_tauDM1}", "{tau_sf_vsjet_tauDM10}", "{tau_sf_vsjet_tauDM11}", "{tau_vsjet_sf_dependence}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
     input=[q.pt_1, q.decaymode_1, q.gen_match_1],
     output="tau_1_vsjet_sf_outputname",
     scope=["tt"],
     vec_config="vsjet_tau_id",
 )
 Tau_1_VsEleTauID_SF = ExtendedVectorProducer(
-    name="VsEleTauID_SF",
-    call='scalefactor::tau::id_vsEle({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsele_tau_id_WP}", "{tau_sf_vsele_variation}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
+    name="Tau_1_VsEleTauID_SF",
+    call='scalefactor::tau::id_vsEle({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsele_tau_id_WP}", "{tau_sf_vsele_barrel}", "{tau_sf_vsele_endcap}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
     input=[q.eta_1, q.decaymode_1, q.gen_match_1],
     output="tau_1_vsele_sf_outputname",
     scope=["tt"],
     vec_config="vsele_tau_id",
 )
 Tau_1_VsMuTauID_SF = ExtendedVectorProducer(
-    name="VsMuTauID_SF",
-    call='scalefactor::tau::id_vsMu({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsmu_tau_id_WP}", "{tau_sf_vsmu_variation}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
+    name="Tau_1_VsMuTauID_SF",
+    call='scalefactor::tau::id_vsMu({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsmu_tau_id_WP}", "{tau_sf_vsmu_wheel1}", "{tau_sf_vsmu_wheel2}", "{tau_sf_vsmu_wheel3}", "{tau_sf_vsmu_wheel4}", "{tau_sf_vsmu_wheel5}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
     input=[q.eta_1, q.decaymode_1, q.gen_match_1],
     output="tau_1_vsmu_sf_outputname",
     scope=["tt"],
     vec_config="vsmu_tau_id",
 )
-Tau_2_VsJetTauID_SF = ExtendedVectorProducer(
-    name="VsJetTauID_SF",
-    call='scalefactor::tau::id_vsJet({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsjet_tau_id_WP}", "{tau_sf_vsjet_variation}", "{tau_vsjet_sf_dependence}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
+Tau_2_VsJetTauID_lt_SF = ExtendedVectorProducer(
+    name="Tau_2_VsJetTauID_lt_SF",
+    call='scalefactor::tau::id_vsJet_lt({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsjet_tau_id_WP}", "{tau_sf_vsjet_tau30to35}", "{tau_sf_vsjet_tau35to40}", "{tau_sf_vsjet_tau40to500}", "{tau_sf_vsjet_tau500to1000}", "{tau_sf_vsjet_tau1000toinf}", "{tau_vsjet_sf_dependence}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
     input=[q.pt_2, q.decaymode_2, q.gen_match_2],
     output="tau_2_vsjet_sf_outputname",
-    scope=["et", "mt", "tt"],
+    scope=["et", "mt"],
+    vec_config="vsjet_tau_id",
+)
+Tau_2_VsJetTauID_tt_SF = ExtendedVectorProducer(
+    name="Tau_2_VsJetTauID_tt_SF",
+    call='scalefactor::tau::id_vsJet_tt({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsjet_tau_id_WP}", "{tau_sf_vsjet_tauDM0}", "{tau_sf_vsjet_tauDM1}", "{tau_sf_vsjet_tauDM10}", "{tau_sf_vsjet_tauDM11}", "{tau_vsjet_sf_dependence}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
+    input=[q.pt_2, q.decaymode_2, q.gen_match_2],
+    output="tau_2_vsjet_sf_outputname",
+    scope=["tt"],
     vec_config="vsjet_tau_id",
 )
 Tau_2_VsEleTauID_SF = ExtendedVectorProducer(
-    name="VsEleTauID_SF",
-    call='scalefactor::tau::id_vsEle({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsele_tau_id_WP}", "{tau_sf_vsele_variation}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
+    name="Tau_2_VsEleTauID_SF",
+    call='scalefactor::tau::id_vsEle({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsele_tau_id_WP}", "{tau_sf_vsele_barrel}", "{tau_sf_vsele_endcap}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
     input=[q.eta_2, q.decaymode_2, q.gen_match_2],
     output="tau_2_vsele_sf_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsele_tau_id",
 )
 Tau_2_VsMuTauID_SF = ExtendedVectorProducer(
-    name="VsMuTauID_SF",
-    call='scalefactor::tau::id_vsMu({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsmu_tau_id_WP}", "{tau_sf_vsmu_variation}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
+    name="Tau_2_VsMuTauID_SF",
+    call='scalefactor::tau::id_vsMu({df}, {input}, {vec_open}{tau_dms}{vec_close}, "{vsmu_tau_id_WP}", "{tau_sf_vsmu_wheel1}", "{tau_sf_vsmu_wheel2}", "{tau_sf_vsmu_wheel3}", "{tau_sf_vsmu_wheel4}", "{tau_sf_vsmu_wheel5}", {output}, "{tau_sf_file}", "{tau_id_discriminator}")',
     input=[q.eta_2, q.decaymode_2, q.gen_match_2],
     output="tau_2_vsmu_sf_outputname",
     scope=["et", "mt", "tt"],
@@ -174,17 +182,17 @@ TauID_SF = ProducerGroup(
             Tau_1_VsJetTauID_SF,
             Tau_1_VsEleTauID_SF,
             Tau_1_VsMuTauID_SF,
-            Tau_2_VsJetTauID_SF,
+            Tau_2_VsJetTauID_tt_SF,
             Tau_2_VsEleTauID_SF,
             Tau_2_VsMuTauID_SF,
         ],
         "mt": [
-            Tau_2_VsJetTauID_SF,
+            Tau_2_VsJetTauID_lt_SF,
             Tau_2_VsEleTauID_SF,
             Tau_2_VsMuTauID_SF,
         ],
         "et": [
-            Tau_2_VsJetTauID_SF,
+            Tau_2_VsJetTauID_lt_SF,
             Tau_2_VsEleTauID_SF,
             Tau_2_VsMuTauID_SF,
         ],
