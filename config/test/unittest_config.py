@@ -161,14 +161,6 @@ def build_config(
     configuration.add_config_parameters(
         ["mt", "tt", "et"],
         {
-            "tau_dms": "0,1,10,11",
-            "tau_sf_file": EraModifier(
-                {
-                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
-                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
-                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
-                }
-            ),
             "vsjet_tau_id": [
                 {
                     "tau_id_discriminator": "DeepTau2017v2p1VSjet",
@@ -235,11 +227,38 @@ def build_config(
                     "Tight": 4,
                 }.items()
             ],
-            "tau_sf_variation": "nom",  # or "up"/"down" for up/down variation
+            "tau_sf_vsele_barrel": "nom",  # or "up"/"down" for up/down variation
+            "tau_sf_vsele_endcap": "nom",  # or "up"/"down" for up/down variation
+            "tau_sf_vsmu_wheel1": "nom",
+            "tau_sf_vsmu_wheel2": "nom",
+            "tau_sf_vsmu_wheel3": "nom",
+            "tau_sf_vsmu_wheel4": "nom",
+            "tau_sf_vsmu_wheel5": "nom",
+        },
+    )
+    # MT / ET tau id sf variations
+    configuration.add_config_parameters(
+        ["mt", "et"],
+        {
+            "tau_sf_vsjet_tau30to35": "nom",
+            "tau_sf_vsjet_tau35to40": "nom",
+            "tau_sf_vsjet_tau40to500": "nom",
+            "tau_sf_vsjet_tau500to1000": "nom",
+            "tau_sf_vsjet_tau1000toinf": "nom",
             "tau_vsjet_sf_dependence": "pt",  # or "dm", "eta"
         },
     )
-
+    # TT tau id sf variations
+    configuration.add_config_parameters(
+        ["tt"],
+        {
+            "tau_sf_vsjet_tauDM0": "nom",
+            "tau_sf_vsjet_tauDM1": "nom",
+            "tau_sf_vsjet_tauDM10": "nom",
+            "tau_sf_vsjet_tauDM11": "nom",
+            "tau_vsjet_sf_dependence": "dm",  # or "dm", "eta"
+        },
+    )
     # MT / ET tau selection
     configuration.add_config_parameters(
         ["et", "mt"],
@@ -451,7 +470,9 @@ def build_config(
             pairquantities.MTDiTauPairQuantities,
             genparticles.MTGenDiTauPairQuantities,
             scalefactors.MuonIDIso_SF,
-            scalefactors.TauID_SF,
+            scalefactors.Tau_2_VsJetTauID_lt_SF,
+            scalefactors.Tau_2_VsEleTauID_SF,
+            scalefactors.Tau_2_VsMuTauID_SF,
         ],
     )
     configuration.add_producers(
@@ -472,7 +493,9 @@ def build_config(
             pairselection.LVTau2Uncorrected,
             pairquantities.ETDiTauPairQuantities,
             genparticles.ETGenDiTauPairQuantities,
-            scalefactors.TauID_SF,
+            scalefactors.Tau_2_VsJetTauID_lt_SF,
+            scalefactors.Tau_2_VsEleTauID_SF,
+            scalefactors.Tau_2_VsMuTauID_SF,
         ],
     )
     configuration.add_producers(
@@ -488,7 +511,12 @@ def build_config(
             pairselection.LVTau2Uncorrected,
             pairquantities.TTDiTauPairQuantities,
             genparticles.TTGenDiTauPairQuantities,
-            scalefactors.TauID_SF,
+            scalefactors.Tau_1_VsJetTauID_SF,
+            scalefactors.Tau_1_VsEleTauID_SF,
+            scalefactors.Tau_1_VsMuTauID_SF,
+            scalefactors.Tau_2_VsJetTauID_tt_SF,
+            scalefactors.Tau_2_VsEleTauID_SF,
+            scalefactors.Tau_2_VsMuTauID_SF,
         ],
     )
     configuration.add_modification_rule(
@@ -747,6 +775,49 @@ def build_config(
     #             nanoAOD.HTXS_stage1_2_fine_cat_pTjet30GeV,
     #         ],
     #     )
+
+    #########################
+    # TauvsJetID scale factor shifts, channel dependent
+    #########################
+    configuration.add_shift(
+        SystematicShift(
+            name="vsJetTau30to35Down",
+            shift_config={("et", "mt"): {"tau_sf_vsjet_tau30to35": "down"}},
+            producers={("et", "mt"): scalefactors.Tau_2_VsJetTauID_lt_SF},
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="vsJetTauDM0Down",
+            shift_config={"tt": {"tau_sf_vsjet_tauDM0": "down"}},
+            producers={
+                "tt": [
+                    scalefactors.Tau_1_VsJetTauID_SF,
+                    scalefactors.Tau_2_VsJetTauID_tt_SF,
+                ]
+            },
+        )
+    )
+    #########################
+    # TauvsEleID scale factor shifts
+    #########################
+    configuration.add_shift(
+        SystematicShift(
+            name="vsEleBarrelDown",
+            shift_config={("et", "mt"): {"tau_sf_vsele_barrel": "down"}},
+            producers={("et", "mt"): scalefactors.Tau_2_VsEleTauID_SF},
+        )
+    )
+    #########################
+    # TauvsMuID scale factor shifts
+    #########################
+    configuration.add_shift(
+        SystematicShift(
+            name="vsMuWheel1Down",
+            shift_config={("et", "mt"): {"tau_sf_vsmu_wheel1": "down"}},
+            producers={("et", "mt"): scalefactors.Tau_2_VsMuTauID_SF},
+        )
+    )
     #########################
     # TES Shifts
     #########################
