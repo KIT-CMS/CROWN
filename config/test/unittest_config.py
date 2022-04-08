@@ -521,7 +521,13 @@ def build_config(
     )
     configuration.add_modification_rule(
         ["et", "mt", "tt"],
-        RemoveProducer(producers=scalefactors.TauID_SF, samples="data"),
+        RemoveProducer(
+            producers=[
+                scalefactors.Tau_1_VsMuTauID_SF,
+                scalefactors.Tau_2_VsMuTauID_SF,
+            ],
+            samples="data",
+        ),
     )
     configuration.add_modification_rule(
         ["mt", "mm"],
@@ -694,7 +700,7 @@ def build_config(
         [
             q.nmuons,
             q.ntaus,
-            scalefactors.Tau_2_VsJetTauID_SF.output_group,
+            scalefactors.Tau_2_VsJetTauID_lt_SF.output_group,
             scalefactors.Tau_2_VsEleTauID_SF.output_group,
             scalefactors.Tau_2_VsMuTauID_SF.output_group,
             pairquantities.VsJetTauIDFlag_2.output_group,
@@ -716,7 +722,7 @@ def build_config(
         [
             q.nelectrons,
             q.ntaus,
-            scalefactors.Tau_2_VsJetTauID_SF.output_group,
+            scalefactors.Tau_2_VsJetTauID_lt_SF.output_group,
             scalefactors.Tau_2_VsEleTauID_SF.output_group,
             scalefactors.Tau_2_VsMuTauID_SF.output_group,
             pairquantities.VsJetTauIDFlag_2.output_group,
@@ -738,7 +744,7 @@ def build_config(
             scalefactors.Tau_1_VsJetTauID_SF.output_group,
             scalefactors.Tau_1_VsEleTauID_SF.output_group,
             scalefactors.Tau_1_VsMuTauID_SF.output_group,
-            scalefactors.Tau_2_VsJetTauID_SF.output_group,
+            scalefactors.Tau_2_VsJetTauID_tt_SF.output_group,
             scalefactors.Tau_2_VsEleTauID_SF.output_group,
             scalefactors.Tau_2_VsMuTauID_SF.output_group,
             pairquantities.VsJetTauIDFlag_1.output_group,
