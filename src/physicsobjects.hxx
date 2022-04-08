@@ -90,7 +90,7 @@ auto CutDxy(auto &df, const std::string &quantity, const std::string &maskname,
 /// \return a dataframe containing the new mask
 template <class... Masks>
 auto CombineMasks(auto &df, const std::string &maskname,
-                  const Masks &... masks) {
+                  const Masks &...masks) {
     auto multiplyMasks = [](const ROOT::RVec<ROOT::RVec<int>> &x) {
         ROOT::RVec<int> result(x[0].size(), 1);
         for (auto &xx : x) {
