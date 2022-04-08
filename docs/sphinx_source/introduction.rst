@@ -18,7 +18,12 @@ The framework consists of two main parts, a python configuration and a set of C+
 Getting started
 ****************
 
-Setting up the framework is very straight forward.
+.. warning::
+    The Framework depends on the scale factors provided by CMS. These are directly included in the repository via a git submodule. Since the scale factors are added from the CERN gitlab, access to the CERN gitlab repository (https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration), is needed. Since the repository is added via SSH, your SSH key must be added to the CERN gitlab instance ( A tutorial on how to do this can be found here: https://docs.gitlab.com/ee/user/ssh.html#add-an-ssh-key-to-your-gitlab-account).
+
+
+
+After making sure, that the access right are given, setting up the framework is straight forward.
 
 First clone the Repository
 
@@ -58,7 +63,7 @@ The options that are currently available are:
    * :code:`-DTHREADS=20`: The number of threads to be used. Defaults to single threading.
    * :code:`-DSHIFTS=all`: The shifts to be used. Defaults to all shifts. If set to :code:`all`, all shifts are used, if set to :code:`none`, no shifts are used, so only nominal is produced. If set to a comma separated list of shifts, only those shifts are used. If set to only a substring matching multiple shifts, all shifts matching that string will be produced e.g. :code:`-DSHIFTS=tauES` will produce all shifts containing :code:`tauES` in the name.
    * :code:`-DDEBUG=true`: If set to true, the code generation will run with debug information and the executable will be compiled with debug flags
-   * :code:`-DOPTIMIZED=true`: If set to true, the compiler will run with :code:`-O3`, resulting in slower build times but faster runtimes. Should be used for developements, but not in production.
+   * :code:`-DOPTIMIZED=true`: If set to true, the compiler will run with :code:`-O3`, resulting in slower build times but faster runtimes. Should be used for developments, but not in production.
    * :code:`-DGENERATOR=Ninja`: The generator to be used. Defaults to Ninja. to set the generator to regular make files use :code:`-DGENERATOR="Unix Makefiles"`
 
 and compile the executable using
@@ -67,8 +72,14 @@ and compile the executable using
 
    ninja install
 
-By default, the ninja_ build system is used for CROWN. However, the usage of other build systems is also possible and can be specified using the :code:`-G=` option, e.g. for regular makefiles use :code:`-DGENERATOR="Unix Makefiles"`, and then use the :code:`make install` command to compile the executable.
-.. _ninja: https://ninja-build.org/
+By default, the ninja build system (https://ninja-build.org/) is used for CROWN. However, the usage of other build systems is also possible and can be specified using the :code:`-G=` option, e.g. for regular makefiles use :code:`-DGENERATOR="Unix Makefiles"`, and then use the :code:`make install` command to compile the executable.
+
+
+After the compilation, the CROWN executable can be found in the :code:`build/bin` folder. The executable can be used via, with a single output file followed by an arbitrary number of input files.
+
+.. code-block:: console
+
+   ./executable_name outputfile.root inputfile_1.root inputfile_2.root
 
 Creating Documentation
 ***********************

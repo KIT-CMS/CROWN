@@ -13,7 +13,7 @@ Additionally it can include
 2. Rules: A modification rule can be used to add / remove producers based on era or sample.
 3. Systematics: Systematics can be used to vary the parameters of the producers and add the varied output to the output file as well.
 
-One concept of CROWN is that several analysis final states can be produced at the same time. First, the **global** scope is run, which includes all operations that are independent of the analysis final state and are identical for all final states. Then, the processing is split into several **scopes**, which are run in parallel. Each **scope** results in a seperate output file in the end. All parameters, outputs, producers, modifiers and systematics are always defined, depending on the scope. The global scope can be treated as a normal scope, but **it is always run first**, and all other scopes inhert the parameters, producers, modifiers and systematics of the global scope.
+One concept of CROWN is that several analysis final states can be produced at the same time. First, the **global** scope is run, which includes all operations that are independent of the analysis final state and are identical for all final states. Then, the processing is split into several **scopes**, which are run in parallel. Each **scope** results in a separate output file in the end. All parameters, outputs, producers, modifiers and systematics are always defined, depending on the scope. The global scope can be treated as a normal scope, but **it is always run first**, and all other scopes inherit the parameters, producers, modifiers and systematics of the global scope.
 
 
 .. image:: ../images/scopes.png
@@ -37,21 +37,21 @@ where the ``analysisname`` is the name of the configuration file. Files in diffe
     def build_config(
         era,
         sample,
-        channels,
+        scopes,
         shifts,
         available_sample_types,
         available_eras,
-        available_channels,
+        available_scopes,
     ):
 
         configuration = Configuration(
                 era,
                 sample,
-                channels,
+                scopes,
                 shifts,
                 available_sample_types,
                 available_eras,
-                available_channels,
+                available_scopes,
             )
         #########################
         # setup the configuration
