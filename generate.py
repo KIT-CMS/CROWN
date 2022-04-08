@@ -25,10 +25,10 @@ parser.add_argument("--template", type=str, help="Path to the template")
 parser.add_argument("--output", type=str, help="Path to the output directory")
 parser.add_argument("--analysis", type=str, help="Name of the analysis config")
 parser.add_argument(
-    "--channels",
+    "--scopes",
     type=str,
     action=SplitArgs,
-    help='Channels to be activated. To select multiple channels, provide a comma separated list. To select all, choose "auto"',
+    help="Channels to be activated. To select multiple scopes, provide a comma separated list.",
 )
 parser.add_argument(
     "--shifts",
@@ -63,13 +63,13 @@ available_samples = [
     "data",
 ]
 available_eras = ["2016", "2017", "2018"]
-available_channels = ["et", "mt", "tt", "em", "ee", "mm"]
+available_scopes = ["et", "mt", "tt", "em", "ee", "mm"]
 
 ## setup variables
 shifts = set([shift.lower() for shift in args.shifts])
 sample_group = args.sample
 era = args.era
-channels = list(set([channel.lower() for channel in args.channels]))
+scopes = list(set([scope.lower() for scope in args.scopes]))
 
 ## Setup Logging
 root = logging.getLogger()
@@ -102,11 +102,11 @@ root.info("Shifts: {}".format(shifts))
 config = analysis.build_config(
     era,
     sample_group,
-    channels,
+    scopes,
     shifts,
     available_samples,
     available_eras,
-    available_channels,
+    available_scopes,
 )
 ## fill code template and write executable
 with open(args.template, "r") as template_file:
@@ -118,7 +118,7 @@ template = set_tags(template, analysisname, era, sample_group)
 # if the number of threads is greater than one, add the threading flag in the code
 template = set_thead_flag(template, args.threads)
 # generate the code for the process tracking in the df
-template = set_process_tracking(template, channels)
+template = set_process_tracking(template, scopes)
 # set debug flag if running in debug mode
 template = set_debug_flag(template, args.debug)
 with open(path.join(args.output, executable), "w") as executable_file:

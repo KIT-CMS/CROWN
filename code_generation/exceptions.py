@@ -25,16 +25,14 @@ class InvalidOutputError(ConfigurationError):
         super().__init__(self.message)
 
 
-class ChannelConfigurationError(ConfigurationError):
+class ScopeConfigurationError(ConfigurationError):
     """
-    Exception raised when the channel configuration provided by the user is not valid.
+    Exception raised when the scope configuration provided by the user is not valid.
     """
 
-    def __init__(
-        self, channels: Set[str], available_channels: Union[Set[str], List[str]]
-    ):
-        self.message = "Channels {} cannot be used in the configuration since it is not setup properly. Available channels are {}".format(
-            channels, available_channels
+    def __init__(self, scopes: Set[str], available_scopes: Union[Set[str], List[str]]):
+        self.message = "Scopes {} cannot be used in the configuration since it is not setup properly. Available scopes are {}".format(
+            scopes, available_scopes
         )
         super().__init__(self.message)
 

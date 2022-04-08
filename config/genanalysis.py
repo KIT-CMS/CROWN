@@ -19,11 +19,11 @@ from code_generation.rules import AppendProducer
 def build_config(
     era: str,
     sample: str,
-    channels: List[str],
+    scopes: List[str],
     shifts: List[str],
     available_sample_types: List[str],
     available_eras: List[str],
-    available_channels: List[str],
+    available_scopes: List[str],
 ):
 
     if sample == "data":
@@ -31,11 +31,11 @@ def build_config(
     configuration = Configuration(
         era,
         sample,
-        channels,
+        scopes,
         shifts,
         available_sample_types,
         available_eras,
-        available_channels,
+        available_scopes,
     )
     # first add default parameters necessary for all scopes
     configuration.add_config_parameters(
@@ -52,8 +52,8 @@ def build_config(
             "muon_iso_cut": 2.5,
         },
     )
-    ###### Channel Specifics ######
-    # MT/MM channel Muon selection
+    ###### scope Specifics ######
+    # MT/MM scope Muon selection
     configuration.add_config_parameters(
         ["mm"],
         {

@@ -27,21 +27,21 @@ from code_generation.systematics import SystematicShift, SystematicShiftByQuanti
 def build_config(
     era: str,
     sample: str,
-    channels: List[str],
+    scopes: List[str],
     shifts: List[str],
     available_sample_types: List[str],
     available_eras: List[str],
-    available_channels: List[str],
+    available_scopes: List[str],
 ):
 
     configuration = Configuration(
         era,
         sample,
-        channels,
+        scopes,
         shifts,
         available_sample_types,
         available_eras,
-        available_channels,
+        available_scopes,
     )
 
     # first add default parameters necessary for all scopes
@@ -191,8 +191,8 @@ def build_config(
             "dileptonveto_dR": 0.15,
         },
     )
-    ###### Channel Specifics ######
-    # MT/TT/ET channel tau ID flags and SFs
+    ###### scope Specifics ######
+    # MT/TT/ET scope tau ID flags and SFs
     configuration.add_config_parameters(
         ["mt", "tt", "et"],
         {
@@ -321,7 +321,7 @@ def build_config(
         },
     )
 
-    # MT/MM channel Muon selection
+    # MT/MM scope Muon selection
     configuration.add_config_parameters(
         ["mt", "mm"],
         {
@@ -378,7 +378,7 @@ def build_config(
             "ele_sf_varation": "sf",  # "sf" is nominal, "sfup"/"sfdown" are up/down variations
         },
     )
-    # ET channel electron selection
+    # ET scope electron selection
     configuration.add_config_parameters(
         ["et"],
         {
@@ -388,7 +388,7 @@ def build_config(
             "electron_iso_cut": 0.3,
         },
     )
-    # EM Channel selection
+    # EM scope selection
     configuration.add_config_parameters(
         ["em"],
         {
@@ -412,17 +412,17 @@ def build_config(
         },
     )
 
-    ## all channels misc settings
+    ## all scopes misc settings
     configuration.add_config_parameters(
-        channels,
+        scopes,
         {
             "deltaR_jet_veto": 0.5,
             "pairselection_min_dR": 0.5,
         },
     )
-    ## all channels MET selection
+    ## all scopes MET selection
     configuration.add_config_parameters(
-        channels,
+        scopes,
         {
             "propagateLeptons": SampleModifier(
                 {"data": False, "emb": False},
@@ -456,7 +456,7 @@ def build_config(
     )
 
     configuration.add_config_parameters(
-        channels,
+        scopes,
         {
             "ggHNNLOweightsRootfile": "data/htxs/NNLOPS_reweight.root",
             "ggH_generator": "powheg",
@@ -501,7 +501,7 @@ def build_config(
         )
     # common
     configuration.add_producers(
-        channels,
+        scopes,
         [
             jets.JetCollection,
             jets.BasicJetQuantities,
@@ -658,22 +658,22 @@ def build_config(
         ),
     )
     configuration.add_modification_rule(
-        channels,
+        scopes,
         AppendProducer(
             producers=[event.GGH_NNLO_Reweighting, event.GGH_WG1_Uncertainties],
             samples="ggh",
         ),
     )
     configuration.add_modification_rule(
-        channels,
+        scopes,
         AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="qqh"),
     )
     configuration.add_modification_rule(
-        channels,
+        scopes,
         AppendProducer(producers=event.TopPtReweighting, samples="ttbar"),
     )
     configuration.add_modification_rule(
-        channels,
+        scopes,
         AppendProducer(producers=event.ZPtMassReweighting, samples="dy"),
     )
     # changes needed for data
@@ -698,7 +698,7 @@ def build_config(
             producers=jets.JetEnergyCorrection, samples=["data", "emb", "emb_mc"]
         ),
     )
-    # channel specific
+    # scope specific
     configuration.add_modification_rule(
         "mt",
         RemoveProducer(
@@ -736,7 +736,7 @@ def build_config(
     )
 
     configuration.add_outputs(
-        channels,
+        scopes,
         [
             q.is_data,
             q.is_emb,
@@ -934,7 +934,7 @@ def build_config(
     )
     if "data" not in sample and "emb" not in sample:
         configuration.add_outputs(
-            channels,
+            scopes,
             [
                 nanoAOD.HTXS_Higgs_pt,
                 nanoAOD.HTXS_Higgs_y,
