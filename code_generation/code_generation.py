@@ -3,7 +3,7 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 import logging
 from typing import Any, Dict, List, Set
 
-from git import Repo
+from git import Repo, InvalidGitRepositoryError
 
 from code_generation.producer import SafeDict
 
