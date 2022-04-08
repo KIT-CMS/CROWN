@@ -90,13 +90,14 @@ auto iso_rooworkspace(auto &df, const std::string &pt, const std::string &eta,
  * @return a new dataframe containing the new column
  */
 auto id(auto &df, const std::string &pt, const std::string &eta,
-        const std::string &year_id, const std::string &variation, 
+        const std::string &year_id, const std::string &variation,
         const std::string &id_output, const std::string &sf_file,
         const std::string &idAlgorithm) {
 
     Logger::get("muonIdSF")->debug("Setting up functions for muon id sf");
     Logger::get("muonIdSF")->debug("ID - Name {}", idAlgorithm);
-    auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
     auto df1 = df.Define(
         id_output,
         [evaluator, year_id, variation](const float &pt, const float &eta) {
@@ -143,7 +144,8 @@ auto iso(auto &df, const std::string &pt, const std::string &eta,
 
     Logger::get("muonIsoSF")->debug("Setting up functions for muon iso sf");
     Logger::get("muonIsoSF")->debug("ISO - Name {}", idAlgorithm);
-    auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
     auto df1 = df.Define(
         iso_output,
         [evaluator, year_id, variation](const float &pt, const float &eta) {
@@ -163,7 +165,8 @@ auto iso(auto &df, const std::string &pt, const std::string &eta,
 } // namespace muon
 namespace tau {
 /**
- * @brief Function used to evaluate vsJets tau id scale factors in the lt channel with
+ * @brief Function used to evaluate vsJets tau id scale factors in the lt
+channel with
  * correctionlib
 
 Description of the bit map used to define the tau id working points of the
@@ -187,15 +190,20 @@ VVTight                             |  128  | 8
  * @param selectedDMs list of allowed decay modes for which a scale factor
  * should be calculated
  * @param wp working point of the ID cut
- * @param sf_vsjet_tau30to35 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsjet_tau30to35 id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
- * @param sf_vsjet_tau35to40 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsjet_tau35to40 id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
- * @param sf_vsjet_tau40to500 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsjet_tau40to500 id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
- * @param sf_vsjet_tau500to1000 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsjet_tau500to1000 id for the variation of the scale factor "sf"
+for nominal
  * and "systup"/"systdown" the up/down variation
- * @param sf_vsjet_tau1000toinf id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsjet_tau1000toinf id for the variation of the scale factor "sf"
+for nominal
  * and "systup"/"systdown" the up/down variation
  * @param sf_dependence "pt", "dm" or "eta" based scale factors
  * @param id_output name of the id scale factor column
@@ -204,21 +212,27 @@ VVTight                             |  128  | 8
  * @return a new dataframe containing the new column
  */
 auto id_vsJet_lt(auto &df, const std::string &pt, const std::string &decayMode,
-              const std::string &genMatch, const std::vector<int> &selectedDMs,
-              const std::string &wp, const std::string &sf_vsjet_tau30to35, 
-              const std::string &sf_vsjet_tau35to40, const std::string &sf_vsjet_tau40to500, 
-              const std::string &sf_vsjet_tau500to1000, const std::string &sf_vsjet_tau1000toinf,
-              const std::string &sf_dependence, const std::string &id_output,
-              const std::string &sf_file, const std::string &idAlgorithm) {
+                 const std::string &genMatch,
+                 const std::vector<int> &selectedDMs, const std::string &wp,
+                 const std::string &sf_vsjet_tau30to35,
+                 const std::string &sf_vsjet_tau35to40,
+                 const std::string &sf_vsjet_tau40to500,
+                 const std::string &sf_vsjet_tau500to1000,
+                 const std::string &sf_vsjet_tau1000toinf,
+                 const std::string &sf_dependence, const std::string &id_output,
+                 const std::string &sf_file, const std::string &idAlgorithm) {
 
     Logger::get("TauIDvsJet_lt_SF")
         ->debug("Setting up function for tau id vsJet sf");
     Logger::get("TauIDvsJet_lt_SF")->debug("ID - Name {}", idAlgorithm);
-    auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
-    auto idSF_calculator = [evaluator, wp, sf_vsjet_tau30to35, sf_vsjet_tau35to40, sf_vsjet_tau40to500, sf_vsjet_tau500to1000,
-                            sf_vsjet_tau1000toinf, sf_dependence, selectedDMs,
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto idSF_calculator = [evaluator, wp, sf_vsjet_tau30to35,
+                            sf_vsjet_tau35to40, sf_vsjet_tau40to500,
+                            sf_vsjet_tau500to1000, sf_vsjet_tau1000toinf,
+                            sf_dependence, selectedDMs,
                             idAlgorithm](const float &pt, const int &decayMode,
-                                     const UChar_t &genMatch) {
+                                         const UChar_t &genMatch) {
         Logger::get("TauIDvsJet_lt_SF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes default
         // values due to tau energy correction shifts below good tau pt
@@ -226,22 +240,35 @@ auto id_vsJet_lt(auto &df, const std::string &pt, const std::string &decayMode,
         double sf = 1.;
         if (std::find(selectedDMs.begin(), selectedDMs.end(), decayMode) !=
             selectedDMs.end()) {
-            Logger::get("TauIDvsJet_lt_SF")->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, sf_vsjet_tau30to35 {}, sf_vsjet_tau35to40 {}, sf_vsjet_tau40to500{}, sf_vsjet_tau500to1000 {}, sf_vsjet_tau1000toinf {}, sf_dependence {}", idAlgorithm, pt,decayMode, genMatch, wp, sf_vsjet_tau30to35, sf_vsjet_tau35to40, sf_vsjet_tau40to500, sf_vsjet_tau500to1000, sf_vsjet_tau1000toinf, sf_dependence);    
+            Logger::get("TauIDvsJet_lt_SF")
+                ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, "
+                        "sf_vsjet_tau30to35 {}, sf_vsjet_tau35to40 {}, "
+                        "sf_vsjet_tau40to500{}, sf_vsjet_tau500to1000 {}, "
+                        "sf_vsjet_tau1000toinf {}, sf_dependence {}",
+                        idAlgorithm, pt, decayMode, genMatch, wp,
+                        sf_vsjet_tau30to35, sf_vsjet_tau35to40,
+                        sf_vsjet_tau40to500, sf_vsjet_tau500to1000,
+                        sf_vsjet_tau1000toinf, sf_dependence);
             if (pt >= 30.0 && pt < 35.0) {
-                sf = evaluator->evaluate({pt, decayMode, static_cast<int>(genMatch),
-                                    wp, sf_vsjet_tau30to35, sf_dependence});
+                sf = evaluator->evaluate({pt, decayMode,
+                                          static_cast<int>(genMatch), wp,
+                                          sf_vsjet_tau30to35, sf_dependence});
             } else if (pt >= 35.0 && pt < 40.0) {
-                sf = evaluator->evaluate({pt, decayMode, static_cast<int>(genMatch),
-                                    wp, sf_vsjet_tau35to40, sf_dependence});
+                sf = evaluator->evaluate({pt, decayMode,
+                                          static_cast<int>(genMatch), wp,
+                                          sf_vsjet_tau35to40, sf_dependence});
             } else if (pt >= 40.0 && pt < 500.0) {
-                sf = evaluator->evaluate({pt, decayMode, static_cast<int>(genMatch),
-                                    wp, sf_vsjet_tau40to500, sf_dependence});
+                sf = evaluator->evaluate({pt, decayMode,
+                                          static_cast<int>(genMatch), wp,
+                                          sf_vsjet_tau40to500, sf_dependence});
             } else if (pt >= 500.0 && pt < 1000.0) {
-                sf = evaluator->evaluate({pt, decayMode, static_cast<int>(genMatch),
-                                    wp, sf_vsjet_tau500to1000, sf_dependence});
+                sf = evaluator->evaluate(
+                    {pt, decayMode, static_cast<int>(genMatch), wp,
+                     sf_vsjet_tau500to1000, sf_dependence});
             } else if (pt >= 1000.0 && pt < 2000.0) {
-                sf = evaluator->evaluate({pt, decayMode, static_cast<int>(genMatch),
-                                    wp, sf_vsjet_tau1000toinf, sf_dependence});
+                sf = evaluator->evaluate(
+                    {pt, decayMode, static_cast<int>(genMatch), wp,
+                     sf_vsjet_tau1000toinf, sf_dependence});
             } else {
                 sf = 1.;
             }
@@ -253,7 +280,8 @@ auto id_vsJet_lt(auto &df, const std::string &pt, const std::string &decayMode,
     return df1;
 }
 /**
- * @brief Function used to evaluate vsJets tau id scale factors in the tt channel with
+ * @brief Function used to evaluate vsJets tau id scale factors in the tt
+channel with
  * correctionlib
 
 Description of the bit map used to define the tau id working points of the
@@ -277,13 +305,17 @@ VVTight                             |  128  | 8
  * @param selectedDMs list of allowed decay modes for which a scale factor
  * should be calculated
  * @param wp working point of the ID cut
- * @param sf_vsjet_tauDM0 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsjet_tauDM0 id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
- * @param sf_vsjet_tauDM1 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsjet_tauDM1 id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
- * @param sf_vsjet_tauDM10 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsjet_tauDM10 id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
- * @param sf_vsjet_tauDM11 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsjet_tauDM11 id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
  * @param sf_dependence "pt", "dm" or "eta" based scale factors
  * @param id_output name of the id scale factor column
@@ -292,22 +324,25 @@ VVTight                             |  128  | 8
  * @return a new dataframe containing the new column
  */
 auto id_vsJet_tt(auto &df, const std::string &pt, const std::string &decayMode,
-              const std::string &genMatch, const std::vector<int> &selectedDMs,
-              const std::string &wp, const std::string &sf_vsjet_tauDM0, 
-              const std::string &sf_vsjet_tauDM1, const std::string &sf_vsjet_tauDM10, 
-              const std::string &sf_vsjet_tauDM11, const std::string &sf_dependence, 
-              const std::string &id_output, const std::string &sf_file, 
-              const std::string &idAlgorithm) {
+                 const std::string &genMatch,
+                 const std::vector<int> &selectedDMs, const std::string &wp,
+                 const std::string &sf_vsjet_tauDM0,
+                 const std::string &sf_vsjet_tauDM1,
+                 const std::string &sf_vsjet_tauDM10,
+                 const std::string &sf_vsjet_tauDM11,
+                 const std::string &sf_dependence, const std::string &id_output,
+                 const std::string &sf_file, const std::string &idAlgorithm) {
 
     Logger::get("TauIDvsJet_tt_SF")
         ->debug("Setting up function for tau id vsJet sf");
     Logger::get("TauIDvsJet_tt_SF")->debug("ID - Name {}", idAlgorithm);
-    auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
-    auto idSF_calculator = [evaluator, wp, sf_vsjet_tauDM0,
-                            sf_vsjet_tauDM1, sf_vsjet_tauDM10, sf_vsjet_tauDM11,
-                            sf_dependence, selectedDMs,
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto idSF_calculator = [evaluator, wp, sf_vsjet_tauDM0, sf_vsjet_tauDM1,
+                            sf_vsjet_tauDM10, sf_vsjet_tauDM11, sf_dependence,
+                            selectedDMs,
                             idAlgorithm](const float &pt, const int &decayMode,
-                                     const UChar_t &genMatch) {
+                                         const UChar_t &genMatch) {
         Logger::get("TauIDvsJet_tt_SF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes default
         // values due to tau energy correction shifts below good tau pt
@@ -316,24 +351,34 @@ auto id_vsJet_tt(auto &df, const std::string &pt, const std::string &decayMode,
         if (std::find(selectedDMs.begin(), selectedDMs.end(), decayMode) !=
             selectedDMs.end()) {
             Logger::get("TauIDvsJet_tt_SF")
-                ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, sf_vsjet_tauDM0 {}, sf_vsjet_tauDM1 {}, sf_vsjet_tauDM1 {}, sf_vsjet_tauDM10{}, sf_vsjet_tauDM11 {}, sf_dependence {}", idAlgorithm, pt, decayMode, genMatch, wp,sf_vsjet_tauDM0, sf_vsjet_tauDM1, sf_vsjet_tauDM10, sf_vsjet_tauDM11, sf_dependence);          
+                ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, "
+                        "sf_vsjet_tauDM0 {}, sf_vsjet_tauDM1 {}, "
+                        "sf_vsjet_tauDM1 {}, sf_vsjet_tauDM10{}, "
+                        "sf_vsjet_tauDM11 {}, sf_dependence {}",
+                        idAlgorithm, pt, decayMode, genMatch, wp,
+                        sf_vsjet_tauDM0, sf_vsjet_tauDM1, sf_vsjet_tauDM10,
+                        sf_vsjet_tauDM11, sf_dependence);
             if (decayMode == 0) {
-                sf = evaluator->evaluate({pt, decayMode, static_cast<int>(genMatch),
-                                    wp, sf_vsjet_tauDM0, sf_dependence});
+                sf = evaluator->evaluate({pt, decayMode,
+                                          static_cast<int>(genMatch), wp,
+                                          sf_vsjet_tauDM0, sf_dependence});
             } else if (decayMode == 1) {
-                sf = evaluator->evaluate({pt, decayMode, static_cast<int>(genMatch),
-                                    wp, sf_vsjet_tauDM1, sf_dependence});
+                sf = evaluator->evaluate({pt, decayMode,
+                                          static_cast<int>(genMatch), wp,
+                                          sf_vsjet_tauDM1, sf_dependence});
             } else if (decayMode == 10) {
-                sf = evaluator->evaluate({pt, decayMode, static_cast<int>(genMatch),
-                                    wp, sf_vsjet_tauDM10, sf_dependence});
+                sf = evaluator->evaluate({pt, decayMode,
+                                          static_cast<int>(genMatch), wp,
+                                          sf_vsjet_tauDM10, sf_dependence});
             } else if (decayMode == 11) {
-                sf = evaluator->evaluate({pt, decayMode, static_cast<int>(genMatch),
-                                    wp, sf_vsjet_tauDM11, sf_dependence});
+                sf = evaluator->evaluate({pt, decayMode,
+                                          static_cast<int>(genMatch), wp,
+                                          sf_vsjet_tauDM11, sf_dependence});
             } else {
                 sf = 1.;
             }
         }
-        Logger::get("TauIDvsJet_tt_SF")->debug("Scale Factor {}", sf);  
+        Logger::get("TauIDvsJet_tt_SF")->debug("Scale Factor {}", sf);
         return sf;
     };
     auto df1 = df.Define(id_output, idSF_calculator, {pt, decayMode, genMatch});
@@ -372,9 +417,11 @@ Tight                               |  8    | 4
  * @param selectedDMs list of allowed decay modes for which a scale factor
  * should be calculated
  * @param wp working point of the ID cut
- * @param sf_vsele_barrel id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsele_barrel id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
- * @param sf_vsele_endcap id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsele_endcap id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
  * @param id_output name of the id scale factor column
  * @param sf_file path to the file with the tau scale factors
@@ -382,19 +429,20 @@ Tight                               |  8    | 4
  * @return a new dataframe containing the new column
  */
 auto id_vsEle(auto &df, const std::string &eta, const std::string &decayMode,
-                const std::string &genMatch,
-                const std::vector<int> &selectedDMs, const std::string &wp,
-                const std::string &sf_vsele_barrel, const std::string &sf_vsele_endcap, 
-                const std::string &id_output,
-                const std::string &sf_file, const std::string &idAlgorithm) {
+              const std::string &genMatch, const std::vector<int> &selectedDMs,
+              const std::string &wp, const std::string &sf_vsele_barrel,
+              const std::string &sf_vsele_endcap, const std::string &id_output,
+              const std::string &sf_file, const std::string &idAlgorithm) {
 
     Logger::get("TauIDvsEleSF")
         ->debug("Setting up function for tau id vsEle sf");
     Logger::get("TauIDvsEleSF")->debug("ID - Name {}", idAlgorithm);
-    auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
-    auto idSF_calculator = [evaluator, wp, sf_vsele_barrel, sf_vsele_endcap, selectedDMs,
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto idSF_calculator = [evaluator, wp, sf_vsele_barrel, sf_vsele_endcap,
+                            selectedDMs,
                             idAlgorithm](const float &eta, const int &decayMode,
-                                     const UChar_t &genMatch) {
+                                         const UChar_t &genMatch) {
         double sf = 1.;
         Logger::get("TauIDvsEleSF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes
@@ -403,17 +451,19 @@ auto id_vsEle(auto &df, const std::string &eta, const std::string &decayMode,
         if (std::find(selectedDMs.begin(), selectedDMs.end(), decayMode) !=
             selectedDMs.end()) {
             Logger::get("TauIDvsEleSF")
-                ->debug("ID {} - eta {}, genMatch {}, wp {}, sf_vsele_barrel {}, sf_vsele_endcap {}", idAlgorithm, eta, genMatch, wp, sf_vsele_barrel, sf_vsele_endcap);
+                ->debug("ID {} - eta {}, genMatch {}, wp {}, sf_vsele_barrel "
+                        "{}, sf_vsele_endcap {}",
+                        idAlgorithm, eta, genMatch, wp, sf_vsele_barrel,
+                        sf_vsele_endcap);
             if (std::abs(eta) < 1.46) {
-                sf = evaluator->evaluate({eta, static_cast<int>(genMatch),
-                                    wp, sf_vsele_barrel});
-            } else if (std::abs(eta) >= 1.558 && std::abs(eta) < 2.3){
-                sf = evaluator->evaluate({eta, static_cast<int>(genMatch),
-                                    wp, sf_vsele_endcap});
-            }
-            else {
+                sf = evaluator->evaluate(
+                    {eta, static_cast<int>(genMatch), wp, sf_vsele_barrel});
+            } else if (std::abs(eta) >= 1.558 && std::abs(eta) < 2.3) {
+                sf = evaluator->evaluate(
+                    {eta, static_cast<int>(genMatch), wp, sf_vsele_endcap});
+            } else {
                 sf = 1.;
-            } 
+            }
         }
         Logger::get("TauIDvsEleSF")->debug("Scale Factor {}", sf);
         return sf;
@@ -455,15 +505,20 @@ Tight                               |  8    | 4
  * @param selectedDMs list of allowed decay modes for which a scale factor
  * should be calculated
  * @param wp working point of the ID cut
- * @param sf_vsmu_wheel1 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsmu_wheel1 id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
- * @param sf_vsmu_wheel2 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsmu_wheel2 id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
- * @param sf_vsmu_wheel3 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsmu_wheel3 id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
- * @param sf_vsmu_wheel4 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsmu_wheel4 id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
- * @param sf_vsmu_wheel5 id for the variation of the scale factor "sf" for nominal
+ * @param sf_vsmu_wheel5 id for the variation of the scale factor "sf" for
+nominal
  * and "systup"/"systdown" the up/down variation
  * @param id_output name of the id scale factor column
  * @param sf_file path to the file with the tau scale factors
@@ -471,19 +526,23 @@ Tight                               |  8    | 4
  * @return a new dataframe containing the new column
  */
 auto id_vsMu(auto &df, const std::string &eta, const std::string &decayMode,
-                const std::string &genMatch,
-                const std::vector<int> &selectedDMs, const std::string &wp,
-                const std::string &sf_vsmu_wheel1, const std::string &sf_vsmu_wheel2, const std::string &sf_vsmu_wheel3, const std::string &sf_vsmu_wheel4, const std::string &sf_vsmu_wheel5, const std::string &id_output,
-                const std::string &sf_file, const std::string &idAlgorithm) {
+             const std::string &genMatch, const std::vector<int> &selectedDMs,
+             const std::string &wp, const std::string &sf_vsmu_wheel1,
+             const std::string &sf_vsmu_wheel2,
+             const std::string &sf_vsmu_wheel3,
+             const std::string &sf_vsmu_wheel4,
+             const std::string &sf_vsmu_wheel5, const std::string &id_output,
+             const std::string &sf_file, const std::string &idAlgorithm) {
 
-    Logger::get("TauIDvsMuSF")
-        ->debug("Setting up function for tau id vsMu sf");
+    Logger::get("TauIDvsMuSF")->debug("Setting up function for tau id vsMu sf");
     Logger::get("TauIDvsMuSF")->debug("ID - Name {}", idAlgorithm);
-    auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
-    auto idSF_calculator = [evaluator, wp, sf_vsmu_wheel1, sf_vsmu_wheel2, 
-    sf_vsmu_wheel3, sf_vsmu_wheel4, sf_vsmu_wheel5, selectedDMs,
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto idSF_calculator = [evaluator, wp, sf_vsmu_wheel1, sf_vsmu_wheel2,
+                            sf_vsmu_wheel3, sf_vsmu_wheel4, sf_vsmu_wheel5,
+                            selectedDMs,
                             idAlgorithm](const float &eta, const int &decayMode,
-                                     const UChar_t &genMatch) {
+                                         const UChar_t &genMatch) {
         double sf = 1.;
         Logger::get("TauIDvsMuSF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes
@@ -492,23 +551,27 @@ auto id_vsMu(auto &df, const std::string &eta, const std::string &decayMode,
         if (std::find(selectedDMs.begin(), selectedDMs.end(), decayMode) !=
             selectedDMs.end()) {
             Logger::get("TauIDvsMuSF")
-                ->debug("ID {} - eta {}, genMatch {}, wp {}, sf_vsmu_wheel1 {}, sf_vsmu_wheel2 {}, sf_vsmu_wheel3 {}, sf_vsmu_wheel4 {}, sf_vsmu_wheel5 {}", idAlgorithm, eta, genMatch, wp, sf_vsmu_wheel1, sf_vsmu_wheel2, 
-    sf_vsmu_wheel3, sf_vsmu_wheel4, sf_vsmu_wheel5);
+                ->debug("ID {} - eta {}, genMatch {}, wp {}, sf_vsmu_wheel1 "
+                        "{}, sf_vsmu_wheel2 {}, sf_vsmu_wheel3 {}, "
+                        "sf_vsmu_wheel4 {}, sf_vsmu_wheel5 {}",
+                        idAlgorithm, eta, genMatch, wp, sf_vsmu_wheel1,
+                        sf_vsmu_wheel2, sf_vsmu_wheel3, sf_vsmu_wheel4,
+                        sf_vsmu_wheel5);
             if (std::abs(eta) < 0.4) {
-                sf = evaluator->evaluate({eta, static_cast<int>(genMatch),
-                                    wp, sf_vsmu_wheel1});
-            } else if (std::abs(eta) >= 0.4 && std::abs(eta) < 0.8){
-                sf = evaluator->evaluate({eta, static_cast<int>(genMatch),
-                                    wp, sf_vsmu_wheel2});
-            } else if (std::abs(eta) >= 0.8 && std::abs(eta) < 1.2){
-                sf = evaluator->evaluate({eta, static_cast<int>(genMatch),
-                                    wp, sf_vsmu_wheel3});
-            } else if (std::abs(eta) >= 1.2 && std::abs(eta) < 1.7){
-                sf = evaluator->evaluate({eta, static_cast<int>(genMatch),
-                                    wp, sf_vsmu_wheel4});
-            } else if (std::abs(eta) >= 1.7 && std::abs(eta) < 2.3){
-                sf = evaluator->evaluate({eta, static_cast<int>(genMatch),
-                                    wp, sf_vsmu_wheel5});
+                sf = evaluator->evaluate(
+                    {eta, static_cast<int>(genMatch), wp, sf_vsmu_wheel1});
+            } else if (std::abs(eta) >= 0.4 && std::abs(eta) < 0.8) {
+                sf = evaluator->evaluate(
+                    {eta, static_cast<int>(genMatch), wp, sf_vsmu_wheel2});
+            } else if (std::abs(eta) >= 0.8 && std::abs(eta) < 1.2) {
+                sf = evaluator->evaluate(
+                    {eta, static_cast<int>(genMatch), wp, sf_vsmu_wheel3});
+            } else if (std::abs(eta) >= 1.2 && std::abs(eta) < 1.7) {
+                sf = evaluator->evaluate(
+                    {eta, static_cast<int>(genMatch), wp, sf_vsmu_wheel4});
+            } else if (std::abs(eta) >= 1.7 && std::abs(eta) < 2.3) {
+                sf = evaluator->evaluate(
+                    {eta, static_cast<int>(genMatch), wp, sf_vsmu_wheel5});
             } else {
                 sf = 1.0;
             }
@@ -554,11 +617,12 @@ auto id(auto &df, const std::string &pt, const std::string &eta,
     Logger::get("electronIDSF")
         ->debug("Setting up functions for electron id sf with correctionlib");
     Logger::get("electronIDSF")->debug("ID - Name {}", idAlgorithm);
-    auto evaluator = correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
     auto df1 = df.Define(
         id_output,
         [evaluator, year_id, idAlgorithm, wp, variation](const float &pt,
-                                                     const float &eta) {
+                                                         const float &eta) {
             Logger::get("electronIDSF")
                 ->debug("Year {}, Name {}, WP {}", year_id, idAlgorithm, wp);
             Logger::get("electronIDSF")->debug("ID - pt {}, eta {}", pt, eta);
