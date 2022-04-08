@@ -5,7 +5,7 @@ import copy
 from typing import Any, Dict, List, Set, Union
 
 from code_generation.exceptions import (
-    ChannelConfigurationError,
+    ScopeConfigurationError,
     ConfigurationError,
     EraConfigurationError,
     InvalidOutputError,
@@ -49,7 +49,7 @@ TConfiguration = Dict[
 class Configuration(object):
     """
     Configuration class for for the CROWN configuration. This class
-    holds all parts of the configuration, from the sample, era, channel,
+    holds all parts of the configuration, from the sample, era, scope,
     and systematics, to the output. All modifications to the configuration should be done through this class.
     """
 
@@ -57,11 +57,11 @@ class Configuration(object):
         self,
         era: str,
         sample: str,
-        channels: Union[str, List[str]],
+        scopes: Union[str, List[str]],
         shifts: Union[str, List[str]],
         available_sample_types: Union[str, List[str]],
         available_eras: Union[str, List[str]],
-        available_channels: Union[str, List[str]],
+        available_scopes: Union[str, List[str]],
     ):
         """
 
@@ -70,23 +70,22 @@ class Configuration(object):
         Args:
             era: The era of the sample.
             sample: The sample type of the sample.
-            channels: The channels to be used in the configuration.
-                Each channel is considered a scope in CROWN.
+            scopes: The scopes to be used in the configuration.
                 By default, the global scope will always be added and run first, all other scopes will be run in
                 parallel as children of the global scope.
             shifts: The systematics to be used in the configuration.
             available_sample_types: The available sample types.
             available_eras: The available eras.
-            available_channels: The available channels.
+            available_scopes: The available scopes.
 
         """
         self.era = era
         self.sample = sample
-        self.channels = set(channels)
+        self.initiated_scopes = set(scopes)
         self.selected_shifts = shifts
         self.available_sample_types = set(available_sample_types)
         self.available_eras = set(available_eras)
-        self.available_channels = set(available_channels)
+        self.available_scopes = set(available_scopes)
         self.available_outputs: QuantitiesStore = {}
         self.available_shifts: Dict[str, Set[str]] = {}
         self.global_scope = "global"
@@ -101,9 +100,9 @@ class Configuration(object):
 
         self.setup_defaults()
 
-    def _validate_channels(self) -> None:
+    def _validate_scopes(self) -> None:
         """
-        Function to validate the selected channels. If the channel is not available, an error is raised.
+        Function to validate the selected scopes. If the scope is not available, an error is raised.
 
         Args:
             None
@@ -111,9 +110,9 @@ class Configuration(object):
         Returns:
             None
         """
-        missing_channels = self.channels - self.available_channels
-        if len(missing_channels) > 0:
-            raise ChannelConfigurationError(missing_channels, self.available_channels)
+        missing_scopes = self.initiated_scopes - self.available_scopes
+        if len(missing_scopes) > 0:
+            raise ScopeConfigurationError(missing_scopes, self.available_scopes)
 
     def _validate_sample_type(self) -> None:
         """
@@ -165,7 +164,7 @@ class Configuration(object):
     def setup_defaults(self) -> None:
         """
         Function used to add some defaults to the configuration. This function is called by the ``__init__`` function.
-        For all configured channels, the nessessay variables are added to the configuration.
+        For all configured scopes, the nessessay variables are added to the configuration.
         The validation of the initial settings is also done here.
 
         Args:
@@ -174,12 +173,12 @@ class Configuration(object):
         Returns:
             None
         """
-        self._validate_channels()
+        self._validate_scopes()
         self._validate_sample_type()
         self._validate_era()
         self.scopes = [self.global_scope]
-        for channel in self.available_channels:
-            self.scopes.append(channel)
+        for scope in self.available_scopes:
+            self.scopes.append(scope)
         for scope in self.scopes:
             self.producers[scope] = []
             self.unpacked_producers[scope] = {}
@@ -449,7 +448,7 @@ class Configuration(object):
         scopes_to_test = [scope for scope in self.scopes]
         for scope in scopes_to_test:
             if (len(self.producers[scope]) == 0) or (
-                scope not in self.channels and scope is not self.global_scope
+                scope not in self.initiated_scopes and scope is not self.global_scope
             ):
                 log.warning("Removing unrequested / empty scope {}".format(scope))
                 self.scopes.remove(scope)
@@ -665,7 +664,7 @@ class Configuration(object):
         log.info("------------------------------------")
         log.info("  Sample: {}".format(self.sample))
         log.info("  Era: {}".format(self.era))
-        log.info("  Channels: {}".format(self.channels))
+        log.info("  Scopes: {}".format(self.scopes))
         log.info("  Total number of producers: {}".format(total_producers))
         for scope in running_scopes:
             log.info("       {}: {}".format(scope, len(self.producers[scope])))
@@ -684,7 +683,7 @@ class Configuration(object):
         returnstr = "Configuration:"
         returnstr += "  Era: {}".format(self.era)
         returnstr += "  Sample: {}".format(self.sample)
-        returnstr += "  Channels: {}".format(self.channels)
+        returnstr += "  Scopes: {}".format(self.scopes)
         returnstr += "  Shifts: {}".format(self.shifts)
         returnstr += "  Rules:  {}".format(self.rules)
         returnstr += "  Outputs:"

@@ -187,32 +187,34 @@ def set_thead_flag(template: str, threads: int) -> str:
         return template.replace("// {MULTITHREADING}", "")
 
 
-def set_process_tracking(template: str, channels: List[str]) -> str:
+def set_process_tracking(template: str, scopes: List[str]) -> str:
     """This function replaces the template placeholder for the process tracking with the correct process tracking.
 
     Args:
         template: The template to be modified.
-        channels: The list of channels to be used.
+        scopes: The list of scopes to be used.
 
     Returns:
         The modified template.
     """
     tracking = ""
-    for channel in channels:
-        tracking += "    ULong64_t {ch}_processed = 0;\n".format(ch=channel)
-        tracking += "    std::mutex {ch}_bar_mutex;\n".format(ch=channel)
-        tracking += "    auto c_{ch} = {ch}_df_final.Count();\n".format(ch=channel)
-        tracking += "    c_{ch}.OnPartialResultSlot(quantile, [&{ch}_bar_mutex, &{ch}_processed, &quantile](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
-            ch=channel
+    for scope in scopes:
+        tracking += "    ULong64_t {scope}_processed = 0;\n".format(scope=scope)
+        tracking += "    std::mutex {scope}_bar_mutex;\n".format(scope=scope)
+        tracking += "    auto c_{scope} = {scope}_df_final.Count();\n".format(
+            scope=scope
+        )
+        tracking += "    c_{scope}.OnPartialResultSlot(quantile, [&{scope}_bar_mutex, &{scope}_processed, &quantile](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
+            scope=scope
         )
         tracking += (
-            "\n        std::lock_guard<std::mutex> lg({ch}_bar_mutex);\n".format(
-                ch=channel
+            "\n        std::lock_guard<std::mutex> lg({scope}_bar_mutex);\n".format(
+                scope=scope
             )
         )
-        tracking += "        {ch}_processed += quantile;\n".format(ch=channel)
-        tracking += '        Logger::get("main - {ch} Channel")->info("{{}} Events processed ...", {ch}_processed);\n'.format(
-            ch=channel
+        tracking += "        {scope}_processed += quantile;\n".format(scope=scope)
+        tracking += '        Logger::get("main - {scope} scope")->info("{{}} Events processed ...", {scope}_processed);\n'.format(
+            scope=scope
         )
         tracking += "    });\n"
     return template.replace("{PROGRESS_CALLBACK}", tracking)

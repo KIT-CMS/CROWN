@@ -2,7 +2,7 @@ from code_generation.modifiers import EraModifier, SampleModifier
 
 
 def add_diTauTriggerSetup(configuration):
-    ## MT, MM channel trigger setup
+    ## MT, MM scope trigger setup
     configuration.add_config_parameters(
         ["mt", "mm", "em"],
         {
@@ -136,7 +136,7 @@ def add_diTauTriggerSetup(configuration):
             ),
         },
     )
-    ## ET, EE channel trigger setup
+    ## ET, EE scope trigger setup
     configuration.add_config_parameters(
         ["et", "ee", "em"],
         {
@@ -215,7 +215,7 @@ def add_diTauTriggerSetup(configuration):
             ),
         },
     )
-    # ET channel crosstrigger
+    # ET scope crosstrigger
     configuration.add_config_parameters(
         ["et"],
         {
@@ -290,7 +290,7 @@ def add_diTauTriggerSetup(configuration):
         },
     )
 
-    ## TT channel trigger setup
+    ## TT scope trigger setup
     configuration.add_config_parameters(
         ["tt"],
         {
@@ -426,7 +426,7 @@ def add_diTauTriggerSetup(configuration):
             ),
         },
     )
-    # EM channel trigger setup
+    # EM scope trigger setup
     configuration.add_config_parameters(
         ["em"],
         {
