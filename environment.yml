@@ -13,6 +13,7 @@ dependencies:
   - cgsi-gsoap=1.3.11=h876a3cc_2
   - colorama=0.4.4=pyh9f0ad1d_0
   - commonmark=0.9.1=py_0
+  - conda-pack=0.7.0=pyh6c4a22f_0
   - cyrus-sasl=2.1.27=h230043b_5
   - dataclasses=0.8=pyhc8e2a94_3
   - davix=0.7.6=hb44b51d_0
