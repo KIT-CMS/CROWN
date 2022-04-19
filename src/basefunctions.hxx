@@ -3,6 +3,7 @@
 
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
+#include "ROOT/RDFHelpers.hxx"
 #include "utility/Logger.hxx"
 #include "utility/RooFunctorThreadsafe.hxx"
 #include "utility/utility.hxx"
