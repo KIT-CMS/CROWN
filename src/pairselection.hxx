@@ -1,6 +1,8 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "TVector2.h"
+#include "Math/Vector4D.h"
+#include "Math/VectorUtil.h"
 #include "bitset"
 #include "utility/Logger.hxx"
 #include "utility/utility.hxx"

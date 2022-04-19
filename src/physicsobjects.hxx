@@ -1,4 +1,6 @@
 #include "ROOT/RDataFrame.hxx"
+#include "Math/Vector4D.h"
+#include "Math/VectorUtil.h"
 #include "basefunctions.hxx"
 #include "correction.h"
 #include "utility/utility.hxx"

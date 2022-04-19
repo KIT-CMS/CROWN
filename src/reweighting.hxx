@@ -1,9 +1,11 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
+#include "Math/Vector4D.h"
 #include "TFile.h"
 #include "TH1.h"
 #include "utility/Logger.hxx"
 #include "utility/RooFunctorThreadsafe.hxx"
+#include "basefunctions.hxx"
 
 /// namespace used for reweighting related functions
 namespace reweighting {

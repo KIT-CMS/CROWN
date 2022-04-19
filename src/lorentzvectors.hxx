@@ -1,6 +1,7 @@
 #include "defaults.hxx"
 #include "utility/Logger.hxx"
 #include <Math/Vector4D.h>
+#include <ROOT/RVec.hxx>
 
 /// Namespace used for lorentzvector operations
 
