@@ -2,6 +2,7 @@
 #define GUARDDEFAULTS_H
 
 #include <Math/Vector4D.h>
+#include <Rtypes.h> // UChar_t
 
 const int default_int = -10;
 const int default_pdgid = -999;

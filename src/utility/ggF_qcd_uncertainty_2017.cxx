@@ -1,3 +1,5 @@
+#include <vector>
+
 typedef std::vector<double> NumV;
 //
 // The input kinematics should be based on the truth quantites of

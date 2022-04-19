@@ -6,6 +6,8 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
+#include <map>
+
 class Logger {
   public:
     static std::shared_ptr<spdlog::logger> get(std::string name);

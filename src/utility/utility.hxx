@@ -1,6 +1,11 @@
 #ifndef GUARDUTILITY_H
 #define GUARDUTILITY_H
 
+#include <cmath>
+#include <vector>
+#include <string>
+#include <utility> // make_index_sequence
+
 /// Namespace used for common utility functions.
 namespace utility {
 bool ApproxEqual(auto value1, auto value2, double maxDelta = 1e-5) {
