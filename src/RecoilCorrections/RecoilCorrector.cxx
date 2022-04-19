@@ -16,6 +16,7 @@ RecoilCorrector::RecoilCorrector(std::string filepath) {
             ->debug("File should contain histogram with the name projH ");
         Logger::get("RecoilCorrector")
             ->debug("Check content of the file {}", fileName);
+        exit(-1);
     }
 
     TString firstBinStr = projH->GetXaxis()->GetBinLabel(1);
