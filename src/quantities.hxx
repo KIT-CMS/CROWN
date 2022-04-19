@@ -570,7 +570,7 @@ auto TauIDFlag(auto &df, const std::string &outputname, const int &position,
             const int index = pair.at(position);
             const auto ID = IDs.at(index, default_int);
             if (ID != default_int)
-                return std::min(1, int(ID & 1 << idxID - 1));
+                return std::min(1, int(ID & 1 << (idxID - 1)));
             else
                 return int(ID);
         },

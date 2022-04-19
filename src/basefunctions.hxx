@@ -240,7 +240,7 @@ auto FilterID(const int &index) {
         ROOT::RVec<int> mask;
         for (auto const ID : IDs) {
             if (index > 0)
-                mask.push_back(std::min(1, int(ID & 1 << index - 1)));
+                mask.push_back(std::min(1, int(ID & 1 << (index - 1))));
             else
                 mask.push_back(int(1));
         }
