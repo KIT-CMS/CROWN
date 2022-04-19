@@ -1,5 +1,7 @@
 /// The namespace that contains the metfilter function.
 
+#include <string>
+
 namespace metfilter {
 
 /// Function to apply a metfilter to the dataframe
