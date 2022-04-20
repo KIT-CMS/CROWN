@@ -2,7 +2,6 @@
 #define GUARD_VECS_H
 
 #include <Math/Vector4D.h>
-
 namespace vectoroperations {
 /**
  * @brief calculate the transverse mass. The transverse mass is defined as:
@@ -19,8 +18,8 @@ namespace vectoroperations {
  * @param met lorentz vector of the missing transverse energy
  * @return the transverse mass of the particle
  */
-ROOT::RDF::RNode calculateMT(ROOT::Math::PtEtaPhiMVector &particle,
-                             ROOT::Math::PtEtaPhiMVector &met) {
+float calculateMT(ROOT::Math::PtEtaPhiMVector &particle,
+                  ROOT::Math::PtEtaPhiMVector &met) {
     return (float)sqrt(2 * particle.Pt() * met.Pt() *
                        (1. - cos(particle.Phi() - met.Phi())));
 }

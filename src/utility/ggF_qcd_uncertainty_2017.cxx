@@ -1,3 +1,6 @@
+#include "../include/utility/ggF_qcd_uncertainty_2017.hxx"
+#include <vector>
+
 // Jet bin uncertainties
 NumV blptw(int Njets30) {
 
