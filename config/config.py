@@ -1688,4 +1688,4 @@ def build_config(
     configuration.optimize()
     configuration.validate()
     configuration.report()
-    return configuration.dump_dict()
+    return configuration.expanded_configuration()
