@@ -124,52 +124,52 @@ class Producer:
         for entry in self.output:
             entry.ignore_shift(name, scope)
 
-    def writecall(
-        self, config: Dict[str, Dict[str, Dict[str, str]]], scope: str, shift: str = ""
-    ) -> str:
+    def writecall(self, config, scope: str, shift: str = "nominal") -> str:
         if self.output is None:
-            config[shift][scope]["output"] = ""
-            config[shift][scope]["output_vec"] = ""
+            config[shift]["output"] = ""
+            config[shift]["output_vec"] = ""
         else:
-            log.debug("Writing call for {}".format(self.name))
-            log.debug("output: {}".format(self.output))
-            log.debug("name: {}".format(self.name))
-            log.debug("shift: {}".format(shift))
-            log.debug("Scopes: {}".format(config[shift].keys()))
-            config[shift][scope]["output"] = (
+            # log.warning(f"Available shifts: {config.keys()}")
+            # log.warning(f"Configuration: {config[shift]}")
+            # log.warning("Writing call for {}".format(self.name))
+            # log.warning("output: {}".format(self.output))
+            # log.warning("name: {}".format(self.name))
+            # log.warning("shift: {}".format(shift))
+            # log.warning("Scopes: {}".format(config[shift].keys()))
+            config[shift]["output"] = (
                 '"' + '","'.join([x.get_leaf(shift, scope) for x in self.output]) + '"'
             )
-            config[shift][scope]["output_vec"] = (
+            config[shift]["output_vec"] = (
                 '{"'
                 + '","'.join([x.get_leaf(shift, scope) for x in self.output])
                 + '"}'
             )
-        config[shift][scope]["input"] = (
+        config[shift]["input"] = (
             '"'
             + '", "'.join([x.get_leaf(shift, scope) for x in self.input[scope]])
             + '"'
         )
-        config[shift][scope]["input_vec"] = (
+        config[shift]["input_vec"] = (
             '{"'
             + '","'.join([x.get_leaf(shift, scope) for x in self.input[scope]])
             + '"}'
         )
-        config[shift][scope]["df"] = "{df}"
-        config[shift][scope]["vec_open"] = "{vec_open}"
-        config[shift][scope]["vec_close"] = "{vec_close}"
+        config[shift]["df"] = "{df}"
+        config[shift]["vec_open"] = "{vec_open}"
+        config[shift]["vec_close"] = "{vec_close}"
         # if a bool is used in the python configuration, convert it to a c++ bool value
         # True -> true, False -> false
-        for para in config[shift][scope]:
-            if isinstance(config[shift][scope][para], bool):
-                if config[shift][scope][para]:
+        for para in config[shift]:
+            if isinstance(config[shift][para], bool):
+                if config[shift][para]:
                     log.debug("Found a boolean True ! - converting to C++ syntax")
-                    config[shift][scope][para] = "true"
+                    config[shift][para] = "true"
                 else:
                     log.debug("Found a boolean False ! - converting to C++ syntax")
-                    config[shift][scope][para] = "false"
+                    config[shift][para] = "false"
         try:
             return self.call.format(
-                **config[shift][scope]
+                **config[shift]
             )  # use format (not format_map here) such that missing config entries cause an error
         except KeyError as e:
             log.error(
@@ -177,7 +177,7 @@ class Producer:
                     self.name, e
                 )
             )
-            log.error(config[shift][scope])
+            log.error(config[shift])
             log.error("Call: {}".format(self.call))
             raise Exception
 
@@ -249,14 +249,17 @@ class VectorProducer(Producer):
     ) -> List[str]:
         basecall = self.call
         calls: List[str] = []
-        shifts = [""]
+        shifts = ["nominal"]
         if self.output is not None:
             shifts.extend(self.output[0].get_shifts(scope))
         for shift in shifts:
             # check that all config lists (and output if applicable) have same length
-            n_versions = len(config[shift][scope][self.vec_configs[0]])
+            log.info("self.vec_configs[0]: {}".format(self.vec_configs[0]))
+            log.info("len(self.vec_configs): {}".format(len(self.vec_configs)))
+            log.info("available shifts: {}".format(config.keys()))
+            n_versions = len(config[shift][self.vec_configs[0]])
             for key in self.vec_configs:
-                if n_versions != len(config[shift][scope][key]):
+                if n_versions != len(config[shift][key]):
                     log.error(
                         "Following lists in config must have same length: %s, %s"
                         % (self.vec_configs[0], key)
@@ -274,7 +277,7 @@ class VectorProducer(Producer):
             for i in range(n_versions):
                 helper_dict: Dict[Any, Any] = {}
                 for key in self.vec_configs:
-                    helper_dict[key] = config[shift][scope][key][i]
+                    helper_dict[key] = config[shift][key][i]
                 if self.output is not None:
                     helper_dict["output"] = (
                         '"' + self.output[i].get_leaf(shift, scope) + '"'
@@ -328,7 +331,7 @@ class ExtendedVectorProducer(Producer):
     def writecalls(
         self, config: Dict[str, Dict[str, Dict[str, Any]]], scope: str
     ) -> List[str]:
-        n_versions = len(config[""][scope][self.vec_config])
+        n_versions = len(config["nominal"][self.vec_config])
         log.debug("Number of extended producers to be created {}".format(n_versions))
         if self.output is None:
             raise InvalidProducerConfigurationError(self.name)
@@ -336,15 +339,15 @@ class ExtendedVectorProducer(Producer):
             log.error("ExtendedVectorProducer expects a QuantityGroup as output!")
             raise Exception
         for i in range(n_versions):
-            self.output[0].add(config[""][scope][self.vec_config][i][self.outputname])
+            self.output[0].add(config["nominal"][self.vec_config][i][self.outputname])
         basecall = self.call
         calls: List[str] = []
-        shifts = [""]
+        shifts = ["nominal"]
         shifts.extend(self.output[0].get_shifts(scope))
         for shift in shifts:
             for i in range(n_versions):
                 # the information for the producer is directly read from the configuration
-                helper_dict = config[shift][scope][self.vec_config][i]
+                helper_dict = config[shift][self.vec_config][i]
                 helper_dict["output"] = (
                     '"' + self.output[0].quantities[i].get_leaf(shift, scope) + '"'
                 )
@@ -385,12 +388,12 @@ class BaseFilter(Producer):
         inputs: List[str] = []
         for quantity in self.input[scope]:
             inputs.extend(quantity.get_leaves_of_scope(scope))
-        config[""][scope]["input"] = '"' + '", "'.join(inputs) + '"'
-        config[""][scope]["input_vec"] = '{"' + '","'.join(inputs) + '"}'
-        config[""][scope]["df"] = "{df}"
+        config["nominal"]["input"] = '"' + '", "'.join(inputs) + '"'
+        config["nominal"]["input_vec"] = '{"' + '","'.join(inputs) + '"}'
+        config["nominal"]["df"] = "{df}"
         try:
             return [
-                self.call.format(**config[""][scope])
+                self.call.format(**config["nominal"])
             ]  # use format (not format_map here) such that missing config entries cause an error
         except KeyError as e:
             log.error(
@@ -555,7 +558,7 @@ class ProducerGroup:
                 and isinstance(producer, VectorProducer)
                 and producer.output is not None
             ):
-                for i in range(len(config[""][scope][producer.vec_configs[0]]) - 1):
+                for i in range(len(config["nominal"][producer.vec_configs[0]]) - 1):
                     producer.output.append(
                         producer.output[0].copy(
                             "PG_internal_quantity_%i" % self.__class__.PG_count

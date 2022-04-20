@@ -2,28 +2,31 @@
 #include "ROOT/RDataFrame.hxx"
 #include "RooTrace.h"
 #include "TStopwatch.h"
-#include "src/htxs.hxx"
-#include "src/jets.hxx"
-#include "src/lorentzvectors.hxx"
-#include "src/met.hxx"
-#include "src/metfilter.hxx"
-#include "src/pairselection.hxx"
-#include "src/physicsobjects.hxx"
-#include "src/quantities.hxx"
-#include "src/reweighting.hxx"
-#include "src/scalefactors.hxx"
-#include "src/triggers.hxx"
-#include "src/utility/Logger.hxx"
+#include "include/htxs.hxx"
+#include "include/jets.hxx"
+#include "include/lorentzvectors.hxx"
+#include "include/met.hxx"
+#include "include/metfilter.hxx"
+#include "include/pairselection.hxx"
+#include "include/physicsobjects.hxx"
+#include "include/quantities.hxx"
+#include "include/reweighting.hxx"
+#include "include/scalefactors.hxx"
+#include "include/triggers.hxx"
+#include "include/utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
 #include <TFile.h>
 #include <TTree.h>
 #include <regex>
 #include <string>
 
+// {INCLUDES}
+
 static std::vector<std::string> varSet = {"run", "luminosityBlock", "event"};
 
 int main(int argc, char *argv[]) {
     // {DEBUGLEVEL}
+    bool debug = false;
     // ROOT logging
     if (debug) {
         auto verbosity = ROOT::Experimental::RLogScopedVerbosity(
@@ -88,45 +91,45 @@ int main(int argc, char *argv[]) {
     // {RUN_COMMANDS}
     // Add meta-data
     // clang-format off
-    const std::map<std::string, std::vector<std::string>> output_quanties = {OUTPUT_QUANTITIES};
-    const std::map<std::string, std::vector<std::string>> variations = {SYSTEMATIC_VARIATIONS};
-    // clang-format on
-    const std::string analysis = {ANALYSISTAG};
-    const std::string era = {ERATAG};
-    const std::string sample = {SAMPLETAG};
-    const std::string commit_hash = {COMMITHASH};
-    bool setup_clean = {CLEANSETUP};
-    for (auto const &x : output_quanties) {
-        TFile outputfile(x.first.c_str(), "UPDATE");
-        TTree quantities_meta = TTree("quantities", "quantities");
-        for (auto const &quantity : x.second) {
-            quantities_meta.Branch(quantity.c_str(), &setup_clean);
-        }
-        quantities_meta.Write();
-        TTree variations_meta = TTree("variations", "variations");
-        for (auto const &variation : variations.at(x.first)) {
-            variations_meta.Branch(variation.c_str(), &setup_clean);
-        }
-        variations_meta.Write();
-        TTree conditions_meta = TTree("conditions", "conditions");
-        conditions_meta.Branch(analysis.c_str(), &setup_clean);
-        conditions_meta.Branch(era.c_str(), &setup_clean);
-        conditions_meta.Branch(sample.c_str(), &setup_clean);
-        conditions_meta.Write();
-        TTree commit_meta = TTree("commit", "commit");
-        commit_meta.Branch(commit_hash.c_str(), &setup_clean);
-        commit_meta.Fill();
-        commit_meta.Write();
-        outputfile.Close();
-    }
+    // const std::map<std::string, std::vector<std::string>> output_quanties = {OUTPUT_QUANTITIES};
+    // const std::map<std::string, std::vector<std::string>> variations = {SYSTEMATIC_VARIATIONS};
+    // // clang-format on
+    // const std::string analysis = {ANALYSISTAG};
+    // const std::string era = {ERATAG};
+    // const std::string sample = {SAMPLETAG};
+    // const std::string commit_hash = {COMMITHASH};
+    // bool setup_clean = {CLEANSETUP};
+    // for (auto const &x : output_quanties) {
+    //     TFile outputfile(x.first.c_str(), "UPDATE");
+    //     TTree quantities_meta = TTree("quantities", "quantities");
+    //     for (auto const &quantity : x.second) {
+    //         quantities_meta.Branch(quantity.c_str(), &setup_clean);
+    //     }
+    //     quantities_meta.Write();
+    //     TTree variations_meta = TTree("variations", "variations");
+    //     for (auto const &variation : variations.at(x.first)) {
+    //         variations_meta.Branch(variation.c_str(), &setup_clean);
+    //     }
+    //     variations_meta.Write();
+    //     TTree conditions_meta = TTree("conditions", "conditions");
+    //     conditions_meta.Branch(analysis.c_str(), &setup_clean);
+    //     conditions_meta.Branch(era.c_str(), &setup_clean);
+    //     conditions_meta.Branch(sample.c_str(), &setup_clean);
+    //     conditions_meta.Write();
+    //     TTree commit_meta = TTree("commit", "commit");
+    //     commit_meta.Branch(commit_hash.c_str(), &setup_clean);
+    //     commit_meta.Fill();
+    //     commit_meta.Write();
+    //     outputfile.Close();
+    // }
 
     Logger::get("main")->info("Finished Evaluation");
 
-    const auto nruns = {NRUNS};
-    if (nruns != 1) {
-        Logger::get("main")->critical(
-            "Analysis runs more than one event loop!");
-    }
+    // const auto nruns = {NRUNS};
+    // if (nruns != 1) {
+    //     Logger::get("main")->critical(
+    //         "Analysis runs more than one event loop!");
+    // }
 
     // as a first testcase, we work on selecting good muons
     Logger::get("main")->info("Overall runtime (real time: {}, CPU time: {})",
