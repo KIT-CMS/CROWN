@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 # unset some cached variables
 unset(CMAKE_BUILD_TYPE CACHE)
 unset(CMAKE_CXX_FLAGS_RELEASE CACHE)
@@ -240,12 +240,14 @@ if (NOT DEFINED INSTALLDIR)
 endif()
 set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(GENERATE_CPP_INPUT_TEMPLATE "${CMAKE_SOURCE_DIR}/code_generation/analysis_template.cxx")
+set(GENERATE_CPP_SUBSET_TEMPLATE "${CMAKE_SOURCE_DIR}/code_generation/subset_template.cxx")
 
 message(STATUS "")
 message(STATUS "Generate C++ code with following settings:")
 message(STATUS "  Output directory: ${GENERATE_CPP_OUTPUT_DIRECTORY}")
 message(STATUS "  Install directory: ${INSTALLDIR}")
 message(STATUS "  Template: ${GENERATE_CPP_INPUT_TEMPLATE}")
+message(STATUS "  Subset template: ${GENERATE_CPP_SUBSET_TEMPLATE}")
 message(STATUS "  Analysis: ${ANALYSIS}")
 message(STATUS "  Channels: ${SCOPES}")
 message(STATUS "  Shifts: ${SHIFTS}")
@@ -258,7 +260,7 @@ file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
 foreach (ERA IN LISTS ERAS)
     foreach (SAMPLE IN LISTS SAMPLES)
         execute_process(
-            COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --scopes ${SCOPES} --shifts ${SHIFTS} --sample ${SAMPLE} --era ${ERA} --threads ${THREADS} --debug ${DEBUG} RESULT_VARIABLE ret)
+            COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --subset-template ${GENERATE_CPP_SUBSET_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --scopes ${SCOPES} --shifts ${SHIFTS} --sample ${SAMPLE} --era ${ERA} --threads ${THREADS} --debug ${DEBUG} RESULT_VARIABLE ret)
         if(ret EQUAL "1")
             message( FATAL_ERROR "Code Generation Failed - Exiting !")
         endif()
@@ -270,6 +272,14 @@ set(GENERATE_CPP_OUTPUT_FILELIST "${GENERATE_CPP_OUTPUT_DIRECTORY}/files.txt")
 if(NOT EXISTS ${GENERATE_CPP_OUTPUT_FILELIST})
     message(FATAL_ERROR "List of generated C++ files in ${GENERATE_CPP_OUTPUT_FILELIST} does not exist.")
 endif()
+# first build a shared lib from all CROWN functions
+include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR}/include)
+file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cxx)
+add_library(CROWNLIB SHARED ${SOURCES} ${UTIL_SOURCES})
+# and a utils libary
+file(GLOB UTIL_SOURCES ${CMAKE_SOURCE_DIR}/src/utility/*.cxx)
+add_library(CROWNUTILSLIB SHARED ${UTIL_SOURCES})
 
 # Iterate over files from output filelist and add build and install targets
 FILE(READ ${GENERATE_CPP_OUTPUT_FILELIST} FILELIST)
@@ -277,20 +287,33 @@ STRING(REGEX REPLACE "\n" ";" FILELIST ${FILELIST})
 set(TARGET_NAMES "")
 # copy all correction files into the install location
 install(DIRECTORY data/ DESTINATION ${INSTALLDIR}/data)
+install(TARGETS ${CROWNLIB} DESTINATION lib/${CROWNLIB})
+install(TARGETS ${CROWNUTILSLIB} DESTINATION lib/${CROWNUTILSLIB})
 # also copy inish script needed for job tarball
 install(FILES init.sh DESTINATION ${INSTALLDIR})
 foreach(FILENAME ${FILELIST})
-    STRING(REGEX REPLACE ".cxx" "" TARGET_NAME ${FILENAME})
+    # STRING(REGEX REPLACE ".cxx" "" TARGET_NAME ${FILENAME})
+    cmake_path(GET FILENAME RELATIVE_PART RELATIVE_PATH)
+    cmake_path(GET FILENAME FILENAME TARGET_FILENAMENAME)
+    STRING(REGEX REPLACE ".cxx" "" TARGET_NAME ${TARGET_FILENAMENAME})
+    STRING(REGEX REPLACE "/${TARGET_FILENAMENAME}" "" GENERATED_CODEBASE ${RELATIVE_PATH})
+
     list(APPEND TARGET_NAMES ${TARGET_NAME})
     set(FULL_PATH "${GENERATE_CPP_OUTPUT_DIRECTORY}/${FILENAME}")
 
     # Add build target
     message(STATUS "Add build target for file ${FILENAME}.")
-    add_executable(${TARGET_NAME} ${FULL_PATH})
 
+    message(STATUS "FULL_PATH: ${FULL_PATH} / TARGET_NAME: ${TARGET_NAME}")
+    message(STATUS "Adding header files from ${GENERATE_CPP_OUTPUT_DIRECTORY}/${GENERATED_CODEBASE}/include/*")
+    file(GLOB GENERATED_HEADERS LIST_DIRECTORIES true "${GENERATE_CPP_OUTPUT_DIRECTORY}/${GENERATED_CODEBASE}/include/*")
+    file(GLOB GENERATED_CXX_FILES "${GENERATE_CPP_OUTPUT_DIRECTORY}/${GENERATED_CODEBASE}/src/*/*.cxx")
+    message(STATUS "GENERATED_HEADERS ${GENERATED_HEADERS}")
+    add_executable(${TARGET_NAME} ${FULL_PATH} ${GENERATED_CXX_FILES})
     # Adds a pre-build event to the Target copying the correctionlib.so file into the /lib folder in the install directory
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} $ORIGIN/lib/)
-    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib)
+    # target_link_libraries(${TARGET_NAME} PRIVATE ${libsa})
+    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib nlohmann_json::nlohmann_json ${CROWNLIB} ${CROWNUTILSLIB})
     add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CORRECTION_LIB_PATH}"
