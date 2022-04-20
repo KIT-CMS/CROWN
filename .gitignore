@@ -2,7 +2,6 @@
 build/
 log/
 logs/
-include/
 # Doxygen Documentation
 docs/doxygen
 
