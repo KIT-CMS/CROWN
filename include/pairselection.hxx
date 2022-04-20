@@ -32,21 +32,21 @@ buildtruegenpair(auto &df, const std::string &statusflags,
                  const int daughter_1_pdgid, const int daughter_2_pdgid);
 ROOT::RDF::RNode flagGoodPairs(auto &df, const std::string &flagname,
                                const std::string &pairname);
-ROOT::RDF::RNode compareForPairs(const ROOT::RVec<float> &lep1pt,
-                                 const ROOT::RVec<float> &lep1iso,
-                                 const ROOT::RVec<float> &lep2pt,
-                                 const ROOT::RVec<float> &lep2iso);
+auto compareForPairs(const ROOT::RVec<float> &lep1pt,
+                     const ROOT::RVec<float> &lep1iso,
+                     const ROOT::RVec<float> &lep2pt,
+                     const ROOT::RVec<float> &lep2iso);
 namespace semileptonic {
-ROOT::RDF::RNode PairSelectionAlgo(const float &mindeltaR);
+auto PairSelectionAlgo(const float &mindeltaR);
 } // end namespace semileptonic
 
 namespace fullhadronic {
-ROOT::RDF::RNode PairSelectionAlgo(const float &mindeltaR);
+auto PairSelectionAlgo(const float &mindeltaR);
 } // end namespace fullhadronic
 
 // namespace for full leptonic pairselection
 namespace leptonic {
-ROOT::RDF::RNode PairSelectionAlgo(const float &mindeltaR);
+auto PairSelectionAlgo(const float &mindeltaR);
 } // namespace leptonic
 namespace mutau {
 
@@ -83,8 +83,8 @@ ROOT::RDF::RNode PairSelection(auto &df,
 
 namespace mumu {
 
-ROOT::RDF::RNode PairSelectionAlgo(const float &mindeltaR);
-ROOT::RDF::RNode ZBosonPairSelectionAlgo(const float &mindeltaR);
+auto PairSelectionAlgo(const float &mindeltaR);
+auto ZBosonPairSelectionAlgo(const float &mindeltaR);
 ROOT::RDF::RNode PairSelection(auto &df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,

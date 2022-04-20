@@ -275,10 +275,10 @@ ROOT::RDF::RNode flagGoodPairs(auto &df, const std::string &flagname,
 /// isolations of the second particle
 ///
 /// \returns true or false based on the particle ordering.
-ROOT::RDF::RNode compareForPairs(const ROOT::RVec<float> &lep1pt,
-                                 const ROOT::RVec<float> &lep1iso,
-                                 const ROOT::RVec<float> &lep2pt,
-                                 const ROOT::RVec<float> &lep2iso) {
+auto compareForPairs(const ROOT::RVec<float> &lep1pt,
+                     const ROOT::RVec<float> &lep1iso,
+                     const ROOT::RVec<float> &lep2pt,
+                     const ROOT::RVec<float> &lep2iso) {
     return [lep1pt, lep1iso, lep2pt, lep2iso](auto value_next,
                                               auto value_previous) {
         Logger::get("PairSelectionCompare")->debug("lep1 Pt: {}", lep1pt);
@@ -350,7 +350,7 @@ namespace semileptonic {
 ///
 /// \returns an `ROOT::RVec<int>` with two values, the first one beeing
 /// the lepton index and the second one beeing the tau index.
-ROOT::RDF::RNode PairSelectionAlgo(const float &mindeltaR) {
+auto PairSelectionAlgo(const float &mindeltaR) {
     Logger::get("semileptonic::PairSelectionAlgo")
         ->debug("Setting up algorithm");
     return [mindeltaR](const ROOT::RVec<float> &tau_pt,
@@ -485,7 +485,7 @@ namespace fullhadronic {
 ///
 /// \returns an `ROOT::RVec<int>` with two values, the first one beeing
 /// the leading tau index and the second one beeing trailing tau index.
-ROOT::RDF::RNode PairSelectionAlgo(const float &mindeltaR) {
+auto PairSelectionAlgo(const float &mindeltaR) {
     Logger::get("fullhadronic::PairSelectionAlgo")
         ->debug("Setting up algorithm");
     return [mindeltaR](const ROOT::RVec<float> &tau_pt,
@@ -604,7 +604,7 @@ namespace leptonic {
 ///
 /// \returns an `ROOT::RVec<int>` with two values, the first one beeing
 /// the electron index and the second one beeing the muon index.
-ROOT::RDF::RNode PairSelectionAlgo(const float &mindeltaR) {
+auto PairSelectionAlgo(const float &mindeltaR) {
     Logger::get("semileptonic::PairSelectionAlgo")
         ->debug("Setting up algorithm");
     return [mindeltaR](const ROOT::RVec<float> &electron_pt,
@@ -897,7 +897,7 @@ namespace mumu {
  * @return vector with two entries, the first entry is the leading muon index,
     the second entry is the trailing muon index
  */
-ROOT::RDF::RNode PairSelectionAlgo(const float &mindeltaR) {
+auto PairSelectionAlgo(const float &mindeltaR) {
     Logger::get("PairSelection")->debug("Setting up algorithm");
     return [mindeltaR](const ROOT::RVec<float> &muon_pt,
                        const ROOT::RVec<float> &muon_eta,
@@ -974,7 +974,7 @@ ROOT::RDF::RNode PairSelectionAlgo(const float &mindeltaR) {
  * @return vector with two entries, the first entry is the leading muon index,
  *  the second entry is the trailing muon index
  */
-ROOT::RDF::RNode ZBosonPairSelectionAlgo(const float &mindeltaR) {
+auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
     Logger::get("PairSelection")->debug("Setting up algorithm");
     return [mindeltaR](const ROOT::RVec<float> &muon_pt,
                        const ROOT::RVec<float> &muon_eta,

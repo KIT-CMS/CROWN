@@ -1,6 +1,9 @@
 #ifndef GUARDBASEFUCTIONS_H
 #define GUARDBASEFUCTIONS_H
 
+#include "ROOT/RDFHelpers.hxx"
+#include "ROOT/RDataFrame.hxx"
+#include "ROOT/RVec.hxx"
 #include "utility/RooFunctorThreadsafe.hxx"
 
 enum Channel { MT = 0, ET = 1, TT = 2, EM = 3 };
@@ -29,15 +32,15 @@ template <typename T>
 ROOT::RDF::RNode FilterIntSelection(auto &df, const std::string &quantity,
                                     const std::vector<T> &selection,
                                     const std::string &filtername);
-ROOT::RDF::RNode FilterMax(const float &cut);
-ROOT::RDF::RNode FilterAbsMax(const float &cut);
-ROOT::RDF::RNode FilterMin(const float &cut);
-ROOT::RDF::RNode FilterMinInt(const int &cut);
-ROOT::RDF::RNode FilterAbsMin(const float &cut);
-ROOT::RDF::RNode MultiplyTwoMasks();
-ROOT::RDF::RNode FilterID(const int &index);
-ROOT::RDF::RNode FilterJetID(const int &index);
-ROOT::RDF::RNode FilterJetPUID(const int &PUindex, const float &PUptcut);
+auto FilterMax(const float &cut);
+auto FilterAbsMax(const float &cut);
+auto FilterMin(const float &cut);
+auto FilterMinInt(const int &cut);
+auto FilterAbsMin(const float &cut);
+auto MultiplyTwoMasks();
+auto FilterID(const int &index);
+auto FilterJetID(const int &index);
+auto FilterJetPUID(const int &PUindex, const float &PUptcut);
 template <class... Inputs>
 ROOT::RDF::RNode
 evaluateWorkspaceFunction(auto &df, const std::string &outputname,

@@ -4,6 +4,7 @@
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/RooFunctorThreadsafe.hxx"
 #include "../include/utility/utility.hxx"
+#include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include <nlohmann/json.hpp>
@@ -158,7 +159,7 @@ ROOT::RDF::RNode FilterIntSelection(auto &df, const std::string &quantity,
 /// \param cut The cut value of the filter
 ///
 /// \returns a lambda function to be used in RDF Define
-ROOT::RDF::RNode FilterMax(const float &cut) {
+auto FilterMax(const float &cut) {
     return [cut](const ROOT::RVec<float> &values) {
         ROOT::RVec<int> mask = values < cut;
         return mask;
@@ -171,7 +172,7 @@ ROOT::RDF::RNode FilterMax(const float &cut) {
 /// \param cut The cut value of the filter
 ///
 /// \returns a lambda function to be used in RDF Define
-ROOT::RDF::RNode FilterAbsMax(const float &cut) {
+auto FilterAbsMax(const float &cut) {
     return [cut](const ROOT::RVec<float> &values) {
         ROOT::RVec<int> mask = abs(values) < cut;
         return mask;
@@ -184,7 +185,7 @@ ROOT::RDF::RNode FilterAbsMax(const float &cut) {
 /// \param cut The cut value of the filter
 ///
 /// \returns a lambda function to be used in RDF Define
-ROOT::RDF::RNode FilterMin(const float &cut) {
+auto FilterMin(const float &cut) {
     // As in ROOT, for min we use >=
     return [cut](const ROOT::RVec<float> &values) {
         ROOT::RVec<int> mask = values >= cut;
@@ -198,7 +199,7 @@ ROOT::RDF::RNode FilterMin(const float &cut) {
 /// \param cut The cut value of the filter
 ///
 /// \returns a lambda function to be used in RDF Define
-ROOT::RDF::RNode FilterMinInt(const int &cut) {
+auto FilterMinInt(const int &cut) {
     // As in ROOT, for min we use >=
     return [cut](const ROOT::RVec<int> &values) {
         ROOT::RVec<int> mask = values >= cut;
@@ -212,7 +213,7 @@ ROOT::RDF::RNode FilterMinInt(const int &cut) {
 /// \param cut The cut value of the filter
 ///
 /// \returns a lambda function to be used in RDF Define
-ROOT::RDF::RNode FilterAbsMin(const float &cut) {
+auto FilterAbsMin(const float &cut) {
     return [cut](const ROOT::RVec<float> &values) {
         ROOT::RVec<int> mask = abs(values) >= cut;
         return mask;
@@ -225,7 +226,7 @@ ROOT::RDF::RNode FilterAbsMin(const float &cut) {
 /// \param mask_2 The second mask
 ///
 /// \returns a lambda function which returns the multiplication of the two masks
-ROOT::RDF::RNode MultiplyTwoMasks() {
+auto MultiplyTwoMasks() {
     return [](const ROOT::RVec<Int_t> &mask_1,
               const ROOT::RVec<Int_t> &mask_2) { return mask_1 * mask_2; };
 }
@@ -238,7 +239,7 @@ ROOT::RDF::RNode MultiplyTwoMasks() {
 /// \param index The bitmask index to be used for comparison
 ///
 /// \returns a lambda function to be used in RDF Define
-ROOT::RDF::RNode FilterID(const int &index) {
+auto FilterID(const int &index) {
     return [index](const ROOT::RVec<UChar_t> &IDs) {
         ROOT::RVec<int> mask;
         for (auto const ID : IDs) {
@@ -257,7 +258,7 @@ ROOT::RDF::RNode FilterID(const int &index) {
 /// \param index The bitmask index to be used for comparison
 ///
 /// \returns a lambda function to be used in RDF Define
-ROOT::RDF::RNode FilterJetID(const int &index) {
+auto FilterJetID(const int &index) {
     return [index](const ROOT::RVec<Int_t> &IDs) {
         ROOT::RVec<int> mask;
         for (auto const ID : IDs) {
@@ -275,7 +276,7 @@ ROOT::RDF::RNode FilterJetID(const int &index) {
 /// \param PUptcut The pt threshold to be used for comparison
 ///
 /// \returns a lambda function to be used in RDF Define
-ROOT::RDF::RNode FilterJetPUID(const int &PUindex, const float &PUptcut) {
+auto FilterJetPUID(const int &PUindex, const float &PUptcut) {
     return [PUindex, PUptcut](const ROOT::RVec<Int_t> &PUIDs,
                               const ROOT::RVec<float> &jet_pts) {
         ROOT::RVec<int> tmp_mask1 = PUIDs >= PUindex;

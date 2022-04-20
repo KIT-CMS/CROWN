@@ -1,6 +1,8 @@
 #ifndef GUARDGGH_HTXS_H
 #define GUARDGGH_HTXS_H
 
+#include <vector>
+
 typedef std::vector<double> NumV;
 
 NumV qcd_ggF_uncert_wg1(int Njets30, double pTH, int STXS);

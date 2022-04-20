@@ -1,11 +1,11 @@
 #ifndef GUARDLOGGER_H
 #define GUARDLOGGER_H
 
-#include "spdlog/fmt/ostr.h" // for formatting of RVecs
-#include "spdlog/sinks/basic_file_sink.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include "spdlog/spdlog.h"
 #include <map>
+#include <spdlog/fmt/ostr.h> // for formatting of RVecs
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 class Logger {
   public:
