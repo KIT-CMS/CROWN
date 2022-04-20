@@ -724,6 +724,27 @@ class Configuration(object):
             returnstr += "    {}: {}".format(scope, self.config_parameters[scope])
         return returnstr
 
+    def expanded_configuration(self) -> Configuration:
+        expanded_configuration = {}
+        for scope in self.scopes:
+            expanded_configuration[scope] = {}
+            expanded_configuration[scope]["nominal"] = self.config_parameters[scope]
+            if len(self.shifts[scope]) > 0:
+                for shift in self.shifts[scope]:
+                    log.warning("Adding shift {} in scope {}".format(shift, scope))
+                    log.debug("  {}".format(self.shifts[scope][shift]))
+                    try:
+                        expanded_configuration[scope][shift] = (
+                            self.config_parameters[scope] | self.shifts[scope][shift]
+                        )
+                    except KeyError:
+                        expanded_configuration[scope][shift] = {}
+                        expanded_configuration[scope][shift] = (
+                            self.config_parameters[scope] | self.shifts[scope][shift]
+                        )
+        self.config_parameters = expanded_configuration
+        return self
+
     def dump_dict(self) -> Dict[str, Dict[Any, Any]]:
         """
         Function used to dump the configuration as a dict, which is used to generate the c++ file.
