@@ -138,6 +138,7 @@ ExternalProject_Add(spdlog
     CMAKE_ARGS      -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
                     -DCMAKE_BUILD_TYPE=Release
                     -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}
+                    -DCMAKE_CXX_FLAGS=-fpic
     LOG_DOWNLOAD 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
     BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib64/libspdlog.a
     BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libspdlog.a
@@ -272,14 +273,19 @@ set(GENERATE_CPP_OUTPUT_FILELIST "${GENERATE_CPP_OUTPUT_DIRECTORY}/files.txt")
 if(NOT EXISTS ${GENERATE_CPP_OUTPUT_FILELIST})
     message(FATAL_ERROR "List of generated C++ files in ${GENERATE_CPP_OUTPUT_FILELIST} does not exist.")
 endif()
+# build a utils libary
+file(GLOB UTIL_SOURCES ${CMAKE_SOURCE_DIR}/src/utility/*.cxx)
+add_library(CROWNUTILSLIB SHARED ${UTIL_SOURCES})
+target_include_directories(CROWNUTILSLIB PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
+target_link_libraries(CROWNUTILSLIB ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib nlohmann_json::nlohmann_json)
+
 # first build a shared lib from all CROWN functions
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cxx)
-add_library(CROWNLIB SHARED ${SOURCES} ${UTIL_SOURCES})
-# and a utils libary
-file(GLOB UTIL_SOURCES ${CMAKE_SOURCE_DIR}/src/utility/*.cxx)
-add_library(CROWNUTILSLIB SHARED ${UTIL_SOURCES})
+add_library(CROWNLIB SHARED ${SOURCES})
+target_include_directories(CROWNLIB PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
+target_link_libraries(CROWNLIB ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib nlohmann_json::nlohmann_json CROWNUTILSLIB)
 
 # Iterate over files from output filelist and add build and install targets
 FILE(READ ${GENERATE_CPP_OUTPUT_FILELIST} FILELIST)
@@ -287,8 +293,8 @@ STRING(REGEX REPLACE "\n" ";" FILELIST ${FILELIST})
 set(TARGET_NAMES "")
 # copy all correction files into the install location
 install(DIRECTORY data/ DESTINATION ${INSTALLDIR}/data)
-install(TARGETS ${CROWNLIB} DESTINATION lib/${CROWNLIB})
-install(TARGETS ${CROWNUTILSLIB} DESTINATION lib/${CROWNUTILSLIB})
+install(TARGETS CROWNLIB DESTINATION ${INSTALLDIR}/lib)
+install(TARGETS CROWNUTILSLIB DESTINATION ${INSTALLDIR}/lib)
 # also copy inish script needed for job tarball
 install(FILES init.sh DESTINATION ${INSTALLDIR})
 foreach(FILENAME ${FILELIST})
@@ -311,9 +317,9 @@ foreach(FILENAME ${FILELIST})
     message(STATUS "GENERATED_HEADERS ${GENERATED_HEADERS}")
     add_executable(${TARGET_NAME} ${FULL_PATH} ${GENERATED_CXX_FILES})
     # Adds a pre-build event to the Target copying the correctionlib.so file into the /lib folder in the install directory
-    target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} $ORIGIN/lib/)
+    target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} $ORIGIN/lib/ lib/)
     # target_link_libraries(${TARGET_NAME} PRIVATE ${libsa})
-    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib nlohmann_json::nlohmann_json ${CROWNLIB} ${CROWNUTILSLIB})
+    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib nlohmann_json::nlohmann_json CROWNLIB CROWNUTILSLIB)
     add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CORRECTION_LIB_PATH}"
