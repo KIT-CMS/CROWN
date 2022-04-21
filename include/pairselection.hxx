@@ -20,17 +20,17 @@ bool check_mother(ROOT::RVec<GenParticle> genparticles, const int index,
                   const int mother_pdgid);
 
 namespace pairselection {
-ROOT::RDF::RNode buildgenpair(auto &df, const std::string &recopair,
+ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
                               const std::string &genindex_particle1,
                               const std::string &genindex_particle2,
                               const std::string &genpair);
 ROOT::RDF::RNode
-buildtruegenpair(auto &df, const std::string &statusflags,
+buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
                  const std::string &status, const std::string &pdgids,
                  const std::string &motherids, const std::string &pts,
                  const std::string &genpair, const int mother_pdgid,
                  const int daughter_1_pdgid, const int daughter_2_pdgid);
-ROOT::RDF::RNode flagGoodPairs(auto &df, const std::string &flagname,
+ROOT::RDF::RNode flagGoodPairs(ROOT::RDF::RNode df, const std::string &flagname,
                                const std::string &pairname);
 auto compareForPairs(const ROOT::RVec<float> &lep1pt,
                      const ROOT::RVec<float> &lep1iso,
@@ -50,7 +50,7 @@ auto PairSelectionAlgo(const float &mindeltaR);
 } // namespace leptonic
 namespace mutau {
 
-ROOT::RDF::RNode PairSelection(auto &df,
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR);
@@ -58,7 +58,7 @@ ROOT::RDF::RNode PairSelection(auto &df,
 
 namespace eltau {
 
-ROOT::RDF::RNode PairSelection(auto &df,
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR);
@@ -66,7 +66,7 @@ ROOT::RDF::RNode PairSelection(auto &df,
 
 namespace tautau {
 
-ROOT::RDF::RNode PairSelection(auto &df,
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR);
@@ -75,7 +75,7 @@ ROOT::RDF::RNode PairSelection(auto &df,
 
 namespace elmu {
 
-ROOT::RDF::RNode PairSelection(auto &df,
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR);
@@ -85,7 +85,7 @@ namespace mumu {
 
 auto PairSelectionAlgo(const float &mindeltaR);
 auto ZBosonPairSelectionAlgo(const float &mindeltaR);
-ROOT::RDF::RNode PairSelection(auto &df,
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR);

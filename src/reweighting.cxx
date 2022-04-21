@@ -23,7 +23,7 @@ namespace reweighting {
  * @param histogramname name of the histogram stored in the rootfile
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode puweights(auto &df, const std::string &weightname,
+ROOT::RDF::RNode puweights(ROOT::RDF::RNode df, const std::string &weightname,
                            const std::string &truePUMean,
                            const std::string &filename,
                            const std::string &histogramname) {
@@ -63,7 +63,8 @@ ROOT::RDF::RNode puweights(auto &df, const std::string &weightname,
  * @param gen_pt name of the column containing the pt of the generator particles
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode topptreweighting(auto &df, const std::string &weightname,
+ROOT::RDF::RNode topptreweighting(ROOT::RDF::RNode df,
+                                  const std::string &weightname,
                                   const std::string &gen_pdgids,
                                   const std::string &gen_status,
                                   const std::string &gen_pt) {
@@ -113,7 +114,8 @@ ROOT::RDF::RNode topptreweighting(auto &df, const std::string &weightname,
  * @param argset arguments of the function
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode zPtMassReweighting(auto &df, const std::string &weightname,
+ROOT::RDF::RNode zPtMassReweighting(ROOT::RDF::RNode df,
+                                    const std::string &weightname,
                                     const std::string &gen_boson,
                                     const std::string &workspace_file,
                                     const std::string &functor_name,

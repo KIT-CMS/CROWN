@@ -203,7 +203,7 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
  */
 
 ROOT::RDF::RNode GenerateSingleTriggerFlag(
-    auto df, const std::string &triggerflag_name,
+    ROOT::RDF::RNode df, const std::string &triggerflag_name,
     const std::string &particle_p4, const std::string &triggerobject_bits,
     const std::string &triggerobject_id, const std::string &triggerobject_pt,
     const std::string &triggerobject_eta, const std::string &triggerobject_phi,
@@ -297,7 +297,7 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
  */
 
 ROOT::RDF::RNode GenerateDoubleTriggerFlag(
-    auto df, const std::string &triggerflag_name,
+    ROOT::RDF::RNode df, const std::string &triggerflag_name,
     const std::string &particle1_p4, const std::string &particle2_p4,
     const std::string &triggerobject_bits, const std::string &triggerobject_id,
     const std::string &triggerobject_pt, const std::string &triggerobject_eta,

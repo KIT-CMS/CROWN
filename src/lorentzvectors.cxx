@@ -29,7 +29,7 @@ namespace lorentzvectors {
 /// index of the particle in the particle quantity vectors.
 ///
 /// \returns a new dataframe, which contains the new lorentz vector
-ROOT::RDF::RNode buildparticle(auto &df,
+ROOT::RDF::RNode buildparticle(ROOT::RDF::RNode df,
                                const std::vector<std::string> &quantities,
                                const std::string &outputname,
                                const int &position) {
@@ -82,7 +82,8 @@ ROOT::RDF::RNode buildparticle(auto &df,
  * @return a new df, containing the thw column
  */
 
-ROOT::RDF::RNode build(auto df, const std::vector<std::string> &obj_quantities,
+ROOT::RDF::RNode build(ROOT::RDF::RNode df,
+                       const std::vector<std::string> &obj_quantities,
                        const int pairindex, const std::string &obj_p4_name) {
     Logger::get("lorentzvectors")->debug("Building {}", obj_p4_name);
     for (auto i : obj_quantities)
@@ -102,7 +103,7 @@ ROOT::RDF::RNode build(auto df, const std::vector<std::string> &obj_quantities,
  * energy lorentz vector.
  * @return a new df, containing the new column
  */
-ROOT::RDF::RNode buildMet(auto df, const std::string &met_pt,
+ROOT::RDF::RNode buildMet(ROOT::RDF::RNode df, const std::string &met_pt,
                           const std::string &met_phi,
                           const std::string &outputname) {
     auto construct_metvector = [](const float &pt, const float &phi) {
@@ -117,7 +118,7 @@ ROOT::RDF::RNode buildMet(auto df, const std::string &met_pt,
 
 /// namespace used for mutau lorentzvectors
 namespace mutau {
-ROOT::RDF::RNode build(auto df, const std::string &pairname,
+ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &pairname,
                        const std::vector<std::string> &muon_quantities,
                        const std::vector<std::string> &tau_quantities,
                        const std::string &muon_p4_name,

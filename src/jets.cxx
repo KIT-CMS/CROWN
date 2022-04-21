@@ -23,12 +23,11 @@ namespace jet {
 /// jets and tau candidates
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode VetoOverlappingJets(auto &df, const std::string &output_col,
-                                     const std::string &jet_eta,
-                                     const std::string &jet_phi,
-                                     const std::string &p4_1,
-                                     const std::string &p4_2,
-                                     const float &deltaRmin) {
+ROOT::RDF::RNode
+VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
+                    const std::string &jet_eta, const std::string &jet_phi,
+                    const std::string &p4_1, const std::string &p4_2,
+                    const float &deltaRmin) {
     auto df1 = df.Define(
         output_col,
         [deltaRmin](const ROOT::RVec<float> &jet_eta,
@@ -70,7 +69,8 @@ ROOT::RDF::RNode VetoOverlappingJets(auto &df, const std::string &output_col,
 /// be considered
 ///
 /// \return a dataframe containing a list of jet indices sorted by pt
-ROOT::RDF::RNode OrderJetsByPt(auto &df, const std::string &output_col,
+ROOT::RDF::RNode OrderJetsByPt(ROOT::RDF::RNode df,
+                               const std::string &output_col,
                                const std::string &jet_pt,
                                const std::string &jetmask_name) {
     auto df1 = df.Define(
@@ -114,7 +114,7 @@ namespace jet {
 /// idxID bitvalue of the WP the has to be passed
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutID(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
                        const std::string &nameID, const int &idxID) {
     auto df1 = df.Define(maskname, basefunctions::FilterJetID(idxID), {nameID});
     return df1;
@@ -128,7 +128,7 @@ ROOT::RDF::RNode CutID(auto &df, const std::string &maskname,
 /// input jet pts \param[in] jet_pt_cut threshold for the input jet pts
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutPUID(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutPUID(ROOT::RDF::RNode df, const std::string &maskname,
                          const std::string &nameID, const std::string &jet_pt,
                          const int &idxID, const float &jet_pt_cut) {
     auto df1 =
@@ -157,7 +157,7 @@ ROOT::RDF::RNode CutPUID(auto &df, const std::string &maskname,
 ///
 /// \return a dataframe containing the modified jet pts
 ROOT::RDF::RNode
-JetPtCorrection(auto &df, const std::string &corrected_jet_pt,
+JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
                 const std::string &jet_pt, const std::string &jet_eta,
                 const std::string &jet_phi, const std::string &gen_jet_pt,
                 const std::string &gen_jet_eta, const std::string &gen_jet_phi,
@@ -291,7 +291,7 @@ JetPtCorrection(auto &df, const std::string &corrected_jet_pt,
 /// \param[in] idThreshold minimal ID value
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutRawID(auto &df, const std::string &quantity,
+ROOT::RDF::RNode CutRawID(ROOT::RDF::RNode df, const std::string &quantity,
                           const std::string &maskname,
                           const float &idThreshold) {
     auto df1 =
@@ -311,7 +311,8 @@ namespace jet {
 /// jets belonging to the collection, its length constitutes the output quantity
 ///
 /// \return a dataframe containing the number of jets in the jet collection
-ROOT::RDF::RNode NumberOfJets(auto &df, const std::string &outputname,
+ROOT::RDF::RNode NumberOfJets(ROOT::RDF::RNode df,
+                              const std::string &outputname,
                               const std::string &jetcollection) {
     return df.Define(outputname,
                      [](const ROOT::RVec<int> &jetcollection) {
@@ -336,7 +337,7 @@ ROOT::RDF::RNode NumberOfJets(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode btagValue(auto &df, const std::string &outputname,
+ROOT::RDF::RNode btagValue(ROOT::RDF::RNode df, const std::string &outputname,
                            const std::string &btagcolumn,
                            const std::string &jetcollection,
                            const int &position) {

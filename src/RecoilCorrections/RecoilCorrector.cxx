@@ -1,5 +1,5 @@
-#include "RecoilCorrector.hxx"
-#include "../utility/Logger.hxx"
+#include "../../include/RecoilCorrections/RecoilCorrector.hxx"
+#include "../../include/utility/Logger.hxx"
 
 RecoilCorrector::RecoilCorrector(std::string filepath) {
     fileName = filepath;
