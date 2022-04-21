@@ -124,9 +124,12 @@ generator = CodeGenerator(
     main_template_path=args.template,
     sub_template_path=args.subset_template,
     configuration=config,
-    name=f"{analysisname}_{sample_group}_{era}",
+    executable_name=f"{analysisname}_{sample_group}_{era}",
+    analysisname=analysisname,
     output_folder=args.output,
 )
+if args.debug == "true":
+    generator.debug = True
 generator.generate_code()
 
 executable = generator.get_cmake_path()
