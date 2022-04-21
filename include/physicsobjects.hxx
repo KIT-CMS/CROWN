@@ -66,6 +66,8 @@ ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
 ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
                               const std::string &isolationName,
                               const float &Threshold);
+} // namespace muon
+namespace tau {
 ROOT::RDF::RNode CutDecayModes(ROOT::RDF::RNode df, const std::string &maskname,
                                const std::string &tau_dms,
                                const std::vector<int> &SelectedDecayModes);
@@ -84,7 +86,7 @@ PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
              const std::string &idAlgorithm, const std::string &DM0,
              const std::string &DM1, const std::string &DM10,
              const std::string &DM11, const std::vector<int> &SelectedDMs);
-} // namespace muon
+} // namespace tau
 
 namespace electron {
 

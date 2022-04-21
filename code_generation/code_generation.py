@@ -113,7 +113,7 @@ class CodeSubset(object):
         else:
             os.rename(self.sourcefile + ".new", self.sourcefile)
 
-    def call(self, main_counter: int, scope: str, is_first: bool) -> str:
+    def call(self, inputscope: str, outputscope: str) -> str:
         """
         Return the call to the code subset
 
@@ -123,10 +123,7 @@ class CodeSubset(object):
         Returns:
             str: the call to the code subset
         """
-        if is_first:
-            call = f"    auto df{main_counter+1}_{scope} = {self.name}(df0); \n"
-        else:
-            call = f"    auto df{main_counter+1}_{scope} = {self.name}(df{main_counter}_{scope}); \n"
+        call = f"    auto {outputscope} = {self.name}({inputscope}); \n"
         return call
 
     def include(self) -> str:
@@ -244,14 +241,6 @@ class CodeGenerator(object):
         for scope in self.scopes:
             main_calls += "    // {}\n".format(scope)
             main_calls += "".join(self.subset_calls[scope])
-            if scope == self.global_scope:
-                main_calls += "\n"
-                for subscope in [
-                    scope for scope in self.scopes if scope is not self.global_scope
-                ]:
-                    main_calls += "    auto  df0_{} = df{}_global;\n".format(
-                        subscope, self.main_counter[self.global_scope]
-                    )
         main_includes = "".join(self.subset_includes)
         return main_calls, main_includes
 
@@ -274,6 +263,7 @@ class CodeGenerator(object):
         )
         log.info("Producers: {}".format(self.configuration.producers[scope]))
         is_first = True
+        counter = 0
         for producer in self.configuration.producers[scope]:
             subset = CodeSubset(
                 filename=producer.name,
@@ -285,16 +275,30 @@ class CodeGenerator(object):
             )
             subset.create()
             subset.write()
+            # two special cases:
+            # 1. global scope: there we have to use df0 as the input df
+            # 2. first call of all other scopes: we have to use the last global df as the input df
             if scope == self.global_scope and is_first:
                 self.subset_calls[scope].append(
-                    subset.call(self.main_counter[scope], scope, True)
+                    subset.call(inputscope=f"df0", outputscope=f"df{counter+1}_{scope}")
+                )
+            elif is_first:
+                self.subset_calls[scope].append(
+                    subset.call(
+                        inputscope=f"df{self.main_counter[self.global_scope]}_{self.global_scope}",
+                        outputscope=f"df{counter+1}_{scope}",
+                    )
                 )
             else:
                 self.subset_calls[scope].append(
-                    subset.call(self.main_counter[scope], scope, False)
+                    subset.call(
+                        inputscope=f"df{counter}_{scope}",
+                        outputscope=f"df{counter+1}_{scope}",
+                    )
                 )
             self.subset_includes.append(subset.include())
             self.main_counter[scope] += 1
+            counter += 1
             is_first = False
 
     def generate_run_commands(self) -> str:
