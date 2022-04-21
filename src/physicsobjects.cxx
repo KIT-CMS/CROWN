@@ -85,36 +85,6 @@ ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
         df.Define(maskname, basefunctions::FilterAbsMax(Threshold), {quantity});
     return df1;
 }
-/// Function to combine a list of masks into a single mask. This is done be
-/// multiplying all input masks
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe
-/// \param[in] masks a parameter pack containing an arbitrary number of
-/// `std::vector<std::string>` objects. Each string is the name of a mask to be
-/// combined
-///
-/// \return a dataframe containing the new mask
-template <class... Masks>
-ROOT::RDF::RNode CombineMasks(ROOT::RDF::RNode df, const std::string &maskname,
-                              const Masks &...masks) {
-    auto multiplyMasks = [](const ROOT::RVec<ROOT::RVec<int>> &x) {
-        ROOT::RVec<int> result(x[0].size(), 1);
-        for (auto &xx : x) {
-            result *= xx;
-        }
-        return result;
-    };
-    // std::vector<std::string> MaskList{{masks...}}; does weird things in case
-    // of two arguments in masks
-    std::vector<std::string> MaskList;
-    utility::appendParameterPackToVector(MaskList, masks...);
-    const auto nMasks = sizeof...(Masks);
-    return df.Define(
-        maskname, ROOT::RDF::PassAsVec<nMasks, ROOT::RVec<int>>(multiplyMasks),
-        MaskList);
-}
 
 /// Function to take a mask and create a new one where a tau candidate is set to
 /// false
