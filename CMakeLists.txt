@@ -87,6 +87,8 @@ find_package(ROOT 6.26 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit)
 # add OpenMP and MPI
 find_package(OpenMP)
 find_package(MPI)
+# add nlohmann json
+find_package(nlohmann_json)
 
 message(STATUS "")
 message(STATUS "Found ROOT with following settings:")
@@ -114,7 +116,7 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (${ROOT_CXX_FLAGS} MATCHES "\\-std\\=c\\+\\+17")
     message(STATUS "Set c++17 as the C++ standard.")
-    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 20)
 elseif (${ROOT_CXX_FLAGS} MATCHES "\\-std\\=c\\+\\+20")
     message(STATUS "Set c++20 as the C++ standard.")
     set(CMAKE_CXX_STANDARD 20)
@@ -122,7 +124,7 @@ elseif (${ROOT_CXX_FLAGS} MATCHES "\\-std\\=c\\+\\+14")
     message(STATUS "c++14 found, setting c++17 as the C++ standard.")
     # string (REPLACE "-std=c++14" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-    set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX_STANDARD 20)
 else ()
     message(FATAL_ERROR "The standard c++17 or higher is required but not found in the ROOT flags: ${ROOT_CXX_FLAGS}")
 endif()
@@ -273,19 +275,18 @@ set(GENERATE_CPP_OUTPUT_FILELIST "${GENERATE_CPP_OUTPUT_DIRECTORY}/files.txt")
 if(NOT EXISTS ${GENERATE_CPP_OUTPUT_FILELIST})
     message(FATAL_ERROR "List of generated C++ files in ${GENERATE_CPP_OUTPUT_FILELIST} does not exist.")
 endif()
-# build a utils libary
-file(GLOB UTIL_SOURCES ${CMAKE_SOURCE_DIR}/src/utility/*.cxx)
-add_library(CROWNUTILSLIB SHARED ${UTIL_SOURCES})
-target_include_directories(CROWNUTILSLIB PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
-target_link_libraries(CROWNUTILSLIB ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib nlohmann_json::nlohmann_json)
 
-# first build a shared lib from all CROWN functions
+# build a shared lib from all CROWN functions
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/include)
-file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cxx)
+file(GLOB SOURCES_1 ${CMAKE_SOURCE_DIR}/src/*.cxx)
+file(GLOB SOURCES_2 
+    ${CMAKE_SOURCE_DIR}/src/utility/*.cxx
+    ${CMAKE_SOURCE_DIR}/src/RecoilCorrections/*.cxx)
+set(SOURCES ${SOURCES_1} ${SOURCES_2})
 add_library(CROWNLIB SHARED ${SOURCES})
 target_include_directories(CROWNLIB PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
-target_link_libraries(CROWNLIB ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib nlohmann_json::nlohmann_json CROWNUTILSLIB)
+target_link_libraries(CROWNLIB ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib nlohmann_json::nlohmann_json)
 
 # Iterate over files from output filelist and add build and install targets
 FILE(READ ${GENERATE_CPP_OUTPUT_FILELIST} FILELIST)
@@ -294,7 +295,7 @@ set(TARGET_NAMES "")
 # copy all correction files into the install location
 install(DIRECTORY data/ DESTINATION ${INSTALLDIR}/data)
 install(TARGETS CROWNLIB DESTINATION ${INSTALLDIR}/lib)
-install(TARGETS CROWNUTILSLIB DESTINATION ${INSTALLDIR}/lib)
+
 # also copy inish script needed for job tarball
 install(FILES init.sh DESTINATION ${INSTALLDIR})
 foreach(FILENAME ${FILELIST})
@@ -318,8 +319,7 @@ foreach(FILENAME ${FILELIST})
     add_executable(${TARGET_NAME} ${FULL_PATH} ${GENERATED_CXX_FILES})
     # Adds a pre-build event to the Target copying the correctionlib.so file into the /lib folder in the install directory
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} $ORIGIN/lib/ lib/)
-    # target_link_libraries(${TARGET_NAME} PRIVATE ${libsa})
-    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib nlohmann_json::nlohmann_json CROWNLIB CROWNUTILSLIB)
+    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib nlohmann_json::nlohmann_json CROWNLIB)
     add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CORRECTION_LIB_PATH}"
@@ -328,8 +328,6 @@ foreach(FILENAME ${FILELIST})
     set_target_properties(${TARGET_NAME} PROPERTIES
         BUILD_WITH_INSTALL_RPATH FALSE
         LINK_FLAGS "-Wl,-rpath,$ORIGIN/lib")
-
-
     # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
     install(TARGETS ${TARGET_NAME} DESTINATION ${INSTALLDIR})
 
