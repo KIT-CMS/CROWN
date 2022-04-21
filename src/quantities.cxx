@@ -21,7 +21,7 @@ namespace quantities {
 /// \param inputvector name of the column containing the lorentz vector
 ///
 /// \returns a dataframe with the new column
-ROOT::RDF::RNode pt(auto &df, const std::string &outputname,
+ROOT::RDF::RNode pt(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &inputvector) {
     return df.Define(
         outputname,
@@ -37,7 +37,7 @@ ROOT::RDF::RNode pt(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode eta(auto &df, const std::string &outputname,
+ROOT::RDF::RNode eta(ROOT::RDF::RNode df, const std::string &outputname,
                      const std::string &inputvector) {
     return df.Define(
         outputname,
@@ -53,7 +53,7 @@ ROOT::RDF::RNode eta(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode phi(auto &df, const std::string &outputname,
+ROOT::RDF::RNode phi(ROOT::RDF::RNode df, const std::string &outputname,
                      const std::string &inputvector) {
     return df.Define(outputname,
                      [](const ROOT::Math::PtEtaPhiMVector &p4) {
@@ -73,7 +73,7 @@ ROOT::RDF::RNode phi(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode mass(auto &df, const std::string &outputname,
+ROOT::RDF::RNode mass(ROOT::RDF::RNode df, const std::string &outputname,
                       const std::string &inputvector) {
     return df.Define(outputname,
                      [](const ROOT::Math::PtEtaPhiMVector &p4) {
@@ -95,7 +95,7 @@ ROOT::RDF::RNode mass(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode dxy(auto &df, const std::string &outputname,
+ROOT::RDF::RNode dxy(ROOT::RDF::RNode df, const std::string &outputname,
                      const int &position, const std::string &pairname,
                      const std::string &dxycolumn) {
     return df.Define(
@@ -117,7 +117,7 @@ ROOT::RDF::RNode dxy(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode dz(auto &df, const std::string &outputname,
+ROOT::RDF::RNode dz(ROOT::RDF::RNode df, const std::string &outputname,
                     const int &position, const std::string &pairname,
                     const std::string &dzcolumn) {
     return df.Define(
@@ -139,7 +139,7 @@ ROOT::RDF::RNode dz(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode charge(auto &df, const std::string &outputname,
+ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
                         const int &position, const std::string &pairname,
                         const std::string &chargecolumn) {
     return df.Define(
@@ -161,7 +161,7 @@ ROOT::RDF::RNode charge(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode m_vis(auto &df, const std::string &outputname,
+ROOT::RDF::RNode m_vis(ROOT::RDF::RNode df, const std::string &outputname,
                        const std::vector<std::string> &inputvectors) {
     // build visible mass from the two particles
     return df.Define(
@@ -186,7 +186,7 @@ ROOT::RDF::RNode m_vis(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode pt_vis(auto &df, const std::string &outputname,
+ROOT::RDF::RNode pt_vis(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::vector<std::string> &inputvectors) {
     // build visible pt from the two particles
     return df.Define(
@@ -227,7 +227,8 @@ ROOT::RDF::RNode pt_vis(auto &df, const std::string &outputname,
  value
  * @return a new dataframe with the new column
  */
-ROOT::RDF::RNode pzetamissvis(auto &df, const std::string &outputname,
+ROOT::RDF::RNode pzetamissvis(ROOT::RDF::RNode df,
+                              const std::string &outputname,
                               const std::string &p_1_p4,
                               const std::string &p_2_p4,
                               const std::string &met) {
@@ -265,7 +266,8 @@ ROOT::RDF::RNode pzetamissvis(auto &df, const std::string &outputname,
  * @param met lorentz vector of the met
  * @return a new dataframe with the new column
  */
-ROOT::RDF::RNode mTdileptonMET(auto &df, const std::string &outputname,
+ROOT::RDF::RNode mTdileptonMET(ROOT::RDF::RNode df,
+                               const std::string &outputname,
                                const std::string &p_1_p4,
                                const std::string &p_2_p4,
                                const std::string &met) {
@@ -290,7 +292,7 @@ ROOT::RDF::RNode mTdileptonMET(auto &df, const std::string &outputname,
  * @return a new dataframe with the new column
  */
 
-ROOT::RDF::RNode mT(auto &df, const std::string &outputname,
+ROOT::RDF::RNode mT(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &particle_p4, const std::string &met) {
     auto calculate_mt = [](ROOT::Math::PtEtaPhiMVector &particle_p4,
                            ROOT::Math::PtEtaPhiMVector &met) {
@@ -310,7 +312,7 @@ ROOT::RDF::RNode mT(auto &df, const std::string &outputname,
  * @return a new dataframe with the new column
  */
 
-ROOT::RDF::RNode pt_tt(auto &df, const std::string &outputname,
+ROOT::RDF::RNode pt_tt(ROOT::RDF::RNode df, const std::string &outputname,
                        const std::string &p_1_p4, const std::string &p_2_p4,
                        const std::string &met) {
     auto calculate_pt_tt = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
@@ -337,7 +339,7 @@ ROOT::RDF::RNode pt_tt(auto &df, const std::string &outputname,
  * @return a new dataframe with the new column
  */
 
-ROOT::RDF::RNode pt_ttjj(auto &df, const std::string &outputname,
+ROOT::RDF::RNode pt_ttjj(ROOT::RDF::RNode df, const std::string &outputname,
                          const std::string &p_1_p4, const std::string &p_2_p4,
                          const std::string &jet_1_p4,
                          const std::string &jet_2_p4, const std::string &met) {
@@ -371,7 +373,7 @@ ROOT::RDF::RNode pt_ttjj(auto &df, const std::string &outputname,
  * @return a new dataframe with the new column
  */
 
-ROOT::RDF::RNode mt_tot(auto &df, const std::string &outputname,
+ROOT::RDF::RNode mt_tot(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &p_1_p4, const std::string &p_2_p4,
                         const std::string &met) {
     auto calculate_mt_tot = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
@@ -397,7 +399,7 @@ ROOT::RDF::RNode mt_tot(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode isolation(auto &df, const std::string &outputname,
+ROOT::RDF::RNode isolation(ROOT::RDF::RNode df, const std::string &outputname,
                            const int &position, const std::string &pairname,
                            const std::string &isolationcolumn) {
     return df.Define(outputname,
@@ -419,7 +421,7 @@ ROOT::RDF::RNode isolation(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode pdgid(auto &df, const std::string &outputname,
+ROOT::RDF::RNode pdgid(ROOT::RDF::RNode df, const std::string &outputname,
                        const int &position, const std::string &pairname,
                        const std::string &pdgidcolumn) {
     return df.Define(
@@ -438,7 +440,8 @@ ROOT::RDF::RNode pdgid(auto &df, const std::string &outputname,
 /// good leptons, its length of non-zero values constitutes the output quantity
 ///
 /// \return a dataframe containing the number of good leptons in an event
-ROOT::RDF::RNode NumberOfGoodLeptons(auto &df, const std::string &outputname,
+ROOT::RDF::RNode NumberOfGoodLeptons(ROOT::RDF::RNode df,
+                                     const std::string &outputname,
                                      const std::string &goodleptons) {
     return df.Define(outputname,
                      [](const ROOT::RVec<int> &goodleptons) {
@@ -460,7 +463,7 @@ namespace tau {
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode decaymode(auto &df, const std::string &outputname,
+ROOT::RDF::RNode decaymode(ROOT::RDF::RNode df, const std::string &outputname,
                            const int &position, const std::string &pairname,
                            const std::string &decaymodecolumn) {
     return df.Define(outputname,
@@ -490,7 +493,7 @@ ROOT::RDF::RNode decaymode(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode genmatch(auto &df, const std::string &outputname,
+ROOT::RDF::RNode genmatch(ROOT::RDF::RNode df, const std::string &outputname,
                           const int &position, const std::string &pairname,
                           const std::string &genmatchcolumn) {
     return df.Define(outputname,
@@ -513,7 +516,8 @@ ROOT::RDF::RNode genmatch(auto &df, const std::string &outputname,
 /// containing the recojet pt values
 ///
 /// \returns a dataframe with the new column
-ROOT::RDF::RNode matching_jet_pt(auto &df, const std::string &outputname,
+ROOT::RDF::RNode matching_jet_pt(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
                                  const int &position,
                                  const std::string &pairname,
                                  const std::string &taujet_index,
@@ -543,12 +547,10 @@ ROOT::RDF::RNode matching_jet_pt(auto &df, const std::string &outputname,
 /// genjetpt_column name of the column containing the genJet pt values
 ///
 /// \returns a dataframe with the new column
-ROOT::RDF::RNode matching_genjet_pt(auto &df, const std::string &outputname,
-                                    const int &position,
-                                    const std::string &pairname,
-                                    const std::string &taujet_index,
-                                    const std::string &genjet_index,
-                                    const std::string &genjetpt_column) {
+ROOT::RDF::RNode matching_genjet_pt(
+    ROOT::RDF::RNode df, const std::string &outputname, const int &position,
+    const std::string &pairname, const std::string &taujet_index,
+    const std::string &genjet_index, const std::string &genjetpt_column) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
                                 const ROOT::RVec<int> &taujets,
@@ -573,7 +575,7 @@ ROOT::RDF::RNode matching_genjet_pt(auto &df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode TauIDFlag(auto &df, const std::string &outputname,
+ROOT::RDF::RNode TauIDFlag(ROOT::RDF::RNode df, const std::string &outputname,
                            const int &position, const std::string &pairname,
                            const std::string &nameID, const int &idxID) {
     return df.Define(
@@ -585,9 +587,9 @@ ROOT::RDF::RNode TauIDFlag(auto &df, const std::string &outputname,
                     "position tau in pair {}, pair {}, id bit {}, vsjet ids {}",
                     position, pair, idxID, IDs);
             const int index = pair.at(position);
-            const auto ID = IDs.at(index, default_int);
+            const int ID = IDs.at(index, default_int);
             if (ID != default_int)
-                return std::min(1, int(ID & 1 << idxID - 1));
+                return std::min(1, int(ID & 1 << (idxID - 1)));
             else
                 return int(ID);
         },

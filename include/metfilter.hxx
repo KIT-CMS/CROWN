@@ -3,7 +3,8 @@
 
 namespace metfilter {
 
-ROOT::RDF::RNode ApplyMetFilter(auto &df, const std::string &flagname,
+ROOT::RDF::RNode ApplyMetFilter(ROOT::RDF::RNode df,
+                                const std::string &flagname,
                                 const std::string &filtername);
 } // namespace metfilter
 #endif /* GUARDMETFILTER_H */

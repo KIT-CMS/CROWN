@@ -66,7 +66,7 @@ namespace pairselection {
  * @param genpair name of the new column containing the GenDiTauPair
  * @return a new Dataframe with the GenDiTauPair column
  */
-ROOT::RDF::RNode buildgenpair(auto &df, const std::string &recopair,
+ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
                               const std::string &genindex_particle1,
                               const std::string &genindex_particle2,
                               const std::string &genpair) {
@@ -110,7 +110,7 @@ ROOT::RDF::RNode buildgenpair(auto &df, const std::string &recopair,
  * @return auto the new Dataframe with the genpair column
  */
 ROOT::RDF::RNode
-buildtruegenpair(auto &df, const std::string &statusflags,
+buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
                  const std::string &status, const std::string &pdgids,
                  const std::string &motherids, const std::string &pts,
                  const std::string &genpair, const int mother_pdgid,
@@ -244,7 +244,7 @@ buildtruegenpair(auto &df, const std::string &statusflags,
 /// particles in the particle quantity vectors.
 /// \returns a dataframe with the
 /// new flag
-ROOT::RDF::RNode flagGoodPairs(auto &df, const std::string &flagname,
+ROOT::RDF::RNode flagGoodPairs(ROOT::RDF::RNode df, const std::string &flagname,
                                const std::string &pairname) {
     using namespace ROOT::VecOps;
     return df.Define(
@@ -754,7 +754,7 @@ namespace mutau {
  * this value
  * @return a new dataframe with the pair index column added
  */
-ROOT::RDF::RNode PairSelection(auto &df,
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR) {
@@ -796,7 +796,7 @@ namespace eltau {
  * this value
  * @return a new dataframe with the pair index column added
  */
-ROOT::RDF::RNode PairSelection(auto &df,
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR) {
@@ -831,7 +831,7 @@ namespace tautau {
  * this value
  * @return a new dataframe with the pair index column added
  */
-ROOT::RDF::RNode PairSelection(auto &df,
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR) {
@@ -873,7 +873,7 @@ namespace elmu {
  * this value
  * @return a new dataframe with the pair index column added
  */
-ROOT::RDF::RNode PairSelection(auto &df,
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR) {
@@ -1075,7 +1075,7 @@ auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
  * this value
  * @return a new dataframe with the pair index column added
  */
-ROOT::RDF::RNode PairSelection(auto &df,
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR) {
@@ -1103,7 +1103,8 @@ ROOT::RDF::RNode PairSelection(auto &df,
  * @return a new dataframe with the pair index column added
  */
 ROOT::RDF::RNode
-ZBosonPairSelection(auto &df, const std::vector<std::string> &input_vector,
+ZBosonPairSelection(ROOT::RDF::RNode df,
+                    const std::vector<std::string> &input_vector,
                     const std::string &pairname, const float &mindeltaR) {
     Logger::get("ZBosonPairSelection")
         ->debug("Setting up Z boson mumu pair building");

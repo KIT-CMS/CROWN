@@ -2,67 +2,97 @@
 #define GUARD_PHYSICSOBJECTS_H
 
 namespace physicsobject {
-ROOT::RDF::RNode CutPt(auto &df, const std::string &quantity,
+ROOT::RDF::RNode CutPt(ROOT::RDF::RNode df, const std::string &quantity,
                        const std::string &maskname, const float &ptThreshold);
-ROOT::RDF::RNode CutEta(auto &df, const std::string &quantity,
+ROOT::RDF::RNode CutEta(ROOT::RDF::RNode df, const std::string &quantity,
                         const std::string &maskname, const float &EtaThreshold);
-ROOT::RDF::RNode CutDz(auto &df, const std::string &quantity,
+ROOT::RDF::RNode CutDz(ROOT::RDF::RNode df, const std::string &quantity,
                        const std::string &maskname, const float &Threshold);
-ROOT::RDF::RNode CutDxy(auto &df, const std::string &quantity,
+ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
                         const std::string &maskname, const float &Threshold);
+/// Function to combine a list of masks into a single mask. This is done be
+/// multiplying all input masks
+///
+/// \param[in] df the input dataframe
+/// \param[out] maskname the name of the new mask to be added as column to the
+/// dataframe
+/// \param[in] masks a parameter pack containing an arbitrary number of
+/// `std::vector<std::string>` objects. Each string is the name of a mask to be
+/// combined
+///
+/// \return a dataframe containing the new mask
 template <class... Masks>
-ROOT::RDF::RNode CombineMasks(auto &df, const std::string &maskname,
-                              const Masks &...masks);
-ROOT::RDF::RNode VetoCandInMask(auto &df, const std::string &outputmaskname,
+inline ROOT::RDF::RNode CombineMasks(ROOT::RDF::RNode df,
+                                     const std::string &maskname,
+                                     const Masks &...masks) {
+    auto multiplyMasks = [](const ROOT::RVec<ROOT::RVec<int>> &x) {
+        ROOT::RVec<int> result(x[0].size(), 1);
+        for (auto &xx : x) {
+            result *= xx;
+        }
+        return result;
+    };
+    // std::vector<std::string> MaskList{{masks...}}; does weird things in case
+    // of two arguments in masks
+    std::vector<std::string> MaskList;
+    utility::appendParameterPackToVector(MaskList, masks...);
+    const auto nMasks = sizeof...(Masks);
+    return df.Define(
+        maskname, ROOT::RDF::PassAsVec<nMasks, ROOT::RVec<int>>(multiplyMasks),
+        MaskList);
+}
+ROOT::RDF::RNode VetoCandInMask(ROOT::RDF::RNode df,
+                                const std::string &outputmaskname,
                                 const std::string &inputmaskname,
                                 const std::string &ditaupair, const int index);
-ROOT::RDF::RNode FilterMasks(auto &df, const std::string &maskname);
-ROOT::RDF::RNode LeptonVetoFlag(auto &df, const std::string &outputname,
+ROOT::RDF::RNode FilterMasks(ROOT::RDF::RNode df, const std::string &maskname);
+ROOT::RDF::RNode LeptonVetoFlag(ROOT::RDF::RNode df,
+                                const std::string &outputname,
                                 const std::string &vetomap);
-ROOT::RDF::RNode ObjectMassCorrectionWithPt(auto &df,
+ROOT::RDF::RNode ObjectMassCorrectionWithPt(ROOT::RDF::RNode df,
                                             const std::string &corrected_mass,
                                             const std::string &raw_mass,
                                             const std::string &raw_pt,
                                             const std::string &corrected_pt);
 ROOT::RDF::RNode CheckForDiLeptonPairs(
-    auto &df, const std::string &output_flag, const std::string &leptons_pt,
-    const std::string &leptons_eta, const std::string &leptons_phi,
-    const std::string &leptons_mass, const std::string &leptons_charge,
-    const std::string &leptons_mask, const float dR_cut);
+    ROOT::RDF::RNode df, const std::string &output_flag,
+    const std::string &leptons_pt, const std::string &leptons_eta,
+    const std::string &leptons_phi, const std::string &leptons_mass,
+    const std::string &leptons_charge, const std::string &leptons_mask,
+    const float dR_cut);
 namespace muon {
-ROOT::RDF::RNode CutID(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
                        const std::string &nameID);
-ROOT::RDF::RNode CutIsolation(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
                               const std::string &isolationName,
                               const float &Threshold);
-ROOT::RDF::RNode CutDecayModes(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutDecayModes(ROOT::RDF::RNode df, const std::string &maskname,
                                const std::string &tau_dms,
                                const std::vector<int> &SelectedDecayModes);
-ROOT::RDF::RNode CutTauID(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutTauID(ROOT::RDF::RNode df, const std::string &maskname,
                           const std::string &nameID, const int &idxID);
-ROOT::RDF::RNode PtCorrection_byValue(auto &df, const std::string &corrected_pt,
-                                      const std::string &pt,
-                                      const std::string &decayMode,
-                                      const float &sf_dm0, const float &sf_dm1,
-                                      const float &sf_dm10,
-                                      const float &sf_dm11);
 ROOT::RDF::RNode
-PtCorrection(auto &df, const std::string &corrected_pt, const std::string &pt,
-             const std::string &eta, const std::string &decayMode,
-             const std::string &genMatch, const std::string &sf_file,
-             const std::string &jsonESname, const std::string &idAlgorithm,
-             const std::string &DM0, const std::string &DM1,
-             const std::string &DM10, const std::string &DM11,
-             const std::vector<int> &SelectedDMs);
+PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
+                     const std::string &pt, const std::string &decayMode,
+                     const float &sf_dm0, const float &sf_dm1,
+                     const float &sf_dm10, const float &sf_dm11);
+ROOT::RDF::RNode
+PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
+             const std::string &pt, const std::string &eta,
+             const std::string &decayMode, const std::string &genMatch,
+             const std::string &sf_file, const std::string &jsonESname,
+             const std::string &idAlgorithm, const std::string &DM0,
+             const std::string &DM1, const std::string &DM10,
+             const std::string &DM11, const std::vector<int> &SelectedDMs);
 } // namespace muon
 
 namespace electron {
 
-ROOT::RDF::RNode CutID(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
                        const std::string &nameID);
-ROOT::RDF::RNode CutCBID(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
                          const std::string &nameID, const int &IDvalue);
-ROOT::RDF::RNode CutIsolation(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
                               const std::string &isolationName,
                               const float &Threshold);
 } // end namespace electron

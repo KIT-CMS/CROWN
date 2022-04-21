@@ -33,7 +33,7 @@ namespace physicsobject {
 /// dataframe \param[in] ptThreshold minimal pt value
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutPt(auto &df, const std::string &quantity,
+ROOT::RDF::RNode CutPt(ROOT::RDF::RNode df, const std::string &quantity,
                        const std::string &maskname, const float &ptThreshold) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterMin(ptThreshold), {quantity});
@@ -48,7 +48,7 @@ ROOT::RDF::RNode CutPt(auto &df, const std::string &quantity,
 /// dataframe \param[in] EtaThreshold maximal eta value
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutEta(auto &df, const std::string &quantity,
+ROOT::RDF::RNode CutEta(ROOT::RDF::RNode df, const std::string &quantity,
                         const std::string &maskname,
                         const float &EtaThreshold) {
     auto df1 = df.Define(maskname, basefunctions::FilterAbsMax(EtaThreshold),
@@ -64,7 +64,7 @@ ROOT::RDF::RNode CutEta(auto &df, const std::string &quantity,
 /// dataframe \param[in] Threshold maximal Dz value
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutDz(auto &df, const std::string &quantity,
+ROOT::RDF::RNode CutDz(ROOT::RDF::RNode df, const std::string &quantity,
                        const std::string &maskname, const float &Threshold) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterAbsMax(Threshold), {quantity});
@@ -79,7 +79,7 @@ ROOT::RDF::RNode CutDz(auto &df, const std::string &quantity,
 /// dataframe \param[in] Threshold maximal Dxy value
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutDxy(auto &df, const std::string &quantity,
+ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
                         const std::string &maskname, const float &Threshold) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterAbsMax(Threshold), {quantity});
@@ -97,7 +97,7 @@ ROOT::RDF::RNode CutDxy(auto &df, const std::string &quantity,
 ///
 /// \return a dataframe containing the new mask
 template <class... Masks>
-ROOT::RDF::RNode CombineMasks(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CombineMasks(ROOT::RDF::RNode df, const std::string &maskname,
                               const Masks &...masks) {
     auto multiplyMasks = [](const ROOT::RVec<ROOT::RVec<int>> &x) {
         ROOT::RVec<int> result(x[0].size(), 1);
@@ -126,7 +126,8 @@ ROOT::RDF::RNode CombineMasks(auto &df, const std::string &maskname,
 /// tau candidate to be ignored by mask
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode VetoCandInMask(auto &df, const std::string &outputmaskname,
+ROOT::RDF::RNode VetoCandInMask(ROOT::RDF::RNode df,
+                                const std::string &outputmaskname,
                                 const std::string &inputmaskname,
                                 const std::string &ditaupair, const int index) {
     return df.Define(outputmaskname,
@@ -152,7 +153,7 @@ ROOT::RDF::RNode VetoCandInMask(auto &df, const std::string &outputmaskname,
 ///    to be used
 ///
 ///   \return a new df with the events filtered
-ROOT::RDF::RNode FilterMasks(auto &df, const std::string &maskname) {
+ROOT::RDF::RNode FilterMasks(ROOT::RDF::RNode df, const std::string &maskname) {
     auto df1 = df.Filter(
         [](const ROOT::RVec<Int_t> &mask) {
             auto result = Any(mask);
@@ -177,7 +178,8 @@ ROOT::RDF::RNode FilterMasks(auto &df, const std::string &maskname) {
 /// \param vetomap the name of the column containing the vetomap to be used
 ///
 /// \return a new df containing the veto flag column
-ROOT::RDF::RNode LeptonVetoFlag(auto &df, const std::string &outputname,
+ROOT::RDF::RNode LeptonVetoFlag(ROOT::RDF::RNode df,
+                                const std::string &outputname,
                                 const std::string &vetomap) {
     return df.Define(outputname,
                      [](const ROOT::RVec<int> &mask) {
@@ -195,7 +197,7 @@ ROOT::RDF::RNode LeptonVetoFlag(auto &df, const std::string &outputname,
 /// pts
 ///
 /// \return a dataframe containing the modified object masses
-ROOT::RDF::RNode ObjectMassCorrectionWithPt(auto &df,
+ROOT::RDF::RNode ObjectMassCorrectionWithPt(ROOT::RDF::RNode df,
                                             const std::string &corrected_mass,
                                             const std::string &raw_mass,
                                             const std::string &raw_pt,
@@ -232,10 +234,11 @@ ROOT::RDF::RNode ObjectMassCorrectionWithPt(auto &df,
 ///
 /// \return a dataframe containing the new bool column
 ROOT::RDF::RNode CheckForDiLeptonPairs(
-    auto &df, const std::string &output_flag, const std::string &leptons_pt,
-    const std::string &leptons_eta, const std::string &leptons_phi,
-    const std::string &leptons_mass, const std::string &leptons_charge,
-    const std::string &leptons_mask, const float dR_cut) {
+    ROOT::RDF::RNode df, const std::string &output_flag,
+    const std::string &leptons_pt, const std::string &leptons_eta,
+    const std::string &leptons_phi, const std::string &leptons_mass,
+    const std::string &leptons_charge, const std::string &leptons_mask,
+    const float dR_cut) {
     auto pair_finder_lambda = [dR_cut](const ROOT::RVec<float> &pt_values,
                                        const ROOT::RVec<float> &eta_values,
                                        const ROOT::RVec<float> &phi_values,
@@ -275,7 +278,7 @@ namespace muon {
 /// dataframe \param[in] nameID name of the ID column in the NanoAOD
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutID(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
                        const std::string &nameID) {
     auto df1 = df.Define(
         maskname,
@@ -292,7 +295,7 @@ ROOT::RDF::RNode CutID(auto &df, const std::string &maskname,
 /// dataframe \param[in] Threshold maximal isolation threshold
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutIsolation(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
                               const std::string &isolationName,
                               const float &Threshold) {
     auto df1 = df.Define(maskname, basefunctions::FilterMax(Threshold),
@@ -312,7 +315,7 @@ namespace tau {
 /// decay modes, that should pass the cut
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutDecayModes(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutDecayModes(ROOT::RDF::RNode df, const std::string &maskname,
                                const std::string &tau_dms,
                                const std::vector<int> &SelectedDecayModes) {
     auto df1 = df.Define(
@@ -337,7 +340,7 @@ ROOT::RDF::RNode CutDecayModes(auto &df, const std::string &maskname,
 /// idxID bitvalue of the WP the has to be passed
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutTauID(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutTauID(ROOT::RDF::RNode df, const std::string &maskname,
                           const std::string &nameID, const int &idxID) {
     auto df1 = df.Define(maskname, basefunctions::FilterID(idxID), {nameID});
     return df1;
@@ -354,12 +357,11 @@ ROOT::RDF::RNode CutTauID(auto &df, const std::string &maskname,
 /// name of the tau decay mode quantity
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode PtCorrection_byValue(auto &df, const std::string &corrected_pt,
-                                      const std::string &pt,
-                                      const std::string &decayMode,
-                                      const float &sf_dm0, const float &sf_dm1,
-                                      const float &sf_dm10,
-                                      const float &sf_dm11) {
+ROOT::RDF::RNode
+PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
+                     const std::string &pt, const std::string &decayMode,
+                     const float &sf_dm0, const float &sf_dm1,
+                     const float &sf_dm10, const float &sf_dm11) {
     auto tau_pt_correction_lambda =
         [sf_dm0, sf_dm1, sf_dm10, sf_dm11](const ROOT::RVec<float> &pt_values,
                                            const ROOT::RVec<int> &decay_modes) {
@@ -408,13 +410,13 @@ ROOT::RDF::RNode PtCorrection_byValue(auto &df, const std::string &corrected_pt,
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
-PtCorrection(auto &df, const std::string &corrected_pt, const std::string &pt,
-             const std::string &eta, const std::string &decayMode,
-             const std::string &genMatch, const std::string &sf_file,
-             const std::string &jsonESname, const std::string &idAlgorithm,
-             const std::string &DM0, const std::string &DM1,
-             const std::string &DM10, const std::string &DM11,
-             const std::vector<int> &SelectedDMs) {
+PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
+             const std::string &pt, const std::string &eta,
+             const std::string &decayMode, const std::string &genMatch,
+             const std::string &sf_file, const std::string &jsonESname,
+             const std::string &idAlgorithm, const std::string &DM0,
+             const std::string &DM1, const std::string &DM10,
+             const std::string &DM11, const std::vector<int> &SelectedDMs) {
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
     auto tau_pt_correction_lambda =
@@ -473,7 +475,7 @@ namespace electron {
 /// dataframe \param[in] nameID name of the ID column in the NanoAOD
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutID(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
                        const std::string &nameID) {
     auto df1 = df.Define(
         maskname,
@@ -488,7 +490,7 @@ ROOT::RDF::RNode CutID(auto &df, const std::string &maskname,
 /// IDvalue value of the WP the has to be passed
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutCBID(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
                          const std::string &nameID, const int &IDvalue) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterMinInt(IDvalue), {nameID});
@@ -503,7 +505,7 @@ ROOT::RDF::RNode CutCBID(auto &df, const std::string &maskname,
 /// dataframe \param[in] Threshold maximal isolation threshold
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutIsolation(auto &df, const std::string &maskname,
+ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
                               const std::string &isolationName,
                               const float &Threshold) {
     auto df1 = df.Define(maskname, basefunctions::FilterMax(Threshold),

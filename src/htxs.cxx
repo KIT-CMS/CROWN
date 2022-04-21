@@ -26,11 +26,10 @@ namespace htxs {
  * module.
  * @returns a dataframe with the weight column included
  */
-ROOT::RDF::RNode ggHNLLOWeights(auto &df, const std::string &weight_name,
-                                const std::string &rootfilename,
-                                const std::string &generator,
-                                const std::string &htxs_pth,
-                                const std::string &htxs_njets) {
+ROOT::RDF::RNode
+ggHNLLOWeights(ROOT::RDF::RNode df, const std::string &weight_name,
+               const std::string &rootfilename, const std::string &generator,
+               const std::string &htxs_pth, const std::string &htxs_njets) {
     TGraphErrors *WeightsGraphs[4];
     TFile rootFile(rootfilename.c_str(), "READ");
     if (generator == "powheg") {
@@ -80,7 +79,8 @@ ROOT::RDF::RNode ggHNLLOWeights(auto &df, const std::string &weight_name,
  * @returns a dataframe with the weight column included.
  */
 ROOT::RDF::RNode
-ggH_WG1_uncertainties(auto &df, const std::vector<std::string> &weight_names,
+ggH_WG1_uncertainties(ROOT::RDF::RNode df,
+                      const std::vector<std::string> &weight_names,
                       const std::string &htxs_flag, const std::string &htxs_pth,
                       const std::string &htxs_njets) {
     auto df1 = df.Define(
@@ -110,7 +110,8 @@ ggH_WG1_uncertainties(auto &df, const std::vector<std::string> &weight_names,
  * @returns a dataframe with the weight columns included.
  */
 ROOT::RDF::RNode
-qqH_WG1_uncertainties(auto &df, const std::vector<std::string> &weight_names,
+qqH_WG1_uncertainties(ROOT::RDF::RNode df,
+                      const std::vector<std::string> &weight_names,
                       const std::string &htxs_flag, const size_t &idx = 0) {
     if (idx >= weight_names.size()) {
         return df;

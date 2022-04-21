@@ -24,7 +24,7 @@ namespace muon {
  * @param id_arguments arguments of the function
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode id_rooworkspace(auto &df, const std::string &pt,
+ROOT::RDF::RNode id_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
                                  const std::string &eta,
                                  const std::string &id_output,
                                  const std::string &workspace_name,
@@ -54,7 +54,7 @@ ROOT::RDF::RNode id_rooworkspace(auto &df, const std::string &pt,
  * @param iso_arguments arguments of the function
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode iso_rooworkspace(auto &df, const std::string &pt,
+ROOT::RDF::RNode iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
                                   const std::string &eta,
                                   const std::string &iso,
                                   const std::string &iso_output,
@@ -95,9 +95,10 @@ ROOT::RDF::RNode iso_rooworkspace(auto &df, const std::string &pt,
  * @param idAlgorithm name of the muon id scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode id(auto &df, const std::string &pt, const std::string &eta,
-                    const std::string &year_id, const std::string &variation,
-                    const std::string &id_output, const std::string &sf_file,
+ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
+                    const std::string &eta, const std::string &year_id,
+                    const std::string &variation, const std::string &id_output,
+                    const std::string &sf_file,
                     const std::string &idAlgorithm) {
 
     Logger::get("muonIdSF")->debug("Setting up functions for muon id sf");
@@ -143,8 +144,9 @@ ROOT::RDF::RNode id(auto &df, const std::string &pt, const std::string &eta,
  * @param idAlgorithm name of the muon iso scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode iso(auto &df, const std::string &pt, const std::string &eta,
-                     const std::string &year_id, const std::string &variation,
+ROOT::RDF::RNode iso(ROOT::RDF::RNode df, const std::string &pt,
+                     const std::string &eta, const std::string &year_id,
+                     const std::string &variation,
                      const std::string &iso_output, const std::string &sf_file,
                      const std::string &idAlgorithm) {
 
@@ -218,9 +220,10 @@ for nominal
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-id_vsJet_lt(auto &df, const std::string &pt, const std::string &decayMode,
-            const std::string &genMatch, const std::vector<int> &selectedDMs,
-            const std::string &wp, const std::string &sf_vsjet_tau30to35,
+id_vsJet_lt(ROOT::RDF::RNode df, const std::string &pt,
+            const std::string &decayMode, const std::string &genMatch,
+            const std::vector<int> &selectedDMs, const std::string &wp,
+            const std::string &sf_vsjet_tau30to35,
             const std::string &sf_vsjet_tau35to40,
             const std::string &sf_vsjet_tau40to500,
             const std::string &sf_vsjet_tau500to1000,
@@ -329,15 +332,14 @@ nominal
  * @param idAlgorithm name of the tau id scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode
-id_vsJet_tt(auto &df, const std::string &pt, const std::string &decayMode,
-            const std::string &genMatch, const std::vector<int> &selectedDMs,
-            const std::string &wp, const std::string &sf_vsjet_tauDM0,
-            const std::string &sf_vsjet_tauDM1,
-            const std::string &sf_vsjet_tauDM10,
-            const std::string &sf_vsjet_tauDM11,
-            const std::string &sf_dependence, const std::string &id_output,
-            const std::string &sf_file, const std::string &idAlgorithm) {
+ROOT::RDF::RNode id_vsJet_tt(
+    ROOT::RDF::RNode df, const std::string &pt, const std::string &decayMode,
+    const std::string &genMatch, const std::vector<int> &selectedDMs,
+    const std::string &wp, const std::string &sf_vsjet_tauDM0,
+    const std::string &sf_vsjet_tauDM1, const std::string &sf_vsjet_tauDM10,
+    const std::string &sf_vsjet_tauDM11, const std::string &sf_dependence,
+    const std::string &id_output, const std::string &sf_file,
+    const std::string &idAlgorithm) {
 
     Logger::get("TauIDvsJet_tt_SF")
         ->debug("Setting up function for tau id vsJet sf");
@@ -435,11 +437,12 @@ nominal
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-id_vsEle(auto &df, const std::string &eta, const std::string &decayMode,
-         const std::string &genMatch, const std::vector<int> &selectedDMs,
-         const std::string &wp, const std::string &sf_vsele_barrel,
-         const std::string &sf_vsele_endcap, const std::string &id_output,
-         const std::string &sf_file, const std::string &idAlgorithm) {
+id_vsEle(ROOT::RDF::RNode df, const std::string &eta,
+         const std::string &decayMode, const std::string &genMatch,
+         const std::vector<int> &selectedDMs, const std::string &wp,
+         const std::string &sf_vsele_barrel, const std::string &sf_vsele_endcap,
+         const std::string &id_output, const std::string &sf_file,
+         const std::string &idAlgorithm) {
 
     Logger::get("TauIDvsEleSF")
         ->debug("Setting up function for tau id vsEle sf");
@@ -533,13 +536,13 @@ nominal
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-id_vsMu(auto &df, const std::string &eta, const std::string &decayMode,
-        const std::string &genMatch, const std::vector<int> &selectedDMs,
-        const std::string &wp, const std::string &sf_vsmu_wheel1,
-        const std::string &sf_vsmu_wheel2, const std::string &sf_vsmu_wheel3,
-        const std::string &sf_vsmu_wheel4, const std::string &sf_vsmu_wheel5,
-        const std::string &id_output, const std::string &sf_file,
-        const std::string &idAlgorithm) {
+id_vsMu(ROOT::RDF::RNode df, const std::string &eta,
+        const std::string &decayMode, const std::string &genMatch,
+        const std::vector<int> &selectedDMs, const std::string &wp,
+        const std::string &sf_vsmu_wheel1, const std::string &sf_vsmu_wheel2,
+        const std::string &sf_vsmu_wheel3, const std::string &sf_vsmu_wheel4,
+        const std::string &sf_vsmu_wheel5, const std::string &id_output,
+        const std::string &sf_file, const std::string &idAlgorithm) {
 
     Logger::get("TauIDvsMuSF")->debug("Setting up function for tau id vsMu sf");
     Logger::get("TauIDvsMuSF")->debug("ID - Name {}", idAlgorithm);
@@ -616,10 +619,10 @@ namespace electron {
  * @param idAlgorithm name of the electron id scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode id(auto &df, const std::string &pt, const std::string &eta,
-                    const std::string &year_id, const std::string &wp,
-                    const std::string &variation, const std::string &id_output,
-                    const std::string &sf_file,
+ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
+                    const std::string &eta, const std::string &year_id,
+                    const std::string &wp, const std::string &variation,
+                    const std::string &id_output, const std::string &sf_file,
                     const std::string &idAlgorithm) {
 
     Logger::get("electronIDSF")
