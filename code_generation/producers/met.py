@@ -122,7 +122,7 @@ GenBosonMass = Producer(
     scopes=["global"],
 )
 MetBasics = ProducerGroup(
-    name="MetCorrections",
+    name="MetBasics",
     call=None,
     input=None,
     output=None,
@@ -259,7 +259,7 @@ MetCorrections = ProducerGroup(
     ],
 )
 PFMetCorrections = ProducerGroup(
-    name="MetCorrections",
+    name="PFMetCorrections",
     call=None,
     input=None,
     output=None,
