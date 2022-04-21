@@ -89,6 +89,11 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR);
+
+ROOT::RDF::RNode
+ZBosonPairSelection(ROOT::RDF::RNode df,
+                    const std::vector<std::string> &input_vector,
+                    const std::string &pairname, const float &mindeltaR);
 } // end namespace mumu
 } // end namespace pairselection
 #endif /* GUARD_PAIRSELECTION_H */
