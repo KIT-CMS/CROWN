@@ -149,7 +149,8 @@ class CodeGenerator(object):
         main_template_path: str,
         sub_template_path: str,
         configuration: Configuration,
-        name: str,
+        analysisname: str,
+        executable_name: str,
         output_folder: str,
     ):
         self.main_template = self.load_template(main_template_path)
@@ -158,12 +159,17 @@ class CodeGenerator(object):
         self.scopes = self.configuration.scopes
         self.outputs = self.configuration.outputs
         self.global_scope = self.configuration.global_scope
-        self.name = name
+        self.executable_name = executable_name
+        self.analysisname = analysisname
         self.output_folder = output_folder
         self.executable = os.path.join(
-            output_folder, self.name + "_generated_code", self.name + ".cxx"
+            output_folder,
+            self.executable_name + "_generated_code",
+            self.executable_name + ".cxx",
         )
         self.metadata = ""
+        self.debug = False
+        self.threads = 1
         self.subset_includes = []
         self.output_commands = {}
         self.subset_calls = {}
@@ -177,7 +183,7 @@ class CodeGenerator(object):
         """
         Generate the code from the configuration and create the subsets. Run through the whole configuration and create a subset for each producer within the configuration.
 
-        Start with the global scope and then all other scopes. All generated code is stored in the folder self.name.
+        Start with the global scope and then all other scopes. All generated code is stored in the folder self.executable_name.
 
         return None
         """
@@ -185,10 +191,14 @@ class CodeGenerator(object):
         for subfolder in ["src", "include"]:
             for scope in self.scopes:
                 if not os.path.exists(
-                    os.path.join(self.name + "_generated_code", subfolder, scope)
+                    os.path.join(
+                        self.executable_name + "_generated_code", subfolder, scope
+                    )
                 ):
                     os.makedirs(
-                        os.path.join(self.name + "_generated_code", subfolder, scope)
+                        os.path.join(
+                            self.executable_name + "_generated_code", subfolder, scope
+                        )
                     )
         # self.generate_subsets(self.global_scope)
         for scope in self.scopes:
@@ -196,7 +206,6 @@ class CodeGenerator(object):
 
         calls, includes = self.generate_main_code()
         run_commands = self.generate_run_commands()
-        nruns = self.generate_nruns()
 
         self.write_code(calls, includes, "", run_commands)
 
@@ -225,11 +234,23 @@ class CodeGenerator(object):
         Returns:
             None
         """
+        if self.threads > 1:
+            threadcall = "ROOT::EnableImplicitMT({});".format(self.threads)
+        else:
+            threadcall = ""
         with open(self.executable, "w") as f:
             f.write(
                 self.main_template.replace("    // {CODE_GENERATION}", calls)
                 .replace("// {INCLUDES}", includes)
                 .replace("    // {RUN_COMMANDS}", run_commands)
+                .replace("// {MULTITHREADING}", threadcall)
+                .replace("// {DEBUGLEVEL}", self.set_debug_flag())
+                .replace("{ERATAG}", '"Era={}"'.format(self.configuration.era))
+                .replace(
+                    "{SAMPLETAG}", '"Samplegroup={}"'.format(self.configuration.sample)
+                )
+                .replace("{ANALYSISTAG}", '"Analysis={}"'.format(self.analysisname))
+                .replace("{PROGRESS_CALLBACK}", self.set_process_tracking())
             )
 
     def generate_main_code(self) -> Tuple(str):
@@ -249,7 +270,9 @@ class CodeGenerator(object):
         Get the path to the cmake file
         :return: the path to the cmake file
         """
-        return os.path.join(self.name + "_generated_code", self.name + ".cxx")
+        return os.path.join(
+            self.executable_name + "_generated_code", self.executable_name + ".cxx"
+        )
 
     def generate_subsets(self, scope) -> None:
         """
@@ -257,9 +280,13 @@ class CodeGenerator(object):
         :param scope: the scope to generate the subsets for
         :return: None
         """
-        log.info("Generating subsets for {} in scope {}".format(self.name, scope))
         log.info(
-            "Output folder: {}".format(os.path.join(self.output_folder, self.name))
+            "Generating subsets for {} in scope {}".format(self.executable_name, scope)
+        )
+        log.info(
+            "Output folder: {}".format(
+                os.path.join(self.output_folder, self.executable_name)
+            )
         )
         log.info("Producers: {}".format(self.configuration.producers[scope]))
         is_first = True
@@ -270,7 +297,9 @@ class CodeGenerator(object):
                 template=self.subset_template,
                 producer=producer,
                 scope=scope,
-                folder=os.path.join(self.output_folder, self.name + "_generated_code"),
+                folder=os.path.join(
+                    self.output_folder, self.executable_name + "_generated_code"
+                ),
                 parameters=self.configuration.config_parameters[scope],
             )
             subset.create()
@@ -334,21 +363,6 @@ class CodeGenerator(object):
                 runcommands += f"    {scope}_cutReport->Print();\n"
         return runcommands
 
-    def generate_nruns(self) -> str:
-        """
-        Write the nruns command to the main code
-        :return: nruns command
-        """
-        # calls = ""
-        # for scope in self.scopes:
-        #     calls += " + df{counter}_{scope}.GetNRuns()".format(scope=scope, counter=self.main_counter[scope])
-        # nruns = (
-        # "("
-        # + "+".join(["%s_df_final.GetNRuns()" % scope for scope in config["producers"]])
-        # + ")/%f" % len(config["producers"]))
-        # return nruns
-        pass
-
     def generate_metadata(self) -> None:
         """
         Write the metadata to the main code
@@ -356,58 +370,38 @@ class CodeGenerator(object):
         """
         pass
 
+    def set_debug_flag(self) -> str:
+        """
+        Set the debug flag in the template if the debug variable is set to true
 
-def set_tags(template: str, analysisname: str, era: str, sample_group: str) -> str:
-    """
-    Function used to set the tags in the template.
+        Returns:
+            None
+        """
+        if self.debug:
+            return "bool debug = true;"
+        else:
+            return "bool debug = false;"
 
-    Args:
-        template: The template to be modified.
-        analysisname: The name of the analysis.
-        era: The era of the analysis.
-        sample_group: The sample group of the analysis.
+    def set_thead_flag(self, threads: int) -> None:
+        """
+        Set the multithreading flag in the template if the number of threads is greater than 1.
 
-    Returns:
-        The modified template.
-    """
-    return (
-        template.replace("{ANALYSISTAG}", '"Analysis=%s"' % analysisname)
-        .replace("{ERATAG}", '"Era=%s"' % era)
-        .replace("{SAMPLETAG}", '"Samplegroup=%s"' % sample_group)
-    )
+        Args:
+            threads: The number of threads to be used.
 
+        Returns:
+            None
+        """
+        self.threads = threads
 
-def set_thead_flag(template: str, threads: int) -> str:
-    """
-    Set the multithreading flag in the template if the number of threads is greater than 1.
+    def set_process_tracking(self) -> str:
+        """This function replaces the template placeholder for the process tracking with the correct process tracking.
 
-    Args:
-        template: The template to be modified.
-        threads: The number of threads to be used.
-
-    Returns:
-        The modified template.
-    """
-    if threads > 1:
-        return template.replace(
-            "// {MULTITHREADING}", "ROOT::EnableImplicitMT({});".format(threads)
-        )
-    else:
-        return template.replace("// {MULTITHREADING}", "")
-
-
-def set_process_tracking(template: str, scopes: List[str]) -> str:
-    """This function replaces the template placeholder for the process tracking with the correct process tracking.
-
-    Args:
-        template: The template to be modified.
-        scopes: The list of scopes to be used.
-
-    Returns:
-        The modified template.
-    """
-    tracking = ""
-    for scope in scopes:
+        Returns:
+            The code to be added to the template
+        """
+        tracking = ""
+        scope = self.scopes[-1]
         tracking += "    ULong64_t {scope}_processed = 0;\n".format(scope=scope)
         tracking += "    std::mutex {scope}_bar_mutex;\n".format(scope=scope)
         tracking += "    auto c_{scope} = {scope}_df_final.Count();\n".format(
@@ -422,25 +416,8 @@ def set_process_tracking(template: str, scopes: List[str]) -> str:
             )
         )
         tracking += "        {scope}_processed += quantile;\n".format(scope=scope)
-        tracking += '        Logger::get("main - {scope} scope")->info("{{}} Events processed ...", {scope}_processed);\n'.format(
+        tracking += '        Logger::get("main")->info("{{}} Events processed ...", {scope}_processed);\n'.format(
             scope=scope
         )
         tracking += "    });\n"
-    return template.replace("{PROGRESS_CALLBACK}", tracking)
-
-
-def set_debug_flag(template: str, debug: str) -> str:
-    """
-    Set the debug flag in the template if the debug variable is set to true
-
-    Args:
-        template: The template to be modified.
-        debug: The number of threads to be used.
-
-    Returns:
-        The modified template.
-    """
-    if debug == "true":
-        return template.replace("    // {DEBUGLEVEL}", "    bool debug = true;")
-    else:
-        return template.replace("    // {DEBUGLEVEL}", "    bool debug = false;")
+        return tracking
