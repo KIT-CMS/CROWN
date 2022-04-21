@@ -178,6 +178,14 @@ class CodeGenerator(object):
             self.main_counter[scope] = 0
             self.subset_calls[scope] = []
             self.output_commands[scope] = []
+        # get git status of the repo
+        try:
+            repo = Repo("../../CROWN")
+            self.commit_hash = repo.head.commit
+            self.setup_is_clean = "false" if repo.is_dirty() else "true"
+        except (ValueError, InvalidGitRepositoryError):
+            self.commit_hash = "undefined"
+            self.setup_is_clean = "false"
 
     def generate_code(self) -> None:
         """
@@ -251,6 +259,10 @@ class CodeGenerator(object):
                 )
                 .replace("{ANALYSISTAG}", '"Analysis={}"'.format(self.analysisname))
                 .replace("{PROGRESS_CALLBACK}", self.set_process_tracking())
+                .replace("{OUTPUT_QUANTITIES}", self.set_output_quantities())
+                .replace("{SYSTEMATIC_VARIATIONS}", self.set_shifts())
+                .replace("{COMMITHASH}", '"{}"'.format(self.commit_hash))
+                .replace("{SETUP_IS_CLEAN}", self.setup_is_clean)
             )
 
     def generate_main_code(self) -> Tuple(str):
@@ -309,7 +321,7 @@ class CodeGenerator(object):
             # 2. first call of all other scopes: we have to use the last global df as the input df
             if scope == self.global_scope and is_first:
                 self.subset_calls[scope].append(
-                    subset.call(inputscope=f"df0", outputscope=f"df{counter+1}_{scope}")
+                    subset.call(inputscope="df0", outputscope=f"df{counter+1}_{scope}")
                 )
             elif is_first:
                 self.subset_calls[scope].append(
@@ -368,7 +380,7 @@ class CodeGenerator(object):
         Write the metadata to the main code
         :return: None
         """
-        pass
+        systematic_shifts = self.configuration.shifts
 
     def set_debug_flag(self) -> str:
         """
@@ -381,6 +393,37 @@ class CodeGenerator(object):
             return "bool debug = true;"
         else:
             return "bool debug = false;"
+
+    def set_shifts(self) -> str:
+        """
+        Set the shifts in the template if the debug variable is set to true
+
+        Returns:
+            None
+        """
+        shifts = ""
+        for scope in self.configuration.shifts:
+            outputname = "outputpath_{scope}".format(scope=scope)
+            shifts += '{{ {outputname}, {{"'.format(outputname=outputname)
+            shifts += '", "'.join([s for s in self.configuration.shifts[scope]])
+            shifts += '"} }'
+        return shifts
+
+    def set_output_quantities(self) -> str:
+        """
+        Set the output quantities in the template if the debug variable is set to true
+
+        Returns:
+            None
+        """
+        output_quantities = ""
+        for scope in self.configuration.outputs:
+            output_quantities += '{{ {scope}, {{"'.format(scope=scope)
+            output_quantities += '", "'.join(
+                [q.name for q in self.configuration.outputs[scope]]
+            )
+            output_quantities += '"} }'
+        return output_quantities
 
     def set_thead_flag(self, threads: int) -> None:
         """
