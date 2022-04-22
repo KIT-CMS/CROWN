@@ -43,11 +43,35 @@ TauPtCorrection_byValue = Producer(
     output=[q.Tau_pt_corrected],
     scopes=["global"],
 )
+TauPtCorrection_eleFake = Producer(
+    name="TauPtCorrection_eleFake",
+    call='physicsobject::tau::PtCorrection_eleFake({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_json_name}", "{tau_id_algorithm}", "{tau_elefake_es_DM0_barrel}", "{tau_elefake_es_DM1_barrel}", "{tau_elefake_es_DM0_endcap}", "{tau_elefake_es_DM1_endcap}")',
+    input=[
+        nanoAOD.Tau_pt,
+        nanoAOD.Tau_eta,
+        nanoAOD.Tau_decayMode,
+        nanoAOD.Tau_genMatch,
+    ],
+    output=[q.Tau_pt_ele_corrected],
+    scopes=["global", "et"],
+)
+TauPtCorrection_muFake = Producer(
+    name="TauPtCorrection_muFake",
+    call='physicsobject::tau::PtCorrection_muFake({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_json_name}", "{tau_id_algorithm}", "{tau_mufake_es_DM0}", "{tau_mufake_es_DM1}")',
+    input=[
+        q.Tau_pt_ele_corrected,
+        nanoAOD.Tau_eta,
+        nanoAOD.Tau_decayMode,
+        nanoAOD.Tau_genMatch,
+    ],
+    output=[q.Tau_pt_mu_corrected],
+    scopes=["global", "mt"],
+)
 TauPtCorrection = Producer(
     name="TauPtCorrection",
     call='physicsobject::tau::PtCorrection({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_json_name}", "{tau_id_algorithm}", "{tau_ES_shift_DM0}", "{tau_ES_shift_DM1}", "{tau_ES_shift_DM10}", "{tau_ES_shift_DM11}", {vec_open}{tau_dms}{vec_close})',
     input=[
-        nanoAOD.Tau_pt,
+        q.Tau_pt_mu_corrected,
         nanoAOD.Tau_eta,
         nanoAOD.Tau_decayMode,
         nanoAOD.Tau_genMatch,
@@ -72,7 +96,7 @@ TauEnergyCorrection_byValue = ProducerGroup(
     input=None,
     output=None,
     scopes=["global"],
-    subproducers=[TauPtCorrection_byValue, TauMassCorrection],
+    subproducers=[TauPtCorrection_eleFake, TauPtCorrection_byValue, TauMassCorrection],
 )
 TauEnergyCorrection = ProducerGroup(
     name="TauEnergyCorrection",
@@ -80,7 +104,12 @@ TauEnergyCorrection = ProducerGroup(
     input=None,
     output=None,
     scopes=["global"],
-    subproducers=[TauPtCorrection, TauMassCorrection],
+    subproducers=[
+        TauPtCorrection_eleFake,
+        TauPtCorrection_muFake,
+        TauPtCorrection,
+        TauMassCorrection,
+    ],
 )
 TauPtCut = Producer(
     name="TauPtCut",
