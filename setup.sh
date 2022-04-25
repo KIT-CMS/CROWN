@@ -1,69 +1,113 @@
 ############################################################################################
 # This script setups all dependencies necessary for making law executable                  #
 ############################################################################################
+
 action() {
-    miniconda="Miniconda3-py39_4.10.3-Linux-x86_64"
-    conda_env_name="KingMaker"
-    fullhostname=$(hostname -f)
-    # determine the directy of this file
-    if [ ! -z "$ZSH_VERSION" ]; then
-        local this_file="${(%):-%x}"
+
+    ANA_NAME_GIVEN=$1
+
+    #list of available analyses
+    ANA_LIST=("KingMaker" "ML_LAW")
+    #Determine analysis to be used. Default is first in list.
+    if [[ -z "${ANA_NAME_GIVEN}" ]]; then
+        echo "No analysis chosen. Using default analysis ${ANA_LIST[0]}."
+        export ANA_NAME=${ANA_LIST[0]}
     else
-        local this_file="${BASH_SOURCE[0]}"
+        #Check if given analysis is in list 
+        if [[ ! " ${ANA_LIST[*]} " =~ " ${ANA_NAME_GIVEN} " ]]; then 
+            echo "Not a valid name. Allowed choices are:"
+            printf '%s\n' "${ANA_LIST[@]}"
+            return 1
+        else
+            echo "Using ${ANA_NAME_GIVEN} analysis." 
+            export ANA_NAME="${ANA_NAME_GIVEN}"
+        fi
+    fi
+    
+    #Determine which environment to use based on the luigi.cfg file
+    export ENV_NAME=$(grep "ENV_NAME" lawluigi_configs/${ANA_NAME}_luigi.cfg | sed 's@ENV_NAME\s*=\s*\([^\s]*\)\s*@\1@g')
+    echo "Using ${ENV_NAME} environment."
+
+    # Miniconda version used for all environments
+    MINICONDA_VERSION="Miniconda3-py39_4.10.3-Linux-x86_64"
+    # determine the directory of this file
+    if [ ! -z "${ZSH_VERSION}" ]; then
+        local THIS_FILE="${(%):-%x}"
+    else
+        local THIS_FILE="${BASH_SOURCE[0]}"
     fi
 
-    local base="$( cd "$( dirname "$this_file" )" && pwd )"
-    local parent="$( dirname "$base" )"
+    local BASE_DIR="$( cd "$( dirname "${THIS_FILE}" )" && pwd )"
 
     _addpy() {
-        [ ! -z "$1" ] && export PYTHONPATH="$1:$PYTHONPATH"
+        [ ! -z "$1" ] && export PYTHONPATH="$1:${PYTHONPATH}"
     }
 
     _addbin() {
-        [ ! -z "$1" ] && export PATH="$1:$PATH"
+        [ ! -z "$1" ] && export PATH="$1:${PATH}"
     }
 
-    #check if conda is installed
-    if ! command -v conda &> /dev/null
-    then
-        if [ ! -f "miniconda/bin/activate" ]; then
-            echo "conda could not be found, installing conda ..."
-            echo "More information can be found in"
-            echo "https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html"
-            curl -O https://repo.anaconda.com/miniconda/$miniconda.sh
-            bash $miniconda.sh -b -p miniconda
-            rm -f $miniconda.sh
+    #Check if necessary environment is present in cvmfs
+    if [[ ! -f "/cvmfs/etp.kit.edu/LAW_envs/${ENV_NAME}/bin/activate" ]]; then
+        #If not present
+        #install conda in necessary
+        echo "${ENV_NAME} environment not found in cvmfs. Using conda."
+        if ! command -v conda &> /dev/null
+        then
+            if [ ! -f "miniconda/bin/activate" ]; then
+                echo "conda could not be found, installing conda ..."
+                echo "More information can be found in"
+                echo "https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html"
+                curl -O https://repo.anaconda.com/miniconda/${MINICONDA_VERSION}.sh
+                bash ${MINICONDA_VERSION}.sh -b -p miniconda
+                rm -f ${MINICONDA_VERSION}.sh
+            fi
+            source miniconda/bin/activate base
         fi
-        source miniconda/bin/activate
-    fi
-
-    # check if Conda env is running
-    echo "Setting up conda.."
-    #
-    if [ "$CONDA_DEFAULT_ENV" != "$conda_env_name" ]; then
-        if [ -d "miniconda/envs/$conda_env_name" ]; then
-            echo  "$conda_env_name env found, activating..."
-            conda activate $conda_env_name
-        else
-            echo "Creating $conda_env_name env from environment.yml..."
-            conda env create -f environment.yml
-            echo  "KingMaker env found, activating..."
-            conda activate $conda_env_name
+        # check if correct Conda env is running
+        echo "Setting up conda.."
+        if [ "${CONDA_DEFAULT_ENV}" != "${ENV_NAME}" ]; then
+            if [ -d "miniconda/envs/${ENV_NAME}" ]; then
+                echo  "${ENV_NAME} env found, activating..."
+                conda activate ${ENV_NAME}
+            else
+                echo "Creating ${ENV_NAME} env from conda_environments/${ENV_NAME}_env.yml..."
+                if [[ ! -f "conda_environments/${ENV_NAME}_env.yml" ]]; then
+                    echo "conda_environments/${ENV_NAME}_env.yml not found. Unable to create environment."
+                    return 1
+                fi
+                conda env create -f conda_environments/${ENV_NAME}_env.yml -n ${ENV_NAME}
+                echo  "${ENV_NAME} env built, activating..."
+                conda activate ${ENV_NAME}
+            fi
         fi
-    fi
-    # since we need a conda tarball for the remote jobs, create it if it doesn't exist
-    if [[ $fullhostname != *"etp"* ]]; then
-        if [ ! -f "tarballs/conda.tar.gz" ]; then
-            echo "Creating conda.tar.gz"
+        # create conda tarball if env not in cvmfs and it if it doesn't exist already
+        if [ ! -f "tarballs/${ENV_NAME}_env.tar.gz" ]; then
+            echo "Creating ${ENV_NAME}_env.tar.gz"
             mkdir -p "tarballs"
-            conda pack -n $conda_env_name --output tarballs/conda.tar.gz
+            conda pack -n ${ENV_NAME} --output tarballs/${ENV_NAME}_env.tar.gz
         fi
+        export CVMFS_ENV_PRESENT="False"
+    else
+        #If present 
+        source /cvmfs/etp.kit.edu/LAW_envs/${ENV_NAME}/bin/activate
+        export CVMFS_ENV_PRESENT="True"
     fi
+    #CVMFS_ENV_PRESENT can be used by the processor/framework.py to determine whether the environment is present in cvmfs
 
-    echo "Setup CROWN ..."
-    if [ ! -d CROWN ]; then
-        git clone git@github.com:KIT-CMS/CROWN
-    fi
+    #Set up other dependencies based on analysis
+    ############################################
+    case ${ANA_NAME} in
+        KingMaker)
+            echo "Setup CROWN ..."
+            if [ ! -d CROWN ]; then
+                git clone git@github.com:KIT-CMS/CROWN
+            fi
+            ;;
+        *)
+            ;;
+    esac
+    ############################################
 
     # Check is law was cloned, and set it up if not
     if [ -z "$(ls -A law)" ]; then
@@ -71,22 +115,43 @@ action() {
     fi
 
     echo "Setting up Luigi/Law ..."
-    export LAW_HOME="$base/.law"
-    export LAW_CONFIG_FILE="$base/law.cfg"
-    export LUIGI_CONFIG_PATH="$base/luigi.cfg"
-    export ANALYSIS_PATH="$base"
-    export ANALYSIS_DATA_PATH="$ANALYSIS_PATH/data"
+    export LAW_HOME="${BASE_DIR}/.law"
+    export LAW_CONFIG_FILE="${BASE_DIR}/lawluigi_configs/${ANA_NAME}_law.cfg"
+    export LUIGI_CONFIG_PATH="${BASE_DIR}/lawluigi_configs/${ANA_NAME}_luigi.cfg"
+    export ANALYSIS_PATH="${BASE_DIR}"
+    export ANALYSIS_DATA_PATH="${ANALYSIS_PATH}/data"
 
     # law
-    _addpy "$base/law"
-    _addbin "$base/law/bin"
+    _addpy "${BASE_DIR}/law"
+    _addbin "${BASE_DIR}/law/bin"
     source "$( law completion )"
 
     # tasks
-    _addpy "$base/processor"
-    _addpy "$base/processor/tasks"
+    _addpy "${BASE_DIR}/processor"
+    _addpy "${BASE_DIR}/processor/tasks"
 
-    # add voms proxy
+    #check for necessary resources
+    # voms
+    voms-proxy-info > /dev/null 2>&1
+    if [[ "$?" > "0" ]]; then
+        echo "voms proxy not available. Is this running on a portal mashine?" 
+        return 1
+    fi
+    # HTCondor
+    condor_q > /dev/null 2>&1
+    if [[ "$?" > "0" ]]; then
+        echo "HTCondor not available. Is this running on a portal mashine?" 
+        return 1
+    fi
+    # gfal
+    gfal-ls srm://cmssrm-kit.gridka.de:8443/srm/managerv2?SFN=/pnfs/gridka.de/cms/disk-only/store/user/ > /dev/null 2>&1
+    if [[ "$?" > "0" ]]; then
+        echo "file server not reachable by gfal. Is this running on a portal mashine?" 
+        return 1
+    fi
+
+
+    # add voms proxy path
     export X509_USER_PROXY=$(voms-proxy-info -path)
 
     # start a luidigd scheduler if there is one already running
