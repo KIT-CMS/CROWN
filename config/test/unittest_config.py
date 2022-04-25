@@ -405,8 +405,6 @@ def build_config(
             # event.npartons, # not available in nanoAOD test sample
             event.MetFilter,
             event.PUweights,
-            taus.TauEnergyCorrection,
-            taus.BaseTaus,
             muons.BaseMuons,
             electrons.BaseElectrons,
             jets.JetEnergyCorrection,
@@ -455,6 +453,7 @@ def build_config(
             muons.NumberOfGoodMuons,
             muons.VetoMuons,
             muons.ExtraMuonsVeto,
+            taus.TauEnergyCorrection,
             taus.GoodTaus,
             taus.NumberOfGoodTaus,
             electrons.ExtraElectronsVeto,
@@ -476,6 +475,7 @@ def build_config(
         "et",
         [
             electrons.GoodElectrons,
+            taus.TauEnergyCorrection,
             taus.GoodTaus,
             taus.NumberOfGoodTaus,
             electrons.NumberOfGoodElectrons,
@@ -498,6 +498,7 @@ def build_config(
     configuration.add_producers(
         "tt",
         [
+            taus.TauEnergyCorrection,
             taus.GoodTaus,
             taus.NumberOfGoodTaus,
             pairselection.TTPairSelection,
