@@ -9,7 +9,7 @@ action() {
     CURRENT_HOST=$(hostname --long)
     if [[ ! " ${PORTAL_LIST[*]} " =~ " ${CURRENT_HOST} " ]]; then  
         echo "Current host (${CURRENT_HOST}) not in list of allowed machines:"
-        printf '%s\n' "${ANA_LIST[@]}"
+        printf '%s\n' "${PORTAL_LIST[@]}"
         return 1
     else
         echo "Running on ${CURRENT_HOST}."
