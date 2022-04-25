@@ -71,15 +71,7 @@ def build_config(
     )
     # Tau base selection:
     configuration.add_config_parameters(
-        "global",
-        {
-            "min_tau_pt": 30.0,
-            "max_tau_eta": 2.3,
-            "max_tau_dz": 0.2,
-        },
-    )
-    configuration.add_config_parameters(
-        ["global", "et", "mt", "tt"],
+        ["et", "mt", "tt"],
         {
             "tau_dms": "0,1,10,11",
             "tau_sf_file": EraModifier(
@@ -95,6 +87,11 @@ def build_config(
             "tau_ES_shift_DM1": "nom",
             "tau_ES_shift_DM10": "nom",
             "tau_ES_shift_DM11": "nom",
+            "tau_elefake_es_DM0_barrel": "nom",
+            "tau_elefake_es_DM0_endcap": "nom",
+            "tau_elefake_es_DM1_barrel": "nom",
+            "tau_elefake_es_DM1_endcap": "nom",
+            "tau_mufake_es": "nom",
         },
     )
     # muon base selection:
@@ -805,6 +802,21 @@ def build_config(
         )
     )
     #########################
+    # Lepton to tau fakes energy scalefactor shifts  #
+    #########################
+    if "dy" in sample:
+        configuration.add_shift(
+            SystematicShift(
+                name="tauMuFakeEsDown",
+                shift_config={
+                    "mt": {
+                        "tau_mufake_es": "down",
+                    }
+                },
+                producers={"mt": [taus.TauPtCorrection_muFake]},
+            )
+        )
+    #########################
     # TauvsEleID scale factor shifts
     #########################
     configuration.add_shift(
@@ -831,7 +843,7 @@ def build_config(
         SystematicShift(
             name="tauES_1prong0pizeroDown",
             shift_config={"global": {"tau_ES_shift_DM0": "down"}},
-            producers={"global": taus.TauPtCorrection},
+            producers={"global": taus.TauPtCorrection_genTau},
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "em": [

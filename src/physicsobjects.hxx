@@ -92,7 +92,7 @@ auto CutDxy(auto &df, const std::string &quantity, const std::string &maskname,
 /// \return a dataframe containing the new mask
 template <class... Masks>
 auto CombineMasks(auto &df, const std::string &maskname,
-                  const Masks &...masks) {
+                  const Masks &... masks) {
     auto multiplyMasks = [](const ROOT::RVec<ROOT::RVec<int>> &x) {
         ROOT::RVec<int> result(x[0].size(), 1);
         for (auto &xx : x) {
@@ -333,11 +333,23 @@ auto CutTauID(auto &df, const std::string &maskname, const std::string &nameID,
     auto df1 = df.Define(maskname, basefunctions::FilterID(idxID), {nameID});
     return df1;
 }
-/// Function to correct e to tau fake pt 
+/// Function to correct e to tau fake pt
 ///
-/// \param[in] df the input dataframe
 /// \param[out] corrected_pt name of the corrected tau pt to be calculated
-/// \param[in] pt name of the raw tau pt \param[in] decayMode
+/// \param[in] pt name of the raw tau pt
+/// \param[in] eta name of raw tau eta
+/// \param[in] decayMode decay mode of the tau
+/// \param[in] genMatch column with genmatch values (from prompt e, prompt mu,
+/// tau->e, tau->mu, had. tau) \param[in] sf_file:
+///     2018:
+///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2018_UL.html
+///     2017:
+///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2017_UL.html
+///     2016:
+///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016preVFP_UL.html
+///           https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016postVFP_UL.html
+/// \param[in] jsonESname name of the tau energy correction in the json file
+/// \param[in] idAlgorithm name of the used tau id algorithm
 /// \param[in] sf_dm0 scale factor to be applied to taus with decay mode 0
 /// \param[in] sf_dm1 scale factor to be applied to other 1 prong taus
 /// \param[in] sf_dm10 scale factor to be applied to taus with decay mode 10
@@ -345,105 +357,123 @@ auto CutTauID(auto &df, const std::string &maskname, const std::string &nameID,
 /// name of the tau decay mode quantity
 ///
 /// \return a dataframe containing the new mask
-auto PtCorrection_eleFake(auto &df, const std::string &corrected_pt,
-                          const std::string &pt, const std::string &eta, const std::string &decayMode, const std::string &genMatch, const std::string &sf_file, const std::string &jsonESname, const std::string &idAlgorithm,
-                          const std::string &sf_dm0_b, const std::string &sf_dm1_b, const std::string &sf_dm0_e, const std::string &sf_dm1_e) {
+auto PtCorrection_eleFake(
+    auto &df, const std::string &corrected_pt, const std::string &pt,
+    const std::string &eta, const std::string &decayMode,
+    const std::string &genMatch, const std::string &sf_file,
+    const std::string &jsonESname, const std::string &idAlgorithm,
+    const std::string &sf_dm0_b, const std::string &sf_dm1_b,
+    const std::string &sf_dm0_e, const std::string &sf_dm1_e) {
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
-    auto tau_pt_correction_lambda =
-        [evaluator, idAlgorithm, sf_dm0_b, sf_dm1_b, sf_dm0_e, sf_dm1_e](const ROOT::RVec<float> &pt_values,
-                      const ROOT::RVec<float> &eta_values,
-                      const ROOT::RVec<int> &decay_modes,
-                      const ROOT::RVec<UChar_t> &genmatch) {
-            ROOT::RVec<float> corrected_pt_values(pt_values.size());
-            for (int i = 0; i < pt_values.size(); i++) {
-                if (genmatch.at(i) == 1 || genmatch.at(i) == 3) {
-                    // only considering wanted tau decay modes
-                    if (decay_modes.at(i) == 0 && std::abs(eta_values.at(i)) <= 1.5) {
-                        auto sf = evaluator->evaluate(
-                            {pt_values.at(i), std::abs(eta_values.at(i)),
+    auto tau_pt_correction_lambda = [evaluator, idAlgorithm, sf_dm0_b, sf_dm1_b,
+                                     sf_dm0_e, sf_dm1_e](
+                                        const ROOT::RVec<float> &pt_values,
+                                        const ROOT::RVec<float> &eta_values,
+                                        const ROOT::RVec<int> &decay_modes,
+                                        const ROOT::RVec<UChar_t> &genmatch) {
+        ROOT::RVec<float> corrected_pt_values(pt_values.size());
+        for (int i = 0; i < pt_values.size(); i++) {
+            if (genmatch.at(i) == 1 || genmatch.at(i) == 3) {
+                // only considering wanted tau decay modes
+                if (decay_modes.at(i) == 0 &&
+                    std::abs(eta_values.at(i)) <= 1.5) {
+                    auto sf = evaluator->evaluate(
+                        {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
                          idAlgorithm, sf_dm0_b});
-                        corrected_pt_values[i] = pt_values.at(i) * sf;
-                    } else if (decay_modes.at(i) == 0 && std::abs(eta_values.at(i)) > 1.5 && std::abs(eta_values.at(i)) <= 2.5) {
-                        auto sf = evaluator->evaluate(
-                            {pt_values.at(i), std::abs(eta_values.at(i)),
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                } else if (decay_modes.at(i) == 0 &&
+                           std::abs(eta_values.at(i)) > 1.5 &&
+                           std::abs(eta_values.at(i)) <= 2.5) {
+                    auto sf = evaluator->evaluate(
+                        {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
                          idAlgorithm, sf_dm0_e});
-                        corrected_pt_values[i] = pt_values.at(i) * sf;
-                    } else if (decay_modes.at(i) == 1 && std::abs(eta_values.at(i)) <= 1.5) {
-                        auto sf = evaluator->evaluate(
-                            {pt_values.at(i), std::abs(eta_values.at(i)),
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                } else if (decay_modes.at(i) == 1 &&
+                           std::abs(eta_values.at(i)) <= 1.5) {
+                    auto sf = evaluator->evaluate(
+                        {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
                          idAlgorithm, sf_dm1_b});
-                        corrected_pt_values[i] = pt_values.at(i) * sf;
-                    } else if (decay_modes.at(i) == 1 && std::abs(eta_values.at(i)) > 1.5 && std::abs(eta_values.at(i)) <= 2.5) {
-                        auto sf = evaluator->evaluate(
-                            {pt_values.at(i), std::abs(eta_values.at(i)),
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                } else if (decay_modes.at(i) == 1 &&
+                           std::abs(eta_values.at(i)) > 1.5 &&
+                           std::abs(eta_values.at(i)) <= 2.5) {
+                    auto sf = evaluator->evaluate(
+                        {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
                          idAlgorithm, sf_dm1_e});
-                        corrected_pt_values[i] = pt_values.at(i) * sf;
-                    } 
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
                 }
-                else {
-                        corrected_pt_values[i] = pt_values.at(i);
-                }
-                if (genmatch.at(i) == 1 || genmatch.at(i) == 3) {
-                Logger::get("ptcorrection ele fake")
-                    ->warn("tau pt before {}, tau pt after {}, genmatch {}, eta {}, decaymode {}, sf_dm0_b {}, sf_dm1_b {}, sf_dm0_e {}, sf_dm1_e {}",
-                            pt_values.at(i), corrected_pt_values.at(i), genmatch.at(i), eta_values.at(i), decay_modes.at(i),  sf_dm0_b, sf_dm1_b, sf_dm0_e, sf_dm1_e);
-                }
+            } else {
+                corrected_pt_values[i] = pt_values.at(i);
             }
-            return corrected_pt_values;
-        };
+            if (genmatch.at(i) == 1 || genmatch.at(i) == 3) {
+                Logger::get("ptcorrection ele fake")
+                    ->debug("tau pt before {}, tau pt after {}",
+                            pt_values.at(i), corrected_pt_values.at(i));
+            }
+        }
+        return corrected_pt_values;
+    };
     auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda,
                          {pt, eta, decayMode, genMatch});
     return df1;
 }
-/// Function to correct e to tau fake pt 
+/// Function to correct mu to tau fake pt
 ///
-/// \param[in] df the input dataframe
 /// \param[out] corrected_pt name of the corrected tau pt to be calculated
-/// \param[in] pt name of the raw tau pt \param[in] decayMode
-/// \param[in] sf_dm0 scale factor to be applied to taus with decay mode 0
-/// \param[in] sf_dm1 scale factor to be applied to other 1 prong taus
-/// \param[in] sf_dm10 scale factor to be applied to taus with decay mode 10
-/// \param[in] sf_dm11 scale factor to be applied to other 3 prong taus
+/// \param[in] pt name of the raw tau pt
+/// \param[in] eta name of raw tau eta
+/// \param[in] decayMode decay mode of the tau
+/// \param[in] genMatch column with genmatch values (from prompt e, prompt mu,
+/// tau->e, tau->mu, had. tau) \param[in] sf_file:
+///     2018:
+///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2018_UL.html
+///     2017:
+///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2017_UL.html
+///     2016:
+///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016preVFP_UL.html
+///           https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016postVFP_UL.html
+/// \param[in] jsonESname name of the tau energy correction in the json file
+/// \param[in] idAlgorithm name of the used tau id algorithm
+/// \param[in] sf_es scale factor to be applied to taus faked by muons
 /// name of the tau decay mode quantity
 ///
 /// \return a dataframe containing the new mask
-auto PtCorrection_muFake(auto &df, const std::string &corrected_pt, 
-                          const std::string &pt, const std::string &eta, const std::string &decayMode, const std::string &genMatch, const std::string &sf_file, const std::string &jsonESname, const std::string &idAlgorithm,
-                          const std::string &sf_dm0, const std::string &sf_dm1) {
+auto PtCorrection_muFake(auto &df, const std::string &corrected_pt,
+                         const std::string &pt, const std::string &eta,
+                         const std::string &decayMode,
+                         const std::string &genMatch,
+                         const std::string &sf_file,
+                         const std::string &jsonESname,
+                         const std::string &idAlgorithm,
+                         const std::string &sf_es) {
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
     auto tau_pt_correction_lambda =
-        [evaluator, idAlgorithm, sf_dm0, sf_dm1](const ROOT::RVec<float> &pt_values, const ROOT::RVec<float> &eta_values,
-                      const ROOT::RVec<int> &decay_modes,
-                      const ROOT::RVec<UChar_t> &genmatch) {
+        [evaluator, idAlgorithm, sf_es](const ROOT::RVec<float> &pt_values,
+                                        const ROOT::RVec<float> &eta_values,
+                                        const ROOT::RVec<int> &decay_modes,
+                                        const ROOT::RVec<UChar_t> &genmatch) {
             ROOT::RVec<float> corrected_pt_values(pt_values.size());
             for (int i = 0; i < pt_values.size(); i++) {
                 if (genmatch.at(i) == 2 || genmatch.at(i) == 4) {
                     // only considering wanted tau decay modes
-                    if (decay_modes.at(i) == 0) {
-                        auto sf = evaluator->evaluate(
-                            {pt_values.at(i), std::abs(eta_values.at(i)),
-                            decay_modes.at(i), static_cast<int>(genmatch.at(i)), idAlgorithm, sf_dm0});
-                        corrected_pt_values[i] = pt_values.at(i) * sf;
-                    } else if (decay_modes.at(i) == 1) {
-                        auto sf = evaluator->evaluate(
-                            {pt_values.at(i), std::abs(eta_values.at(i)),
-                            decay_modes.at(i), static_cast<int>(genmatch.at(i)), idAlgorithm, sf_dm1});
-                        corrected_pt_values[i] = pt_values.at(i) * sf;
-                    }                     
+                    auto sf = evaluator->evaluate(
+                        {pt_values.at(i), std::abs(eta_values.at(i)),
+                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
+                         idAlgorithm, sf_es});
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                } else {
+                    corrected_pt_values[i] = pt_values.at(i);
                 }
-                else {
-                        corrected_pt_values[i] = pt_values.at(i);
-                } 
                 if (genmatch.at(i) == 2 || genmatch.at(i) == 4) {
-                Logger::get("mu fake")
-                    ->warn("tau pt before {}, tau pt after {}, genmatch {}, sf_dm0 {}, sf_dm0 {}",
-                            pt_values.at(i), corrected_pt_values.at(i), genmatch.at(i), sf_dm0, sf_dm1);
+                    Logger::get("mu fake")->debug(
+                        "tau pt before {}, tau pt after {}", pt_values.at(i),
+                        corrected_pt_values.at(i));
                 }
             }
             return corrected_pt_values;
@@ -515,7 +545,7 @@ auto PtCorrection_byValue(auto &df, const std::string &corrected_pt,
 /// DM values: "nom","up","down"
 ///
 /// \return a dataframe containing the new mask
-auto PtCorrection(auto &df, const std::string &corrected_pt,
+auto PtCorrection_genTau(auto &df, const std::string &corrected_pt,
                   const std::string &pt, const std::string &eta,
                   const std::string &decayMode, const std::string &genMatch,
                   const std::string &sf_file, const std::string &jsonESname,
@@ -525,18 +555,16 @@ auto PtCorrection(auto &df, const std::string &corrected_pt,
                   const std::vector<int> &SelectedDMs) {
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
-    auto tau_pt_correction_lambda =
-        [evaluator, idAlgorithm, DM0, DM1, DM10, DM11,
-         SelectedDMs](const ROOT::RVec<float> &pt_values,
-                      const ROOT::RVec<float> &eta_values,
-                      const ROOT::RVec<int> &decay_modes,
-                      const ROOT::RVec<UChar_t> &genmatch) {
-            ROOT::RVec<float> corrected_pt_values(pt_values.size());
-            for (int i = 0; i < pt_values.size(); i++) {
+    auto tau_pt_correction_lambda = [evaluator, idAlgorithm, DM0, DM1, DM10,
+                                     DM11, SelectedDMs](
+                                        const ROOT::RVec<float> &pt_values,
+                                        const ROOT::RVec<float> &eta_values,
+                                        const ROOT::RVec<int> &decay_modes,
+                                        const ROOT::RVec<UChar_t> &genmatch) {
+        ROOT::RVec<float> corrected_pt_values(pt_values.size());
+        for (int i = 0; i < pt_values.size(); i++) {
+            if (genmatch.at(i) == 5) {
                 // only considering wanted tau decay modes
-                Logger::get("PtCorrection")
-                    ->warn("tau pt before {}, decaymode {}",
-                            pt_values.at(i), decay_modes.at(i));
                 if (decay_modes.at(i) == 0) {
                     auto sf = evaluator->evaluate(
                         {pt_values.at(i), std::abs(eta_values.at(i)),
@@ -561,15 +589,17 @@ auto PtCorrection(auto &df, const std::string &corrected_pt,
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
                          idAlgorithm, DM11});
                     corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else {
-                    corrected_pt_values[i] = pt_values.at(i);
                 }
-                Logger::get("tauEnergyCorrection")
-                    ->debug("tau pt before {}, tau pt after {}, decaymode {}",
-                            pt_values.at(i), corrected_pt_values.at(i), decay_modes.at(i));
+            } else {
+                corrected_pt_values[i] = pt_values.at(i);
             }
-            return corrected_pt_values;
-        };
+            Logger::get("tauEnergyCorrection")
+                ->debug("tau pt before {}, tau pt after {}, decaymode {}",
+                        pt_values.at(i), corrected_pt_values.at(i),
+                        decay_modes.at(i));
+        }
+        return corrected_pt_values;
+    };
     auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda,
                          {pt, eta, decayMode, genMatch});
     return df1;
