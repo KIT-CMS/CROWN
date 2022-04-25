@@ -4,6 +4,17 @@
 
 action() {
 
+    # Check if current machine is an etp portal machine.
+    PORTAL_LIST=("bms1.etp.kit.edu" "bms2.etp.kit.edu" "bms3.etp.kit.edu" "portal1.etp.kit.edu")
+    CURRENT_HOST=$(hostname --long)
+    if [[ ! " ${PORTAL_LIST[*]} " =~ " ${CURRENT_HOST} " ]]; then  
+        echo "Current host (${CURRENT_HOST}) not in list of allowed machines:"
+        printf '%s\n' "${ANA_LIST[@]}"
+        return 1
+    else
+        echo "Running on ${CURRENT_HOST}."
+    fi
+
     ANA_NAME_GIVEN=$1
 
     #list of available analyses
@@ -129,27 +140,6 @@ action() {
     # tasks
     _addpy "${BASE_DIR}/processor"
     _addpy "${BASE_DIR}/processor/tasks"
-
-    #check for necessary resources
-    # voms
-    voms-proxy-info > /dev/null 2>&1
-    if [[ "$?" > "0" ]]; then
-        echo "voms proxy not available. Is this running on a portal mashine?" 
-        return 1
-    fi
-    # HTCondor
-    condor_q > /dev/null 2>&1
-    if [[ "$?" > "0" ]]; then
-        echo "HTCondor not available. Is this running on a portal mashine?" 
-        return 1
-    fi
-    # gfal
-    gfal-ls srm://cmssrm-kit.gridka.de:8443/srm/managerv2?SFN=/pnfs/gridka.de/cms/disk-only/store/user/ > /dev/null 2>&1
-    if [[ "$?" > "0" ]]; then
-        echo "file server not reachable by gfal. Is this running on a portal mashine?" 
-        return 1
-    fi
-
 
     # add voms proxy path
     export X509_USER_PROXY=$(voms-proxy-info -path)
