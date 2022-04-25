@@ -53,31 +53,31 @@ TauPtCorrection_eleFake = Producer(
         nanoAOD.Tau_genMatch,
     ],
     output=[q.Tau_pt_ele_corrected],
-    scopes=["global", "et"],
+    scopes=["et", "mt", "tt"],
 )
 TauPtCorrection_muFake = Producer(
     name="TauPtCorrection_muFake",
-    call='physicsobject::tau::PtCorrection_muFake({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_json_name}", "{tau_id_algorithm}", "{tau_mufake_es_DM0}", "{tau_mufake_es_DM1}")',
+    call='physicsobject::tau::PtCorrection_muFake({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_json_name}", "{tau_id_algorithm}", "{tau_mufake_es}")',
     input=[
         q.Tau_pt_ele_corrected,
         nanoAOD.Tau_eta,
         nanoAOD.Tau_decayMode,
         nanoAOD.Tau_genMatch,
     ],
-    output=[q.Tau_pt_mu_corrected],
-    scopes=["global", "mt"],
+    output=[q.Tau_pt_ele_mu_corrected],
+    scopes=["et", "mt", "tt"],
 )
-TauPtCorrection = Producer(
-    name="TauPtCorrection",
-    call='physicsobject::tau::PtCorrection({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_json_name}", "{tau_id_algorithm}", "{tau_ES_shift_DM0}", "{tau_ES_shift_DM1}", "{tau_ES_shift_DM10}", "{tau_ES_shift_DM11}", {vec_open}{tau_dms}{vec_close})',
+TauPtCorrection_genTau = Producer(
+    name="TauPtCorrection_genTau",
+    call='physicsobject::tau::PtCorrection_genTau({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_json_name}", "{tau_id_algorithm}", "{tau_ES_shift_DM0}", "{tau_ES_shift_DM1}", "{tau_ES_shift_DM10}", "{tau_ES_shift_DM11}", {vec_open}{tau_dms}{vec_close})',
     input=[
-        q.Tau_pt_mu_corrected,
+        q.Tau_pt_ele_mu_corrected,
         nanoAOD.Tau_eta,
         nanoAOD.Tau_decayMode,
         nanoAOD.Tau_genMatch,
     ],
     output=[q.Tau_pt_corrected],
-    scopes=["global"],
+    scopes=["et", "mt", "tt"],
 )
 TauMassCorrection = Producer(
     name="TauMassCorrection",
@@ -88,14 +88,14 @@ TauMassCorrection = Producer(
         q.Tau_pt_corrected,
     ],
     output=[q.Tau_mass_corrected],
-    scopes=["global"],
+    scopes=["et", "mt", "tt"],
 )
 TauEnergyCorrection_byValue = ProducerGroup(
     name="TauEnergyCorrection",
     call=None,
     input=None,
     output=None,
-    scopes=["global"],
+    scopes=["et", "mt", "tt"],
     subproducers=[TauPtCorrection_eleFake, TauPtCorrection_byValue, TauMassCorrection],
 )
 TauEnergyCorrection = ProducerGroup(
@@ -103,11 +103,11 @@ TauEnergyCorrection = ProducerGroup(
     call=None,
     input=None,
     output=None,
-    scopes=["global"],
+    scopes=["et", "mt", "tt"],
     subproducers=[
         TauPtCorrection_eleFake,
         TauPtCorrection_muFake,
-        TauPtCorrection,
+        TauPtCorrection_genTau,
         TauMassCorrection,
     ],
 )
@@ -147,14 +147,14 @@ TauDMCut = Producer(
 #     scopes=["global"],
 #     vec_configs=["tau_id", "tau_id_idx"],
 # )
-BaseTaus = ProducerGroup(
-    name="BaseTaus",
-    call="physicsobject::CombineMasks({df}, {output}, {input})",
-    input=[],
-    output=[q.base_taus_mask],
-    scopes=["global"],
-    subproducers=[TauPtCut, TauEtaCut, TauDzCut, TauDMCut],
-)
+# BaseTaus = ProducerGroup(
+#     name="BaseTaus",
+#     call="physicsobject::CombineMasks({df}, {output}, {input})",
+#     input=[],
+#     output=[q.base_taus_mask],
+#     scopes=["global"],
+#     subproducers=[TauPtCut, TauEtaCut, TauDzCut, TauDMCut],
+# )
 ######
 # Good taus selection for nonglobal scope
 ######

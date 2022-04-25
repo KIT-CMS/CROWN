@@ -105,16 +105,16 @@ def build_config(
         },
     )
     # Tau base selection:
+    # configuration.add_config_parameters(
+    #     "global",
+    #     {
+    #         "min_tau_pt": 30.0,
+    #         "max_tau_eta": 2.3,
+    #         "max_tau_dz": 0.2,
+    #     },
+    # )
     configuration.add_config_parameters(
-        "global",
-        {
-            "min_tau_pt": 30.0,
-            "max_tau_eta": 2.3,
-            "max_tau_dz": 0.2,
-        },
-    )
-    configuration.add_config_parameters(
-        ["global", "et", "mt", "tt"],
+        ["et", "mt", "tt"],
         {
             "tau_dms": "0,1,10,11",
             "tau_sf_file": EraModifier(
@@ -134,8 +134,7 @@ def build_config(
             "tau_elefake_es_DM0_endcap": "nom",
             "tau_elefake_es_DM1_barrel": "nom",
             "tau_elefake_es_DM1_endcap": "nom",
-            "tau_mufake_es_DM0": "nom",
-            "tau_mufake_es_DM1": "nom",
+            "tau_mufake_es": "nom",
         },
     )
     # muon base selection:
@@ -486,8 +485,6 @@ def build_config(
             event.npartons,
             event.MetFilter,
             event.PUweights,
-            taus.TauEnergyCorrection,  # or TauEnergyCorrection_byValue for previous implementation
-            taus.BaseTaus,
             muons.BaseMuons,
             electrons.BaseElectrons,
             jets.JetEnergyCorrection,
@@ -545,6 +542,8 @@ def build_config(
             muons.NumberOfGoodMuons,
             muons.VetoMuons,
             muons.ExtraMuonsVeto,
+            taus.TauEnergyCorrection,  # or TauEnergyCorrection_byValue for previous implementation
+            # taus.BaseTaus,
             taus.GoodTaus,
             taus.NumberOfGoodTaus,
             electrons.ExtraElectronsVeto,
@@ -569,6 +568,8 @@ def build_config(
         "et",
         [
             electrons.GoodElectrons,
+            taus.TauEnergyCorrection,  # or TauEnergyCorrection_byValue for previous implementation
+            # taus.BaseTaus,
             taus.GoodTaus,
             taus.NumberOfGoodTaus,
             electrons.NumberOfGoodElectrons,
@@ -595,6 +596,8 @@ def build_config(
     configuration.add_producers(
         "tt",
         [
+            taus.TauEnergyCorrection,  # or TauEnergyCorrection_byValue for previous implementation
+            # taus.BaseTaus,
             taus.GoodTaus,
             taus.NumberOfGoodTaus,
             pairselection.TTPairSelection,
@@ -952,15 +955,15 @@ def build_config(
         )
 
     #########################
-    # Lepton to tau energy scalefactor shifts  #
+    # Lepton to tau fakes energy scalefactor shifts  #
     #########################
     if "dy" in sample:
         configuration.add_shift(
             SystematicShift(
-                name="tauMuFakeEs1prongDown",
+                name="tauMuFakeEsDown",
                 shift_config={
                     "mt": {
-                        "tau_mufake_es_DM0": "down",
+                        "tau_mufake_es": "down",
                     }
                 },
                 producers={"mt": [taus.TauPtCorrection_muFake]},
@@ -968,32 +971,10 @@ def build_config(
         )
         configuration.add_shift(
             SystematicShift(
-                name="tauMuFakeEs1prongUp",
+                name="tauMuFakeEsUp",
                 shift_config={
                     "mt": {
-                        "tau_mufake_es_DM0": "up",
-                    }
-                },
-                producers={"mt": [taus.TauPtCorrection_muFake]},
-            )
-        )
-        configuration.add_shift(
-            SystematicShift(
-                name="tauMuFakeEs1prong1pizeroDown",
-                shift_config={
-                    "mt": {
-                        "tau_mufake_es_DM1": "down",
-                    }
-                },
-                producers={"mt": [taus.TauPtCorrection_muFake]},
-            )
-        )
-        configuration.add_shift(
-            SystematicShift(
-                name="tauMuFakeEs1prong1pizeroUp",
-                shift_config={
-                    "mt": {
-                        "tau_mufake_es_DM1": "up",
+                        "tau_mufake_es": "up",
                     }
                 },
                 producers={"mt": [taus.TauPtCorrection_muFake]},
