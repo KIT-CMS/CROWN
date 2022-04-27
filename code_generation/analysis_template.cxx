@@ -22,8 +22,6 @@
 
 // {INCLUDES}
 
-static std::vector<std::string> varSet = {"run", "luminosityBlock", "event"};
-
 int main(int argc, char *argv[]) {
     // {DEBUGLEVEL}
     // ROOT logging
@@ -63,20 +61,13 @@ int main(int argc, char *argv[]) {
     // file logging
     Logger::enableFileLogging("logs/main.txt");
 
-    // set mutlithreading if  is enabled using ROOT::EnableImplicitMT(ncores)
-
     // {MULTITHREADING}
 
     // initialize df
     ROOT::RDataFrame df0("Events", input_files);
     Logger::get("main")->info("Starting Setup of Dataframe");
 
-    // auto df_final = df0;
-
     // {CODE_GENERATION}
-
-    // Logger::get("main")->debug(df_final.Describe()); // <-- starting from
-    // ROOT 6.25
 
     Logger::get("main")->info("Finished Setup");
     Logger::get("main")->info("Runtime for setup (real time: {}, CPU time: {})",
@@ -88,6 +79,7 @@ int main(int argc, char *argv[]) {
     dfconfig.fLazy = true;
 
     // {RUN_COMMANDS}
+
     // Add meta-data
     // clang-format off
     const std::map<std::string, std::vector<std::string>> output_quanties = {OUTPUT_QUANTITIES};
@@ -97,7 +89,7 @@ int main(int argc, char *argv[]) {
     const std::string era = {ERATAG};
     const std::string sample = {SAMPLETAG};
     const std::string commit_hash = {COMMITHASH};
-    bool setup_clean = {CLEANSETUP};
+    bool setup_clean = {SETUP_IS_CLEAN};
     for (auto const &x : output_quanties) {
         TFile outputfile(x.first.c_str(), "UPDATE");
         TTree quantities_meta = TTree("quantities", "quantities");
@@ -123,14 +115,6 @@ int main(int argc, char *argv[]) {
     }
 
     Logger::get("main")->info("Finished Evaluation");
-
-    // const auto nruns = {NRUNS};
-    // if (nruns != 1) {
-    //     Logger::get("main")->critical(
-    //         "Analysis runs more than one event loop!");
-    // }
-
-    // as a first testcase, we work on selecting good muons
     Logger::get("main")->info("Overall runtime (real time: {}, CPU time: {})",
                               timer.RealTime(), timer.CpuTime());
 }

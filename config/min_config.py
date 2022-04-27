@@ -44,10 +44,27 @@ def build_config(
         available_scopes,
     )
 
-    # first add default parameters necessary for all scopes
     configuration.add_config_parameters(
         "global",
         {
+            "RunLumiEventFilter_Quantities": ["event", "luminosityBlock"],
+            "RunLumiEventFilter_Quantity_Types": ["ULong64_t", "UInt_t"],
+            "RunLumiEventFilter_Selections": ["3", "318"],
+            "PU_reweighting_file": EraModifier(
+                {
+                    "2016": "data/pileup/Data_Pileup_2016_271036-284044_13TeVMoriond17_23Sep2016ReReco_69p2mbMinBiasXS.root",
+                    "2017": "data/pileup/Data_Pileup_2017_294927-306462_13TeVSummer17_PromptReco_69p2mbMinBiasXS.root",
+                    "2018": "data/pileup/Data_Pileup_2018_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18.root",
+                }
+            ),
+            "golden_json_file": EraModifier(
+                {
+                    "2016": "data/golden_json/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt",
+                    "2017": "data/golden_json/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt",
+                    "2018": "data/golden_json/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt",
+                }
+            ),
+            "PU_reweighting_hist": "pileup",
             "met_filters": EraModifier(
                 {
                     "2016": [
@@ -111,9 +128,22 @@ def build_config(
         },
     )
 
+    # electron base selection:
+    configuration.add_config_parameters(
+        "global",
+        {
+            "min_ele_pt": 10.0,
+            "max_ele_eta": 2.5,
+            "max_ele_dxy": 0.045,
+            "max_ele_dz": 0.2,
+            "max_ele_iso": 0.3,
+            "ele_id": "Electron_mvaFall17V2noIso_WP90",
+        },
+    )
+
     # MT/MM scope Muon selection
     configuration.add_config_parameters(
-        ["mt", "mm"],
+        ["mm"],
         {
             "muon_index_in_pair": 0,
             "min_muon_pt": 23.0,
@@ -154,6 +184,20 @@ def build_config(
             "second_muon_index_in_pair": 1,
         },
     )
+    # EM scope selection
+    configuration.add_config_parameters(
+        ["em"],
+        {
+            "electron_index_in_pair": 0,
+            "min_electron_pt": 25.0,
+            "max_electron_eta": 2.1,
+            "electron_iso_cut": 0.3,
+            "muon_index_in_pair": 1,
+            "min_muon_pt": 23.0,
+            "max_muon_eta": 2.1,
+            "muon_iso_cut": 0.15,
+        },
+    )
 
     ## all scopes misc settings
     configuration.add_config_parameters(
@@ -169,9 +213,12 @@ def build_config(
         [
             # event.RunLumiEventFilter,
             event.SampleFlags,
+            event.npartons,
+            event.PUweights,
             event.Lumi,
             event.MetFilter,
             muons.BaseMuons,
+            electrons.BaseElectrons,
         ],
     )
     configuration.add_producers(
@@ -182,7 +229,28 @@ def build_config(
             pairselection.ZMMPairSelection,
             pairselection.GoodMMPairFilter,
             pairselection.LVMu1,
+            pairselection.LVMu2,
             pairquantities.MMDiTauPairQuantities,
+        ],
+    )
+    configuration.add_producers(
+        "em",
+        [
+            electrons.GoodElectrons,
+            electrons.NumberOfGoodElectrons,
+            electrons.VetoElectrons,
+            electrons.ExtraElectronsVeto,
+            muons.GoodMuons,
+            muons.NumberOfGoodMuons,
+            muons.VetoMuons,
+            muons.ExtraMuonsVeto,
+            pairselection.EMPairSelection,
+            pairselection.GoodEMPairFilter,
+            pairselection.LVEl1,
+            pairselection.LVMu2,
+            pairselection.LVEl1Uncorrected,
+            pairselection.LVMu2Uncorrected,
+            pairquantities.EMDiTauPairQuantities,
         ],
     )
 

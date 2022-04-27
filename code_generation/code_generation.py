@@ -49,9 +49,9 @@ class CodeSubset(object):
         Returns:
             None
         """
-        log.info("Creating code subset {}".format(self.name))
-        log.info("Producer: {}".format(self.producer.name))
-        log.info("Scope: {}".format(self.scope))
+        log.debug("Creating code subset {}".format(self.name))
+        log.debug("Producer: {}".format(self.producer.name))
+        log.debug("Scope: {}".format(self.scope))
         self.producer.reserve_output(self.scope)
         # create the function calls for the producer
         for call in self.producer.writecalls(self.parameters, self.scope):
@@ -84,13 +84,13 @@ class CodeSubset(object):
             None
         """
         log.debug("Writing code subset {}".format(self.name))
-        log.info("folder: {}, filename: {}".format(self.folder, self.filename))
+        log.debug("folder: {}, filename: {}".format(self.folder, self.filename))
         # write the header file if it does not exist or is different
         with open(self.headerfile + ".new", "w") as f:
             f.write(f"ROOT::RDF::RNode {self.name}(ROOT::RDF::RNode df);")
         if os.path.isfile(self.headerfile):
             if filecmp.cmp(self.headerfile + ".new", self.headerfile):
-                log.info("--> Identical header file, skipping")
+                log.debug("--> Identical header file, skipping")
                 os.remove(self.headerfile + ".new")
             else:
                 os.rename(self.headerfile + ".new", self.headerfile)
@@ -107,7 +107,7 @@ class CodeSubset(object):
         if os.path.isfile(self.sourcefile):
             if filecmp.cmp(self.sourcefile + ".new", self.sourcefile):
                 os.remove(self.sourcefile + ".new")
-                log.info("--> Identical source file, skipping")
+                log.debug("--> Identical source file, skipping")
             else:
                 os.rename(self.sourcefile + ".new", self.sourcefile)
         else:
@@ -167,8 +167,8 @@ class CodeGenerator(object):
             self.executable_name + "_generated_code",
             self.executable_name + ".cxx",
         )
-        self.metadata = ""
         self.debug = False
+        self._outputfiles_generated = {}
         self.threads = 1
         self.subset_includes = []
         self.output_commands = {}
@@ -186,6 +186,7 @@ class CodeGenerator(object):
         except (ValueError, InvalidGitRepositoryError):
             self.commit_hash = "undefined"
             self.setup_is_clean = "false"
+        log.info("Code generator initialized")
 
     def generate_code(self) -> None:
         """
@@ -215,7 +216,7 @@ class CodeGenerator(object):
         calls, includes = self.generate_main_code()
         run_commands = self.generate_run_commands()
 
-        self.write_code(calls, includes, "", run_commands)
+        self.write_code(calls, includes, run_commands)
 
     def load_template(self, template_path: str) -> str:
         """
@@ -227,16 +228,13 @@ class CodeGenerator(object):
             template = template_file.read()
         return template
 
-    def write_code(
-        self, calls: str, includes: str, metadata: str, run_commands: str
-    ) -> None:
+    def write_code(self, calls: str, includes: str, run_commands: str) -> None:
         """
         Write the code to the output folder
 
         Args:
             main_calls: the main calls
             includes: the includes
-            metadata: the metadata
             run_commands: the run commands
 
         Returns:
@@ -292,15 +290,15 @@ class CodeGenerator(object):
         :param scope: the scope to generate the subsets for
         :return: None
         """
-        log.info(
+        log.debug(
             "Generating subsets for {} in scope {}".format(self.executable_name, scope)
         )
-        log.info(
+        log.debug(
             "Output folder: {}".format(
                 os.path.join(self.output_folder, self.executable_name)
             )
         )
-        log.info("Producers: {}".format(self.configuration.producers[scope]))
+        log.debug("Producers: {}".format(self.configuration.producers[scope]))
         is_first = True
         counter = 0
         for producer in self.configuration.producers[scope]:
@@ -347,40 +345,43 @@ class CodeGenerator(object):
         Write the snapshot command to the main code
         :return: None
         """
-        log.info("Generating run commands")
+        log.debug("Generating run commands")
         runcommands = ""
         for scope in self.scopes:
             for output in sorted(self.outputs[scope]):
                 self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
             if len(self.output_commands[scope]) > 0:
-                outputname = "outputpath_{scope}".format(scope=scope)
+                # if no output is produced by the scope, we do not create a corresponding output file
+                self._outputfiles_generated[scope] = "outputpath_{scope}".format(
+                    scope=scope
+                )
                 outputstring = '", "'.join(self.output_commands[scope])
                 runcommands += "    auto {scope}_cutReport = df{counter}_{scope}.Report();\n".format(
                     scope=scope, counter=self.main_counter[scope]
                 )
                 runcommands += '    std::string {outputname} = std::regex_replace(std::string(output_path), std::regex("\\\\.root"), "_{scope}.root");\n'.format(
-                    scope=scope, outputname=outputname
+                    scope=scope, outputname=self._outputfiles_generated[scope]
                 )
                 runcommands += '    auto {scope}_result = df{counter}_{scope}.Snapshot("ntuple", {outputname}, {{"{outputstring}"}}, dfconfig);\n'.format(
                     scope=scope,
                     counter=self.main_counter[scope],
-                    outputname=outputname,
+                    outputname=self._outputfiles_generated[scope],
                     outputstring=outputstring,
                 )
+        # add code for tracking the progress
+        runcommands += self.set_process_tracking()
         # add trigger of dataframe execution, for nonempty scopes
         for scope in self.scopes:
             if len(self.output_commands[scope]) > 0:
                 runcommands += f"    {scope}_result.GetValue();\n"
                 runcommands += f'    Logger::get("main")->info("{scope}:");\n'
                 runcommands += f"    {scope}_cutReport->Print();\n"
+        log.info(
+            "Output files generated for scopes: {}".format(
+                self._outputfiles_generated.keys()
+            )
+        )
         return runcommands
-
-    def generate_metadata(self) -> None:
-        """
-        Write the metadata to the main code
-        :return: None
-        """
-        systematic_shifts = self.configuration.shifts
 
     def set_debug_flag(self) -> str:
         """
@@ -401,12 +402,14 @@ class CodeGenerator(object):
         Returns:
             None
         """
-        shifts = ""
-        for scope in self.configuration.shifts:
-            outputname = "outputpath_{scope}".format(scope=scope)
-            shifts += '{{ {outputname}, {{"'.format(outputname=outputname)
+        shifts = "{"
+        for scope in self._outputfiles_generated.keys():
+            shifts += '{{ {outputname}, {{"'.format(
+                outputname=self._outputfiles_generated[scope]
+            )
             shifts += '", "'.join([s for s in self.configuration.shifts[scope]])
-            shifts += '"} }'
+            shifts += '"} },'
+        shifts = shifts[:-1] + "}"
         return shifts
 
     def set_output_quantities(self) -> str:
@@ -416,13 +419,16 @@ class CodeGenerator(object):
         Returns:
             None
         """
-        output_quantities = ""
-        for scope in self.configuration.outputs:
-            output_quantities += '{{ {scope}, {{"'.format(scope=scope)
+        output_quantities = "{"
+        for scope in self._outputfiles_generated.keys():
+            output_quantities += '{{ {outputname}, {{"'.format(
+                outputname=self._outputfiles_generated[scope]
+            )
             output_quantities += '", "'.join(
                 [q.name for q in self.configuration.outputs[scope]]
             )
-            output_quantities += '"} }'
+            output_quantities += '"} },'
+        output_quantities = output_quantities[:-1] + "}"
         return output_quantities
 
     def set_thead_flag(self, threads: int) -> None:
@@ -447,8 +453,8 @@ class CodeGenerator(object):
         scope = self.scopes[-1]
         tracking += "    ULong64_t {scope}_processed = 0;\n".format(scope=scope)
         tracking += "    std::mutex {scope}_bar_mutex;\n".format(scope=scope)
-        tracking += "    auto c_{scope} = {scope}_df_final.Count();\n".format(
-            scope=scope
+        tracking += "    auto c_{scope} = df{counter}_{scope}.Count();\n".format(
+            counter=self.main_counter[scope], scope=scope
         )
         tracking += "    c_{scope}.OnPartialResultSlot(quantile, [&{scope}_bar_mutex, &{scope}_processed, &quantile](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
             scope=scope
