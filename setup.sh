@@ -112,7 +112,7 @@ action() {
         KingMaker)
             echo "Setup CROWN ..."
             if [ ! -d CROWN ]; then
-                git clone git@github.com:KIT-CMS/CROWN
+                git clone --recursive git@github.com:KIT-CMS/CROWN
             fi
             ;;
         *)
