@@ -14,7 +14,7 @@ class CROWNBuild(Task):
     """
 
     # configuration variables
-    channels = luigi.ListParameter()
+    scopes = luigi.ListParameter()
     shifts = luigi.Parameter()
     build_dir = luigi.Parameter()
     install_dir = luigi.Parameter()
@@ -42,7 +42,7 @@ class CROWNBuild(Task):
         output.parent.touch()
         _sampletype = str(self.sampletype)
         _era = str(self.era)
-        _channels = ",".join(self.channels)
+        _scopes = ",".join(self.scopes)
         _analysis = str(self.analysis)
         _shifts = str(self.shifts)
         _tag = "{}_{}".format(_era, _sampletype)
@@ -89,7 +89,7 @@ class CROWNBuild(Task):
             console.log("Analysis: {}".format(_analysis))
             console.log("Sampletype: {}".format(_sampletype))
             console.log("Era: {}".format(_era))
-            console.log("Channels: {}".format(_channels))
+            console.log("Channels: {}".format(_scopes))
             console.log("Shifts: {}".format(_shifts))
             console.rule("")
 
@@ -101,7 +101,7 @@ class CROWNBuild(Task):
                 _analysis,  # ANALYSIS=$2
                 _sampletype,  # SAMPLES=$3
                 _era,  # ERAS=$4
-                _channels,  # CHANNEL=$5
+                _scopes,  # SCOPES=$5
                 _shifts,  # SHIFTS=$6
                 _install_dir,  # INSTALLDIR=$7
                 _build_dir,  # BUILDDIR=$8
