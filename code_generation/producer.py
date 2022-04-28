@@ -254,9 +254,9 @@ class VectorProducer(Producer):
             shifts.extend(self.output[0].get_shifts(scope))
         for shift in shifts:
             # check that all config lists (and output if applicable) have same length
-            log.info("self.vec_configs[0]: {}".format(self.vec_configs[0]))
-            log.info("len(self.vec_configs): {}".format(len(self.vec_configs)))
-            log.info("available shifts: {}".format(config.keys()))
+            log.debug("self.vec_configs[0]: {}".format(self.vec_configs[0]))
+            log.debug("len(self.vec_configs): {}".format(len(self.vec_configs)))
+            log.debug("available shifts: {}".format(config.keys()))
             n_versions = len(config[shift][self.vec_configs[0]])
             for key in self.vec_configs:
                 if n_versions != len(config[shift][key]):
