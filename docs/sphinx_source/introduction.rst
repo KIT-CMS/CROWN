@@ -64,15 +64,14 @@ The options that are currently available are:
    * :code:`-DSHIFTS=all`: The shifts to be used. Defaults to all shifts. If set to :code:`all`, all shifts are used, if set to :code:`none`, no shifts are used, so only nominal is produced. If set to a comma separated list of shifts, only those shifts are used. If set to only a substring matching multiple shifts, all shifts matching that string will be produced e.g. :code:`-DSHIFTS=tauES` will produce all shifts containing :code:`tauES` in the name.
    * :code:`-DDEBUG=true`: If set to true, the code generation will run with debug information and the executable will be compiled with debug flags
    * :code:`-DOPTIMIZED=true`: If set to true, the compiler will run with :code:`-O3`, resulting in slower build times but faster runtimes. Should be used for developments, but not in production.
-   * :code:`-DGENERATOR=Ninja`: The generator to be used. Defaults to Ninja. to set the generator to regular make files use :code:`-DGENERATOR="Unix Makefiles"`
 
-and compile the executable using
+Compile the executable using
 
 .. code-block:: console
 
-   ninja install
+   make install -j 20
 
-By default, the ninja build system (https://ninja-build.org/) is used for CROWN. However, the usage of other build systems is also possible and can be specified using the :code:`-G=` option, e.g. for regular makefiles use :code:`-DGENERATOR="Unix Makefiles"`, and then use the :code:`make install` command to compile the executable.
+The recommendded build system is using regular UNIX build files, however, as an additional option, the ninja build system (https://ninja-build.org/) can be used for CROWN. In order to use ninja, set :code:`export CMAKE_GENERATOR="Ninja"` in the :code:`init.sh` as env variable, and then use the :code:`ninja install -j 20` command to compile the executable. Since CROWN profits from the parallelization of the build process, the number of threads can and should be set using the :code:`-j` option.
 
 
 After the compilation, the CROWN executable can be found in the :code:`build/bin` folder. The executable can be used via, with a single output file followed by an arbitrary number of input files.
