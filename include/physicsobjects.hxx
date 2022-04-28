@@ -85,7 +85,7 @@ PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
              const std::string &sf_file, const std::string &jsonESname,
              const std::string &idAlgorithm, const std::string &DM0,
              const std::string &DM1, const std::string &DM10,
-             const std::string &DM11, const std::vector<int> &SelectedDMs);
+             const std::string &DM11);
 } // namespace tau
 
 namespace electron {
