@@ -4,6 +4,14 @@
 
 action() {
 
+    #list of available analyses
+    ANA_LIST=("KingMaker" "ML_LAW")
+    if [[ "$@" =~ "-l" ]]; then
+        echo "Available analyses:"
+        printf '%s\n' "${ANA_LIST[@]}"
+        return 0
+    fi
+
     # Check if current machine is an etp portal machine.
     PORTAL_LIST=("bms1.etp.kit.edu" "bms2.etp.kit.edu" "bms3.etp.kit.edu" "portal1.etp.kit.edu")
     CURRENT_HOST=$(hostname --long)
@@ -15,32 +23,6 @@ action() {
         echo "Running on ${CURRENT_HOST}."
     fi
 
-    ANA_NAME_GIVEN=$1
-
-    #list of available analyses
-    ANA_LIST=("KingMaker" "ML_LAW")
-    #Determine analysis to be used. Default is first in list.
-    if [[ -z "${ANA_NAME_GIVEN}" ]]; then
-        echo "No analysis chosen. Using default analysis ${ANA_LIST[0]}."
-        export ANA_NAME=${ANA_LIST[0]}
-    else
-        #Check if given analysis is in list 
-        if [[ ! " ${ANA_LIST[*]} " =~ " ${ANA_NAME_GIVEN} " ]]; then 
-            echo "Not a valid name. Allowed choices are:"
-            printf '%s\n' "${ANA_LIST[@]}"
-            return 1
-        else
-            echo "Using ${ANA_NAME_GIVEN} analysis." 
-            export ANA_NAME="${ANA_NAME_GIVEN}"
-        fi
-    fi
-    
-    #Determine which environment to use based on the luigi.cfg file
-    export ENV_NAME=$(grep "ENV_NAME" lawluigi_configs/${ANA_NAME}_luigi.cfg | sed 's@ENV_NAME\s*=\s*\([^\s]*\)\s*@\1@g')
-    echo "Using ${ENV_NAME} environment."
-
-    # Miniconda version used for all environments
-    MINICONDA_VERSION="Miniconda3-py39_4.10.3-Linux-x86_64"
     # determine the directory of this file
     if [ ! -z "${ZSH_VERSION}" ]; then
         local THIS_FILE="${(%):-%x}"
@@ -58,10 +40,43 @@ action() {
         [ ! -z "$1" ] && export PATH="$1:${PATH}"
     }
 
+
+    ANA_NAME_GIVEN=$1
+
+    #Determine analysis to be used. Default is first in list.
+    if [[ -z "${ANA_NAME_GIVEN}" ]]; then
+        echo "No analysis chosen. Please choose from:"
+        printf '%s\n' "${ANA_LIST[@]}"
+        return 1
+    else
+        #Check if given analysis is in list 
+        if [[ ! " ${ANA_LIST[*]} " =~ " ${ANA_NAME_GIVEN} " ]] ; then 
+            echo "Not a valid name. Allowed choices are:"
+            printf '%s\n' "${ANA_LIST[@]}"
+            return 1
+        else
+            echo "Using ${ANA_NAME_GIVEN} analysis." 
+            export ANA_NAME="${ANA_NAME_GIVEN}"
+        fi
+    fi
+    
+    #Determine which environment to use based on the luigi.cfg file
+    export ENV_NAME=$(grep "ENV_NAME" lawluigi_configs/${ANA_NAME}_luigi.cfg | sed 's@ENV_NAME\s*=\s*\([^\s]*\)\s*@\1@g')
+    echo "Using ${ENV_NAME} environment."
+
     #Check if necessary environment is present in cvmfs
-    if [[ ! -f "/cvmfs/etp.kit.edu/LAW_envs/${ENV_NAME}/bin/activate" ]]; then
+    if [[ -f "/cvmfs/etp.kit.edu/LAW_envs/${ENV_NAME}/bin/activate" ]]; then
+        #If present in /cvmfs/etp.kit.edu/LAW_envs/
+        source /cvmfs/etp.kit.edu/LAW_envs/${ENV_NAME}/bin/activate
+        export CVMFS_ENV_PRESENT="True"
+
+    else
         #If not present
         #install conda in necessary
+
+        # Miniconda version used for all environments
+        MINICONDA_VERSION="Miniconda3-py39_4.10.3-Linux-x86_64"
+
         echo "${ENV_NAME} environment not found in cvmfs. Using conda."
         if ! command -v conda &> /dev/null
         then
@@ -99,10 +114,6 @@ action() {
             conda pack -n ${ENV_NAME} --output tarballs/${ENV_NAME}_env.tar.gz
         fi
         export CVMFS_ENV_PRESENT="False"
-    else
-        #If present 
-        source /cvmfs/etp.kit.edu/LAW_envs/${ENV_NAME}/bin/activate
-        export CVMFS_ENV_PRESENT="True"
     fi
     #CVMFS_ENV_PRESENT can be used by the processor/framework.py to determine whether the environment is present in cvmfs
 

@@ -89,7 +89,7 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
     htcondor_user_proxy = luigi.Parameter()
     htcondor_walltime = luigi.Parameter()
     htcondor_request_cpus = luigi.Parameter()
-    htcondor_request_gpus = luigi.Parameter(default=0)
+    htcondor_request_gpus = luigi.Parameter(default="0")
     htcondor_request_memory = luigi.Parameter()
     htcondor_universe = luigi.Parameter()
     htcondor_docker_image = luigi.Parameter()
