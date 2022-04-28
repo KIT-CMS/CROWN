@@ -26,7 +26,7 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     output_collection_cls = law.SiblingFileCollection
 
     nick = luigi.Parameter()
-    channels = luigi.ListParameter()
+    scopes = luigi.ListParameter()
     sampletype = luigi.Parameter()
     era = luigi.Parameter()
     analysis = luigi.Parameter()
@@ -58,13 +58,13 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
 
     def output(self):
         nicks = [
-            "{tag}/{nick}/ntuple_{nick}_{branch}_{channel}.root".format(
+            "{tag}/{nick}/ntuple_{nick}_{branch}_{scope}.root".format(
                 tag=self.production_tag,
                 nick=self.nick,
                 branch=self.branch,
-                channel=channel,
+                scope=scope,
             )
-            for channel in self.channels
+            for scope in self.scopes
         ]
         targets = self.remote_targets(nicks)
         targets[0].parent.touch()
@@ -77,9 +77,9 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
         _workdir = os.path.abspath("workdir")
         ensure_dir(_workdir)
         _inputfiles = info
-        # set the outputfilename to the first name in the output list, removing the channel suffix
+        # set the outputfilename to the first name in the output list, removing the scope suffix
         _outputfile = str(
-            output[0].basename.replace("_{}.root".format(self.channels[0]), ".root")
+            output[0].basename.replace("_{}.root".format(self.scopes[0]), ".root")
         )
         _executable = "{}/{}_{}_{}".format(
             _workdir, self.analysis, self.sampletype, self.era
@@ -132,11 +132,11 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
             console.log("Output: {}".format(out))
         console.log("Output files afterwards: {}".format(os.listdir(_workdir)))
         for i, outputfile in enumerate(output):
-            # for each outputfile, add the channel suffix
+            # for each outputfile, add the scope suffix
             outputfile.copy_from_local(
                 os.path.join(
                     _workdir,
-                    _outputfile.replace(".root", "_{}.root".format(self.channels[i])),
+                    _outputfile.replace(".root", "_{}.root".format(self.scopes[i])),
                 )
             )
         console.rule("Finished CROWNRun")
