@@ -64,9 +64,10 @@ VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
 /// Function to determine pt order of jets
 ///
 /// \param[in] df the input dataframe
-/// \param[out] output_col the name of the produced mask \param[in] jet_pt name
-/// of the jet pts \param[in] jetmask name of the mask marking all valid jets to
-/// be considered
+/// \param[out] output_col the name of the produced mask
+/// \param[in] jet_pt name of the jet pts
+/// \param[in] jetmask_name name of the mask marking all valid
+/// jets to be considered
 ///
 /// \return a dataframe containing a list of jet indices sorted by pt
 ROOT::RDF::RNode OrderJetsByPt(ROOT::RDF::RNode df,

@@ -1,7 +1,7 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 
 import logging
-from typing import Any, Dict, List, Set, Union, Tuple
+from typing import Any, Dict, List, Union, Tuple
 import os
 import filecmp
 from git import Repo, InvalidGitRepositoryError
@@ -14,34 +14,50 @@ log = logging.getLogger(__name__)
 
 
 class CodeSubset(object):
+
+    """
+    Class used to generate code for a smaller subset. For each subset, a new object must be created.
+
+    Args:
+        file_name: The name of the file to be generated.
+        template: The template to be used for the generation.
+        producer: The producer, of which the code will be generated.
+        scope: The scope of the code generation.
+        folder: The folder in which the code will be generated.
+        parameters: The parameters to be used for the generation.
+
+    Returns:
+        None
+    """
+
     def __init__(
         self,
-        filename: str,
+        file_name: str,
         template: str,
         producer: Union[Producer, ProducerGroup],
         scope: str,
         folder: str,
-        parameters: Dict[str, Any],
+        configuration_parameters: Dict[str, Any],
     ):
-        self.filename = filename
+        self.file_name = file_name
         self.template = template
         self.producer = producer
         self.scope = scope
         self.name = producer.name + "_" + scope
-        self.parameters = parameters
+        self.configuration_parameters = configuration_parameters
         self.count = 0
         self.folder = folder
         self.commands: List[str] = []
         self.headerfile = os.path.join(
-            self.folder, "include", self.scope, "{}.hxx".format(self.filename)
+            self.folder, "include", self.scope, "{}.hxx".format(self.file_name)
         )
         self.sourcefile = os.path.join(
-            self.folder, "src", self.scope, "{}.cxx".format(self.filename)
+            self.folder, "src", self.scope, "{}.cxx".format(self.file_name)
         )
 
     def create(self):
         """
-        Create the code subset
+        Create the code subset. Calls the writecalls function of the producer to generate the code.
 
         Args:
             None
@@ -54,7 +70,7 @@ class CodeSubset(object):
         log.debug("Scope: {}".format(self.scope))
         self.producer.reserve_output(self.scope)
         # create the function calls for the producer
-        for call in self.producer.writecalls(self.parameters, self.scope):
+        for call in self.producer.writecalls(self.configuration_parameters, self.scope):
             log.debug("Adding call for {}".format(self.name))
             log.debug("Call: {}".format(call))
             expanded_call = call.format_map(
@@ -75,7 +91,9 @@ class CodeSubset(object):
 
     def write(self):
         """
-        Write the code subset to a file, both the header and the source. Before writing the files, check if they already exists, and if they exist and are not different, skip writing them. This is to avoid unnecessary recompilation, since the compiler will check the timestamps of the files.
+        Write the code subset to a file, both the header and the source. Before writing the files,
+        check if they already exists, and if they exist and are not different, skip writing them.
+        This is to avoid unnecessary recompilation, since the compiler will check the timestamps of the files.
 
         Args:
             None
@@ -84,7 +102,7 @@ class CodeSubset(object):
             None
         """
         log.debug("Writing code subset {}".format(self.name))
-        log.debug("folder: {}, filename: {}".format(self.folder, self.filename))
+        log.debug("folder: {}, file_name: {}".format(self.folder, self.file_name))
         # write the header file if it does not exist or is different
         with open(self.headerfile + ".new", "w") as f:
             f.write(f"ROOT::RDF::RNode {self.name}(ROOT::RDF::RNode df);")
@@ -115,10 +133,11 @@ class CodeSubset(object):
 
     def call(self, inputscope: str, outputscope: str) -> str:
         """
-        Return the call to the code subset
+        Return the call to the code subset. This call is used in the generated code of the executalbe.
 
         Args:
-            None
+            inputscope: The scope of the input dataframe.
+            outputscope: The scope of the output dataframe.
 
         Returns:
             str: the call to the code subset
@@ -141,7 +160,20 @@ class CodeSubset(object):
 
 class CodeGenerator(object):
     """
-    Class used to generate code from a given Configuration
+    Class used to generate code from a given Configuration. The code is generated in a folder, which is the name of the executable.
+    Inside the folder the source file for the executable is generated, as well as and include and source dir. Within those two folders,
+    a subfolder for each scope is generated and within those, the code for each producer is generated. Each file contains all calls for one producer from the config.
+
+    Args:
+        main_template_path: the path to the cxx template for the executable
+        sub_template_path: the path to the cxx template for the code subsets
+        configuration: the configuration to generate code from
+        analysis_name: the name of the analysis
+        executable_name: the name of the executable
+        output_folder: the folder to write the code to
+
+    Returns:
+        None
     """
 
     def __init__(
@@ -149,7 +181,7 @@ class CodeGenerator(object):
         main_template_path: str,
         sub_template_path: str,
         configuration: Configuration,
-        analysisname: str,
+        analysis_name: str,
         executable_name: str,
         output_folder: str,
     ):
@@ -160,7 +192,7 @@ class CodeGenerator(object):
         self.outputs = self.configuration.outputs
         self.global_scope = self.configuration.global_scope
         self.executable_name = executable_name
-        self.analysisname = analysisname
+        self.analysis_name = analysis_name
         self.output_folder = output_folder
         self.executable = os.path.join(
             output_folder,
@@ -192,9 +224,13 @@ class CodeGenerator(object):
         """
         Generate the code from the configuration and create the subsets. Run through the whole configuration and create a subset for each producer within the configuration.
 
-        Start with the global scope and then all other scopes. All generated code is stored in the folder self.executable_name.
+        Start with the global scope and then all other scopes. All generated code is stored in the folder self.output_folder.
 
-        return None
+        Args:
+            None
+
+        Returns:
+            None
         """
         # start with the global scope
         for subfolder in ["src", "include"]:
@@ -221,8 +257,10 @@ class CodeGenerator(object):
     def load_template(self, template_path: str) -> str:
         """
         Load the template from the given path
-        :param template_path: the path to the template
-        :return: the template
+        Args:
+            template_path: the path to the template
+        Returns:
+            str - the template
         """
         with open(template_path, "r") as template_file:
             template = template_file.read()
@@ -230,10 +268,10 @@ class CodeGenerator(object):
 
     def write_code(self, calls: str, includes: str, run_commands: str) -> None:
         """
-        Write the code to the output folder
+        Write the code of the main executable to the output folder
 
         Args:
-            main_calls: the main calls
+            calls: the main calls
             includes: the includes
             run_commands: the run commands
 
@@ -255,7 +293,7 @@ class CodeGenerator(object):
                 .replace(
                     "{SAMPLETAG}", '"Samplegroup={}"'.format(self.configuration.sample)
                 )
-                .replace("{ANALYSISTAG}", '"Analysis={}"'.format(self.analysisname))
+                .replace("{ANALYSISTAG}", '"Analysis={}"'.format(self.analysis_name))
                 .replace("{PROGRESS_CALLBACK}", self.set_process_tracking())
                 .replace("{OUTPUT_QUANTITIES}", self.set_output_quantities())
                 .replace("{SYSTEMATIC_VARIATIONS}", self.set_shifts())
@@ -263,10 +301,13 @@ class CodeGenerator(object):
                 .replace("{SETUP_IS_CLEAN}", self.setup_is_clean)
             )
 
-    def generate_main_code(self) -> Tuple(str):
+    def generate_main_code(self) -> Tuple[str, str]:
         """
-        Generate the main code from the configuration
-        :return: the generated code
+        Generate the call commands for all the subsets. Additionally, generate all include statements for the main executable.
+        Args:
+            None
+        Returns:
+            Tuple, the generated calls and the generated includes
         """
         main_calls = ""
         for scope in self.scopes:
@@ -275,10 +316,13 @@ class CodeGenerator(object):
         main_includes = "".join(self.subset_includes)
         return main_calls, main_includes
 
-    def get_cmake_path(self):
+    def get_cmake_path(self) -> str:
         """
         Get the path to the cmake file
-        :return: the path to the cmake file
+        Args:
+            None
+        Returns:
+            the path to the cmake file
         """
         return os.path.join(
             self.executable_name + "_generated_code", self.executable_name + ".cxx"
@@ -287,8 +331,10 @@ class CodeGenerator(object):
     def generate_subsets(self, scope) -> None:
         """
         Generate the subsets for the given scope
-        :param scope: the scope to generate the subsets for
-        :return: None
+        Args:
+            scope: the scope to generate the subsets for
+        Returns:
+            None
         """
         log.debug(
             "Generating subsets for {} in scope {}".format(self.executable_name, scope)
@@ -299,18 +345,19 @@ class CodeGenerator(object):
             )
         )
         log.debug("Producers: {}".format(self.configuration.producers[scope]))
+        # in order to map the dfs correctly, we have to count the number of subset calls
         is_first = True
         counter = 0
         for producer in self.configuration.producers[scope]:
             subset = CodeSubset(
-                filename=producer.name,
+                file_name=producer.name,
                 template=self.subset_template,
                 producer=producer,
                 scope=scope,
                 folder=os.path.join(
                     self.output_folder, self.executable_name + "_generated_code"
                 ),
-                parameters=self.configuration.config_parameters[scope],
+                configuration_parameters=self.configuration.config_parameters[scope],
             )
             subset.create()
             subset.write()
@@ -342,8 +389,14 @@ class CodeGenerator(object):
 
     def generate_run_commands(self) -> str:
         """
-        Write the snapshot command to the main code
-        :return: None
+        generate the dataframe snapshot commands for the main executable. A seperate output file is generated for each scope, that contains at least one output quantity.
+        The process tracking is also generated here.
+
+        Args:
+            None
+        Returns:
+            str - the generated run commands
+
         """
         log.debug("Generating run commands")
         runcommands = ""
