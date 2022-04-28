@@ -15,25 +15,12 @@ import luigi
 import law
 from framework import Task, HTCondorWorkflow
 
-
-
-
-
-
 law.contrib.load("tasks")  # to have the RunOnceTask
-class LawBase(law.Task):
-    def local_path(self, *path):
-        # LAW_DATA_PATH is defined in setup.sh
-        parts = (os.getenv("ANALYSIS_DATA_PATH"),) + path
-        return os.path.join(*(str(p) for p in parts))
 
-    def local_target(self, *path, **kwargs):
-        return law.LocalFileTarget(self.local_path(*path), **kwargs)
-
-
-class HelloWorldSave(Task):
+class SaveToRemote(Task):
+    # Output target is remote and accessed using gfal2.
     def output(self):
-        target = self.remote_target("text.txt")
+        target = self.remote_target("RemoteFileIn.txt")
         target.parent.touch()
         return target
 
@@ -41,18 +28,21 @@ class HelloWorldSave(Task):
         saveText = "This is "
         self.output().dump(saveText)
 
-class HelloWorldPrint(Task, HTCondorWorkflow, law.LocalWorkflow):
+class RunRemote(Task, HTCondorWorkflow, law.LocalWorkflow):
     def requires(self):
-        return HelloWorldSave.req(self)
+        return SaveToRemote.req(self)
 
+    # Output target is remote and accessed using gfal2.
     def output(self):
-        target = self.remote_target("whole.txt")
+        target = self.remote_target("RemoteFileChanged.txt")
         target.parent.touch()
         return target
 
+    # Branch map is necessary for remote tasks.
     def create_branch_map(self):
         return [0]
 
+    # Task is run remotely and has access to GPU resources.
     def run(self):
         import tensorflow as tf
         tf.test.is_gpu_available()
@@ -66,13 +56,14 @@ class HelloWorldPrint(Task, HTCondorWorkflow, law.LocalWorkflow):
         output.dump(wholeText)
 
 
-class HelloWorldPrintFinal(Task, law.tasks.RunOnceTask):
+class ReadFromRemote(Task, law.tasks.RunOnceTask):
     def requires(self):
-        return HelloWorldPrint.req(self)
+        return RunRemote.req(self)
     
+    # Print all layers of the input individually. Final layer is the requested data.
     def run(self):
-        self.publish_message("This is the 0: {}".format(self.input()))
-        self.publish_message("This is the 1: {}".format(self.input()['collection']))
-        self.publish_message("This is the 2: {}".format(self.input()['collection'][0]))
-        self.publish_message("This is the 3: {}".format(self.input()['collection'][0].load()))
+        self.publish_message("This is layer 0: {}".format(self.input()))
+        self.publish_message("This is layer 1: {}".format(self.input()['collection']))
+        self.publish_message("This is layer 2: {}".format(self.input()['collection'][0]))
+        self.publish_message("This is layer 3: {}".format(self.input()['collection'][0].load()))
         self.mark_complete()

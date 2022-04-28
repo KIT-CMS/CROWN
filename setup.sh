@@ -5,7 +5,7 @@
 action() {
 
     #list of available analyses
-    ANA_LIST=("KingMaker" "ML_LAW")
+    ANA_LIST=("KingMaker" "GPU_example")
     if [[ "$@" =~ "-l" ]]; then
         echo "Available analyses:"
         printf '%s\n' "${ANA_LIST[@]}"
