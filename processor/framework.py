@@ -96,6 +96,7 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
     htcondor_request_disk = luigi.Parameter()
     wlcg_path = luigi.Parameter()
     bootstrap_file = luigi.Parameter()
+    replace_processor_tar = luigi.BoolParameter(default=False)
     
     #Use proxy file located in $X509_USER_PROXY or /tmp/x509up_u$(id) if empty
     htcondor_user_proxy = law.wlcg.get_voms_proxy_file()
@@ -156,7 +157,8 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         if not os.path.exists("tarballs"):
             os.makedirs("tarballs")
         #TODO: how to determine if cfgs/tasks were changed and new tarball is necessary
-        if not os.path.isfile("tarballs/{}_processor.tar.gz".format(analysis_name)):
+        if (not os.path.isfile("tarballs/{}_processor.tar.gz".format(analysis_name))
+            or self.replace_processor_tar):
             command = [
                 "tar",
                 "--exclude",
