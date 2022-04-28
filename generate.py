@@ -103,22 +103,6 @@ config = analysis.build_config(
     available_eras,
     available_scopes,
 )
-# ## fill code template and write executable
-# with open(args.template, "r") as template_file:
-#     template = template_file.read()
-# # generate the code using the analysis config and the template
-# template = fill_template(template, config)
-# # set analysis, era and sampletags
-# template = set_tags(template, analysisname, era, sample_group)
-# # if the number of threads is greater than one, add the threading flag in the code
-# template = set_thead_flag(template, args.threads)
-# # generate the code for the process tracking in the df
-# template = set_process_tracking(template, scopes)
-# # set debug flag if running in debug mode
-# template = set_debug_flag(template, args.debug)
-# with open(path.join(args.output, executable), "w") as executable_file:
-#     executable_file.write(template)
-
 # create a CodeGenerator object
 generator = CodeGenerator(
     main_template_path=args.template,
@@ -130,6 +114,7 @@ generator = CodeGenerator(
 )
 if args.debug == "true":
     generator.debug = True
+# generate the code
 generator.generate_code()
 
 executable = generator.get_cmake_path()
