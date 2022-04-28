@@ -125,7 +125,7 @@ generator = CodeGenerator(
     sub_template_path=args.subset_template,
     configuration=config,
     executable_name=f"{analysisname}_{sample_group}_{era}",
-    analysisname=analysisname,
+    analysis_name=analysisname,
     output_folder=args.output,
 )
 if args.debug == "true":
