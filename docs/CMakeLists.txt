@@ -41,7 +41,9 @@ find_python_package(sphinx_rtd_theme sphinx_rtd_theme 0.5)
 # adapted from https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/
 
 # Find all headers
-file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/../*.hxx)
+file(GLOB_RECURSE HEADERS
+    ${PROJECT_SOURCE_DIR}/../*.hxx
+    ${PROJECT_SOURCE_DIR}/../utility/*.hxx)
 
 # Write doxyfile
 # Replace variables inside @@ with the current values
