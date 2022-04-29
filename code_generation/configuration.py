@@ -238,7 +238,8 @@ class Configuration(object):
         self,
         scope: str,
         producers: TProducerInput,
-        producername: Union[str, None] = None,
+        parent: Union[TProducerInput, None] = None,
+        depth: int = 0,
     ) -> None:
         """
         Function used to add producers to the configuration. Internally, a set of all
@@ -251,18 +252,44 @@ class Configuration(object):
         Returns:
             None
         """
-        if not isinstance(producers, list):
-            if producername is None:
-                self.unpacked_producers[scope][producers] = producers
-            else:
-                self.unpacked_producers[scope][producers] = producername
-        else:
+
+        if isinstance(producers, list):
+            # we always want to know the toplevel producergroup, so if the parent is None, we set it to the first producer.
+            # If a prent is given, we set it to the parent, since this means we are in a producergroup. This is important if we
+            # have nested producergroups, this way every producer is assigned to the outermost producergroup, which is important for the
+            # potential removal of a single producer.
             for producer in producers:
-                if isinstance(producer, ProducerGroup):
-                    for sub_producer in producer.producers[scope]:
+                if parent is None:
+                    parent_producer = producer
+                else:
+                    parent_producer = parent
+                self.unpack_producergroups(
+                    scope=scope,
+                    producers=producer,
+                    parent=parent_producer,
+                    depth=depth + 1,
+                )
+        else:
+            if isinstance(producers, ProducerGroup):
+                log.debug("{} Unpacking ".format("    " * depth))
+                for sub_producer in producers.producers[scope]:
+                    if parent is None:
+                        parent_producer = producers
+                    else:
+                        parent_producer = parent
                         self.unpack_producergroups(
-                            scope=scope, producers=sub_producer, producername=producer
+                            scope=scope,
+                            producers=sub_producer,
+                            parent=parent_producer,
+                            depth=depth + 1,
                         )
+            else:
+                if parent is None:
+                    log.debug("{} {}".format("    " * depth, producers))
+                    self.unpacked_producers[scope][producers] = producers
+                else:
+                    log.debug("{} {}".format("    " * depth, parent))
+                    self.unpacked_producers[scope][producers] = parent
 
     def add_outputs(
         self, scopes: Union[str, List[str]], output: QuantitiesInput
