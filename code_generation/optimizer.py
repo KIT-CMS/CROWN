@@ -271,9 +271,13 @@ class ProducerOrdering:
                         found = True
                         log.debug("found {} in global scope ..".format(input))
             if not found:
+                producers_requiring_input = ""
+                for producer in self.ordering:
+                    if input in producer.get_inputs(self.scope):
+                        producers_requiring_input += "    " + str(producer) + "\n"
                 log.error(
-                    "{} (required by {}) was not found in any producer output!".format(
-                        input, producer
+                    "{} was not found in any producer output by is required by: \n{}".format(
+                        input, producers_requiring_input
                     )
                 )
                 log.error("Please check if all needed producers are activated !")
