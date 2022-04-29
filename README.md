@@ -12,19 +12,28 @@ Setting up KingMaker should be straight forward:
 ```sh
 git clone --recursive git@github.com:KIT-CMS/KingMaker.git
 cd KingMaker
-source setup.sh
+source setup.sh <Analysis Name>
 ```
 
-this should setup a conda environment, which includes all needed packages, and also start a `luigid` scheduler if there isn't one running already. When setting up an already cloned version, a
+this should setup the environment specified in the luigi.cfg file (located at `lawluigi_configs/<Analysis Name>_luigi.cfg`), which includes all needed packages.
+The environment is sourced from `/cvmfs/etp.kit.edu/LAW_envs/` if possible and created from a conda environment file (located at `conda_environments/<Analysis Name>_env.cfg`) if not.
+A list of available analyses can be found in the `setup.sh` skript or by running 
 ```sh
-source setup.sh
+source setup.sh -l
+```
+
+In addition a `luigid` scheduler is also started if there isn't one running already. 
+
+When setting up an already cloned version, a
+```sh
+source setup.sh <Analysis Name>
 ```
 is enough.
 
 ---
 ## Workflow
 
-Currently, the workflow consists of four distinct tasks:
+Currently, the workflow of the KingMaker analysis consists of four distinct tasks:
 
 1. [ProduceSamples](processor/tasks/ProduceSamples.py)
     The main task, which is used to steer the Production of multiple samples at once
@@ -92,7 +101,10 @@ If a sample specific config is not available yet, `ConfigureDatasets` will perfo
 ---
 ## Configuration
 
-The default configuration provided in the repository should work out of the box. However some parameters might be changed. The configuration is spread across two files `luigi.cfg` and `law.cfg`. The HTCondor setting can also be found there.
+The default configuration provided in the repository should work out of the box. However some parameters might be changed. The configuration is spread across two files `lawluigi_configs/KingMaker_luigi.cfg` and `lawluigi_configs/KingMaker_law.cfg`. The HTCondor setting can also be found there.
 
-
+---
+## Other analyses
+Analyses apart from KingMaker itself are still beeing worked on.
+The `ML_LAW` analysis is an example for an analysis that aims to utilize remote GPU resources (e.g. machine learning applications).
 
