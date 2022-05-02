@@ -20,7 +20,7 @@ from config.tau_triggersetup import add_diTauTriggerSetup
 from config.tau_variations import add_tauVariations
 from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier, SampleModifier
-from code_generation.rules import AppendProducer, RemoveProducer
+from code_generation.rules import AppendProducer, RemoveProducer, ReplaceProducer
 from code_generation.systematics import SystematicShift, SystematicShiftByQuantity
 
 
@@ -542,7 +542,7 @@ def build_config(
             muons.NumberOfGoodMuons,
             muons.VetoMuons,
             muons.ExtraMuonsVeto,
-            taus.TauEnergyCorrection,  # or TauEnergyCorrection_byValue for previous implementation
+            taus.TauEnergyCorrection,
             # taus.BaseTaus,
             taus.GoodTaus,
             taus.NumberOfGoodTaus,
@@ -568,7 +568,7 @@ def build_config(
         "et",
         [
             electrons.GoodElectrons,
-            taus.TauEnergyCorrection,  # or TauEnergyCorrection_byValue for previous implementation
+            taus.TauEnergyCorrection,
             # taus.BaseTaus,
             taus.GoodTaus,
             taus.NumberOfGoodTaus,
@@ -596,7 +596,7 @@ def build_config(
     configuration.add_producers(
         "tt",
         [
-            taus.TauEnergyCorrection,  # or TauEnergyCorrection_byValue for previous implementation
+            taus.TauEnergyCorrection,
             # taus.BaseTaus,
             taus.GoodTaus,
             taus.NumberOfGoodTaus,
@@ -646,12 +646,31 @@ def build_config(
         ],
     )
     configuration.add_modification_rule(
-        ["et", "mt", "tt"],
+        ["et", "mt"],
+        RemoveProducer(
+            producers=[
+                scalefactors.Tau_2_VsMuTauID_SF,
+                scalefactors.Tau_2_VsJetTauID_lt_SF,
+                scalefactors.Tau_2_VsEleTauID_SF,
+            ],
+            samples="data",
+        ),
+    )
+
+    configuration.add_modification_rule(
+        ["tt"],
         RemoveProducer(
             producers=[
                 scalefactors.Tau_1_VsMuTauID_SF,
                 scalefactors.Tau_2_VsMuTauID_SF,
             ],
+            samples="data",
+        ),
+    )
+    configuration.add_modification_rule(
+        ["et", "mt", "tt"],
+        ReplaceProducer(
+            producers=[taus.TauEnergyCorrection, taus.TauEnergyCorrection_data],
             samples="data",
         ),
     )
@@ -664,6 +683,15 @@ def build_config(
         RemoveProducer(
             producers=[event.PUweights, event.npartons],
             samples=["data", "emb", "emb_mc"],
+        ),
+    )
+    configuration.add_modification_rule(
+        ["et", "mt"],
+        RemoveProducer(
+            producers=[
+                pairquantities.tau_gen_match_2,
+            ],
+            samples="data",
         ),
     )
     configuration.add_modification_rule(
@@ -681,10 +709,10 @@ def build_config(
         scopes,
         AppendProducer(producers=event.TopPtReweighting, samples="ttbar"),
     )
-    configuration.add_modification_rule(
-        scopes,
-        AppendProducer(producers=event.ZPtMassReweighting, samples="dy"),
-    )
+    # configuration.add_modification_rule(
+    #     scopes,
+    #     AppendProducer(producers=event.ZPtMassReweighting, samples="dy"),
+    # )
     # changes needed for data
     # global scope
     configuration.add_modification_rule(
@@ -1066,7 +1094,12 @@ def build_config(
                     }
                 },
                 producers={"et": [taus.TauPtCorrection_eleFake]},
-            )
+            ),
+            samples=[
+                sample
+                for sample in available_sample_types
+                if sample not in ["data", "emb", "emb_mc"]
+            ],
         )
     #########################
     # TauID scale factor shifts, channel dependent # Tau energy scale shifts, dm dependent
