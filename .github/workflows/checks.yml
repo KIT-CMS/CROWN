@@ -15,7 +15,7 @@ env:
   SAMPLES: dy
   ERAS: 2018
   SCOPES: "mt,mm,et"
-  SHIFTS: "tauES,metUnclusteredEnUp"
+  SHIFTS: "all"
 
 jobs:
   build_project:
