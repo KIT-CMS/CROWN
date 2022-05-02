@@ -70,7 +70,7 @@ class ProducerRule:
         log.error("Operation not implemented for ProducerRule base class!")
 
     def update_outputs(self, outputs_to_be_updated: QuantitiesStore) -> None:
-        log.error("Operation not implemented for ProducerRule base class haha!")
+        log.error("Operation not implemented for ProducerRule base class!")
 
     def apply(
         self,
@@ -105,7 +105,6 @@ class RemoveProducer(ProducerRule):
         log.debug("Producers to be updated: {}".format(producers_to_be_updated))
         log.debug("scopes: {}".format(self.scopes))
         log.debug("Producers to be removed: {}".format(self.producers))
-        print(unpacked_producers["mt"].keys())
         for scope in self.scopes:
             for producer in self.producers:
                 if producer in producers_to_be_updated[scope]:
