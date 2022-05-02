@@ -206,6 +206,8 @@ class CodeGenerator(object):
         self.output_commands = {}
         self.subset_calls = {}
         self.main_counter = {}
+        self.number_of_defines = 0
+        self.number_of_outputs = 0
         for scope in self.scopes:
             self.main_counter[scope] = 0
             self.subset_calls[scope] = []
@@ -300,6 +302,19 @@ class CodeGenerator(object):
                 .replace("{COMMITHASH}", '"{}"'.format(self.commit_hash))
                 .replace("{SETUP_IS_CLEAN}", self.setup_is_clean)
             )
+        log.info("Code written to {}".format(self.executable))
+        log.info("------------------------------------")
+        log.info("Code Generation Report")
+        log.info("------------------------------------")
+        log.info("  Output path: {}".format(self.executable))
+        log.info("  Total Number of Defines: {} ".format(self.number_of_defines))
+        log.info("  Total Number of Outputs: {} ".format(self.number_of_outputs))
+        log.info(
+            "  Total Number of Output files: {} ".format(
+                len(self._outputfiles_generated.keys())
+            )
+        )
+        log.info("------------------------------------")
 
     def generate_main_code(self) -> Tuple[str, str]:
         """
@@ -361,6 +376,12 @@ class CodeGenerator(object):
             )
             subset.create()
             subset.write()
+            self.number_of_defines += subset.count
+            log.debug(
+                "Adding {} defines for {} in scope {}".format(
+                    subset.count, producer.name, scope
+                )
+            )
             # two special cases:
             # 1. global scope: there we have to use df0 as the input df
             # 2. first call of all other scopes: we have to use the last global df as the input df
@@ -409,6 +430,7 @@ class CodeGenerator(object):
                     scope=scope
                 )
                 outputstring = '", "'.join(self.output_commands[scope])
+                self.number_of_outputs += len(self.output_commands[scope])
                 runcommands += "    auto {scope}_cutReport = df{counter}_{scope}.Report();\n".format(
                     scope=scope, counter=self.main_counter[scope]
                 )

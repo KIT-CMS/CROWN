@@ -311,11 +311,11 @@ foreach(FILENAME ${FILELIST})
     # Add build target
     message(STATUS "Add build target for file ${FILENAME}.")
 
-    message(STATUS "FULL_PATH: ${FULL_PATH} / TARGET_NAME: ${TARGET_NAME}")
-    message(STATUS "Adding header files from ${GENERATE_CPP_OUTPUT_DIRECTORY}/${GENERATED_CODEBASE}/include/*")
+    # message(STATUS "FULL_PATH: ${FULL_PATH} / TARGET_NAME: ${TARGET_NAME}")
+    # message(STATUS "Adding header files from ${GENERATE_CPP_OUTPUT_DIRECTORY}/${GENERATED_CODEBASE}/include/*")
     file(GLOB GENERATED_HEADERS LIST_DIRECTORIES true "${GENERATE_CPP_OUTPUT_DIRECTORY}/${GENERATED_CODEBASE}/include/*")
     file(GLOB GENERATED_CXX_FILES "${GENERATE_CPP_OUTPUT_DIRECTORY}/${GENERATED_CODEBASE}/src/*/*.cxx")
-    message(STATUS "GENERATED_HEADERS ${GENERATED_HEADERS}")
+    # message(STATUS "GENERATED_HEADERS ${GENERATED_HEADERS}")
     add_executable(${TARGET_NAME} ${FULL_PATH} ${GENERATED_CXX_FILES})
     # Adds a pre-build event to the Target copying the correctionlib.so file into the /lib folder in the install directory
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} $ORIGIN/lib/ lib/)
