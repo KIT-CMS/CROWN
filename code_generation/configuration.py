@@ -731,7 +731,7 @@ class Configuration(object):
             expanded_configuration[scope]["nominal"] = self.config_parameters[scope]
             if len(self.shifts[scope]) > 0:
                 for shift in self.shifts[scope]:
-                    log.warning("Adding shift {} in scope {}".format(shift, scope))
+                    log.debug("Adding shift {} in scope {}".format(shift, scope))
                     log.debug("  {}".format(self.shifts[scope][shift]))
                     try:
                         expanded_configuration[scope][shift] = (
@@ -744,43 +744,3 @@ class Configuration(object):
                         )
         self.config_parameters = expanded_configuration
         return self
-
-    def dump_dict(self) -> Dict[str, Dict[Any, Any]]:
-        """
-        Function used to dump the configuration as a dict, which is used to generate the c++ file.
-
-        Args:
-            None
-
-        Returns:
-            dict: The configuration as a dict
-        """
-        returndict: Dict[str, Dict[Any, Any]] = {}
-        returndict[""] = {}
-        returndict["output"] = {}
-        returndict["producers"] = {}
-        for scope in self.scopes:
-            returndict[""][scope] = self.config_parameters[scope]
-            returndict["producers"][scope] = self.producers[scope]
-            if scope is not self.global_scope:
-                log.debug(
-                    "Final set of outputs : {}".format(
-                        sorted(list(self.outputs[scope]))
-                    )
-                )
-                returndict["output"][scope] = sorted(list(self.outputs[scope]))
-            # add systematic shifts
-            if len(self.shifts[scope]) > 0:
-                for shift in self.shifts[scope]:
-                    log.warning("Adding shift {} in scope {}".format(shift, scope))
-                    log.debug("  {}".format(self.shifts[scope][shift]))
-                    try:
-                        returndict[shift][scope] = (
-                            self.config_parameters[scope] | self.shifts[scope][shift]
-                        )
-                    except KeyError:
-                        returndict[shift] = {}
-                        returndict[shift][scope] = (
-                            self.config_parameters[scope] | self.shifts[scope][shift]
-                        )
-        return returndict
