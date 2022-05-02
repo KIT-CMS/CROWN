@@ -70,7 +70,7 @@ class ProducerRule:
         log.error("Operation not implemented for ProducerRule base class!")
 
     def update_outputs(self, outputs_to_be_updated: QuantitiesStore) -> None:
-        log.error("Operation not implemented for ProducerRule base class!")
+        log.error("Operation not implemented for ProducerRule base class haha!")
 
     def apply(
         self,
@@ -105,6 +105,7 @@ class RemoveProducer(ProducerRule):
         log.debug("Producers to be updated: {}".format(producers_to_be_updated))
         log.debug("scopes: {}".format(self.scopes))
         log.debug("Producers to be removed: {}".format(self.producers))
+        print(unpacked_producers["mt"].keys())
         for scope in self.scopes:
             for producer in self.producers:
                 if producer in producers_to_be_updated[scope]:
@@ -233,3 +234,115 @@ class AppendProducer(ProducerRule):
                         )
                     )
                     outputs_to_be_updated[scope].add(output)
+
+
+class ReplaceProducer(ProducerRule):
+    def __str__(self) -> str:
+        return "ProducerRule - replace {} with {} for {} in scopes {}".format(
+            self.producers[0], self.producers[1], self.samples, self.scopes
+        )
+
+    def __repr__(self) -> str:
+        return "ProducerRule - replace {} for {} in scopes {}".format(
+            self.producers, self.samples, self.scopes
+        )
+
+    def update_producers(
+        self,
+        producers_to_be_updated: TProducerStore,
+        unpacked_producers: TProducerStore,
+    ) -> None:
+        log.debug("Producers to be updated: {}".format(producers_to_be_updated))
+        log.debug("scopes: {}".format(self.scopes))
+        log.debug("Producers to be replaced: {}".format(self.producers))
+        producer = self.producers[0]
+        new_producer = self.producers[1]
+        for scope in self.scopes:
+            if producer in producers_to_be_updated[scope]:
+                log.debug(
+                    "ReplaceProducer: Replace {} from producer in scope {} with {}".format(
+                        producer, scope, new_producer
+                    )
+                )
+                producers_to_be_updated[scope].remove(producer)
+                producers_to_be_updated[scope].append(new_producer)
+            else:
+                # in this case, the producer does not exist, possibly because it is part of a producer group,
+                # so we have to check this further
+                if producer in unpacked_producers[scope].keys():
+                    # if the producer is part of a producer group, we have to remove the whole group
+                    # and add all remaining producers from the group to the list of producers to be updated
+                    log.debug("Found {} within a producer group".format(producer))
+                    corresponding_producer_group = unpacked_producers[scope][producer]
+                    log.debug(
+                        "Replacing {} from producer group {} with {}".format(
+                            producer, corresponding_producer_group, new_producer
+                        )
+                    )
+                    log.debug(
+                        "Replacing {} with its unpacked producers".format(
+                            corresponding_producer_group
+                        )
+                    )
+                    producers_to_be_updated[scope].remove(corresponding_producer_group)
+                    for unpacked_producer in unpacked_producers[scope]:
+                        if (
+                            unpacked_producers[scope][unpacked_producer]
+                            == corresponding_producer_group
+                        ):
+                            producers_to_be_updated[scope].append(unpacked_producer)
+                    # now remove the producer we initially wanted to remove
+                    log.debug(producers_to_be_updated[scope])
+                    producers_to_be_updated[scope].remove(producer)
+                    producers_to_be_updated[scope].append(new_producer)
+
+                else:
+                    raise ConnectionError(
+                        "Producer {} not found in scope {}, cannot apply \n {}".format(
+                            producer, scope, self
+                        )
+                    )
+
+    def update_outputs(self, outputs_to_be_updated: QuantitiesStore) -> None:
+        if self.update_output:
+            removed_outputs: QuantitiesStore = {}
+            added_outputs: QuantitiesStore = {}
+            # if the producer is in the global scope, we add the output to all running scopes
+            if self.scopes == [self.global_scope]:
+                log.debug(
+                    "Updating outputs for producer in global scope --> adding output to all scopes"
+                )
+                scopes = outputs_to_be_updated.keys()
+                for scope in scopes:
+                    removed_outputs[scope] = CollectProducersOutput(
+                        [self.producers[0]], self.global_scope
+                    )
+                    added_outputs[scope] = CollectProducersOutput(
+                        [self.producers[1]], self.global_scope
+                    )
+            else:
+                scopes = self.scopes
+                for scope in scopes:
+                    removed_outputs[scope] = CollectProducersOutput(
+                        [self.producers[0]], scope
+                    )
+                    added_outputs[scope] = CollectProducersOutput(
+                        [self.producers[1]], scope
+                    )
+            for scope in scopes:
+                for removed_output in removed_outputs[scope]:
+                    if removed_output in outputs_to_be_updated[scope]:
+                        log.debug(
+                            "ReplaceProducer: Removing {} from outputs in scope {}".format(
+                                removed_output, scope
+                            )
+                        )
+                        outputs_to_be_updated[scope].remove(removed_output)
+                for added_output in added_outputs[scope]:
+                    if added_output in outputs_to_be_updated[scope]:
+                        log.debug(
+                            "ReplaceProducer: Adding {} from outputs in scope {}".format(
+                                added_output, scope
+                            )
+                        )
+                        outputs_to_be_updated[scope].add(added_output)

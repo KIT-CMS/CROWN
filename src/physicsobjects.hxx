@@ -209,6 +209,18 @@ auto ObjectMassCorrectionWithPt(auto &df, const std::string &corrected_mass,
                          {raw_mass, raw_pt, corrected_pt});
     return df1;
 }
+auto ObjectMassCorrectionWithPt_data(auto &df, const std::string &corrected_mass,
+                                const std::string &raw_mass) {
+    auto mass_correction_lambda = [](const ROOT::RVec<float> &mass_values) {
+        ROOT::RVec<float> corrected_mass_values(mass_values.size());
+        for (int i = 0; i < mass_values.size(); i++) {
+            corrected_mass_values[i] = mass_values.at(i);
+        }
+        return corrected_mass_values;
+    };
+    auto df1 = df.Define(corrected_mass, mass_correction_lambda, {raw_mass});  
+    return df1;
+}
 
 /// Function to check whether at least one lepton pair is present
 ///
@@ -350,10 +362,10 @@ auto CutTauID(auto &df, const std::string &maskname, const std::string &nameID,
 ///           https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016postVFP_UL.html
 /// \param[in] jsonESname name of the tau energy correction in the json file
 /// \param[in] idAlgorithm name of the used tau id algorithm
-/// \param[in] sf_dm0 scale factor to be applied to taus with decay mode 0
-/// \param[in] sf_dm1 scale factor to be applied to other 1 prong taus
-/// \param[in] sf_dm10 scale factor to be applied to taus with decay mode 10
-/// \param[in] sf_dm11 scale factor to be applied to other 3 prong taus
+/// \param[in] sf_dm0_b scale factor to be applied to taus with decay mode 0 and eta region barrel
+/// \param[in] sf_dm1_b scale factor to be applied to taus with decay mode 1 and eta region barrel
+/// \param[in] sf_dm0_e scale factor to be applied to taus with decay mode 0 and eta region endcap
+/// \param[in] sf_dm1_e scale factor to be applied to taus with decay mode 1 and eta region endcap
 /// name of the tau decay mode quantity
 ///
 /// \return a dataframe containing the new mask
@@ -410,11 +422,9 @@ auto PtCorrection_eleFake(
             } else {
                 corrected_pt_values[i] = pt_values.at(i);
             }
-            if (genmatch.at(i) == 1 || genmatch.at(i) == 3) {
-                Logger::get("ptcorrection ele fake")
+            Logger::get("ptcorrection ele fake")
                     ->debug("tau pt before {}, tau pt after {}",
                             pt_values.at(i), corrected_pt_values.at(i));
-            }
         }
         return corrected_pt_values;
     };
@@ -602,6 +612,18 @@ auto PtCorrection_genTau(auto &df, const std::string &corrected_pt,
     };
     auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda,
                          {pt, eta, decayMode, genMatch});
+    return df1;
+}
+auto PtCorrection_data(auto &df, const std::string &corrected_pt,
+                  const std::string &pt) {
+    auto tau_pt_correction_lambda = [](const ROOT::RVec<float> &pt_values) {
+        ROOT::RVec<float> corrected_pt_values(pt_values.size());
+        for (int i = 0; i < pt_values.size(); i++) {
+            corrected_pt_values[i] = pt_values.at(i);
+        }
+        return corrected_pt_values;
+    };
+    auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda, {pt});  
     return df1;
 }
 } // end namespace tau

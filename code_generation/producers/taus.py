@@ -79,6 +79,20 @@ TauPtCorrection_genTau = Producer(
     output=[q.Tau_pt_corrected],
     scopes=["et", "mt", "tt"],
 )
+TauPtCorrection_data = Producer(
+    name="TauPtCorrection_data",
+    call="physicsobject::tau::PtCorrection_data({df}, {output}, {input})",
+    input=[nanoAOD.Tau_pt],
+    output=[q.Tau_pt_corrected],
+    scopes=["et", "mt", "tt"],
+)
+TauMassCorrection_data = Producer(
+    name="TauMassCorrection_data",
+    call="physicsobject::ObjectMassCorrectionWithPt_data({df}, {output}, {input})",
+    input=[nanoAOD.Tau_mass],
+    output=[q.Tau_mass_corrected],
+    scopes=["et", "mt", "tt"],
+)
 TauMassCorrection = Producer(
     name="TauMassCorrection",
     call="physicsobject::ObjectMassCorrectionWithPt({df}, {output}, {input})",
@@ -109,6 +123,17 @@ TauEnergyCorrection = ProducerGroup(
         TauPtCorrection_muFake,
         TauPtCorrection_genTau,
         TauMassCorrection,
+    ],
+)
+TauEnergyCorrection_data = ProducerGroup(
+    name="TauEnergyCorrection",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["et", "mt", "tt"],
+    subproducers=[
+        TauPtCorrection_data,
+        TauMassCorrection_data,
     ],
 )
 TauPtCut = Producer(
