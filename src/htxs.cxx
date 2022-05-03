@@ -27,7 +27,7 @@ namespace htxs {
  * @returns a dataframe with the weight column included
  */
 ROOT::RDF::RNode
-ggHNLLOWeights(ROOT::RDF::RNode df, const std::string &weight_name,
+ggHNNLOWeights(ROOT::RDF::RNode df, const std::string &weight_name,
                const std::string &rootfilename, const std::string &generator,
                const std::string &htxs_pth, const std::string &htxs_njets) {
     TGraphErrors *WeightsGraphs[4];
@@ -51,7 +51,7 @@ ggHNLLOWeights(ROOT::RDF::RNode df, const std::string &weight_name,
         WeightsGraphs[3] =
             (TGraphErrors *)rootFile.Get("gr_NNLOPSratio_pt_mcatnlo_3jet");
     } else
-        Logger::get("ggHNLLOWeights")
+        Logger::get("ggHNNLOWeights")
             ->critical("WARNING: Invalid ggH generator configured. "
                        "ggHNNLOWeights cannot be determined!");
     rootFile.Close();

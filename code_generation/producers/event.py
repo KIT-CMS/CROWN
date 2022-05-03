@@ -169,7 +169,7 @@ DiLeptonVeto = ProducerGroup(
 
 GGH_NNLO_Reweighting = Producer(
     name="GGH_NNLO_Reweighting",
-    call='htxs::ggHNLLOWeights({df}, {output}, "{ggHNNLOweightsRootfile}", "{ggH_generator}", {input})',
+    call='htxs::ggHNNLOWeights({df}, {output}, "{ggHNNLOweightsRootfile}", "{ggH_generator}", {input})',
     input=[nanoAOD.HTXS_Higgs_pt, nanoAOD.HTXS_njets30],
     output=[q.ggh_NNLO_weight],
     scopes=["global", "em", "et", "mt", "tt", "mm"],
