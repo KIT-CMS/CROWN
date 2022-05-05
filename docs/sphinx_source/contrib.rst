@@ -1,12 +1,12 @@
 Writing a new producer
 =======================
 
-Writing a new producer requires two main parts, adding the :ref:`C++ function<New C++ functions>` and the required :ref:`python part<Implementing new producers in the python part>`.
+Writing a new producer requires two main parts, adding the :ref:`C++ function<Writing a new C++ function>` and the required :ref:`python part<Defining a new python Producer>`.
 
 If the C++ function is written general enough, it can be used in multiple producers, and multiple puropses in the end.
 For example the producer generating the pt_1 quantity can be used regardless of what particle is being considered.
 
-In the following, an introduction on how to add a new producer is given. As an exmple, we will add a new producer, which can be used to calculate the lorentz vectors of particles, in our case electrons. First, we will do the C++ implementation of the function followed by the python definition. Keep in mind, that those two parts are connected.
+In the following, an introduction on how to add a new producer is given. As an exmple, we will add a new producer, which can be used to calculate the lorentz vectors of particles, in our case electrons. For simlicity, we only want to calculate one single lorentz vector for a given index. First, we will do the C++ implementation of the function followed by the python definition. Keep in mind, that those two parts are connected.
 
 Writing a new C++ function
 ============================
@@ -18,16 +18,16 @@ The return type of any function in CROWN should always be ``ROOT::RDF::RNode`` a
 
     ROOT::RDF::RNode buildMet(ROOT::RDF::RNode df, ...);
 
-This will go into the corresponding header file located within the ``include`` folder , and the implementation will go into the source file in the ``src`` folder.
+This will go into the corresponding header file located within the ``include`` folder, and the implementation will go into the source file in the ``src`` folder.
 
-The C++ functions used in CROWN always act as wrapper functions surrounding the actual RDataFrame commands that are used. Most of the time, this will be either a ``Define`` or a ``Filter``. The next step is to add all the inputs, that are needed in order to build the Lorentz vector. In our case, we will need the ``pt``, ``eta``, ``phi``, and ``mass`` of the electron, or more general the particle. The names of these inputs have to be added to the function. Since we just need the names, these are ``string`` arguments:
+The C++ functions used in CROWN always act as wrapper functions surrounding the actual RDataFrame commands that are used. Most of the time, this will be either a ``Define`` or a ``Filter``. The next step is to add all the inputs, that are needed in order to build the Lorentz vector. In our case, we will need the ``pt``, ``eta``, ``phi``, and ``mass`` of the electron collection from the nanoAOD and the index of which of those electrons we want to build the vector. Since this function is very generic, we could use it for all kinds of particles, not just electrons. The names of these inputs have to be added to the function. Since we just need the names of the columns, these are ``string`` arguments, and the index is an ``int`` argument.
 
 .. code-block:: cpp
 
     ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &pts, const std::string &etas,
-                        const std::string &phis, const std::string &masses) {
-    };
+                        const std::string &phis, const std::string &masses,
+                        const int &index);
 
 Note, that we can add these arguments as ``const string &``, since we do not need to change the value of the argument, also a reference is enough. Additionally, we added the ``outputname``, which is the name of the output quantity. This is also a string, and is used to name the output quantity. The next step is to add the actual RDataFrame command. In our case, we will use the ``Define`` command, which is used to define a new quantity. The following is the definition of the command:
 
@@ -35,11 +35,12 @@ Note, that we can add these arguments as ``const string &``, since we do not nee
 
     ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &pts, const std::string &etas,
-                        const std::string &phis, const std::string &masses) {
+                        const std::string &phis, const std::string &masses,
+                        const int &index) {
         return df.Define(outputname, build_vector, {pts, etas, phis, masses});
     };
 
-Here, we add the ``Define`` command, which tells the RDataFrame that we want to define a new quantity. The first argument is the name of the output quantity, and the second argument is the name of the lambda function that is used to build the quantity. The third argument is a vector of the column names of the inputs, that we want to use within out lambda function. Now, the main exercise of writing a new producer is to add the implementation of the lambda function.
+Here, we add the ``Define`` command, which tells the RDataFrame that we want to define a new quantity. The first argument is the name of the output quantity, and the second argument is the name of the lambda function that is used to build the quantity. The third argument is a vector of the column names of the inputs, that we want to use within out lambda function. The parameter ``index`` is passed as a capture to the lambda, using the ``[]`` backets. Now, the main exercise of writing a new producer is to add the implementation of the lambda function.
 
 .. warning::
     Within the lambda is the code, that will be run on an event by event basis.
@@ -50,41 +51,49 @@ In our example, the lambda function is straight forward. We use our input values
 
     ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &pts, const std::string &etas,
-                        const std::string &phis, const std::string &masses) {
-        auto build_vector = [](ROOT::RVec<float> pts, ROOT::RVec<float> etas,
-                            ROOT::RVec<float> phis, ROOT::RVec<float> masses) {
+                        const std::string &phis, const std::string &masses,
+                        const int &index) {
+        auto build_vector = [index](ROOT::RVec<float> pts, ROOT::RVec<float> etas,
+                                    ROOT::RVec<float> phis,
+                                    ROOT::RVec<float> masses) {
+            // lambda code here
         };
         return df.Define(outputname, build_vector, {pts, etas, phis, masses});
     };
 
-We define the lambda function with the type ``auto`` and pass it all our input columns. Since this is now the event-by-event part, we have to specify the correct type of the columns. In our case, since we take the quantities directly from the NanoAOD file, they all have the type ``ROOT::RVec<float>``. For the actual implementation, we can utilize a helper function provided for ``ROOT::RVec`` to automatically calulate the Lorentz vector for the whole vector. But we could also iterate over the vector and calculate the Lorentz vector for each particle seperately. After adding this implemention, our function is complete and should look like this:
+We define the lambda function with the type ``auto`` and pass it all our input columns. Since this is now the event-by-event part, we have to specify the correct type of the columns. In our case, since we take the quantities directly from the NanoAOD file, they all have the type ``ROOT::RVec<float>``. For the actual implementation, we can simply define a new object with type ``ROOT::Math::PtEtaPhiMVector`` and the ``ROOT`` backend will do the rest. Since we only want to get the lorentzvector for a single electron, we can use ``pts.at(index, -10.)`` to select the correct ``float`` value. If this value cannot be found, e.g. when there is no electron within the event, the default value ``-10`` is used. After adding this implemention, our function is complete and should look like this:
 
 .. code-block:: cpp
 
     ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &pts, const std::string &etas,
-                        const std::string &phis, const std::string &masses) {
-        auto build_vector = [](ROOT::RVec<float> pts, ROOT::RVec<float> etas,
-                            ROOT::RVec<float> phis, ROOT::RVec<float> masses) {
-            // Create the Lorentz vector for each particle using Construct
-            // https://root.cern/doc/master/group__vecops.html#ga84ffef84f7829e9d904cd92a57a0cd9a
-            auto fourVecs = ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(
-                pts, etas, phis, masses);
-            return fourVecs;
+                        const std::string &phis, const std::string &masses,
+                        const int &index) {
+        auto build_vector = [index](ROOT::RVec<float> pts, ROOT::RVec<float> etas,
+                                    ROOT::RVec<float> phis,
+                                    ROOT::RVec<float> masses) {
+            // Create the Lorentz vector for each particle
+            Logger::get("build")->debug("size of pt {}, eta {}, phi {}, mass {}",
+                                    pts.size(), etas.size(), phis.size(),
+                                    masses.size());
+            auto fourVec = ROOT::Math::PtEtaPhiMVector(
+                pts.at(index, -10.), etas.at(index, -10.), phis.at(index, -10.),
+                masses.at(index, -10.));
+            return fourVec;
         };
         return df.Define(outputname, build_vector, {pts, etas, phis, masses});
     };
 
-This concludes the implementation of the new producer.
+We also added a simple debug statement here, to print the size of the ``RVec`` objects. This concludes the implementation of the new producer.
 
 .. warning::
-    Remember to add both the definition within the header file and the implementation within the source file.
+    Remember to add both the definition within the header file and the implementation within the source file. Also, add docstrings to the source file as documentation what the function does.
 
 
 Defining a new python Producer
 ================================
 
-Now, after we have finished our new C++ function, we want to add it to our configuration. Therefore we must define a new python producer. There are several types of Producers available, more information can be found in the documentation of the Producer classes :ref:`here <Producers>`. In our example, a regular :py:class:`~code_generation.producer.Producer` is sufficient. For the complete definition of the producer we have to define
+Now, after we have finished our new C++ function, we want to add it to our configuration. Therefore, we must define a new python producer. There are several types of Producers available, more information can be found in the documentation of the Producer classes :ref:`here <Producers>`. In our example, a regular :py:class:`~code_generation.producer.Producer` is sufficient. For the complete definition of the producer we have to define
 
 1. The name of the producer
 2. The function call, this represents the mapping between the C++ function and the python function
@@ -98,18 +107,30 @@ In our case, the Producer will look like this:
 
     ElectronLV = Producer(
         name="ElectronLV",
-        call="lorentzvector::build({df}, {output}, {input})",
+        call="lorentzvector::build({df}, {output}, {input}, {electron_index_to_use})",
         input=[
             nanoAOD.Electron_pt,
             nanoAOD.Electron_eta,
             nanoAOD.Electron_phi,
             nanoAOD.Electron_mass,
         ],
-        output=[q.Electron_p4s],
+        output=[q.Electron_p4],
         scopes=["ee", "em", "et"],
     )
 
-We set the name of the Producer to be ``ElectronLV``. The call corresponds to the C++ function that is used to build the Lorentz vector. The two keywords ``input`` and ``output`` are used to specify the input and output columns. During the code generation, this will be filled with the quantites defined as the input and output of the producer. The last keyword ``scopes`` is used to specify the scopes in which the producer is available. This makes sence in order to prevent errors, where the producer is used in a scope that is not specified, e.g. in a final state without any electrons, we would not need to run this producer. Note that the output of this producer is of type ``ROOT::RVec<ROOT::Math::PtEtaPhiMVector>`` so it always makes sence to represent that in the name of the quantity.
+We set the name of the Producer to be ``ElectronLV``. The call corresponds to the C++ function that is used to build the Lorentz vector. The two keywords ``input`` and ``output`` are used to specify the input and output columns. During the code generation, this will be filled with the quantites defined as the input and output of the producer.  In this example, we also use a configuarion parameter called ``electron_index_to_use``. This parameter has to be defined in the configuration file and could look something like this
+
+.. code-block:: python
+
+    configuration.add_config_parameters(
+        ["et"],
+        {
+            "electron_index_to_use": 0,
+        },
+    )
+
+
+The last keyword ``scopes`` is used to specify the scopes in which the producer is available. This makes sence in order to prevent errors, where the producer is used in a scope that is not specified, e.g. in a final state without any electrons, we would not need to run this producer. Note that the output of this producer is of type ``ROOT::Math::PtEtaPhiMVector`` so it always makes sence to represent that in the name of the quantity in some way for easier understanding.
 
 .. warning::
     The definition of the producer should be put into a corresponding file in the ``code_generation/producers`` directory.
@@ -126,12 +147,31 @@ The quantities themselves that are used also have to be defined. Within CROWN, s
 
 .. code-block:: python
 
-    Electron_p4s = Quantity("Electron_p4s")
+    Electron_p4s = Quantity("Electron_p4")
 
 The only argument here is the column name of the quantity. The same goes for our new output quantity, however, since it is a new quantity it should be of type :py:class:`~code_generation.quantity.Quantity`, not :py:class:`~code_generation.quantity.NanoAODQuantity`. The quantites are defined in the files found in the ``code_generation/quantities`` directory.
 
+After this, our new producer is now ready to be added to the configuration. In order to get the producer running, we have to add it to the set of producers, and we have to add the output quantity to the set of required outputs. In order to learn more on writing a configuration check out :ref:`Writing a CROWN Configuration<Writing a CROWN Configuration>`.
 
-After this, our new producer is now ready to be added to the configuration. In order to learn how to do this, check out :ref:`Writing a CROWN Configuration<Writing a CROWN Configuration>`.
+.. code-block:: python
+
+    configuration.add_producers(
+        "et",
+        [
+            electrons.ElectronLV,
+        ],
+    )
+
+        configuration.add_outputs(
+        "et",
+        [
+            q.Electron_p4,
+        ],
+    )
+
+
+
+
 
 Best Practices for Contributions
 =================================
@@ -168,7 +208,7 @@ There are different types of producers available
   - ``<string> call``: Function call to be embedded into the C++ template. Use curly brackets like ``{parameter_name}`` in order to mark places where parameters
     of the configuration shall be written. The following keys fulfill special roles and are reserved therefore:
 
-    - ``{output}``: to be filled with names of output quantities (see :ref:`py_quantities`) as strings separated by commas
+    - ``{output}``: to be filled with names of output quantities (see :ref:`Python Quantities`) as strings separated by commas
     - ``{output_vec}``: like output but with curly brackets around it representing a C++ vector
     - ``{input}``: to be filled with names of input quantities as strings separated by commas
     - ``{input_vec}``: like input but with curly brackets around it representing a C++ vector
