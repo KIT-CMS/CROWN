@@ -111,6 +111,7 @@ generator = CodeGenerator(
     executable_name=f"{analysisname}_{sample_group}_{era}",
     analysis_name=analysisname,
     output_folder=args.output,
+    threads=args.threads,
 )
 if args.debug == "true":
     generator.debug = True

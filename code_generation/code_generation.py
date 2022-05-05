@@ -184,6 +184,7 @@ class CodeGenerator(object):
         analysis_name: str,
         executable_name: str,
         output_folder: str,
+        threads: int = 1,
     ):
         self.main_template = self.load_template(main_template_path)
         self.subset_template = self.load_template(sub_template_path)
@@ -201,7 +202,7 @@ class CodeGenerator(object):
         )
         self.debug = False
         self._outputfiles_generated = {}
-        self.threads = 1
+        self.threads = threads
         self.subset_includes = []
         self.output_commands = {}
         self.subset_calls = {}
@@ -288,6 +289,7 @@ class CodeGenerator(object):
             None
         """
         if self.threads > 1:
+            log.info(f"Using {self.threads} threads for the executable")
             threadcall = "ROOT::EnableImplicitMT({});".format(self.threads)
         else:
             threadcall = ""
