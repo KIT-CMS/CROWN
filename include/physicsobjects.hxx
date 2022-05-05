@@ -92,13 +92,14 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
                      const std::string &pt, const std::string &decayMode,
                      const float &sf_dm0, const float &sf_dm1,
                      const float &sf_dm10, const float &sf_dm11);
-ROOT::RDF::RNode PtCorrection_genTau(
-    ROOT::RDF::RNode df, const std::string &corrected_pt, const std::string &pt,
-    const std::string &eta, const std::string &decayMode,
-    const std::string &genMatch, const std::string &sf_file,
-    const std::string &jsonESname, const std::string &idAlgorithm,
-    const std::string &DM0, const std::string &DM1, const std::string &DM10,
-    const std::string &DM11, const std::vector<int> &SelectedDMs);
+ROOT::RDF::RNode
+PtCorrection_genTau(ROOT::RDF::RNode df, const std::string &corrected_pt,
+                    const std::string &pt, const std::string &eta,
+                    const std::string &decayMode, const std::string &genMatch,
+                    const std::string &sf_file, const std::string &jsonESname,
+                    const std::string &idAlgorithm, const std::string &DM0,
+                    const std::string &DM1, const std::string &DM10,
+                    const std::string &DM11);
 } // namespace tau
 
 namespace electron {

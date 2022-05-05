@@ -318,6 +318,7 @@ ROOT::RDF::RNode CutTauID(ROOT::RDF::RNode df, const std::string &maskname,
 /// Function to correct e to tau fake pt
 ///
 /// \param[out] corrected_pt name of the corrected tau pt to be calculated
+/// \param[in] df the input dataframe
 /// \param[in] pt name of the raw tau pt
 /// \param[in] eta name of raw tau eta
 /// \param[in] decayMode decay mode of the tau
@@ -407,6 +408,7 @@ PtCorrection_eleFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
 /// Function to correct mu to tau fake pt
 ///
 /// \param[out] corrected_pt name of the corrected tau pt to be calculated
+/// \param[in] df the input dataframe
 /// \param[in] pt name of the raw tau pt
 /// \param[in] eta name of raw tau eta
 /// \param[in] decayMode decay mode of the tau
@@ -526,17 +528,18 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
 /// DM values: "nom","up","down"
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode PtCorrection_genTau(
-    ROOT::RDF::RNode df, const std::string &corrected_pt, const std::string &pt,
-    const std::string &eta, const std::string &decayMode,
-    const std::string &genMatch, const std::string &sf_file,
-    const std::string &jsonESname, const std::string &idAlgorithm,
-    const std::string &DM0, const std::string &DM1, const std::string &DM10,
-    const std::string &DM11, const std::vector<int> &SelectedDMs) {
+ROOT::RDF::RNode
+PtCorrection_genTau(ROOT::RDF::RNode df, const std::string &corrected_pt,
+                    const std::string &pt, const std::string &eta,
+                    const std::string &decayMode, const std::string &genMatch,
+                    const std::string &sf_file, const std::string &jsonESname,
+                    const std::string &idAlgorithm, const std::string &DM0,
+                    const std::string &DM1, const std::string &DM10,
+                    const std::string &DM11) {
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
     auto tau_pt_correction_lambda = [evaluator, idAlgorithm, DM0, DM1, DM10,
-                                     DM11, SelectedDMs](
+                                     DM11](
                                         const ROOT::RVec<float> &pt_values,
                                         const ROOT::RVec<float> &eta_values,
                                         const ROOT::RVec<int> &decay_modes,
