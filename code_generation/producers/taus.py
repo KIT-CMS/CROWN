@@ -69,7 +69,7 @@ TauPtCorrection_muFake = Producer(
 )
 TauPtCorrection_genTau = Producer(
     name="TauPtCorrection_genTau",
-    call='physicsobject::tau::PtCorrection_genTau({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_json_name}", "{tau_id_algorithm}", "{tau_ES_shift_DM0}", "{tau_ES_shift_DM1}", "{tau_ES_shift_DM10}", "{tau_ES_shift_DM11}", {vec_open}{tau_dms}{vec_close})',
+    call='physicsobject::tau::PtCorrection_genTau({df}, {output}, {input}, "{tau_sf_file}", "{tau_ES_json_name}", "{tau_id_algorithm}", "{tau_ES_shift_DM0}", "{tau_ES_shift_DM1}", "{tau_ES_shift_DM10}", "{tau_ES_shift_DM11}")',
     input=[
         q.Tau_pt_ele_mu_corrected,
         nanoAOD.Tau_eta,

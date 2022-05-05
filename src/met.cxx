@@ -344,7 +344,7 @@ is only needed for WJets samples)
  * @return a new dataframe containing the new met column
  */
 ROOT::RDF::RNode applyRecoilCorrections(
-    ROOT::RDF::RNode df, const std::string &met, const std::string &genmet,
+    ROOT::RDF::RNode df, const std::string &met, const std::string &genboson,
     const std::string &jet_pt, const std::string &outputname,
     const std::string &recoilfile, const std::string &systematicsfile,
     bool applyRecoilCorrections, bool resolution, bool response, bool shiftUp,
@@ -421,7 +421,8 @@ ROOT::RDF::RNode applyRecoilCorrections(
 
             return corrected_met;
         };
-        return df.Define(outputname, RecoilCorrections, {met, genmet, jet_pt});
+        return df.Define(outputname, RecoilCorrections,
+                         {met, genboson, jet_pt});
     } else {
         // if we do not apply the recoil corrections, just rename the met
         // column to the new outputname and dont change anything else
