@@ -32,8 +32,6 @@ Documentation
    :caption: Python Configuration
 
    py_configuration.rst
-   py_producers.rst
-   py_quantities.rst
    py_classes.rst
 
 .. toctree::
