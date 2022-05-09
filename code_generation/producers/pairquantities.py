@@ -93,6 +93,20 @@ muon_dxy_2 = Producer(
     output=[q.dxy_2],
     scopes=["em", "mm"],
 )
+muon_is_global_1 = Producer(
+    name="muon_is_global_1",
+    call="quantities::muon::is_global({df}, {output}, 0, {input})",
+    input=[q.ditaupair, nanoAOD.Muon_isGlobal],
+    output=[q.is_global_1],
+    scopes=["mt", "mm"],
+)
+muon_is_global_2 = Producer(
+    name="muon_is_global_2",
+    call="quantities::muon::is_global({df}, {output}, 1, {input})",
+    input=[q.ditaupair, nanoAOD.Muon_isGlobal],
+    output=[q.is_global_2],
+    scopes=["em", "mm"],
+)
 electron_dxy_1 = Producer(
     name="electron_dxy_1",
     call="quantities::dxy({df}, {output}, 0, {input})",
@@ -354,6 +368,7 @@ UnrollMuLV1 = ProducerGroup(
         muon_dz_1,
         muon_q_1,
         muon_iso_1,
+        muon_is_global_1,
     ],
 )
 UnrollMuLV2 = ProducerGroup(
@@ -371,6 +386,7 @@ UnrollMuLV2 = ProducerGroup(
         muon_dz_2,
         muon_q_2,
         muon_iso_2,
+        muon_is_global_2,
     ],
 )
 UnrollElLV1 = ProducerGroup(
