@@ -12,7 +12,7 @@ from code_generation.producer import (
     Producer,
     Filter,
     ProducerGroup,
-    TriggerVectorProducer,
+    ExtendedVectorProducer,
 )
 
 BaseMuons = ProducerGroup(
@@ -69,8 +69,8 @@ MMTagAndProbePairs = ProducerGroup(
         GoodMMPairFilter,
     ],
 )
-MMSingleMuonTriggerFlags_1 = TriggerVectorProducer(
-    name="MMGenerateSingleMuonTriggerFlags",
+MMSingleMuonTriggerFlags_1 = ExtendedVectorProducer(
+    name="MMGenerateSingleMuonTriggerFlags_1",
     call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
     input=[
         q.p4_1,
@@ -84,8 +84,8 @@ MMSingleMuonTriggerFlags_1 = TriggerVectorProducer(
     scope=["mm"],
     vec_config="singlemoun_trigger",
 )
-MMSingleMuonTriggerFlags_2 = TriggerVectorProducer(
-    name="MMGenerateSingleMuonTriggerFlags",
+MMSingleMuonTriggerFlags_2 = ExtendedVectorProducer(
+    name="MMGenerateSingleMuonTriggerFlags_2",
     call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
     input=[
         q.p4_2,
@@ -99,7 +99,7 @@ MMSingleMuonTriggerFlags_2 = TriggerVectorProducer(
     scope=["mm"],
     vec_config="singlemoun_trigger",
 )
-MMDoubleMuonTriggerFlags_1 = TriggerVectorProducer(
+MMDoubleMuonTriggerFlags_1 = ExtendedVectorProducer(
     name="MMDoubleMuonTriggerFlags_1",
     call='trigger::GenerateDoubleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {p1_ptcut}, {p2_ptcut}, {p1_etacut}, {p2_etacut}, {p1_trigger_particle_id}, {p2_trigger_particle_id}, {p1_filterbit}, {p2_filterbit}, {max_deltaR_triggermatch})',
     input=[
@@ -115,7 +115,7 @@ MMDoubleMuonTriggerFlags_1 = TriggerVectorProducer(
     scope=["mm"],
     vec_config="doublemuon_trigger",
 )
-MMDoubleMuonTriggerFlags_2 = TriggerVectorProducer(
+MMDoubleMuonTriggerFlags_2 = ExtendedVectorProducer(
     name="MMDoubleMuonTriggerFlags_2",
     call='trigger::GenerateDoubleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {p1_ptcut}, {p2_ptcut}, {p1_etacut}, {p2_etacut}, {p1_trigger_particle_id}, {p2_trigger_particle_id}, {p1_filterbit}, {p2_filterbit}, {max_deltaR_triggermatch})',
     input=[

@@ -70,6 +70,8 @@ taujet_pt_1 = Quantity("taujet_pt_1")
 taujet_pt_2 = Quantity("taujet_pt_2")
 gen_taujet_pt_1 = Quantity("gen_taujet_pt_1")
 gen_taujet_pt_2 = Quantity("gen_taujet_pt_2")
+is_global_1 = Quantity("is_global_1")
+is_global_2 = Quantity("is_global_2")
 
 # Combined event quantities
 m_vis = Quantity("m_vis")
