@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict, List, Union, Tuple
 import os
 import filecmp
-from git import Repo, InvalidGitRepositoryError
+from git import Repo, InvalidGitRepositoryError, NoSuchPathError
 
 from code_generation.producer import SafeDict, Producer, ProducerGroup
 
@@ -217,7 +217,7 @@ class CodeGenerator(object):
             repo = Repo("../../CROWN")
             self.commit_hash = repo.head.commit
             self.setup_is_clean = "false" if repo.is_dirty() else "true"
-        except (ValueError, InvalidGitRepositoryError):
+        except (ValueError, InvalidGitRepositoryError, NoSuchPathError):
             self.commit_hash = "undefined"
             self.setup_is_clean = "false"
         log.info("Code generator initialized")
