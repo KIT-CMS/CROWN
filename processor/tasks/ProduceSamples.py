@@ -1,4 +1,3 @@
-import law
 import luigi
 import yaml
 from CROWNRun import CROWNRun
@@ -18,9 +17,14 @@ class ProduceSamples(Task):
 
     def requires(self):
         # load the list of samples to be processed
+        data = {}
+        data["sampletypes"] = set()
+        data["eras"] = set()
+        data["details"] = {}
         with open(self.sample_list) as file:
             samples = [nick.replace("\n", "") for nick in file.readlines()]
         for nick in samples:
+            data["details"][nick] = {}
             # check if sample exists in datasets.yaml
             with open(self.dataset_database, "r") as stream:
                 sample_db = yaml.safe_load(stream)
@@ -30,9 +34,20 @@ class ProduceSamples(Task):
                 )
                 raise Exception("Sample not found in DB")
             sample_data = sample_db[nick]
-            era = str(sample_data["era"])
-            sampletype = sample_data["sample_type"]
-            yield CROWNRun.req(self, nick=nick, era=era, sampletype=sampletype)
+            data["details"][nick]["era"] = str(sample_data["era"])
+            data["details"][nick]["sampletype"] = sample_data["sample_type"]
+            # all samplestypes and eras are added to a list, used to built the CROWN executable
+            data["eras"].add(data["details"][nick]["era"])
+            data["sampletypes"].add(data["details"][nick]["sampletype"])
+        for nick in data["details"]:
+            yield CROWNRun.req(
+                self,
+                nick=nick,
+                era=data["details"][nick]["era"],
+                sampletype=data["details"][nick]["sampletype"],
+                eras=data["eras"],
+                sampletypes=data["sampletypes"],
+            )
 
     def run(self):
         pass

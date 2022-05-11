@@ -76,7 +76,7 @@ class HTCondorJobManager(law.htcondor.HTCondorJobManager):
     )
 
     # def get_htcondor_version(cls):
-        # return (9, 6, 0)
+    # return (9, 6, 0)
     #     return (8, 6, 5)
 
 
@@ -97,8 +97,8 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
     wlcg_path = luigi.Parameter()
     bootstrap_file = luigi.Parameter()
     replace_processor_tar = luigi.BoolParameter(default=False)
-    
-    #Use proxy file located in $X509_USER_PROXY or /tmp/x509up_u$(id) if empty
+
+    # Use proxy file located in $X509_USER_PROXY or /tmp/x509up_u$(id) if empty
     htcondor_user_proxy = law.wlcg.get_voms_proxy_file()
 
     # output_collection_cls = law.SiblingFileCollection
@@ -108,10 +108,12 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         return HTCondorJobManager(**kwargs)
 
     def htcondor_output_directory(self):
-        #Expand path to account for use of env variables (like $USER)
+        # Expand path to account for use of env variables (like $USER)
         return law.wlcg.WLCGDirectoryTarget(
             self.remote_path(),
-            law.wlcg.WLCGFileSystem(None, base="{}".format(os.path.expandvars(self.wlcg_path))),
+            law.wlcg.WLCGFileSystem(
+                None, base="{}".format(os.path.expandvars(self.wlcg_path))
+            ),
         )
 
     def htcondor_create_job_file_factory(self):
@@ -125,12 +127,13 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
 
     def htcondor_job_config(self, config, job_num, branches):
         analysis_name = os.getenv("ANA_NAME")
-        #Check if env in config file is still the same as during the setup
-        #TODO: is this assertion always intended?
-        assert self.ENV_NAME==os.getenv("ENV_NAME"), \
-            "Environment of the config file ({}) is not the same as during the setup ({}).".format(
-                self.ENV_NAME, os.getenv("ENV_NAME")
-            )
+        # Check if env in config file is still the same as during the setup
+        # TODO: is this assertion always intended?
+        assert self.ENV_NAME == os.getenv(
+            "ENV_NAME"
+        ), "Environment of the config file ({}) is not the same as during the setup ({}).".format(
+            self.ENV_NAME, os.getenv("ENV_NAME")
+        )
         config.custom_content = []
         config.custom_content.append(
             ("accounting_group", self.htcondor_accounting_group)
@@ -143,8 +146,8 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         config.custom_content.append(("+RequestWalltime", self.htcondor_walltime))
         config.custom_content.append(("x509userproxy", self.htcondor_user_proxy))
         config.custom_content.append(("request_cpus", self.htcondor_request_cpus))
-        #Only include "request_gpus" if any are requested, as nodes with GPU are otherwise excluded
-        if (float(self.htcondor_request_gpus) > 0):
+        # Only include "request_gpus" if any are requested, as nodes with GPU are otherwise excluded
+        if float(self.htcondor_request_gpus) > 0:
             config.custom_content.append(("request_gpus", self.htcondor_request_gpus))
         config.custom_content.append(("RequestMemory", self.htcondor_request_memory))
         config.custom_content.append(("RequestDisk", self.htcondor_request_disk))
@@ -152,13 +155,17 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         prevdir = os.getcwd()
         os.system("cd $ANALYSIS_PATH")
         tarball = law.wlcg.WLCGFileTarget(
-            path=self.remote_path("job_tarball/{}_processor.tar.gz".format(analysis_name))
+            path=self.remote_path(
+                "job_tarball/{}_processor.tar.gz".format(analysis_name)
+            )
         )
         if not os.path.exists("tarballs"):
             os.makedirs("tarballs")
-        #TODO: how to determine if cfgs/tasks were changed and new tarball is necessary
-        if (not os.path.isfile("tarballs/{}_processor.tar.gz".format(analysis_name))
-            or self.replace_processor_tar):
+        # TODO: how to determine if cfgs/tasks were changed and new tarball is necessary
+        if (
+            not os.path.isfile("tarballs/{}_processor.tar.gz".format(analysis_name))
+            or self.replace_processor_tar
+        ):
             command = [
                 "tar",
                 "--exclude",
@@ -172,7 +179,6 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
             ]
             code, out, error = interruptable_popen(
                 command,
-                rich_console=console,
                 stdout=PIPE,
                 stderr=PIPE,
             )
@@ -185,25 +191,35 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
                 raise Exception("tar failed")
             else:
                 console.rule("Successful tar!")
+            console.rule("Uploading tarball to {}".format(tarball.path))
             tarball.parent.touch()
-            tarball.copy_from_local(src="tarballs/{}_processor.tar.gz".format(analysis_name))
-        #Check if env was found in cvmfs
-        env_is_in_cvmfs=os.getenv("CVMFS_ENV_PRESENT")
-        if env_is_in_cvmfs=="False": 
+            tarball.copy_from_local(
+                src="tarballs/{}_processor.tar.gz".format(analysis_name)
+            )
+            console.rule("Tarball uploaded!")
+        # Check if env was found in cvmfs
+        env_is_in_cvmfs = os.getenv("CVMFS_ENV_PRESENT")
+        if env_is_in_cvmfs == "False":
             tarball_env = law.wlcg.WLCGFileTarget(
                 path=self.remote_path("job_tarball/{}_env.tar.gz".format(self.ENV_NAME))
             )
             tarball_env.parent.touch()
-            tarball_env.copy_from_local(src="tarballs/{}_env.tar.gz".format(self.ENV_NAME))
+            tarball_env.copy_from_local(
+                src="tarballs/{}_env.tar.gz".format(self.ENV_NAME)
+            )
         os.chdir(prevdir)
-        #Make string with all environmental variables given to the job
+        # Make string with all environmental variables given to the job
         environment_string = ""
         environment_string += "ENV_NAME={} ".format(self.ENV_NAME)
         environment_string += "ANA_NAME={} ".format(os.getenv("ANA_NAME"))
         environment_string += "USER={} ".format(os.getenv("USER"))
-        environment_string += "TARBALL_PATH={} ".format(os.path.expandvars(self.wlcg_path) + tarball.path)
-        #Include path to env tarball if env not in cvmfs
-        if env_is_in_cvmfs=="False": 
-            environment_string += "TARBALL_ENV_PATH={} ".format(os.path.expandvars(self.wlcg_path) + tarball_env.path)
-        config.custom_content.append(("environment", "\"" + environment_string + "\""))
+        environment_string += "TARBALL_PATH={} ".format(
+            os.path.expandvars(self.wlcg_path) + tarball.path
+        )
+        # Include path to env tarball if env not in cvmfs
+        if env_is_in_cvmfs == "False":
+            environment_string += "TARBALL_ENV_PATH={} ".format(
+                os.path.expandvars(self.wlcg_path) + tarball_env.path
+            )
+        config.custom_content.append(("environment", '"' + environment_string + '"'))
         return config

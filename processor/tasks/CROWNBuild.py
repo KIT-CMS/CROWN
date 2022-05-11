@@ -1,8 +1,6 @@
-from platform import processor
-import law
 import luigi
 import os
-from subprocess import PIPE
+import subprocess
 from law.util import interruptable_popen
 from framework import Task
 from framework import console
@@ -18,8 +16,8 @@ class CROWNBuild(Task):
     shifts = luigi.Parameter()
     build_dir = luigi.Parameter()
     install_dir = luigi.Parameter()
-    era = luigi.Parameter()
-    sampletype = luigi.Parameter()
+    eras = luigi.ListParameter()
+    sampletypes = luigi.ListParameter()
     analysis = luigi.Parameter()
     production_tag = luigi.Parameter()
 
@@ -29,9 +27,7 @@ class CROWNBuild(Task):
 
     def output(self):
         target = self.remote_target(
-            "{}/crown_{}_{}_{}.tar.gz".format(
-                self.production_tag, self.analysis, self.era, self.sampletype
-            )
+            "{}/crown_{}.tar.gz".format(self.production_tag, self.analysis)
         )
         target.parent.touch()
         return target
@@ -40,12 +36,19 @@ class CROWNBuild(Task):
         # get output file path
         output = self.output()
         output.parent.touch()
-        _sampletype = str(self.sampletype)
-        _era = str(self.era)
+        # convert list to comma separated strings
+        if len(self.sampletypes) == 1:
+            _sampletypes = self.sampletypes[0]
+        else:
+            _sampletypes = ",".join(self.sampletypes)
+        if len(self.eras) == 1:
+            _eras = self.eras[0]
+        else:
+            _eras = ",".join(self.eras)
         _scopes = ",".join(self.scopes)
         _analysis = str(self.analysis)
         _shifts = str(self.shifts)
-        _tag = "{}_{}".format(_era, _sampletype)
+        _tag = "CROWN_{}".format(_analysis)
         _install_dir = os.path.join(str(self.install_dir), _tag)
         _build_dir = os.path.join(str(self.build_dir), _tag)
         _crown_path = os.path.abspath("CROWN")
@@ -77,7 +80,10 @@ class CROWNBuild(Task):
 
             # checking cmake path
             code, _cmake_executable, error = interruptable_popen(
-                ["which", "cmake"], stdout=PIPE, stderr=PIPE, env=my_env
+                ["which", "cmake"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=my_env,
             )
             # actual payload:
             console.rule("Starting cmake step for CROWN")
@@ -87,8 +93,8 @@ class CROWNBuild(Task):
             console.log("Using install directory {}".format(_install_dir))
             console.log("Settings used: ")
             console.log("Analysis: {}".format(_analysis))
-            console.log("Sampletype: {}".format(_sampletype))
-            console.log("Era: {}".format(_era))
+            console.log("Sampletype: {}".format(_sampletypes))
+            console.log("Era: {}".format(_eras))
             console.log("Channels: {}".format(_scopes))
             console.log("Shifts: {}".format(_shifts))
             console.rule("")
@@ -99,27 +105,39 @@ class CROWNBuild(Task):
                 _compile_script,
                 _crown_path,  # CROWNFOLDER=$1
                 _analysis,  # ANALYSIS=$2
-                _sampletype,  # SAMPLES=$3
-                _era,  # ERAS=$4
+                _sampletypes,  # SAMPLES=$3
+                _eras,  # ERAS=$4
                 _scopes,  # SCOPES=$5
                 _shifts,  # SHIFTS=$6
                 _install_dir,  # INSTALLDIR=$7
                 _build_dir,  # BUILDDIR=$8
                 output.basename,  # TARBALLNAME=$9
             ]
-            code, out, error = interruptable_popen(
+            with subprocess.Popen(
                 command,
-                rich_console=console,
-                stdout=PIPE,
-                stderr=PIPE,
-            )
-            if code != 0:
-                console.log("Error when building crown {}".format(error))
-                console.log("Output: {}".format(out))
-                console.log("tar returned non-zero exit status {}".format(code))
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                bufsize=1,
+                universal_newlines=True,
+            ) as p:
+                for line in p.stdout:
+                    if line != "\n":
+                        console.log(line.replace("\n", ""))
+
+            if p.returncode != 0:
+                console.log("Error when building crown {}".format(command))
+                console.log("Output: {}".format(p.stderr))
+                console.log(
+                    "building returned non-zero exit status {}".format(p.returncode)
+                )
                 console.rule()
                 raise Exception("crown build failed")
             else:
                 console.rule("Successful crown build ! ")
+            console.log(
+                "Copying from local: {}".format(
+                    os.path.join(_install_dir, output.basename)
+                )
+            )
             output.copy_from_local(os.path.join(_install_dir, output.basename))
         console.rule("Finished CROWNRun")

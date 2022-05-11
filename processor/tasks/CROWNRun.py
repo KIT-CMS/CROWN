@@ -4,8 +4,7 @@ import os
 from CROWNBuild import CROWNBuild
 import tarfile
 from ConfigureDatasets import ConfigureDatasets
-from subprocess import PIPE
-from law.util import interruptable_popen
+import subprocess
 import time
 from framework import console
 
@@ -28,7 +27,9 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     nick = luigi.Parameter()
     scopes = luigi.ListParameter()
     sampletype = luigi.Parameter()
+    sampletypes = luigi.ListParameter()
     era = luigi.Parameter()
+    eras = luigi.ListParameter()
     analysis = luigi.Parameter()
     production_tag = luigi.Parameter()
     files_per_task = luigi.IntParameter(default=1)
@@ -114,22 +115,31 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
         console.log("inputfile {}".format(_inputfiles))
         console.log("outputfile {}".format(_outputfile))
         console.log("workdir {}".format(_workdir))  # run CROWN
-        code, out, error = interruptable_popen(
+        with subprocess.Popen(
             [_executable] + _crown_args,
-            stdout=PIPE,
-            stderr=PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            bufsize=1,
+            universal_newlines=True,
             env=my_env,
             cwd=_workdir,
-            rich_console=console,
-        )
-        if code != 0:
-            console.log("Error when running crown {}".format(error))
-            console.log("Output: {}".format(out))
-            console.log("crown returned non-zero exit status {}".format(code))
+        ) as p:
+            for line in p.stdout:
+                if line != "\n":
+                    console.log(line.replace("\n", ""))
+
+        if p.returncode != 0:
+            console.log(
+                "Error when running crown {}".format(
+                    [_executable] + _crown_args,
+                )
+            )
+            console.log("Output: {}".format(p.stderr))
+            console.log("crown returned non-zero exit status {}".format(p.returncode))
             raise Exception("crown failed")
         else:
             console.log("Successful")
-            console.log("Output: {}".format(out))
+            console.log("Output: {}".format(p.stdout))
         console.log("Output files afterwards: {}".format(os.listdir(_workdir)))
         for i, outputfile in enumerate(output):
             # for each outputfile, add the scope suffix

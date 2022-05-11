@@ -1,4 +1,3 @@
-import law
 import luigi
 import os
 import json
