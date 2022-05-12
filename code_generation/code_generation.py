@@ -235,16 +235,23 @@ class CodeGenerator(object):
             None
         """
         # start with the global scope
+
         for subfolder in ["src", "include"]:
             for scope in self.scopes:
                 if not os.path.exists(
                     os.path.join(
-                        self.executable_name + "_generated_code", subfolder, scope
+                        self.output_folder,
+                        self.executable_name + "_generated_code",
+                        subfolder,
+                        scope,
                     )
                 ):
                     os.makedirs(
                         os.path.join(
-                            self.executable_name + "_generated_code", subfolder, scope
+                            self.output_folder,
+                            self.executable_name + "_generated_code",
+                            subfolder,
+                            scope,
                         )
                     )
         # self.generate_subsets(self.global_scope)
