@@ -8,6 +8,13 @@ action(){
         [ ! -z "$1" ] && export PATH="$1:${PATH}" && echo "Add $1 to PATH"
     }
 
+    echo "------------------------------------------"
+    echo " | HOSTNAME = $(hostname)"
+    echo " | ANA_NAME = ${ANA_NAME}"
+    echo " | ENV_NAME = ${ENV_NAME}"
+    echo " | TARBALL_PATH = ${TARBALL_PATH}"
+    echo "------------------------------------------"
+
     # Setup variables
     SPAWNPOINT=$(pwd)
 
@@ -22,10 +29,7 @@ action(){
 
     # on ETP ressources, this is not needed, since we can use a docker image containing the conda environment
     # on other systems, these changes here might be needed
-    echo "------------------------------------------"
-    echo " | ANA_NAME = ${ANA_NAME}"
-    echo " | ENV_NAME = ${ENV_NAME}"
-    echo " | TARBALL_PATH = ${TARBALL_PATH}"
+
     if [[ ! -z "${ENV_FROM_TAR}" ]]; then
         ENV_PATH=${SPAWNPOINT}/miniconda/envs/${ENV_NAME}
         echo " | ENV_PATH = $ENV_PATH"
@@ -34,7 +38,6 @@ action(){
         ENV_PATH=/cvmfs/etp.kit.edu/LAW_envs/${ENV_NAME}
         echo " | ENV_PATH = ${ENV_PATH}"
     fi
-    echo "------------------------------------------"
 
     # copy and untar process (and environment if necessary) 
     if [[ -z "${ENV_FROM_TAR}" ]]; then
