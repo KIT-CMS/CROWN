@@ -47,9 +47,6 @@ def build_config(
     configuration.add_config_parameters(
         "global",
         {
-            "RunLumiEventFilter_Quantities": ["event", "luminosityBlock"],
-            "RunLumiEventFilter_Quantity_Types": ["ULong64_t", "UInt_t"],
-            "RunLumiEventFilter_Selections": ["3", "318"],
             "PU_reweighting_file": EraModifier(
                 {
                     "2016": "data/pileup/Data_Pileup_2016_271036-284044_13TeVMoriond17_23Sep2016ReReco_69p2mbMinBiasXS.root",
@@ -115,33 +112,7 @@ def build_config(
             "muon_iso_cut": 0.3,
         },
     )
-    # leptonveto base selection:
-    configuration.add_config_parameters(
-        "global",
-        {
-            "min_dielectronveto_pt": 15.0,
-            "dielectronveto_id": "Electron_cutBased",
-            "dielectronveto_id_wp": 1,
-            "min_dimuonveto_pt": 15.0,
-            "dimuonveto_id": "Muon_looseId",
-            "dileptonveto_dR": 0.15,
-        },
-    )
-
-    # electron base selection:
-    configuration.add_config_parameters(
-        "global",
-        {
-            "min_ele_pt": 10.0,
-            "max_ele_eta": 2.5,
-            "max_ele_dxy": 0.045,
-            "max_ele_dz": 0.2,
-            "max_ele_iso": 0.3,
-            "ele_id": "Electron_mvaFall17V2noIso_WP90",
-        },
-    )
-
-    # MT/MM scope Muon selection
+    # MM scope Muon selection
     configuration.add_config_parameters(
         ["mm"],
         {
@@ -153,7 +124,7 @@ def build_config(
     )
     # Muon scale factors configuration
     configuration.add_config_parameters(
-        ["mt", "mm", "em"],
+        ["mm"],
         {
             "muon_sf_file": EraModifier(
                 {
@@ -184,20 +155,6 @@ def build_config(
             "second_muon_index_in_pair": 1,
         },
     )
-    # EM scope selection
-    configuration.add_config_parameters(
-        ["em"],
-        {
-            "electron_index_in_pair": 0,
-            "min_electron_pt": 25.0,
-            "max_electron_eta": 2.1,
-            "electron_iso_cut": 0.3,
-            "muon_index_in_pair": 1,
-            "min_muon_pt": 23.0,
-            "max_muon_eta": 2.1,
-            "muon_iso_cut": 0.15,
-        },
-    )
 
     ## all scopes misc settings
     configuration.add_config_parameters(
@@ -211,14 +168,12 @@ def build_config(
     configuration.add_producers(
         "global",
         [
-            # event.RunLumiEventFilter,
             event.SampleFlags,
             event.npartons,
             event.PUweights,
             event.Lumi,
             event.MetFilter,
             muons.BaseMuons,
-            electrons.BaseElectrons,
         ],
     )
     configuration.add_producers(
@@ -231,31 +186,12 @@ def build_config(
             pairselection.LVMu1,
             pairselection.LVMu2,
             pairquantities.MMDiTauPairQuantities,
-        ],
-    )
-    configuration.add_producers(
-        "em",
-        [
-            electrons.GoodElectrons,
-            electrons.NumberOfGoodElectrons,
-            electrons.VetoElectrons,
-            electrons.ExtraElectronsVeto,
-            muons.GoodMuons,
-            muons.NumberOfGoodMuons,
-            muons.VetoMuons,
-            muons.ExtraMuonsVeto,
-            pairselection.EMPairSelection,
-            pairselection.GoodEMPairFilter,
-            pairselection.LVEl1,
-            pairselection.LVMu2,
-            pairselection.LVEl1Uncorrected,
-            pairselection.LVMu2Uncorrected,
-            pairquantities.EMDiTauPairQuantities,
+            genparticles.MMGenDiTauPairQuantities,
         ],
     )
 
     configuration.add_outputs(
-        scopes,
+        "mm",
         [
             q.is_data,
             q.is_emb,
@@ -276,7 +212,27 @@ def build_config(
             q.eta_2,
             q.phi_1,
             q.phi_2,
+            q.m_vis,
+            q.gen_pt_1,
+            q.gen_eta_1,
+            q.gen_phi_1,
+            q.gen_mass_1,
+            q.gen_pdgid_1,
+            q.gen_pt_2,
+            q.gen_eta_2,
+            q.gen_phi_2,
+            q.gen_mass_2,
+            q.gen_pdgid_2,
+            q.gen_m_vis,
         ],
+    )
+
+    configuration.add_modification_rule(
+        "mm",
+        RemoveProducer(
+            producers=[genparticles.MMGenDiTauPairQuantities],
+            samples=["data"],
+        ),
     )
 
     #########################
