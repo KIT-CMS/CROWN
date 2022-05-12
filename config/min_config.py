@@ -117,6 +117,7 @@ def build_config(
         ["mm"],
         {
             "muon_index_in_pair": 0,
+            "second_muon_index_in_pair": 1,
             "min_muon_pt": 23.0,
             "max_muon_eta": 2.1,
             "muon_iso_cut": 0.15,
@@ -143,16 +144,6 @@ def build_config(
                 }
             ),
             "muon_sf_varation": "sf",  # "sf" is nominal, "systup"/"systdown" are up/down variations
-        },
-    )
-
-    configuration.add_config_parameters(
-        ["mm"],
-        {
-            "min_muon_pt": 20.0,
-            "max_muon_eta": 2.1,
-            "muon_iso_cut": 0.15,
-            "second_muon_index_in_pair": 1,
         },
     )
 
@@ -187,6 +178,7 @@ def build_config(
             pairselection.LVMu2,
             pairquantities.MMDiTauPairQuantities,
             genparticles.MMGenDiTauPairQuantities,
+            scalefactors.MuonIDIso_SF,
         ],
     )
 
@@ -224,15 +216,47 @@ def build_config(
             q.gen_mass_2,
             q.gen_pdgid_2,
             q.gen_m_vis,
+            q.id_wgt_mu_1,
+            q.id_wgt_mu_2,
+            q.iso_wgt_mu_1,
+            q.iso_wgt_mu_2,
         ],
     )
 
     configuration.add_modification_rule(
         "mm",
         RemoveProducer(
-            producers=[genparticles.MMGenDiTauPairQuantities],
+            producers=[
+                genparticles.MMGenDiTauPairQuantities,
+                scalefactors.MuonIDIso_SF,
+            ],
             samples=["data"],
         ),
+    )
+
+    configuration.add_shift(
+        SystematicShift(
+            name="MuonIDUp",
+            shift_config={"mm": {"muon_sf_varation": "systup"}},
+            producers={
+                "mm": [
+                    scalefactors.Muon_1_ID_SF,
+                    scalefactors.Muon_2_ID_SF,
+                ]
+            },
+        )
+    )
+    configuration.add_shift(
+        SystematicShift(
+            name="MuonIDDown",
+            shift_config={"mm": {"muon_sf_varation": "systdown"}},
+            producers={
+                "mm": [
+                    scalefactors.Muon_1_ID_SF,
+                    scalefactors.Muon_2_ID_SF,
+                ]
+            },
+        )
     )
 
     #########################
