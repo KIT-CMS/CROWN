@@ -83,6 +83,7 @@ class HTCondorJobManager(law.htcondor.HTCondorJobManager):
 class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
 
     ENV_NAME = luigi.Parameter()
+    production_tag = luigi.Parameter()
     htcondor_accounting_group = luigi.Parameter()
     htcondor_requirements = luigi.Parameter()
     htcondor_remote_job = luigi.Parameter()
@@ -156,14 +157,20 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         os.system("cd $ANALYSIS_PATH")
         tarball = law.wlcg.WLCGFileTarget(
             path=self.remote_path(
-                "job_tarball/{}_processor.tar.gz".format(analysis_name)
+                "job_tarball/{}/{}_processor.tar.gz".format(
+                    self.production_tag, analysis_name
+                )
             )
         )
-        if not os.path.exists("tarballs"):
-            os.makedirs("tarballs")
+        if not os.path.exists("tarballs/{}".format(self.production_tag)):
+            os.makedirs("tarballs/{}".format(self.production_tag))
         # TODO: how to determine if cfgs/tasks were changed and new tarball is necessary
         if (
-            not os.path.isfile("tarballs/{}_processor.tar.gz".format(analysis_name))
+            not os.path.isfile(
+                "tarballs/{}/{}_processor.tar.gz".format(
+                    self.production_tag, analysis_name
+                )
+            )
             or self.replace_processor_tar
         ):
             command = [
@@ -171,7 +178,9 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
                 "--exclude",
                 "*.pyc",
                 "-czf",
-                "tarballs/{}_processor.tar.gz".format(analysis_name),
+                "tarballs/{}/{}_processor.tar.gz".format(
+                    self.production_tag, analysis_name
+                ),
                 "processor",
                 "lawluigi_configs/{}_luigi.cfg".format(analysis_name),
                 "lawluigi_configs/{}_law.cfg".format(analysis_name),
@@ -187,14 +196,20 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
                 console.log("Output: {}".format(out))
                 console.log("tar returned non-zero exit status {}".format(code))
                 console.rule()
-                os.remove("tarballs/{}_processor.tar.gz".format(analysis_name))
+                os.remove(
+                    "tarballs/{}/{}_processor.tar.gz".format(
+                        self.production_tag, analysis_name
+                    )
+                )
                 raise Exception("tar failed")
             else:
                 console.rule("Successful tar!")
             console.rule("Uploading tarball to {}".format(tarball.path))
             tarball.parent.touch()
             tarball.copy_from_local(
-                src="tarballs/{}_processor.tar.gz".format(analysis_name)
+                src="tarballs/{}/{}_processor.tar.gz".format(
+                    self.production_tag, analysis_name
+                )
             )
             console.rule("Tarball uploaded!")
         # Check if env was found in cvmfs

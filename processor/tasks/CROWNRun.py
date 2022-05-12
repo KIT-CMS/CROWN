@@ -34,6 +34,12 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     production_tag = luigi.Parameter()
     files_per_task = luigi.IntParameter(default=1)
 
+    def modify_polling_status_line(self, status_line):
+        """
+        Hook to modify the status line that is printed during polling.
+        """
+        return f"{status_line} - {law.util.colored(self.nick, color='light_cyan')}"
+
     def workflow_requires(self):
         requirements = super(CROWNRun, self).workflow_requires()
         requirements["datasetinfo"] = ConfigureDatasets.req(self)
@@ -127,19 +133,19 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
             for line in p.stdout:
                 if line != "\n":
                     console.log(line.replace("\n", ""))
-
+            for line in p.stderr:
+                if line != "\n":
+                    console.log("Error: {}".format(line.replace('\n', '')))
         if p.returncode != 0:
             console.log(
                 "Error when running crown {}".format(
                     [_executable] + _crown_args,
                 )
             )
-            console.log("Output: {}".format(p.stderr))
             console.log("crown returned non-zero exit status {}".format(p.returncode))
             raise Exception("crown failed")
         else:
             console.log("Successful")
-            console.log("Output: {}".format(p.stdout))
         console.log("Output files afterwards: {}".format(os.listdir(_workdir)))
         for i, outputfile in enumerate(output):
             # for each outputfile, add the scope suffix

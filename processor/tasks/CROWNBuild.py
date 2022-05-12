@@ -26,16 +26,13 @@ class CROWNBuild(Task):
     )
 
     def output(self):
-        target = self.remote_target(
-            "{}/crown_{}.tar.gz".format(self.production_tag, self.analysis)
+        target = self.remote_target("crown_{}_{}.tar.gz".format(self.analysis, self.production_tag)
         )
-        target.parent.touch()
         return target
 
     def run(self):
         # get output file path
         output = self.output()
-        output.parent.touch()
         # convert list to comma separated strings
         if len(self.sampletypes) == 1:
             _sampletypes = self.sampletypes[0]
@@ -48,7 +45,7 @@ class CROWNBuild(Task):
         _scopes = ",".join(self.scopes)
         _analysis = str(self.analysis)
         _shifts = str(self.shifts)
-        _tag = "CROWN_{}".format(_analysis)
+        _tag = "{}/CROWN_{}".format(self.production_tag, _analysis)
         _install_dir = os.path.join(str(self.install_dir), _tag)
         _build_dir = os.path.join(str(self.build_dir), _tag)
         _crown_path = os.path.abspath("CROWN")
@@ -139,5 +136,7 @@ class CROWNBuild(Task):
                     os.path.join(_install_dir, output.basename)
                 )
             )
+            output.parent.touch()
+            console.log("Copying to remote: {}".format(output.path))
             output.copy_from_local(os.path.join(_install_dir, output.basename))
         console.rule("Finished CROWNRun")
