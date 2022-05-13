@@ -1072,7 +1072,7 @@ auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
  * @param df the input dataframe
  * @param input_vector vector of strings containing the columns
  * needed for the alogrithm. For the muon pair selection the required
- paramters are:
+ parameters are:
     - muon_pt
     - muon_eta
     - muon_phi
@@ -1100,7 +1100,7 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
  *
  * @param df the input dataframe
  * @param input_vector . For the Z boson muon pair selection the required
- paramters are:
+ parameters are:
     - muon_pt
     - muon_eta
     - muon_phi
