@@ -6,7 +6,7 @@ Writing a new producer requires two main parts, adding the :ref:`C++ function<Wr
 If the C++ function is written general enough, it can be used in multiple producers, and multiple puropses in the end.
 For example the producer generating the pt_1 quantity can be used regardless of what particle is being considered.
 
-In the following, an introduction on how to add a new producer is given. As an exmple, we will add a new producer, which can be used to calculate the lorentz vectors of particles, in our case electrons. For simlicity, we only want to calculate one single lorentz vector for a given index. First, we will do the C++ implementation of the function followed by the python definition. Keep in mind, that those two parts are connected.
+In the following, an introduction on how to add a new producer is given. As an exmple, we will add a new producer, which can be used to calculate the Lorentz vectors of particles, in our case electrons. For simlicity, we only want to calculate one single Lorentz vector for a given index. First, we will do the C++ implementation of the function followed by the python definition. Keep in mind, that those two parts are connected.
 
 Writing a new C++ function
 ============================
@@ -61,7 +61,7 @@ In our example, the lambda function is straight forward. We use our input values
         return df.Define(outputname, build_vector, {pts, etas, phis, masses});
     };
 
-We define the lambda function with the type ``auto`` and pass it all our input columns. Since this is now the event-by-event part, we have to specify the correct type of the columns. In our case, since we take the quantities directly from the NanoAOD file, they all have the type ``ROOT::RVec<float>``. For the actual implementation, we can simply define a new object with type ``ROOT::Math::PtEtaPhiMVector`` and the ``ROOT`` backend will do the rest. Since we only want to get the lorentzvector for a single electron, we can use ``pts.at(index, -10.)`` to select the correct ``float`` value. If this value cannot be found, e.g. when there is no electron within the event, the default value ``-10`` is used. After adding this implemention, our function is complete and should look like this:
+We define the lambda function with the type ``auto`` and pass it all our input columns. Since this is now the event-by-event part, we have to specify the correct type of the columns. In our case, since we take the quantities directly from the NanoAOD file, they all have the type ``ROOT::RVec<float>``. For the actual implementation, we can simply define a new object with type ``ROOT::Math::PtEtaPhiMVector`` and the ``ROOT`` backend will do the rest. Since we only want to get the Lorentz vector for a single electron, we can use ``pts.at(index, -10.)`` to select the correct ``float`` value. If this value cannot be found, e.g. when there is no electron within the event, the default value ``-10`` is used. After adding this implemention, our function is complete and should look like this:
 
 .. code-block:: cpp
 
@@ -130,7 +130,7 @@ We set the name of the Producer to be ``ElectronLV``. The call corresponds to th
     )
 
 
-The last keyword ``scopes`` is used to specify the scopes in which the producer is available. This makes sence in order to prevent errors, where the producer is used in a scope that is not specified, e.g. in a final state without any electrons, we would not need to run this producer. Note that the output of this producer is of type ``ROOT::Math::PtEtaPhiMVector`` so it always makes sence to represent that in the name of the quantity in some way for easier understanding.
+The last keyword ``scopes`` is used to specify the scopes in which the producer is available. This makes sense in order to prevent errors, where the producer is used in a scope that is not specified, e.g. in a final state without any electrons, we would not need to run this producer. Note that the output of this producer is of type ``ROOT::Math::PtEtaPhiMVector``, so it always makes sense to represent that in the name of the quantity in some way for easier understanding.
 
 .. warning::
     The definition of the producer should be put into a corresponding file in the ``code_generation/producers`` directory.
@@ -189,7 +189,7 @@ The main purpose of the framework is to be efficient and fast. Therefore, it is 
 
 * Check the performance using the methods described below. Try to avoid adding functions that will be "fixed later down the line". This will be the beginning of the end of the frameworks' performance.
 
-* The return type of a new CROWN function should always be ``ROOT::RDF::RNode``
+* The return ``type`` of a new CROWN function should always be ``ROOT::RDF::RNode``
 
 * The first argument of the function should always be the dataframe, again with the type ``ROOT::RDF::RNode``.
 
@@ -216,7 +216,7 @@ There are different types of producers available
 
   - ``<list of quantities> inputs``: input quantities, which are used to fill ``{input}`` and/or ``{input_vec}``. List can be empty if no inputs are required.
   - ``<list of quantities> outputs / None``: is used to fill ``{output}`` (not usable if None). Use None (not empty list) if no output is generated.
-  - ``<list of strings> scopes``: Scopes define certain sections of the production chain. ``global`` is the initial scope and it can be split into multiple custom scopes
+  - ``<list of strings> scopes``: Scopes define certain sections of the production chain. ``global`` is the initial scope, and it can be split into multiple custom scopes
     working on individual dataframe branches and writing out separate ROOT trees. This list of scopes defines, in which scopes the producer can be used.
     Dependencies between quantities will be traced separately for each scope. For example properties of the tau candidates may be generated with the same producer
     but in different decay channels, which are represented by separate scopes.
@@ -252,7 +252,7 @@ The output collection is defined as a list of such quantities and an individual 
 Debugging
 **********
 
-A more verbose version of the framework can be activated by setting a higher debug level. This can be done by setting the argument ``-DDebug=True`` during the cmake build. This will make both the code generation as well as the exetutable much more verbose.
+A more verbose version of the framework can be activated by setting a higher debug level. This can be done by setting the argument ``-DDebug=True`` during the cmake build. This will make the code generation, as well as the exetutable much more verbose.
 
 Profiling
 **********
