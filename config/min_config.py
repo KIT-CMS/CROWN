@@ -224,9 +224,7 @@ def build_config(
     configuration.add_modification_rule(
         "global",
         RemoveProducer(
-            producers=[
-                event.PUweights
-            ],
+            producers=[event.PUweights],
             samples=["data"],
         ),
     )
