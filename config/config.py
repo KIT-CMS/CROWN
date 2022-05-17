@@ -18,6 +18,7 @@ import code_generation.quantities.nanoAOD as nanoAOD
 import code_generation.quantities.output as q
 from config.tau_triggersetup import add_diTauTriggerSetup
 from config.tau_variations import add_tauVariations
+from config.jet_variations import add_jetVariations
 from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.rules import AppendProducer, RemoveProducer, ReplaceProducer
@@ -170,9 +171,32 @@ def build_config(
             "jet_id": 2,  # second bit is tight JetID
             "jet_puid": 4,  # 0==fail, 4==pass(loose), 6==pass(loose,medium), 7==pass(loose,medium,tight) !check 2016 -> inverted ID
             "jet_puid_max_pt": 50,  # recommended to apply puID only for jets below 50 GeV
-            "JEC_shift_sources": '{""}',
-            "JE_scale_shift": 0,
-            "JE_reso_shift": 0,
+            "jet_reapplyJES": False,
+            "jet_jes_sources": '{""}',
+            "jet_jes_shift": 0,
+            "jet_jer_shift": '"nom"',  # or '"up"', '"down"'
+            "jet_jec_file": EraModifier(
+                {
+                    "2016": '"data/jsonpog-integration/POG/JME/2016postVFP_UL/jet_jerc.json.gz"',
+                    "2017": '"data/jsonpog-integration/POG/JME/2017_UL/jet_jerc.json.gz"',
+                    "2018": '"data/jsonpog-integration/POG/JME/2018_UL/jet_jerc.json.gz"',
+                }
+            ),
+            "jet_jer_tag": EraModifier(
+                {
+                    "2016": '"Summer20UL16_JRV3_MC"',
+                    "2017": '"Summer19UL17_JRV2_MC"',
+                    "2018": '"Summer19UL18_JRV2_MC"',
+                }
+            ),
+            "jet_jes_tag": EraModifier(
+                {
+                    "2016": '"Summer19UL16_V7_MC"',
+                    "2017": '"Summer19UL17_V5_MC"',
+                    "2018": '"Summer19UL18_V5_MC"',
+                }
+            ),
+            "jet_jec_algo": '"AK4PFchs"',
         },
     )
     # bjet base selection:
@@ -180,8 +204,20 @@ def build_config(
         "global",
         {
             "min_bjet_pt": 20,
-            "max_bjet_eta": 2.4,
-            "btag_cut": 0.2783,  # medium
+            "max_bjet_eta": EraModifier(
+                {
+                    "2016": 2.4,
+                    "2017": 2.5,
+                    "2018": 2.5,
+                }
+            ),
+            "btag_cut": EraModifier(  # medium
+                {
+                    "2016": 0.3093,
+                    "2017": 0.3040,
+                    "2018": 0.2783,
+                }
+            ),
         },
     )
     # leptonveto base selection:
@@ -307,7 +343,6 @@ def build_config(
             "min_tau_pt": 30.0,
             "max_tau_eta": 2.3,
             "max_tau_dz": 0.2,
-            "tau_dms": "0,1,10,11",
             "vsjet_tau_id_bit": 4,
             "vsele_tau_id_bit": 4,
             "vsmu_tau_id_bit": 1,
@@ -1252,435 +1287,11 @@ def build_config(
             if sample not in ["data", "emb", "emb_mc"]
         ],
     )
+
     #########################
-    # Jet energy resolution
+    # Jet energy resolution and jet energy scale
     #########################
-    configuration.add_shift(
-        SystematicShift(
-            name="jerUncUp",
-            shift_config={
-                "global": {"JE_reso_shift": 1},
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jerUncDown",
-            shift_config={
-                "global": {"JE_reso_shift": -1},
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    #########################
-    # Jet energy scale
-    #########################
-    JEC_sources = '{"SinglePionECAL", "SinglePionHCAL", "AbsoluteMPFBias", "AbsoluteScale", "Fragmentation", "PileUpDataMC", "RelativeFSR", "PileUpPtRef"}'
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncAbsoluteUp",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": 1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncAbsoluteDown",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": -1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-
-    JEC_sources = '{"AbsoluteStat", "TimePtEta", "RelativeStatFSR"}'
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncAbsoluteYearUp",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": 1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncAbsoluteYearDown",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": -1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-
-    JEC_sources = '{"FlavorQCD"}'
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncFlavorQCDUp",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": 1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncFlavorQCDDown",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": -1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-
-    JEC_sources = '{"PileUpPtEC1", "PileUpPtBB", "RelativePtBB"}'
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncBBEC1Up",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": 1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncBBEC1Down",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": -1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-
-    JEC_sources = '{"RelativeJEREC1", "RelativePtEC1", "RelativeStatEC"}'
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncBBEC1YearUp",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": 1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncBBEC1YearDown",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": -1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-
-    JEC_sources = '{"RelativePtHF", "PileUpPtHF", "RelativeJERHF"}'
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncHFUp",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": 1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncHFDown",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": -1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-
-    JEC_sources = '{"RelativeStatHF"}'
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncHFYearUp",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": 1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncHFYearDown",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": -1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-
-    JEC_sources = '{"PileUpPtEC2"}'
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncEC2Up",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": 1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncEC2Down",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": -1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-
-    JEC_sources = '{"RelativeJEREC2", "RelativePtEC2"}'
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncEC2YearUp",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": 1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncEC2YearDown",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": -1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-
-    JEC_sources = '{"RelativeBal"}'
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncRelativeBalUp",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": 1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncRelativeBalDown",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": -1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-
-    JEC_sources = '{"RelativeSample"}'
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncRelativeSampleYearUp",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": 1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jecUncRelativeSampleYearDown",
-            shift_config={
-                "global": {
-                    "JE_scale_shift": -1,
-                    "JEC_shift_sources": JEC_sources,
-                }
-            },
-            producers={"global": jets.JetEnergyCorrection},
-        ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
-    )
+    add_jetVariations(configuration, available_sample_types)
 
     #########################
     # Finalize and validate the configuration

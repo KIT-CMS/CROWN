@@ -24,11 +24,14 @@ ROOT::RDF::RNode CutPUID(ROOT::RDF::RNode df, const std::string &maskname,
 ROOT::RDF::RNode
 JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
                 const std::string &jet_pt, const std::string &jet_eta,
-                const std::string &jet_phi, const std::string &gen_jet_pt,
+                const std::string &jet_phi, const std::string &jet_area,
+                const std::string &jet_rawFactor, const std::string &gen_jet_pt,
                 const std::string &gen_jet_eta, const std::string &gen_jet_phi,
-                const std::string &rho,
-                const std::vector<std::string> &energy_shift_sources,
-                const int &energy_shift_state, const int &energy_reso_shift);
+                const std::string &rho, bool reapplyJES,
+                const std::vector<std::string> &jes_shift_sources,
+                const int &jes_shift, const std::string &jer_shift,
+                const std::string &jec_file, const std::string &jer_tag,
+                const std::string &jes_tag, const std::string &jec_algo);
 ROOT::RDF::RNode CutRawID(ROOT::RDF::RNode df, const std::string &quantity,
                           const std::string &maskname,
                           const float &idThreshold);
