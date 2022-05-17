@@ -141,7 +141,7 @@ def build_config(
             ),
             "jet_jer_tag": EraModifier(
                 {
-                    "2016preVFP": '"Summer20UL16_JRV3_MC"',
+                    "2016preVFP": '"Summer20UL16APV_JRV3_MC"',
                     "2016postVFP": '"Summer20UL16_JRV3_MC"',
                     "2017": '"Summer19UL17_JRV2_MC"',
                     "2018": '"Summer19UL18_JRV2_MC"',
@@ -149,7 +149,7 @@ def build_config(
             ),
             "jet_jes_tag": EraModifier(
                 {
-                    "2016preVFP": '"Summer19UL16_V7_MC"',
+                    "2016preVFP": '"Summer19UL16APV_V7_MC"',
                     "2016postVFP": '"Summer19UL16_V7_MC"',
                     "2017": '"Summer19UL17_V5_MC"',
                     "2018": '"Summer19UL18_V5_MC"',
