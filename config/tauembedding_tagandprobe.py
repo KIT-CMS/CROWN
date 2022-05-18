@@ -315,7 +315,7 @@ def build_config(
 
     configuration.add_modification_rule(
         "global",
-        RemoveProducer(producers=emb.EmbeddingQuantities, samples=["emb", "emb_mc"]),
+        AppendProducer(producers=emb.EmbeddingQuantities, samples=["emb", "emb_mc"]),
     )
 
     #########################
