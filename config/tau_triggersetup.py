@@ -2,7 +2,7 @@ from code_generation.modifiers import EraModifier, SampleModifier
 
 
 def add_diTauTriggerSetup(configuration):
-    ## MT, MM scope trigger setup
+    ## MT, MuMu scope trigger setup
     configuration.add_config_parameters(
         ["mt", "mm", "em"],
         {
@@ -136,7 +136,7 @@ def add_diTauTriggerSetup(configuration):
             ),
         },
     )
-    ## ET, EE scope trigger setup
+    ## ET, ElEl scope trigger setup
     configuration.add_config_parameters(
         ["et", "ee", "em"],
         {

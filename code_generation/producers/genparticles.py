@@ -33,21 +33,21 @@ EMGenPair = Producer(
     output=[q.gen_ditaupair],
     scopes=["em"],
 )
-MMGenPair = Producer(
-    name="MMGenPair",
+MuMuGenPair = Producer(
+    name="MuMuGenPair",
     call="pairselection::buildgenpair({df}, {input}, {output})",
     input=[q.ditaupair, nanoAOD.Muon_indexToGen, nanoAOD.Muon_indexToGen],
     output=[q.gen_ditaupair],
     scopes=["mm"],
 )
-EEGenPair = Producer(
-    name="EEGenPair",
+ElElGenPair = Producer(
+    name="ElElGenPair",
     call="pairselection::buildgenpair({df}, {input}, {output})",
     input=[q.ditaupair, nanoAOD.Electron_indexToGen, nanoAOD.Electron_indexToGen],
     output=[q.gen_ditaupair],
     scopes=["ee"],
 )
-MMTrueGenPair = Producer(
+MuMuTrueGenPair = Producer(
     name="GenPair",
     call="pairselection::buildtruegenpair({df}, {input}, {output}, {truegen_mother_pdgid}, {truegen_daughter_1_pdgid}, {truegen_daugher_2_pdgid})",
     input=[
@@ -347,14 +347,14 @@ EMGenDiTauPairQuantities = ProducerGroup(
         gen_m_vis,
     ],
 )
-EEGenDiTauPairQuantities = ProducerGroup(
-    name="EEGenDiTauPairQuantities",
+ElElGenPairQuantities = ProducerGroup(
+    name="ElElGenPairQuantities",
     call=None,
     input=None,
     output=None,
     scopes=["ee"],
     subproducers=[
-        EEGenPair,
+        ElElGenPair,
         LVGenParticle1,
         LVGenParticle2,
         UnrollGenElLV1,
@@ -362,14 +362,14 @@ EEGenDiTauPairQuantities = ProducerGroup(
         gen_m_vis,
     ],
 )
-MMGenDiTauPairQuantities = ProducerGroup(
-    name="GenDiTauPairQuantities",
+MuMuGenPairQuantities = ProducerGroup(
+    name="GenPairQuantities",
     call=None,
     input=None,
     output=None,
     scopes=["mm"],
     subproducers=[
-        MMGenPair,
+        MuMuGenPair,
         LVGenParticle1,
         LVGenParticle2,
         UnrollGenMuLV1,
@@ -377,14 +377,14 @@ MMGenDiTauPairQuantities = ProducerGroup(
         gen_m_vis,
     ],
 )
-MMTrueGenDiTauPairQuantities = ProducerGroup(
-    name="GenDiTauPairQuantities",
+MuMuTrueGenPairQuantities = ProducerGroup(
+    name="GenPairQuantities",
     call=None,
     input=None,
     output=None,
     scopes=["mm"],
     subproducers=[
-        MMTrueGenPair,
+        MuMuTrueGenPair,
         LVTrueGenParticle1,
         LVTrueGenParticle2,
         UnrollGenMuLV1,

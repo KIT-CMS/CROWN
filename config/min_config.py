@@ -141,7 +141,7 @@ def build_config(
         },
     )
 
-    # MT/MM scope Muon selection
+    # MT/MuMu scope Muon selection
     configuration.add_config_parameters(
         ["mm"],
         {
@@ -226,11 +226,11 @@ def build_config(
         [
             muons.GoodMuons,
             muons.NumberOfGoodMuons,
-            pairselection.ZMMPairSelection,
-            pairselection.GoodMMPairFilter,
+            pairselection.ZMuMuPairSelection,
+            pairselection.GoodMuMuPairFilter,
             pairselection.LVMu1,
             pairselection.LVMu2,
-            pairquantities.MMDiTauPairQuantities,
+            pairquantities.MuMuDiTauPairQuantities,
         ],
     )
     configuration.add_producers(

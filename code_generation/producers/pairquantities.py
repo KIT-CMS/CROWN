@@ -481,13 +481,21 @@ MTDiTauPairQuantities = ProducerGroup(
     scopes=["mt"],
     subproducers=[UnrollMuLV1, UnrollTauLV2, m_vis, pt_vis],
 )
-MMDiTauPairQuantities = ProducerGroup(
-    name="MMDiTauPairQuantities",
+MuMuPairQuantities = ProducerGroup(
+    name="MuMuPairQuantities",
     call=None,
     input=None,
     output=None,
     scopes=["mm"],
     subproducers=[UnrollMuLV1, UnrollMuLV2, m_vis, pt_vis],
+)
+ElElPairQuantities = ProducerGroup(
+    name="ElElPairQuantities",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["ee"],
+    subproducers=[UnrollElLV1, UnrollElLV2, m_vis, pt_vis],
 )
 ETDiTauPairQuantities = ProducerGroup(
     name="ETDiTauPairQuantities",

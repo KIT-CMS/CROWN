@@ -43,8 +43,8 @@ GoodMTPairFilter = Filter(
     subproducers=[GoodMTPairFlag],
 )
 
-MMPairSelection = Producer(
-    name="MMPairSelection",
+MuMuPairSelection = Producer(
+    name="MuMuPairSelection",
     call="pairselection::mumu::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
     input=[
         nanoAOD.Muon_pt,
@@ -56,8 +56,8 @@ MMPairSelection = Producer(
     output=[q.ditaupair],
     scopes=["mm"],
 )
-ZMMPairSelection = Producer(
-    name="MMPairSelection",
+ZMuMuPairSelection = Producer(
+    name="ZMuMuPairSelection",
     call="pairselection::mumu::ZBosonPairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
     input=[
         nanoAOD.Muon_pt,
@@ -69,21 +69,63 @@ ZMMPairSelection = Producer(
     output=[q.ditaupair],
     scopes=["mm"],
 )
-
-GoodMMPairFlag = Producer(
-    name="GoodMMPairFlag",
+GoodMuMuPairFlag = Producer(
+    name="GoodMuMuPairFlag",
     call="pairselection::flagGoodPairs({df}, {output}, {input})",
     input=[q.ditaupair],
     output=[],
     scopes=["mm"],
 )
 
-GoodMMPairFilter = Filter(
-    name="GoodMMPairFilter",
+GoodMuMuPairFilter = Filter(
+    name="GoodMuMuPairFilter",
     call='basefunctions::FilterFlagsAny({df}, "GoodMuMuPairs", {input})',
     input=[],
     scopes=["mm"],
-    subproducers=[GoodMMPairFlag],
+    subproducers=[GoodMuMuPairFlag],
+)
+
+ElElPairSelection = Producer(
+    name="ElElPairSelection",
+    call="pairselection::elel::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
+    input=[
+        nanoAOD.Electron_pt,
+        nanoAOD.Electron_eta,
+        nanoAOD.Electron_phi,
+        nanoAOD.Electron_mass,
+        q.good_electrons_mask,
+    ],
+    output=[q.ditaupair],
+    scopes=["ee"],
+)
+ZElElPairSelection = Producer(
+    name="ZElElPairSelection",
+    call="pairselection::elel::ZBosonPairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
+    input=[
+        nanoAOD.Electron_pt,
+        nanoAOD.Electron_eta,
+        nanoAOD.Electron_phi,
+        nanoAOD.Electron_mass,
+        q.good_electrons_mask,
+    ],
+    output=[q.ditaupair],
+    scopes=["ee"],
+)
+
+GoodElElPairFlag = Producer(
+    name="GoodElElPairFlag",
+    call="pairselection::flagGoodPairs({df}, {output}, {input})",
+    input=[q.ditaupair],
+    output=[],
+    scopes=["ee"],
+)
+
+GoodElElPairFilter = Filter(
+    name="GoodElElPairFilter",
+    call='basefunctions::FilterFlagsAny({df}, "GoodElElPairs", {input})',
+    input=[],
+    scopes=["ee"],
+    subproducers=[GoodElElPairFlag],
 )
 
 ETPairSelection = Producer(

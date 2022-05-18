@@ -84,19 +84,19 @@ def build_config(
     configuration.add_producers(
         "mm",
         [
-            genparticles.MMTrueGenDiTauPairQuantities,
+            genparticles.MuMuTrueGenPairQuantities,
             met.UncorrectedMet,
             muons.GoodMuons,
             muons.VetoMuons,
             muons.VetoSecondMuon,
             muons.ExtraMuonsVeto,
-            pairselection.ZMMPairSelection,
-            pairselection.GoodMMPairFilter,
+            pairselection.ZMuMuPairSelection,
+            pairselection.GoodMuMuPairFilter,
             pairselection.LVMu1,
             pairselection.LVMu2,
             pairselection.LVMu1Uncorrected,
             pairselection.LVMu2Uncorrected,
-            pairquantities.MMDiTauPairQuantities,
+            pairquantities.MuMuPairQuantities,
         ],
     )
 
