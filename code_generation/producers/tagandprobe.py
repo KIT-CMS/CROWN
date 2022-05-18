@@ -4,22 +4,14 @@ import code_generation.quantities.nanoAOD as nanoAOD
 from code_generation.producers.muons import (
     MuonPtCut,
     MuonEtaCut,
-    MuonDxyCut,
-    MuonDzCut,
-    MuonIsoCut,
     GoodMuonPtCut,
     GoodMuonEtaCut,
-    GoodMuonIsoCut,
 )
 from code_generation.producers.electrons import (
     ElectronPtCut,
     ElectronEtaCut,
-    ElectronDxyCut,
-    ElectronDzCut,
-    ElectronIsoCut,
     GoodElectronPtCut,
     GoodElectronEtaCut,
-    GoodElectronIsoCut,
 )
 from code_generation.producer import (
     Producer,
@@ -37,9 +29,6 @@ BaseMuons = ProducerGroup(
     subproducers=[
         MuonPtCut,
         MuonEtaCut,
-        MuonDxyCut,
-        MuonDzCut,
-        MuonIsoCut,
     ],
 )
 
@@ -52,7 +41,6 @@ GoodMuons = ProducerGroup(
     subproducers=[
         GoodMuonPtCut,
         GoodMuonEtaCut,
-        GoodMuonIsoCut,
     ],
 )
 
@@ -229,9 +217,6 @@ BaseElectrons = ProducerGroup(
     subproducers=[
         ElectronPtCut,
         ElectronEtaCut,
-        ElectronDxyCut,
-        ElectronDzCut,
-        ElectronIsoCut,
     ],
 )
 
@@ -244,7 +229,6 @@ GoodElectrons = ProducerGroup(
     subproducers=[
         GoodElectronPtCut,
         GoodElectronEtaCut,
-        GoodElectronIsoCut,
     ],
 )
 

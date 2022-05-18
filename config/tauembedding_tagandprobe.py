@@ -46,15 +46,8 @@ def build_config(
         {
             "min_muon_pt": 7.0,
             "max_muon_eta": 2.5,
-            "max_muon_dxy": 1.0,
-            "max_muon_dz": 1.0,
-            "muon_iso_cut": 1.0,
-            "min_ele_pt": 23.0,
+            "min_ele_pt": 7.0,
             "max_ele_eta": 2.5,
-            "max_ele_dxy": 1.0,
-            "max_ele_dz": 1.0,
-            "electron_iso_cut": 1.0,
-            "max_ele_iso": 0.3,
             "met_filters": [
                 "Flag_BadPFMuonFilter",
                 "Flag_METFilters",
@@ -69,7 +62,6 @@ def build_config(
         {
             "muon_index_in_pair": 0,
             "second_muon_index_in_pair": 1,
-            "muon_iso_cut": 1.0,
             "min_muon_pt": 7.0,
             "max_muon_eta": 2.5,
             "pairselection_min_dR": 0.5,
@@ -83,7 +75,6 @@ def build_config(
             "second_electron_index_in_pair": 1,
             "min_electron_pt": 7.0,
             "max_electron_eta": 2.5,
-            "electron_iso_cut": 1.0,
             "pairselection_min_dR": 0.5,
         },
     )
