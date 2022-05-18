@@ -9,11 +9,12 @@ action(){
     }
 
     echo "------------------------------------------"
+    echo " | USER = ${USER}"
     echo " | HOSTNAME = $(hostname)"
     echo " | ANA_NAME = ${ANA_NAME}"
     echo " | ENV_NAME = ${ENV_NAME}"
+    echo " | TAG = ${TAG}"
     echo " | TARBALL_PATH = ${TARBALL_PATH}"
-    echo "------------------------------------------"
 
     # Setup variables
     SPAWNPOINT=$(pwd)
@@ -38,17 +39,21 @@ action(){
         ENV_PATH=/cvmfs/etp.kit.edu/LAW_envs/${ENV_NAME}
         echo " | ENV_PATH = ${ENV_PATH}"
     fi
+    echo "------------------------------------------"
 
     # copy and untar process (and environment if necessary) 
     if [[ -z "${ENV_FROM_TAR}" ]]; then
         # Activate environment from cvmfs
         source ${ENV_PATH}/bin/activate
-        gfal-copy ${TARBALL_PATH} ${SPAWNPOINT}
+        echo "xrdcp ${TARBALL_PATH} ${SPAWNPOINT}"
+        xrdcp ${TARBALL_PATH} ${SPAWNPOINT}
     else
         (
             source /cvmfs/grid.cern.ch/umd-c7ui-latest/etc/profile.d/setup-c7-ui-example.sh
-            gfal-copy ${TARBALL_PATH} ${SPAWNPOINT}
-            gfal-copy ${TARBALL_ENV_PATH} ${SPAWNPOINT}
+            echo "xrdcp ${TARBALL_PATH} ${SPAWNPOINT}"
+            xrdcp ${TARBALL_PATH} ${SPAWNPOINT}
+            echo "xrdcp ${TARBALL_ENV_PATH} ${SPAWNPOINT}"
+            xrdcp ${TARBALL_ENV_PATH} ${SPAWNPOINT}
         )
         mkdir -p ${ENV_PATH}
         tar -xzf ${ENV_NAME}_env.tar.gz -C ${ENV_PATH} && rm ${ENV_NAME}_env.tar.gz
@@ -57,7 +62,7 @@ action(){
         conda-unpack
     fi
 
-    tar -xzf ${ANA_NAME}_processor.tar.gz && rm ${ANA_NAME}_processor.tar.gz
+    tar -xzf processor.tar.gz && rm processor.tar.gz
 
     # (
     #     source /cvmfs/grid.cern.ch/umd-c7ui-latest/etc/profile.d/setup-c7-ui-example.sh

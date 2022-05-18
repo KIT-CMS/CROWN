@@ -34,7 +34,7 @@ class RunRemote(Task, HTCondorWorkflow, law.LocalWorkflow):
 
     # Output target is remote and accessed using gfal2.
     def output(self):
-        target = self.remote_target("RemoteFileChanged.txt")
+        target = self.remote_target(self.production_tag, "RemoteFileChanged.txt")
         target.parent.touch()
         return target
 
@@ -44,8 +44,12 @@ class RunRemote(Task, HTCondorWorkflow, law.LocalWorkflow):
 
     # Task is run remotely and has access to GPU resources.
     def run(self):
-        import tensorflow as tf
-        tf.test.is_gpu_available()
+        try:
+            import tensorflow as tf
+            tf.test.is_gpu_available()
+        except:
+            print("Tensorflow not found.")
+        os.listdir("tmp/")
         readText = self.input().load()
         self.publish_message("This is the input: {}".format(self.input()))
         wholeText = readText + "a triumph!"

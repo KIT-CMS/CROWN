@@ -61,7 +61,7 @@ action() {
     fi
     
     #Determine which environment to use based on the luigi.cfg file
-    export ENV_NAME=$(grep "ENV_NAME" lawluigi_configs/${ANA_NAME}_luigi.cfg | sed 's@ENV_NAME\s*=\s*\([^\s]*\)\s*@\1@g')
+    export ENV_NAME=$(grep '^ENV_NAME' lawluigi_configs/${ANA_NAME}_luigi.cfg | sed 's@ENV_NAME\s*=\s*\([^\s]*\)\s*@\1@g')
     echo "Using ${ENV_NAME} environment."
 
     #Check if necessary environment is present in cvmfs
@@ -109,6 +109,8 @@ action() {
         fi
         # create conda tarball if env not in cvmfs and it if it doesn't exist already
         if [ ! -f "tarballs/${ENV_NAME}_env.tar.gz" ]; then
+            # IMPORTANT: environments have to be named differently with each change
+            #            as chaching prevents a clean overwrite of existing files
             echo "Creating ${ENV_NAME}_env.tar.gz"
             mkdir -p "tarballs"
             conda pack -n ${ENV_NAME} --output tarballs/${ENV_NAME}_env.tar.gz

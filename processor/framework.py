@@ -7,14 +7,19 @@ from subprocess import PIPE
 from rich.console import Console
 from law.util import merge_dicts
 import socket
+from datetime import datetime
+import yaml
+from XRootD import client
+from re import findall
 
 law.contrib.load("wlcg")
 law.contrib.load("htcondor")
-console = Console(width=120)
+console = Console()
 
 
 class Task(law.Task):
     wlcg_path = luigi.Parameter()
+    production_tag = luigi.Parameter(default="default")
 
     def store_parts(self):
         return (self.__class__.__name__,)
@@ -83,7 +88,7 @@ class HTCondorJobManager(law.htcondor.HTCondorJobManager):
 class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
 
     ENV_NAME = luigi.Parameter()
-    production_tag = luigi.Parameter()
+    production_tag = luigi.Parameter(default="default")
     htcondor_accounting_group = luigi.Parameter()
     htcondor_requirements = luigi.Parameter()
     htcondor_remote_job = luigi.Parameter()
@@ -120,14 +125,69 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
     def htcondor_create_job_file_factory(self):
         factory = super(HTCondorWorkflow, self).htcondor_create_job_file_factory()
         factory.is_tmp = False
+        console.log("HTCondor job directory is: {}".format(factory.dir))
         return factory
 
     def htcondor_bootstrap_file(self):
         hostfile = self.bootstrap_file
         return law.util.rel_path(__file__, hostfile)
+        
+    # Split full path into url and path
+    def split_xrdfs_paths(self, paths):
+        full_path = "/".join(paths)
+        # Split string at second '//'
+        regex = '([^\/]+\/\/[^\/]+\/)(.*)'
+        pieces = findall(regex, full_path)
+        if len(pieces)!=1 or len(pieces[0])!=2:
+            raise Exception("xrdfs_ls of {full_path} failed, given path not valid".format(
+                    full_path=full_path
+                )
+            )
+        return pieces[0]
+
+    # Call ls via xrootd
+    def xrdfs_ls(self, paths):
+        url, path = self.split_xrdfs_paths(paths)
+        myclient = client.FileSystem(url)
+        out_data, ls_data = myclient.dirlist(path)
+        if out_data.code:
+            raise Exception("xrdfs_ls of {full_path} failed with:\n{message}".format(
+                    full_path=full_path, message=out_data.message
+                )
+            )
+        files = [idir.name for idir in ls_data.dirlist]
+        return files
+
+    # Remove file or dir recursive via xrootd
+    def xrdfs_rm(self, paths):
+        console.log("Removing " + "/".join(paths))
+        url, path = self.split_xrdfs_paths(paths)
+        myclient = client.FileSystem(url)
+        def recursive_xrdfs_rm(new_path):
+            # Try to remove dir
+            out_data, res = myclient.rmdir(new_path)
+            if not out_data.ok:
+                # If file
+                if out_data.errno == 3015:
+                    out_data, res = myclient.rm(new_path)
+                # If dir not empty
+                elif out_data.errno == 3012:
+                    out_data, ls_data = myclient.dirlist(new_path)
+                    for directory in ls_data.dirlist:
+                        recursive_xrdfs_rm("/".join([new_path, directory.name]))
+                    out_data, res = myclient.rmdir(new_path)
+                else:
+                    raise Exception("xrdfs_rm of {full_path} failed with:\n{message}".format(
+                            full_path=new_path, message=out_data.message
+                        )
+                    )
+            console.log(url + new_path + " removed.")
+        recursive_xrdfs_rm(path)
 
     def htcondor_job_config(self, config, job_num, branches):
+        start_time = datetime.now().strftime("%Y%m%d%H%m%S%f")
         analysis_name = os.getenv("ANA_NAME")
+        task_name = self.__class__.__name__
         # Check if env in config file is still the same as during the setup
         # TODO: is this assertion always intended?
         assert self.ENV_NAME == os.getenv(
@@ -153,33 +213,53 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         config.custom_content.append(("RequestMemory", self.htcondor_request_memory))
         config.custom_content.append(("RequestDisk", self.htcondor_request_disk))
 
-        prevdir = os.getcwd()
-        os.system("cd $ANALYSIS_PATH")
-        tarball = law.wlcg.WLCGFileTarget(
-            path=self.remote_path(
-                "job_tarball/{}/{}_processor.tar.gz".format(
-                    self.production_tag, analysis_name
-                )
-            )
-        )
+        # Ensure tarball dir exists
         if not os.path.exists("tarballs/{}".format(self.production_tag)):
             os.makedirs("tarballs/{}".format(self.production_tag))
-        # TODO: how to determine if cfgs/tasks were changed and new tarball is necessary
-        if (
-            not os.path.isfile(
-                "tarballs/{}/{}_processor.tar.gz".format(
-                    self.production_tag, analysis_name
-                )
-            )
-            or self.replace_processor_tar
+        # Get time of previous tarballs 
+        prev_tar_times_file = os.path.join(os.getenv("ANALYSIS_DATA_PATH"), "tar_times.yaml")
+        if not os.path.isfile(prev_tar_times_file):
+            old_dict = {}
+        else:
+            with open(prev_tar_times_file) as f:
+                old_dict = yaml.load(f, Loader=yaml.FullLoader)
+        # Repack tarball if it is not available local, 
+        # remote or if replace_processor_tar is set
+        repack_tar = True
+        if(os.path.isfile("tarballs/{tag}/{task}_processor.tar.gz".format(
+                tag=self.production_tag, task=task_name
+            ))
+            and not self.replace_processor_tar
         ):
+            old_tarball = None
+            if task_name in old_dict.keys():
+                if self.production_tag in old_dict[task_name].keys():
+                    old_time = old_dict[task_name][self.production_tag]
+                    old_tar_path = [
+                        self.wlcg_path, 
+                        self.remote_path(
+                            "{tag}/job_tarball".format(tag=self.production_tag)
+                        ),
+                        old_time,
+                        "processor.tar.gz"
+                    ]
+                    try:
+                        self.xrdfs_ls(old_tar_path)
+                        # If file is found no new tarball necessary
+                        repack_tar = False
+                    except:
+                        pass
+        if repack_tar:
+            # Make new tarball 
+            prevdir = os.getcwd()
+            os.system("cd $ANALYSIS_PATH")         
             command = [
                 "tar",
                 "--exclude",
                 "*.pyc",
                 "-czf",
                 "tarballs/{}/{}_processor.tar.gz".format(
-                    self.production_tag, analysis_name
+                    self.production_tag, task_name
                 ),
                 "processor",
                 "lawluigi_configs/{}_luigi.cfg".format(analysis_name),
@@ -198,32 +278,59 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
                 console.rule()
                 os.remove(
                     "tarballs/{}/{}_processor.tar.gz".format(
-                        self.production_tag, analysis_name
+                        self.production_tag, task_name
                     )
                 )
                 raise Exception("tar failed")
             else:
                 console.rule("Successful tar!")
-            console.rule("Uploading tarball to {}".format(tarball.path))
+
+            # Remove old tarballs on remote fileserver
+            full_path = [self.wlcg_path, self.remote_path(
+                    "{tag}/job_tarball".format(tag=self.production_tag)
+                    )
+                ]
+            for f_name in self.xrdfs_ls(full_path):
+                self.xrdfs_rm(full_path + [f_name])
+            tarball = law.wlcg.WLCGFileTarget(
+                path=self.remote_path(
+                    "{tag}/job_tarball/{time}/processor.tar.gz".format(
+                        tag=self.production_tag, time=start_time
+                    )
+                )
+            )
+            # Copy new tarball to remote
             tarball.parent.touch()
             tarball.copy_from_local(
                 src="tarballs/{}/{}_processor.tar.gz".format(
-                    self.production_tag, analysis_name
+                    self.production_tag, task_name
                 )
             )
             console.rule("Tarball uploaded!")
+            os.chdir(prevdir)
+            # Update time of tarball creation
+            new_dict = old_dict
+            if task_name not in new_dict.keys():
+                new_dict[task_name] = {}
+            new_dict[task_name][self.production_tag] = start_time
+            with open(prev_tar_times_file, 'w') as f: 
+                yaml.dump(new_dict, f)
         # Check if env was found in cvmfs
         env_is_in_cvmfs = os.getenv("CVMFS_ENV_PRESENT")
         if env_is_in_cvmfs == "False":
+            # IMPORTANT: environments have to be named differently with each change
+            #            as chaching prevents a clean overwrite of existing files
             tarball_env = law.wlcg.WLCGFileTarget(
-                path=self.remote_path("job_tarball/{}_env.tar.gz".format(self.ENV_NAME))
+                path="env_tarballs/{env}_env.tar.gz".format(
+                    env=self.ENV_NAME
+                )
             )
-            tarball_env.parent.touch()
-            tarball_env.copy_from_local(
-                src="tarballs/{}_env.tar.gz".format(self.ENV_NAME)
-            )
-        os.chdir(prevdir)
-        # Make string with all environmental variables given to the job
+            if not tarball_env.exists():
+                tarball_env.parent.touch()
+                tarball_env.copy_from_local(
+                    src="tarballs/{}_env.tar.gz".format(self.ENV_NAME)
+                )
+        # Make string with environmental variables needed for the job-setup
         environment_string = ""
         environment_string += "ENV_NAME={} ".format(self.ENV_NAME)
         environment_string += "ANA_NAME={} ".format(os.getenv("ANA_NAME"))
