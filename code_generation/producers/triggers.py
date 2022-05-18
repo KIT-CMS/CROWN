@@ -6,8 +6,8 @@ from code_generation.producer import ExtendedVectorProducer
 # Set of producers used for trigger flags
 ####################
 
-MMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
-    name="MMGenerateSingleMuonTriggerFlags",
+MuMuGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
+    name="MuMuGenerateSingleMuonTriggerFlags",
     call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
     input=[
         q.p4_1,
