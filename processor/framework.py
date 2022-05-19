@@ -8,9 +8,6 @@ from rich.console import Console
 from law.util import merge_dicts
 import socket
 from datetime import datetime
-import yaml
-from XRootD import client
-from re import findall
 
 law.contrib.load("wlcg")
 law.contrib.load("htcondor")
@@ -19,13 +16,17 @@ console = Console()
 
 class Task(law.Task):
     wlcg_path = luigi.Parameter()
-    production_tag = luigi.Parameter(default="default")
+    production_tag = luigi.Parameter(
+        default="default/{}".format(
+            datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")
+        )
+    )
 
     def store_parts(self):
         return (self.__class__.__name__,)
 
     def local_path(self, *path):
-        parts = (os.getenv("ANALYSIS_DATA_PATH"),) + (self.__class__.__name__,) + path
+        parts = (os.getenv("ANALYSIS_DATA_PATH"),) + (self.production_tag,) + (self.__class__.__name__,) + path
         return os.path.join(*parts)
 
     def local_target(self, *path):
@@ -60,7 +61,7 @@ class Task(law.Task):
         return my_env
 
     def remote_path(self, *path):
-        parts = (self.__class__.__name__,) + path
+        parts = (self.production_tag,) + (self.__class__.__name__,) + path
         return os.path.join(*parts)
 
     def remote_target(self, *path):
@@ -88,7 +89,11 @@ class HTCondorJobManager(law.htcondor.HTCondorJobManager):
 class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
 
     ENV_NAME = luigi.Parameter()
-    production_tag = luigi.Parameter(default="default")
+    production_tag = luigi.Parameter(
+        default="default/{}".format(
+            datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")
+        )
+    )
     htcondor_accounting_group = luigi.Parameter()
     htcondor_requirements = luigi.Parameter()
     htcondor_remote_job = luigi.Parameter()
@@ -102,7 +107,6 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
     htcondor_request_disk = luigi.Parameter()
     wlcg_path = luigi.Parameter()
     bootstrap_file = luigi.Parameter()
-    replace_processor_tar = luigi.BoolParameter(default=False)
 
     # Use proxy file located in $X509_USER_PROXY or /tmp/x509up_u$(id) if empty
     htcondor_user_proxy = law.wlcg.get_voms_proxy_file()
@@ -132,58 +136,6 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         hostfile = self.bootstrap_file
         return law.util.rel_path(__file__, hostfile)
         
-    # Split full path into url and path
-    def split_xrdfs_paths(self, paths):
-        full_path = "/".join(paths)
-        # Split string at second '//'
-        regex = '([^\/]+\/\/[^\/]+\/)(.*)'
-        pieces = findall(regex, full_path)
-        if len(pieces)!=1 or len(pieces[0])!=2:
-            raise Exception("xrdfs_ls of {full_path} failed, given path not valid".format(
-                    full_path=full_path
-                )
-            )
-        return pieces[0]
-
-    # Call ls via xrootd
-    def xrdfs_ls(self, paths):
-        url, path = self.split_xrdfs_paths(paths)
-        myclient = client.FileSystem(url)
-        out_data, ls_data = myclient.dirlist(path)
-        if out_data.code:
-            raise Exception("xrdfs_ls of {full_path} failed with:\n{message}".format(
-                    full_path=full_path, message=out_data.message
-                )
-            )
-        files = [idir.name for idir in ls_data.dirlist]
-        return files
-
-    # Remove file or dir recursive via xrootd
-    def xrdfs_rm(self, paths):
-        console.log("Removing " + "/".join(paths))
-        url, path = self.split_xrdfs_paths(paths)
-        myclient = client.FileSystem(url)
-        def recursive_xrdfs_rm(new_path):
-            # Try to remove dir
-            out_data, res = myclient.rmdir(new_path)
-            if not out_data.ok:
-                # If file
-                if out_data.errno == 3015:
-                    out_data, res = myclient.rm(new_path)
-                # If dir not empty
-                elif out_data.errno == 3012:
-                    out_data, ls_data = myclient.dirlist(new_path)
-                    for directory in ls_data.dirlist:
-                        recursive_xrdfs_rm("/".join([new_path, directory.name]))
-                    out_data, res = myclient.rmdir(new_path)
-                else:
-                    raise Exception("xrdfs_rm of {full_path} failed with:\n{message}".format(
-                            full_path=new_path, message=out_data.message
-                        )
-                    )
-            console.log(url + new_path + " removed.")
-        recursive_xrdfs_rm(path)
-
     def htcondor_job_config(self, config, job_num, branches):
         # Time seems somewhat off for some reason
         start_time = datetime.now().strftime("%Y_%m_%d_%H_%m_%S_%f")
@@ -227,27 +179,15 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         # Repack tarball if it is not available local, 
         # remote or if replace_processor_tar is set
         repack_tar = True
-        if(os.path.isfile("tarballs/{tag}/{task}_processor.tar.gz".format(
-                tag=self.production_tag, task=task_name
-            ))
-            and not self.replace_processor_tar
-        ):
-            old_tarball = None
-            if task_name in old_dict.keys():
-                if self.production_tag in old_dict[task_name].keys():
-                    old_time = old_dict[task_name][self.production_tag]
-                    old_tarball = law.wlcg.WLCGFileTarget(
-                        "{task}/{tag}/job_tarball/{old_time}/processor.tar.gz".format(
-                            task=self.__class__.__name__,
+        tarball = law.wlcg.WLCGFileTarget(
+            "{tag}/{task}/job_tarball/processor.tar.gz".format(
+                tag=self.production_tag,
                             tag=self.production_tag, 
-                            old_time=old_time
-                        )
-                    )
-                    if old_tarball.exists():
-                        # If file is found no new tarball necessary
-                        repack_tar = False
-                        tarball = old_tarball
-        if repack_tar:
+                tag=self.production_tag,
+                task=self.__class__.__name__
+            )
+        )
+        if not tarball.exists():
             # Make new tarball 
             prevdir = os.getcwd()
             os.system("cd $ANALYSIS_PATH")         
@@ -256,7 +196,7 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
                 "--exclude",
                 "*.pyc",
                 "-czf",
-                "tarballs/{}/{}_processor.tar.gz".format(
+                "tarballs/{}/{}/processor.tar.gz".format(
                     self.production_tag, task_name
                 ),
                 "processor",
@@ -282,13 +222,6 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
                 raise Exception("tar failed")
             else:
                 console.rule("Successful tar!")
-            tarball = law.wlcg.WLCGFileTarget(
-                path=self.remote_path(
-                    "{tag}/job_tarball/{time}/processor.tar.gz".format(
-                        tag=self.production_tag, time=start_time
-                    )
-                )
-            )
             # Copy new tarball to remote
             tarball.parent.touch()
             tarball.copy_from_local(
@@ -298,13 +231,6 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
             )
             console.rule("Tarball uploaded!")
             os.chdir(prevdir)
-            # Update time of tarball creation
-            new_dict = old_dict
-            if task_name not in new_dict.keys():
-                new_dict[task_name] = {}
-            new_dict[task_name][self.production_tag] = start_time
-            with open(prev_tar_times_file, 'w') as f: 
-                yaml.dump(new_dict, f)
         # Check if env was found in cvmfs
         env_is_in_cvmfs = os.getenv("CVMFS_ENV_PRESENT")
         if env_is_in_cvmfs == "False":

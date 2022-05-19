@@ -31,7 +31,6 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     era = luigi.Parameter()
     eras = luigi.ListParameter()
     analysis = luigi.Parameter()
-    production_tag = luigi.Parameter()
     files_per_task = luigi.IntParameter(default=1)
 
     def modify_polling_status_line(self, status_line):
@@ -43,13 +42,11 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     def workflow_requires(self):
         requirements = super(CROWNRun, self).workflow_requires()
         requirements["datasetinfo"] = ConfigureDatasets.req(self)
-        requirements["tarball"] = CROWNBuild.req(
-            self, production_tag=self.production_tag
-        )
+        requirements["tarball"] = CROWNBuild.req(self)
         return requirements
 
     def requires(self):
-        return {"tarball": CROWNBuild.req(self, production_tag=self.production_tag)}
+        return {"tarball": CROWNBuild.req(self)}
 
     def create_branch_map(self):
         dataset = ConfigureDatasets(nick=self.nick)
@@ -65,8 +62,7 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
 
     def output(self):
         nicks = [
-            "{tag}/{nick}/ntuple_{nick}_{branch}_{scope}.root".format(
-                tag=self.production_tag,
+            "{nick}/ntuple_{nick}_{branch}_{scope}.root".format(
                 nick=self.nick,
                 branch=self.branch,
                 scope=scope,
