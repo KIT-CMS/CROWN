@@ -182,8 +182,6 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         tarball = law.wlcg.WLCGFileTarget(
             "{tag}/{task}/job_tarball/processor.tar.gz".format(
                 tag=self.production_tag,
-                            tag=self.production_tag, 
-                tag=self.production_tag,
                 task=self.__class__.__name__
             )
         )
