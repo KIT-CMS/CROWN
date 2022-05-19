@@ -185,7 +185,8 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         recursive_xrdfs_rm(path)
 
     def htcondor_job_config(self, config, job_num, branches):
-        start_time = datetime.now().strftime("%Y%m%d%H%m%S%f")
+        # Time seems somewhat off for some reason
+        start_time = datetime.now().strftime("%Y_%m_%d_%H_%m_%S_%f")
         analysis_name = os.getenv("ANA_NAME")
         task_name = self.__class__.__name__
         # Check if env in config file is still the same as during the setup
@@ -235,20 +236,17 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
             if task_name in old_dict.keys():
                 if self.production_tag in old_dict[task_name].keys():
                     old_time = old_dict[task_name][self.production_tag]
-                    old_tar_path = [
-                        self.wlcg_path, 
-                        self.remote_path(
-                            "{tag}/job_tarball".format(tag=self.production_tag)
-                        ),
-                        old_time,
-                        "processor.tar.gz"
-                    ]
-                    try:
-                        self.xrdfs_ls(old_tar_path)
+                    old_tarball = law.wlcg.WLCGFileTarget(
+                        "{task}/{tag}/job_tarball/{old_time}/processor.tar.gz".format(
+                            task=self.__class__.__name__,
+                            tag=self.production_tag, 
+                            old_time=old_time
+                        )
+                    )
+                    if old_tarball.exists():
                         # If file is found no new tarball necessary
                         repack_tar = False
-                    except:
-                        pass
+                        tarball = old_tarball
         if repack_tar:
             # Make new tarball 
             prevdir = os.getcwd()
@@ -284,14 +282,6 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
                 raise Exception("tar failed")
             else:
                 console.rule("Successful tar!")
-
-            # Remove old tarballs on remote fileserver
-            full_path = [self.wlcg_path, self.remote_path(
-                    "{tag}/job_tarball".format(tag=self.production_tag)
-                    )
-                ]
-            for f_name in self.xrdfs_ls(full_path):
-                self.xrdfs_rm(full_path + [f_name])
             tarball = law.wlcg.WLCGFileTarget(
                 path=self.remote_path(
                     "{tag}/job_tarball/{time}/processor.tar.gz".format(
