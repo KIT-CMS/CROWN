@@ -45,15 +45,15 @@ action(){
     if [[ -z "${ENV_FROM_TAR}" ]]; then
         # Activate environment from cvmfs
         source ${ENV_PATH}/bin/activate
-        echo "xrdcp ${TARBALL_PATH} ${SPAWNPOINT}"
-        xrdcp ${TARBALL_PATH} ${SPAWNPOINT}
+        echo "gfal-copy ${TARBALL_PATH} ${SPAWNPOINT}"
+        gfal-copy ${TARBALL_PATH} ${SPAWNPOINT}
     else
         (
             source /cvmfs/grid.cern.ch/umd-c7ui-latest/etc/profile.d/setup-c7-ui-example.sh
-            echo "xrdcp ${TARBALL_PATH} ${SPAWNPOINT}"
-            xrdcp ${TARBALL_PATH} ${SPAWNPOINT}
-            echo "xrdcp ${TARBALL_ENV_PATH} ${SPAWNPOINT}"
-            xrdcp ${TARBALL_ENV_PATH} ${SPAWNPOINT}
+            echo "gfal-copy ${TARBALL_PATH} ${SPAWNPOINT}"
+            gfal-copy ${TARBALL_PATH} ${SPAWNPOINT}
+            echo "gfal-copy ${TARBALL_ENV_PATH} ${SPAWNPOINT}"
+            gfal-copy ${TARBALL_ENV_PATH} ${SPAWNPOINT}
         )
         mkdir -p ${ENV_PATH}
         tar -xzf ${ENV_NAME}_env.tar.gz -C ${ENV_PATH} && rm ${ENV_NAME}_env.tar.gz

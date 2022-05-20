@@ -141,6 +141,7 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         start_time = datetime.now().strftime("%Y_%m_%d_%H_%m_%S_%f")
         analysis_name = os.getenv("ANA_NAME")
         task_name = self.__class__.__name__
+        analysis_path = os.getenv("ANALYSIS_PATH")
         # Check if env in config file is still the same as during the setup
         # TODO: is this assertion always intended?
         assert self.ENV_NAME == os.getenv(
@@ -152,7 +153,7 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         config.custom_content.append(
             ("accounting_group", self.htcondor_accounting_group)
         )
-        config.render_variables["analysis_path"] = os.getenv("ANALYSIS_PATH")
+        config.render_variables["analysis_path"] = analysis_path
         config.custom_content.append(("Requirements", self.htcondor_requirements))
         config.custom_content.append(("+RemoteJob", self.htcondor_remote_job))
         config.custom_content.append(("universe", self.htcondor_universe))
@@ -188,7 +189,13 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         if not tarball.exists():
             # Make new tarball 
             prevdir = os.getcwd()
-            os.system("cd $ANALYSIS_PATH")         
+            os.system("cd $ANALYSIS_PATH")
+            tarball_local = law.LocalFileTarget(
+                "tarballs/{}/{}/processor.tar.gz".format(
+                    self.production_tag, task_name
+                )
+            )
+            tarball_local.parent.touch()
             command = [
                 "tar",
                 "--exclude",
@@ -213,7 +220,7 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
                 console.log("tar returned non-zero exit status {}".format(code))
                 console.rule()
                 os.remove(
-                    "tarballs/{}/{}_processor.tar.gz".format(
+                    "tarballs/{}/{}/processor.tar.gz".format(
                         self.production_tag, task_name
                     )
                 )
@@ -223,7 +230,7 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
             # Copy new tarball to remote
             tarball.parent.touch()
             tarball.copy_from_local(
-                src="tarballs/{}/{}_processor.tar.gz".format(
+                src="tarballs/{}/{}/processor.tar.gz".format(
                     self.production_tag, task_name
                 )
             )
