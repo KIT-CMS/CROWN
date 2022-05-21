@@ -1,31 +1,674 @@
-temp_nick:
-  campaign: RunIISummer20UL18NanoAODv2
-  datasetname: DYJetsToLL_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8
-  datatier: NANOAODSIM
-  dbs: /DYJetsToLL_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+# Data -> not tested yet, if this is working
+# mu tau channel
+DoubleMuon_Run2018A:
+  campaign: ""
+  datasetname: DoubleMuon_Run2018A-UL2018_MiniAODv2_NanoAODv9-v1
+  datatier: NANOAOD
+  dbs: /DoubleMuon/Run2018A-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
   energy: 13
   era: 2018
-  extension: ''
-  generators: amcatnloFXFX-pythia8
-  nevents: 85259315
-  nfiles: 85
-  prepid: SMP-RunIISummer20UL18NanoAODv2-00030
-  sample_type: mc
+  extension: ""
+  generators: ""
+  nevents: 241613524
+  nfiles: 164
+  prepid: ReReco-Run2018A-DoubleMuon-UL2018_MiniAODv1_NanoAODv2-00002
+  sample_type: data
   status: VALID
-  version: 1
-temp_nick_2:
-  campaign: RunIISummer20UL18NanoAODv2
-  datasetname: DYJetsToLL_1J_TuneCP5_13TeV-amcatnloFXFX-pythia8
-  datatier: NANOAODSIM
-  dbs: /DYJetsToLL_1J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  version: 2
+DoubleMuon_Run2018B:
+  campaign: ""
+  datasetname: DoubleMuon_Run2018B-UL2018_MiniAODv2_NanoAODv9-v1
+  datatier: NANOAOD
+  dbs: /DoubleMuon/Run2018B-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
   energy: 13
   era: 2018
-  extension: ''
-  generators: amcatnloFXFX-pythia8
-  nevents: 85259315
-  nfiles: 85
-  prepid: SMP-RunIISummer20UL18NanoAODv2-00030
-  sample_type: mc
+  extension: ""
+  generators: ""
+  nevents: 119918017
+  nfiles: 76
+  prepid: ReReco-Run2018B-DoubleMuon-UL2018_MiniAODv1_NanoAODv2-00002
+  sample_type: data
+  status: VALID
+  version: 2
+DoubleMuon_Run2018C:
+  campaign: ""
+  datasetname: DoubleMuon_Run2018C-UL2018_MiniAODv2_NanoAODv9-v1
+  datatier: NANOAOD
+  dbs: /DoubleMuon/Run2018C-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  nevents: 110032072
+  nfiles: 49
+  prepid: ReReco-Run2018C-DoubleMuon-UL2018_MiniAODv1_NanoAODv2-00002
+  sample_type: data
+  status: VALID
+  version: 2
+DoubleMuon_Run2018D:
+  campaign: ""
+  datasetname: DoubleMuon_Run2018D-UL2018_MiniAODv2_NanoAODv9-v1
+  datatier: NANOAOD
+  dbs: /DoubleMuon/Run2018D-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  nevents: 513909894
+  nfiles: 197
+  prepid: ReReco-Run2018D-DoubleMuon-UL2018_MiniAODv1_NanoAODv2-00002
+  sample_type: data
+  status: VALID
+  version: 2
+DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8
+  datatier: NANOAODSIM
+  dbs: /DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: madgraphMLM-pythia8
+  nevents: 98433266
+  nfiles: 53
+  prepid: TAU-RunIISummer20UL18NanoAODv2-00001
+  sample_type: dy
   status: VALID
   version: 1
-
+DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8:
+  campaign: RunIISummer19UL18NanoAODv2
+  datasetname: DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8
+  datatier: NANOAODSIM
+  dbs: /DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: madgraphMLM-pythia8
+  nevents: 65679725
+  nfiles: 41
+  prepid: TAU-RunIISummer19UL18NanoAODv2-00004
+  sample_type: dy
+  status: VALID
+  version: 1
+DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8:
+  campaign: RunIISummer19UL18NanoAODv2
+  datasetname: DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8
+  datatier: NANOAODSIM
+  dbs: /DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: madgraphMLM-pythia8
+  nevents: 28280407
+  nfiles: 22
+  prepid: TAU-RunIISummer19UL18NanoAODv2-00005
+  sample_type: dy
+  status: VALID
+  version: 1
+DY3JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8:
+  campaign: RunIISummer19UL18NanoAODv2
+  datasetname: DY3JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8
+  datatier: NANOAODSIM
+  dbs: /DY3JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: madgraphMLM-pythia8
+  nevents: 19021176
+  nfiles: 18
+  prepid: TAU-RunIISummer19UL18NanoAODv2-00006
+  sample_type: dy
+  status: VALID
+  version: 1
+DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8:
+  campaign: RunIISummer19UL18NanoAODv2
+  datasetname: DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8
+  datatier: NANOAODSIM
+  dbs: /DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: madgraphMLM-pythia8
+  nevents: 7581874
+  nfiles: 12
+  prepid: TAU-RunIISummer19UL18NanoAODv2-00007
+  sample_type: dy
+  status: VALID
+  version: 1
+DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8
+  datatier: NANOAODSIM
+  dbs: /DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: madgraphMLM-pythia8
+  nevents: 99449093
+  nfiles: 46
+  prepid: SUS-RunIISummer20UL18NanoAODv2-00007
+  sample_type: dy
+  status: VALID
+  version: 1
+# W + jets
+WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8
+  datatier: NANOAODSIM
+  dbs: /WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: madgraphMLM-pythia8
+  nevents: 83009353
+  nfiles: 45
+  prepid: BTV-RunIISummer20UL18NanoAODv2-00004
+  sample_type: wj
+  status: VALID
+  version: 1
+W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8
+  datatier: NANOAODSIM
+  dbs: /W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: madgraphMLM-pythia8
+  nevents: 47429123
+  nfiles: 25
+  prepid: BTV-RunIISummer20UL18NanoAODv2-00019
+  sample_type: wj
+  status: VALID
+  version: 1
+W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8
+  datatier: NANOAODSIM
+  dbs: /W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: madgraphMLM-pythia8
+  nevents: 28095849
+  nfiles: 60
+  prepid: BTV-RunIISummer20UL18NanoAODv2-00020
+  sample_type: wj
+  status: VALID
+  version: 1
+W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8
+  datatier: NANOAODSIM
+  dbs: /W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: madgraphMLM-pythia8
+  nevents: 18016072
+  nfiles: 39
+  prepid: BTV-RunIISummer20UL18NanoAODv2-00021
+  sample_type: wj
+  status: VALID
+  version: 1
+W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8
+  datatier: NANOAODSIM
+  dbs: /W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: madgraphMLM-pythia8
+  nevents: 9045482
+  nfiles: 43
+  prepid: BTV-RunIISummer20UL18NanoAODv2-00022
+  sample_type: wj
+  status: VALID
+  version: 1
+# ttbar
+TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8
+  datatier: NANOAODSIM
+  dbs: /TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: powheg-pythia8
+  nevents: 148470000
+  nfiles: 181
+  prepid: TOP-RunIISummer20UL18NanoAODv2-00007
+  sample_type: tt
+  status: VALID
+  version: 1
+TTToHadronic_TuneCP5_13TeV-powheg-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: TTToHadronic_TuneCP5_13TeV-powheg-pythia8
+  datatier: NANOAODSIM
+  dbs: /TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: powheg-pythia8
+  nevents: 344028000
+  nfiles: 343
+  prepid: TOP-RunIISummer20UL18NanoAODv2-00006
+  sample_type: tt
+  status: VALID
+  version: 1
+TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8
+  datatier: NANOAODSIM
+  dbs: /TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: powheg-pythia8
+  nevents: 486770000
+  nfiles: 465
+  prepid: TOP-RunIISummer20UL18NanoAODv2-00005
+  sample_type: tt
+  status: VALID
+  version: 1
+# single top
+ST_t-channel_top_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8:
+  campaign: RunIISummer19UL18NanoAODv2
+  datasetname: ST_t-channel_top_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8
+  datatier: NANOAODSIM
+  dbs: /ST_t-channel_top_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: powheg-madspin-pythia8
+  nevents: 47707100
+  nfiles: 37
+  prepid: TOP-RunIISummer19UL18NanoAODv2-00009
+  sample_type: tt
+  status: VALID
+  version: 1
+ST_t-channel_antitop_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8:
+  campaign: RunIISummer19UL18NanoAODv2
+  datasetname: ST_t-channel_antitop_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8
+  datatier: NANOAODSIM
+  dbs: /ST_t-channel_antitop_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: powheg-madspin-pythia8
+  nevents: 23421300
+  nfiles: 30
+  prepid: TOP-RunIISummer19UL18NanoAODv2-00086
+  sample_type: tt
+  status: VALID
+  version: 1
+ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8
+  datatier: NANOAODSIM
+  dbs: /ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: powheg-pythia8
+  nevents: 7804000
+  nfiles: 104
+  prepid: TOP-RunIISummer20UL18NanoAODv2-00071
+  sample_type: tt
+  status: VALID
+  version: 1
+ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8
+  datatier: NANOAODSIM
+  dbs: /ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: powheg-pythia8
+  nevents: 7701000
+  nfiles: 107
+  prepid: TOP-RunIISummer20UL18NanoAODv2-00072
+  sample_type: tt
+  status: VALID
+  version: 1
+# Diboson dedicated
+WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8
+  datatier: NANOAODSIM
+  dbs: /WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: amcatnloFXFX-pythia8
+  nevents: 9678809
+  nfiles: 24
+  prepid: SMP-RunIISummer20UL18NanoAODv2-00070
+  sample_type: vv
+  status: VALID
+  version: 1
+ZZTo4L_TuneCP5_13TeV_powheg_pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: ZZTo4L_TuneCP5_13TeV_powheg_pythia8
+  datatier: NANOAODSIM
+  dbs: /ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: powheg_pythia8
+  nevents: 99218000
+  nfiles: 65
+  prepid: HIG-RunIISummer20UL18NanoAODv2-00099
+  sample_type: vv
+  status: VALID
+  version: 1
+ZZTo2L2Nu_TuneCP5_13TeV_powheg_pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: ZZTo2L2Nu_TuneCP5_13TeV_powheg_pythia8
+  datatier: NANOAODSIM
+  dbs: /ZZTo2L2Nu_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: powheg_pythia8
+  nevents: 56812000
+  nfiles: 35
+  prepid: SUS-RunIISummer20UL18NanoAODv2-00015
+  sample_type: vv
+  status: VALID
+  version: 1
+WWTo2L2Nu_TuneCP5_13TeV-powheg-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: WWTo2L2Nu_TuneCP5_13TeV-powheg-pythia8
+  datatier: NANOAODSIM
+  dbs: /WWTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: powheg_pythia8
+  nevents: 9664000
+  nfiles: 48
+  prepid: SUS-RunIISummer20UL18NanoAODv2-00039
+  sample_type: vv
+  status: VALID
+  version: 1
+# Diboson inclusive
+WW_TuneCP5_13TeV-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: WW_TuneCP5_13TeV-pythia8
+  datatier: NANOAODSIM
+  dbs: /WW_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: pythia8
+  nevents: 15670000
+  nfiles: 21
+  prepid: BTV-RunIISummer20UL18NanoAODv2-00002
+  sample_type: vv
+  status: VALID
+  version: 1
+ZZ_TuneCP5_13TeV-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: ZZ_TuneCP5_13TeV-pythia8
+  datatier: NANOAODSIM
+  dbs: /ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: pythia8
+  nevents: 3907000
+  nfiles: 3
+  prepid: SUS-RunIISummer20UL18NanoAODv2-00014
+  sample_type: vv
+  status: VALID
+  version: 1
+WZ_TuneCP5_13TeV-pythia8:
+  campaign: RunIISummer20UL18NanoAODv2
+  datasetname: WZ_TuneCP5_13TeV-pythia8
+  datatier: NANOAODSIM
+  dbs: /WZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: pythia8
+  nevents: 7986000
+  nfiles: 21
+  prepid: BTV-RunIISummer20UL18NanoAODv2-00001
+  sample_type: vv
+  status: VALID
+  version: 1
+MuEmbedding_Run2018A:
+  campaign: ""
+  datasetname: MuEmbedding_Run2018A-UL2018
+  datatier: NANOAOD
+  dbs:
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  sample_type: emb
+  status: VALID
+  version: 1
+  nfiles: 208
+  nevents: 20764967
+MuEmbedding_Run2018B:
+  campaign: ""
+  datasetname: MuEmbedding_Run2018B-UL2018
+  datatier: NANOAOD
+  dbs:
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  sample_type: emb
+  status: VALID
+  version: 1
+  nfiles: 94
+  nevents: 9301733
+MuEmbedding_Run2018C:
+  campaign: ""
+  datasetname: MuEmbedding_Run2018C-UL2018
+  datatier: NANOAOD
+  dbs:
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  sample_type: emb
+  status: VALID
+  version: 1
+  nfiles: 86
+  nevents: 8566763
+MuEmbedding_Run2018D:
+  campaign: ""
+  datasetname: MuEmbedding_Run2018D-UL2018
+  datatier: NANOAOD
+  dbs:
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  sample_type: emb
+  status: VALID
+  version: 1
+  nfiles: 402
+  nevents: 40168375
+SingleMuon_Run2018A:
+  campaign: ""
+  datasetname: SingleMuon_Run2018A-UL2018_MiniAODv1_NanoAODv2-v2
+  datatier: NANOAOD
+  dbs: /SingleMuon/Run2018A-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  nevents: 241608232
+  nfiles: 92
+  prepid: ReReco-Run2018A-SingleMuon-UL2018_MiniAODv1_NanoAODv2-00002
+  sample_type: data
+  status: VALID
+  version: 2
+SingleMuon_Run2018B:
+  campaign: ""
+  datasetname: SingleMuon_Run2018B-UL2018_MiniAODv1_NanoAODv2-v2
+  datatier: NANOAOD
+  dbs: /SingleMuon/Run2018B-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  nevents: 119918017
+  nfiles: 51
+  prepid: ReReco-Run2018B-SingleMuon-UL2018_MiniAODv1_NanoAODv2-00002
+  sample_type: data
+  status: VALID
+  version: 2
+SingleMuon_Run2018C:
+  campaign: ""
+  datasetname: SingleMuon_Run2018C-UL2018_MiniAODv1_NanoAODv2-v2
+  datatier: NANOAOD
+  dbs: /SingleMuon/Run2018C-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  nevents: 109986009
+  nfiles: 56
+  prepid: ReReco-Run2018C-SingleMuon-UL2018_MiniAODv1_NanoAODv2-00002
+  sample_type: data
+  status: VALID
+  version: 2
+SingleMuon_Run2018D:
+  campaign: ""
+  datasetname: SingleMuon_Run2018D-UL2018_MiniAODv1_NanoAODv2-v2
+  datatier: NANOAOD
+  dbs: /SingleMuon/Run2018D-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  nevents: 513909894
+  nfiles: 194
+  prepid: ReReco-Run2018D-SingleMuon-UL2018_MiniAODv1_NanoAODv2-00002
+  sample_type: data
+  status: VALID
+  version: 2
+ElEmbedding_Run2018A:
+  campaign: ""
+  datasetname: ElEmbedding_Run2018A-UL2018
+  datatier: NANOAOD
+  dbs:
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  sample_type: emb
+  status: VALID
+  version: 1
+  nfiles: 150
+  nevents: 14960365
+ElEmbedding_Run2018B:
+  campaign: ""
+  datasetname: ElEmbedding_Run2018B-UL2018
+  datatier: NANOAOD
+  dbs:
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  sample_type: emb
+  status: VALID
+  version: 1
+  nfiles: 72
+  nevents: 7110291
+ElEmbedding_Run2018C:
+  campaign: ""
+  datasetname: ElEmbedding_Run2018C-UL2018
+  datatier: NANOAOD
+  dbs:
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  sample_type: emb
+  status: VALID
+  version: 1
+  nfiles: 66
+  nevents: 6542941
+ElEmbedding_Run2018D:
+  campaign: ""
+  datasetname: ElEmbedding_Run2018D-UL2018
+  datatier: NANOAOD
+  dbs:
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  sample_type: emb
+  status: VALID
+  version: 1
+  nfiles: 307
+  nevents: 30640012
+EGamma_Run2018A:
+  campaign: ""
+  datasetname: EGamma_Run2018A-UL2018_MiniAODv2_NanoAODv9-v1
+  datatier: NANOAOD
+  dbs: /EGamma/Run2018A-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  nevents: 339013231
+  nfiles: 226
+  prepid:
+  sample_type: data
+  status: VALID
+  version: 1
+EGamma_Run2018B:
+  campaign: ""
+  datasetname: EGamma_Run2018B-UL2018_MiniAODv2_NanoAODv9-v1
+  datatier: NANOAOD
+  dbs: /EGamma/Run2018B-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  nevents: 153792795
+  nfiles: 74
+  prepid:
+  sample_type: data
+  status: VALID
+  version: 1
+EGamma_Run2018C:
+  campaign: ""
+  datasetname: EGamma_Run2018C-UL2018_MiniAODv2_NanoAODv9-v1
+  datatier: NANOAOD
+  dbs: /EGamma/Run2018C-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  nevents: 147827904
+  nfiles: 83
+  prepid:
+  sample_type: data
+  status: VALID
+  version: 1
+EGamma_Run2018D:
+  campaign: ""
+  datasetname: EGamma_Run2018D-UL2018_MiniAODv2_NanoAODv9-v3
+  datatier: NANOAOD
+  dbs: /EGamma/Run2018D-UL2018_MiniAODv2_NanoAODv9-v3/NANOAOD
+  energy: 13
+  era: 2018
+  extension: ""
+  generators: ""
+  nevents: 147827904
+  nfiles: 83
+  prepid:
+  sample_type: data
+  status: VALID
+  version: 3

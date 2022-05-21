@@ -19,14 +19,14 @@ class CROWNBuild(Task):
     eras = luigi.ListParameter()
     sampletypes = luigi.ListParameter()
     analysis = luigi.Parameter()
+    production_tag = luigi.Parameter()
 
     env_script = os.path.join(
         os.path.dirname(__file__), "../../", "setup", "setup_crown_cmake.sh"
     )
 
     def output(self):
-        target = self.remote_target("crown_{}.tar.gz".format(self.analysis)
-        )
+        target = self.remote_target("crown_{}.tar.gz".format(self.analysis))
         return target
 
     def run(self):
@@ -44,6 +44,7 @@ class CROWNBuild(Task):
         _scopes = ",".join(self.scopes)
         _analysis = str(self.analysis)
         _shifts = str(self.shifts)
+        # also use the tag for the local tarball creation
         _tag = "{}/CROWN_{}".format(self.production_tag, _analysis)
         _install_dir = os.path.join(str(self.install_dir), _tag)
         _build_dir = os.path.join(str(self.build_dir), _tag)
@@ -119,10 +120,12 @@ class CROWNBuild(Task):
                 for line in p.stdout:
                     if line != "\n":
                         console.log(line.replace("\n", ""))
+                for line in p.stderr:
+                    if line != "\n":
+                        console.log(line.replace("\n", ""))
 
             if p.returncode != 0:
                 console.log("Error when building crown {}".format(command))
-                console.log("Output: {}".format(p.stderr))
                 console.log(
                     "building returned non-zero exit status {}".format(p.returncode)
                 )

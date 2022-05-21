@@ -22,7 +22,7 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     Gather and compile CROWN with the given configuration
     """
 
-    output_collection_cls = law.SiblingFileCollection
+    output_collection_cls = law.NestedSiblingFileCollection
 
     nick = luigi.Parameter()
     scopes = luigi.ListParameter()
@@ -31,6 +31,7 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     era = luigi.Parameter()
     eras = luigi.ListParameter()
     analysis = luigi.Parameter()
+    production_tag = luigi.Parameter()
     files_per_task = luigi.IntParameter(default=1)
 
     def modify_polling_status_line(self, status_line):
@@ -49,11 +50,13 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
         return {"tarball": CROWNBuild.req(self)}
 
     def create_branch_map(self):
-        dataset = ConfigureDatasets(nick=self.nick)
+        dataset = ConfigureDatasets(nick=self.nick, production_tag=self.production_tag)
         dataset.run()
         with self.input()["datasetinfo"].localize("r") as _file:
             inputdata = _file.load()
         branch_map = {}
+        if len(inputdata["filelist"]) == 0:
+            raise Exception("No files found for dataset {}".format(self.nick))
         for i, filename in enumerate(inputdata["filelist"]):
             if (int(i / self.files_per_task)) not in branch_map:
                 branch_map[int(i / self.files_per_task)] = []
@@ -62,7 +65,8 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
 
     def output(self):
         nicks = [
-            "{nick}/ntuple_{nick}_{branch}_{scope}.root".format(
+            "{era}/{nick}/{scope}/{nick}_{branch}.root".format(
+                era=self.era,
                 nick=self.nick,
                 branch=self.branch,
                 scope=scope,
@@ -70,19 +74,19 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
             for scope in self.scopes
         ]
         targets = self.remote_targets(nicks)
-        targets[0].parent.touch()
+        for target in targets:
+            target.parent.touch()
         return targets
 
     def run(self):
-        output = self.output()
-        output[0].parent.touch()
+        outputs = self.output()
         info = self.branch_data
         _workdir = os.path.abspath("workdir")
         ensure_dir(_workdir)
         _inputfiles = info
         # set the outputfilename to the first name in the output list, removing the scope suffix
         _outputfile = str(
-            output[0].basename.replace("_{}.root".format(self.scopes[0]), ".root")
+            outputs[0].basename.replace("_{}.root".format(self.scopes[0]), ".root")
         )
         _executable = "{}/{}_{}_{}".format(
             _workdir, self.analysis, self.sampletype, self.era
@@ -131,7 +135,7 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
                     console.log(line.replace("\n", ""))
             for line in p.stderr:
                 if line != "\n":
-                    console.log("Error: {}".format(line.replace('\n', '')))
+                    console.log("Error: {}".format(line.replace("\n", "")))
         if p.returncode != 0:
             console.log(
                 "Error when running crown {}".format(
@@ -143,7 +147,8 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
         else:
             console.log("Successful")
         console.log("Output files afterwards: {}".format(os.listdir(_workdir)))
-        for i, outputfile in enumerate(output):
+        for i, outputfile in enumerate(outputs):
+            outputfile.parent.touch()
             # for each outputfile, add the scope suffix
             outputfile.copy_from_local(
                 os.path.join(
