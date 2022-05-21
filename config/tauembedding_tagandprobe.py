@@ -181,7 +181,7 @@ def build_config(
                             "flagname_1": "trg_single_ele35_1",
                             "flagname_2": "trg_single_ele35_2",
                             "hlt_path": "HLT_Ele35_WPTight_Gsf",
-                            "ptcut": 26,
+                            "ptcut": 36,
                             "etacut": 2.1,
                             "filterbit": 1,
                             "trigger_particle_id": 11,
