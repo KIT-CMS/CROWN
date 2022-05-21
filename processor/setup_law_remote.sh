@@ -8,6 +8,14 @@ action(){
         [ ! -z "$1" ] && export PATH="$1:${PATH}" && echo "Add $1 to PATH"
     }
 
+    echo "------------------------------------------"
+    echo " | USER = ${USER}"
+    echo " | HOSTNAME = $(hostname)"
+    echo " | ANA_NAME = ${ANA_NAME}"
+    echo " | ENV_NAME = ${ENV_NAME}"
+    echo " | TAG = ${TAG}"
+    echo " | TARBALL_PATH = ${TARBALL_PATH}"
+
     # Setup variables
     SPAWNPOINT=$(pwd)
 
@@ -22,10 +30,7 @@ action(){
 
     # on ETP ressources, this is not needed, since we can use a docker image containing the conda environment
     # on other systems, these changes here might be needed
-    echo "------------------------------------------"
-    echo " | ANA_NAME = ${ANA_NAME}"
-    echo " | ENV_NAME = ${ENV_NAME}"
-    echo " | TARBALL_PATH = ${TARBALL_PATH}"
+
     if [[ ! -z "${ENV_FROM_TAR}" ]]; then
         ENV_PATH=${SPAWNPOINT}/miniconda/envs/${ENV_NAME}
         echo " | ENV_PATH = $ENV_PATH"
@@ -40,11 +45,14 @@ action(){
     if [[ -z "${ENV_FROM_TAR}" ]]; then
         # Activate environment from cvmfs
         source ${ENV_PATH}/bin/activate
+        echo "gfal-copy ${TARBALL_PATH} ${SPAWNPOINT}"
         gfal-copy ${TARBALL_PATH} ${SPAWNPOINT}
     else
         (
             source /cvmfs/grid.cern.ch/umd-c7ui-latest/etc/profile.d/setup-c7-ui-example.sh
+            echo "gfal-copy ${TARBALL_PATH} ${SPAWNPOINT}"
             gfal-copy ${TARBALL_PATH} ${SPAWNPOINT}
+            echo "gfal-copy ${TARBALL_ENV_PATH} ${SPAWNPOINT}"
             gfal-copy ${TARBALL_ENV_PATH} ${SPAWNPOINT}
         )
         mkdir -p ${ENV_PATH}
@@ -54,7 +62,7 @@ action(){
         conda-unpack
     fi
 
-    tar -xzf ${ANA_NAME}_processor.tar.gz && rm ${ANA_NAME}_processor.tar.gz
+    tar -xzf processor.tar.gz && rm processor.tar.gz
 
     # (
     #     source /cvmfs/grid.cern.ch/umd-c7ui-latest/etc/profile.d/setup-c7-ui-example.sh

@@ -44,8 +44,11 @@ class RunRemote(Task, HTCondorWorkflow, law.LocalWorkflow):
 
     # Task is run remotely and has access to GPU resources.
     def run(self):
-        import tensorflow as tf
-        tf.test.is_gpu_available()
+        try:
+            import tensorflow as tf
+            tf.test.is_gpu_available()
+        except:
+            print("Tensorflow not found.")
         readText = self.input().load()
         self.publish_message("This is the input: {}".format(self.input()))
         wholeText = readText + "a triumph!"

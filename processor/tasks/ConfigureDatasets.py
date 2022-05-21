@@ -1,4 +1,3 @@
-import law
 import luigi
 import os
 import json
@@ -22,6 +21,7 @@ class ConfigureDatasets(Task):
 
     nick = luigi.Parameter()
     dataset_database = luigi.Parameter()
+    production_tag = luigi.Parameter()
     env_script = os.path.join(
         os.path.dirname(__file__), "../../", "setup", "dasclient.sh"
     )
@@ -42,6 +42,10 @@ class ConfigureDatasets(Task):
             cmd, stdout=PIPE, stderr=PIPE, shell=True, env=self.my_env
         )
         # jsonS = code.communicate()[0]
+        if code != 0:
+            raise Exception(
+                "DAS query failed: {} \n Error: {}".format(das_query, error)
+            )
         filelist = json.loads(out)
         for file in filelist:
             filedict[file["file"][0]["name"]] = file["file"][0]["nevents"]
@@ -56,11 +60,11 @@ class ConfigureDatasets(Task):
 
     def output(self):
         target = self.remote_target("sample_database/{}.yaml".format(self.nick))
-        target.parent.touch()
         return target
 
     def run(self):
         output = self.output()
+        output.parent.touch()
         if not output.exists():
             # set environment variables
             self.my_env = self.set_environment(self.env_script)
@@ -80,6 +84,7 @@ class ConfigureDatasets(Task):
             console.rule("Nick: {}".format(self.nick))
             # if the filelist is already there, load it
             if os.path.exists(sample_configfile):
+                print("Loading sample config file")
                 with open(sample_configfile, "r") as stream:
                     try:
                         sample_data = yaml.safe_load(stream)

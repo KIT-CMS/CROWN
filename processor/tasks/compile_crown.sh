@@ -11,7 +11,9 @@ SHIFTS=$6
 INSTALLDIR=$7
 BUILDDIR=$8
 TARBALLNAME=$9
-
+THREADS_AVAILABLE=$(grep -c ^processor /proc/cpuinfo)
+THREADS=$(( THREADS_AVAILABLE / 4 ))
+echo "Using $THREADS threads"
 which cmake
 
 cmake $CROWNFOLDER \
@@ -24,7 +26,10 @@ cmake $CROWNFOLDER \
  -B$BUILDDIR
 
 cd $BUILDDIR
-ninja install
+make install -j $THREADS
 cd $INSTALLDIR
 touch $TARBALLNAME
 tar -czvf $TARBALLNAME --exclude=$TARBALLNAME .
+echo "CROWN tarball created: $TARBALLNAME"
+
+exit 0
