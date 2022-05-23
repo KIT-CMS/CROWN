@@ -82,196 +82,196 @@ pt_vis = Producer(
 muon_dxy_1 = Producer(
     name="muon_dxy_1",
     call="quantities::dxy({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Muon_dxy],
+    input=[q.dileptonpair, nanoAOD.Muon_dxy],
     output=[q.dxy_1],
     scopes=["mt", "mm"],
 )
 muon_dxy_2 = Producer(
     name="muon_dxy_2",
     call="quantities::dxy({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Muon_dxy],
+    input=[q.dileptonpair, nanoAOD.Muon_dxy],
     output=[q.dxy_2],
     scopes=["em", "mm"],
 )
 electron_dxy_1 = Producer(
     name="electron_dxy_1",
     call="quantities::dxy({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Electron_dxy],
+    input=[q.dileptonpair, nanoAOD.Electron_dxy],
     output=[q.dxy_1],
     scopes=["et", "ee", "em"],
 )
 electron_dxy_2 = Producer(
     name="electron_dxy_2",
     call="quantities::dxy({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Electron_dxy],
+    input=[q.dileptonpair, nanoAOD.Electron_dxy],
     output=[q.dxy_2],
     scopes=["ee"],
 )
 tau_dxy_1 = Producer(
     name="tau_dxy_1",
     call="quantities::dxy({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_dxy],
+    input=[q.dileptonpair, nanoAOD.Tau_dxy],
     output=[q.dxy_1],
     scopes=["tt"],
 )
 tau_dxy_2 = Producer(
     name="tau_dxy_2",
     call="quantities::dxy({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_dxy],
+    input=[q.dileptonpair, nanoAOD.Tau_dxy],
     output=[q.dxy_2],
     scopes=["mt", "et", "tt"],
 )
 muon_dz_1 = Producer(
     name="muon_dz_1",
     call="quantities::dz({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Muon_dz],
+    input=[q.dileptonpair, nanoAOD.Muon_dz],
     output=[q.dz_1],
     scopes=["mt", "mm"],
 )
 muon_dz_2 = Producer(
     name="muon_dz_2",
     call="quantities::dz({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Muon_dz],
+    input=[q.dileptonpair, nanoAOD.Muon_dz],
     output=[q.dz_2],
     scopes=["em", "mm"],
 )
 electron_dz_1 = Producer(
     name="electron_dz_1",
     call="quantities::dz({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Electron_dz],
+    input=[q.dileptonpair, nanoAOD.Electron_dz],
     output=[q.dz_1],
     scopes=["et", "ee", "em"],
 )
 electron_dz_2 = Producer(
     name="electron_dz_2",
     call="quantities::dz({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Electron_dz],
+    input=[q.dileptonpair, nanoAOD.Electron_dz],
     output=[q.dz_2],
     scopes=["ee"],
 )
 tau_dz_1 = Producer(
     name="tau_dz_1",
     call="quantities::dz({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_dz],
+    input=[q.dileptonpair, nanoAOD.Tau_dz],
     output=[q.dz_1],
     scopes=["tt"],
 )
 tau_dz_2 = Producer(
     name="tau_dz_2",
     call="quantities::dz({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_dz],
+    input=[q.dileptonpair, nanoAOD.Tau_dz],
     output=[q.dz_2],
     scopes=["mt", "et", "tt"],
 )
 muon_q_1 = Producer(
     name="muon_q_1",
     call="quantities::charge({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Muon_charge],
+    input=[q.dileptonpair, nanoAOD.Muon_charge],
     output=[q.q_1],
     scopes=["mt", "mm"],
 )
 muon_q_2 = Producer(
     name="muon_q_2",
     call="quantities::charge({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Muon_charge],
+    input=[q.dileptonpair, nanoAOD.Muon_charge],
     output=[q.q_2],
     scopes=["em", "mm"],
 )
 electron_q_1 = Producer(
     name="electron_q_1",
     call="quantities::charge({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Electron_charge],
+    input=[q.dileptonpair, nanoAOD.Electron_charge],
     output=[q.q_1],
     scopes=["et", "ee", "em"],
 )
 electron_q_2 = Producer(
     name="electron_q_2",
     call="quantities::charge({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Electron_charge],
+    input=[q.dileptonpair, nanoAOD.Electron_charge],
     output=[q.q_2],
     scopes=["ee"],
 )
 tau_q_1 = Producer(
     name="tau_q_1",
     call="quantities::charge({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_charge],
+    input=[q.dileptonpair, nanoAOD.Tau_charge],
     output=[q.q_1],
     scopes=["tt"],
 )
 tau_q_2 = Producer(
     name="tau_q_2",
     call="quantities::charge({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_charge],
+    input=[q.dileptonpair, nanoAOD.Tau_charge],
     output=[q.q_2],
     scopes=["mt", "et", "tt"],
 )
 muon_iso_1 = Producer(
     name="muon_iso_1",
     call="quantities::isolation({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Muon_iso],
+    input=[q.dileptonpair, nanoAOD.Muon_iso],
     output=[q.iso_1],
     scopes=["mt", "mm"],
 )
 muon_iso_2 = Producer(
     name="muon_iso_2",
     call="quantities::isolation({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Muon_iso],
+    input=[q.dileptonpair, nanoAOD.Muon_iso],
     output=[q.iso_2],
     scopes=["em", "mm"],
 )
 electron_iso_1 = Producer(
     name="electron_iso_1",
     call="quantities::isolation({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Electron_iso],
+    input=[q.dileptonpair, nanoAOD.Electron_iso],
     output=[q.iso_1],
     scopes=["et", "ee", "em"],
 )
 electron_iso_2 = Producer(
     name="electron_iso_2",
     call="quantities::isolation({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Electron_iso],
+    input=[q.dileptonpair, nanoAOD.Electron_iso],
     output=[q.iso_2],
     scopes=["ee"],
 )
 tau_iso_1 = Producer(
     name="tau_iso_1",
     call="quantities::isolation({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_IDraw],
+    input=[q.dileptonpair, nanoAOD.Tau_IDraw],
     output=[q.iso_1],
     scopes=["tt"],
 )
 tau_iso_2 = Producer(
     name="tau_iso_2",
     call="quantities::isolation({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_IDraw],
+    input=[q.dileptonpair, nanoAOD.Tau_IDraw],
     output=[q.iso_2],
     scopes=["mt", "et", "tt"],
 )
 tau_decaymode_1 = Producer(
     name="decaymode_1",
     call="quantities::tau::decaymode({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_decayMode],
+    input=[q.dileptonpair, nanoAOD.Tau_decayMode],
     output=[q.decaymode_1],
     scopes=["tt"],
 )
 tau_gen_match_1 = Producer(
     name="gen_match_1",
     call="quantities::tau::genmatch({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_genMatch],
+    input=[q.dileptonpair, nanoAOD.Tau_genMatch],
     output=[q.gen_match_1],
     scopes=["tt"],
 )
 taujet_pt_1 = Producer(
     name="taujet_pt_1",
     call="quantities::tau::matching_jet_pt({df}, {output}, 0, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_associatedJet, nanoAOD.Jet_pt],
+    input=[q.dileptonpair, nanoAOD.Tau_associatedJet, nanoAOD.Jet_pt],
     output=[q.taujet_pt_1],
     scopes=["tt"],
 )
 VsJetTauIDFlag_1 = ExtendedVectorProducer(
     name="VsJetTauIDFlag_1",
     call="quantities::tau::TauIDFlag({df}, {output}, 0, {input}, {vsjet_tau_id_WPbit})",
-    input=[q.ditaupair, nanoAOD.Tau_ID_vsJet],
+    input=[q.dileptonpair, nanoAOD.Tau_ID_vsJet],
     output="tau_1_vsjet_id_outputname",
     scope=["tt"],
     vec_config="vsjet_tau_id",
@@ -279,7 +279,7 @@ VsJetTauIDFlag_1 = ExtendedVectorProducer(
 VsEleTauIDFlag_1 = ExtendedVectorProducer(
     name="VsEleTauIDFlag_1",
     call="quantities::tau::TauIDFlag({df}, {output}, 0, {input}, {vsele_tau_id_WPbit})",
-    input=[q.ditaupair, nanoAOD.Tau_ID_vsEle],
+    input=[q.dileptonpair, nanoAOD.Tau_ID_vsEle],
     output="tau_1_vsele_id_outputname",
     scope=["tt"],
     vec_config="vsele_tau_id",
@@ -287,7 +287,7 @@ VsEleTauIDFlag_1 = ExtendedVectorProducer(
 VsMuTauIDFlag_1 = ExtendedVectorProducer(
     name="VsMuTauIDFlag_1",
     call="quantities::tau::TauIDFlag({df}, {output}, 0, {input}, {vsmu_tau_id_WPbit})",
-    input=[q.ditaupair, nanoAOD.Tau_ID_vsMu],
+    input=[q.dileptonpair, nanoAOD.Tau_ID_vsMu],
     output="tau_1_vsmu_id_outputname",
     scope=["tt"],
     vec_config="vsmu_tau_id",
@@ -296,28 +296,28 @@ VsMuTauIDFlag_1 = ExtendedVectorProducer(
 tau_decaymode_2 = Producer(
     name="taudecaymode_2",
     call="quantities::tau::decaymode({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_decayMode],
+    input=[q.dileptonpair, nanoAOD.Tau_decayMode],
     output=[q.decaymode_2],
     scopes=["mt", "et", "tt"],
 )
 tau_gen_match_2 = Producer(
     name="taugen_match_2",
     call="quantities::tau::genmatch({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_genMatch],
+    input=[q.dileptonpair, nanoAOD.Tau_genMatch],
     output=[q.gen_match_2],
     scopes=["mt", "et", "tt"],
 )
 taujet_pt_2 = Producer(
     name="taujet_pt_2",
     call="quantities::tau::matching_jet_pt({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_associatedJet, nanoAOD.Jet_pt],
+    input=[q.dileptonpair, nanoAOD.Tau_associatedJet, nanoAOD.Jet_pt],
     output=[q.taujet_pt_2],
     scopes=["mt", "et", "tt"],
 )
 VsJetTauIDFlag_2 = ExtendedVectorProducer(
     name="VsJetTauIDFlag_2",
     call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsjet_tau_id_WPbit})",
-    input=[q.ditaupair, nanoAOD.Tau_ID_vsJet],
+    input=[q.dileptonpair, nanoAOD.Tau_ID_vsJet],
     output="tau_2_vsjet_id_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsjet_tau_id",
@@ -325,7 +325,7 @@ VsJetTauIDFlag_2 = ExtendedVectorProducer(
 VsEleTauIDFlag_2 = ExtendedVectorProducer(
     name="VsEleTauIDFlag_2",
     call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsele_tau_id_WPbit})",
-    input=[q.ditaupair, nanoAOD.Tau_ID_vsEle],
+    input=[q.dileptonpair, nanoAOD.Tau_ID_vsEle],
     output="tau_2_vsele_id_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsele_tau_id",
@@ -333,7 +333,7 @@ VsEleTauIDFlag_2 = ExtendedVectorProducer(
 VsMuTauIDFlag_2 = ExtendedVectorProducer(
     name="VsMuTauIDFlag_2",
     call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsmu_tau_id_WPbit})",
-    input=[q.ditaupair, nanoAOD.Tau_ID_vsMu],
+    input=[q.dileptonpair, nanoAOD.Tau_ID_vsMu],
     output="tau_2_vsmu_id_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsmu_tau_id",

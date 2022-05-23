@@ -92,14 +92,15 @@ ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
 /// \param[in] df the input dataframe
 /// \param[out] outputmaskname the name of the new mask to be added as column to
 /// the dataframe \param[in] inputmaskname the name of the input mask \param[in]
-/// ditaupair name of the column of the ditaupair \param[in] index index of the
-/// tau candidate to be ignored by mask
+/// dileptonpair name of the column of the dileptonpair \param[in] index index
+/// of the tau candidate to be ignored by mask
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode VetoCandInMask(ROOT::RDF::RNode df,
                                 const std::string &outputmaskname,
                                 const std::string &inputmaskname,
-                                const std::string &ditaupair, const int index) {
+                                const std::string &dileptonpair,
+                                const int index) {
     return df.Define(outputmaskname,
                      [index, inputmaskname](const ROOT::RVec<int> &mask,
                                             const ROOT::RVec<int> &pair) {
@@ -112,7 +113,7 @@ ROOT::RDF::RNode VetoCandInMask(ROOT::RDF::RNode df,
                              newmask.at(pair.at(index)) = 0;
                          return newmask;
                      },
-                     {inputmaskname, ditaupair});
+                     {inputmaskname, dileptonpair});
 }
 
 /// Function to filter events based on a mask. If the mask contains at least
