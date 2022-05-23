@@ -86,14 +86,14 @@ ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
     return df1;
 }
 
-/// Function to take a mask and create a new one where a tau candidate is set to
-/// false
+/// Function to take a mask and create a new one where a particle candidate is
+/// set to false
 ///
 /// \param[in] df the input dataframe
 /// \param[out] outputmaskname the name of the new mask to be added as column to
 /// the dataframe \param[in] inputmaskname the name of the input mask \param[in]
 /// dileptonpair name of the column of the dileptonpair \param[in] index index
-/// of the tau candidate to be ignored by mask
+/// of the particle candidate to be ignored by mask
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode VetoCandInMask(ROOT::RDF::RNode df,
