@@ -105,14 +105,14 @@ GoodElectrons = ProducerGroup(
 VetoElectrons = Producer(
     name="VetoElectrons",
     call="physicsobject::VetoCandInMask({df}, {output}, {input}, {electron_index_in_pair})",
-    input=[q.base_electrons_mask, q.ditaupair],
+    input=[q.base_electrons_mask, q.dileptonpair],
     output=[q.veto_electrons_mask],
     scopes=["em", "et", "ee"],
 )
 VetoSecondElectron = Producer(
     name="VetoSecondElectron",
     call="physicsobject::VetoCandInMask({df}, {output}, {input}, {second_electron_index_in_pair})",
-    input=[q.veto_electrons_mask, q.ditaupair],
+    input=[q.veto_electrons_mask, q.dileptonpair],
     output=[q.veto_electrons_mask_2],
     scopes=["ee"],
 )

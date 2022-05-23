@@ -51,7 +51,7 @@ bool check_mother(ROOT::RVec<GenParticle> genparticles, const int index,
     }
 }
 
-namespace pairselection {
+namespace ditau_pairselection {
 /**
  * @brief Function used to build a pair of GenParticles from the selected
  * DiTauPair. This uses the references of the reco particles to the gen
@@ -1125,5 +1125,5 @@ ZBosonPairSelection(ROOT::RDF::RNode df,
 }
 
 } // end namespace mumu
-} // end namespace pairselection
+} // end namespace ditau_pairselection
 #endif /* GUARD_PAIRSELECTION_H */

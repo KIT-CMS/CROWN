@@ -8,42 +8,42 @@ from code_generation.producer import Producer, ProducerGroup
 MTGenPair = Producer(
     name="MTGenPair",
     call="pairselection::buildgenpair({df}, {input}, {output})",
-    input=[q.ditaupair, nanoAOD.Muon_indexToGen, nanoAOD.Tau_indexToGen],
+    input=[q.dileptonpair, nanoAOD.Muon_indexToGen, nanoAOD.Tau_indexToGen],
     output=[q.gen_ditaupair],
     scopes=["mt"],
 )
 ETGenPair = Producer(
     name="ETGenPair",
     call="pairselection::buildgenpair({df}, {input}, {output})",
-    input=[q.ditaupair, nanoAOD.Electron_indexToGen, nanoAOD.Tau_indexToGen],
+    input=[q.dileptonpair, nanoAOD.Electron_indexToGen, nanoAOD.Tau_indexToGen],
     output=[q.gen_ditaupair],
     scopes=["et"],
 )
 TTGenPair = Producer(
     name="TTGenPair",
     call="pairselection::buildgenpair({df}, {input}, {output})",
-    input=[q.ditaupair, nanoAOD.Tau_indexToGen, nanoAOD.Tau_indexToGen],
+    input=[q.dileptonpair, nanoAOD.Tau_indexToGen, nanoAOD.Tau_indexToGen],
     output=[q.gen_ditaupair],
     scopes=["tt"],
 )
 EMGenPair = Producer(
     name="EMGenPair",
     call="pairselection::buildgenpair({df}, {input}, {output})",
-    input=[q.ditaupair, nanoAOD.Electron_indexToGen, nanoAOD.Muon_indexToGen],
+    input=[q.dileptonpair, nanoAOD.Electron_indexToGen, nanoAOD.Muon_indexToGen],
     output=[q.gen_ditaupair],
     scopes=["em"],
 )
 MMGenPair = Producer(
     name="MMGenPair",
     call="pairselection::buildgenpair({df}, {input}, {output})",
-    input=[q.ditaupair, nanoAOD.Muon_indexToGen, nanoAOD.Muon_indexToGen],
+    input=[q.dileptonpair, nanoAOD.Muon_indexToGen, nanoAOD.Muon_indexToGen],
     output=[q.gen_ditaupair],
     scopes=["mm"],
 )
 EEGenPair = Producer(
     name="EEGenPair",
     call="pairselection::buildgenpair({df}, {input}, {output})",
-    input=[q.ditaupair, nanoAOD.Electron_indexToGen, nanoAOD.Electron_indexToGen],
+    input=[q.dileptonpair, nanoAOD.Electron_indexToGen, nanoAOD.Electron_indexToGen],
     output=[q.gen_ditaupair],
     scopes=["ee"],
 )
@@ -196,7 +196,7 @@ gen_m_vis = Producer(
 gen_match_2 = Producer(
     name="gen_match_2",
     call="quantities::tau::genmatch({df}, {output}, 1, {input})",
-    input=[q.ditaupair, nanoAOD.Tau_genMatch],
+    input=[q.dileptonpair, nanoAOD.Tau_genMatch],
     output=[q.gen_match_2],
     scopes=["mt", "et", "tt"],
 )
@@ -204,7 +204,7 @@ gen_taujet_pt_1 = Producer(
     name="gen_taujet_pt_1",
     call="quantities::tau::matching_genjet_pt({df}, {output}, 0, {input})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         nanoAOD.Tau_associatedJet,
         nanoAOD.Jet_associatedGenJet,
         nanoAOD.GenJet_pt,
@@ -216,7 +216,7 @@ gen_taujet_pt_2 = Producer(
     name="gen_taujet_pt_2",
     call="quantities::tau::matching_genjet_pt({df}, {output}, 1, {input})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         nanoAOD.Tau_associatedJet,
         nanoAOD.Jet_associatedGenJet,
         nanoAOD.GenJet_pt,

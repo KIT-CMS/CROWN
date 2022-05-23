@@ -8,7 +8,7 @@ from code_generation.producer import Producer, Filter
 
 MTPairSelection = Producer(
     name="MTPairSelection",
-    call="pairselection::mutau::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
+    call="ditau_pairselection::mutau::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
     input=[
         q.Tau_pt_corrected,
         nanoAOD.Tau_eta,
@@ -23,14 +23,14 @@ MTPairSelection = Producer(
         q.good_muons_mask,
         q.good_taus_mask,
     ],
-    output=[q.ditaupair],
+    output=[q.dileptonpair],
     scopes=["mt"],
 )
 
 GoodMTPairFlag = Producer(
     name="GoodMTPairFlag",
-    call="pairselection::flagGoodPairs({df}, {output}, {input})",
-    input=[q.ditaupair],
+    call="ditau_pairselection::flagGoodPairs({df}, {output}, {input})",
+    input=[q.dileptonpair],
     output=[],
     scopes=["mt"],
 )
@@ -45,7 +45,7 @@ GoodMTPairFilter = Filter(
 
 MMPairSelection = Producer(
     name="MMPairSelection",
-    call="pairselection::mumu::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
+    call="ditau_pairselection::mumu::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
     input=[
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,
@@ -53,12 +53,12 @@ MMPairSelection = Producer(
         nanoAOD.Muon_mass,
         q.good_muons_mask,
     ],
-    output=[q.ditaupair],
+    output=[q.dileptonpair],
     scopes=["mm"],
 )
 ZMMPairSelection = Producer(
     name="MMPairSelection",
-    call="pairselection::mumu::ZBosonPairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
+    call="ditau_pairselection::mumu::ZBosonPairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
     input=[
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,
@@ -66,14 +66,14 @@ ZMMPairSelection = Producer(
         nanoAOD.Muon_mass,
         q.good_muons_mask,
     ],
-    output=[q.ditaupair],
+    output=[q.dileptonpair],
     scopes=["mm"],
 )
 
 GoodMMPairFlag = Producer(
     name="GoodMMPairFlag",
-    call="pairselection::flagGoodPairs({df}, {output}, {input})",
-    input=[q.ditaupair],
+    call="ditau_pairselection::flagGoodPairs({df}, {output}, {input})",
+    input=[q.dileptonpair],
     output=[],
     scopes=["mm"],
 )
@@ -88,7 +88,7 @@ GoodMMPairFilter = Filter(
 
 ETPairSelection = Producer(
     name="ETPairSelection",
-    call="pairselection::eltau::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
+    call="ditau_pairselection::eltau::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
     input=[
         q.Tau_pt_corrected,
         nanoAOD.Tau_eta,
@@ -103,14 +103,14 @@ ETPairSelection = Producer(
         q.good_electrons_mask,
         q.good_taus_mask,
     ],
-    output=[q.ditaupair],
+    output=[q.dileptonpair],
     scopes=["et"],
 )
 
 GoodETPairFlag = Producer(
     name="GoodETPairFlag",
-    call="pairselection::flagGoodPairs({df}, {output}, {input})",
-    input=[q.ditaupair],
+    call="ditau_pairselection::flagGoodPairs({df}, {output}, {input})",
+    input=[q.dileptonpair],
     output=[],
     scopes=["et"],
 )
@@ -128,7 +128,7 @@ GoodETPairFilter = Filter(
 ####################
 TTPairSelection = Producer(
     name="TTPairSelection",
-    call="pairselection::tautau::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
+    call="ditau_pairselection::tautau::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
     input=[
         q.Tau_pt_corrected,
         nanoAOD.Tau_eta,
@@ -137,14 +137,14 @@ TTPairSelection = Producer(
         nanoAOD.Tau_IDraw,
         q.good_taus_mask,
     ],
-    output=[q.ditaupair],
+    output=[q.dileptonpair],
     scopes=["tt"],
 )
 
 GoodTTPairFlag = Producer(
     name="GoodTTPairFlag",
-    call="pairselection::flagGoodPairs({df}, {output}, {input})",
-    input=[q.ditaupair],
+    call="ditau_pairselection::flagGoodPairs({df}, {output}, {input})",
+    input=[q.dileptonpair],
     output=[],
     scopes=["tt"],
 )
@@ -162,7 +162,7 @@ GoodTTPairFilter = Filter(
 
 EMPairSelection = Producer(
     name="EMPairSelection",
-    call="pairselection::elmu::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
+    call="ditau_pairselection::elmu::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
     input=[
         nanoAOD.Electron_pt,
         nanoAOD.Electron_eta,
@@ -177,14 +177,14 @@ EMPairSelection = Producer(
         q.good_electrons_mask,
         q.good_muons_mask,
     ],
-    output=[q.ditaupair],
+    output=[q.dileptonpair],
     scopes=["em"],
 )
 
 GoodEMPairFlag = Producer(
     name="GoodEMPairFlag",
-    call="pairselection::flagGoodPairs({df}, {output}, {input})",
-    input=[q.ditaupair],
+    call="ditau_pairselection::flagGoodPairs({df}, {output}, {input})",
+    input=[q.dileptonpair],
     output=[],
     scopes=["em"],
 )
@@ -202,7 +202,7 @@ LVMu1 = Producer(
     name="LVMu1",
     call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,
         nanoAOD.Muon_phi,
@@ -215,7 +215,7 @@ LVMu2 = Producer(
     name="LVMu2",
     call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,
         nanoAOD.Muon_phi,
@@ -228,7 +228,7 @@ LVEl1 = Producer(
     name="LVEl1",
     call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         nanoAOD.Electron_pt,
         nanoAOD.Electron_eta,
         nanoAOD.Electron_phi,
@@ -241,7 +241,7 @@ LVEl2 = Producer(
     name="LVEl2",
     call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         nanoAOD.Electron_pt,
         nanoAOD.Electron_eta,
         nanoAOD.Electron_phi,
@@ -254,7 +254,7 @@ LVTau1 = Producer(
     name="LVTau1",
     call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         q.Tau_pt_corrected,
         nanoAOD.Tau_eta,
         nanoAOD.Tau_phi,
@@ -267,7 +267,7 @@ LVTau2 = Producer(
     name="LVTau2",
     call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         q.Tau_pt_corrected,
         nanoAOD.Tau_eta,
         nanoAOD.Tau_phi,
@@ -281,7 +281,7 @@ LVMu1Uncorrected = Producer(
     name="LVMu1Uncorrected",
     call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,
         nanoAOD.Muon_phi,
@@ -294,7 +294,7 @@ LVMu2Uncorrected = Producer(
     name="LVMu2Uncorrected",
     call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,
         nanoAOD.Muon_phi,
@@ -307,7 +307,7 @@ LVEl1Uncorrected = Producer(
     name="LVEl1Uncorrected",
     call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         nanoAOD.Electron_pt,
         nanoAOD.Electron_eta,
         nanoAOD.Electron_phi,
@@ -320,7 +320,7 @@ LVEl2Uncorrected = Producer(
     name="LVEl2Uncorrected",
     call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         nanoAOD.Electron_pt,
         nanoAOD.Electron_eta,
         nanoAOD.Electron_phi,
@@ -333,7 +333,7 @@ LVTau1Uncorrected = Producer(
     name="LVTau1Uncorrected",
     call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         nanoAOD.Tau_pt,
         nanoAOD.Tau_eta,
         nanoAOD.Tau_phi,
@@ -346,7 +346,7 @@ LVTau2Uncorrected = Producer(
     name="LVTau2Uncorrected",
     call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
     input=[
-        q.ditaupair,
+        q.dileptonpair,
         nanoAOD.Tau_pt,
         nanoAOD.Tau_eta,
         nanoAOD.Tau_phi,
