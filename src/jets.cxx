@@ -13,14 +13,14 @@
 #include <cmath>
 
 namespace jet {
-/// Function to veto jets overlapping with tau candidates
+/// Function to veto jets overlapping with particle candidates
 ///
 /// \param[in] df the input dataframe
 /// \param[out] output_col the name of the produced mask \param[in] jet_eta name
 /// of the jet etas \param[in] jet_phi name of the jet phis \param[in] p4_1 four
-/// vector of the first tau candidate \param[in] p4_2 four vector of the second
-/// tau candidate \param[in] deltaRmin minimum required distance in dR between
-/// jets and tau candidates
+/// vector of the first particle candidate \param[in] p4_2 four vector of the
+/// second particle candidate \param[in] deltaRmin minimum required distance in
+/// dR between jets and particle candidates
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
