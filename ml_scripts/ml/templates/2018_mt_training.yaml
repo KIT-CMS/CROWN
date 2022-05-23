@@ -1,0 +1,56 @@
+class_weights:
+  ggh: 307.0642340264453
+  misc: 32.30949817916725
+  qqh: 1996.9474858564527
+  ss: 6.772934932784213
+  tt: 7.850876445886187
+  w: 3.580066857280507
+  zll: 17.019282593000437
+  ztt: 2.839377537444691
+classes:
+- ggh
+- qqh
+- ztt
+- zll
+- w
+- tt
+- ss
+- misc
+event_weights: training_weight
+global_weight_scale: 1.0
+model:
+  eventsPerClassAndBatch: 30
+  early_stopping: 50
+  epochs: 100000
+  name: smhtt_dropout_tanh
+  save_best_only: true
+  steps_per_epoch: 100
+preprocessing: standard_scaler
+seed: 1234
+train_test_split: 0.75
+variables:
+- pt_1
+- pt_2
+- m_vis
+- ptvis
+- m_sv_puppi
+- nbtag
+- jpt_1
+- njets
+- jdeta
+- mjj
+- dijetpt
+- bpt_bReg_1
+- bpt_bReg_2
+# - bm_bReg_1
+# - bm_bReg_2
+# - bcsv_1
+# - bcsv_2
+- jpt_2
+- mbb_highCSV_bReg
+- pt_bb_highCSV_bReg
+- m_ttvisbb_highCSV_bReg
+- kinfit_mH
+- kinfit_mh2
+- kinfit_chi2
+# - highCSVjetUsedFordiBJetSystemCSV

@@ -1,0 +1,67 @@
+datasets_2018:
+- ml/2018_tt/fold0_training_dataset.root
+- ml/2018_tt/fold1_training_dataset.root
+datasets_2017:
+- ml/2017_tt/fold0_training_dataset.root
+- ml/2017_tt/fold1_training_dataset.root
+datasets_2016:
+- ml/2016_tt/fold0_training_dataset.root
+- ml/2016_tt/fold1_training_dataset.root
+classes:
+- ggh
+- qqh
+- ztt
+- noniso
+- misc
+datasets:
+- ml/2018_tt/fold0_training_dataset.root
+- ml/2018_tt/fold1_training_dataset.root
+event_weights: training_weight
+global_weight_scale: 1.0
+model:
+  eventsPerClassAndBatch: 30
+  early_stopping: 50
+  epochs: 100000
+  name: smhtt_dropout_tanh
+  save_best_only: true
+  steps_per_epoch: 100
+output_path: ml/all_eras_tt
+preprocessing: standard_scaler
+seed: 1234
+train_test_split: 0.75
+variables:
+- pt_1
+- pt_2
+- m_vis
+- ptvis
+- m_sv_puppi
+- nbtag
+- jpt_1
+- njets
+- jdeta
+- mjj
+- dijetpt
+- ME_q2v1
+- ME_q2v2
+- jpt_2
+- pt_tt_puppi
+- DiTauDeltaR
+
+class_weights_2017:
+  ggh: 264.8668203489273
+  misc: 16.945077908306256
+  noniso: 1.298345595432467
+  qqh: 1424.3354634331638
+  ztt: 6.01332693663473
+class_weights_2016:
+  ggh: 207.5749597706902
+  misc: 9.94262277949824
+  noniso: 1.5385891195230392
+  qqh: 594.7085760408557
+  ztt: 4.115602625977668
+class_weights_2018:
+  ggh: 299.5117571775824
+  misc: 19.004268120854146
+  noniso: 1.2412747472469317
+  qqh: 1451.6729588715175
+  ztt: 7.26062449133541

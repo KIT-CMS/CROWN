@@ -1,0 +1,30 @@
+# Classifier configs of both folds.
+# The first entry is used for the even event numbers (N%2==0) and
+# the second for the odd event numbers (N%2==1)
+# NOTE: To be indepedent, the classifier trained on fold 1 needs to be
+# booked first and vice versa.
+classifiers:
+    - fold1_keras_model.h5
+    - fold0_keras_model.h5
+
+weights:
+    - fold1_keras_weights.h5
+    - fold0_keras_weights.h5
+
+preprocessing:
+    - fold1_keras_preprocessing.pickle
+    - fold0_keras_preprocessing.pickle
+
+architecture_exports:
+    - fold1_keras_architecture.json
+    - fold0_keras_architecture.json
+
+variable_exports:
+    - fold1_keras_variables.json
+    - fold0_keras_variables.json
+
+# Branch prefix
+branch_prefix: mt_
+
+# Output directory
+output_directory: /ceph/wunsch/Artus17_Jan/mt_keras_20190125

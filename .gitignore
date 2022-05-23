@@ -10,6 +10,7 @@ logs/
 *.tar.gz
 *.txt
 miniconda/
+output/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

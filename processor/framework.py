@@ -8,6 +8,8 @@ from rich.console import Console
 from law.util import merge_dicts
 import socket
 from datetime import datetime
+from law.contrib.htcondor.job import HTCondorJobManager
+from getpass import getuser
 
 law.contrib.load("wlcg")
 law.contrib.load("htcondor")
@@ -15,6 +17,8 @@ console = Console()
 
 
 class Task(law.Task):
+
+    user_name = luigi.Parameter(default=getuser())
     wlcg_path = luigi.Parameter()
     production_tag = luigi.Parameter(
         default="default/{}".format(
@@ -44,8 +48,9 @@ class Task(law.Task):
         return my_env
 
     def set_environment(self, sourcescript):
+        source_string = " ".join(sourcescript)
         code, out, error = interruptable_popen(
-            "source {}; env".format(sourcescript),
+            "source {}; env".format(source_string),
             shell=True,
             stdout=PIPE,
             stderr=PIPE,
@@ -59,6 +64,34 @@ class Task(law.Task):
             raise Exception("source failed")
         my_env = self.convert_env_to_dict(out)
         return my_env
+
+    def run_command(self, command=[], source_script=[], run_location=None):
+        if command:
+            if source_script:
+                run_env = self.set_environment(list(source_script))
+            else:
+                run_env = None
+            console.log("Running {}".format(list(command)))
+            code, out, error = interruptable_popen(
+                " ".join(list(command)),
+                shell=True,
+                stdout=PIPE,
+                stderr=PIPE,
+                env=run_env,
+                cwd=run_location,
+            )
+            if code != 0:
+                console.log("Error when running {}.".format(list(command)))
+                console.log("Output: {}".format(out))
+                console.log("Error: {}".format(error))
+                console.log("Command returned non-zero exit status {}.".format(code))
+                raise Exception("{} failed".format(list(command)))
+            else:
+                console.log("Command successful.")
+                console.log("Output: {}".format(out))
+                console.log("Error: {}".format(error))
+        else:
+            raise Exception("No command provided.")
 
     def remote_path(self, *path):
         parts = (self.production_tag,) + (self.__class__.__name__,) + path
@@ -75,18 +108,19 @@ class Task(law.Task):
         return targets
 
 
-class HTCondorJobManager(law.htcondor.HTCondorJobManager):
+# class HTCondorJobManager(law.htcondor.HTCondorJobManager):
 
-    status_line_cre = re.compile(
-        "^(\d+\.\d+)" + 4 * "\s+[^\s]+" + "\s+([UIRXSCHE<>])\s+.*$"
-    )
+#     status_line_cre = re.compile(
+#         "^(\d+\.\d+)" + 4 * "\s+[^\s]+" + "\s+([UIRXSCHE<>])\s+.*$"
+#     )
 
-    # def get_htcondor_version(cls):
-    # return (9, 6, 0)
-    #     return (8, 6, 5)
+#     # def get_htcondor_version(cls):
+#     # return (9, 6, 0)
+#     #     return (8, 6, 5)
 
 
-class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
+class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
+# class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
 
     ENV_NAME = luigi.Parameter()
     production_tag = luigi.Parameter(
@@ -107,6 +141,7 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
     htcondor_request_disk = luigi.Parameter()
     wlcg_path = luigi.Parameter()
     bootstrap_file = luigi.Parameter()
+    additional_files = luigi.ListParameter(default=[]) 
 
     # Use proxy file located in $X509_USER_PROXY or /tmp/x509up_u$(id) if empty
     htcondor_user_proxy = law.wlcg.get_voms_proxy_file()
@@ -208,7 +243,7 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
                 "lawluigi_configs/{}_luigi.cfg".format(analysis_name),
                 "lawluigi_configs/{}_law.cfg".format(analysis_name),
                 "law",
-            ]
+            ] + list(self.additional_files)
             code, out, error = interruptable_popen(
                 command,
                 stdout=PIPE,
@@ -255,7 +290,7 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         environment_string = ""
         environment_string += "ENV_NAME={} ".format(self.ENV_NAME)
         environment_string += "ANA_NAME={} ".format(os.getenv("ANA_NAME"))
-        environment_string += "USER={} ".format(os.getenv("USER"))
+        environment_string += "USER={} ".format(self.user_name)
         environment_string += "TARBALL_PATH={} ".format(
             os.path.expandvars(self.wlcg_path) + tarball.path
         )

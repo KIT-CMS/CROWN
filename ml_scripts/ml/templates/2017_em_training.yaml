@@ -1,0 +1,75 @@
+
+# Base path for all output files
+
+
+# Define classes based on tree names in dataset file
+classes:
+    - ggh
+    - qqh
+    - ztt
+    - tt
+    - ss
+    - misc
+    - db
+
+# Set class weights
+class_weights:
+    ggh: 826.2
+    qqh: 6711.6
+    ztt: 4.0
+    tt: 2.0
+    ss: 8.3
+    misc: 24.9
+    db: 12.2
+
+# Define global scale factor, which is multiplied to all event weights
+global_weight_scale: 1.0
+
+# Set event weight variable
+event_weights: training_weight
+
+# Define list of variables to be used for training
+variables:
+- pt_1
+- pt_2
+- m_vis
+- ptvis
+- m_sv_puppi
+- nbtag
+- jpt_1
+- njets
+- jdeta
+- mjj
+- dijetpt
+- bpt_bReg_1
+- bpt_bReg_2
+- bm_bReg_1
+- bm_bReg_2
+- bcsv_1
+- bcsv_2
+- jpt_2
+- mbb_highCSV_bReg
+- pt_bb_highCSV_bReg
+- m_ttvisbb_highCSV_bReg
+- kinfit_mH
+- kinfit_mh2
+- kinfit_chi2
+- highCSVjetUsedFordiBJetSystemCSV
+
+# Split of dataset in training and validation (in TMVA called training and testing)
+train_test_split: 0.75
+
+# Define preprocessing
+preprocessing: standard_scaler
+
+# Set random seed for initialization of parameters and dataset splits
+seed: 1234
+
+# Define the model parameter
+model:
+    name: smhtt_dropout_tanh
+    eventsPerClassAndBatch: 30
+    epochs: 100000
+    early_stopping: 50
+    save_best_only: true
+    steps_per_epoch: 100
