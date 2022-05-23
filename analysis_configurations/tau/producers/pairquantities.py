@@ -1,5 +1,5 @@
-import code_generation.quantities.output as q
-import code_generation.quantities.nanoAOD as nanoAOD
+import config.tau.quantities.output as q
+import config.tau.quantities.nanoAOD as nanoAOD
 from code_generation.producer import Producer, ProducerGroup, ExtendedVectorProducer
 
 ####################

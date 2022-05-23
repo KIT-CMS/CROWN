@@ -5,7 +5,11 @@ unset(CMAKE_CXX_FLAGS_RELEASE CACHE)
 
 # Check that config name is given with -DANALYSIS, needed to generate the C++ code
 if (NOT DEFINED ANALYSIS)
-    message(FATAL_ERROR "Please specify the config to be used with -DANALYSIS=my_config_name")
+    message(FATAL_ERROR "Please specify the Analysis to be used with -DANALYSIS=my_analysis_name")
+endif()
+
+if (NOT DEFINED CONFIG)
+    message(FATAL_ERROR "Please specify the config to be used with -DCONFIG=my_config_name")
 endif()
 
 if (NOT DEFINED SCOPES)
@@ -44,7 +48,8 @@ string( TOLOWER "${DEBUG}" DEBUG_PARSED)
 string( TOLOWER "${OPTIMIZED}" OPTIMIZED_PARSED)
 message(STATUS "---------------------------------------------")
 message(STATUS "|> Set up analysis for scopes ${SCOPES}.")
-message(STATUS "|> Set up analysis for config ${ANALYSIS}.")
+message(STATUS "|> Set up analysis for ${ANALYSIS}.")
+message(STATUS "|> Set up analysis for config ${CONFIG}.")
 message(STATUS "|> Set up analysis for samples ${SAMPLES}.")
 message(STATUS "|> Set up analysis for eras ${ERAS}.")
 message(STATUS "|> Set up analysis for shifts ${SHIFTS}.")
@@ -75,7 +80,7 @@ endif()
 
 string (REPLACE "," ";" ERAS "${ERAS}")
 string (REPLACE "," ";" SAMPLES "${SAMPLES}")
-message(STATUS "Set up analysis with --config ${ANALYSIS} --scopes ${SCOPES} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --threads ${THREADS} --debug ${DEBUG_PARSED}")
+message(STATUS "Set up analysis with --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --threads ${THREADS} --debug ${DEBUG_PARSED}")
 
 
 # Set the default install directory to the build directory
@@ -252,6 +257,7 @@ message(STATUS "  Install directory: ${INSTALLDIR}")
 message(STATUS "  Template: ${GENERATE_CPP_INPUT_TEMPLATE}")
 message(STATUS "  Subset template: ${GENERATE_CPP_SUBSET_TEMPLATE}")
 message(STATUS "  Analysis: ${ANALYSIS}")
+message(STATUS "  Config: ${CONFIG}")
 message(STATUS "  Channels: ${SCOPES}")
 message(STATUS "  Shifts: ${SHIFTS}")
 message(STATUS "  Samples: ${SAMPLES}")
@@ -263,7 +269,7 @@ file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
 foreach (ERA IN LISTS ERAS)
     foreach (SAMPLE IN LISTS SAMPLES)
         execute_process(
-            COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --subset-template ${GENERATE_CPP_SUBSET_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --scopes ${SCOPES} --shifts ${SHIFTS} --sample ${SAMPLE} --era ${ERA} --threads ${THREADS} --debug ${DEBUG_PARSED} RESULT_VARIABLE ret)
+            COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --subset-template ${GENERATE_CPP_SUBSET_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --sample ${SAMPLE} --era ${ERA} --threads ${THREADS} --debug ${DEBUG_PARSED} RESULT_VARIABLE ret)
         if(ret EQUAL "1")
             message( FATAL_ERROR "Code Generation Failed - Exiting !")
         endif()

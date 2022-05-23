@@ -2,22 +2,22 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 
 from typing import List
 
-import code_generation.producers.electrons as electrons
-import code_generation.producers.embedding as emb
-import code_generation.producers.event as event
-import code_generation.producers.genparticles as genparticles
-import code_generation.producers.jets as jets
-import code_generation.producers.met as met
-import code_generation.producers.muons as muons
-import code_generation.producers.pairquantities as pairquantities
-import code_generation.producers.pairselection as pairselection
-import code_generation.producers.scalefactors as scalefactors
-import code_generation.producers.taus as taus
-import code_generation.producers.triggers as triggers
-import code_generation.quantities.nanoAOD as nanoAOD
-import code_generation.quantities.output as q
-from config.tau_triggersetup import add_diTauTriggerSetup
-from config.tau_variations import add_tauVariations
+import config.tau.producers.electrons as electrons
+import config.tau.producers.embedding as emb
+import config.tau.producers.event as event
+import config.tau.producers.genparticles as genparticles
+import config.tau.producers.jets as jets
+import config.tau.producers.met as met
+import config.tau.producers.muons as muons
+import config.tau.producers.pairquantities as pairquantities
+import config.tau.producers.pairselection as pairselection
+import config.tau.producers.scalefactors as scalefactors
+import config.tau.producers.taus as taus
+import config.tau.producers.triggers as triggers
+import config.tau.quantities.nanoAOD as nanoAOD
+import config.tau.quantities.output as q
+from config.tau.triggersetup import add_diTauTriggerSetup
+from config.tau.variations import add_tauVariations
 from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.rules import AppendProducer, RemoveProducer, ReplaceProducer
@@ -681,7 +681,7 @@ def build_config(
         "global",
         RemoveProducer(
             producers=[event.PUweights, event.npartons],
-            samples=["data", "emb", "emb_mc"],
+            samples=["data", "embedding", "embedding_mc"],
         ),
     )
     configuration.add_modification_rule(
@@ -697,12 +697,12 @@ def build_config(
         scopes,
         AppendProducer(
             producers=[event.GGH_NNLO_Reweighting, event.GGH_WG1_Uncertainties],
-            samples="ggh",
+            samples="ggh_htautau",
         ),
     )
     configuration.add_modification_rule(
         scopes,
-        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="qqh"),
+        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="vbf_htautau"),
     )
     configuration.add_modification_rule(
         scopes,
@@ -717,21 +717,23 @@ def build_config(
     configuration.add_modification_rule(
         "global",
         AppendProducer(
-            producers=jets.RenameJetsData, samples=["data", "emb", "emb_mc"]
+            producers=jets.RenameJetsData, samples=["data", "embedding", "embedding_mc"]
         ),
     )
     configuration.add_modification_rule(
         "global",
-        AppendProducer(producers=event.JSONFilter, samples=["data", "emb"]),
+        AppendProducer(producers=event.JSONFilter, samples=["data", "embedding"]),
     )
     configuration.add_modification_rule(
         "global",
-        AppendProducer(producers=emb.EmbeddingQuantities, samples=["emb", "emb_mc"]),
+        AppendProducer(
+            producers=emb.EmbeddingQuantities, samples=["embedding", "emb_mc"]
+        ),
     )
     configuration.add_modification_rule(
         "global",
         RemoveProducer(
-            producers=jets.JetEnergyCorrection, samples=["data", "emb", "emb_mc"]
+            producers=jets.JetEnergyCorrection, samples=["data", "embedding", "emb_mc"]
         ),
     )
     # scope specific
@@ -775,13 +777,13 @@ def build_config(
         scopes,
         [
             q.is_data,
-            q.is_emb,
-            q.is_tt,
-            q.is_dy,
-            q.is_wj,
-            q.is_ggh,
-            q.is_vbf,
-            q.is_vv,
+            q.is_embedding,
+            q.is_ttbar,
+            q.is_dyjets,
+            q.is_wjets,
+            q.is_ggh_htautau,
+            q.is_vbf_htautau,
+            q.is_diboson,
             nanoAOD.run,
             q.lumi,
             q.npartons,
@@ -984,7 +986,7 @@ def build_config(
     #########################
     # Lepton to tau fakes energy scalefactor shifts  #
     #########################
-    if "dy" in sample:
+    if "dyjets" in sample:
         configuration.add_shift(
             SystematicShift(
                 name="tauMuFakeEsDown",
@@ -1124,7 +1126,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1139,7 +1141,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     #########################
@@ -1185,7 +1187,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1206,7 +1208,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1227,7 +1229,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1248,7 +1250,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     #########################
@@ -1265,7 +1267,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1279,7 +1281,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     #########################
@@ -1300,7 +1302,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1317,7 +1319,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
 
@@ -1336,7 +1338,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1353,7 +1355,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
 
@@ -1372,7 +1374,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1389,7 +1391,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
 
@@ -1408,7 +1410,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1425,7 +1427,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
 
@@ -1444,7 +1446,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1461,7 +1463,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
 
@@ -1480,7 +1482,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1497,7 +1499,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
 
@@ -1516,7 +1518,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1533,7 +1535,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
 
@@ -1552,7 +1554,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1569,7 +1571,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
 
@@ -1588,7 +1590,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1605,7 +1607,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
 
@@ -1624,7 +1626,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1641,7 +1643,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
 
@@ -1660,7 +1662,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
     configuration.add_shift(
@@ -1677,7 +1679,7 @@ def build_config(
         samples=[
             sample
             for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
+            if sample not in ["data", "embedding", "embedding_mc"]
         ],
     )
 

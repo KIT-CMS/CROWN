@@ -196,13 +196,13 @@ emb_SelectionNewMass = Quantity("emb_SelectionNewMass")
 
 # sample flags
 is_data = Quantity("is_data")
-is_emb = Quantity("is_emb")
-is_tt = Quantity("is_tt")
-is_dy = Quantity("is_dy")
-is_wj = Quantity("is_wj")
-is_ggh = Quantity("is_ggh")
-is_vbf = Quantity("is_vbf")
-is_vv = Quantity("is_vv")
+is_embedding = Quantity("is_embedding")
+is_ttbar = Quantity("is_ttbar")
+is_dyjets = Quantity("is_dyjets")
+is_wjets = Quantity("is_wjets")
+is_ggh_htautau = Quantity("is_ggh_htautau")
+is_vbf_htautau = Quantity("is_vbf_htautau")
+is_diboson = Quantity("is_diboson")
 
 # Electron Weights
 id_wgt_ele_wp90nonIso_1 = Quantity("id_wgt_ele_wp90nonIso_1")

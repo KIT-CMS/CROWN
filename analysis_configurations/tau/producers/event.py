@@ -1,8 +1,8 @@
-import code_generation.quantities.nanoAOD as nanoAOD
-import code_generation.quantities.output as q
+import config.tau.quantities.nanoAOD as nanoAOD
+import config.tau.quantities.output as q
 from code_generation.producer import BaseFilter, Producer, ProducerGroup, VectorProducer
-from code_generation.producers.electrons import DiElectronVeto
-from code_generation.producers.muons import DiMuonVeto
+from config.tau.producers.electrons import DiElectronVeto
+from config.tau.producers.muons import DiMuonVeto
 
 ####################
 # Set of general producers for event quantities
@@ -44,53 +44,53 @@ is_data = Producer(
     scopes=["global"],
 )
 
-is_emb = Producer(
-    name="is_emb",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_emb})",
+is_embedding = Producer(
+    name="is_embedding",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_embedding})",
     input=[],
-    output=[q.is_emb],
+    output=[q.is_embedding],
     scopes=["global"],
 )
-is_tt = Producer(
-    name="is_tt",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_tt})",
+is_ttbar = Producer(
+    name="is_ttbar",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_ttbar})",
     input=[],
-    output=[q.is_tt],
+    output=[q.is_ttbar],
     scopes=["global"],
 )
-is_dy = Producer(
-    name="is_dy",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_dy})",
+is_dyjets = Producer(
+    name="is_dyjets",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_dyjets})",
     input=[],
-    output=[q.is_dy],
+    output=[q.is_dyjets],
     scopes=["global"],
 )
-is_wj = Producer(
-    name="is_wj",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_wj})",
+is_wjets = Producer(
+    name="is_wjets",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_wjets})",
     input=[],
-    output=[q.is_wj],
+    output=[q.is_wjets],
     scopes=["global"],
 )
-is_ggh = Producer(
-    name="is_ggh",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_ggh})",
+is_ggh_htautau = Producer(
+    name="is_ggh_htautau",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_ggh_htautau})",
     input=[],
-    output=[q.is_ggh],
+    output=[q.is_ggh_htautau],
     scopes=["global"],
 )
-is_vbf = Producer(
-    name="is_vbf",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_vbf})",
+is_vbf_htautau = Producer(
+    name="is_vbf_htautau",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_vbf_htautau})",
     input=[],
-    output=[q.is_vbf],
+    output=[q.is_vbf_htautau],
     scopes=["global"],
 )
-is_vv = Producer(
-    name="is_vv",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_vv})",
+is_diboson = Producer(
+    name="is_diboson",
+    call="basefunctions::DefineQuantity({df}, {output}, {is_diboson})",
     input=[],
-    output=[q.is_vv],
+    output=[q.is_diboson],
     scopes=["global"],
 )
 
@@ -100,7 +100,16 @@ SampleFlags = ProducerGroup(
     input=None,
     output=None,
     scopes=["global"],
-    subproducers=[is_data, is_emb, is_tt, is_dy, is_wj, is_ggh, is_vbf, is_vv],
+    subproducers=[
+        is_data,
+        is_embedding,
+        is_ttbar,
+        is_dyjets,
+        is_wjets,
+        is_ggh_htautau,
+        is_vbf_htautau,
+        is_diboson,
+    ],
 )
 
 MetFilter = VectorProducer(

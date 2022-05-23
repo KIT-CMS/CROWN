@@ -3,15 +3,15 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 from typing import List
 from code_generation.modifiers import SampleModifier
 
-import code_generation.producers.event as event
-import code_generation.producers.met as met
-import code_generation.producers.muons as muons
-import code_generation.producers.pairquantities as pairquantities
-import code_generation.producers.genparticles as genparticles
-import code_generation.producers.pairselection as pairselection
-import code_generation.producers.embedding as emb
-import code_generation.quantities.nanoAOD as nanoAOD
-import code_generation.quantities.output as q
+import config.tau.producers.event as event
+import config.tau.producers.met as met
+import config.tau.producers.muons as muons
+import config.tau.producers.pairquantities as pairquantities
+import config.tau.producers.genparticles as genparticles
+import config.tau.producers.pairselection as pairselection
+import config.tau.producers.embedding as emb
+import config.tau.quantities.nanoAOD as nanoAOD
+import config.tau.quantities.output as q
 from code_generation.configuration import Configuration
 from code_generation.rules import AppendProducer
 
