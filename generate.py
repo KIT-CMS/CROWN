@@ -47,7 +47,13 @@ parser.add_argument("--debug", type=str, help="set debug mode for building")
 args = parser.parse_args()
 
 # find available analyses, every folder in analysis_configurations is an analysis
-available_analysis = [f.path for f in os.scandir(args.analysis_folder) if f.is_dir()]
+available_analysis = [
+    os.path.basename(f.path)
+    for f in os.scandir(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), args.analysis_folder)
+    )
+    if f.is_dir()
+]
 
 # sanitize arguments
 available_analysis = [x.lower() for x in available_analysis]
