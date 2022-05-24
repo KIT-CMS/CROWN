@@ -19,7 +19,7 @@ struct GenParticle {
 bool check_mother(ROOT::RVec<GenParticle> genparticles, const int index,
                   const int mother_pdgid);
 
-namespace pairselection {
+namespace ditau_pairselection {
 ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
                               const std::string &genindex_particle1,
                               const std::string &genindex_particle2,
@@ -95,5 +95,5 @@ ZBosonPairSelection(ROOT::RDF::RNode df,
                     const std::vector<std::string> &input_vector,
                     const std::string &pairname, const float &mindeltaR);
 } // end namespace mumu
-} // end namespace pairselection
+} // end namespace ditau_pairselection
 #endif /* GUARD_PAIRSELECTION_H */

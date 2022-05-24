@@ -7,24 +7,15 @@ from code_generation.code_generation import CodeGenerator
 
 def run(args):
 
+    analysis_name = "unittest"
     available_samples = [
-        "ggh_htautau",
-        "ggh_hbb",
-        "vbf_htautau",
-        "vbf_hbb",
-        "rem_htautau",
-        "rem_hbb",
-        "embedding",
-        "embedding_mc",
-        "ttbar",
         "diboson",
         "dyjets",
         "wjets",
         "data",
-        "electroweak_boson",
     ]
-    available_eras = ["2016", "2017", "2018"]
-    available_scopes = ["et", "mt", "tt", "em", "ee", "mm"]
+    available_eras = ["2018"]
+    available_scopes = ["ee", "mm"]
 
     ## setup variables
     shifts = set([shift.lower() for shift in args.shifts])
@@ -51,7 +42,9 @@ def run(args):
     root.addHandler(handler)
     ## load config
     configname = args.config
-    config = importlib.import_module(f"analysis_configurations.unittest.{configname}")
+    config = importlib.import_module(
+        f"analysis_configurations.{analysis_name}.{configname}"
+    )
     ## Setting up executable
     executable = f"{configname}_{sample_group}_{era}.cxx"
     root.info(f"Generating code for {sample_group}...")
@@ -73,7 +66,7 @@ def run(args):
         sub_template_path=args.subset_template,
         configuration=config,
         executable_name=f"{configname}_{sample_group}_{era}",
-        analysis_name=f"unittest_{configname}",
+        analysis_name=f"{analysis_name}_{configname}",
         output_folder=args.output,
         threads=args.threads,
     )

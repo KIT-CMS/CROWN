@@ -15,6 +15,12 @@ parser.add_argument("--output", type=str, help="Path to the output directory")
 parser.add_argument("--analysis", type=str, help="Name of the analysis")
 parser.add_argument("--config", type=str, help="Name of the config")
 parser.add_argument(
+    "--analysis-folder",
+    type=str,
+    help="The location of all analysis folders",
+    default="analysis_configurations",
+)
+parser.add_argument(
     "--scopes",
     type=str,
     action=SplitArgs,
@@ -40,7 +46,8 @@ parser.add_argument("--threads", type=int, help="number of threads to be used")
 parser.add_argument("--debug", type=str, help="set debug mode for building")
 args = parser.parse_args()
 
-available_analysis = ["tau"]
+# find available analyses, every folder in analysis_configurations is an analysis
+available_analysis = [f.path for f in os.scandir(args.analysis_folder) if f.is_dir()]
 
 # sanitize arguments
 available_analysis = [x.lower() for x in available_analysis]
@@ -56,7 +63,7 @@ else:
     if not os.path.exists(
         os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "analysis_configurations",
+            args.analysis_folder,
             analysis,
             "generate.py",
         )

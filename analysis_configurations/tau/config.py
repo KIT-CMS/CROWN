@@ -2,22 +2,22 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 
 from typing import List
 
-import config.tau.producers.electrons as electrons
-import config.tau.producers.embedding as emb
-import config.tau.producers.event as event
-import config.tau.producers.genparticles as genparticles
-import config.tau.producers.jets as jets
-import config.tau.producers.met as met
-import config.tau.producers.muons as muons
-import config.tau.producers.pairquantities as pairquantities
-import config.tau.producers.pairselection as pairselection
-import config.tau.producers.scalefactors as scalefactors
-import config.tau.producers.taus as taus
-import config.tau.producers.triggers as triggers
-import config.tau.quantities.nanoAOD as nanoAOD
-import config.tau.quantities.output as q
-from config.tau.triggersetup import add_diTauTriggerSetup
-from config.tau.variations import add_tauVariations
+from .producers import electrons as electrons
+from .producers import embedding as emb
+from .producers import event as event
+from .producers import genparticles as genparticles
+from .producers import jets as jets
+from .producers import met as met
+from .producers import muons as muons
+from .producers import pairquantities as pairquantities
+from .producers import pairselection as pairselection
+from .producers import scalefactors as scalefactors
+from .producers import taus as taus
+from .producers import triggers as triggers
+from .quantities import nanoAOD as nanoAOD
+from .quantities import output as q
+from .triggersetup import add_diTauTriggerSetup
+from .variations import add_tauVariations
 from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.rules import AppendProducer, RemoveProducer, ReplaceProducer

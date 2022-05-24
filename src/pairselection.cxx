@@ -234,7 +234,7 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
 }
 /// This function flags events, where a suitable particle pair is found.
 /// A pair is considered suitable, if a PairSelectionAlgo (like
-/// pairselection::mutau::PairSelectionAlgo) returns indices, that are
+/// ditau_pairselection::mutau::PairSelectionAlgo) returns indices, that are
 /// not -1. Events, where any of the particle indices is -1 are vetoed
 /// by this filter.
 ///
@@ -761,7 +761,8 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
     Logger::get("mutau::PairSelection")
         ->debug("Setting up MuTau pair building");
     auto df1 = df.Define(
-        pairname, pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
+        pairname,
+        ditau_pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
         input_vector);
     return df1;
 }
@@ -803,7 +804,8 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
     Logger::get("eltau::PairSelection")
         ->debug("Setting up ElTau pair building");
     auto df1 = df.Define(
-        pairname, pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
+        pairname,
+        ditau_pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
         input_vector);
     return df1;
 }
@@ -838,7 +840,8 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
     Logger::get("tautau::PairSelection")
         ->debug("Setting up TauTau pair building");
     auto df1 = df.Define(
-        pairname, pairselection::fullhadronic::PairSelectionAlgo(mindeltaR),
+        pairname,
+        ditau_pairselection::fullhadronic::PairSelectionAlgo(mindeltaR),
         input_vector);
     return df1;
 }
@@ -878,9 +881,9 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::string &pairname,
                                const float &mindeltaR) {
     Logger::get("elmu::PairSelection")->debug("Setting up elmu pair building");
-    auto df1 = df.Define(pairname,
-                         pairselection::leptonic::PairSelectionAlgo(mindeltaR),
-                         input_vector);
+    auto df1 = df.Define(
+        pairname, ditau_pairselection::leptonic::PairSelectionAlgo(mindeltaR),
+        input_vector);
     return df1;
 }
 
@@ -1089,9 +1092,9 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::string &pairname,
                                const float &mindeltaR) {
     Logger::get("MuonPairSelection")->debug("Setting up mumu pair building");
-    auto df1 =
-        df.Define(pairname, pairselection::mumu::PairSelectionAlgo(mindeltaR),
-                  input_vector);
+    auto df1 = df.Define(
+        pairname, ditau_pairselection::mumu::PairSelectionAlgo(mindeltaR),
+        input_vector);
     return df1;
 }
 /**
@@ -1119,7 +1122,7 @@ ZBosonPairSelection(ROOT::RDF::RNode df,
     Logger::get("ZBosonPairSelection")
         ->debug("Setting up Z boson mumu pair building");
     auto df1 = df.Define(
-        pairname, pairselection::mumu::ZBosonPairSelectionAlgo(mindeltaR),
+        pairname, ditau_pairselection::mumu::ZBosonPairSelectionAlgo(mindeltaR),
         input_vector);
     return df1;
 }

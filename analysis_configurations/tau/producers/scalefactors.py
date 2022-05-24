@@ -1,4 +1,4 @@
-import config.tau.quantities.output as q
+from ..quantities import output as q
 from code_generation.producer import Producer, ProducerGroup
 from code_generation.producer import ExtendedVectorProducer
 
