@@ -11,7 +11,8 @@ on:
 # Settings go here!
 env:
   BUILD_TYPE: Release
-  ANALYSIS: test.unittest_config
+  ANALYSIS: unittest
+  CONFIG: unittest_config
   SAMPLES: dy
   ERAS: 2018
   SCOPES: "mt,mm,et"
@@ -66,7 +67,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=unittest -DCONFIG=$ANALYSIS -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$SHIFTS -DOPTIMIZED=false
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$SHIFTS -DOPTIMIZED=false
 
       - name: Build
         shell: bash
