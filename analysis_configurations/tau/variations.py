@@ -1,9 +1,9 @@
-from code_generation.systematics import SystematicShift, SystematicShiftByQuantity
-import config.tau.producers.scalefactors as scalefactors
-import config.tau.producers.pairselection as pairselection
-import config.tau.producers.muons as muons
-import config.tau.producers.electrons as electrons
-import config.tau.producers.taus as taus
+from code_generation.systematics import SystematicShift
+from .producers import scalefactors as scalefactors
+from .producers import pairselection as pairselection
+from .producers import muons as muons
+from .producers import electrons as electrons
+from .producers import taus as taus
 
 
 def add_tauVariations(configuration):

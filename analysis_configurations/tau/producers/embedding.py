@@ -1,6 +1,6 @@
 from code_generation.producer import Producer, ProducerGroup
-import config.tau.quantities.nanoAOD as nanoAOD
-import config.tau.quantities.output as q
+from ..quantities import output as q
+from ..quantities import nanoAOD as nanoAOD
 
 
 EmbeddingGenWeight = Producer(

@@ -1,5 +1,5 @@
-import config.tau.quantities.output as q
-import config.tau.quantities.nanoAOD as nanoAOD
+from ..quantities import output as q
+from ..quantities import nanoAOD as nanoAOD
 from code_generation.producer import Producer, Filter
 
 ####################
