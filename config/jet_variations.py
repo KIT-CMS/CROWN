@@ -1341,7 +1341,7 @@ def add_jetVariations(configuration, available_sample_types):
     JEC_sources = '{"RelativeJEREC2", "RelativePtEC2"}'
     configuration.add_shift(
         SystematicShift(
-            name="jecUnjesUncEC2YearUp",
+            name="jesUncEC2YearUp",
             shift_config={
                 "global": {
                     "jet_jes_shift": 1,

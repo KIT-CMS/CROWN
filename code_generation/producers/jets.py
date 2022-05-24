@@ -22,6 +22,19 @@ JetPtCorrection = Producer(
     output=[q.Jet_pt_corrected],
     scopes=["global"],
 )
+JetPtCorrection_data = Producer(
+    name="JetPtCorrection_data",
+    call="physicsobject::jet::JetPtCorrection_data({df}, {output}, {input}, {jet_jec_file}, {jet_jes_tag_data}, {jet_jec_algo})",
+    input=[
+        nanoAOD.Jet_pt,
+        nanoAOD.Jet_eta,
+        nanoAOD.Jet_area,
+        nanoAOD.Jet_rawFactor,
+        nanoAOD.rho,
+    ],
+    output=[q.Jet_pt_corrected],
+    scopes=["global"],
+)
 JetMassCorrection = Producer(
     name="JetMassCorrection",
     call="physicsobject::ObjectMassCorrectionWithPt({df}, {output}, {input})",
@@ -63,6 +76,14 @@ JetEnergyCorrection = ProducerGroup(
     output=None,
     scopes=["global"],
     subproducers=[JetPtCorrection, JetMassCorrection],
+)
+JetEnergyCorrection_data = ProducerGroup(
+    name="JetEnergyCorrection",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["global"],
+    subproducers=[JetPtCorrection_data, JetMassCorrection],
 )
 JetPtCut = Producer(
     name="JetPtCut",

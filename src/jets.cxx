@@ -140,7 +140,7 @@ ROOT::RDF::RNode CutPUID(ROOT::RDF::RNode df, const std::string &maskname,
     return df1;
 }
 
-/// Function to shift and smear jet pt
+/// Function to shift and smear jet pt for MC
 ///
 /// \param[in] df the input dataframe
 /// \param[out] corrected_jet_pt the name of the shifted and smeared jet pts
@@ -352,6 +352,84 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
                          {jet_pt, jet_eta, jet_phi, jet_area, jet_rawFactor,
                           gen_jet_pt, gen_jet_eta, gen_jet_phi, rho});
     return df1;
+}
+/// Function to correct jet energy for data
+///
+/// \param[in] df the input dataframe
+/// \param[out] corrected_jet_pt the name of the corrected jet pts
+/// \param[in] jet_pt name of the input jet pts
+/// \param[in] jet_eta name of the jet etas
+/// \param[in] jet_area name of the jet catchment area
+/// \param[in] jet_rawFactor name of the raw factor for jet pt
+/// \param[in] rho name of the pileup density
+/// \param[in] jec_file path to the file with jet energy correction information
+/// \param[in] jes_tag era dependent tag for JES correction
+/// \param[in] jec_algo algorithm used for jets e.g. AK4PFchs
+///
+/// \return a dataframe containing the modified jet pts
+ROOT::RDF::RNode
+JetPtCorrection_data(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
+                     const std::string &jet_pt, const std::string &jet_eta,
+                     const std::string &jet_area,
+                     const std::string &jet_rawFactor, const std::string &rho,
+                     const std::string &jec_file, const std::string &jes_tag,
+                     const std::string &jec_algo) {
+    if (jes_tag != "") {
+        // loading jet energy correction scale factor evaluation function
+        auto JES_evaluator =
+            correction::CorrectionSet::from_file(jec_file)->compound().at(
+                jes_tag + "_L1L2L3Res_" + jec_algo);
+        Logger::get("JetEnergyScaleData")
+            ->debug("file: {}, function {}", jec_file,
+                    (jes_tag + "_L1L2L3Res_" + jec_algo));
+        auto JetEnergyScaleSF = [JES_evaluator](const float area,
+                                                const float eta, const float pt,
+                                                const float rho) {
+            return JES_evaluator->evaluate({area, eta, pt, rho});
+        };
+
+        // lambda run with dataframe
+        auto JetEnergyCorrectionLambda =
+            [jes_tag,
+             JetEnergyScaleSF](const ROOT::RVec<float> &pt_values,
+                               const ROOT::RVec<float> &eta_values,
+                               const ROOT::RVec<float> &area_values,
+                               const ROOT::RVec<float> &rawFactor_values,
+                               const float &rho_value) {
+                ROOT::RVec<float> pt_values_corrected;
+                for (int i = 0; i < pt_values.size(); i++) {
+                    float corr_pt = pt_values.at(i);
+                    if (jes_tag != "") {
+                        // reapplying the JES correction
+                        float raw_pt =
+                            pt_values.at(i) * (1 - rawFactor_values.at(i));
+                        float corr = JetEnergyScaleSF(area_values.at(i),
+                                                      eta_values.at(i), raw_pt,
+                                                      rho_value);
+                        corr_pt = raw_pt * corr;
+                        Logger::get("JetEnergyScaleData")
+                            ->debug("reapplying JE scale for data: orig. jet "
+                                    "pt {} to raw "
+                                    "jet pt {} to recorr. jet pt {}",
+                                    pt_values.at(i), raw_pt, corr_pt);
+                    }
+                    pt_values_corrected.push_back(corr_pt);
+                    // if (pt_values_corrected.at(i)>15.0), this
+                    // correction should be propagated to MET
+                    // (requirement for type I corrections)
+                }
+                return pt_values_corrected;
+            };
+        auto df1 = df.Define(corrected_jet_pt, JetEnergyCorrectionLambda,
+                             {jet_pt, jet_eta, jet_area, jet_rawFactor, rho});
+        return df1;
+    } else {
+        auto df1 = df.Define(
+            corrected_jet_pt,
+            [](const ROOT::RVec<float> &pt_values) { return pt_values; },
+            {jet_pt});
+        return df1;
+    }
 }
 
 /// Function to select jets passing a ID requirement, using
