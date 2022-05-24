@@ -8,14 +8,9 @@ from code_generation.code_generation import CodeGenerator
 def run(args):
 
     analysis_name = "template"
-    available_samples = [
-        "diboson",
-        "dyjets",
-        "wjets",
-        "data",
-    ]
+    available_samples = ["diboson", "dyjets", "wjets", "data", "ttbar"]
     available_eras = ["2018"]
-    available_scopes = ["ee", "mm"]
+    available_scopes = ["mm"]
 
     ## setup variables
     shifts = set([shift.lower() for shift in args.shifts])
