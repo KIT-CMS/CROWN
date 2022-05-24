@@ -48,15 +48,23 @@ In order to create a new executable, first create a build directory
 
    mkdir build && cd build
 
-and then run `cmake` to setup the Makefiles. For the cmake command a minimal set of options has to be provided:
+and then run `cmake` to setup the Makefiles. A python configuration is needed in order to specify the code, that should be generated. Configurations are located in the :code:`analysis_configuations` directory. Within this folder, a subfolder for each type of analysis is created. Within the analysis folder, multiple Configurations belonging to the same analysis can be located. For example in the `tau` analysis, a main configuration `config.py` as well as several smaller Configurations exist.
+
+.. Note::
+   You have to provide both
+   1. the analysis that you want to run e.g. `-DANALYSIS=template_analysis`
+   2.  the configuration that should be used `-DCONFIG=min_config`.
+
+For the cmake command a minimal set of options has to be provided, in this case we use the template analysis with the minimal example
 
 .. code-block:: console
 
-   cmake .. -DANALYSIS=config -DSAMPLES=emb -DERAS=2018
+   cmake .. -DANALYSIS=template_analysis -DCONFIG=min_config -DSAMPLES=data -DERAS=2018 -DSCOPES=mm
 
 The options that are currently available are:
 
-   * :code:`-DANALYSIS=config`: The analysis configuration to be used. This is the name of the python configuration file. The file has to be located in the :code:`config` directory and the path is provided in the python import syntax so e.g. :code:`subfolder.myspecialconfig`
+   * :code:`-DANALYSIS=template_analysis`: The analysis to be used. This is the name of the folder in the :code:`analysis_configurations` directory.
+   * :code:`-DCONFIG=min_config`: The configuration to be used. This is the name of the python configuration file. The file has to be located in the directory of the analysis and the path is provided in the python import syntax so e.g. :code:`subfolder.myspecialconfig`
    * :code:`-DSAMPLES=emb`: The samples to be used. This is a single sample or a comma separated list of sample names.
    * :code:`-DERAS=2018`: The era to be used. This is a single era or a comma separated list of era names.
    * :code:`-DSCOPES=et`: The scopes to be run. This is a single scope or a comma separated list of scopes. The global scope is always run.
