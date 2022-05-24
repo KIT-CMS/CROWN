@@ -7,15 +7,26 @@ from code_generation.code_generation import CodeGenerator
 
 def run(args):
 
+    # the unittest is based on the tau analysis config
     analysis_name = "unittest"
     available_samples = [
+        "ggh_htautau",
+        "ggh_hbb",
+        "vbf_htautau",
+        "vbf_hbb",
+        "rem_htautau",
+        "rem_hbb",
+        "embedding",
+        "embedding_mc",
+        "ttbar",
         "diboson",
         "dyjets",
         "wjets",
         "data",
+        "electroweak_boson",
     ]
     available_eras = ["2018"]
-    available_scopes = ["ee", "mm"]
+    available_scopes = ["et", "mt", "tt", "em", "mm", "ee"]
 
     ## setup variables
     shifts = set([shift.lower() for shift in args.shifts])

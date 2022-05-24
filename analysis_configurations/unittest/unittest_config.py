@@ -2,18 +2,18 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 
 from typing import List
 
-import code_generation.producers.electrons as electrons
-import code_generation.producers.event as event
-import code_generation.producers.genparticles as genparticles
-import code_generation.producers.jets as jets
-import code_generation.producers.met as met
-import code_generation.producers.muons as muons
-import code_generation.producers.pairquantities as pairquantities
-import code_generation.producers.pairselection as pairselection
-import code_generation.producers.scalefactors as scalefactors
-import code_generation.producers.taus as taus
-import code_generation.quantities.nanoAOD as nanoAOD
-import code_generation.quantities.output as q
+from .producers import electrons as electrons
+from .producers import event as event
+from .producers import genparticles as genparticles
+from .producers import jets as jets
+from .producers import met as met
+from .producers import muons as muons
+from .producers import pairquantities as pairquantities
+from .producers import pairselection as pairselection
+from .producers import scalefactors as scalefactors
+from .producers import taus as taus
+from .quantities import nanoAOD as nanoAOD
+from .quantities import output as q
 from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.rules import AppendProducer, RemoveProducer
