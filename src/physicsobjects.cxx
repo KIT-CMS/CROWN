@@ -86,20 +86,21 @@ ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
     return df1;
 }
 
-/// Function to take a mask and create a new one where a tau candidate is set to
-/// false
+/// Function to take a mask and create a new one where a particle candidate is
+/// set to false
 ///
 /// \param[in] df the input dataframe
 /// \param[out] outputmaskname the name of the new mask to be added as column to
 /// the dataframe \param[in] inputmaskname the name of the input mask \param[in]
-/// ditaupair name of the column of the ditaupair \param[in] index index of the
-/// tau candidate to be ignored by mask
+/// dileptonpair name of the column of the dileptonpair \param[in] index index
+/// of the particle candidate to be ignored by mask
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode VetoCandInMask(ROOT::RDF::RNode df,
                                 const std::string &outputmaskname,
                                 const std::string &inputmaskname,
-                                const std::string &ditaupair, const int index) {
+                                const std::string &dileptonpair,
+                                const int index) {
     return df.Define(outputmaskname,
                      [index, inputmaskname](const ROOT::RVec<int> &mask,
                                             const ROOT::RVec<int> &pair) {
@@ -112,7 +113,7 @@ ROOT::RDF::RNode VetoCandInMask(ROOT::RDF::RNode df,
                              newmask.at(pair.at(index)) = 0;
                          return newmask;
                      },
-                     {inputmaskname, ditaupair});
+                     {inputmaskname, dileptonpair});
 }
 
 /// Function to filter events based on a mask. If the mask contains at least
@@ -318,6 +319,7 @@ ROOT::RDF::RNode CutTauID(ROOT::RDF::RNode df, const std::string &maskname,
 /// Function to correct e to tau fake pt
 ///
 /// \param[out] corrected_pt name of the corrected tau pt to be calculated
+/// \param[in] df the input dataframe
 /// \param[in] pt name of the raw tau pt
 /// \param[in] eta name of raw tau eta
 /// \param[in] decayMode decay mode of the tau
@@ -407,6 +409,7 @@ PtCorrection_eleFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
 /// Function to correct mu to tau fake pt
 ///
 /// \param[out] corrected_pt name of the corrected tau pt to be calculated
+/// \param[in] df the input dataframe
 /// \param[in] pt name of the raw tau pt
 /// \param[in] eta name of raw tau eta
 /// \param[in] decayMode decay mode of the tau
@@ -526,17 +529,18 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
 /// DM values: "nom","up","down"
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode PtCorrection_genTau(
-    ROOT::RDF::RNode df, const std::string &corrected_pt, const std::string &pt,
-    const std::string &eta, const std::string &decayMode,
-    const std::string &genMatch, const std::string &sf_file,
-    const std::string &jsonESname, const std::string &idAlgorithm,
-    const std::string &DM0, const std::string &DM1, const std::string &DM10,
-    const std::string &DM11, const std::vector<int> &SelectedDMs) {
+ROOT::RDF::RNode
+PtCorrection_genTau(ROOT::RDF::RNode df, const std::string &corrected_pt,
+                    const std::string &pt, const std::string &eta,
+                    const std::string &decayMode, const std::string &genMatch,
+                    const std::string &sf_file, const std::string &jsonESname,
+                    const std::string &idAlgorithm, const std::string &DM0,
+                    const std::string &DM1, const std::string &DM10,
+                    const std::string &DM11) {
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
     auto tau_pt_correction_lambda = [evaluator, idAlgorithm, DM0, DM1, DM10,
-                                     DM11, SelectedDMs](
+                                     DM11](
                                         const ROOT::RVec<float> &pt_values,
                                         const ROOT::RVec<float> &eta_values,
                                         const ROOT::RVec<int> &decay_modes,

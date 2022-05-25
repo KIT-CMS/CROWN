@@ -51,7 +51,7 @@ bool check_mother(ROOT::RVec<GenParticle> genparticles, const int index,
     }
 }
 
-namespace pairselection {
+namespace ditau_pairselection {
 /**
  * @brief Function used to build a pair of GenParticles from the selected
  * DiTauPair. This uses the references of the reco particles to the gen
@@ -234,7 +234,7 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
 }
 /// This function flags events, where a suitable particle pair is found.
 /// A pair is considered suitable, if a PairSelectionAlgo (like
-/// pairselection::mutau::PairSelectionAlgo) returns indices, that are
+/// ditau_pairselection::mutau::PairSelectionAlgo) returns indices, that are
 /// not -1. Events, where any of the particle indices is -1 are vetoed
 /// by this filter.
 ///
@@ -761,7 +761,8 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
     Logger::get("mutau::PairSelection")
         ->debug("Setting up MuTau pair building");
     auto df1 = df.Define(
-        pairname, pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
+        pairname,
+        ditau_pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
         input_vector);
     return df1;
 }
@@ -803,7 +804,8 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
     Logger::get("eltau::PairSelection")
         ->debug("Setting up ElTau pair building");
     auto df1 = df.Define(
-        pairname, pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
+        pairname,
+        ditau_pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
         input_vector);
     return df1;
 }
@@ -838,7 +840,8 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
     Logger::get("tautau::PairSelection")
         ->debug("Setting up TauTau pair building");
     auto df1 = df.Define(
-        pairname, pairselection::fullhadronic::PairSelectionAlgo(mindeltaR),
+        pairname,
+        ditau_pairselection::fullhadronic::PairSelectionAlgo(mindeltaR),
         input_vector);
     return df1;
 }
@@ -878,9 +881,9 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::string &pairname,
                                const float &mindeltaR) {
     Logger::get("elmu::PairSelection")->debug("Setting up elmu pair building");
-    auto df1 = df.Define(pairname,
-                         pairselection::leptonic::PairSelectionAlgo(mindeltaR),
-                         input_vector);
+    auto df1 = df.Define(
+        pairname, ditau_pairselection::leptonic::PairSelectionAlgo(mindeltaR),
+        input_vector);
     return df1;
 }
 
@@ -946,8 +949,10 @@ auto PairSelectionAlgo(const float &mindeltaR) {
                     mu2.Pt() >= selected_pts[1]) {
                     selected_pts[0] = mu1.Pt();
                     selected_pts[1] = mu2.Pt();
-                    selected_mu_indices[0] = combinations[0][n];
-                    selected_mu_indices[1] = combinations[1][n];
+                    selected_mu_indices[0] =
+                        original_muon_indices[combinations[0][n]];
+                    selected_mu_indices[1] =
+                        original_muon_indices[combinations[1][n]];
                 }
             }
         }
@@ -1031,6 +1036,10 @@ auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
             auto deltaR = ROOT::Math::VectorUtil::DeltaR(mu1, mu2);
             zmass_candidate = (mu1 + mu2).M();
             Logger::get("ZBosonPairSelectionAlgo")
+                ->debug("eta_1 {} / pt_1 {} ", mu1.Eta(), mu1.Pt());
+            Logger::get("ZBosonPairSelectionAlgo")
+                ->debug("eta_2 {} / pt_2 {} ", mu2.Eta(), mu2.Pt());
+            Logger::get("ZBosonPairSelectionAlgo")
                 ->debug("deltaR check: {}", deltaR);
             Logger::get("ZBosonPairSelectionAlgo")
                 ->debug("mass check: {}", zmass_candidate);
@@ -1038,8 +1047,10 @@ auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
                 if (std::abs(91.2 - zmass_candidate) < mass_difference ||
                     mass_difference < 0) {
                     mass_difference = std::abs(91.2 - zmass_candidate);
-                    selected_mu_indices[0] = combinations[0][n];
-                    selected_mu_indices[1] = combinations[1][n];
+                    selected_mu_indices[0] =
+                        original_muon_indices[combinations[0][n]];
+                    selected_mu_indices[1] =
+                        original_muon_indices[combinations[1][n]];
                 }
             }
         }
@@ -1063,15 +1074,16 @@ auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
  *
  * @param df the input dataframe
  * @param input_vector vector of strings containing the columns
- * needed for the alogrithm. For the muon pair selection the required paramters
- are:
+ * needed for the alogrithm. For the muon pair selection the required
+ parameters are:
     - muon_pt
     - muon_eta
     - muon_phi
     - muon_mass
     - muon_mask containing the flags whether the muon is a good muon or not
  * @param pairname name of the new column containing the pair index
- * @param mindeltaR the seperation between the two muons has to be larger than
+ * @param mindeltaR the seperation between the two muons has to be larger
+ than
  * this value
  * @return a new dataframe with the pair index column added
  */
@@ -1080,9 +1092,9 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::string &pairname,
                                const float &mindeltaR) {
     Logger::get("MuonPairSelection")->debug("Setting up mumu pair building");
-    auto df1 =
-        df.Define(pairname, pairselection::mumu::PairSelectionAlgo(mindeltaR),
-                  input_vector);
+    auto df1 = df.Define(
+        pairname, ditau_pairselection::mumu::PairSelectionAlgo(mindeltaR),
+        input_vector);
     return df1;
 }
 /**
@@ -1091,14 +1103,15 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
  *
  * @param df the input dataframe
  * @param input_vector . For the Z boson muon pair selection the required
- paramters are:
+ parameters are:
     - muon_pt
     - muon_eta
     - muon_phi
     - muon_mass
     - muon_mask containing the flags whether the muon is a good muon or not
  * @param pairname name of the new column containing the pair index
- * @param mindeltaR the seperation between the two muons has to be larger than
+ * @param mindeltaR the seperation between the two muons has to be larger
+ than
  * this value
  * @return a new dataframe with the pair index column added
  */
@@ -1109,11 +1122,11 @@ ZBosonPairSelection(ROOT::RDF::RNode df,
     Logger::get("ZBosonPairSelection")
         ->debug("Setting up Z boson mumu pair building");
     auto df1 = df.Define(
-        pairname, pairselection::mumu::ZBosonPairSelectionAlgo(mindeltaR),
+        pairname, ditau_pairselection::mumu::ZBosonPairSelectionAlgo(mindeltaR),
         input_vector);
     return df1;
 }
 
 } // end namespace mumu
-} // end namespace pairselection
+} // end namespace ditau_pairselection
 #endif /* GUARD_PAIRSELECTION_H */

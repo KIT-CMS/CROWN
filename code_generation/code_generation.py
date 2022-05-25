@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict, List, Union, Tuple
 import os
 import filecmp
-from git import Repo, InvalidGitRepositoryError
+from git import Repo, InvalidGitRepositoryError, NoSuchPathError
 
 from code_generation.producer import SafeDict, Producer, ProducerGroup
 
@@ -184,6 +184,7 @@ class CodeGenerator(object):
         analysis_name: str,
         executable_name: str,
         output_folder: str,
+        threads: int = 1,
     ):
         self.main_template = self.load_template(main_template_path)
         self.subset_template = self.load_template(sub_template_path)
@@ -201,7 +202,7 @@ class CodeGenerator(object):
         )
         self.debug = False
         self._outputfiles_generated = {}
-        self.threads = 1
+        self.threads = threads
         self.subset_includes = []
         self.output_commands = {}
         self.subset_calls = {}
@@ -217,7 +218,7 @@ class CodeGenerator(object):
             repo = Repo("../../CROWN")
             self.commit_hash = repo.head.commit
             self.setup_is_clean = "false" if repo.is_dirty() else "true"
-        except (ValueError, InvalidGitRepositoryError):
+        except (ValueError, InvalidGitRepositoryError, NoSuchPathError):
             self.commit_hash = "undefined"
             self.setup_is_clean = "false"
         log.info("Code generator initialized")
@@ -235,16 +236,23 @@ class CodeGenerator(object):
             None
         """
         # start with the global scope
+
         for subfolder in ["src", "include"]:
             for scope in self.scopes:
                 if not os.path.exists(
                     os.path.join(
-                        self.executable_name + "_generated_code", subfolder, scope
+                        self.output_folder,
+                        self.executable_name + "_generated_code",
+                        subfolder,
+                        scope,
                     )
                 ):
                     os.makedirs(
                         os.path.join(
-                            self.executable_name + "_generated_code", subfolder, scope
+                            self.output_folder,
+                            self.executable_name + "_generated_code",
+                            subfolder,
+                            scope,
                         )
                     )
         # self.generate_subsets(self.global_scope)
@@ -281,6 +289,7 @@ class CodeGenerator(object):
             None
         """
         if self.threads > 1:
+            log.info(f"Using {self.threads} threads for the executable")
             threadcall = "ROOT::EnableImplicitMT({});".format(self.threads)
         else:
             threadcall = ""

@@ -115,33 +115,5 @@ ROOT::RDF::RNode buildMet(ROOT::RDF::RNode df, const std::string &met_pt,
     };
     return df.Define(outputname, construct_metvector, {met_pt, met_phi});
 }
-
-/// namespace used for mutau lorentzvectors
-namespace mutau {
-ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &pairname,
-                       const std::vector<std::string> &muon_quantities,
-                       const std::vector<std::string> &tau_quantities,
-                       const std::string &muon_p4_name,
-                       const std::string &tau_p4_name) {
-    // first the muon
-    // The quantities list should contain the paircolumn, and pt, eta, phi, mass
-    std::vector<std::string> muons;
-    muons.push_back(pairname);
-    for (auto i : muon_quantities)
-        muons.push_back(i);
-    for (auto i : muons)
-        Logger::get("lorentzvectors")->debug("Used muon quantities {}", i);
-    auto df1 = lorentzvectors::buildparticle(df, muons, muon_p4_name, 0);
-    // now the tau
-    std::vector<std::string> taus;
-    taus.push_back(pairname);
-    for (auto i : tau_quantities)
-        taus.push_back(i);
-    for (auto i : taus)
-        Logger::get("lorentzvectors")->debug("Used tau quantities {}", i);
-    auto df2 = lorentzvectors::buildparticle(df1, taus, tau_p4_name, 1);
-    return df2;
-}
-} // namespace mutau
 } // namespace lorentzvectors
 #endif /* GUARDLVECS_H */

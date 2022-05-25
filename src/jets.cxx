@@ -15,14 +15,14 @@
 #include <typeinfo>
 
 namespace jet {
-/// Function to veto jets overlapping with tau candidates
+/// Function to veto jets overlapping with particle candidates
 ///
 /// \param[in] df the input dataframe
 /// \param[out] output_col the name of the produced mask \param[in] jet_eta name
 /// of the jet etas \param[in] jet_phi name of the jet phis \param[in] p4_1 four
-/// vector of the first tau candidate \param[in] p4_2 four vector of the second
-/// tau candidate \param[in] deltaRmin minimum required distance in dR between
-/// jets and tau candidates
+/// vector of the first particle candidate \param[in] p4_2 four vector of the
+/// second particle candidate \param[in] deltaRmin minimum required distance in
+/// dR between jets and particle candidates
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
@@ -60,6 +60,45 @@ VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
             return mask;
         },
         {jet_eta, jet_phi, p4_1, p4_2});
+    return df1;
+}
+
+/// Function to veto jets overlapping with particle candidates
+///
+/// \param[in] df the input dataframe
+/// \param[out] output_col the name of the produced mask \param[in] jet_eta name
+/// of the jet etas \param[in] jet_phi name of the jet phis \param[in] p4_1 four
+/// vector of the first particle candidate \param[in] deltaRmin minimum required
+/// distance in dR between jets and particle candidates
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode
+VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
+                    const std::string &jet_eta, const std::string &jet_phi,
+                    const std::string &p4_1, const float &deltaRmin) {
+    auto df1 = df.Define(
+        output_col,
+        [deltaRmin](const ROOT::RVec<float> &jet_eta,
+                    const ROOT::RVec<float> &jet_phi,
+                    const ROOT::Math::PtEtaPhiMVector &p4_1) {
+            Logger::get("VetoOverlappingJets")->debug("Checking jets");
+            ROOT::RVec<int> mask(jet_eta.size(), 1);
+            for (std::size_t idx = 0; idx < mask.size(); ++idx) {
+                ROOT::Math::RhoEtaPhiVectorF jet(0, jet_eta.at(idx),
+                                                 jet_phi.at(idx));
+                Logger::get("VetoOverlappingJets")
+                    ->debug("Jet:  Eta: {} Phi: {} ", jet.Eta(), jet.Phi());
+                Logger::get("VetoOverlappingJets")
+                    ->debug("Letpon 1 {}:  Eta: {} Phi: {}, Pt{}", p4_1,
+                            p4_1.Eta(), p4_1.Phi(), p4_1.Pt());
+                auto deltaR_1 = ROOT::Math::VectorUtil::DeltaR(jet, p4_1);
+                Logger::get("VetoOverlappingJets")
+                    ->debug("DeltaR 1 {}", deltaR_1);
+                mask[idx] = (deltaR_1 > deltaRmin);
+            }
+            return mask;
+        },
+        {jet_eta, jet_phi, p4_1});
     return df1;
 }
 

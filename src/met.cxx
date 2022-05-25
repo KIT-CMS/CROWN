@@ -226,6 +226,80 @@ propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
                                                                   outputname);
     }
 }
+
+/**
+ * @brief Function used to propagate lepton corrections to the met. If the
+ energy of a lepton is corrected (via some scale factor) or due to a shift,
+ this change in energy has to be propagated to the met vector, and the met
+ vector has to be adapted accordingly. The met is recalculated via
+ @code
+  Recalculate Met with corrected lepton energies :
+  MetX_corrected = MetX + Px - Px_corrected
+  MetY_corrected = MetY + Py - Py_corrected
+  Met_corrected = sqrt(MetX_corrected * MetX_corrected + MetY_corrected *
+ MetY_corrected)
+ @endcode
+ * @param df the input dataframe
+ * @param met the uncorrected met lorentz vector
+ * @param p4_1_uncorrected the uncorrected lorentz vector of the first
+ lepton
+ * @param p4_1 the corrected lorentz vector of the first lepton
+ * @param outputname name of the column containing the corrected met lorentz
+ * @param apply_propagation if bool is set, the propagation is applied, if
+ not, the outputcolumn contains the original met value vector
+ * @return a new df containing the corrected met lorentz vector
+ */
+ROOT::RDF::RNode propagateLeptonsToMet(ROOT::RDF::RNode df,
+                                       const std::string &met,
+                                       const std::string &p4_1_uncorrected,
+                                       const std::string &p4_1,
+                                       const std::string &outputname,
+                                       bool apply_propagation) {
+    auto scaleMet = [](const ROOT::Math::PtEtaPhiMVector &met,
+                       const ROOT::Math::PtEtaPhiMVector &uncorrected_object,
+                       const ROOT::Math::PtEtaPhiMVector &corrected_object) {
+        // We propagate the lepton corrections to the Met by scaling the x
+        // and y component of the Met according to the correction of the
+        // lepton Recalculate Met with corrected lepton energies :
+        // MetX_corrected = MetX + Px - Px_corrected
+        // MetY_corrected = MetY + Py - Py_corrected
+        // Met_corrected = sqrt(MetX_corrected * MetX_corrected +
+        // MetY_corrected
+        // * MetY_corrected)
+        float corr_x = uncorrected_object.Px() - corrected_object.Px();
+        float corr_y = uncorrected_object.Py() - corrected_object.Py();
+        float MetX = met.Px() + corr_x;
+        float MetY = met.Py() + corr_y;
+        Logger::get("propagateLeptonsToMet")->debug("corr_x {}", corr_x);
+        Logger::get("propagateLeptonsToMet")->debug("corr_y {}", corr_y);
+        Logger::get("propagateLeptonsToMet")->debug("MetX {}", MetX);
+        Logger::get("propagateLeptonsToMet")->debug("MetY {}", MetY);
+        ROOT::Math::PtEtaPhiMVector corrected_met;
+        corrected_met.SetPxPyPzE(MetX, MetY, 0,
+                                 std::sqrt(MetX * MetX + MetY * MetY));
+        Logger::get("propagateLeptonsToMet")
+            ->debug("corrected_object pt - {}", corrected_object.Pt());
+        Logger::get("propagateLeptonsToMet")
+            ->debug("uncorrected_object pt - {}", uncorrected_object.Pt());
+        Logger::get("propagateLeptonsToMet")->debug("old met {}", met.Pt());
+        Logger::get("propagateLeptonsToMet")
+            ->debug("corrected met {}", corrected_met.Pt());
+        return corrected_met;
+    };
+    if (apply_propagation) {
+        // first correct for the first lepton, store the met in an
+        // intermediate column
+        Logger::get("propagateLeptonsToMet")
+            ->debug("Setting up correction for first lepton {}", p4_1);
+        return df.Define(outputname, scaleMet, {met, p4_1_uncorrected, p4_1});
+    } else {
+        // if we do not apply the propagation, just rename the met column to
+        // the new outputname and dont change anything else
+        return basefunctions::rename<ROOT::Math::PtEtaPhiMVector>(df, met,
+                                                                  outputname);
+    }
+}
+
 /**
  * @brief Function used to propagate jet corrections to the met. If the
  energy of a jet is corrected, this
@@ -348,7 +422,7 @@ is only needed for WJets samples)
  * @return a new dataframe containing the new met column
  */
 ROOT::RDF::RNode applyRecoilCorrections(
-    ROOT::RDF::RNode df, const std::string &met, const std::string &genmet,
+    ROOT::RDF::RNode df, const std::string &met, const std::string &genboson,
     const std::string &jet_pt, const std::string &outputname,
     const std::string &recoilfile, const std::string &systematicsfile,
     bool applyRecoilCorrections, bool resolution, bool response, bool shiftUp,
@@ -425,7 +499,8 @@ ROOT::RDF::RNode applyRecoilCorrections(
 
             return corrected_met;
         };
-        return df.Define(outputname, RecoilCorrections, {met, genmet, jet_pt});
+        return df.Define(outputname, RecoilCorrections,
+                         {met, genboson, jet_pt});
     } else {
         // if we do not apply the recoil corrections, just rename the met
         // column to the new outputname and dont change anything else
