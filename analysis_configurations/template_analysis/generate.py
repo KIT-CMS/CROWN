@@ -7,8 +7,15 @@ from code_generation.code_generation import CodeGenerator
 
 def run(args):
 
-    analysis_name = "template"
-    available_samples = ["diboson", "dyjets", "wjets", "data", "ttbar"]
+    analysis_name = "template_analysis"
+    available_samples = [
+        "data",
+        "embedding",
+        "ttbar",
+        "dyjets",
+        "wjets",
+        "diboson",
+    ]
     available_eras = ["2018"]
     available_scopes = ["mm"]
 
