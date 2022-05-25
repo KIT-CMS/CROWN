@@ -2,7 +2,7 @@ from code_generation.systematics import SystematicShift, SystematicShiftByQuanti
 import code_generation.producers.jets as jets
 
 
-def add_jetVariations(configuration, available_sample_types):
+def add_jetVariations(configuration, available_sample_types, era):
     #########################
     # Jet energy resolution
     #########################
@@ -72,6 +72,45 @@ def add_jetVariations(configuration, available_sample_types):
             if sample not in ["data", "emb", "emb_mc"]
         ],
     )
+    #########################
+    # HEM 15/16 issue
+    #########################
+    if era == "2018":
+        JEC_sources = '{"HEMIssue"}'
+        configuration.add_shift(
+            SystematicShift(
+                name="jesUncHEMIssueUp",
+                shift_config={
+                    "global": {
+                        "jet_jes_shift": 1,
+                        "jet_jes_sources": JEC_sources,
+                    }
+                },
+                producers={"global": jets.JetEnergyCorrection},
+            ),
+            samples=[
+                sample
+                for sample in available_sample_types
+                if sample not in ["data", "emb", "emb_mc"]
+            ],
+        )
+        configuration.add_shift(
+            SystematicShift(
+                name="jesUncHEMIssueDown",
+                shift_config={
+                    "global": {
+                        "jet_jes_shift": -1,
+                        "jet_jes_sources": JEC_sources,
+                    }
+                },
+                producers={"global": jets.JetEnergyCorrection},
+            ),
+            samples=[
+                sample
+                for sample in available_sample_types
+                if sample not in ["data", "emb", "emb_mc"]
+            ],
+        )
     #########################
     # Jet energy scale - individual
     #########################

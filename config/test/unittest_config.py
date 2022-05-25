@@ -124,8 +124,15 @@ def build_config(
         {
             "min_jet_pt": 30,
             "max_jet_eta": 4.7,
-            "jet_id": 2,  # second bit is tight JetID
-            "jet_puid": 4,  # 0==fail, 4==pass(loose), 6==pass(loose,medium), 7==pass(loose,medium,tight) !check 2016 -> inverted ID
+            "jet_id": 2,  # we want 2 for passing tight ID and fail tightLepVeto
+            "jet_puid": EraModifier(  # jets should at least pass loose puID
+                {
+                    "2016preVFP": 1,  # 0==fail, 1==pass(loose), 3==pass(loose,medium), 7==pass(loose,medium,tight)
+                    "2016postVFP": 1,  # 0==fail, 1==pass(loose), 3==pass(loose,medium), 7==pass(loose,medium,tight)
+                    "2017": 4,  # 0==fail, 4==pass(loose), 6==pass(loose,medium), 7==pass(loose,medium,tight)
+                    "2018": 4,  # 0==fail, 4==pass(loose), 6==pass(loose,medium), 7==pass(loose,medium,tight)
+                }
+            ),
             "jet_puid_max_pt": 50,  # recommended to apply puID only for jets below 50 GeV
             "jet_reapplyJES": False,
             "jet_jes_sources": '{""}',

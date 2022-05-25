@@ -14,6 +14,7 @@ JetPtCorrection = Producer(
         nanoAOD.Jet_phi,
         nanoAOD.Jet_area,
         nanoAOD.Jet_rawFactor,
+        nanoAOD.Jet_ID,
         nanoAOD.GenJet_pt,
         nanoAOD.GenJet_eta,
         nanoAOD.GenJet_phi,

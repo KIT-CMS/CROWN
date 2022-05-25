@@ -149,6 +149,7 @@ ROOT::RDF::RNode CutPUID(ROOT::RDF::RNode df, const std::string &maskname,
 /// \param[in] jet_phi name of the jet phis
 /// \param[in] jet_area name of the jet catchment area
 /// \param[in] jet_rawFactor name of the raw factor for jet pt
+/// \param[in] jet_ID name of the jet ID
 /// \param[in] gen_jet_pt name of the gen jet pts
 /// \param[in] gen_jet_eta name of the gen jet etas
 /// \param[in] gen_jet_phi name of the gen jet phis
@@ -170,9 +171,10 @@ ROOT::RDF::RNode
 JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
                 const std::string &jet_pt, const std::string &jet_eta,
                 const std::string &jet_phi, const std::string &jet_area,
-                const std::string &jet_rawFactor, const std::string &gen_jet_pt,
-                const std::string &gen_jet_eta, const std::string &gen_jet_phi,
-                const std::string &rho, bool reapplyJES,
+                const std::string &jet_rawFactor, const std::string &jet_ID,
+                const std::string &gen_jet_pt, const std::string &gen_jet_eta,
+                const std::string &gen_jet_phi, const std::string &rho,
+                bool reapplyJES,
                 const std::vector<std::string> &jes_shift_sources,
                 const int &jes_shift, const std::string &jer_shift,
                 const std::string &jec_file, const std::string &jer_tag,
@@ -182,7 +184,7 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
         JetEnergyScaleShifts;
     for (const auto &source : jes_shift_sources) {
         // check if any JES shift is chosen
-        if (source != "") {
+        if (source != "" && source != "HEMIssue") {
             auto JES_source_evaluator =
                 correction::CorrectionSet::from_file(jec_file)->at(
                     jes_tag + "_" + source + "_" + jec_algo);
@@ -214,102 +216,103 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
             return JER_SF_evaluator->evaluate({eta, jer_shift});
         };
     // lambda run with dataframe
-    auto JetEnergyCorrectionLambda =
-        [reapplyJES, JetEnergyScaleShifts, JetEnergyScaleSF,
-         JetEnergyResolution, JetEnergyResolutionSF, jes_shift, jer_shift](
-            const ROOT::RVec<float> &pt_values,
-            const ROOT::RVec<float> &eta_values,
-            const ROOT::RVec<float> &phi_values,
-            const ROOT::RVec<float> &area_values,
-            const ROOT::RVec<float> &rawFactor_values,
-            const ROOT::RVec<float> &gen_pt_values,
-            const ROOT::RVec<float> &gen_eta_values,
-            const ROOT::RVec<float> &gen_phi_values, const float &rho_value) {
-            ROOT::RVec<float> pt_values_corrected;
-            for (int i = 0; i < pt_values.size(); i++) {
-                float corr_pt = pt_values.at(i);
-                if (reapplyJES) {
-                    // reapplying the JES correction
-                    float raw_pt =
-                        pt_values.at(i) * (1 - rawFactor_values.at(i));
-                    float corr = JetEnergyScaleSF(
-                        area_values.at(i), eta_values.at(i), raw_pt, rho_value);
-                    corr_pt = raw_pt * corr;
-                    Logger::get("JetEnergyScale")
-                        ->debug("reapplying JE scale: orig. jet pt {} to raw "
-                                "jet pt {} to recorr. jet pt {}",
-                                pt_values.at(i), raw_pt, corr_pt);
-                }
-                pt_values_corrected.push_back(corr_pt);
+    auto JetEnergyCorrectionLambda = [reapplyJES, JetEnergyScaleShifts,
+                                      JetEnergyScaleSF, JetEnergyResolution,
+                                      JetEnergyResolutionSF, jes_shift_sources,
+                                      jes_shift, jer_shift](
+                                         const ROOT::RVec<float> &pt_values,
+                                         const ROOT::RVec<float> &eta_values,
+                                         const ROOT::RVec<float> &phi_values,
+                                         const ROOT::RVec<float> &area_values,
+                                         const ROOT::RVec<float>
+                                             &rawFactor_values,
+                                         const ROOT::RVec<int> &ID_values,
+                                         const ROOT::RVec<float> &gen_pt_values,
+                                         const ROOT::RVec<float>
+                                             &gen_eta_values,
+                                         const ROOT::RVec<float>
+                                             &gen_phi_values,
+                                         const float &rho_value) {
+        ROOT::RVec<float> pt_values_corrected;
+        for (int i = 0; i < pt_values.size(); i++) {
+            float corr_pt = pt_values.at(i);
+            if (reapplyJES) {
+                // reapplying the JES correction
+                float raw_pt = pt_values.at(i) * (1 - rawFactor_values.at(i));
+                float corr = JetEnergyScaleSF(
+                    area_values.at(i), eta_values.at(i), raw_pt, rho_value);
+                corr_pt = raw_pt * corr;
+                Logger::get("JetEnergyScale")
+                    ->debug("reapplying JE scale: orig. jet pt {} to raw "
+                            "jet pt {} to recorr. jet pt {}",
+                            pt_values.at(i), raw_pt, corr_pt);
+            }
+            pt_values_corrected.push_back(corr_pt);
 
-                // apply jet energy smearing - hybrid method as described in
-                // https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution
-                float reso = JetEnergyResolution(
-                    eta_values.at(i), pt_values_corrected.at(i), rho_value);
-                float resoSF =
-                    JetEnergyResolutionSF(eta_values.at(i), jer_shift);
+            // apply jet energy smearing - hybrid method as described in
+            // https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution
+            float reso = JetEnergyResolution(
+                eta_values.at(i), pt_values_corrected.at(i), rho_value);
+            float resoSF = JetEnergyResolutionSF(eta_values.at(i), jer_shift);
+            Logger::get("JetEnergyResolution")
+                ->debug("Calculate JER {}:  SF: {} resolution: {} ", jer_shift,
+                        resoSF, reso);
+            // gen jet matching algorithm for JER
+            ROOT::Math::RhoEtaPhiVectorF jet(
+                pt_values_corrected.at(i), eta_values.at(i), phi_values.at(i));
+            float genjetpt = -1.0;
+            Logger::get("JetEnergyResolution")
+                ->debug("Going to smear jet:  Eta: {} Phi: {} ", jet.Eta(),
+                        jet.Phi());
+            double min_dR = std::numeric_limits<double>::infinity();
+            for (int j = 0; j < gen_pt_values.size(); j++) {
+                ROOT::Math::RhoEtaPhiVectorF genjet(gen_pt_values.at(j),
+                                                    gen_eta_values.at(j),
+                                                    gen_phi_values.at(j));
                 Logger::get("JetEnergyResolution")
-                    ->debug("Calculate JER {}:  SF: {} resolution: {} ",
-                            jer_shift, resoSF, reso);
-                // gen jet matching algorithm for JER
-                ROOT::Math::RhoEtaPhiVectorF jet(pt_values_corrected.at(i),
-                                                 eta_values.at(i),
-                                                 phi_values.at(i));
-                float genjetpt = -1.0;
-                Logger::get("JetEnergyResolution")
-                    ->debug("Going to smear jet:  Eta: {} Phi: {} ", jet.Eta(),
-                            jet.Phi());
-                double min_dR = std::numeric_limits<double>::infinity();
-                for (int j = 0; j < gen_pt_values.size(); j++) {
-                    ROOT::Math::RhoEtaPhiVectorF genjet(gen_pt_values.at(j),
-                                                        gen_eta_values.at(j),
-                                                        gen_phi_values.at(j));
-                    Logger::get("JetEnergyResolution")
-                        ->debug("Checking gen Jet:  Eta: {} Phi: {}",
-                                genjet.Eta(), genjet.Phi());
-                    auto deltaR = ROOT::Math::VectorUtil::DeltaR(jet, genjet);
-                    if (deltaR > min_dR)
-                        continue;
-                    if (deltaR < (0.4 / 2.) &&
-                        std::abs(pt_values_corrected.at(i) -
-                                 gen_pt_values.at(j)) <
-                            (3.0 * reso * pt_values_corrected.at(i))) {
-                        min_dR = deltaR;
-                        genjetpt = gen_pt_values.at(j);
-                    }
+                    ->debug("Checking gen Jet:  Eta: {} Phi: {}", genjet.Eta(),
+                            genjet.Phi());
+                auto deltaR = ROOT::Math::VectorUtil::DeltaR(jet, genjet);
+                if (deltaR > min_dR)
+                    continue;
+                if (deltaR < (0.4 / 2.) &&
+                    std::abs(pt_values_corrected.at(i) - gen_pt_values.at(j)) <
+                        (3.0 * reso * pt_values_corrected.at(i))) {
+                    min_dR = deltaR;
+                    genjetpt = gen_pt_values.at(j);
                 }
-                // if jet matches a gen jet scaleing method is applied,
-                // otherwise stochastic method
-                if (genjetpt > 0.0) {
-                    Logger::get("JetEnergyResolution")
-                        ->debug("Found gen jet for hybrid smearing method");
-                    double shift = (resoSF - 1.0) *
-                                   (pt_values_corrected.at(i) - genjetpt) /
-                                   pt_values_corrected.at(i);
-                    pt_values_corrected.at(i) *= std::max(0.0, 1.0 + shift);
-                } else {
-                    Logger::get("JetEnergyResolution")
-                        ->debug(
-                            "No gen jet found. Applying stochastic smearing.");
-                    TRandom3 randm = TRandom3(
-                        static_cast<int>((eta_values.at(i) + 5) * 1000) * 1000 +
-                        static_cast<int>((phi_values.at(i) + 4) * 1000) +
-                        10000);
-                    double shift =
-                        randm.Gaus(0, reso) *
-                        std::sqrt(std::max(resoSF * resoSF - 1., 0.0));
-                    pt_values_corrected.at(i) *= std::max(0.0, 1.0 + shift);
-                }
+            }
+            // if jet matches a gen jet scaling method is applied,
+            // otherwise stochastic method
+            if (genjetpt > 0.0) {
                 Logger::get("JetEnergyResolution")
-                    ->debug("Shifting jet pt from {} to {} ", corr_pt,
-                            pt_values_corrected.at(i));
+                    ->debug("Found gen jet for hybrid smearing method");
+                double shift = (resoSF - 1.0) *
+                               (pt_values_corrected.at(i) - genjetpt) /
+                               pt_values_corrected.at(i);
+                pt_values_corrected.at(i) *= std::max(0.0, 1.0 + shift);
+            } else {
+                Logger::get("JetEnergyResolution")
+                    ->debug("No gen jet found. Applying stochastic smearing.");
+                TRandom3 randm = TRandom3(
+                    static_cast<int>((eta_values.at(i) + 5) * 1000) * 1000 +
+                    static_cast<int>((phi_values.at(i) + 4) * 1000) + 10000);
+                double shift = randm.Gaus(0, reso) *
+                               std::sqrt(std::max(resoSF * resoSF - 1., 0.0));
+                pt_values_corrected.at(i) *= std::max(0.0, 1.0 + shift);
+            }
+            Logger::get("JetEnergyResolution")
+                ->debug("Shifting jet pt from {} to {} ", corr_pt,
+                        pt_values_corrected.at(i));
 
-                // apply uncertainty shifts related to the jet energy scale
-                // mostly following
-                // https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/modules/jme/jetmetUncertainties.py
-                float pt_scale_sf = 1.0;
-                if (jes_shift != 0.0) {
-                    // Single source keeps sign
+            // apply uncertainty shifts related to the jet energy scale
+            // mostly following
+            // https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/modules/jme/jetmetUncertainties.py
+            float pt_scale_sf = 1.0;
+            if (jes_shift != 0.0) {
+                if (jes_shift_sources.at(0) != "HEMIssue") {
+                    // Differentiate between single source and combined source
+                    // for reduced scheme
                     if (JetEnergyScaleShifts.size() == 1) {
                         pt_scale_sf =
                             1. +
@@ -336,21 +339,36 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
                                     jes_shift, pt_scale_sf);
                     }
                 }
-                pt_values_corrected.at(i) *= pt_scale_sf;
-                Logger::get("JetEnergyScaleShift")
-                    ->debug("Shifting jet pt from {} to {} ",
-                            pt_values_corrected.at(i) / pt_scale_sf,
-                            pt_values_corrected.at(i));
-
-                // if (pt_values_corrected.at(i)>15.0), this
-                // correction should be propagated to MET
-                // (requirement for type I corrections)
+                // for reference:
+                // https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/2000.html
+                else if (jes_shift_sources.at(0) == "HEMIssue") {
+                    if (jes_shift == (-1.) && pt_values_corrected.at(i) > 15. &&
+                        phi_values.at(i) > (-1.57) &&
+                        phi_values.at(i) < (-0.87) && ID_values.at(i) == 2) {
+                        if (eta_values.at(i) > (-2.5) &&
+                            eta_values.at(i) < (-1.3))
+                            pt_scale_sf = 0.8;
+                        else if (eta_values.at(i) > (-3.) &&
+                                 eta_values.at(i) <= (-2.5))
+                            pt_scale_sf = 0.65;
+                    }
+                }
             }
-            return pt_values_corrected;
-        };
+            pt_values_corrected.at(i) *= pt_scale_sf;
+            Logger::get("JetEnergyScaleShift")
+                ->debug("Shifting jet pt from {} to {} ",
+                        pt_values_corrected.at(i) / pt_scale_sf,
+                        pt_values_corrected.at(i));
+
+            // if (pt_values_corrected.at(i)>15.0), this
+            // correction should be propagated to MET
+            // (requirement for type I corrections)
+        }
+        return pt_values_corrected;
+    };
     auto df1 = df.Define(corrected_jet_pt, JetEnergyCorrectionLambda,
                          {jet_pt, jet_eta, jet_phi, jet_area, jet_rawFactor,
-                          gen_jet_pt, gen_jet_eta, gen_jet_phi, rho});
+                          jet_ID, gen_jet_pt, gen_jet_eta, gen_jet_phi, rho});
     return df1;
 }
 /// Function to correct jet energy for data
