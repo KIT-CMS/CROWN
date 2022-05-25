@@ -1,3 +1,6 @@
 [submodule "law"]
 	path = law
 	url = git@github.com:riga/law.git
+[submodule "sample_database"]
+	path = sample_database
+	url = git@github.com:KIT-CMS/KingMaker_sample_database.git
