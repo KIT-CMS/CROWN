@@ -685,12 +685,26 @@ def build_config(
         ),
     )
     configuration.add_modification_rule(
-        ["et", "mt"],
+        ["et", "mt", "tt"],
         RemoveProducer(
             producers=[
                 pairquantities.tau_gen_match_2,
             ],
             samples="data",
+        ),
+    )
+    configuration.add_modification_rule(
+        ["et", "mt", "tt"],
+        RemoveProducer(
+            producers=[pairquantities.taujet_pt_2, genparticles.gen_taujet_pt_2],
+            samples="embedding",
+        ),
+    )
+    configuration.add_modification_rule(
+        ["tt"],
+        RemoveProducer(
+            producers=[pairquantities.taujet_pt_1, genparticles.gen_taujet_pt_1],
+            samples="embedding",
         ),
     )
     configuration.add_modification_rule(

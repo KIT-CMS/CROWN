@@ -1,8 +1,6 @@
 from ..quantities import output as q
 from ..quantities import nanoAOD as nanoAOD
 from code_generation.producer import BaseFilter, Producer, ProducerGroup, VectorProducer
-from .electrons import DiElectronVeto
-from .muons import DiMuonVeto
 
 ####################
 # Set of general producers for event quantities
