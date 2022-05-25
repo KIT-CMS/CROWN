@@ -245,11 +245,12 @@ propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
  not, the outputcolumn contains the original met value vector
  * @return a new df containing the corrected met lorentz vector
  */
-ROOT::RDF::RNode
-propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
-                      const std::string &p4_1_uncorrected,
-                      const std::string &p4_1,
-                      const std::string &outputname, bool apply_propagation) {
+ROOT::RDF::RNode propagateLeptonsToMet(ROOT::RDF::RNode df,
+                                       const std::string &met,
+                                       const std::string &p4_1_uncorrected,
+                                       const std::string &p4_1,
+                                       const std::string &outputname,
+                                       bool apply_propagation) {
     auto scaleMet = [](const ROOT::Math::PtEtaPhiMVector &met,
                        const ROOT::Math::PtEtaPhiMVector &uncorrected_object,
                        const ROOT::Math::PtEtaPhiMVector &corrected_object) {
@@ -286,8 +287,7 @@ propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
         // intermediate column
         Logger::get("propagateLeptonsToMet")
             ->debug("Setting up correction for first lepton {}", p4_1);
-        return df.Define(outputname, scaleMet,
-                         {met, p4_1_uncorrected, p4_1});
+        return df.Define(outputname, scaleMet, {met, p4_1_uncorrected, p4_1});
     } else {
         // if we do not apply the propagation, just rename the met column to
         // the new outputname and dont change anything else
