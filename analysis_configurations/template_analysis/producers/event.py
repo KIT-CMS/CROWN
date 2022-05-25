@@ -70,20 +70,6 @@ is_wjets = Producer(
     output=[q.is_wjets],
     scopes=["global"],
 )
-is_ggh_htautau = Producer(
-    name="is_ggh_htautau",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_ggh_htautau})",
-    input=[],
-    output=[q.is_ggh_htautau],
-    scopes=["global"],
-)
-is_vbf_htautau = Producer(
-    name="is_vbf_htautau",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_vbf_htautau})",
-    input=[],
-    output=[q.is_vbf_htautau],
-    scopes=["global"],
-)
 is_diboson = Producer(
     name="is_diboson",
     call="basefunctions::DefineQuantity({df}, {output}, {is_diboson})",
@@ -104,8 +90,6 @@ SampleFlags = ProducerGroup(
         is_ttbar,
         is_dyjets,
         is_wjets,
-        is_ggh_htautau,
-        is_vbf_htautau,
         is_diboson,
     ],
 )

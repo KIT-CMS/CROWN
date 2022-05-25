@@ -181,8 +181,6 @@ def build_config(
             q.is_ttbar,
             q.is_dyjets,
             q.is_wjets,
-            q.is_ggh_htautau,
-            q.is_vbf_htautau,
             q.is_diboson,
             nanoAOD.run,
             q.lumi,
