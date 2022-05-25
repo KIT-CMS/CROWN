@@ -19,6 +19,11 @@ propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
                       const std::string &p4_2_uncorrected,
                       const std::string &p4_1, const std::string &p4_2,
                       const std::string &outputname, bool apply_propagation);
+ROOT::RDF::RNode
+propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
+                      const std::string &p4_1_uncorrected,
+                      const std::string &p4_1,
+                      const std::string &outputname, bool apply_propagation);
 ROOT::RDF::RNode propagateJetsToMet(
     ROOT::RDF::RNode df, const std::string &met,
     const std::string &jet_pt_corrected, const std::string &jet_eta_corrected,
