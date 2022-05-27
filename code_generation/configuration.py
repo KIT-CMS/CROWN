@@ -374,6 +374,15 @@ class Configuration(object):
         Returns:
             bool: True if the shift is valid, False otherwise.
         """
+        # first check if the scopes are correct
+        for scope in shift.get_scopes():
+            if scope not in list(self.available_scopes) + [self.global_scope] :
+                raise ConfigurationError(
+                    "Shift {} has scope {} which is not in the list of avialble scopes {}".format(
+                        shift.shiftname, scope, self.available_scopes
+                    )
+                )
+                return False
         if len(self.selected_shifts) == 1 and "all" in self.selected_shifts:
             return True
         elif len(self.selected_shifts) == 1 and "none" in self.selected_shifts:
