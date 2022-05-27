@@ -712,6 +712,13 @@ def build_config(
         ),
     )
     configuration.add_modification_rule(
+        "global",
+        ReplaceProducer(
+            producers=[jets.JetEnergyCorrection, jets.JetEnergyCorrection_data],
+            samples="data",
+        ),
+    )
+    configuration.add_modification_rule(
         ["mt", "mm"],
         RemoveProducer(producers=scalefactors.MuonIDIso_SF, samples="data"),
     )
@@ -785,7 +792,7 @@ def build_config(
     configuration.add_modification_rule(
         "global",
         RemoveProducer(
-            producers=jets.JetEnergyCorrection, samples=["data", "embedding", "emb_mc"]
+            producers=jets.JetEnergyCorrection, samples=["embedding", "emb_mc"]
         ),
     )
     # scope specific

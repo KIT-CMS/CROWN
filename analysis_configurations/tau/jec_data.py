@@ -55,3 +55,103 @@ def add_jetCorrectionData(configuration, era):
             ),
             samples=["data"],
         )
+    
+    if era == "2017":
+        configuration.add_shift(
+            SystematicShift(
+                name="jec2017B",
+                shift_config={
+                    "global": {
+                        "jet_jes_tag_data": '"Summer19UL17_RunB_V5_DATA"',
+                    },
+                },
+                producers={"global": jets.JetEnergyCorrection_data},
+            ),
+            samples=["data"],
+        )
+        configuration.add_shift(
+            SystematicShift(
+                name="jec2017C",
+                shift_config={
+                    "global": {
+                        "jet_jes_tag_data": '"Summer19UL17_RunC_V5_DATA"',
+                    },
+                },
+                producers={"global": jets.JetEnergyCorrection_data},
+            ),
+            samples=["data"],
+        )
+        configuration.add_shift(
+            SystematicShift(
+                name="jec2017D",
+                shift_config={
+                    "global": {
+                        "jet_jes_tag_data": '"Summer19UL17_RunD_V5_DATA"',
+                    },
+                },
+                producers={"global": jets.JetEnergyCorrection_data},
+            ),
+            samples=["data"],
+        )
+        configuration.add_shift(
+            SystematicShift(
+                name="jec2017E",
+                shift_config={
+                    "global": {
+                        "jet_jes_tag_data": '"Summer19UL17_RunE_V5_DATA"',
+                    },
+                },
+                producers={"global": jets.JetEnergyCorrection_data},
+            ),
+            samples=["data"],
+        )
+        configuration.add_shift(
+            SystematicShift(
+                name="jec2017F",
+                shift_config={
+                    "global": {
+                        "jet_jes_tag_data": '"Summer19UL17_RunF_V5_DATA"',
+                    },
+                },
+                producers={"global": jets.JetEnergyCorrection_data},
+            ),
+            samples=["data"],
+        )
+    if era == "2016postVFP":
+        configuration.add_shift(
+            SystematicShift(
+                name="jec2016FGHpostVFP",
+                shift_config={
+                    "global": {
+                        "jet_jes_tag_data": '"Summer19UL16_RunFGH_V7_DATA"',
+                    },
+                },
+                producers={"global": jets.JetEnergyCorrection_data},
+            ),
+            samples=["data"],
+        )
+    if era == "2016preVFP":
+        configuration.add_shift(
+            SystematicShift(
+                name="jec2016BCDpreVFP",
+                shift_config={
+                    "global": {
+                        "jet_jes_tag_data": '"Summer19UL16APV_RunBCD_V7_DATA"',
+                    },
+                },
+                producers={"global": jets.JetEnergyCorrection_data},
+            ),
+            samples=["data"],
+        )
+        configuration.add_shift(
+            SystematicShift(
+                name="jec2016EFpreVFP",
+                shift_config={
+                    "global": {
+                        "jet_jes_tag_data": '"Summer19UL16APV_RunEF_V7_DATA"',
+                    },
+                },
+                producers={"global": jets.JetEnergyCorrection_data},
+            ),
+            samples=["data"],
+        )
