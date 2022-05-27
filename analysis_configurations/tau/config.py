@@ -19,6 +19,7 @@ from .quantities import output as q
 from .triggersetup import add_diTauTriggerSetup
 from .variations import add_tauVariations
 from .jet_variations import add_jetVariations
+from .jec_data import add_jetCorrectionData
 from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.rules import AppendProducer, RemoveProducer, ReplaceProducer
@@ -1317,6 +1318,11 @@ def build_config(
     # Jet energy resolution and jet energy scale
     #########################
     add_jetVariations(configuration, available_sample_types, era)
+
+    #########################
+    # Jet energy correction for data
+    #########################
+    add_jetCorrectionData(configuration, era)
 
     #########################
     # Finalize and validate the configuration
