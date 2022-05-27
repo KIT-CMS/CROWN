@@ -218,6 +218,11 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
                 const int &jes_shift, const std::string &jer_shift,
                 const std::string &jec_file, const std::string &jer_tag,
                 const std::string &jes_tag, const std::string &jec_algo) {
+    // identifying jet radius from algorithm
+    float jet_dR = 0.4;
+    if (jec_algo.find("AK8") != std::string::npos) {
+        jet_dR = 0.8;
+    }
     // loading JES variations
     std::vector<std::shared_ptr<const correction::Correction>>
         JetEnergyScaleShifts;
@@ -258,7 +263,7 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
     auto JetEnergyCorrectionLambda = [reapplyJES, JetEnergyScaleShifts,
                                       JetEnergyScaleSF, JetEnergyResolution,
                                       JetEnergyResolutionSF, jes_shift_sources,
-                                      jes_shift, jer_shift](
+                                      jes_shift, jer_shift, jet_dR](
                                          const ROOT::RVec<float> &pt_values,
                                          const ROOT::RVec<float> &eta_values,
                                          const ROOT::RVec<float> &phi_values,
@@ -272,6 +277,9 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
                                          const ROOT::RVec<float>
                                              &gen_phi_values,
                                          const float &rho_value) {
+        // random value generator for jet smearing
+        TRandom3 randm = TRandom3(0);
+
         ROOT::RVec<float> pt_values_corrected;
         for (int i = 0; i < pt_values.size(); i++) {
             float corr_pt = pt_values.at(i);
@@ -314,7 +322,7 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
                 auto deltaR = ROOT::Math::VectorUtil::DeltaR(jet, genjet);
                 if (deltaR > min_dR)
                     continue;
-                if (deltaR < (0.4 / 2.) &&
+                if (deltaR < (jet_dR / 2.) &&
                     std::abs(pt_values_corrected.at(i) - gen_pt_values.at(j)) <
                         (3.0 * reso * pt_values_corrected.at(i))) {
                     min_dR = deltaR;
@@ -333,9 +341,6 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
             } else {
                 Logger::get("JetEnergyResolution")
                     ->debug("No gen jet found. Applying stochastic smearing.");
-                TRandom3 randm = TRandom3(
-                    static_cast<int>((eta_values.at(i) + 5) * 1000) * 1000 +
-                    static_cast<int>((phi_values.at(i) + 4) * 1000) + 10000);
                 double shift = randm.Gaus(0, reso) *
                                std::sqrt(std::max(resoSF * resoSF - 1., 0.0));
                 pt_values_corrected.at(i) *= std::max(0.0, 1.0 + shift);

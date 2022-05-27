@@ -191,6 +191,7 @@ def build_config(
                     "2018": '"Summer19UL18_JRV2_MC"',
                 }
             ),
+            "jet_jes_tag_data": '""',
             "jet_jes_tag": EraModifier(
                 {
                     "2016preVFP": '"Summer19UL16APV_V7_MC"',
@@ -777,7 +778,7 @@ def build_config(
     configuration.add_modification_rule(
         "global",
         AppendProducer(
-            producers=jets.RenameJetsData, samples=["data", "embedding", "embedding_mc"]
+            producers=jets.RenameJetsData, samples=["embedding", "embedding_mc"]
         ),
     )
     configuration.add_modification_rule(
