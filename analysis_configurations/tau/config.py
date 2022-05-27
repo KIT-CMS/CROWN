@@ -1309,7 +1309,7 @@ def build_config(
     #########################
     # Jet energy resolution and jet energy scale
     #########################
-    add_jetVariations(configuration, available_sample_types)
+    add_jetVariations(configuration, available_sample_types, era)
 
     #########################
     # Finalize and validate the configuration
