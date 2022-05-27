@@ -55,7 +55,7 @@ def add_jetCorrectionData(configuration, era):
             ),
             samples=["data"],
         )
-    
+
     if era == "2017":
         configuration.add_shift(
             SystematicShift(
