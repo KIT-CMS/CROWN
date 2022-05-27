@@ -426,8 +426,8 @@ def add_tauVariations(configuration):
     configuration.add_shift(
         SystematicShift(
             name="tauEs1prong0pizeroDown",
-            shift_config={("et, mt, tt"): {"tau_ES_shift_DM0": "down"}},
-            producers={("et, mt, tt"): taus.TauPtCorrection_genTau},
+            shift_config={("et", "mt", "tt"): {"tau_ES_shift_DM0": "down"}},
+            producers={("et", "mt", "tt"): taus.TauPtCorrection_genTau},
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
@@ -438,8 +438,8 @@ def add_tauVariations(configuration):
     configuration.add_shift(
         SystematicShift(
             name="tauEs1prong0pizeroUp",
-            shift_config={("et, mt, tt"): {"tau_ES_shift_DM0": "up"}},
-            producers={("et, mt, tt"): taus.TauPtCorrection_genTau},
+            shift_config={("et", "mt", "tt"): {"tau_ES_shift_DM0": "up"}},
+            producers={("et", "mt", "tt"): taus.TauPtCorrection_genTau},
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
@@ -450,8 +450,8 @@ def add_tauVariations(configuration):
     configuration.add_shift(
         SystematicShift(
             name="tauEs1prong1pizeroDown",
-            shift_config={("et, mt, tt"): {"tau_ES_shift_DM1": "down"}},
-            producers={("et, mt, tt"): taus.TauPtCorrection_genTau},
+            shift_config={("et", "mt", "tt"): {"tau_ES_shift_DM1": "down"}},
+            producers={("et", "mt", "tt"): taus.TauPtCorrection_genTau},
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
@@ -462,8 +462,8 @@ def add_tauVariations(configuration):
     configuration.add_shift(
         SystematicShift(
             name="tauEs1prong1pizeroUp",
-            shift_config={("et, mt, tt"): {"tau_ES_shift_DM1": "up"}},
-            producers={("et, mt, tt"): taus.TauPtCorrection_genTau},
+            shift_config={("et", "mt", "tt"): {"tau_ES_shift_DM1": "up"}},
+            producers={("et", "mt", "tt"): taus.TauPtCorrection_genTau},
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
@@ -474,8 +474,8 @@ def add_tauVariations(configuration):
     configuration.add_shift(
         SystematicShift(
             name="tauEs3prong0pizeroDown",
-            shift_config={("et, mt, tt"): {"tau_ES_shift_DM10": "down"}},
-            producers={("et, mt, tt"): taus.TauPtCorrection_genTau},
+            shift_config={("et", "mt", "tt"): {"tau_ES_shift_DM10": "down"}},
+            producers={("et", "mt", "tt"): taus.TauPtCorrection_genTau},
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
@@ -486,8 +486,8 @@ def add_tauVariations(configuration):
     configuration.add_shift(
         SystematicShift(
             name="tauEs3prong0pizeroUp",
-            shift_config={("et, mt, tt"): {"tau_ES_shift_DM10": "up"}},
-            producers={("et, mt, tt"): taus.TauPtCorrection_genTau},
+            shift_config={("et", "mt", "tt"): {"tau_ES_shift_DM10": "up"}},
+            producers={("et", "mt", "tt"): taus.TauPtCorrection_genTau},
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
@@ -498,8 +498,8 @@ def add_tauVariations(configuration):
     configuration.add_shift(
         SystematicShift(
             name="tauEs3prong1pizeroDown",
-            shift_config={("et, mt, tt"): {"tau_ES_shift_DM11": "down"}},
-            producers={("et, mt, tt"): taus.TauPtCorrection_genTau},
+            shift_config={("et", "mt", "tt"): {"tau_ES_shift_DM11": "down"}},
+            producers={("et", "mt", "tt"): taus.TauPtCorrection_genTau},
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
@@ -510,8 +510,8 @@ def add_tauVariations(configuration):
     configuration.add_shift(
         SystematicShift(
             name="tauEs3prong1pizeroUp",
-            shift_config={("et, mt, tt"): {"tau_ES_shift_DM11": "up"}},
-            producers={("et, mt, tt"): taus.TauPtCorrection_genTau},
+            shift_config={("et", "mt", "tt"): {"tau_ES_shift_DM11": "up"}},
+            producers={("et", "mt", "tt"): taus.TauPtCorrection_genTau},
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
