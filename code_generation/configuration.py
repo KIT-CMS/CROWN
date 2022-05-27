@@ -376,7 +376,7 @@ class Configuration(object):
         """
         # first check if the scopes are correct
         for scope in shift.get_scopes():
-            if scope not in list(self.available_scopes) + [self.global_scope] :
+            if scope not in list(self.available_scopes) + [self.global_scope]:
                 raise ConfigurationError(
                     "Shift {} has scope {} which is not in the list of avialble scopes {}".format(
                         shift.shiftname, scope, self.available_scopes
