@@ -431,6 +431,7 @@ def add_tauVariations(configuration):
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
+                "tt": [],
             },
         )
     )
@@ -442,6 +443,7 @@ def add_tauVariations(configuration):
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
+                "tt": [],
             },
         )
     )
@@ -453,6 +455,7 @@ def add_tauVariations(configuration):
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
+                "tt": [],
             },
         )
     )
@@ -464,6 +467,7 @@ def add_tauVariations(configuration):
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
+                "tt": [],
             },
         )
     )
@@ -475,6 +479,7 @@ def add_tauVariations(configuration):
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
+                "tt": [],
             },
         )
     )
@@ -486,6 +491,7 @@ def add_tauVariations(configuration):
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
+                "tt": [],
             },
         )
     )
@@ -497,6 +503,7 @@ def add_tauVariations(configuration):
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
+                "tt": [],
             },
         )
     )
@@ -508,6 +515,7 @@ def add_tauVariations(configuration):
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
+                "tt": [],
             },
         )
     )

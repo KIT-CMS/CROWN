@@ -312,19 +312,16 @@ inline auto FilterID(const int &index) {
         return mask;
     };
 }
-/// Function to filter the Jet ID in NanoAOD. Ths values are stored bitwise, so
-/// the integer value has to be decoded into binary, and then the value of the
-/// index bit has to be compared.
+/// Function to filter the Jet ID in NanoAOD. The Jet ID has 3 possible values
+/// (for UL): 0==fail tight ID and fail tightLepVeto, 2==pass tight ID and fail
+/// tightLepVeto, 6==pass tight ID and pass tightLepVeto
 ///
 /// \param index The bitmask index to be used for comparison
 ///
 /// \returns a lambda function to be used in RDF Define
 inline auto FilterJetID(const int &index) {
     return [index](const ROOT::RVec<Int_t> &IDs) {
-        ROOT::RVec<int> mask;
-        for (auto const ID : IDs) {
-            mask.push_back(std::min(1, (ID >> index) & 1));
-        }
+        ROOT::RVec<int> mask = IDs == index;
         return mask;
     };
 }
