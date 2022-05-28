@@ -114,7 +114,11 @@ ROOT::RDF::RNode calculateGenBosonVector(
                           genparticle_mass, genparticle_id, genparticle_status,
                           genparticle_statusflag});
     } else {
-        return df.Define(outputname, []() { return default_lorentzvector; });
+        return df.Define(outputname, []() {
+            std::pair<ROOT::Math::PtEtaPhiMVector, ROOT::Math::PtEtaPhiMVector>
+                metpair = {default_lorentzvector, default_lorentzvector};
+            return metpair;
+        });
     }
 }
 /// Function to calculate the mass from the genboson double vector and add it to
@@ -369,10 +373,10 @@ ROOT::RDF::RNode propagateJetsToMet(
         }
         float MetX = met.Px() + corr_x;
         float MetY = met.Py() + corr_y;
-        Logger::get("propagateJetsToMet")->debug("corr_x {}", corr_x);
-        Logger::get("propagateJetsToMet")->debug("corr_y {}", corr_y);
-        Logger::get("propagateJetsToMet")->debug("MetX {}", MetX);
-        Logger::get("propagateJetsToMet")->debug("MetY {}", MetY);
+        Logger::get("propagateJetsToMet")
+            ->debug("corr_x {}, corr_y {}", corr_x, corr_y);
+        Logger::get("propagateJetsToMet")
+            ->debug("MetX {}, MetY {}", MetX, MetY);
         corrected_met.SetPxPyPzE(MetX, MetY, 0,
                                  std::sqrt(MetX * MetX + MetY * MetY));
         Logger::get("propagateJetsToMet")->debug("old met {}", met.Pt());

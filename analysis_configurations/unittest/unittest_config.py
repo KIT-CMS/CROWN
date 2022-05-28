@@ -124,12 +124,45 @@ def build_config(
         {
             "min_jet_pt": 30,
             "max_jet_eta": 4.7,
-            "jet_id": 2,  # second bit is tight JetID
-            "jet_puid": 4,  # 0==fail, 4==pass(loose), 6==pass(loose,medium), 7==pass(loose,medium,tight) !check 2016 -> inverted ID
-            "jet_puid_max_pt": 50,
-            "JEC_shift_sources": '{""}',
-            "JE_scale_shift": 0,
-            "JE_reso_shift": 0,
+            "jet_id": 2,  # we want 2 for passing tight ID and fail tightLepVeto
+            "jet_puid": EraModifier(  # jets should at least pass loose puID
+                {
+                    "2016preVFP": 1,  # 0==fail, 1==pass(loose), 3==pass(loose,medium), 7==pass(loose,medium,tight)
+                    "2016postVFP": 1,  # 0==fail, 1==pass(loose), 3==pass(loose,medium), 7==pass(loose,medium,tight)
+                    "2017": 4,  # 0==fail, 4==pass(loose), 6==pass(loose,medium), 7==pass(loose,medium,tight)
+                    "2018": 4,  # 0==fail, 4==pass(loose), 6==pass(loose,medium), 7==pass(loose,medium,tight)
+                }
+            ),
+            "jet_puid_max_pt": 50,  # recommended to apply puID only for jets below 50 GeV
+            "jet_reapplyJES": False,
+            "jet_jes_sources": '{""}',
+            "jet_jes_shift": 0,
+            "jet_jer_shift": '"nom"',  # or '"up"', '"down"'
+            "jet_jec_file": EraModifier(
+                {
+                    "2016preVFP": '"data/jsonpog-integration/POG/JME/2016preVFP_UL/jet_jerc.json.gz"',
+                    "2016postVFP": '"data/jsonpog-integration/POG/JME/2016postVFP_UL/jet_jerc.json.gz"',
+                    "2017": '"data/jsonpog-integration/POG/JME/2017_UL/jet_jerc.json.gz"',
+                    "2018": '"data/jsonpog-integration/POG/JME/2018_UL/jet_jerc.json.gz"',
+                }
+            ),
+            "jet_jer_tag": EraModifier(
+                {
+                    "2016preVFP": '"Summer20UL16APV_JRV3_MC"',
+                    "2016postVFP": '"Summer20UL16_JRV3_MC"',
+                    "2017": '"Summer19UL17_JRV2_MC"',
+                    "2018": '"Summer19UL18_JRV2_MC"',
+                }
+            ),
+            "jet_jes_tag": EraModifier(
+                {
+                    "2016preVFP": '"Summer19UL16APV_V7_MC"',
+                    "2016postVFP": '"Summer19UL16_V7_MC"',
+                    "2017": '"Summer19UL17_V5_MC"',
+                    "2018": '"Summer19UL18_V5_MC"',
+                }
+            ),
+            "jet_jec_algo": '"AK4PFchs"',
         },
     )
     # bjet base selection:
@@ -891,7 +924,7 @@ def build_config(
         SystematicShift(
             name="jerUncUp",
             shift_config={
-                "global": {"JE_reso_shift": 1},
+                "global": {"jet_jer_shift": '"up"'},
             },
             producers={"global": jets.JetEnergyCorrection},
         )
@@ -900,7 +933,7 @@ def build_config(
         SystematicShift(
             name="jerUncDown",
             shift_config={
-                "global": {"JE_reso_shift": -1},
+                "global": {"jet_jer_shift": '"down"'},
             },
             producers={"global": jets.JetEnergyCorrection},
         )

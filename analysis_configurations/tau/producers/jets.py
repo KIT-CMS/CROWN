@@ -7,14 +7,30 @@ from code_generation.producer import Producer, ProducerGroup
 ####################
 JetPtCorrection = Producer(
     name="JetPtCorrection",
-    call="physicsobject::jet::JetPtCorrection({df}, {output}, {input}, {JEC_shift_sources}, {JE_scale_shift}, {JE_reso_shift})",
+    call="physicsobject::jet::JetPtCorrection({df}, {output}, {input}, {jet_reapplyJES}, {jet_jes_sources}, {jet_jes_shift}, {jet_jer_shift}, {jet_jec_file}, {jet_jer_tag}, {jet_jes_tag}, {jet_jec_algo})",
     input=[
         nanoAOD.Jet_pt,
         nanoAOD.Jet_eta,
         nanoAOD.Jet_phi,
+        nanoAOD.Jet_area,
+        nanoAOD.Jet_rawFactor,
+        nanoAOD.Jet_ID,
         nanoAOD.GenJet_pt,
         nanoAOD.GenJet_eta,
         nanoAOD.GenJet_phi,
+        nanoAOD.rho,
+    ],
+    output=[q.Jet_pt_corrected],
+    scopes=["global"],
+)
+JetPtCorrection_data = Producer(
+    name="JetPtCorrection_data",
+    call="physicsobject::jet::JetPtCorrection_data({df}, {output}, {input}, {jet_jec_file}, {jet_jes_tag_data}, {jet_jec_algo})",
+    input=[
+        nanoAOD.Jet_pt,
+        nanoAOD.Jet_eta,
+        nanoAOD.Jet_area,
+        nanoAOD.Jet_rawFactor,
         nanoAOD.rho,
     ],
     output=[q.Jet_pt_corrected],
@@ -61,6 +77,14 @@ JetEnergyCorrection = ProducerGroup(
     output=None,
     scopes=["global"],
     subproducers=[JetPtCorrection, JetMassCorrection],
+)
+JetEnergyCorrection_data = ProducerGroup(
+    name="JetEnergyCorrection",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["global"],
+    subproducers=[JetPtCorrection_data, JetMassCorrection],
 )
 JetPtCut = Producer(
     name="JetPtCut",
