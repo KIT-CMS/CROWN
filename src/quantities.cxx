@@ -596,5 +596,50 @@ ROOT::RDF::RNode TauIDFlag(ROOT::RDF::RNode df, const std::string &outputname,
         {pairname, nameID});
 }
 } // end namespace tau
+/// namespace for muon specific quantities
+namespace muon {
+/**
+ * @brief Function to writeout the id of a muon.
+ *
+ * @param df the dataframe to add the quantity to
+ * @param outputname the name of the new quantity
+ * @param position position of the muon in the pair vector
+ * @param pairname name of the column containing the pair vector
+ * @param idcolumn name of the column containing the muon id values
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &outputname,
+                    const int &position, const std::string &pairname,
+                    const std::string &idcolumn) {
+    return df.Define(
+        outputname,
+        [position](const ROOT::RVec<int> &pair, const ROOT::RVec<bool> &id) {
+            const int index = pair.at(position, -1);
+            return id.at(index, false);
+        },
+        {pairname, idcolumn});
+}
+/**
+ * @brief Function to writeout the is global flag of a muon.
+ *
+ * @param df the dataframe to add the quantity to
+ * @param outputname the name of the new quantity
+ * @param position position of the muon in the pair vector
+ * @param pairname name of the column containing the pair vector
+ * @param globalflagcolumn name of the column containing the muon is global flag
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode is_global(ROOT::RDF::RNode df, const std::string &outputname,
+                           const int &position, const std::string &pairname,
+                           const std::string &globalflagcolumn) {
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<int> &pair,
+                                const ROOT::RVec<bool> &globalflag) {
+                         const int index = pair.at(position, -1);
+                         return globalflag.at(index, false);
+                     },
+                     {pairname, globalflagcolumn});
+}
+} // end namespace muon
 } // end namespace quantities
 #endif /* GUARD_QUANTITIES_H */
