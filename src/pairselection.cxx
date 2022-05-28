@@ -234,7 +234,7 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
 }
 /// This function flags events, where a suitable particle pair is found.
 /// A pair is considered suitable, if a PairSelectionAlgo (like
-/// ditau_pairselection::mutau::PairSelectionAlgo) returns indices, that are
+/// pairselection::mutau::PairSelectionAlgo) returns indices, that are
 /// not -1. Events, where any of the particle indices is -1 are vetoed
 /// by this filter.
 ///
@@ -604,8 +604,8 @@ namespace leptonic {
 ///
 /// \returns an `ROOT::RVec<int>` with two values, the first one beeing
 /// the electron index and the second one beeing the muon index.
-auto PairSelectionAlgo(const float &mindeltaR) {
-    Logger::get("semileptonic::PairSelectionAlgo")
+auto ElMuPairSelectionAlgo(const float &mindeltaR) {
+    Logger::get("leptonic::ElMuPairSelectionAlgo")
         ->debug("Setting up algorithm");
     return [mindeltaR](const ROOT::RVec<float> &electron_pt,
                        const ROOT::RVec<float> &electron_eta,
@@ -630,7 +630,7 @@ auto PairSelectionAlgo(const float &mindeltaR) {
             original_muon_indices.size() == 0) {
             return selected_pair;
         }
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Running algorithm on good electrons and muons");
 
         const auto selected_electron_pt =
@@ -645,17 +645,17 @@ auto PairSelectionAlgo(const float &mindeltaR) {
         const auto pair_indices = ROOT::VecOps::Combinations(
             selected_electron_pt,
             selected_muon_pt); // Gives indices of el-mu pair
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Pairs: {} {}", pair_indices[0], pair_indices[1]);
 
         const auto pairs = ROOT::VecOps::Construct<std::pair<UInt_t, UInt_t>>(
             pair_indices[0], pair_indices[1]);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Pairs size: {}", pairs.size());
         int counter = 0;
         for (auto &pair : pairs) {
             counter++;
-            Logger::get("leptonic::PairSelectionAlgo")
+            Logger::get("leptonic::ElMuPairSelectionAlgo")
                 ->debug("Constituents pair {}. : {} {}", counter, pair.first,
                         pair.second);
         }
@@ -665,22 +665,22 @@ auto PairSelectionAlgo(const float &mindeltaR) {
             compareForPairs(selected_electron_pt, -1. * selected_electron_iso,
                             selected_muon_pt, -1 * selected_muon_iso));
 
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Original electronPt: {}", electron_pt);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Original electronIso: {}", electron_iso);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Original muonPt: {}", muon_pt);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Original muonIso: {}", muon_iso);
 
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Selected electronPt: {}", selected_electron_pt);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Selected electronIso: {}", selected_electron_iso);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Selected muonPt: {}", selected_muon_pt);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Selected muonIso: {}", selected_muon_iso);
 
         // construct the four vectors of the selected electrons and muons to
@@ -692,26 +692,26 @@ auto PairSelectionAlgo(const float &mindeltaR) {
                 electron_pt.at(electronindex), electron_eta.at(electronindex),
                 electron_phi.at(electronindex),
                 electron_mass.at(electronindex));
-            Logger::get("leptonic::PairSelectionAlgo")
+            Logger::get("leptonic::ElMuPairSelectionAlgo")
                 ->debug("{} electron vector: {}", electronindex, electron);
             auto muonindex = original_muon_indices[candidate.second];
             ROOT::Math::PtEtaPhiMVector muon = ROOT::Math::PtEtaPhiMVector(
                 muon_pt.at(muonindex), muon_eta.at(muonindex),
                 muon_phi.at(muonindex), muon_mass.at(muonindex));
-            Logger::get("leptonic::PairSelectionAlgo")
+            Logger::get("leptonic::ElMuPairSelectionAlgo")
                 ->debug("{} muon vector: {}", muonindex, muon);
-            Logger::get("leptonic::PairSelectionAlgo")
+            Logger::get("leptonic::ElMuPairSelectionAlgo")
                 ->debug("DeltaR: {}",
                         ROOT::Math::VectorUtil::DeltaR(electron, muon));
             if (ROOT::Math::VectorUtil::DeltaR(electron, muon) > mindeltaR) {
-                Logger::get("leptonic::PairSelectionAlgo")
+                Logger::get("leptonic::ElMuPairSelectionAlgo")
                     ->debug("Selected original pair indices: electron = {} , "
                             "muon = {}",
                             electronindex, muonindex);
-                Logger::get("leptonic::PairSelectionAlgo")
+                Logger::get("leptonic::ElMuPairSelectionAlgo")
                     ->debug("electronPt = {} , muonPt = {} ", electron.Pt(),
                             muon.Pt());
-                Logger::get("leptonic::PairSelectionAlgo")
+                Logger::get("leptonic::ElMuPairSelectionAlgo")
                     ->debug("electronIso = {} , muonIso = {} ",
                             electron_iso[electronindex], muon_iso[muonindex]);
                 selected_pair = {static_cast<int>(electronindex),
@@ -719,186 +719,21 @@ auto PairSelectionAlgo(const float &mindeltaR) {
                 break;
             }
         }
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Final pair {} {}", selected_pair[0], selected_pair[1]);
 
         return selected_pair;
     };
 }
-
-} // namespace leptonic
-namespace mutau {
-
-/**
- * @brief Function used to select the pair of tau leptons based on the standard
- * pair selection algorithm
- *
- * @param df the input dataframe
- * @param input_vector vector of strings containing the columns needed for the
- * alogrithm. For the muTau pair selection these values are:
-    - tau_pt
-    - tau_eta
-    - tau_phi
-    - tau_mass
-    - tau_iso
-    - muon_pt
-    - muon_eta
-    - muon_phi
-    - muon_mass
-    - muon_iso
-    - tau_mask containing the flags whether the tau is a good tau or not
-    - muon_mask containing the flags whether the muon is a good muon or not
- * @param pairname name of the new column containing the pair index
- * @param mindeltaR the seperation between the muon at the tau has to be larger
- than
- * this value
- * @return a new dataframe with the pair index column added
- */
-ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
-                               const std::vector<std::string> &input_vector,
-                               const std::string &pairname,
-                               const float &mindeltaR) {
-    Logger::get("mutau::PairSelection")
-        ->debug("Setting up MuTau pair building");
-    auto df1 = df.Define(
-        pairname,
-        ditau_pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
-        input_vector);
-    return df1;
-}
-
-} // end namespace mutau
-
-namespace eltau {
-
-/**
- * @brief Function used to select the pair of tau leptons based on the standard
- * pair selection algorithm
- *
- * @param df the input dataframe
- * @param input_vector vector of strings containing the columns needed for the
- * alogrithm. For the ElTau pair selection these values are:
-    - tau_pt
-    - tau_eta
-    - tau_phi
-    - tau_mass
-    - tau_iso
-    - electron_pt
-    - electron_eta
-    - electron_phi
-    - electron_mass
-    - electron_iso
-    - tau_mask containing the flags whether the tau is a good tau or not
-    - electron_mask containing the flags whether the electron is a good electron
- or not
- * @param pairname name of the new column containing the pair index
- * @param mindeltaR the seperation between the electron at the tau has to be
- larger than
- * this value
- * @return a new dataframe with the pair index column added
- */
-ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
-                               const std::vector<std::string> &input_vector,
-                               const std::string &pairname,
-                               const float &mindeltaR) {
-    Logger::get("eltau::PairSelection")
-        ->debug("Setting up ElTau pair building");
-    auto df1 = df.Define(
-        pairname,
-        ditau_pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
-        input_vector);
-    return df1;
-}
-
-} // end namespace eltau
-
-namespace tautau {
-
-/**
- * @brief Function used to select the pair of tau leptons based on the standard
- * pair selection algorithm
- *
- * @param df the input dataframe
- * @param input_vector vector of strings containing the columns needed for the
- * alogrithm. For the TauTau pair selection these values are:
-    - tau_pt
-    - tau_eta
-    - tau_phi
-    - tau_mass
-    - tau_iso
-    - tau_mask containing the flags whether the tau is a good tau or not
- * @param pairname name of the new column containing the pair index
- * @param mindeltaR the seperation between the two tau candidates has to be
- larger than
- * this value
- * @return a new dataframe with the pair index column added
- */
-ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
-                               const std::vector<std::string> &input_vector,
-                               const std::string &pairname,
-                               const float &mindeltaR) {
-    Logger::get("tautau::PairSelection")
-        ->debug("Setting up TauTau pair building");
-    auto df1 = df.Define(
-        pairname,
-        ditau_pairselection::fullhadronic::PairSelectionAlgo(mindeltaR),
-        input_vector);
-    return df1;
-}
-
-} // namespace tautau
-
-namespace elmu {
-
-/**
- * @brief Function used to select the pair of tau leptons based on the standard
- * pair selection algorithm
- *
- * @param df the input dataframe
- * @param input_vector vector of strings containing the columns needed for the
- * alogrithm. For the ElTau pair selection these values are:
-    - electron_pt
-    - electron_eta
-    - electron_phi
-    - electron_mass
-    - electron_iso
-    - muon_pt
-    - muon_eta
-    - muon_phi
-    - muon_mass
-    - muon_iso
-    - electron_mask containing the flags whether the electron is a good electron
- or not
-    - muon_mask containing the flags whether the muon is a good muon or not
- * @param pairname name of the new column containing the pair index
- * @param mindeltaR the seperation between the electron and the muon has to be
- larger than
- * this value
- * @return a new dataframe with the pair index column added
- */
-ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
-                               const std::vector<std::string> &input_vector,
-                               const std::string &pairname,
-                               const float &mindeltaR) {
-    Logger::get("elmu::PairSelection")->debug("Setting up elmu pair building");
-    auto df1 = df.Define(
-        pairname, ditau_pairselection::leptonic::PairSelectionAlgo(mindeltaR),
-        input_vector);
-    return df1;
-}
-
-} // namespace elmu
-
-namespace mumu {
 /**
  * @brief Lambda function containg the algorithm to select the pair of muons
  * with the highest pt
  *
- * @param mindeltaR the seperation between the two muons has to be larger than
- this value
+ * @param mindeltaR the seperation between the two muons has to be larger
+ than this value
  *
- * @return vector with two entries, the first entry is the leading muon index,
-    the second entry is the trailing muon index
+ * @return vector with two entries, the first entry is the leading muon
+ index, the second entry is the trailing muon index
  */
 auto PairSelectionAlgo(const float &mindeltaR) {
     Logger::get("PairSelection")->debug("Setting up algorithm");
@@ -930,19 +765,21 @@ auto PairSelectionAlgo(const float &mindeltaR) {
         auto combinations =
             ROOT::VecOps::Combinations(original_muon_indices, 2);
         if (original_muon_indices.size() > 2) {
-            Logger::get("MMPairSelectionAlgo")
+            Logger::get("leptonic::PairSelectionAlgo")
                 ->debug("More than two suitable muons found, printing "
                         "combinations.... ");
             for (auto &comb : combinations) {
-                Logger::get("MMPairSelectionAlgo")->debug("index: {}", comb);
+                Logger::get("leptonic::PairSelectionAlgo")
+                    ->debug("index: {}", comb);
             };
-            Logger::get("MMPairSelectionAlgo")->debug("---------------------");
+            Logger::get("leptonic::PairSelectionAlgo")
+                ->debug("---------------------");
         }
         for (int n = 0; n < combinations[0].size(); n++) {
             auto mu1 = fourVecs[combinations[0][n]];
             auto mu2 = fourVecs[combinations[1][n]];
             auto deltaR = ROOT::Math::VectorUtil::DeltaR(mu1, mu2);
-            Logger::get("MMPairSelectionAlgo")
+            Logger::get("leptonic::PairSelectionAlgo")
                 ->debug("deltaR check: {}", deltaR);
             if (deltaR > mindeltaR) {
                 if (mu1.Pt() >= selected_pts[0] &&
@@ -961,8 +798,9 @@ auto PairSelectionAlgo(const float &mindeltaR) {
             good_pts[selected_mu_indices[1]]) {
             std::swap(selected_mu_indices[0], selected_mu_indices[1]);
         }
-        Logger::get("MMPairSelectionAlgo")->debug("good pts: {}", good_pts);
-        Logger::get("MMPairSelectionAlgo")
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("good pts: {}", good_pts);
+        Logger::get("leptonic::PairSelectionAlgo")
             ->debug("selected_mu_indices: {}, {}", selected_mu_indices[0],
                     selected_mu_indices[1]);
         selected_pair = {static_cast<int>(selected_mu_indices[0]),
@@ -974,10 +812,10 @@ auto PairSelectionAlgo(const float &mindeltaR) {
  * @brief Lambda function containg the algorithm to select the pair
  * of muons closest to the Z mass
  *
- * @param mindeltaR the seperation between the two muons has to be larger than
- * this value
- * @return vector with two entries, the first entry is the leading muon index,
- *  the second entry is the trailing muon index
+ * @param mindeltaR the seperation between the two muons has to be larger
+ * than this value
+ * @return vector with two entries, the first entry is the leading muon
+ * index, the second entry is the trailing muon index
  */
 auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
     Logger::get("PairSelection")->debug("Setting up algorithm");
@@ -1068,6 +906,168 @@ auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
         return selected_pair;
     };
 }
+
+} // namespace leptonic
+namespace mutau {
+
+/**
+ * @brief Function used to select the pair of tau leptons based on the standard
+ * pair selection algorithm
+ *
+ * @param df the input dataframe
+ * @param input_vector vector of strings containing the columns needed for the
+ * alogrithm. For the muTau pair selection these values are:
+    - tau_pt
+    - tau_eta
+    - tau_phi
+    - tau_mass
+    - tau_iso
+    - muon_pt
+    - muon_eta
+    - muon_phi
+    - muon_mass
+    - muon_iso
+    - tau_mask containing the flags whether the tau is a good tau or not
+    - muon_mask containing the flags whether the muon is a good muon or not
+ * @param pairname name of the new column containing the pair index
+ * @param mindeltaR the seperation between the muon at the tau has to be larger
+ than
+ * this value
+ * @return a new dataframe with the pair index column added
+ */
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vector,
+                               const std::string &pairname,
+                               const float &mindeltaR) {
+    Logger::get("mutau::PairSelection")
+        ->debug("Setting up MuTau pair building");
+    auto df1 = df.Define(
+        pairname, pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
+        input_vector);
+    return df1;
+}
+
+} // end namespace mutau
+
+namespace eltau {
+
+/**
+ * @brief Function used to select the pair of tau leptons based on the standard
+ * pair selection algorithm
+ *
+ * @param df the input dataframe
+ * @param input_vector vector of strings containing the columns needed for the
+ * alogrithm. For the ElTau pair selection these values are:
+    - tau_pt
+    - tau_eta
+    - tau_phi
+    - tau_mass
+    - tau_iso
+    - electron_pt
+    - electron_eta
+    - electron_phi
+    - electron_mass
+    - electron_iso
+    - tau_mask containing the flags whether the tau is a good tau or not
+    - electron_mask containing the flags whether the electron is a good electron
+ or not
+ * @param pairname name of the new column containing the pair index
+ * @param mindeltaR the seperation between the electron at the tau has to be
+ larger than
+ * this value
+ * @return a new dataframe with the pair index column added
+ */
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vector,
+                               const std::string &pairname,
+                               const float &mindeltaR) {
+    Logger::get("eltau::PairSelection")
+        ->debug("Setting up ElTau pair building");
+    auto df1 = df.Define(
+        pairname, pairselection::semileptonic::PairSelectionAlgo(mindeltaR),
+        input_vector);
+    return df1;
+}
+
+} // end namespace eltau
+
+namespace tautau {
+
+/**
+ * @brief Function used to select the pair of tau leptons based on the standard
+ * pair selection algorithm
+ *
+ * @param df the input dataframe
+ * @param input_vector vector of strings containing the columns needed for the
+ * alogrithm. For the TauTau pair selection these values are:
+    - tau_pt
+    - tau_eta
+    - tau_phi
+    - tau_mass
+    - tau_iso
+    - tau_mask containing the flags whether the tau is a good tau or not
+ * @param pairname name of the new column containing the pair index
+ * @param mindeltaR the seperation between the two tau candidates has to be
+ larger than
+ * this value
+ * @return a new dataframe with the pair index column added
+ */
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vector,
+                               const std::string &pairname,
+                               const float &mindeltaR) {
+    Logger::get("tautau::PairSelection")
+        ->debug("Setting up TauTau pair building");
+    auto df1 = df.Define(
+        pairname, pairselection::fullhadronic::PairSelectionAlgo(mindeltaR),
+        input_vector);
+    return df1;
+}
+
+} // namespace tautau
+
+namespace elmu {
+
+/**
+ * @brief Function used to select the pair of tau leptons based on the standard
+ * pair selection algorithm
+ *
+ * @param df the input dataframe
+ * @param input_vector vector of strings containing the columns needed for the
+ * alogrithm. For the ElTau pair selection these values are:
+    - electron_pt
+    - electron_eta
+    - electron_phi
+    - electron_mass
+    - electron_iso
+    - muon_pt
+    - muon_eta
+    - muon_phi
+    - muon_mass
+    - muon_iso
+    - electron_mask containing the flags whether the electron is a good electron
+ or not
+    - muon_mask containing the flags whether the muon is a good muon or not
+ * @param pairname name of the new column containing the pair index
+ * @param mindeltaR the seperation between the electron and the muon has to be
+ larger than
+ * this value
+ * @return a new dataframe with the pair index column added
+ */
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vector,
+                               const std::string &pairname,
+                               const float &mindeltaR) {
+    Logger::get("elmu::PairSelection")->debug("Setting up elmu pair building");
+    auto df1 = df.Define(
+        pairname, pairselection::leptonic::ElMuPairSelectionAlgo(mindeltaR),
+        input_vector);
+    return df1;
+}
+
+} // namespace elmu
+
+namespace mumu {
 /**
  * @brief Function used to select the pair of muons with the highest
  * pt
@@ -1091,10 +1091,10 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR) {
-    Logger::get("MuonPairSelection")->debug("Setting up mumu pair building");
-    auto df1 = df.Define(
-        pairname, ditau_pairselection::mumu::PairSelectionAlgo(mindeltaR),
-        input_vector);
+    Logger::get("MuMuPairSelection")->debug("Setting up mumu pair building");
+    auto df1 = df.Define(pairname,
+                         pairselection::leptonic::PairSelectionAlgo(mindeltaR),
+                         input_vector);
     return df1;
 }
 /**
@@ -1119,14 +1119,76 @@ ROOT::RDF::RNode
 ZBosonPairSelection(ROOT::RDF::RNode df,
                     const std::vector<std::string> &input_vector,
                     const std::string &pairname, const float &mindeltaR) {
-    Logger::get("ZBosonPairSelection")
+    Logger::get("ZMuMuPairSelection")
         ->debug("Setting up Z boson mumu pair building");
     auto df1 = df.Define(
-        pairname, ditau_pairselection::mumu::ZBosonPairSelectionAlgo(mindeltaR),
+        pairname, pairselection::leptonic::ZBosonPairSelectionAlgo(mindeltaR),
         input_vector);
     return df1;
 }
 
 } // end namespace mumu
-} // end namespace ditau_pairselection
+namespace elel {
+/**
+ * @brief Function used to select the pair of muons with the highest
+ * pt
+ *
+ * @param df the input dataframe
+ * @param input_vector vector of strings containing the columns
+ * needed for the alogrithm. For the muon pair selection the required
+ parameters are:
+    - muon_pt
+    - muon_eta
+    - muon_phi
+    - muon_mass
+    - muon_mask containing the flags whether the muon is a good muon or not
+ * @param pairname name of the new column containing the pair index
+ * @param mindeltaR the seperation between the two muons has to be larger
+ than
+ * this value
+ * @return a new dataframe with the pair index column added
+ */
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vector,
+                               const std::string &pairname,
+                               const float &mindeltaR) {
+    Logger::get("ElElPairSelection")
+        ->debug("Setting up electron pair building");
+    auto df1 = df.Define(pairname,
+                         pairselection::leptonic::PairSelectionAlgo(mindeltaR),
+                         input_vector);
+    return df1;
+}
+/**
+ * @brief Function used to select the pair of muons closest to the Z
+ * mass
+ *
+ * @param df the input dataframe
+ * @param input_vector . For the Z boson muon pair selection the required
+ parameters are:
+    - muon_pt
+    - muon_eta
+    - muon_phi
+    - muon_mass
+    - muon_mask containing the flags whether the muon is a good muon or not
+ * @param pairname name of the new column containing the pair index
+ * @param mindeltaR the seperation between the two muons has to be larger
+ than
+ * this value
+ * @return a new dataframe with the pair index column added
+ */
+ROOT::RDF::RNode
+ZBosonPairSelection(ROOT::RDF::RNode df,
+                    const std::vector<std::string> &input_vector,
+                    const std::string &pairname, const float &mindeltaR) {
+    Logger::get("ZElElPairSelection")
+        ->debug("Setting up Z boson to electron pair building");
+    auto df1 = df.Define(
+        pairname, pairselection::leptonic::ZBosonPairSelectionAlgo(mindeltaR),
+        input_vector);
+    return df1;
+}
+
+} // end namespace elel
+} // namespace ditau_pairselection
 #endif /* GUARD_PAIRSELECTION_H */
