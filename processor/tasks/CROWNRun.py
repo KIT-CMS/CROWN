@@ -31,6 +31,7 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     era = luigi.Parameter()
     eras = luigi.ListParameter()
     analysis = luigi.Parameter()
+    config = luigi.Parameter()
     production_tag = luigi.Parameter()
     files_per_task = luigi.IntParameter(default=1)
 

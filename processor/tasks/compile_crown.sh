@@ -4,13 +4,15 @@ source $ANALYSIS_PATH/CROWN/init.sh
 
 CROWNFOLDER=$1
 ANALYSIS=$2
-SAMPLES=$3
-ERAS=$4
-SCOPE=$5
-SHIFTS=$6
-INSTALLDIR=$7
-BUILDDIR=$8
-TARBALLNAME=$9
+CONFIG=$3
+SAMPLES=$4
+ERAS=$5
+SCOPE=$6
+SHIFTS=$7
+INSTALLDIR=$8
+BUILDDIR=$9
+TARBALLNAME=${10}
+# use a fourth of the machine for compiling
 THREADS_AVAILABLE=$(grep -c ^processor /proc/cpuinfo)
 THREADS=$(( THREADS_AVAILABLE / 4 ))
 echo "Using $THREADS threads"
@@ -18,6 +20,7 @@ which cmake
 
 cmake $CROWNFOLDER \
  -DANALYSIS=$ANALYSIS \
+ -DCONFIG=$CONFIG \
  -DSAMPLES=$SAMPLES \
  -DERAS=$ERAS \
  -DSCOPES=$SCOPE \
