@@ -26,14 +26,16 @@ pathadd "${HOME}/.local/bin/"
 # set the cmake generator to Ninja
 # export CMAKE_GENERATOR="Ninja"
 export CMAKE_GENERATOR="Unix Makefiles"
-# a list of all available analyses and their github repositories
-declare -A ANALYSES
-ANALYSES["tau"]="git@github.com:KIT-CMS/TauAnalysis-CROWN.git"
+
+
 # clone a given analysis if an argument is given
 if [ -z "$1" ]
 then
     echo "No argument supplied"
 else
-    echo "Cloning analysis $1"
-    git clone "${ANALYSES['$1']}" analysis_configurations/$1
+    if [[ "$1" == "tau" ]]
+    then
+        echo "Cloning analysis tau"
+        git clone git@github.com:KIT-CMS/TauAnalysis-CROWN.git analysis_configurations/tau
+    fi
 fi
