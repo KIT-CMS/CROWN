@@ -35,6 +35,13 @@ class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
     production_tag = luigi.Parameter()
     files_per_task = luigi.IntParameter(default=1)
 
+    def htcondor_job_config(self, config, job_num, branches):
+        config = super().htcondor_job_config(config, job_num, branches)
+        config.custom_content.append(
+            ("JobBatchName", f"{self.nick}-{self.analysis}-{self.config}")
+        )
+        return config
+
     def modify_polling_status_line(self, status_line):
         """
         Hook to modify the status line that is printed during polling.
