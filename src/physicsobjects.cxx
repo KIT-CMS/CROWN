@@ -110,7 +110,7 @@ ROOT::RDF::RNode VetoCandInMask(ROOT::RDF::RNode df,
                                      index, inputmaskname);
                          auto newmask = mask;
                          if (pair.at(index) >= 0)
-                             newmask.at(pair.at(index)) = 0;
+                             newmask.at(pair.at(index)) = 0;                         
                          return newmask;
                      },
                      {inputmaskname, dileptonpair});
@@ -157,6 +157,42 @@ ROOT::RDF::RNode LeptonVetoFlag(ROOT::RDF::RNode df,
                          return ROOT::VecOps::Nonzero(mask).size() != 0;
                      },
                      {vetomap});
+}
+
+// FIXME: add description
+ROOT::RDF::RNode IsEmptyFlag(ROOT::RDF::RNode df,
+                             const std::string &outputname,
+                             const std::string &vetomap) {
+    return df.Define(outputname,
+                     [](const ROOT::RVec<int> &mask) {
+                         return ROOT::VecOps::Nonzero(mask).size() == 0;
+                     },
+                     {vetomap});
+}
+
+// FIXME: add description
+ROOT::RDF::RNode CutNFlag(ROOT::RDF::RNode df,
+                          const std::string &outputname,
+                          const std::string &map,
+                          const int &n) {
+    return df.Define(outputname,
+                     [n](const ROOT::RVec<int> &mask) {
+                         return ROOT::VecOps::Nonzero(mask).size() == n;
+                     },
+                     {map});
+}
+
+// FIXME: add description
+ROOT::RDF::RNode SelectedObjects(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &inputmaskname) {
+    return df.Define(outputname,
+                     [](const ROOT::RVec<int> &mask) {
+                        Logger::get("SelectedObjects")
+                            ->debug("size = {}", ROOT::VecOps::Nonzero(mask).size());
+                         return static_cast<ROOT::VecOps::RVec<int>>(ROOT::VecOps::Nonzero(mask));
+                     },
+                     {inputmaskname});
 }
 
 /// Function to correct object mass in alignment with object pt correction

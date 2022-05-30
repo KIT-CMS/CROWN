@@ -49,6 +49,16 @@ ROOT::RDF::RNode FilterMasks(ROOT::RDF::RNode df, const std::string &maskname);
 ROOT::RDF::RNode LeptonVetoFlag(ROOT::RDF::RNode df,
                                 const std::string &outputname,
                                 const std::string &vetomap);
+ROOT::RDF::RNode IsEmptyFlag(ROOT::RDF::RNode df,
+                             const std::string &outputname,
+                             const std::string &vetomap);
+ROOT::RDF::RNode CutNFlag(ROOT::RDF::RNode df,
+                          const std::string &outputname,
+                          const std::string &map,
+                          const int &n);
+ROOT::RDF::RNode SelectedObjects(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &inputmaskname);
 ROOT::RDF::RNode ObjectMassCorrectionWithPt(ROOT::RDF::RNode df,
                                             const std::string &corrected_mass,
                                             const std::string &raw_mass,
