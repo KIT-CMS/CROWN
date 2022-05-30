@@ -33,7 +33,7 @@ if [ -z "$1" ]
 then
     echo "No argument supplied"
 else
-    if [[ "$1" == "tau" ]]
+    if [[ "$1" == "tau" && ! -d "analysis_configurations/tau" ]]
     then
         echo "Cloning analysis tau"
         git clone git@github.com:KIT-CMS/TauAnalysis-CROWN.git analysis_configurations/tau
