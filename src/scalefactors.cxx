@@ -647,6 +647,120 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
         {pt, eta});
     return df1;
 }
+
 } // namespace electron
+namespace jet {
+/**
+ * @brief Function used to evaluate b-tagging scale factors of jets with
+ * correctionlib, configurations:
+ * - [UL2018 b-tagging
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/BTV_btagging_Run2_UL/BTV_btagging_2018_UL.html)
+ * - [UL2017 b-tagging
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/BTV_btagging_Run2_UL/BTV_btagging_2017_UL.html)
+ * - [UL2016preVFP b-tagging
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/BTV_btagging_Run2_UL/BTV_btagging_2016preVFP_UL.html)
+ * - [UL2016postVFP b-tagging
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/BTV_btagging_Run2_UL/BTV_btagging_2016postVFP_UL.html)
+ * @param df The input dataframe
+ * @param pt jet pt
+ * @param eta jet eta
+ * @param btag_discr btag value of a jet based on a b-jet tagger (e.g. DeepJet)
+ * @param flavor flavor of the jet
+ * @param jet_mask mask for good/selected jets
+ * @param bjet_mask mask for good/selected b jets
+ * @param jet_veto_mask veto mask for overlapping jets
+ * @param variation id for the variation of the scale factor. Available Values:
+ * central, down_*, up_* (* name of variation)
+ * @param sf_output name of the scale factor column
+ * @param sf_file path to the file with the btagging scale factors
+ * @param corr_algorithm name of the btagging correction algorithm
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+btagSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &eta,
+       const std::string &btag_discr, const std::string &flavor,
+       const std::string &jet_mask, const std::string &bjet_mask,
+       const std::string &jet_veto_mask, const std::string &variation,
+       const std::string &sf_output, const std::string &sf_file,
+       const std::string &corr_algorithm) {
+    Logger::get("btagSF")->debug(
+        "Setting up functions for b-tag sf with correctionlib");
+    Logger::get("btagSF")->debug("Correction algorithm - Name {}",
+                                 corr_algorithm);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(corr_algorithm);
+
+    auto btagSF_lambda = [evaluator,
+                          variation](const ROOT::RVec<float> &pt_values,
+                                     const ROOT::RVec<float> &eta_values,
+                                     const ROOT::RVec<float> &btag_values,
+                                     const ROOT::RVec<int> &flavors,
+                                     const ROOT::RVec<int> &jet_mask,
+                                     const ROOT::RVec<int> &bjet_mask,
+                                     const ROOT::RVec<int> &jet_veto_mask) {
+        Logger::get("btagSF")->debug("Vatiation - Name {}", variation);
+        float sf = 1.;
+        for (int i = 0; i < pt_values.size(); i++) {
+            Logger::get("btagSF")->debug(
+                "jet masks - jet {}, bjet {}, jet veto {}", jet_mask.at(i),
+                bjet_mask.at(i), jet_veto_mask.at(i));
+            // considering only good jets/bjets, this is needed since jets and
+            // bjets might have different cuts depending on the analysis
+            if ((jet_mask.at(i) || bjet_mask.at(i)) && jet_veto_mask.at(i)) {
+                Logger::get("btagSF")->debug(
+                    "SF - pt {}, eta {}, btag value {}, flavor {}",
+                    pt_values.at(i), eta_values.at(i), btag_values.at(i),
+                    flavors.at(i));
+                float jet_sf = 1.;
+                // considering only phase space where the scale factors are
+                // defined
+                if (pt_values.at(i) >= 20.0 && pt_values.at(i) < 10000.0 &&
+                    std::abs(eta_values.at(i)) < 2.5) {
+                    // for c jet related uncertainties only scale factors of
+                    // c-jets are varied, the rest is nominal/central
+                    if (variation.find("cferr") != std::string::npos) {
+                        // flavor=4 means c-flavor
+                        if (flavors.at(i) == 4) {
+                            jet_sf = evaluator->evaluate(
+                                {variation, flavors.at(i),
+                                 std::abs(eta_values.at(i)), pt_values.at(i),
+                                 btag_values.at(i)});
+                        } else {
+                            jet_sf = evaluator->evaluate(
+                                {"central", flavors.at(i),
+                                 std::abs(eta_values.at(i)), pt_values.at(i),
+                                 btag_values.at(i)});
+                        }
+                    }
+                    // for nominal/central and all other uncertainties c-jets
+                    // have a scale factor of 1 (only for central defined in
+                    // json file from BTV)
+                    else {
+                        if (flavors.at(i) != 4) {
+                            jet_sf = evaluator->evaluate(
+                                {variation, flavors.at(i),
+                                 std::abs(eta_values.at(i)), pt_values.at(i),
+                                 btag_values.at(i)});
+                        } else {
+                            jet_sf = evaluator->evaluate(
+                                {"central", flavors.at(i),
+                                 std::abs(eta_values.at(i)), pt_values.at(i),
+                                 btag_values.at(i)});
+                        }
+                    }
+                }
+                Logger::get("btagSF")->debug("Jet Scale Factor {}", jet_sf);
+                sf *= jet_sf;
+            }
+        };
+        Logger::get("btagSF")->debug("Event Scale Factor {}", sf);
+        return sf;
+    };
+    auto df1 = df.Define(
+        sf_output, btagSF_lambda,
+        {pt, eta, btag_discr, flavor, jet_mask, bjet_mask, jet_veto_mask});
+    return df1;
+}
+} // namespace jet
 } // namespace scalefactor
 #endif /* GUARD_SCALEFACTORS_H */
