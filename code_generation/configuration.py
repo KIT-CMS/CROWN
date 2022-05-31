@@ -640,7 +640,6 @@ class Configuration(object):
                 # we do not need to check the global scope, since shifts from
                 # the global scope are always propagated down to all scopes
                 if scope in self.initiated_scopes:
-                    # for shift in self.selected_shifts:
                     for shift in self.shifts[scope].keys():
                         log.debug(
                             "Validating shift {} in scope {}".format(shift, scope)

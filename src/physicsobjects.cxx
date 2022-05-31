@@ -110,7 +110,7 @@ ROOT::RDF::RNode VetoCandInMask(ROOT::RDF::RNode df,
                                      index, inputmaskname);
                          auto newmask = mask;
                          if (pair.at(index) >= 0)
-                             newmask.at(pair.at(index)) = 0;                         
+                             newmask.at(pair.at(index)) = 0;
                          return newmask;
                      },
                      {inputmaskname, dileptonpair});
@@ -159,9 +159,15 @@ ROOT::RDF::RNode LeptonVetoFlag(ROOT::RDF::RNode df,
                      {vetomap});
 }
 
-// FIXME: add description
-ROOT::RDF::RNode IsEmptyFlag(ROOT::RDF::RNode df,
-                             const std::string &outputname,
+/// Function to create a boolian flag based on the number of non-zero masks.
+/// The flag is set to true if the number of non-zero masks is zero.
+///
+/// \param df the input dataframe
+/// \param outputname the name of the output column that is created
+/// \param vetomap the name of the column containing the input mask to be used
+///
+/// \return a new df containing the output flag column
+ROOT::RDF::RNode IsEmptyFlag(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &vetomap) {
     return df.Define(outputname,
                      [](const ROOT::RVec<int> &mask) {
@@ -170,11 +176,18 @@ ROOT::RDF::RNode IsEmptyFlag(ROOT::RDF::RNode df,
                      {vetomap});
 }
 
-// FIXME: add description
-ROOT::RDF::RNode CutNFlag(ROOT::RDF::RNode df,
-                          const std::string &outputname,
-                          const std::string &map,
-                          const int &n) {
+/// Function to create a boolian flag based on the number of non-zero masks.
+/// The flag is set to true if the number of non-zero masks matches the
+/// allowed value provided as an input.
+///
+/// \param df the input dataframe
+/// \param outputname the name of the output column that is created
+/// \param map the name of the column containing the input mask to be used
+/// \param n the allowed number of non-zero masks
+///
+/// \return a new df containing the output flag column
+ROOT::RDF::RNode CutNFlag(ROOT::RDF::RNode df, const std::string &outputname,
+                          const std::string &map, const int &n) {
     return df.Define(outputname,
                      [n](const ROOT::RVec<int> &mask) {
                          return ROOT::VecOps::Nonzero(mask).size() == n;
@@ -182,15 +195,25 @@ ROOT::RDF::RNode CutNFlag(ROOT::RDF::RNode df,
                      {map});
 }
 
-// FIXME: add description
+/// Function to create a column for a vector of indices of objects based on
+/// input masks. Indices of objects with non-zero mask are stored in the output
+/// column.
+///
+/// \param[in] df the input dataframe
+/// \param[out] outputname the name of the output column that is created
+/// \param[in] inputmaskname the name of input masks
+///
+/// \return a dataframe containing a vector of indices for the selected objects
 ROOT::RDF::RNode SelectedObjects(ROOT::RDF::RNode df,
                                  const std::string &outputname,
                                  const std::string &inputmaskname) {
     return df.Define(outputname,
                      [](const ROOT::RVec<int> &mask) {
-                        Logger::get("SelectedObjects")
-                            ->debug("size = {}", ROOT::VecOps::Nonzero(mask).size());
-                         return static_cast<ROOT::VecOps::RVec<int>>(ROOT::VecOps::Nonzero(mask));
+                         Logger::get("SelectedObjects")
+                             ->debug("size = {}",
+                                     ROOT::VecOps::Nonzero(mask).size());
+                         return static_cast<ROOT::VecOps::RVec<int>>(
+                             ROOT::VecOps::Nonzero(mask));
                      },
                      {inputmaskname});
 }
