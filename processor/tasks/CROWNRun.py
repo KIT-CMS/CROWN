@@ -31,8 +31,16 @@ class CROWNRun(HTCondorWorkflow, law.LocalWorkflow):
     era = luigi.Parameter()
     eras = luigi.ListParameter()
     analysis = luigi.Parameter()
+    config = luigi.Parameter()
     production_tag = luigi.Parameter()
     files_per_task = luigi.IntParameter(default=1)
+
+    def htcondor_job_config(self, config, job_num, branches):
+        config = super().htcondor_job_config(config, job_num, branches)
+        config.custom_content.append(
+            ("JobBatchName", f"{self.nick}-{self.analysis}-{self.config}")
+        )
+        return config
 
     def modify_polling_status_line(self, status_line):
         """
@@ -89,7 +97,7 @@ class CROWNRun(HTCondorWorkflow, law.LocalWorkflow):
             outputs[0].basename.replace("_{}.root".format(self.scopes[0]), ".root")
         )
         _executable = "{}/{}_{}_{}".format(
-            _workdir, self.analysis, self.sampletype, self.era
+            _workdir, self.config, self.sampletype, self.era
         )
         console.log(
             "Getting CROWN tarball from {}".format(self.input()["tarball"].uri())
@@ -98,23 +106,23 @@ class CROWNRun(HTCondorWorkflow, law.LocalWorkflow):
             _tarballpath = _file.path
         # first unpack the tarball if the exec is not there yet
         if os.path.exists(
-            "unpacking_{}_{}_{}".format(self.analysis, self.sampletype, self.era)
+            "unpacking_{}_{}_{}".format(self.config, self.sampletype, self.era)
         ):
             time.sleep(5)
         if not os.path.exists(_executable):
             open(
-                "unpacking_{}_{}_{}".format(self.analysis, self.sampletype, self.era),
+                "unpacking_{}_{}_{}".format(self.config, self.sampletype, self.era),
                 "a",
             ).close()
             tar = tarfile.open(_tarballpath, "r:gz")
             tar.extractall("workdir")
             os.remove(
-                "unpacking_{}_{}_{}".format(self.analysis, self.sampletype, self.era)
+                "unpacking_{}_{}_{}".format(self.config, self.sampletype, self.era)
             )
         # set environment using env script
         my_env = self.set_environment("{}/init.sh".format(_workdir))
         _crown_args = [_outputfile] + _inputfiles
-        _executable = "./{}_{}_{}".format(self.analysis, self.sampletype, self.era)
+        _executable = "./{}_{}_{}".format(self.config, self.sampletype, self.era)
         # actual payload:
         console.rule("Starting CROWNRun")
         console.log("Executable: {}".format(_executable))
