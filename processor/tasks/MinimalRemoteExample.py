@@ -28,9 +28,14 @@ class SaveToRemote(Task):
         saveText = "This is "
         self.output().dump(saveText)
 
-class RunRemote(Task, HTCondorWorkflow, law.LocalWorkflow):
+class RunRemote(HTCondorWorkflow, law.LocalWorkflow):
     def requires(self):
         return SaveToRemote.req(self)
+
+    def workflow_requires(self):
+        requirements = super(RunRemote, self).workflow_requires()
+        requirements["TextFile"] = SaveToRemote.req(self)
+        return requirements
 
     # Output target is remote and accessed using gfal2.
     def output(self):

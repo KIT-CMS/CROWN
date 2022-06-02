@@ -13,22 +13,32 @@ from getpass import getuser
 
 law.contrib.load("wlcg")
 law.contrib.load("htcondor")
-console = Console()
+console = Console(width=120)
 
+# Determine startup time to use as default production_tag
+startup_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")
 
 class Task(law.Task):
 
-    user_name = luigi.Parameter(default=getuser())
-    wlcg_path = luigi.Parameter()
-    production_tag = luigi.Parameter(
-        default="default/{}".format(
-            datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")
-        )
+    user_name = luigi.Parameter(
+        default=getuser(), 
+        description="Name of user that started the workflow. Default is $USER."
     )
+    wlcg_path = luigi.Parameter(
+        description="Base-path to remote file location."
+    )
+    # Behaviour of production_tag:
+    # If a tag is give it will be used for the respective task.
+    # If no tag is given a timestamp abse on startup_time is used.
+    #   This timestamp is the same for all tasks with no set production_tag.
+    production_tag = luigi.Parameter(
+        default="default/{}".format(startup_time), 
+        description="Tag to differentiate workflow runs. Set to a timestamp as default."
+    )
+    output_collection_cls = law.NestedSiblingFileCollection
 
-    def store_parts(self):
-        return (self.__class__.__name__,)
-
+    # Path of local targets. Composed from the analysis path set during the setup.sh, 
+    #   the production_tag, the name of the task and an additional path if provided.
     def local_path(self, *path):
         parts = (os.getenv("ANALYSIS_DATA_PATH"),) + (self.production_tag,) + (self.__class__.__name__,) + path
         return os.path.join(*parts)
@@ -47,6 +57,8 @@ class Task(law.Task):
                     pass
         return my_env
 
+    # Function to apply a source-script and get the resulting environment.
+    #   Anything apart from setting paths is likely not included in the resulting envs.
     def set_environment(self, sourcescript):
         source_string = " ".join(sourcescript)
         code, out, error = interruptable_popen(
@@ -54,6 +66,7 @@ class Task(law.Task):
             shell=True,
             stdout=PIPE,
             stderr=PIPE,
+            # rich_console=console
         )
         if code != 0:
             console.log("Error when running source {}".format(error))
@@ -65,13 +78,21 @@ class Task(law.Task):
         my_env = self.convert_env_to_dict(out)
         return my_env
 
-    def run_command(self, command=[], source_script=[], run_location=None):
+    # Run a bash command 
+    #   Command can be composed of multiple parts (interpreted as seperated by a space).
+    #   A sourcescript can be provided that is called by set_environment the resulting
+    #       env is then used for the command
+    #   The command is run as if it was called from run_location
+    def run_command(self, command=[], sourcescript=[], run_location=None):
         if command:
-            if source_script:
-                run_env = self.set_environment(list(source_script))
+            if sourcescript:
+                run_env = self.set_environment(list(sourcescript))
             else:
                 run_env = None
-            console.log("Running {}".format(list(command)))
+            logstring = "Running {}".format(list(command))
+            if run_location:
+                logstring += " from {}".format(run_location)
+            console.log(logstring)
             code, out, error = interruptable_popen(
                 " ".join(list(command)),
                 shell=True,
@@ -79,6 +100,7 @@ class Task(law.Task):
                 stderr=PIPE,
                 env=run_env,
                 cwd=run_location,
+                # rich_console=console
             )
             if code != 0:
                 console.log("Error when running {}.".format(list(command)))
@@ -93,6 +115,9 @@ class Task(law.Task):
         else:
             raise Exception("No command provided.")
 
+    # Path of remote targets. Composed from the production_tag, 
+    #   the name of the task and an additional path if provided.
+    #   The wlcg_path will be prepended for WLCGFileTargets
     def remote_path(self, *path):
         parts = (self.production_tag,) + (self.__class__.__name__,) + path
         return os.path.join(*parts)
@@ -107,46 +132,54 @@ class Task(law.Task):
             targets.append(law.wlcg.WLCGFileTarget(path=self.remote_path(path)))
         return targets
 
-
-# class HTCondorJobManager(law.htcondor.HTCondorJobManager):
-
-#     status_line_cre = re.compile(
-#         "^(\d+\.\d+)" + 4 * "\s+[^\s]+" + "\s+([UIRXSCHE<>])\s+.*$"
-#     )
-
-#     # def get_htcondor_version(cls):
-#     # return (9, 6, 0)
-#     #     return (8, 6, 5)
-
-
 class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
-# class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
-
-    ENV_NAME = luigi.Parameter()
-    production_tag = luigi.Parameter(
-        default="default/{}".format(
-            datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")
-        )
+    ENV_NAME = luigi.Parameter(
+        description="Environment to be used in HTCondor job."
     )
-    htcondor_accounting_group = luigi.Parameter()
-    htcondor_requirements = luigi.Parameter()
-    htcondor_remote_job = luigi.Parameter()
-    htcondor_user_proxy = luigi.Parameter()
-    htcondor_walltime = luigi.Parameter()
-    htcondor_request_cpus = luigi.Parameter()
-    htcondor_request_gpus = luigi.Parameter(default="0")
-    htcondor_request_memory = luigi.Parameter()
-    htcondor_universe = luigi.Parameter()
-    htcondor_docker_image = luigi.Parameter()
-    htcondor_request_disk = luigi.Parameter()
-    wlcg_path = luigi.Parameter()
-    bootstrap_file = luigi.Parameter()
-    additional_files = luigi.ListParameter(default=[]) 
+    htcondor_accounting_group = luigi.Parameter(
+        description="Accounting group to be set in Hthe TCondor job submission."
+    )
+    htcondor_requirements = luigi.Parameter(
+        description="Job requirements to be set in the HTCondor job submission."
+    )
+    htcondor_remote_job = luigi.Parameter(
+        description="Whether RemoteJob should be set in the HTCondor job submission."
+    )
+    htcondor_user_proxy = luigi.Parameter(
+        description="VOMS-proxy in HTCondor job submission."
+    )
+    htcondor_walltime = luigi.Parameter(
+        description="Runtime to be set in HTCondor job submission."
+    )
+    htcondor_request_cpus = luigi.Parameter(
+        description="Number of CPU cores to be requested in HTCondor job submission."
+    )
+    htcondor_request_gpus = luigi.Parameter(
+        default="0", 
+        description="Number of GPUs to be requested in HTCondor job submission. Default is none."
+    )
+    htcondor_request_memory = luigi.Parameter(
+        description="Amount of memory(MB) to be requested in HTCondor job submission."
+    )
+    htcondor_universe = luigi.Parameter(
+        description="Universe to be set in HTCondor job submission."
+    )
+    htcondor_docker_image = luigi.Parameter(
+        description="Docker image to be used in HTCondor job submission."
+    )
+    htcondor_request_disk = luigi.Parameter(
+        description="Amount of scratch-space(kB) to be requested in HTCondor job submission."
+    )
+    bootstrap_file = luigi.Parameter(
+        description="Bootstrap script to be used in HTCondor job to set up law."
+    )
+    additional_files = luigi.ListParameter(
+        default=[], 
+        description="Additional files to be included in the job tarball. Will be unpacked in the run directory"
+    ) 
 
     # Use proxy file located in $X509_USER_PROXY or /tmp/x509up_u$(id) if empty
     htcondor_user_proxy = law.wlcg.get_voms_proxy_file()
-
-    # output_collection_cls = law.SiblingFileCollection
 
     def htcondor_create_job_manager(self, **kwargs):
         kwargs = merge_dicts(self.htcondor_job_manager_defaults, kwargs)
@@ -155,7 +188,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
     def htcondor_output_directory(self):
         # Expand path to account for use of env variables (like $USER)
         return law.wlcg.WLCGDirectoryTarget(
-            self.remote_path(),
+            self.remote_path("htcondor_files"),
             law.wlcg.WLCGFileSystem(
                 None, base="{}".format(os.path.expandvars(self.wlcg_path))
             ),
@@ -164,6 +197,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
     def htcondor_create_job_file_factory(self):
         factory = super(HTCondorWorkflow, self).htcondor_create_job_file_factory()
         factory.is_tmp = False
+        # Print location of job dir
         console.log("HTCondor job directory is: {}".format(factory.dir))
         return factory
 
@@ -172,23 +206,19 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
         return law.util.rel_path(__file__, hostfile)
         
     def htcondor_job_config(self, config, job_num, branches):
-        # Time seems somewhat off for some reason
-        start_time = datetime.now().strftime("%Y_%m_%d_%H_%m_%S_%f")
         analysis_name = os.getenv("ANA_NAME")
         task_name = self.__class__.__name__
         analysis_path = os.getenv("ANALYSIS_PATH")
-        # Check if env in config file is still the same as during the setup
-        # TODO: is this assertion always intended?
-        assert self.ENV_NAME == os.getenv(
-            "ENV_NAME"
-        ), "Environment of the config file ({}) is not the same as during the setup ({}).".format(
-            self.ENV_NAME, os.getenv("ENV_NAME")
-        )
+        # Write job config file 
         config.custom_content = []
         config.custom_content.append(
             ("accounting_group", self.htcondor_accounting_group)
         )
-        config.render_variables["analysis_path"] = analysis_path
+        # config.custom_content.append(("Log", "log.txt")) #
+        # config.custom_content.append(("stream_output", "True")) #
+        # config.custom_content.append(("Output", "out_{}to{}.txt".format(branches[0], branches[-1]))) #Remove before commit
+        # config.custom_content.append(("stream_error", "True")) #
+        # config.custom_content.append(("Output", "err_{}to{}.txt".format(branches[0], branches[-1]))) #
         config.custom_content.append(("Requirements", self.htcondor_requirements))
         config.custom_content.append(("+RemoteJob", self.htcondor_remote_job))
         config.custom_content.append(("universe", self.htcondor_universe))
@@ -205,16 +235,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
         # Ensure tarball dir exists
         if not os.path.exists("tarballs/{}".format(self.production_tag)):
             os.makedirs("tarballs/{}".format(self.production_tag))
-        # Get time of previous tarballs 
-        prev_tar_times_file = os.path.join(os.getenv("ANALYSIS_DATA_PATH"), "tar_times.yaml")
-        if not os.path.isfile(prev_tar_times_file):
-            old_dict = {}
-        else:
-            with open(prev_tar_times_file) as f:
-                old_dict = yaml.load(f, Loader=yaml.FullLoader)
-        # Repack tarball if it is not available local, 
-        # remote or if replace_processor_tar is set
-        repack_tar = True
+        # Repack tarball if it is not available remotely
         tarball = law.wlcg.WLCGFileTarget(
             "{tag}/{task}/job_tarball/processor.tar.gz".format(
                 tag=self.production_tag,
@@ -231,10 +252,15 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
                 )
             )
             tarball_local.parent.touch()
+            # Create tarball containing:
+            #   The processor directory, thhe relevant config files, law
+            #   and any other files specified in the additional_files parameter
             command = [
                 "tar",
                 "--exclude",
                 "*.pyc",
+                "--exclude",
+                "law/.git",
                 "-czf",
                 "tarballs/{}/{}/processor.tar.gz".format(
                     self.production_tag, task_name
@@ -248,6 +274,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
                 command,
                 stdout=PIPE,
                 stderr=PIPE,
+                # rich_console=console
             )
             if code != 0:
                 console.log("Error when taring job {}".format(error))
@@ -271,33 +298,30 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
             )
             console.rule("Tarball uploaded!")
             os.chdir(prevdir)
-        # Check if env was found in cvmfs
-        env_is_in_cvmfs = os.getenv("CVMFS_ENV_PRESENT")
-        if env_is_in_cvmfs == "False":
+        # Check if env of this task was found in cvmfs
+        env_list = os.getenv('ENV_NAMES_LIST').split(';')
+        env_list = list(dict.fromkeys(env_list[:-1]))
+        env_dict = dict(env.split(',') for env in env_list)
+        if env_dict[self.ENV_NAME] == "False":
             # IMPORTANT: environments have to be named differently with each change
             #            as chaching prevents a clean overwrite of existing files
             tarball_env = law.wlcg.WLCGFileTarget(
-                path="env_tarballs/{env}_env.tar.gz".format(
+                path="env_tarballs/{env}.tar.gz".format(
                     env=self.ENV_NAME
                 )
             )
             if not tarball_env.exists():
                 tarball_env.parent.touch()
                 tarball_env.copy_from_local(
-                    src="tarballs/{}_env.tar.gz".format(self.ENV_NAME)
+                    src="tarballs/conda_envs/{}.tar.gz".format(self.ENV_NAME)
                 )
-        # Make string with environmental variables needed for the job-setup
-        environment_string = ""
-        environment_string += "ENV_NAME={} ".format(self.ENV_NAME)
-        environment_string += "ANA_NAME={} ".format(os.getenv("ANA_NAME"))
-        environment_string += "USER={} ".format(self.user_name)
-        environment_string += "TARBALL_PATH={} ".format(
-            os.path.expandvars(self.wlcg_path) + tarball.path
-        )
+        config.render_variables["USER"] = self.user_name
+        config.render_variables["ANA_NAME"] = os.getenv("ANA_NAME")
+        config.render_variables["ENV_NAME"] = self.ENV_NAME
+        config.render_variables["TAG"] = self.production_tag
+        config.render_variables["USE_CVMFS"] = env_dict[self.ENV_NAME]
+        config.render_variables["TARBALL_PATH"] = os.path.expandvars(self.wlcg_path) + tarball.path
         # Include path to env tarball if env not in cvmfs
-        if env_is_in_cvmfs == "False":
-            environment_string += "TARBALL_ENV_PATH={} ".format(
-                os.path.expandvars(self.wlcg_path) + tarball_env.path
-            )
-        config.custom_content.append(("environment", '"' + environment_string + '"'))
+        if env_dict[self.ENV_NAME] == "False":
+            config.render_variables["TARBALL_ENV_PATH"] = os.path.expandvars(self.wlcg_path) + tarball_env.path
         return config
