@@ -66,6 +66,9 @@ action(){
     export LAW_HOME="${SPAWNPOINT}/.law"
     export LAW_CONFIG_FILE="${SPAWNPOINT}/lawluigi_configs/{{ANA_NAME}}_law.cfg"
     export LUIGI_CONFIG_PATH="${SPAWNPOINT}/lawluigi_configs/{{ANA_NAME}}_luigi.cfg"
+
+    export LOCAL_TIMESTAMP="{{LOCAL_TIMESTAMP}}"
+
 }
 
 action

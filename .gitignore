@@ -12,6 +12,7 @@ logs/
 *.txt
 miniconda/
 output/
+.nfs*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

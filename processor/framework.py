@@ -16,7 +16,11 @@ law.contrib.load("htcondor")
 console = Console(width=120)
 
 # Determine startup time to use as default production_tag
-startup_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")
+# LOCAL_TIMESTAMP is used by remote workflows to ensure consistent tags
+if os.getenv('LOCAL_TIMESTAMP'):
+    startup_time = os.getenv('LOCAL_TIMESTAMP')
+else:
+    startup_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")
 
 class Task(law.Task):
 
@@ -324,4 +328,6 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
         # Include path to env tarball if env not in cvmfs
         if env_dict[self.ENV_NAME] == "False":
             config.render_variables["TARBALL_ENV_PATH"] = os.path.expandvars(self.wlcg_path) + tarball_env.path
+        config.render_variables["LOCAL_TIMESTAMP"] = startup_time
+
         return config
