@@ -19,6 +19,7 @@ class CROWNBuild(Task):
     eras = luigi.ListParameter()
     sampletypes = luigi.ListParameter()
     analysis = luigi.Parameter()
+    config = luigi.Parameter()
     production_tag = luigi.Parameter()
 
     env_script = os.path.join(
@@ -26,7 +27,9 @@ class CROWNBuild(Task):
     )
 
     def output(self):
-        target = self.remote_target("crown_{}.tar.gz".format(self.analysis))
+        target = self.remote_target(
+            "crown_{}_{}.tar.gz".format(self.analysis, self.config)
+        )
         return target
 
     def run(self):
@@ -43,9 +46,10 @@ class CROWNBuild(Task):
             _eras = ",".join(self.eras)
         _scopes = ",".join(self.scopes)
         _analysis = str(self.analysis)
+        _config = str(self.config)
         _shifts = str(self.shifts)
         # also use the tag for the local tarball creation
-        _tag = "{}/CROWN_{}".format(self.production_tag, _analysis)
+        _tag = "{}/CROWN_{}_{}".format(self.production_tag, _analysis, _config)
         _install_dir = os.path.join(str(self.install_dir), _tag)
         _build_dir = os.path.join(str(self.build_dir), _tag)
         _crown_path = os.path.abspath("CROWN")
@@ -90,6 +94,7 @@ class CROWNBuild(Task):
             console.log("Using install directory {}".format(_install_dir))
             console.log("Settings used: ")
             console.log("Analysis: {}".format(_analysis))
+            console.log("Config: {}".format(_config))
             console.log("Sampletype: {}".format(_sampletypes))
             console.log("Era: {}".format(_eras))
             console.log("Channels: {}".format(_scopes))
@@ -102,13 +107,14 @@ class CROWNBuild(Task):
                 _compile_script,
                 _crown_path,  # CROWNFOLDER=$1
                 _analysis,  # ANALYSIS=$2
-                _sampletypes,  # SAMPLES=$3
-                _eras,  # ERAS=$4
-                _scopes,  # SCOPES=$5
-                _shifts,  # SHIFTS=$6
-                _install_dir,  # INSTALLDIR=$7
-                _build_dir,  # BUILDDIR=$8
-                output.basename,  # TARBALLNAME=$9
+                _config,  # CONFIG=$3
+                _sampletypes,  # SAMPLES=$4
+                _eras,  # ERAS=$5
+                _scopes,  # SCOPES=$6
+                _shifts,  # SHIFTS=$7
+                _install_dir,  # INSTALLDIR=$8
+                _build_dir,  # BUILDDIR=$9
+                output.basename,  # TARBALLNAME=$10
             ]
             with subprocess.Popen(
                 command,

@@ -12,6 +12,7 @@ class ProduceSamples(Task):
 
     sample_list = luigi.Parameter()
     analysis = luigi.Parameter()
+    config = luigi.Parameter()
     dataset_database = luigi.Parameter()
     production_tag = luigi.Parameter()
 
