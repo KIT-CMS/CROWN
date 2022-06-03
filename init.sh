@@ -4,12 +4,8 @@ pathadd() {
         PATH="${PATH:+"$PATH:"}$1"; export PATH
     fi
 }
-containsElement () {
-  local e match="$1"
-  shift
-  for e; do [[ "$e" == "$match" ]] && return 0; done
-  return 1
-}
+# get the directory of the script
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
 if uname -a | grep -E 'el7' -q
 then
     # source /cvmfs/sft.cern.ch/lcg/views/LCG_99/x86_64-centos7-clang10-opt/setup.sh
@@ -31,11 +27,10 @@ export CMAKE_GENERATOR="Unix Makefiles"
 # clone a given analysis if an argument is given
 if [ -z "$1" ]
 then
-    echo "No argument supplied"
 else
-    if [[ "$1" == "tau" && ! -d "analysis_configurations/tau" ]]
+    if [[ "$1" == "tau" && ! -d "${SCRIPT_DIR}/analysis_configurations/tau" ]]
     then
-        echo "Cloning analysis tau"
-        git clone git@github.com:KIT-CMS/TauAnalysis-CROWN.git analysis_configurations/tau
+        echo "Cloning analysis tau into ${SCRIPT_DIR}/analysis_configurations/tau"
+        git clone git@github.com:KIT-CMS/TauAnalysis-CROWN.git ${SCRIPT_DIR}/analysis_configurations/tau
     fi
 fi
