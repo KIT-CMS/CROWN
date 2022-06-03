@@ -1,6 +1,3 @@
 [submodule "data/jsonpog-integration"]
 	path = data/jsonpog-integration
 	url = ssh://git@gitlab.cern.ch:7999/cms-nanoAOD/jsonpog-integration.git
-[submodule "analysis_configurations/earlyrun3"]
-	path = analysis_configurations/earlyrun3
-	url = https://github.com/khaosmos93/CROWN-config-earlyRun3.git
