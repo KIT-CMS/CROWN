@@ -80,5 +80,13 @@ ROOT::RDF::RNode TauIDFlag(ROOT::RDF::RNode df, const std::string &outputname,
                            const int &position, const std::string &pairname,
                            const std::string &nameID, const int &idxID);
 } // end namespace tau
+namespace muon {
+ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &outputname,
+                    const int &position, const std::string &pairname,
+                    const std::string &idcolumn);
+ROOT::RDF::RNode is_global(ROOT::RDF::RNode df, const std::string &outputname,
+                           const int &position, const std::string &pairname,
+                           const std::string &globalflagcolumn);
+} // namespace muon
 } // end namespace quantities
 #endif /* GUARD_QUANTITIES_H */

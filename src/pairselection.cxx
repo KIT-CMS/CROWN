@@ -604,8 +604,8 @@ namespace leptonic {
 ///
 /// \returns an `ROOT::RVec<int>` with two values, the first one beeing
 /// the electron index and the second one beeing the muon index.
-auto PairSelectionAlgo(const float &mindeltaR) {
-    Logger::get("semileptonic::PairSelectionAlgo")
+auto ElMuPairSelectionAlgo(const float &mindeltaR) {
+    Logger::get("leptonic::ElMuPairSelectionAlgo")
         ->debug("Setting up algorithm");
     return [mindeltaR](const ROOT::RVec<float> &electron_pt,
                        const ROOT::RVec<float> &electron_eta,
@@ -630,7 +630,7 @@ auto PairSelectionAlgo(const float &mindeltaR) {
             original_muon_indices.size() == 0) {
             return selected_pair;
         }
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Running algorithm on good electrons and muons");
 
         const auto selected_electron_pt =
@@ -645,17 +645,17 @@ auto PairSelectionAlgo(const float &mindeltaR) {
         const auto pair_indices = ROOT::VecOps::Combinations(
             selected_electron_pt,
             selected_muon_pt); // Gives indices of el-mu pair
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Pairs: {} {}", pair_indices[0], pair_indices[1]);
 
         const auto pairs = ROOT::VecOps::Construct<std::pair<UInt_t, UInt_t>>(
             pair_indices[0], pair_indices[1]);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Pairs size: {}", pairs.size());
         int counter = 0;
         for (auto &pair : pairs) {
             counter++;
-            Logger::get("leptonic::PairSelectionAlgo")
+            Logger::get("leptonic::ElMuPairSelectionAlgo")
                 ->debug("Constituents pair {}. : {} {}", counter, pair.first,
                         pair.second);
         }
@@ -665,22 +665,22 @@ auto PairSelectionAlgo(const float &mindeltaR) {
             compareForPairs(selected_electron_pt, -1. * selected_electron_iso,
                             selected_muon_pt, -1 * selected_muon_iso));
 
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Original electronPt: {}", electron_pt);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Original electronIso: {}", electron_iso);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Original muonPt: {}", muon_pt);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Original muonIso: {}", muon_iso);
 
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Selected electronPt: {}", selected_electron_pt);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Selected electronIso: {}", selected_electron_iso);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Selected muonPt: {}", selected_muon_pt);
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Selected muonIso: {}", selected_muon_iso);
 
         // construct the four vectors of the selected electrons and muons to
@@ -692,26 +692,26 @@ auto PairSelectionAlgo(const float &mindeltaR) {
                 electron_pt.at(electronindex), electron_eta.at(electronindex),
                 electron_phi.at(electronindex),
                 electron_mass.at(electronindex));
-            Logger::get("leptonic::PairSelectionAlgo")
+            Logger::get("leptonic::ElMuPairSelectionAlgo")
                 ->debug("{} electron vector: {}", electronindex, electron);
             auto muonindex = original_muon_indices[candidate.second];
             ROOT::Math::PtEtaPhiMVector muon = ROOT::Math::PtEtaPhiMVector(
                 muon_pt.at(muonindex), muon_eta.at(muonindex),
                 muon_phi.at(muonindex), muon_mass.at(muonindex));
-            Logger::get("leptonic::PairSelectionAlgo")
+            Logger::get("leptonic::ElMuPairSelectionAlgo")
                 ->debug("{} muon vector: {}", muonindex, muon);
-            Logger::get("leptonic::PairSelectionAlgo")
+            Logger::get("leptonic::ElMuPairSelectionAlgo")
                 ->debug("DeltaR: {}",
                         ROOT::Math::VectorUtil::DeltaR(electron, muon));
             if (ROOT::Math::VectorUtil::DeltaR(electron, muon) > mindeltaR) {
-                Logger::get("leptonic::PairSelectionAlgo")
+                Logger::get("leptonic::ElMuPairSelectionAlgo")
                     ->debug("Selected original pair indices: electron = {} , "
                             "muon = {}",
                             electronindex, muonindex);
-                Logger::get("leptonic::PairSelectionAlgo")
+                Logger::get("leptonic::ElMuPairSelectionAlgo")
                     ->debug("electronPt = {} , muonPt = {} ", electron.Pt(),
                             muon.Pt());
-                Logger::get("leptonic::PairSelectionAlgo")
+                Logger::get("leptonic::ElMuPairSelectionAlgo")
                     ->debug("electronIso = {} , muonIso = {} ",
                             electron_iso[electronindex], muon_iso[muonindex]);
                 selected_pair = {static_cast<int>(electronindex),
@@ -719,9 +719,190 @@ auto PairSelectionAlgo(const float &mindeltaR) {
                 break;
             }
         }
-        Logger::get("leptonic::PairSelectionAlgo")
+        Logger::get("leptonic::ElMuPairSelectionAlgo")
             ->debug("Final pair {} {}", selected_pair[0], selected_pair[1]);
 
+        return selected_pair;
+    };
+}
+/**
+ * @brief Lambda function containg the algorithm to select the pair of leptons
+ * with the highest pt
+ *
+ * @param mindeltaR the seperation between the two leptons has to be larger
+ than this value
+ *
+ * @return vector with two entries, the first entry is the leading lepton
+ index, the second entry is the trailing lepton index
+ */
+auto PairSelectionAlgo(const float &mindeltaR) {
+    Logger::get("PairSelection")->debug("Setting up algorithm");
+    return [mindeltaR](const ROOT::RVec<float> &lepton_pt,
+                       const ROOT::RVec<float> &lepton_eta,
+                       const ROOT::RVec<float> &lepton_phi,
+                       const ROOT::RVec<float> &lepton_mass,
+                       const ROOT::RVec<int> &lepton_mask) {
+        // first entry is the leading lepton index,
+        // second entry is the trailing lepton index
+        ROOT::RVec<int> selected_pair = {-1, -1};
+        const auto original_lepton_indices = ROOT::VecOps::Nonzero(lepton_mask);
+        // we need at least two fitting leptons
+        if (original_lepton_indices.size() < 2) {
+            return selected_pair;
+        }
+        const auto good_pts =
+            ROOT::VecOps::Take(lepton_pt, original_lepton_indices);
+        const auto good_etas =
+            ROOT::VecOps::Take(lepton_eta, original_lepton_indices);
+        const auto good_phis =
+            ROOT::VecOps::Take(lepton_phi, original_lepton_indices);
+        const auto good_masses =
+            ROOT::VecOps::Take(lepton_mass, original_lepton_indices);
+        auto fourVecs = ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(
+            good_pts, good_etas, good_phis, good_masses);
+        auto selected_lepton_indices = std::vector<int>{-1, -1};
+        auto selected_pts = std::vector<float>{-1, -1};
+        auto combinations =
+            ROOT::VecOps::Combinations(original_lepton_indices, 2);
+        if (original_lepton_indices.size() > 2) {
+            Logger::get("leptonic::PairSelectionAlgo")
+                ->debug("More than two suitable leptons found, printing "
+                        "combinations.... ");
+            for (auto &comb : combinations) {
+                Logger::get("leptonic::PairSelectionAlgo")
+                    ->debug("index: {}", comb);
+            };
+            Logger::get("leptonic::PairSelectionAlgo")
+                ->debug("---------------------");
+        }
+        for (int n = 0; n < combinations[0].size(); n++) {
+            auto lepton_1 = fourVecs[combinations[0][n]];
+            auto lepton_2 = fourVecs[combinations[1][n]];
+            auto deltaR = ROOT::Math::VectorUtil::DeltaR(lepton_1, lepton_2);
+            Logger::get("leptonic::PairSelectionAlgo")
+                ->debug("deltaR check: {}", deltaR);
+            if (deltaR > mindeltaR) {
+                if (lepton_1.Pt() >= selected_pts[0] &&
+                    lepton_2.Pt() >= selected_pts[1]) {
+                    selected_pts[0] = lepton_1.Pt();
+                    selected_pts[1] = lepton_2.Pt();
+                    selected_lepton_indices[0] =
+                        original_lepton_indices[combinations[0][n]];
+                    selected_lepton_indices[1] =
+                        original_lepton_indices[combinations[1][n]];
+                }
+            }
+        }
+
+        if (good_pts[selected_lepton_indices[0]] <
+            good_pts[selected_lepton_indices[1]]) {
+            std::swap(selected_lepton_indices[0], selected_lepton_indices[1]);
+        }
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("good pts: {}", good_pts);
+        Logger::get("leptonic::PairSelectionAlgo")
+            ->debug("selected_lepton_indices: {}, {}", selected_lepton_indices[0],
+                    selected_lepton_indices[1]);
+        selected_pair = {static_cast<int>(selected_lepton_indices[0]),
+                         static_cast<int>(selected_lepton_indices[1])};
+        return selected_pair;
+    };
+}
+/**
+ * @brief Lambda function containg the algorithm to select the pair
+ * of leptons closest to the Z mass
+ *
+ * @param mindeltaR the seperation between the two leptons has to be larger
+ * than this value
+ * @return vector with two entries, the first entry is the leading lepton
+ * index, the second entry is the trailing lepton index
+ */
+auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
+    Logger::get("PairSelection")->debug("Setting up algorithm");
+    return [mindeltaR](const ROOT::RVec<float> &lepton_pt,
+                       const ROOT::RVec<float> &lepton_eta,
+                       const ROOT::RVec<float> &lepton_phi,
+                       const ROOT::RVec<float> &lepton_mass,
+                       const ROOT::RVec<int> &lepton_mask) {
+        // first entry is the leading lepton index,
+        // second entry is the trailing lepton index
+        ROOT::RVec<int> selected_pair = {-1, -1};
+        const auto original_lepton_indices = ROOT::VecOps::Nonzero(lepton_mask);
+        // we need at least two fitting leptons
+        if (original_lepton_indices.size() < 2) {
+            return selected_pair;
+        }
+        Logger::get("ZBosonPairSelectionAlgo")
+            ->debug("Running algorithm on good leptons");
+
+        const auto good_pts =
+            ROOT::VecOps::Take(lepton_pt, original_lepton_indices);
+        const auto good_etas =
+            ROOT::VecOps::Take(lepton_eta, original_lepton_indices);
+        const auto good_phis =
+            ROOT::VecOps::Take(lepton_phi, original_lepton_indices);
+        const auto good_masses =
+            ROOT::VecOps::Take(lepton_mass, original_lepton_indices);
+        auto fourVecs = ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(
+            good_pts, good_etas, good_phis, good_masses);
+        float mass_difference = -1.0;
+        float zmass_candidate = -1.0;
+        auto selected_lepton_indices = std::vector<int>{-1, -1};
+        if (original_lepton_indices.size() > 2) {
+            Logger::get("ZBosonPairSelectionAlgo")
+                ->debug("More than two potential leptons found. running "
+                        "algorithm to find Z Boson lepton pairs");
+            Logger::get("ZBosonPairSelectionAlgo")
+                ->debug("original_lepton_indices: {}", original_lepton_indices);
+            for (auto &fourVec : fourVecs) {
+                Logger::get("ZBosonPairSelectionAlgo")
+                    ->debug("fourVec: {}", fourVec);
+            }
+        }
+        auto combinations =
+            ROOT::VecOps::Combinations(original_lepton_indices, 2);
+        Logger::get("ZBosonPairSelectionAlgo")
+            ->debug("printing combinations.... ");
+        for (auto &comb : combinations) {
+            Logger::get("ZBosonPairSelectionAlgo")->debug("index: {}", comb);
+        };
+        Logger::get("ZBosonPairSelectionAlgo")->debug("---------------------");
+
+        for (int n = 0; n < combinations[0].size(); n++) {
+            auto lepton_1 = fourVecs[combinations[0][n]];
+            auto lepton_2 = fourVecs[combinations[1][n]];
+            auto deltaR = ROOT::Math::VectorUtil::DeltaR(lepton_1, lepton_2);
+            zmass_candidate = (lepton_1 + lepton_2).M();
+            Logger::get("ZBosonPairSelectionAlgo")
+                ->debug("eta_1 {} / pt_1 {} ", lepton_1.Eta(), lepton_1.Pt());
+            Logger::get("ZBosonPairSelectionAlgo")
+                ->debug("eta_2 {} / pt_2 {} ", lepton_2.Eta(), lepton_2.Pt());
+            Logger::get("ZBosonPairSelectionAlgo")
+                ->debug("deltaR check: {}", deltaR);
+            Logger::get("ZBosonPairSelectionAlgo")
+                ->debug("mass check: {}", zmass_candidate);
+            if (deltaR > mindeltaR) {
+                if (std::abs(91.2 - zmass_candidate) < mass_difference ||
+                    mass_difference < 0) {
+                    mass_difference = std::abs(91.2 - zmass_candidate);
+                    selected_lepton_indices[0] =
+                        original_lepton_indices[combinations[0][n]];
+                    selected_lepton_indices[1] =
+                        original_lepton_indices[combinations[1][n]];
+                }
+            }
+        }
+        if (good_pts[selected_lepton_indices[0]] <
+            good_pts[selected_lepton_indices[1]]) {
+            std::swap(selected_lepton_indices[0], selected_lepton_indices[1]);
+        }
+        Logger::get("ZBosonPairSelectionAlgo")->debug("good pts: {}", good_pts);
+        Logger::get("ZBosonPairSelectionAlgo")
+            ->debug("selected_lepton_indices: {}, {}", selected_lepton_indices[0],
+                    selected_lepton_indices[1]);
+
+        selected_pair = {static_cast<int>(selected_lepton_indices[0]),
+                         static_cast<int>(selected_lepton_indices[1])};
         return selected_pair;
     };
 }
@@ -882,7 +1063,8 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const float &mindeltaR) {
     Logger::get("elmu::PairSelection")->debug("Setting up elmu pair building");
     auto df1 = df.Define(
-        pairname, ditau_pairselection::leptonic::PairSelectionAlgo(mindeltaR),
+        pairname,
+        ditau_pairselection::leptonic::ElMuPairSelectionAlgo(mindeltaR),
         input_vector);
     return df1;
 }
@@ -890,184 +1072,6 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
 } // namespace elmu
 
 namespace mumu {
-/**
- * @brief Lambda function containg the algorithm to select the pair of muons
- * with the highest pt
- *
- * @param mindeltaR the seperation between the two muons has to be larger than
- this value
- *
- * @return vector with two entries, the first entry is the leading muon index,
-    the second entry is the trailing muon index
- */
-auto PairSelectionAlgo(const float &mindeltaR) {
-    Logger::get("PairSelection")->debug("Setting up algorithm");
-    return [mindeltaR](const ROOT::RVec<float> &muon_pt,
-                       const ROOT::RVec<float> &muon_eta,
-                       const ROOT::RVec<float> &muon_phi,
-                       const ROOT::RVec<float> &muon_mass,
-                       const ROOT::RVec<int> &muon_mask) {
-        // first entry is the leading muon index,
-        // second entry is the trailing muon index
-        ROOT::RVec<int> selected_pair = {-1, -1};
-        const auto original_muon_indices = ROOT::VecOps::Nonzero(muon_mask);
-        // we need at least two fitting muons
-        if (original_muon_indices.size() < 2) {
-            return selected_pair;
-        }
-        const auto good_pts =
-            ROOT::VecOps::Take(muon_pt, original_muon_indices);
-        const auto good_etas =
-            ROOT::VecOps::Take(muon_eta, original_muon_indices);
-        const auto good_phis =
-            ROOT::VecOps::Take(muon_phi, original_muon_indices);
-        const auto good_masses =
-            ROOT::VecOps::Take(muon_mass, original_muon_indices);
-        auto fourVecs = ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(
-            good_pts, good_etas, good_phis, good_masses);
-        auto selected_mu_indices = std::vector<int>{-1, -1};
-        auto selected_pts = std::vector<float>{-1, -1};
-        auto combinations =
-            ROOT::VecOps::Combinations(original_muon_indices, 2);
-        if (original_muon_indices.size() > 2) {
-            Logger::get("MMPairSelectionAlgo")
-                ->debug("More than two suitable muons found, printing "
-                        "combinations.... ");
-            for (auto &comb : combinations) {
-                Logger::get("MMPairSelectionAlgo")->debug("index: {}", comb);
-            };
-            Logger::get("MMPairSelectionAlgo")->debug("---------------------");
-        }
-        for (int n = 0; n < combinations[0].size(); n++) {
-            auto mu1 = fourVecs[combinations[0][n]];
-            auto mu2 = fourVecs[combinations[1][n]];
-            auto deltaR = ROOT::Math::VectorUtil::DeltaR(mu1, mu2);
-            Logger::get("MMPairSelectionAlgo")
-                ->debug("deltaR check: {}", deltaR);
-            if (deltaR > mindeltaR) {
-                if (mu1.Pt() >= selected_pts[0] &&
-                    mu2.Pt() >= selected_pts[1]) {
-                    selected_pts[0] = mu1.Pt();
-                    selected_pts[1] = mu2.Pt();
-                    selected_mu_indices[0] =
-                        original_muon_indices[combinations[0][n]];
-                    selected_mu_indices[1] =
-                        original_muon_indices[combinations[1][n]];
-                }
-            }
-        }
-
-        if (good_pts[selected_mu_indices[0]] <
-            good_pts[selected_mu_indices[1]]) {
-            std::swap(selected_mu_indices[0], selected_mu_indices[1]);
-        }
-        Logger::get("MMPairSelectionAlgo")->debug("good pts: {}", good_pts);
-        Logger::get("MMPairSelectionAlgo")
-            ->debug("selected_mu_indices: {}, {}", selected_mu_indices[0],
-                    selected_mu_indices[1]);
-        selected_pair = {static_cast<int>(selected_mu_indices[0]),
-                         static_cast<int>(selected_mu_indices[1])};
-        return selected_pair;
-    };
-}
-/**
- * @brief Lambda function containg the algorithm to select the pair
- * of muons closest to the Z mass
- *
- * @param mindeltaR the seperation between the two muons has to be larger than
- * this value
- * @return vector with two entries, the first entry is the leading muon index,
- *  the second entry is the trailing muon index
- */
-auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
-    Logger::get("PairSelection")->debug("Setting up algorithm");
-    return [mindeltaR](const ROOT::RVec<float> &muon_pt,
-                       const ROOT::RVec<float> &muon_eta,
-                       const ROOT::RVec<float> &muon_phi,
-                       const ROOT::RVec<float> &muon_mass,
-                       const ROOT::RVec<int> &muon_mask) {
-        // first entry is the leading muon index,
-        // second entry is the trailing muon index
-        ROOT::RVec<int> selected_pair = {-1, -1};
-        const auto original_muon_indices = ROOT::VecOps::Nonzero(muon_mask);
-        // we need at least two fitting muons
-        if (original_muon_indices.size() < 2) {
-            return selected_pair;
-        }
-        Logger::get("ZBosonPairSelectionAlgo")
-            ->debug("Running algorithm on good muons");
-
-        const auto good_pts =
-            ROOT::VecOps::Take(muon_pt, original_muon_indices);
-        const auto good_etas =
-            ROOT::VecOps::Take(muon_eta, original_muon_indices);
-        const auto good_phis =
-            ROOT::VecOps::Take(muon_phi, original_muon_indices);
-        const auto good_masses =
-            ROOT::VecOps::Take(muon_mass, original_muon_indices);
-        auto fourVecs = ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(
-            good_pts, good_etas, good_phis, good_masses);
-        float mass_difference = -1.0;
-        float zmass_candidate = -1.0;
-        auto selected_mu_indices = std::vector<int>{-1, -1};
-        if (original_muon_indices.size() > 2) {
-            Logger::get("ZBosonPairSelectionAlgo")
-                ->debug("More than two potential muons found. running "
-                        "algorithm to find Z Boson muon pairs");
-            Logger::get("ZBosonPairSelectionAlgo")
-                ->debug("original_muon_indices: {}", original_muon_indices);
-            for (auto &fourVec : fourVecs) {
-                Logger::get("ZBosonPairSelectionAlgo")
-                    ->debug("fourVec: {}", fourVec);
-            }
-        }
-        auto combinations =
-            ROOT::VecOps::Combinations(original_muon_indices, 2);
-        Logger::get("ZBosonPairSelectionAlgo")
-            ->debug("printing combinations.... ");
-        for (auto &comb : combinations) {
-            Logger::get("ZBosonPairSelectionAlgo")->debug("index: {}", comb);
-        };
-        Logger::get("ZBosonPairSelectionAlgo")->debug("---------------------");
-
-        for (int n = 0; n < combinations[0].size(); n++) {
-            auto mu1 = fourVecs[combinations[0][n]];
-            auto mu2 = fourVecs[combinations[1][n]];
-            auto deltaR = ROOT::Math::VectorUtil::DeltaR(mu1, mu2);
-            zmass_candidate = (mu1 + mu2).M();
-            Logger::get("ZBosonPairSelectionAlgo")
-                ->debug("eta_1 {} / pt_1 {} ", mu1.Eta(), mu1.Pt());
-            Logger::get("ZBosonPairSelectionAlgo")
-                ->debug("eta_2 {} / pt_2 {} ", mu2.Eta(), mu2.Pt());
-            Logger::get("ZBosonPairSelectionAlgo")
-                ->debug("deltaR check: {}", deltaR);
-            Logger::get("ZBosonPairSelectionAlgo")
-                ->debug("mass check: {}", zmass_candidate);
-            if (deltaR > mindeltaR) {
-                if (std::abs(91.2 - zmass_candidate) < mass_difference ||
-                    mass_difference < 0) {
-                    mass_difference = std::abs(91.2 - zmass_candidate);
-                    selected_mu_indices[0] =
-                        original_muon_indices[combinations[0][n]];
-                    selected_mu_indices[1] =
-                        original_muon_indices[combinations[1][n]];
-                }
-            }
-        }
-        if (good_pts[selected_mu_indices[0]] <
-            good_pts[selected_mu_indices[1]]) {
-            std::swap(selected_mu_indices[0], selected_mu_indices[1]);
-        }
-        Logger::get("ZBosonPairSelectionAlgo")->debug("good pts: {}", good_pts);
-        Logger::get("ZBosonPairSelectionAlgo")
-            ->debug("selected_mu_indices: {}, {}", selected_mu_indices[0],
-                    selected_mu_indices[1]);
-
-        selected_pair = {static_cast<int>(selected_mu_indices[0]),
-                         static_cast<int>(selected_mu_indices[1])};
-        return selected_pair;
-    };
-}
 /**
  * @brief Function used to select the pair of muons with the highest
  * pt
@@ -1091,9 +1095,9 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR) {
-    Logger::get("MuonPairSelection")->debug("Setting up mumu pair building");
+    Logger::get("MuMuPairSelection")->debug("Setting up mumu pair building");
     auto df1 = df.Define(
-        pairname, ditau_pairselection::mumu::PairSelectionAlgo(mindeltaR),
+        pairname, ditau_pairselection::leptonic::PairSelectionAlgo(mindeltaR),
         input_vector);
     return df1;
 }
@@ -1119,14 +1123,78 @@ ROOT::RDF::RNode
 ZBosonPairSelection(ROOT::RDF::RNode df,
                     const std::vector<std::string> &input_vector,
                     const std::string &pairname, const float &mindeltaR) {
-    Logger::get("ZBosonPairSelection")
+    Logger::get("ZMuMuPairSelection")
         ->debug("Setting up Z boson mumu pair building");
     auto df1 = df.Define(
-        pairname, ditau_pairselection::mumu::ZBosonPairSelectionAlgo(mindeltaR),
+        pairname,
+        ditau_pairselection::leptonic::ZBosonPairSelectionAlgo(mindeltaR),
         input_vector);
     return df1;
 }
 
 } // end namespace mumu
-} // end namespace ditau_pairselection
+namespace elel {
+/**
+ * @brief Function used to select the pair of muons with the highest
+ * pt
+ *
+ * @param df the input dataframe
+ * @param input_vector vector of strings containing the columns
+ * needed for the alogrithm. For the muon pair selection the required
+ parameters are:
+    - muon_pt
+    - muon_eta
+    - muon_phi
+    - muon_mass
+    - muon_mask containing the flags whether the muon is a good muon or not
+ * @param pairname name of the new column containing the pair index
+ * @param mindeltaR the seperation between the two muons has to be larger
+ than
+ * this value
+ * @return a new dataframe with the pair index column added
+ */
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vector,
+                               const std::string &pairname,
+                               const float &mindeltaR) {
+    Logger::get("ElElPairSelection")
+        ->debug("Setting up electron pair building");
+    auto df1 = df.Define(
+        pairname, ditau_pairselection::leptonic::PairSelectionAlgo(mindeltaR),
+        input_vector);
+    return df1;
+}
+/**
+ * @brief Function used to select the pair of muons closest to the Z
+ * mass
+ *
+ * @param df the input dataframe
+ * @param input_vector . For the Z boson muon pair selection the required
+ parameters are:
+    - muon_pt
+    - muon_eta
+    - muon_phi
+    - muon_mass
+    - muon_mask containing the flags whether the muon is a good muon or not
+ * @param pairname name of the new column containing the pair index
+ * @param mindeltaR the seperation between the two muons has to be larger
+ than
+ * this value
+ * @return a new dataframe with the pair index column added
+ */
+ROOT::RDF::RNode
+ZBosonPairSelection(ROOT::RDF::RNode df,
+                    const std::vector<std::string> &input_vector,
+                    const std::string &pairname, const float &mindeltaR) {
+    Logger::get("ZElElPairSelection")
+        ->debug("Setting up Z boson to electron pair building");
+    auto df1 = df.Define(
+        pairname,
+        ditau_pairselection::leptonic::ZBosonPairSelectionAlgo(mindeltaR),
+        input_vector);
+    return df1;
+}
+
+} // end namespace elel
+} // namespace ditau_pairselection
 #endif /* GUARD_PAIRSELECTION_H */
