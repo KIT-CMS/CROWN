@@ -19,3 +19,10 @@ pathadd "${HOME}/.local/bin/"
 # set the cmake generator to Ninja
 # export CMAKE_GENERATOR="Ninja"
 export CMAKE_GENERATOR="Unix Makefiles"
+
+if [[ "$1" == "earlyrun3" && ! -d "${SCRIPT_DIR}/analysis_configurations/earlyrun3" ]]
+    then
+        echo "Cloning analysis earlyrun3 into ${SCRIPT_DIR}/analysis_configurations/earlyrun3"
+        git clone https://github.com/khaosmos93/CROWN-config-earlyRun3.git ${SCRIPT_DIR}/analysis_configurations/earlyrun3
+    fi
+fi
