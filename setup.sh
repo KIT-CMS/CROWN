@@ -4,12 +4,10 @@
 
 action() {
 
-    #list of available analyses
-    ANA_LIST=("KingMaker" "GPU_example" "ML_train")
-    if [[ "$@" =~ "-l" ]]; then
-        echo "Available analyses:"
-        printf '%s\n' "${ANA_LIST[@]}"
-        return 0
+    # Check if law was already set up in this shell
+    if ( [[ ! -z ${LAW_IS_SET_UP} ]] && [[ ! "$@" =~ "-f" ]] ); then
+        echo "LAW was already set up in this shell. Please, use a new one."
+        return 1
     fi
 
     # Check if current machine is an etp portal machine.
@@ -21,6 +19,14 @@ action() {
         return 1
     else
         echo "Running on ${CURRENT_HOST}."
+    fi
+
+    #list of available analyses
+    ANA_LIST=("KingMaker" "GPU_example" "ML_train")
+    if [[ "$@" =~ "-l" ]]; then
+        echo "Available analyses:"
+        printf '%s\n' "${ANA_LIST[@]}"
+        return 0
     fi
 
     # determine the directory of this file
@@ -189,5 +195,7 @@ action() {
         echo "Starting Luigi scheduler..."
         luigid --background --logdir logs --state-path luigid_state.pickle
     fi
+
+    export LAW_IS_SET_UP="True"
 }
 action "$@"
