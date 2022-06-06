@@ -762,5 +762,81 @@ btagSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &eta,
     return df1;
 }
 } // namespace jet
+
+namespace embedding {
+ROOT::RDF::RNode
+selection_trigger(ROOT::RDF::RNode df, const std::string &pt_1,
+                  const std::string &eta_1, const std::string &pt_2,
+                  const std::string &eta_2, const std::string &output,
+                  const std::string &sf_file, const std::string &idAlgorithm) {
+
+    Logger::get("EmbeddingSelectionTriggerSF")
+        ->debug("Correction - Name {}", idAlgorithm);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto df1 = df.Define(
+        output,
+        [evaluator](const float &pt_1, const float &eta_1, const float &pt_2,
+                    const float &eta_2) {
+            Logger::get("EmbeddingSelectionTriggerSF")
+                ->debug(" pt_1 {}, eta_1 {}, pt_2 {}, eta_2 {}", pt_1, eta_1,
+                        pt_2, eta_2);
+            double sf = 1.;
+            sf = evaluator->evaluate(
+                {pt_1, std::abs(eta_1), pt_2, std::abs(eta_2)});
+            Logger::get("EmbeddingSelectionTriggerSF")->debug("sf {}", sf);
+            return sf;
+        },
+        {pt_1, eta_1, pt_2, eta_2});
+    return df1;
+}
+
+ROOT::RDF::RNode selection_id(ROOT::RDF::RNode df, const std::string &pt,
+                              const std::string &eta, const std::string &output,
+                              const std::string &sf_file,
+                              const std::string &idAlgorithm) {
+
+    Logger::get("EmbeddingSelectionIDSF")
+        ->debug("Correction - Name {}", idAlgorithm);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto df1 =
+        df.Define(output,
+                  [evaluator](const float &pt, const float &eta) {
+                      Logger::get("EmbeddingSelectionIDSF")
+                          ->debug(" pt {}, eta {},", pt, eta);
+                      double sf = 1.;
+                      sf = evaluator->evaluate({pt, std::abs(eta)});
+                      Logger::get("EmbeddingSelectionIDSF")->debug("sf {}", sf);
+                      return sf;
+                  },
+                  {pt, eta});
+    return df1;
+}
+
+ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
+                         const std::string &eta, const std::string &output,
+                         const std::string &sf_file,
+                         const std::string correctiontype,
+                         const std::string &idAlgorithm) {
+
+    Logger::get("EmbeddingMuonSF")->debug("Correction - Name {}", idAlgorithm);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto df1 = df.Define(
+        output,
+        [evaluator, correctiontype](const float &pt, const float &eta) {
+            Logger::get("EmbeddingMuonSF")
+                ->debug(" pt {}, eta {}, correctiontype {}", pt, eta,
+                        correctiontype);
+            double sf = 1.;
+            sf = evaluator->evaluate({pt, std::abs(eta), correctiontype});
+            Logger::get("EmbeddingMuonSF")->debug("sf {}", sf);
+            return sf;
+        },
+        {pt, eta});
+    return df1;
+}
+} // namespace embedding
 } // namespace scalefactor
 #endif /* GUARD_SCALEFACTORS_H */
