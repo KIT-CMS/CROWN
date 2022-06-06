@@ -83,5 +83,22 @@ btagSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &eta,
        const std::string &sf_output, const std::string &sf_file,
        const std::string &corr_algorithm);
 } // namespace jet
+namespace embedding {
+ROOT::RDF::RNode
+selection_trigger(ROOT::RDF::RNode df, const std::string &pt_1,
+                  const std::string &eta_1, const std::string &pt_2,
+                  const std::string &eta_2, const std::string &output,
+                  const std::string &sf_file, const std::string &idAlgorithm);
+
+ROOT::RDF::RNode selection_id(ROOT::RDF::RNode df, const std::string &pt,
+                              const std::string &eta, const std::string &output,
+                              const std::string &sf_file,
+                              const std::string &idAlgorithm);
+ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
+                         const std::string &eta, const std::string &output,
+                         const std::string &sf_file,
+                         const std::string correctiontype,
+                         const std::string &idAlgorithm);
+} // namespace embedding
 } // namespace scalefactor
 #endif /* GUARD_SCALEFACTORS_H */
