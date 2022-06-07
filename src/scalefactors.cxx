@@ -837,6 +837,30 @@ ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
         {pt, eta});
     return df1;
 }
+ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
+                             const std::string &eta, const std::string &output,
+                             const std::string &sf_file,
+                             const std::string correctiontype,
+                             const std::string &idAlgorithm) {
+
+    Logger::get("EmbeddingElectronSF")
+        ->debug("Correction - Name {}", idAlgorithm);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto df1 = df.Define(
+        output,
+        [evaluator, correctiontype](const float &pt, const float &eta) {
+            Logger::get("EmbeddingElectronSF")
+                ->debug(" pt {}, eta {}, correctiontype {}", pt, eta,
+                        correctiontype);
+            double sf = 1.;
+            sf = evaluator->evaluate({pt, std::abs(eta), correctiontype});
+            Logger::get("EmbeddingElectronSF")->debug("sf {}", sf);
+            return sf;
+        },
+        {pt, eta});
+    return df1;
+}
 } // namespace embedding
 } // namespace scalefactor
 #endif /* GUARD_SCALEFACTORS_H */
