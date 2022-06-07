@@ -139,8 +139,8 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
         bool bit = (triggerbit_cut == -1) ||
                    (IntBits(triggerobject_bits[idx]).test(triggerbit_cut));
         bool id = triggerobject_ids[idx] == trigger_particle_id_cut;
-        bool pt = triggerobject_pts[idx] > pt_cut;
-        bool eta = abs(triggerobject_etas[idx]) < eta_cut;
+        bool pt = particle.pt() > pt_cut;
+        bool eta = abs(particle.eta()) < eta_cut;
         Logger::get("CheckTriggerMatch")
             ->debug("-------------------------------------------------------");
         Logger::get("CheckTriggerMatch")->debug("deltaR Check: {}", deltaR);
