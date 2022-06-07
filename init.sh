@@ -26,6 +26,7 @@ export CMAKE_GENERATOR="Unix Makefiles"
 # clone a given analysis if an argument is given
 if [ -z "$1" ]
 then
+    echo "No configuration clone"
 else
     if [[ "$1" == "tau" && ! -d "${SCRIPT_DIR}/analysis_configurations/tau" ]]
     then
