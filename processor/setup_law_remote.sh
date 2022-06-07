@@ -38,7 +38,7 @@ action(){
     else
         # Copy tarballs 
         (
-            source /cvmfs/sft.cern.ch/lcg/releases/xrootd/5.4.2-88063/x86_64-centos7-gcc9-opt/xrootd-env.sh
+            source /cvmfs/etp.kit.edu/LAW_envs/KingMaker/bin/activate
             echo "xrdcp {{TARBALL_PATH}} ${SPAWNPOINT}"
             xrdcp {{TARBALL_PATH}} ${SPAWNPOINT}
             echo "xrdcp {{TARBALL_ENV_PATH}} ${SPAWNPOINT}"

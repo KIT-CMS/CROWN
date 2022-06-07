@@ -24,10 +24,10 @@ else:
 
 class Task(law.Task):
 
-    user_name = luigi.Parameter(
-        default=getuser(), 
-        description="Name of user that started the workflow. Default is $USER."
-    )
+    # user_name = luigi.Parameter(
+    #     default=getuser(), 
+    #     description="Name of user that started the workflow. Default is $USER."
+    # )
     wlcg_path = luigi.Parameter(
         description="Base-path to remote file location."
     )
@@ -75,7 +75,6 @@ class Task(law.Task):
             stderr=PIPE,
             # rich_console=console
         )
-        console.log("Output: {}".format(out))
         console.log("Error: {}".format(error))
         if code != 0:
             console.log("source returned non-zero exit status {}".format(code))
@@ -323,7 +322,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
                 tarball_env.copy_from_local(
                     src="tarballs/conda_envs/{}.tar.gz".format(self.ENV_NAME)
                 )
-        config.render_variables["USER"] = self.user_name
+        config.render_variables["USER"] = getuser()
         config.render_variables["ANA_NAME"] = os.getenv("ANA_NAME")
         config.render_variables["ENV_NAME"] = self.ENV_NAME
         config.render_variables["TAG"] = self.production_tag
