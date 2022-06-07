@@ -433,12 +433,12 @@ class CodeGenerator(object):
         for scope in self.scopes:
             for output in sorted(self.outputs[scope]):
                 self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
-            if len(self.output_commands[scope]) > 0:
+            if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
                 # if no output is produced by the scope, we do not create a corresponding output file
                 self._outputfiles_generated[scope] = "outputpath_{scope}".format(
                     scope=scope
                 )
-                outputstring = '", "'.join(self.output_commands[scope])
+                outputstring = '", "'.join(self.output_commands[scope] + self.output_commands[self.global_scope])
                 self.number_of_outputs += len(self.output_commands[scope])
                 runcommands += "    auto {scope}_cutReport = df{counter}_{scope}.Report();\n".format(
                     scope=scope, counter=self.main_counter[scope]
@@ -456,7 +456,7 @@ class CodeGenerator(object):
         runcommands += self.set_process_tracking()
         # add trigger of dataframe execution, for nonempty scopes
         for scope in self.scopes:
-            if len(self.output_commands[scope]) > 0:
+            if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
                 runcommands += f"    {scope}_result.GetValue();\n"
                 runcommands += f'    Logger::get("main")->info("{scope}:");\n'
                 runcommands += f"    {scope}_cutReport->Print();\n"
