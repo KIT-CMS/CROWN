@@ -2,6 +2,7 @@
 data/
 build/
 CROWN/
+sm-htt-analysis/
 .law/
 generation_logs/
 tarballs/
@@ -10,6 +11,8 @@ logs/
 *.tar.gz
 *.txt
 miniconda/
+output/
+.nfs*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

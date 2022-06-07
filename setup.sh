@@ -4,12 +4,10 @@
 
 action() {
 
-    #list of available analyses
-    ANA_LIST=("KingMaker" "GPU_example")
-    if [[ "$@" =~ "-l" ]]; then
-        echo "Available analyses:"
-        printf '%s\n' "${ANA_LIST[@]}"
-        return 0
+    # Check if law was already set up in this shell
+    if ( [[ ! -z ${LAW_IS_SET_UP} ]] && [[ ! "$@" =~ "-f" ]] ); then
+        echo "LAW was already set up in this shell. Please, use a new one."
+        return 1
     fi
 
     # Check if current machine is an etp portal machine.
@@ -21,6 +19,14 @@ action() {
         return 1
     else
         echo "Running on ${CURRENT_HOST}."
+    fi
+
+    #list of available analyses
+    ANA_LIST=("KingMaker" "GPU_example" "ML_train")
+    if [[ "$@" =~ "-l" ]]; then
+        echo "Available analyses:"
+        printf '%s\n' "${ANA_LIST[@]}"
+        return 0
     fi
 
     # determine the directory of this file
@@ -59,73 +65,100 @@ action() {
             export ANA_NAME="${ANA_NAME_GIVEN}"
         fi
     fi
-    
+
     #Determine which environment to use based on the luigi.cfg file
-    export ENV_NAME=$(grep '^ENV_NAME' lawluigi_configs/${ANA_NAME}_luigi.cfg | sed 's@ENV_NAME\s*=\s*\([^\s]*\)\s*@\1@g')
-    echo "Using ${ENV_NAME} environment."
-
-    #Check if necessary environment is present in cvmfs
-    if [[ -f "/cvmfs/etp.kit.edu/LAW_envs/${ENV_NAME}/bin/activate" ]]; then
-        #If present in /cvmfs/etp.kit.edu/LAW_envs/
-        source /cvmfs/etp.kit.edu/LAW_envs/${ENV_NAME}/bin/activate
-        export CVMFS_ENV_PRESENT="True"
-
-    else
-        #If not present
-        #install conda in necessary
-
-        # Miniconda version used for all environments
-        MINICONDA_VERSION="Miniconda3-py39_4.10.3-Linux-x86_64"
-
-        echo "${ENV_NAME} environment not found in cvmfs. Using conda."
-        if ! command -v conda &> /dev/null
-        then
-            if [ ! -f "miniconda/bin/activate" ]; then
-                echo "conda could not be found, installing conda ..."
-                echo "More information can be found in"
-                echo "https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html"
-                curl -O https://repo.anaconda.com/miniconda/${MINICONDA_VERSION}.sh
-                bash ${MINICONDA_VERSION}.sh -b -p miniconda
-                rm -f ${MINICONDA_VERSION}.sh
-            fi
-            source miniconda/bin/activate base
+    ENV_NAMES=($(grep '^ENV_NAME' lawluigi_configs/${ANA_NAME}_luigi.cfg | sed 's@ENV_NAME\s*=\s*\([^\s]*\)\s*@\1@g'))
+    export ENV_NAMES_LIST=""
+    for ENV_NAME in ${ENV_NAMES[@]}; do
+        # Remember first env in lugi config file (usually in [DEFAULT])
+        if [[ -z ${STARTING_ENV} ]]; then
+            export STARTING_ENV=${ENV_NAME}
         fi
-        # check if correct Conda env is running
-        echo "Setting up conda.."
-        if [ "${CONDA_DEFAULT_ENV}" != "${ENV_NAME}" ]; then
-            if [ -d "miniconda/envs/${ENV_NAME}" ]; then
-                echo  "${ENV_NAME} env found, activating..."
-                conda activate ${ENV_NAME}
-            else
-                echo "Creating ${ENV_NAME} env from conda_environments/${ENV_NAME}_env.yml..."
-                if [[ ! -f "conda_environments/${ENV_NAME}_env.yml" ]]; then
-                    echo "conda_environments/${ENV_NAME}_env.yml not found. Unable to create environment."
-                    return 1
+
+        #Check if necessary environment is present in cvmfs
+        if [[ -f "/cvmfs/etp.kit.edu/LAW_envs/${ENV_NAME}/bin/activate" ]]; then
+            echo "${ENV_NAME} environment found in cvmfs."
+            CVMFS_ENV_PRESENT="True"
+
+        else
+            echo "${ENV_NAME} environment not found in cvmfs. Using conda."
+            if ! command -v conda &> /dev/null; then
+                # Install conda if necessary
+                if [ ! -f "miniconda/bin/activate" ]; then
+                    # Miniconda version used for all environments
+                    MINICONDA_VERSION="Miniconda3-py39_4.10.3-Linux-x86_64"
+                    echo "conda could not be found, installing conda ..."
+                    echo "More information can be found in"
+                    echo "https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html"
+                    curl -O https://repo.anaconda.com/miniconda/${MINICONDA_VERSION}.sh
+                    bash ${MINICONDA_VERSION}.sh -b -p miniconda
+                    rm -f ${MINICONDA_VERSION}.sh
                 fi
-                conda env create -f conda_environments/${ENV_NAME}_env.yml -n ${ENV_NAME}
-                echo  "${ENV_NAME} env built, activating..."
-                conda activate ${ENV_NAME}
+                # source base env of conda
+                source miniconda/bin/activate base
             fi
+
+            # check if correct Conda env is running
+            if [ "${CONDA_DEFAULT_ENV}" != "${ENV_NAME}" ]; then
+                if [ -d "miniconda/envs/${ENV_NAME}" ]; then
+                    echo  "${ENV_NAME} env found using conda."
+                else
+                    # Create conda env from yaml file if necessary
+                    echo "Creating ${ENV_NAME} env from conda_environments/${ENV_NAME}_env.yml..."
+                    if [[ ! -f "conda_environments/${ENV_NAME}_env.yml" ]]; then
+                        echo "conda_environments/${ENV_NAME}_env.yml not found. Unable to create environment."
+                        return 1
+                    fi
+                    conda env create -f conda_environments/${ENV_NAME}_env.yml -n ${ENV_NAME}
+                    echo  "${ENV_NAME} env built using conda."
+                fi
+            fi
+
+            # create conda tarball if env not in cvmfs and it if it doesn't already exist
+            if [ ! -f "tarballs/conda_envs/${ENV_NAME}.tar.gz" ]; then
+                # IMPORTANT: environments have to be named differently with each change
+                #            as chaching prevents a clean overwrite of existing files
+                echo "Creating ${ENV_NAME}.tar.gz"
+                mkdir -p "tarballs/conda_envs"
+                conda activate ${ENV_NAME}
+                conda pack -n ${ENV_NAME} --output tarballs/conda_envs/${ENV_NAME}.tar.gz
+                conda deactivate
+            fi
+            CVMFS_ENV_PRESENT="False"
         fi
-        # create conda tarball if env not in cvmfs and it if it doesn't exist already
-        if [ ! -f "tarballs/${ENV_NAME}_env.tar.gz" ]; then
-            # IMPORTANT: environments have to be named differently with each change
-            #            as chaching prevents a clean overwrite of existing files
-            echo "Creating ${ENV_NAME}_env.tar.gz"
-            mkdir -p "tarballs"
-            conda pack -n ${ENV_NAME} --output tarballs/${ENV_NAME}_env.tar.gz
+
+        # Remember status of starting-env
+        if [[ "${ENV_NAME}" == "${STARTING_ENV}" ]]; then
+            CVMFS_ENV_PRESENT_START=${CVMFS_ENV_PRESENT}
         fi
-        export CVMFS_ENV_PRESENT="False"
+        # Create list of envs and their status to be later parsed by python
+        #   Example: 'env1;True,env2;False,env3;False'
+        # ENV_NAMES_LIST is used by the processor/framework.py to determine whether the environments are present in cvmfs
+        ENV_NAMES_LIST+="${ENV_NAME},${CVMFS_ENV_PRESENT};"
+    done
+
+    # Actvate starting-env
+    if [[ "${CVMFS_ENV_PRESENT_START}" == "True" ]]; then
+        echo "Activating starting-env ${STARTING_ENV} from cvmfs."
+        source /cvmfs/etp.kit.edu/LAW_envs/${STARTING_ENV}/bin/activate
+    else
+        echo "Activating starting-env ${STARTING_ENV} from conda."
+        conda activate ${STARTING_ENV}
     fi
-    #CVMFS_ENV_PRESENT can be used by the processor/framework.py to determine whether the environment is present in cvmfs
 
     #Set up other dependencies based on analysis
     ############################################
     case ${ANA_NAME} in
         KingMaker)
-            echo "Setup CROWN ..."
+            echo "Setting up CROWN ..."
             if [ ! -d CROWN ]; then
                 git clone --recursive git@github.com:KIT-CMS/CROWN
+            fi
+            ;;
+        ML_train)
+            echo "Setting up ML-scripts ..."
+            if [ ! -d sm-htt-analysis ]; then
+                git clone --recursive git@github.com:tvoigtlaender/sm-htt-analysis
             fi
             ;;
         *)
@@ -139,7 +172,7 @@ action() {
     fi
 
     echo "Setting up Luigi/Law ..."
-    export LAW_HOME="${BASE_DIR}/.law"
+    export LAW_HOME="${BASE_DIR}/.law/${ANA_NAME}"
     export LAW_CONFIG_FILE="${BASE_DIR}/lawluigi_configs/${ANA_NAME}_law.cfg"
     export LUIGI_CONFIG_PATH="${BASE_DIR}/lawluigi_configs/${ANA_NAME}_luigi.cfg"
     export ANALYSIS_PATH="${BASE_DIR}"
@@ -162,5 +195,7 @@ action() {
         echo "Starting Luigi scheduler..."
         luigid --background --logdir logs --state-path luigid_state.pickle
     fi
+
+    export LAW_IS_SET_UP="True"
 }
 action "$@"

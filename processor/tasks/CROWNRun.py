@@ -17,7 +17,7 @@ def ensure_dir(file_path):
         os.makedirs(directory)
 
 
-class CROWNRun(Task, HTCondorWorkflow, law.LocalWorkflow):
+class CROWNRun(HTCondorWorkflow, law.LocalWorkflow):
     """
     Gather and compile CROWN with the given configuration
     """

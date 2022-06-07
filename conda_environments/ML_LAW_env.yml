@@ -1,6 +1,7 @@
 name: ML_LAW
 channels:
   - conda-forge
+  - intel
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
@@ -91,8 +92,10 @@ dependencies:
     - cachetools==5.0.0
     - certifi==2021.10.8
     - charset-normalizer==2.0.12
+    - cycler==0.11.0
     - docutils==0.18.1
     - flatbuffers==2.0
+    - fonttools==4.33.3
     - gast==0.5.3
     - google-auth==2.6.2
     - google-auth-oauthlib==0.4.6
@@ -104,17 +107,22 @@ dependencies:
     - joblib==1.1.0
     - keras==2.8.0
     - keras-preprocessing==1.1.2
+    - kiwisolver==1.4.2
     - libclang==13.0.0
     - lockfile==0.12.2
     - luigi==3.0.3
     - markdown==3.3.6
+    - matplotlib==3.5.2
     - oauthlib==3.2.0
     - opt-einsum==3.3.0
+    - packaging==21.3
     - pandas==1.1.5
+    - pillow==9.1.1
     - protobuf==3.20.0
     - psutil==5.9.0
     - pyasn1==0.4.8
     - pyasn1-modules==0.2.8
+    - pyparsing==3.0.9
     - python-daemon==2.3.0
     - python-dateutil==2.8.2
     - pytz==2022.1
