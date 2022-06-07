@@ -64,6 +64,7 @@ class Task(law.Task):
     # Function to apply a source-script and get the resulting environment.
     #   Anything apart from setting paths is likely not included in the resulting envs.
     def set_environment(self, sourcescript):
+        console.log("Script: {}".format(sourcescript))
         if isinstance(sourcescript, str):
             sourcescript = [sourcescript]
         source_string = " ".join(sourcescript)
@@ -74,13 +75,12 @@ class Task(law.Task):
             stderr=PIPE,
             # rich_console=console
         )
+        console.log("Output: {}".format(out))
+        console.log("Error: {}".format(error))
         if code != 0:
-            console.log("Error when running source {}".format(error))
-            console.log("Output: {}".format(out))
             console.log("source returned non-zero exit status {}".format(code))
-            console.log("Script: {}".format(sourcescript))
-            console.rule()
             raise Exception("source failed")
+        console.rule()
         my_env = self.convert_env_to_dict(out)
         return my_env
 
