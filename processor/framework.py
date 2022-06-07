@@ -24,10 +24,6 @@ else:
 
 class Task(law.Task):
 
-    # user_name = luigi.Parameter(
-    #     default=getuser(), 
-    #     description="Name of user that started the workflow. Default is $USER."
-    # )
     wlcg_path = luigi.Parameter(
         description="Base-path to remote file location."
     )
@@ -75,9 +71,9 @@ class Task(law.Task):
             stderr=PIPE,
             # rich_console=console
         )
-        console.log("Error: {}".format(error))
         if code != 0:
             console.log("source returned non-zero exit status {}".format(code))
+            console.log("Error: {}".format(error))
             raise Exception("source failed")
         console.rule()
         my_env = self.convert_env_to_dict(out)

@@ -57,8 +57,7 @@ class CreateTrainingDatasets(HTCondorWorkflow, law.LocalWorkflow):
                 self.channel, 
                 self.mass, 
                 self.batch_num
-            ], 
-            sourcescript="/cvmfs/etp.kit.edu/LAW_envs/BaseWRoot/bin/activate",
+            ],
             run_location="sm-htt-analysis"
         )
         # Copy resulting files to remote storage
