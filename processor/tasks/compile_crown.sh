@@ -1,7 +1,4 @@
 #! /bin/bash
-set -e
-source $ANALYSIS_PATH/CROWN/init.sh
-
 CROWNFOLDER=$1
 ANALYSIS=$2
 CONFIG=$3
@@ -12,6 +9,10 @@ SHIFTS=$7
 INSTALLDIR=$8
 BUILDDIR=$9
 TARBALLNAME=${10}
+# setup with analysis clone if needed
+set -e
+source $ANALYSIS_PATH/CROWN/init.sh $ANALYSIS
+
 # use a fourth of the machine for compiling
 THREADS_AVAILABLE=$(grep -c ^processor /proc/cpuinfo)
 THREADS=$(( THREADS_AVAILABLE / 4 ))
