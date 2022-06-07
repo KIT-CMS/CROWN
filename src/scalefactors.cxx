@@ -764,6 +764,23 @@ btagSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &eta,
 } // namespace jet
 
 namespace embedding {
+/**
+ * @brief Function used to readout the embedding selection trigger scalefactors
+ *
+ * @param df the input dataframe
+ * @param pt_1 the pt of the leading generator particle in the event. This
+ * corresponds to the leading muon selected by the embedding selection
+ * @param eta_1 the eta of the leading generator particle in the event. This
+ * corresponds to the leading muon selected by the embedding selection
+ * @param pt_2 the pt of the subleading generator particle in the event. This
+ * corresponds to the subleading muon selected by the embedding selection
+ * @param eta_2 the eta of the subleading generator particle in the event. This
+ * corresponds to the subleading muon selected by the embedding selection
+ * @param output name of the output column
+ * @param sf_file path to the correctionlib file containing the scale factor
+ * @param idAlgorithm name of the scale factor with in the correctionlib file
+ * @return ROOT::RDF::RNode
+ */
 ROOT::RDF::RNode
 selection_trigger(ROOT::RDF::RNode df, const std::string &pt_1,
                   const std::string &eta_1, const std::string &pt_2,
@@ -790,7 +807,20 @@ selection_trigger(ROOT::RDF::RNode df, const std::string &pt_1,
         {pt_1, eta_1, pt_2, eta_2});
     return df1;
 }
-
+/**
+ * @brief Function used to readout the embedding selection trigger scalefactors.
+ *
+ * @param df the input dataframe
+ * @param pt the pt of the generator particle in the event. This corresponds to
+ * one of the muons selected by the embedding selection
+ * @param eta the eta of the generator particle in the event. This corresponds
+ * to one of the muons selected by the embedding selection
+ * @param output the name of the output column
+ * @param sf_file the path to the correctionlib file containing the scale factor
+ * @param idAlgorithm the name of the scale factor with in the correctionlib
+ * file
+ * @return ROOT::RDF::RNode
+ */
 ROOT::RDF::RNode selection_id(ROOT::RDF::RNode df, const std::string &pt,
                               const std::string &eta, const std::string &output,
                               const std::string &sf_file,
@@ -813,7 +843,20 @@ ROOT::RDF::RNode selection_id(ROOT::RDF::RNode df, const std::string &pt,
                   {pt, eta});
     return df1;
 }
-
+/**
+ * @brief Function used to readout SFs from the muon scale factor measurements
+ *
+ * @param df the input dataframe
+ * @param pt the pt of the muon
+ * @param eta the eta of the muon
+ * @param output the name of the output column
+ * @param sf_file the path to the correctionlib file containing the scale factor
+ * @param correctiontype the type of the correction. Use `emb` for embedding and
+ * `mc` for monte carlo
+ * @param idAlgorithm the name of the scale factor with in the correctionlib
+ * file
+ * @return ROOT::RDF::RNode
+ */
 ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
                          const std::string &eta, const std::string &output,
                          const std::string &sf_file,
@@ -837,6 +880,21 @@ ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
         {pt, eta});
     return df1;
 }
+/**
+ * @brief Function used to readout SFs from the electron scale factor
+ * measurements
+ *
+ * @param df the input dataframe
+ * @param pt the pt of the electron
+ * @param eta the eta of the electron
+ * @param output the name of the output column
+ * @param sf_file the path to the correctionlib file containing the scale factor
+ * @param correctiontype the type of the correction. Use `emb` for embedding and
+ * `mc` for monte carlo
+ * @param idAlgorithm the name of the scale factor with in the correctionlib
+ * file
+ * @return ROOT::RDF::RNode
+ */
 ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
                              const std::string &eta, const std::string &output,
                              const std::string &sf_file,
