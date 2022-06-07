@@ -20,6 +20,7 @@ Getting started
 
 .. warning::
     The Framework depends on the scale factors provided by CMS. These are directly included in the repository via a git submodule. Since the scale factors are added from the CERN gitlab, access to the CERN gitlab repository (https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration), is needed. Since the repository is added via SSH, your SSH key must be added to the CERN gitlab instance ( A tutorial on how to do this can be found here: https://docs.gitlab.com/ee/user/ssh.html#add-an-ssh-key-to-your-gitlab-account).
+    For the instructions to work, you also have to add the SSH key to your github.com account. The instructions to do this can be found here: https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/
 
 
 
@@ -37,7 +38,24 @@ and source the current LCG stack (at the moment we use a nightly build)
 
    source init.sh
 
-after this, the framework should be installed
+after this, the framework should be installed, but without any analysis, other than the example analysis. If you want to setup a specific anlysis, you can do so by adding the name of the analysis to your ``init.sh`` command. Currently, supported analyses are:
+
+.. list-table:: Available Analyses
+   :widths: 25 150
+   :header-rows: 1
+
+   * - Analysis name
+     - Repository
+   * - ``tau``
+     - https://github.com/KIT-CMS/TauAnalysis-CROWN
+   * - ``earlyrun3``
+     - https://github.com/khaosmos93/CROWN-config-earlyRun3
+
+So in order to setup the `tau` Analysis, you can do so by running
+
+.. code-block:: console
+
+   source init.sh tau
 
 Running the framework
 **********************

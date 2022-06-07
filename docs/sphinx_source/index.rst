@@ -12,6 +12,18 @@ The The **C** ++-based **RO** OT **W** orkflow for **N** -tuples (CROWN) is a fa
   :align: center
   :alt: CROWN Workflow sketch
 
+.. list-table:: Available Analyses Configurations for CROWN
+   :widths: 25 150
+   :header-rows: 1
+
+   * - Analysis name
+     - Repository
+   * - ``tau``
+     - https://github.com/KIT-CMS/TauAnalysis-CROWN
+   * - ``earlyrun3``
+     - https://github.com/khaosmos93/CROWN-config-earlyRun3
+
+
 
 .. toctree::
    :maxdepth: 2
