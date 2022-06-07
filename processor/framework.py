@@ -64,6 +64,8 @@ class Task(law.Task):
     # Function to apply a source-script and get the resulting environment.
     #   Anything apart from setting paths is likely not included in the resulting envs.
     def set_environment(self, sourcescript):
+        if isinstance(sourcescript, str):
+            sourcescript = [sourcescript]
         source_string = " ".join(sourcescript)
         code, out, error = interruptable_popen(
             "source {}; env".format(source_string),
@@ -89,16 +91,18 @@ class Task(law.Task):
     #   The command is run as if it was called from run_location
     def run_command(self, command=[], sourcescript=[], run_location=None):
         if command:
+            if isinstance(command, str):
+                command = [command]
             if sourcescript:
-                run_env = self.set_environment(list(sourcescript))
+                run_env = self.set_environment(sourcescript)
             else:
                 run_env = None
-            logstring = "Running {}".format(list(command))
+            logstring = "Running {}".format(command)
             if run_location:
                 logstring += " from {}".format(run_location)
             console.log(logstring)
             code, out, error = interruptable_popen(
-                " ".join(list(command)),
+                " ".join(command),
                 shell=True,
                 stdout=PIPE,
                 stderr=PIPE,
