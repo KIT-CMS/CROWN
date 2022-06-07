@@ -69,8 +69,10 @@ class ConfigureDatasets(Task):
             # set environment variables
             self.my_env = self.set_environment(self.env_script)
 
-            xootd_prefix = "root://cms-xrd-global.cern.ch/"
+            # in germany, the european is the fastest
+            xootd_prefix_global = "root://cms-xrd-global.cern.ch/"
             xootd_prefix_gridka = "root://cmsxrootd-kit.gridka.de:1094/"
+            xootd_prefix_europe = "root://xrootd-cms.infn.it/"
 
             output.parent.touch()
 
@@ -101,7 +103,7 @@ class ConfigureDatasets(Task):
                     sample_data["filelist"],
                     sample_data["nevents"],
                     sample_data["nfiles"],
-                ) = self.read_filelist_from_das(sample_data["dbs"], False, xootd_prefix)
+                ) = self.read_filelist_from_das(sample_data["dbs"], False, xootd_prefix_europe)
                 # write the output
                 ensure_dir(sample_configfile)
                 file = open(sample_configfile, "w")
