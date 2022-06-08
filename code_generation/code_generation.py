@@ -438,7 +438,10 @@ class CodeGenerator(object):
                 self._outputfiles_generated[scope] = "outputpath_{scope}".format(
                     scope=scope
                 )
-                outputstring = '", "'.join(self.output_commands[scope] + self.output_commands[self.global_scope])
+                outputstring = '", "'.join(
+                    self.output_commands[scope]
+                    + self.output_commands[self.global_scope]
+                )
                 self.number_of_outputs += len(self.output_commands[scope])
                 runcommands += "    auto {scope}_cutReport = df{counter}_{scope}.Report();\n".format(
                     scope=scope, counter=self.main_counter[scope]
