@@ -260,9 +260,9 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
     // if no matching trigger was found return the initial dataframe
     if (matched_trigger_names.size() == 0) {
         Logger::get("GenerateSingleTriggerFlag")
-            ->info(
-                "No matching trigger for {} found, returning 0 as trigger flag",
-                hltpath);
+            ->info("No matching trigger for {} found, returning false for "
+                   "trigger flag {}",
+                   hltpath, triggerflag_name);
         auto df1 = df.Define(triggerflag_name, []() { return false; });
         return df1;
     } else if (matched_trigger_names.size() > 1) {
@@ -394,26 +394,26 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
     // matching any of them
     for (auto &trigger : available_trigger) {
         if (std::regex_match(trigger, hltpath_regex)) {
-            Logger::get("GenerateSingleTriggerFlag")
+            Logger::get("GenerateDoubleTriggerFlag")
                 ->debug("Found matching trigger: {}", trigger);
             matched_trigger_names.push_back(trigger);
         }
     }
     // if no matching trigger was found return the initial dataframe
     if (matched_trigger_names.size() == 0) {
-        Logger::get("GenerateSingleTriggerFlag")
-            ->info(
-                "No matching trigger for {} found, returning 0 as trigger flag",
-                hltpath);
+        Logger::get("GenerateDoubleTriggerFlag")
+            ->info("No matching trigger for {} found, returning false for "
+                   "trigger flag {}",
+                   hltpath, triggerflag_name);
         auto df1 = df.Define(triggerflag_name, []() { return false; });
         return df1;
     } else if (matched_trigger_names.size() > 1) {
-        Logger::get("GenerateSingleTriggerFlag")
+        Logger::get("GenerateDoubleTriggerFlag")
             ->warn("More than one matching trigger found, not implemented yet");
         throw std::invalid_argument(
             "received too many matching trigger paths, not implemented yet");
     } else {
-        Logger::get("GenerateSingleTriggerFlag")
+        Logger::get("GenerateDoubleTriggerFlag")
             ->debug("Found matching trigger: {}", matched_trigger_names[0]);
         auto df1 =
             df.Define(triggerflag_name, triggermatch,
