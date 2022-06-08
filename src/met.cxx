@@ -143,6 +143,94 @@ ROOT::RDF::RNode genBosonMass(ROOT::RDF::RNode df,
                      },
                      {inputvector});
 }
+/// Function to calculate the pt from the genboson double vector and add it to
+/// the dataframe
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the pt value
+/// \param inputvector name of the column containing the genboson vector
+///
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode genBosonPt(ROOT::RDF::RNode df, const std::string &outputname,
+                            const std::string &inputvector) {
+    return df.Define(outputname,
+                     [](const std::pair<ROOT::Math::PtEtaPhiMVector,
+                                        ROOT::Math::PtEtaPhiMVector> &metpair) {
+                         if (metpair.first.pt() <
+                             0.0) // negative pt is used to mark invalid LVs
+                             return default_float;
+                         return (float)metpair.first.pt();
+                     },
+                     {inputvector});
+}
+
+/// Function to calculate the eta from the genboson double vector and add it to
+/// the dataframe
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the eta value
+/// \param inputvector name of the column containing the genboson vector
+///
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode genBosonEta(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &inputvector) {
+    return df.Define(outputname,
+                     [](const std::pair<ROOT::Math::PtEtaPhiMVector,
+                                        ROOT::Math::PtEtaPhiMVector> &metpair) {
+                         if (metpair.first.pt() <
+                             0.0) // negative pt is used to mark invalid LVs
+                             return default_float;
+                         return (float)metpair.first.eta();
+                     },
+                     {inputvector});
+}
+
+/// Function to calculate the phi from the genboson double vector and add it to
+/// the dataframe
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the phi value
+/// \param inputvector name of the column containing the genboson vector
+///
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode genBosonPhi(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &inputvector) {
+    return df.Define(outputname,
+                     [](const std::pair<ROOT::Math::PtEtaPhiMVector,
+                                        ROOT::Math::PtEtaPhiMVector> &metpair) {
+                         if (metpair.first.pt() <
+                             0.0) // negative pt is used to mark invalid LVs
+                             return default_float;
+                         return (float)metpair.first.phi();
+                     },
+                     {inputvector});
+}
+
+/// Function to calculate the rapidity from the genboson double vector and add
+/// it to the dataframe
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the rapidity value
+/// \param inputvector name of the column containing the genboson vector
+///
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode genBosonRapidity(ROOT::RDF::RNode df,
+                                  const std::string &outputname,
+                                  const std::string &inputvector) {
+    return df.Define(outputname,
+                     [](const std::pair<ROOT::Math::PtEtaPhiMVector,
+                                        ROOT::Math::PtEtaPhiMVector> &metpair) {
+                         if (metpair.first.pt() <
+                             0.0) // negative pt is used to mark invalid LVs
+                             return default_float;
+                         return (float)metpair.first.Rapidity();
+                     },
+                     {inputvector});
+}
 /**
  * @brief Function used to propagate lepton corrections to the met. If the
  energy of a lepton is corrected (via some scale factor) or due to a shift,

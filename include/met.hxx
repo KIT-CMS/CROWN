@@ -13,6 +13,15 @@ ROOT::RDF::RNode calculateGenBosonVector(
 ROOT::RDF::RNode genBosonMass(ROOT::RDF::RNode df,
                               const std::string &outputname,
                               const std::string &inputvector);
+ROOT::RDF::RNode genBosonPt(ROOT::RDF::RNode df, const std::string &outputname,
+                            const std::string &inputvector);
+ROOT::RDF::RNode genBosonEta(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &inputvector);
+ROOT::RDF::RNode genBosonPhi(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &inputvector);
+ROOT::RDF::RNode genBosonRapidity(ROOT::RDF::RNode df,
+                                  const std::string &outputname,
+                                  const std::string &inputvector);
 ROOT::RDF::RNode
 propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
                       const std::string &p4_1_uncorrected,
