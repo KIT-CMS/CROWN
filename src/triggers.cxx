@@ -9,6 +9,7 @@
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include <cmath>
+#include <regex>
 
 typedef std::bitset<20> IntBits;
 
@@ -190,7 +191,10 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
  * inputfile
  * @param triggerobject_phi name of the trigger object phi column in the
  * inputfile
- * @param hltpath name of the hlt path to be checked
+ * @param hltpath name of the hlt path to be checked, this can be a valid regex.
+ * If more than one matching HLT path is found, the function will throw an
+ * exception, if no matching HLT path is found, the function will return a
+ * dataframe with a flag of false for all entries
  * @param pt_cut minimal pt value for the triggerobject
  * @param eta_cut maximal pt value for the triggerobject
  * @param trigger_particle_id_cut trigger id value the triggerobject has to
@@ -241,11 +245,41 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
                 ->debug("--->>>> result: {}", result);
             return result;
         };
-    auto df1 =
-        df.Define(triggerflag_name, triggermatch,
-                  {hltpath, particle_p4, triggerobject_bits, triggerobject_id,
-                   triggerobject_pt, triggerobject_eta, triggerobject_phi});
-    return df1;
+    auto available_trigger = df.GetColumnNames();
+    std::vector<std::string> matched_trigger_names;
+    std::regex hltpath_regex = std::regex(hltpath);
+    // loop over all available trigger names and check if the hltpath is
+    // matching any of them
+    for (auto &trigger : available_trigger) {
+        if (std::regex_match(trigger, hltpath_regex)) {
+            Logger::get("GenerateSingleTriggerFlag")
+                ->debug("Found matching trigger: {}", trigger);
+            matched_trigger_names.push_back(trigger);
+        }
+    }
+    // if no matching trigger was found return the initial dataframe
+    if (matched_trigger_names.size() == 0) {
+        Logger::get("GenerateSingleTriggerFlag")
+            ->info(
+                "No matching trigger for {} found, returning 0 as trigger flag",
+                hltpath);
+        auto df1 = df.Define(triggerflag_name, []() { return false; });
+        return df1;
+    } else if (matched_trigger_names.size() > 1) {
+        Logger::get("GenerateSingleTriggerFlag")
+            ->warn("More than one matching trigger found, not implemented yet");
+        throw std::invalid_argument(
+            "received too many matching trigger paths, not implemented yet");
+    } else {
+        Logger::get("GenerateSingleTriggerFlag")
+            ->debug("Found matching trigger: {}", matched_trigger_names[0]);
+        auto df1 =
+            df.Define(triggerflag_name, triggermatch,
+                      {matched_trigger_names[0], particle_p4,
+                       triggerobject_bits, triggerobject_id, triggerobject_pt,
+                       triggerobject_eta, triggerobject_phi});
+        return df1;
+    }
 }
 
 /**
@@ -269,7 +303,10 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
  * inputfile
  * @param triggerobject_phi name of the trigger object phi column in the
  * inputfile
- * @param hltpath name of the hlt path to be checked
+ * @param hltpath name of the hlt path to be checked, this can be a valid regex.
+ * If more than one matching HLT path is found, the function will throw an
+ * exception, if no matching HLT path is found, the function will return a
+ * dataframe with a flag of false for all entries
  * @param p1_pt_cut minimal pt value for the triggerobject matching the first
  * object
  * @param p2_pt_cut minimal pt value for the triggerobject matching the second
@@ -350,12 +387,41 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
             ->debug("--->>>> result: {}", result);
         return result;
     };
-    auto df1 =
-        df.Define(triggerflag_name, triggermatch,
-                  {hltpath, particle1_p4, particle2_p4, triggerobject_bits,
-                   triggerobject_id, triggerobject_pt, triggerobject_eta,
-                   triggerobject_phi});
-    return df1;
+    auto available_trigger = df.GetColumnNames();
+    std::vector<std::string> matched_trigger_names;
+    std::regex hltpath_regex = std::regex(hltpath);
+    // loop over all available trigger names and check if the hltpath is
+    // matching any of them
+    for (auto &trigger : available_trigger) {
+        if (std::regex_match(trigger, hltpath_regex)) {
+            Logger::get("GenerateSingleTriggerFlag")
+                ->debug("Found matching trigger: {}", trigger);
+            matched_trigger_names.push_back(trigger);
+        }
+    }
+    // if no matching trigger was found return the initial dataframe
+    if (matched_trigger_names.size() == 0) {
+        Logger::get("GenerateSingleTriggerFlag")
+            ->info(
+                "No matching trigger for {} found, returning 0 as trigger flag",
+                hltpath);
+        auto df1 = df.Define(triggerflag_name, []() { return false; });
+        return df1;
+    } else if (matched_trigger_names.size() > 1) {
+        Logger::get("GenerateSingleTriggerFlag")
+            ->warn("More than one matching trigger found, not implemented yet");
+        throw std::invalid_argument(
+            "received too many matching trigger paths, not implemented yet");
+    } else {
+        Logger::get("GenerateSingleTriggerFlag")
+            ->debug("Found matching trigger: {}", matched_trigger_names[0]);
+        auto df1 =
+            df.Define(triggerflag_name, triggermatch,
+                      {matched_trigger_names[0], particle1_p4, particle2_p4,
+                       triggerobject_bits, triggerobject_id, triggerobject_pt,
+                       triggerobject_eta, triggerobject_phi});
+        return df1;
+    }
 }
 
 } // end namespace trigger
