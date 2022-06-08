@@ -778,7 +778,7 @@ namespace embedding {
  * corresponds to the subleading muon selected by the embedding selection
  * @param output name of the output column
  * @param sf_file path to the correctionlib file containing the scale factor
- * @param idAlgorithm name of the scale factor with in the correctionlib file
+ * @param idAlgorithm name of the scale factor in the correctionlib file
  * @return ROOT::RDF::RNode
  */
 ROOT::RDF::RNode
@@ -817,7 +817,7 @@ selection_trigger(ROOT::RDF::RNode df, const std::string &pt_1,
  * to one of the muons selected by the embedding selection
  * @param output the name of the output column
  * @param sf_file the path to the correctionlib file containing the scale factor
- * @param idAlgorithm the name of the scale factor with in the correctionlib
+ * @param idAlgorithm the name of the scale factor in the correctionlib
  * file
  * @return ROOT::RDF::RNode
  */
@@ -853,7 +853,7 @@ ROOT::RDF::RNode selection_id(ROOT::RDF::RNode df, const std::string &pt,
  * @param sf_file the path to the correctionlib file containing the scale factor
  * @param correctiontype the type of the correction. Use `emb` for embedding and
  * `mc` for monte carlo
- * @param idAlgorithm the name of the scale factor with in the correctionlib
+ * @param idAlgorithm the name of the scale factor in the correctionlib
  * file
  * @return ROOT::RDF::RNode
  */
@@ -891,7 +891,7 @@ ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
  * @param sf_file the path to the correctionlib file containing the scale factor
  * @param correctiontype the type of the correction. Use `emb` for embedding and
  * `mc` for monte carlo
- * @param idAlgorithm the name of the scale factor with in the correctionlib
+ * @param idAlgorithm the name of the scale factor in the correctionlib
  * file
  * @return ROOT::RDF::RNode
  */
