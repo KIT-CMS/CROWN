@@ -296,29 +296,6 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
         valid_batches = [batch for batch in self.batch_nums if int(batch) <= max_batch]
         return valid_batches
 
-    # Function to get relevant processes and their classes
-    def get_process_dict(self, channel, mass, batch_num):
-        run_loc = "sm-htt-analysis"
-        # Get processes and classes as dict
-        process_dict = literal_eval(
-            self.run_command(
-                [
-                    "python",
-                    "utils/get_processes.py",
-                    "--channel {}".format(channel),
-                    "--mass {}".format(mass),
-                    "--batch {}".format(batch_num),
-                    "--training-z-estimation-method emb",
-                    "--training-jetfakes-estimation-method ff"
-                ],
-                run_location=run_loc,
-                sourcescripts="{}/utils/setup_python.sh".format(run_loc),
-                collect_out=True,
-                silent=True
-            )
-        )
-        return process_dict
-
     # Create map for the branches of this task
     def create_branch_map(self):
         return [

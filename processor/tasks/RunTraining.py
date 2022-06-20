@@ -56,10 +56,10 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
         return valid_batches
 
     # Function to get relevant processes and their classes
-    def get_process_dict(self, channel, mass, batch_num):
+    def get_process_tuple(self, channel, mass, batch_num):
         run_loc = "sm-htt-analysis"
-        # Get processes and classes as dict
-        process_dict = literal_eval(
+        # Get processes and classes as list of tuples
+        process_tuples = literal_eval(
             self.run_command(
                 [
                     "python",
@@ -76,7 +76,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
                 silent=True
             )
         )
-        return process_dict
+        return process_tuples
 
     # Create map for the branches of this task
     def create_branch_map(self):
@@ -105,7 +105,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
 
         process_dict = {
             channel: [
-                self.get_process_dict(channel, mass, batch_num) 
+                self.get_process_tuple(channel, mass, batch_num) 
                 for mass in self.masses
                 for batch_num in self.valid_batches(mass)
             ]
