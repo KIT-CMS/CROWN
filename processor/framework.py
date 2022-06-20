@@ -9,6 +9,7 @@ from law.util import merge_dicts
 import socket
 from datetime import datetime
 from law.contrib.htcondor.job import HTCondorJobManager
+from tempfile import mkdtemp
 from getpass import getuser
 
 law.contrib.load("wlcg")
@@ -24,6 +25,7 @@ else:
 
 class Task(law.Task):
 
+    local_user = getuser()
     wlcg_path = luigi.Parameter(
         description="Base-path to remote file location."
     )
@@ -43,8 +45,20 @@ class Task(law.Task):
         parts = (os.getenv("ANALYSIS_DATA_PATH"),) + (self.production_tag,) + (self.__class__.__name__,) + path
         return os.path.join(*parts)
 
+    def temporary_local_path(self, *path):
+        temporary_dir = mkdtemp(
+            dir="/tmp/{user}".format(
+                user=self.local_user
+            )
+        )
+        parts = (temporary_dir,) + (self.__class__.__name__,) + path
+        return os.path.join(*parts)
+
     def local_target(self, *path):
         return law.LocalFileTarget(self.local_path(*path))
+
+    def temporary_local_target(self, *path):
+        return law.LocalFileTarget(self.temporary_local_path(*path))
 
     def convert_env_to_dict(self, env):
         my_env = {}
@@ -59,13 +73,19 @@ class Task(law.Task):
 
     # Function to apply a source-script and get the resulting environment.
     #   Anything apart from setting paths is likely not included in the resulting envs.
-    def set_environment(self, sourcescript):
-        console.log("Script: {}".format(sourcescript))
-        if isinstance(sourcescript, str):
-            sourcescript = [sourcescript]
-        source_string = " ".join(sourcescript)
+    def set_environment(self, sourcescripts, silent=False):
+        if not silent:
+            console.log("with source script: {}".format(sourcescripts))
+        if isinstance(sourcescripts, str):
+            sourcescripts = [sourcescripts]
+        source_command = [
+            "source {};".format(sourcescript) for sourcescript in sourcescripts
+        ] + ["env"]
+        source_command_string = " ".join(source_command)
+        if not silent:
+            console.log(source_command_string)
         code, out, error = interruptable_popen(
-            "source {}; env".format(source_string),
+            source_command_string,
             shell=True,
             stdout=PIPE,
             stderr=PIPE,
@@ -75,7 +95,6 @@ class Task(law.Task):
             console.log("source returned non-zero exit status {}".format(code))
             console.log("Error: {}".format(error))
             raise Exception("source failed")
-        console.rule()
         my_env = self.convert_env_to_dict(out)
         return my_env
 
@@ -84,37 +103,45 @@ class Task(law.Task):
     #   A sourcescript can be provided that is called by set_environment the resulting
     #       env is then used for the command
     #   The command is run as if it was called from run_location
-    def run_command(self, command=[], sourcescript=[], run_location=None):
+    #   With "collect_out" the output of the run command is returned
+    def run_command(self, command=[], sourcescripts=[], run_location=None, collect_out=False, silent=False):
         if command:
             if isinstance(command, str):
                 command = [command]
-            if sourcescript:
-                run_env = self.set_environment(sourcescript)
-            else:
-                run_env = None
             logstring = "Running {}".format(command)
             if run_location:
                 logstring += " from {}".format(run_location)
-            console.log(logstring)
+            if not silent:
+                console.log(logstring)
+            if sourcescripts:
+                run_env = self.set_environment(sourcescripts, silent)
+            else:
+                run_env = None
+            if not silent:
+                console.rule()
             code, out, error = interruptable_popen(
                 " ".join(command),
                 shell=True,
                 stdout=PIPE,
                 stderr=PIPE,
                 env=run_env,
-                cwd=run_location,
-                # rich_console=console
+                cwd=run_location
             )
+            if not silent:
+                console.log("Output: {}".format(out))
+                console.rule()
+            if not silent or code != 0:
+                console.log("Error: {}".format(error))
+                console.rule()
             if code != 0:
                 console.log("Error when running {}.".format(list(command)))
-                console.log("Output: {}".format(out))
-                console.log("Error: {}".format(error))
                 console.log("Command returned non-zero exit status {}.".format(code))
                 raise Exception("{} failed".format(list(command)))
             else:
-                console.log("Command successful.")
-                console.log("Output: {}".format(out))
-                console.log("Error: {}".format(error))
+                if not silent:
+                    console.log("Command successful.")
+            if collect_out:
+                return out
         else:
             raise Exception("No command provided.")
 
@@ -217,7 +244,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
         config.custom_content.append(
             ("accounting_group", self.htcondor_accounting_group)
         )
-        # config.custom_content.append(("Log", "log.txt")) #
+        config.custom_content.append(("Log", "log.txt")) #
         # config.custom_content.append(("stream_output", "True")) #
         # config.custom_content.append(("Output", "out_{}to{}.txt".format(branches[0], branches[-1]))) #Remove before commit
         # config.custom_content.append(("stream_error", "True")) #
@@ -318,7 +345,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
                 tarball_env.copy_from_local(
                     src="tarballs/conda_envs/{}.tar.gz".format(self.ENV_NAME)
                 )
-        config.render_variables["USER"] = getuser()
+        config.render_variables["USER"] = self.local_user
         config.render_variables["ANA_NAME"] = os.getenv("ANA_NAME")
         config.render_variables["ENV_NAME"] = self.ENV_NAME
         config.render_variables["TAG"] = self.production_tag

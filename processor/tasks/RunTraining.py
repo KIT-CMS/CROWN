@@ -1,142 +1,311 @@
 # coding: utf-8
 
-# """
-# Simple law tasks that demonstrate how use remote file targets and how to run on remote resources using HTCondor.
-# """
+"""
+Task to run NMSSM NN trainings
+And Task to run all trainings for each mass,batch,channel combination
+"""
 
-
-import sys
 import os
 import luigi
 import law
 from shutil import rmtree
 from framework import Task, HTCondorWorkflow
-from law import LocalWorkflow
-from tempfile import mkdtemp
-from CreateTrainingDatasets import CreateTrainingDatasets, CreateTrainingDatasetsAllEras
-from copy import copy
-law.contrib.load("tasks")  # to have the RunOnceTask
+from ast import literal_eval
+from law.target.collection import flatten_collections
+import re
+from CreateTrainingDatasets import \
+    CreateTrainingConfig, CreateTrainingConfigAllEras, CreateTrainingDataShard
 
-# law.contrib.load("tasks")  # to have the RunOnceTask
+law.contrib.load("tasks")  # to have the RunOnceTask class
 
-#Task runs over HTCondor
+# Task to run NN training (2 folds)
+# One training is performed for each valid combination of:
+# channel, mass, batch and fold
+# The datashards are combined based on the training parameters
 class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
+    # Define luigi parameters
     era = luigi.Parameter(description="Run era")
-    channel = luigi.Parameter(description="Decay Channel")
-    mass = luigi.Parameter(description="Mass hypothesis of heavy NMSSM Higgs boson.")
-    batch_num = luigi.Parameter(description="Group of mass hypotheses of light NMSSM Higgs boson.")
+    channels = luigi.ListParameter(description="List of decay Channels")
+    masses = luigi.ListParameter(
+        description="List of mass hypotheses of heavy NMSSM Higgs boson."
+    )
+    batch_nums = luigi.ListParameter(
+        description="List of groups of mass hypotheses of light NMSSM Higgs boson."
+    )
 
-    files_template = [
-        "{prefix}fold{fold}_keras_model.h5",
-        "{prefix}fold{fold}_keras_preprocessing.pickle",
-        "{prefix}fold{fold}_loss.pdf",
-        "{prefix}fold{fold}_loss.png",
+    # Set other variables and templates used by this class.
+    all_eras = ["2016", "2017", "2018"]
+    dir_template = "{era}_{channel}_{mass}_{batch}"
+    dir_template_in = "{era}_{channel}"
+    file_template_shard = "{process}_datashard_fold{fold}.root"
+    file_template_config = "training_config.yaml"
+    file_templates = [
+        "fold{fold}_keras_model.h5",
+        "fold{fold}_keras_preprocessing.pickle",
+        "fold{fold}_loss.pdf",
+        "fold{fold}_loss.png",
     ]
-        # "{prefix}training{fold}.log"
 
+    # Function to check for invalid mass-batch combinations
+    def valid_batches(self, mass):
+        if int(mass) <= 1000:
+            max_batch = 7
+        else:
+            max_batch = 6
+        valid_batches = [batch for batch in self.batch_nums if int(batch) <= max_batch]
+        return valid_batches
+
+    # Function to get relevant processes and their classes
+    def get_process_dict(self, channel, mass, batch_num):
+        run_loc = "sm-htt-analysis"
+        # Get processes and classes as dict
+        process_dict = literal_eval(
+            self.run_command(
+                [
+                    "python",
+                    "utils/get_processes.py",
+                    "--channel {}".format(channel),
+                    "--mass {}".format(mass),
+                    "--batch {}".format(batch_num),
+                    "--training-z-estimation-method emb",
+                    "--training-jetfakes-estimation-method ff"
+                ],
+                run_location=run_loc,
+                sourcescripts="{}/utils/setup_python.sh".format(run_loc),
+                collect_out=True,
+                silent=True
+            )
+        )
+        return process_dict
+
+    # Create map for the branches of this task
     def create_branch_map(self):
         return [
             {
-                "era": self.era, 
-                "channel": self.channel, 
-                "mass": self.mass, 
-                "batch": self.batch_num, 
-                "fold":fold
+                "channel": channel,
+                "mass": mass,
+                "batch_num": batch_num,
+                "fold": fold
             } 
+            for channel in self.channels
+            for mass in self.masses
+            for batch_num in self.valid_batches(mass)
             for fold in ["0","1"]
         ]
 
-    # Requirements dependant on whether all_eras was used
+    # Set prerequisites of this task:
+    # All dataset shards have to be completed
+    # All training config files have to be completed
+    # The prerequisites are also dependant on whether all_eras is used
     def requires(self):
         return self.workflow_requires()
 
-            
     def workflow_requires(self):
         requirements = super(RunTraining, self).workflow_requires()
-        requirements_args = {
-            "era": self.era, 
-            "channel": self.channel, 
-            "mass": self.mass, 
-            "batch_num": self.batch_num
+
+        process_dict = {
+            channel: [
+                self.get_process_dict(channel, mass, batch_num) 
+                for mass in self.masses
+                for batch_num in self.valid_batches(mass)
+            ]
+            for channel in self.channels
         }
-        # if "default/" in self.production_tag:
-        #     requirements_args["production_tag"] = self.production_tag
-        if self.era == "all_eras":
-            requirements["CreateTrainingDatasets"] = CreateTrainingDatasets(**requirements_args)
-            requirements["CreateTrainingDatasetsAllEras"] = CreateTrainingDatasetsAllEras(**requirements_args)
-        else:
-            requirements["CreateTrainingDatasets"] = CreateTrainingDatasets(**requirements_args)
+        # Tasks of diffrent required channels are set up as seperate tasks, not branches
+        # This is, because the process classes are dependant on the decay channel
+        for channel in self.channels:
+            # Get list of unique processes and their classes for each decay channel
+            processes_and_classes = set([element 
+                for element_list in process_dict[channel] 
+                for element in element_list
+            ])
+            processes_and_classes = [list(elem) for elem in processes_and_classes]
+            requirements_conf = {
+                "eras": [self.era],
+                "channel": channel,
+                "processes_and_classes": processes_and_classes,
+                "masses": self.masses, 
+                "batch_nums": self.batch_nums
+            }
+            if self.era == "all_eras":
+                # requires CreateTrainingConfigAllEras task if all_eras is used
+                requirements["CreateTrainingConfig_{}".format(channel)] = \
+                    CreateTrainingConfigAllEras(**requirements_conf)
+                
+                use_eras = self.all_eras
+            else:
+                # requires CreateTrainingConfig task if all_eras is not used
+                requirements["CreateTrainingConfig_{}".format(channel)] = \
+                    CreateTrainingConfig(**requirements_conf)
+                use_eras = [self.era]
+            # use_eras is set to be either given era, or a list of all eras 
+            requirements_shard = {
+                "eras": use_eras, 
+                "channel": channel,
+                "processes_and_classes": processes_and_classes
+            }
+            requirements["CreateTrainingDataShard_{}".format(channel)] = \
+                CreateTrainingDataShard(**requirements_shard)
+
         return requirements
 
-
-
+    # Define output targets. Task is considerd complete if all targets are present.
     def output(self):
-        # Define output files: fold 0 and 1 of training data + config file
-        prefix = "training_dataset_{era}_{channel}_{mass}_{batch}/".format(
-                    era=self.era,
-                    channel=self.channel,
-                    mass=self.mass,
-                    batch=self.batch_num
+        files = [
+            "/".join([
+                self.dir_template.format(
+                    era=self.era, 
+                    channel=self.branch_data["channel"],
+                    mass=self.branch_data["channel"],
+                    batch=self.branch_data["batch_num"]
+                ),
+                file_template.format(
+                    fold=self.branch_data["fold"]                    
                 )
-        
-        fold = self.branch_data["fold"]
-        files = [file_string.format(prefix=prefix, fold=fold) for file_string in self.files_template]
+            ])
+            for file_template in self.file_templates
+        ]
         targets = self.remote_targets(files)
         for target in targets:
             target.parent.touch()
         return targets
 
     def run(self):
-        cmb_tag = "{channel}_{mass}_{batch}".format(
-                    channel=self.channel,
-                    mass=self.mass,
-                    batch=self.batch_num
-                )
         fold = self.branch_data["fold"]
-        # self.publish_message("This is layer 0: {}".format(self.input()))
-        # self.publish_message("This is layer 1a: {}".format(self.input()['CreateTrainingDatasets']['collection']))
-        # self.publish_message("This is layer 2a: {}".format(self.input()['CreateTrainingDatasets']['collection'][0]))
-        # self.publish_message("This is layer 1b: {}".format(self.input()['CreateTrainingDatasetsAllEras']))
-        collections = self.input()['CreateTrainingDatasets']['collection']
-        prefix = "sm-htt-analysis/output/ml/{era}_{cmb_tag}/".format(era=self.era, cmb_tag=cmb_tag)
+        prefix = self.temporary_local_path("")
+        run_loc = "sm-htt-analysis"
+        # Create data directory for each branch
+        data_dir = "/".join([
+            prefix,
+            self.dir_template.format(
+                era=self.era,
+                channel=self.branch_data["channel"],
+                mass=self.branch_data["mass"],
+                batch=self.branch_data["batch_num"]
+            )
+        ])
+        os.makedirs("/".join([data_dir, self.era]), exist_ok=True)
         if self.era == "all_eras":
-            all_eras_dataset_config = self.input()['CreateTrainingDatasetsAllEras']
-            eras = ["2016", "2017", "2018"]
-            for i_era, era in enumerate(eras):
-                prefix_loop = "sm-htt-analysis/output/ml/{era}_{cmb_tag}/".format(era=era, cmb_tag=cmb_tag)
-                for i_file, copyFile in enumerate(collections[i_era]):
-                    if i_file==int(fold):
-                        print("copying {}".format(copyFile))
-                        filename = os.path.basename(copyFile.path)
-                        copyFile.copy_to_local(prefix_loop + filename)
-            print("copying {}".format(all_eras_dataset_config))
-            filename = os.path.basename(all_eras_dataset_config.path)
-            all_eras_dataset_config.copy_to_local(prefix + filename)
+            use_eras = self.all_eras
         else:
-            for i_file, copyFile in enumerate(collections[0]):
-                if (i_file==2) or (i_file==int(fold)):
-                    print("copying {}".format(copyFile))
-                    filename = os.path.basename(copyFile.path)
-                    copyFile.copy_to_local(prefix + filename)
+            use_eras = [self.era]
+        files = [
+            "/".join([
+                data_dir,
+                self.era,
+                file_template.format(
+                    fold=self.branch_data["fold"]
+                )
+            ])
+            for file_template in self.file_templates
+        ]
+        # Get list of all training config targets
+        allbranch_trainingconfigs = flatten_collections(
+            self.input()["CreateTrainingConfig_{}".format(
+                self.branch_data["channel"]
+            )]["collection"]
+        )
+        # Filter training config targets by name in each branch
+        filefilter_training_config_string = "/".join([
+            ".*",
+            self.dir_template.format(
+                era = self.era, 
+                channel = self.branch_data["channel"],
+                mass = self.branch_data["mass"],
+                batch = self.branch_data["batch_num"]
+            ),
+            self.file_template_config
+        ])
+        filefilter_training_config = re.compile(filefilter_training_config_string)
+        trainingconfig = [
+            target 
+            for target in allbranch_trainingconfigs 
+            if filefilter_training_config.match(target.path)
+        ][0]
+        # Get list of all shard targets
+        allbranch_shards = flatten_collections(
+            self.input()["CreateTrainingDataShard_{}".format(
+                self.branch_data["channel"]
+            )]["collection"]
+        )
+        # Filter shard targets by name in each branch and for each process
+        filefilter_shard_strings = [
+            "/".join([
+                ".*",
+                self.dir_template_in.format(
+                    era = era, 
+                    channel = self.branch_data["channel"]
+                ),
+                self.file_template_shard.format(
+                    process = ".*",
+                    fold = fold
+                )
+            ])
+            for era in use_eras
+        ]
+        filefilters_shard = [re.compile(string) for string in filefilter_shard_strings]
+        shards_eras = [
+            [target for target in allbranch_shards if filefilter.match(target.path)] 
+            for filefilter in filefilters_shard
+        ]
+        
+        # Copy filtered shard and training config files into data directory
+        for shards, era in zip(shards_eras, use_eras):
+            for shard in shards:
+                shard_name = os.path.basename(shard.path)
+                shard.copy_to_local("/".join([data_dir, era, shard_name]))
+        trainingconfig_name = os.path.basename(trainingconfig.path)
+        trainingconfig.copy_to_local("/".join([data_dir, trainingconfig_name]))
 
         # self.run_command(
         #     command=["ls", "-R"],
-        #     run_location=prefix
+        #     run_location=data_dir
         # )
+        # Set maximum number of threads (this number is somewhat inaccurate 
+        # as TensorFlow only abides by it for some aspects of the training)
+        if "OMP_NUM_THREADS" in os.environ:
+            max_threads = os.getenv("OMP_NUM_THREADS")
+        else:
+            max_threads = 12
+        # Run NN training and save the model, 
+        # the preprocessing object and some images of the trasining process
         self.run_command(
             command=[
-                "ml/run_training.sh", 
-                self.era, 
-                self.channel, 
-                "{}_{}".format(self.mass, self.batch_num),
-                fold
+                "python",
+                "training/keras_training.py",
+                "--data-dir {}".format(data_dir),
+                "--era {}".format(self.era),
+                "--fold {}".format(fold),
+                "--balance-batches 1",
+                "--max-threads {}".format(max_threads)
             ], 
-            run_location="sm-htt-analysis"
+            run_location=run_loc
         )
         # self.run_command(
         #     command=["ls", "-R"],
-        #     run_location=prefix
+        #     run_location=prefix_w
         # )
-        files = [file_string.format(prefix=prefix, fold=fold) for file_string in self.files_template]
+        # Copy locally created files to remote storage
         for file_remote, file_local in zip(self.output(), files):
+            file_remote.parent.touch()
             file_remote.copy_from_local(file_local)
+        # Remove data directories
+        rmtree(prefix)
+
+# Task to run all NN trainings for all decay channels, 
+# heavy higgs masses and groups of light higgs masses
+class RunAllTrainings(Task, law.tasks.RunOnceTask):
+    # Requires ALL trainings
+    def requires(self):
+        requirements = {
+            "era": all_eras,
+            "channels": ["tt","et","mt"],
+            "masses": ["240","280","320","360","400","450","500",
+                "550","600","700","800","900","1000","1200"],
+            "batch_nums": ["1","2","3","4","5","6","7"]
+        }
+        return RunTraining(**requirements)
+
+    def run(self):
+        self.publish_message("All trainings are done!")
+        self.mark_complete()
