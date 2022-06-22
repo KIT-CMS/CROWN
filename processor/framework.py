@@ -3,7 +3,7 @@ import re
 import luigi
 import law
 from law.util import interruptable_popen, readable_popen
-from subprocess import PIPE
+from subprocess import PIPE, Popen
 from rich.console import Console
 from law.util import merge_dicts
 import socket
@@ -162,30 +162,34 @@ class Task(law.Task):
             if run_location:
                 logstring += " from {}".format(run_location)
             console.log(logstring)
-            p, lines = readable_popen(
+            p = Popen(
                 " ".join(command),
                 shell=True,
                 stdout=PIPE,
                 stderr=PIPE,
                 env=run_env,
                 cwd=run_location,
-                # rich_console=console
+                preexec_fn=os.setsid,
             )
-            for line in lines:
-                if line != "":
-                    console.log(line)
+            # Poll process.stdout to show stdout live
+            while True:
+                output = p.stdout.readline()
+                if p.poll() is not None:
+                    break
+                if output:
+                    console.log(output.strip().decode("UTF-8"))
+            rc = p.poll()
             out, error = p.communicate()
-            code = p.errorcode()
-            if code != 0:
+            if rc != 0:
                 console.log("Error when running {}.".format(list(command)))
-                console.log("Output: {}".format(out))
-                console.log("Error: {}".format(error))
-                console.log("Command returned non-zero exit status {}.".format(code))
+                console.log("Output: {}".format(out.decode("UTF-8")))
+                console.log("Error: {}".format(error.decode("UTF-8")))
+                console.log("Command returned non-zero exit status {}.".format(rc))
                 raise Exception("{} failed".format(list(command)))
             else:
                 console.log("Command successful.")
-                console.log("Output: {}".format(out))
-                console.log("Error: {}".format(error))
+                console.log("Output: {}".format(out.decode("UTF-8")))
+                console.log("Error: {}".format(error.decode("UTF-8")))
         else:
             raise Exception("No command provided.")
 

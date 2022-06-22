@@ -36,6 +36,3 @@ make install -j $THREADS
 cd $INSTALLDIR
 touch $TARBALLNAME
 tar -czvf $TARBALLNAME --exclude=$TARBALLNAME .
-echo "CROWN tarball created: $TARBALLNAME"
-
-exit 0
