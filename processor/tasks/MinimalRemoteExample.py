@@ -17,6 +17,7 @@ from framework import Task, HTCondorWorkflow
 
 law.contrib.load("tasks")  # to have the RunOnceTask
 
+
 class SaveToRemote(Task):
     # Output target is remote and accessed using gfal2.
     def output(self):
@@ -27,6 +28,7 @@ class SaveToRemote(Task):
     def run(self):
         saveText = "This is "
         self.output().dump(saveText)
+
 
 class RunRemote(HTCondorWorkflow, law.LocalWorkflow):
     def requires(self):
@@ -51,6 +53,7 @@ class RunRemote(HTCondorWorkflow, law.LocalWorkflow):
     def run(self):
         try:
             import tensorflow as tf
+
             tf.test.is_gpu_available()
         except:
             print("Tensorflow not found.")
@@ -67,11 +70,15 @@ class RunRemote(HTCondorWorkflow, law.LocalWorkflow):
 class ReadFromRemote(Task, law.tasks.RunOnceTask):
     def requires(self):
         return RunRemote.req(self)
-    
+
     # Print all layers of the input individually. Final layer is the requested data.
     def run(self):
         self.publish_message("This is layer 0: {}".format(self.input()))
-        self.publish_message("This is layer 1: {}".format(self.input()['collection']))
-        self.publish_message("This is layer 2: {}".format(self.input()['collection'][0]))
-        self.publish_message("This is layer 3: {}".format(self.input()['collection'][0].load()))
+        self.publish_message("This is layer 1: {}".format(self.input()["collection"]))
+        self.publish_message(
+            "This is layer 2: {}".format(self.input()["collection"][0])
+        )
+        self.publish_message(
+            "This is layer 3: {}".format(self.input()["collection"][0].load())
+        )
         self.mark_complete()
