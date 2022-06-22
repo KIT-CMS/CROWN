@@ -9,6 +9,7 @@ SHIFTS=$7
 INSTALLDIR=$8
 BUILDDIR=$9
 TARBALLNAME=${10}
+THEADS=${11}
 # setup with analysis clone if needed
 set -e
 source $ANALYSIS_PATH/CROWN/init.sh $ANALYSIS
@@ -26,6 +27,7 @@ cmake $CROWNFOLDER \
  -DERAS=$ERAS \
  -DSCOPES=$SCOPE \
  -DSHIFTS=$SHIFTS \
+ -DTHEADS=$THEADS \
  -DINSTALLDIR=$INSTALLDIR \
  -B$BUILDDIR
 
