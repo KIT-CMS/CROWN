@@ -581,7 +581,7 @@ class CodeGenerator(object):
                 scope=scope
             )
         )
-        tracking += '        Logger::get("main")->info("{{0:c}} / {{1:c}} ({{2:.2f}} %) Events processed ...", {scope}_processed, nevents, percentage);\n'.format(
+        tracking += '        Logger::get("main")->info("{{0:d}} / {{1:d}} ({{2:.2f}} %) Events processed ...", {scope}_processed, nevents, percentage);\n'.format(
             scope=scope
         )
         tracking += "    });\n"
