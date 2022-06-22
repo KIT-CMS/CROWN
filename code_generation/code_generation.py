@@ -201,12 +201,12 @@ class CodeGenerator(object):
             self.executable_name + ".cxx",
         )
         self.debug = False
-        self._outputfiles_generated = {}
+        self._outputfiles_generated: Dict[str, str] = {}
         self.threads = threads
-        self.subset_includes = []
-        self.output_commands = {}
-        self.subset_calls = {}
-        self.main_counter = {}
+        self.subset_includes: List[str] = []
+        self.output_commands: Dict[str, List[str]] = {}
+        self.subset_calls: Dict[str, List[str]] = {}
+        self.main_counter: Dict[str, int] = {}
         self.number_of_defines = 0
         self.number_of_outputs = 0
         for scope in self.scopes:
@@ -352,7 +352,7 @@ class CodeGenerator(object):
             self.executable_name + "_generated_code", self.executable_name + ".cxx"
         )
 
-    def generate_subsets(self, scope) -> None:
+    def generate_subsets(self, scope: str) -> None:
         """
         Generate the subsets for the given scope
         Args:
@@ -431,6 +431,7 @@ class CodeGenerator(object):
         log.debug("Generating run commands")
         runcommands = ""
         for scope in self.scopes:
+            outputset: List[str] = []
             for output in sorted(self.outputs[scope]):
                 self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
             if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
@@ -438,10 +439,17 @@ class CodeGenerator(object):
                 self._outputfiles_generated[scope] = "outputpath_{scope}".format(
                     scope=scope
                 )
-                outputstring = '", "'.join(
-                    self.output_commands[scope]
-                    + self.output_commands[self.global_scope]
+                # convert output lists to a set to remove duplicates
+                outputset = list(
+                    set(
+                        self.output_commands[scope]
+                        + self.output_commands[self.global_scope]
+                    )
                 )
+                # sort the output list to get alphabetical order of the output names
+                outputset.sort()
+                outputstring = '", "'.join(outputset)
+
                 self.number_of_outputs += len(self.output_commands[scope])
                 runcommands += "    auto {scope}_cutReport = df{counter}_{scope}.Report();\n".format(
                     scope=scope, counter=self.main_counter[scope]
@@ -457,6 +465,8 @@ class CodeGenerator(object):
                 )
         # add code for tracking the progress
         runcommands += self.set_process_tracking()
+        # add code for the time taken for the dataframe setup
+        runcommands += self.set_setup_printout()
         # add trigger of dataframe execution, for nonempty scopes
         for scope in self.scopes:
             if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
@@ -468,6 +478,7 @@ class CodeGenerator(object):
                 self._outputfiles_generated.keys()
             )
         )
+
         return runcommands
 
     def set_debug_flag(self) -> str:
@@ -530,6 +541,19 @@ class CodeGenerator(object):
         """
         self.threads = threads
 
+    def set_setup_printout(self) -> str:
+        """
+        adds the code for the timing information on the dataframe setup to the run commands.
+        """
+        printout = ""
+        printout += '   Logger::get("main")->info("Finished Setup");\n'
+        printout += '   Logger::get("main")->info("Runtime for setup (real time: {0:.2f}, CPU time: {1:.2f})",\n'
+        printout += "                           timer.RealTime(), timer.CpuTime());\n"
+        printout += "   timer.Continue();\n"
+        printout += '   Logger::get("main")->info("Starting Evaluation");\n'
+
+        return printout
+
     def set_process_tracking(self) -> str:
         """This function replaces the template placeholder for the process tracking with the correct process tracking.
 
@@ -543,7 +567,7 @@ class CodeGenerator(object):
         tracking += "    auto c_{scope} = df{counter}_{scope}.Count();\n".format(
             counter=self.main_counter[scope], scope=scope
         )
-        tracking += "    c_{scope}.OnPartialResultSlot(quantile, [&{scope}_bar_mutex, &{scope}_processed, &quantile](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
+        tracking += "    c_{scope}.OnPartialResultSlot(quantile, [&{scope}_bar_mutex, &{scope}_processed, &quantile, &nevents](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
             scope=scope
         )
         tracking += (
@@ -552,7 +576,12 @@ class CodeGenerator(object):
             )
         )
         tracking += "        {scope}_processed += quantile;\n".format(scope=scope)
-        tracking += '        Logger::get("main")->info("{{}} Events processed ...", {scope}_processed);\n'.format(
+        tracking += (
+            "        float percentage = 100 * {scope}_processed / nevents;\n".format(
+                scope=scope
+            )
+        )
+        tracking += '        Logger::get("main")->info("{{0:c}} / {{1:c}} ({{2:.2f}} %) Events processed ...", {scope}_processed, nevents, percentage);\n'.format(
             scope=scope
         )
         tracking += "    });\n"
