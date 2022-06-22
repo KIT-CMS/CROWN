@@ -44,9 +44,6 @@ int main(int argc, char *argv[]) {
             "./analysis output.root /path/to/inputfiles/*.root");
         return 1;
     }
-    if (argc > 3) {
-        Logger::get("main")->info("Running with {} input files", argc - 2);
-    }
     std::vector<std::string> input_files;
     int nevents = 0;
     for (int i = 2; i < argc; i++) {
