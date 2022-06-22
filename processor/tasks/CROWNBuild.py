@@ -51,7 +51,6 @@ class CROWNBuild(Task):
         _config = str(self.config)
         _shifts = str(self.shifts)
         _threads = str(self.threads)
-        console.log("Using {} threads".format(_threads))
         # also use the tag for the local tarball creation
         _tag = "{}/CROWN_{}_{}".format(self.production_tag, _analysis, _config)
         _install_dir = os.path.join(str(self.install_dir), _tag)
@@ -97,6 +96,7 @@ class CROWNBuild(Task):
             console.log("Using build_directory {}".format(_build_dir))
             console.log("Using install directory {}".format(_install_dir))
             console.log("Settings used: ")
+            console.log("Threads: {}".format(_threads))
             console.log("Analysis: {}".format(_analysis))
             console.log("Config: {}".format(_config))
             console.log("Sampletype: {}".format(_sampletypes))
