@@ -576,10 +576,8 @@ class CodeGenerator(object):
             )
         )
         tracking += "        {scope}_processed += quantile;\n".format(scope=scope)
-        tracking += (
-            "        float percentage = 100 * {scope}_processed / nevents;\n".format(
-                scope=scope
-            )
+        tracking += "        float percentage = 100 * (float){scope}_processed / (float)nevents;\n".format(
+            scope=scope
         )
         tracking += '        Logger::get("main")->info("{{0:d}} / {{1:d}} ({{2:.2f}} %) Events processed ...", {scope}_processed, nevents, percentage);\n'.format(
             scope=scope
