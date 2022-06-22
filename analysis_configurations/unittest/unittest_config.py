@@ -643,13 +643,13 @@ def build_config(
         scopes,
         [
             q.is_data,
-            q.is_emb,
-            q.is_tt,
-            q.is_dy,
-            q.is_wj,
-            q.is_ggh,
-            q.is_vbf,
-            q.is_vv,
+            q.is_embedding,
+            q.is_ttbar,
+            q.is_dyjets,
+            q.is_wjets,
+            q.is_ggh_htautau,
+            q.is_vbf_htautau,
+            q.is_diboson,
             nanoAOD.run,
             q.lumi,
             # q.npartons, # not available in nanoAOD test sample
@@ -876,8 +876,8 @@ def build_config(
     configuration.add_shift(
         SystematicShift(
             name="tauES_1prong0pizeroDown",
-            shift_config={("et, mt, tt"): {"tau_ES_shift_DM0": "down"}},
-            producers={("et, mt, tt"): taus.TauPtCorrection_genTau},
+            shift_config={("et", "mt", "tt"): {"tau_ES_shift_DM0": "down"}},
+            producers={("et", "mt", "tt"): taus.TauPtCorrection_genTau},
             ignore_producers={
                 "et": [pairselection.LVEl1, electrons.VetoElectrons],
                 "mt": [pairselection.LVMu1, muons.VetoMuons],
@@ -920,23 +920,48 @@ def build_config(
     #########################
     # Jet energy resolution
     #########################
+    JEC_sources = '{"Total"}'
     configuration.add_shift(
         SystematicShift(
-            name="jerUncUp",
+            name="jesUncTotalUp",
             shift_config={
-                "global": {"jet_jer_shift": '"up"'},
+                "global": {
+                    "jet_jes_shift": 1,
+                    "jet_jes_sources": JEC_sources,
+                }
             },
-            producers={"global": jets.JetEnergyCorrection},
-        )
+            producers={
+                "global": {
+                    jets.JetEnergyCorrection,
+                }
+            },
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "embedding", "embedding_mc"]
+        ],
     )
     configuration.add_shift(
         SystematicShift(
-            name="jerUncDown",
+            name="jesUncTotalDown",
             shift_config={
-                "global": {"jet_jer_shift": '"down"'},
+                "global": {
+                    "jet_jes_shift": -1,
+                    "jet_jes_sources": JEC_sources,
+                }
             },
-            producers={"global": jets.JetEnergyCorrection},
-        )
+            producers={
+                "global": {
+                    jets.JetEnergyCorrection,
+                }
+            },
+        ),
+        samples=[
+            sample
+            for sample in available_sample_types
+            if sample not in ["data", "embedding", "embedding_mc"]
+        ],
     )
 
     #########################
