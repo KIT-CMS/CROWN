@@ -194,6 +194,11 @@ action() {
         luigid --background --logdir logs --state-path luigid_state.pickle
     fi
 
+    # Create law index for analysis if not previously done
+    if [[ ! -f "${LAW_HOME}/index" ]]; then
+        law index --verbose
+    fi
+
     export LAW_IS_SET_UP="True"
 }
 action "$@"

@@ -101,7 +101,7 @@ class CreateTrainingDataShardConfig(Task):
             self.run_command(
                 command=[
                     "python",
-                    "dataset/write_datashard_config.py",
+                    "ml_datasets/write_datashard_config.py",
                     "--era {}".format(era),
                     "--channel {}".format(self.channel),
                     "--processes {}".format(" ".join(missing_processes)),
@@ -149,7 +149,7 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
     # Each branch can be run as an individula job
     def create_branch_map(self):
         processes, process_classes = zip(*self.processes_and_classes)
-        return [
+        branches = [
             {
                 "era": era,
                 "channel": self.channel,
@@ -160,6 +160,10 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
             for process in processes
             for fold in ["0","1"]
         ]
+        assert branches, \
+            "There are no valid branches for this set of parameters: \
+            \n{}".format(self)
+        return branches
         
     # Set prerequisites of this task:
     # All configs for the dataset shards have to be completed
@@ -247,7 +251,7 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
         self.run_command(
             [
                 "python",
-                "dataset/create_training_datashard.py",
+                "ml_datasets/create_training_datashard.py",
                 "--config {}".format(local_config_path),
                 "--process {}".format(self.branch_data["process"]),
                 "--fold {}".format(self.branch_data["fold"]),
@@ -289,22 +293,35 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
 
     # Function to check for invalid mass-batch combinations
     def valid_batches(self, mass):
-        if int(mass) <= 1000:
+        mass = str(mass)
+        if mass in ["240","280"]:
+            max_batch = 3
+        elif mass in ["320","360","400","450"]:
+            max_batch = 4
+        elif mass in ["500","550","600"]:
+            max_batch = 5
+        elif mass in ["700","800","heavier"]:
+            max_batch = 6
+        elif mass in ["900","1000"]:
             max_batch = 7
         else:
-            max_batch = 6
+            raise Exception("Provided mass {} is not valid.".format(mass))
         valid_batches = [batch for batch in self.batch_nums if int(batch) <= max_batch]
         return valid_batches
 
     # Create map for the branches of this task
     def create_branch_map(self):
-        return [
+        branches = [
             {
                 "era": era,
                 "channel": self.channel
             } 
             for era in self.eras
         ]
+        assert branches, \
+            "There are no valid branches for this set of parameters: \
+            \n{}".format(self)
+        return branches
 
     # Set prerequisites of this task:
     # All configs for the dataset shards have to be completed
@@ -399,9 +416,6 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
             for process in processes
         ]
         filefilter_shards = [re.compile(string) for string in filefilter_shard_strings]
-        filefilter_shard_configs = [
-            re.compile(string) for string in filefilter_shard_config_strings
-        ] 
         shards = [
             target 
             for target in allbranch_shards 
@@ -426,11 +440,6 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
         ]
         filefilter_shard_configs = [
             re.compile(string) for string in filefilter_shard_config_strings
-        ] 
-        shards = [
-            target 
-            for target in allbranch_shards 
-            for filt in filefilter_shards if filt.match(target.path)
         ]
         shardconfigs = [
             target 
@@ -451,14 +460,14 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
         self.run_command(
             [
                 "python",
-                "dataset/write_training_config.py",
+                "ml_datasets/write_training_config.py",
                 "--era {}".format(self.branch_data["era"]),
                 "--channel {}".format(self.channel),
                 "--masses {}".format(" ".join(self.masses)),
                 "--batches {}".format(" ".join(self.batch_nums)),
                 "--dataset-dir {}/{}_{}".format(prefix, self.branch_data["era"], self.channel),
                 "--processes {}".format(" ".join(processes)),
-                "--training-template ml/templates/{}_{}_training.yaml".format(
+                "--training-template datasets/templates/{}_{}_training.yaml".format(
                     self.branch_data["era"], self.channel
                 ),
                 "--write-weights True",
@@ -496,19 +505,28 @@ class CreateTrainingConfigAllEras(Task, law.LocalWorkflow):
     all_eras = ["2016", "2017", "2018"]
     dir_template = "{era}_{channel}_{mass}_{batch}"
     file_template = "training_config.yaml"
-    
+
     # Function to check for invalid mass-batch combinations
     def valid_batches(self, mass):
-        if int(mass) <= 1000:
+        mass = str(mass)
+        if mass in ["240","280"]:
+            max_batch = 3
+        elif mass in ["320","360","400","450"]:
+            max_batch = 4
+        elif mass in ["500","550","600"]:
+            max_batch = 5
+        elif mass in ["700","800","heavier"]:
+            max_batch = 6
+        elif mass in ["900","1000"]:
             max_batch = 7
         else:
-            max_batch = 6
+            raise Exception("Provided mass {} is not valid.".format(mass))
         valid_batches = [batch for batch in self.batch_nums if int(batch) <= max_batch]
         return valid_batches
 
     # Create map for the branches of this task
     def create_branch_map(self):
-        return [
+        branches = [
             {
                 "era": era,
                 "mass": mass,
@@ -518,6 +536,10 @@ class CreateTrainingConfigAllEras(Task, law.LocalWorkflow):
             for mass in self.masses
             for batch_num in self.valid_batches(mass)
         ]
+        assert branches, \
+            "There are no valid branches for this set of parameters: \
+            \n{}".format(self)
+        return branches
 
     # Set prerequisites of this task:
     # Training configs for each era have to be completed
@@ -608,7 +630,7 @@ class CreateTrainingConfigAllEras(Task, law.LocalWorkflow):
         self.run_command(
             [
                 "python",
-                "dataset/create_combined_config.py",
+                "ml_datasets/create_combined_config.py",
                 "--input-base-path {}".format(data_dir),
                 "--output-dir {}".format(data_dir)
             ],

@@ -48,13 +48,22 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
 
     # Function to check for invalid mass-batch combinations
     def valid_batches(self, mass):
-        if int(mass) <= 1000:
+        mass = str(mass)
+        if mass in ["240","280"]:
+            max_batch = 3
+        elif mass in ["320","360","400","450"]:
+            max_batch = 4
+        elif mass in ["500","550","600"]:
+            max_batch = 5
+        elif mass in ["700","800","heavier"]:
+            max_batch = 6
+        elif mass in ["900","1000"]:
             max_batch = 7
         else:
-            max_batch = 6
+            raise Exception("Provided mass {} is not valid.".format(mass))
         valid_batches = [batch for batch in self.batch_nums if int(batch) <= max_batch]
         return valid_batches
-
+        
     # Function to get relevant processes and their classes
     def get_process_tuple(self, channel, mass, batch_num):
         run_loc = "sm-htt-analysis"
@@ -80,7 +89,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
 
     # Create map for the branches of this task
     def create_branch_map(self):
-        return [
+        branches = [
             {
                 "channel": channel,
                 "mass": mass,
@@ -92,6 +101,10 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             for batch_num in self.valid_batches(mass)
             for fold in ["0","1"]
         ]
+        assert branches, \
+            "There are no valid branches for this set of parameters: \
+            \n{}".format(self)
+        return branches
 
     # Set prerequisites of this task:
     # All dataset shards have to be completed
@@ -103,7 +116,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
     def workflow_requires(self):
         requirements = super(RunTraining, self).workflow_requires()
 
-        process_dict = {
+        process_tuple = {
             channel: [
                 self.get_process_tuple(channel, mass, batch_num) 
                 for mass in self.masses
@@ -116,7 +129,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
         for channel in self.channels:
             # Get list of unique processes and their classes for each decay channel
             processes_and_classes = set([element 
-                for element_list in process_dict[channel] 
+                for element_list in process_tuple[channel] 
                 for element in element_list
             ])
             processes_and_classes = [list(elem) for elem in processes_and_classes]
@@ -146,7 +159,6 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             }
             requirements["CreateTrainingDataShard_{}".format(channel)] = \
                 CreateTrainingDataShard(**requirements_shard)
-
         return requirements
 
     # Define output targets. Task is considerd complete if all targets are present.
@@ -156,7 +168,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
                 self.dir_template.format(
                     era=self.era, 
                     channel=self.branch_data["channel"],
-                    mass=self.branch_data["channel"],
+                    mass=self.branch_data["mass"],
                     batch=self.branch_data["batch_num"]
                 ),
                 file_template.format(
@@ -229,28 +241,36 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             )]["collection"]
         )
         # Filter shard targets by name in each branch and for each process
-        filefilter_shard_strings = [
-            "/".join([
-                ".*",
-                self.dir_template_in.format(
-                    era = era, 
-                    channel = self.branch_data["channel"]
-                ),
-                self.file_template_shard.format(
-                    process = ".*",
-                    fold = fold
-                )
-            ])
-            for era in use_eras
-        ]
-        filefilters_shard = [re.compile(string) for string in filefilter_shard_strings]
-        shards_eras = [
-            [target for target in allbranch_shards if filefilter.match(target.path)] 
-            for filefilter in filefilters_shard
-        ]
-        
-        # Copy filtered shard and training config files into data directory
-        for shards, era in zip(shards_eras, use_eras):
+        processes, process_classes = zip(*self.get_process_tuple(
+            self.branch_data["channel"], 
+            self.branch_data["mass"], 
+            self.branch_data["batch_num"]
+        ))
+        shards_eras = {}
+        for era in use_eras:
+            filefilter_shard_strings = [
+                "/".join([
+                    ".*",
+                    self.dir_template_in.format(
+                        era = era,
+                        channel = self.branch_data["channel"]
+                    ),
+                    self.file_template_shard.format(
+                        process = process,
+                        fold = fold
+                    )
+                ])
+                for process in processes
+            ]
+            filefilters_shard = [re.compile(string) for string in filefilter_shard_strings]
+            shards = [
+                [target for target in allbranch_shards if filefilter.match(target.path)] 
+                for filefilter in filefilters_shard
+            ]
+            shards_eras[era] = shards
+        # Copy filtered shard and training config files into data directory for each era
+        for era in use_eras:
+            shards = [shard for shards in shards_eras[era] for shard in shards]
             for shard in shards:
                 shard_name = os.path.basename(shard.path)
                 shard.copy_to_local("/".join([data_dir, era, shard_name]))
@@ -272,7 +292,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
         self.run_command(
             command=[
                 "python",
-                "training/keras_training.py",
+                "ml_trainings/keras_training.py",
                 "--data-dir {}".format(data_dir),
                 "--era {}".format(self.era),
                 "--fold {}".format(fold),
@@ -298,10 +318,10 @@ class RunAllTrainings(Task, law.tasks.RunOnceTask):
     # Requires ALL trainings
     def requires(self):
         requirements = {
-            "era": all_eras,
+            "era": "all_eras",
             "channels": ["tt","et","mt"],
             "masses": ["240","280","320","360","400","450","500",
-                "550","600","700","800","900","1000","1200"],
+                "550","600","700","800","900","1000","heavier"],
             "batch_nums": ["1","2","3","4","5","6","7"]
         }
         return RunTraining(**requirements)
