@@ -48,9 +48,22 @@ int main(int argc, char *argv[]) {
         Logger::get("main")->info("Running with {} input files", argc - 2);
     }
     std::vector<std::string> input_files;
+    int nevents = 0;
     for (int i = 2; i < argc; i++) {
-        Logger::get("main")->info("input_file {}: {}", i - 1, argv[i]);
         input_files.push_back(std::string(argv[i]));
+        // Check if the input file exists and is readable, also get the number
+        // of events
+        TFile *f1 = TFile::Open(argv[i]);
+        if (!f1 || f1->IsZombie()) {
+            Logger::get("main")->critical("File {} does not exist or is not "
+                                          "readable",
+                                          argv[i]);
+            return 1;
+        }
+        TTree *t1 = (TTree *)f1->Get("Events");
+        nevents += t1->GetEntries();
+        Logger::get("main")->info("input_file {}: {} - {} Events", i - 1,
+                                  argv[i], t1->GetEntries());
     }
     const auto output_path = argv[1];
     Logger::get("main")->info("Output directory: {}", output_path);
@@ -65,16 +78,11 @@ int main(int argc, char *argv[]) {
 
     // initialize df
     ROOT::RDataFrame df0("Events", input_files);
-    Logger::get("main")->info("Starting Setup of Dataframe");
+    Logger::get("main")->info("Starting Setup of Dataframe with {} events",
+                              nevents);
 
     // {CODE_GENERATION}
 
-    Logger::get("main")->info("Finished Setup");
-    Logger::get("main")->info("Runtime for setup (real time: {}, CPU time: {})",
-                              timer.RealTime(), timer.CpuTime());
-    timer.Continue();
-
-    Logger::get("main")->info("Starting Evaluation");
     ROOT::RDF::RSnapshotOptions dfconfig;
     dfconfig.fLazy = true;
 
@@ -115,6 +123,7 @@ int main(int argc, char *argv[]) {
     }
 
     Logger::get("main")->info("Finished Evaluation");
-    Logger::get("main")->info("Overall runtime (real time: {}, CPU time: {})",
-                              timer.RealTime(), timer.CpuTime());
+    Logger::get("main")->info(
+        "Overall runtime (real time: {0:.2f}, CPU time: {1:.2f})",
+        timer.RealTime(), timer.CpuTime());
 }
