@@ -76,10 +76,9 @@ action() {
         fi
 
         #Check if necessary environment is present in cvmfs
-        if [[ -f "/cvmfs/etp.kit.edu/LAW_envs/${ENV_NAME}/bin/activate" ]]; then
+        if [[ -d "/cvmfs/etp.kit.edu/LAW_envs/conda_envs/miniconda/envs/${ENV_NMAE}" ]]; then
             echo "${ENV_NAME} environment found in cvmfs."
             CVMFS_ENV_PRESENT="True"
-
         else
             echo "${ENV_NAME} environment not found in cvmfs. Using conda."
             if ! command -v conda &> /dev/null; then
@@ -136,11 +135,10 @@ action() {
         # ENV_NAMES_LIST is used by the processor/framework.py to determine whether the environments are present in cvmfs
         ENV_NAMES_LIST+="${ENV_NAME},${CVMFS_ENV_PRESENT};"
     done
-
     # Actvate starting-env
     if [[ "${CVMFS_ENV_PRESENT_START}" == "True" ]]; then
         echo "Activating starting-env ${STARTING_ENV} from cvmfs."
-        source /cvmfs/etp.kit.edu/LAW_envs/${STARTING_ENV}/bin/activate
+        source /cvmfs/etp.kit.edu/LAW_envs/conda_envs/miniconda/bin/activate ${STARTING_ENV}
     else
         echo "Activating starting-env ${STARTING_ENV} from conda."
         conda activate ${STARTING_ENV}
@@ -194,6 +192,11 @@ action() {
     if [ -z "$(pgrep -f luigid)" ]; then
         echo "Starting Luigi scheduler..."
         luigid --background --logdir logs --state-path luigid_state.pickle
+    fi
+
+    # Create law index for analysis if not previously done
+    if [[ ! -f "${LAW_HOME}/index" ]]; then
+        law index --verbose
     fi
 
     export LAW_IS_SET_UP="True"

@@ -20,7 +20,7 @@ action(){
     echo " | TARBALL_PATH = {{TARBALL_PATH}}"
     SPAWNPOINT=$(pwd)
     if [[ "{{USE_CVMFS}}" == "True" ]]; then
-        ENV_PATH=/cvmfs/etp.kit.edu/LAW_envs/{{ENV_NAME}}
+        ENV_PATH=/cvmfs/etp.kit.edu/LAW_envs/conda_envs/miniconda/bin/activate
         echo " | ENV_PATH = ${ENV_PATH}"
     else
         ENV_PATH=${SPAWNPOINT}/miniconda/envs/{{ENV_NAME}}
@@ -32,7 +32,7 @@ action(){
     # copy and untar process (and environment if necessary)
     if [[ "{{USE_CVMFS}}" == "True" ]]; then
         # Activate environment from cvmfs
-        source ${ENV_PATH}/bin/activate
+        source ${ENV_PATH} {{ENV_NAME}}
         echo "xrdcp {{TARBALL_PATH}} ${SPAWNPOINT}"
         xrdcp {{TARBALL_PATH}} ${SPAWNPOINT}
     else
