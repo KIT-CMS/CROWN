@@ -383,7 +383,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
         env_dict = dict(env.split(",") for env in env_list)
         if env_dict[self.ENV_NAME] == "False":
             # IMPORTANT: environments have to be named differently with each change
-            #            as chaching prevents a clean overwrite of existing files
+            #            as caching prevents a clean overwrite of existing files
             tarball_env = law.wlcg.WLCGFileTarget(
                 path="env_tarballs/{env}.tar.gz".format(env=self.ENV_NAME)
             )
