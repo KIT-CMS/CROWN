@@ -1,0 +1,29 @@
+name: Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  python_format:
+    runs-on: ubuntu-20.04
+    container:
+      image: rootproject/root:6.26.00-ubuntu20.04
+      options: --user 0 # run as root
+
+    steps:
+      - name: apt update
+        run: apt-get -y update
+
+      - name: Install missing software
+        run: apt-get install -y git python3-pip && pip install black
+
+      - uses: actions/checkout@v2
+
+      - name: Check Python formatting
+        shell: bash
+        run: cd $GITHUB_WORKSPACE && bash scripts/python-formatting.sh
