@@ -103,7 +103,9 @@ class ConfigureDatasets(Task):
                     sample_data["filelist"],
                     sample_data["nevents"],
                     sample_data["nfiles"],
-                ) = self.read_filelist_from_das(sample_data["dbs"], False, xootd_prefix_europe)
+                ) = self.read_filelist_from_das(
+                    sample_data["dbs"], False, xootd_prefix_europe
+                )
                 # write the output
                 ensure_dir(sample_configfile)
                 file = open(sample_configfile, "w")

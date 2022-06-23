@@ -76,7 +76,7 @@ action() {
         fi
 
         #Check if necessary environment is present in cvmfs
-        if [[ -d "/cvmfs/etp.kit.edu/LAW_envs/conda_envs/miniconda/envs/${ENV_NMAE}" ]]; then
+        if [[ -d "/cvmfs/etp.kit.edu/LAW_envs/conda_envs/miniconda/envs/${ENV_NAME}" ]]; then
             echo "${ENV_NAME} environment found in cvmfs."
             CVMFS_ENV_PRESENT="True"
         else
@@ -187,11 +187,24 @@ action() {
 
     # add voms proxy path
     export X509_USER_PROXY=$(voms-proxy-info -path)
-
+    # first check if the user already has a luigid scheduler running
     # start a luidigd scheduler if there is one already running
-    if [ -z "$(pgrep -f luigid)" ]; then
-        echo "Starting Luigi scheduler..."
-        luigid --background --logdir logs --state-path luigid_state.pickle
+    if [ -z "$(pgrep -u ${USER} -f luigid)" ]; then
+        echo "Starting Luigi scheduler... using a random port"
+        while
+            LUIGIPORT=$(shuf -n 1 -i 49152-65535)
+            netstat -atun | grep -q "$LUIGIPORT"
+        do
+            continue
+        done
+        luigid --background --logdir logs --state-path luigid_state.pickle --port=$LUIGIPORT
+        echo "Luigi scheduler started on port $LUIGIPORT, setting LUIGIPORT to $LUIGIPORT"
+    else
+        # first get the PID
+        LUIGIPID=$(pgrep -u ${USER} -f luigid)
+        # now get the luigid port that the scheduler is using and set the LUIGIPORT variable
+        LUIGIPORT=$(cat /proc/${LUIGIPID}/cmdline | sed -e "s/\x00/ /g" | cut -d "=" -f2)
+        echo "Luigi scheduler already running on port ${LUIGIPORT}, setting LUIGIPORT to ${LUIGIPORT}"
     fi
 
     # Create law index for analysis if not previously done

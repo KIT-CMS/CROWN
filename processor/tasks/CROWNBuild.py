@@ -20,6 +20,8 @@ class CROWNBuild(Task):
     sampletypes = luigi.ListParameter()
     analysis = luigi.Parameter()
     config = luigi.Parameter()
+    htcondor_request_cpus = luigi.IntParameter(default=1)
+    threads = htcondor_request_cpus
     production_tag = luigi.Parameter()
 
     env_script = os.path.join(
@@ -48,6 +50,7 @@ class CROWNBuild(Task):
         _analysis = str(self.analysis)
         _config = str(self.config)
         _shifts = str(self.shifts)
+        _threads = str(self.threads)
         # also use the tag for the local tarball creation
         _tag = "{}/CROWN_{}_{}".format(self.production_tag, _analysis, _config)
         _install_dir = os.path.join(str(self.install_dir), _tag)
@@ -93,6 +96,7 @@ class CROWNBuild(Task):
             console.log("Using build_directory {}".format(_build_dir))
             console.log("Using install directory {}".format(_install_dir))
             console.log("Settings used: ")
+            console.log("Threads: {}".format(_threads))
             console.log("Analysis: {}".format(_analysis))
             console.log("Config: {}".format(_config))
             console.log("Sampletype: {}".format(_sampletypes))
@@ -115,30 +119,9 @@ class CROWNBuild(Task):
                 _install_dir,  # INSTALLDIR=$8
                 _build_dir,  # BUILDDIR=$9
                 output.basename,  # TARBALLNAME=$10
+                _threads,  # THREADS=$11
             ]
-            with subprocess.Popen(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                bufsize=1,
-                universal_newlines=True,
-            ) as p:
-                for line in p.stdout:
-                    if line != "\n":
-                        console.log(line.replace("\n", ""))
-                for line in p.stderr:
-                    if line != "\n":
-                        console.log(line.replace("\n", ""))
-
-            if p.returncode != 0:
-                console.log("Error when building crown {}".format(command))
-                console.log(
-                    "building returned non-zero exit status {}".format(p.returncode)
-                )
-                console.rule()
-                raise Exception("crown build failed")
-            else:
-                console.rule("Successful crown build ! ")
+            self.run_command_readable(command)
             console.log(
                 "Copying from local: {}".format(
                     os.path.join(_install_dir, output.basename)
