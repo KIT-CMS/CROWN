@@ -1,12 +1,11 @@
 import os
-import re
 import luigi
 import law
+import select
 from law.util import interruptable_popen, readable_popen
 from subprocess import PIPE, Popen
 from rich.console import Console
 from law.util import merge_dicts
-import socket
 from datetime import datetime
 from law.contrib.htcondor.job import HTCondorJobManager
 from tempfile import mkdtemp
@@ -14,7 +13,12 @@ from getpass import getuser
 
 law.contrib.load("wlcg")
 law.contrib.load("htcondor")
-console = Console(width=120)
+# try to get the terminal width, if this fails, we are in a remote job, set it to 140
+try:
+    current_width = os.get_terminal_size().columns
+except OSError:
+    current_width = 140
+console = Console(width=current_width)
 
 # Determine startup time to use as default production_tag
 # LOCAL_TIMESTAMP is used by remote workflows to ensure consistent tags
@@ -151,6 +155,10 @@ class Task(law.Task):
             raise Exception("No command provided.")
 
     def run_command_readable(self, command=[], sourcescript=[], run_location=None):
+        """
+        This can be used, to run a command, where you want to read the output while the command is running.
+        redirect both stdout and stderr to the same output.
+        """
         if command:
             if isinstance(command, str):
                 command = [command]
@@ -169,27 +177,24 @@ class Task(law.Task):
                 stderr=PIPE,
                 env=run_env,
                 cwd=run_location,
-                preexec_fn=os.setsid,
+                encoding="utf-8",
             )
-            # Poll process.stdout to show stdout live
             while True:
-                output = p.stdout.readline()
-                if p.poll() is not None:
+                reads = [p.stdout.fileno(), p.stderr.fileno()]
+                ret = select.select(reads, [], [])
+
+                for fd in ret[0]:
+                    if fd == p.stdout.fileno():
+                        read = p.stdout.readline()
+                        if read != "\n":
+                            console.log(read.strip())
+                    if fd == p.stderr.fileno():
+                        read = p.stderr.readline()
+                        if read != "\n":
+                            console.log(read.strip())
+
+                if p.poll() != None:
                     break
-                if output:
-                    console.log(output.strip().decode("UTF-8"))
-            rc = p.poll()
-            out, error = p.communicate()
-            if rc != 0:
-                console.log("Error when running {}.".format(list(command)))
-                console.log("Output: {}".format(out.decode("UTF-8")))
-                console.log("Error: {}".format(error.decode("UTF-8")))
-                console.log("Command returned non-zero exit status {}.".format(rc))
-                raise Exception("{} failed".format(list(command)))
-            else:
-                console.log("Command successful.")
-                console.log("Output: {}".format(out.decode("UTF-8")))
-                console.log("Error: {}".format(error.decode("UTF-8")))
         else:
             raise Exception("No command provided.")
 

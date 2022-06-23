@@ -17,19 +17,19 @@ source $ANALYSIS_PATH/CROWN/init.sh $ANALYSIS
 # use a fourth of the machine for compiling
 THREADS_AVAILABLE=$(grep -c ^processor /proc/cpuinfo)
 THREADS=$(( THREADS_AVAILABLE / 4 ))
-echo "Using $THREADS threads"
+echo "Using $THREADS threads for the compilation"
 which cmake
 
 cmake $CROWNFOLDER \
- -DANALYSIS=$ANALYSIS \
- -DCONFIG=$CONFIG \
- -DSAMPLES=$SAMPLES \
- -DERAS=$ERAS \
- -DSCOPES=$SCOPE \
- -DSHIFTS=$SHIFTS \
- -DTHREADS=$EXECUTALBE_THREADS \
- -DINSTALLDIR=$INSTALLDIR \
- -B$BUILDDIR
+	 -DANALYSIS=$ANALYSIS \
+	 -DCONFIG=$CONFIG \
+	 -DSAMPLES=$SAMPLES \
+	 -DERAS=$ERAS \
+	 -DSCOPES=$SCOPE \
+	 -DSHIFTS=$SHIFTS \
+	 -DTHREADS=$EXECUTALBE_THREADS \
+	 -DINSTALLDIR=$INSTALLDIR \
+	 -B$BUILDDIR
 
 cd $BUILDDIR
 make install -j $THREADS
