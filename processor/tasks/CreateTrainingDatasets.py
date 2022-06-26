@@ -251,8 +251,10 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
         datashard_config.copy_to_local(local_config_path)
 
         # Create datashard based on config file
+        # ROOT_XRD_QUERY_READV_PARAMS=0 is necessary for streaming root files from dCache
         self.run_command(
             [
+                "ROOT_XRD_QUERY_READV_PARAMS=0",
                 "python",
                 "ml_datasets/create_training_datashard.py",
                 "--config {}".format(local_config_path),
@@ -371,7 +373,8 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
 
     def run(self):
         processes, process_classes = zip(*self.processes_and_classes)
-        prefix = self.temporary_local_path("")
+        prefix_data = "/".join([self.wlcg_path, self.remote_path()])
+        prefix_config = self.temporary_local_path("")
         run_loc = "sm-htt-analysis"
         # Create data directory for each valid branch and mass/batch combination
         for mass in self.masses:
@@ -379,7 +382,7 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
                 os.makedirs(
                     "/".join(
                         [
-                            prefix,
+                            prefix_config,
                             self.dir_template.format(
                                 era=self.branch_data["era"],
                                 channel=self.branch_data["channel"],
@@ -394,7 +397,7 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
         files = [
             "/".join(
                 [
-                    prefix,
+                    prefix_config,
                     self.dir_template.format(
                         era=self.branch_data["era"],
                         channel=self.branch_data["channel"],
@@ -412,26 +415,9 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
         allbranch_shards = flatten_collections(
             self.input()["CreateTrainingDataShard"]["collection"]
         )
-        # Filter shard targets by name in each branch and process
-        filefilter_shard_strings = [
-            "/".join(
-                [
-                    ".*",
-                    self.dir_template_in.format(
-                        era=self.branch_data["era"], channel=self.branch_data["channel"]
-                    ),
-                    self.files_template_shard.format(process=process, fold="."),
-                ]
-            )
-            for process in processes
-        ]
-        filefilter_shards = [re.compile(string) for string in filefilter_shard_strings]
-        shards = [
-            target
-            for target in allbranch_shards
-            for filt in filefilter_shards
-            if filt.match(target.path)
-        ]
+
+        # Get prefix of remote storage for root shards
+        remote_shard_base = self.wlcg_path + os.path.dirname(allbranch_shards[0].path)
 
         # Get list of all shard config targets
         allbranch_shardconfigs = self.input()["CreateTrainingDataShardConfig"].targets
@@ -459,11 +445,11 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
         ]
 
         # Copy filtered shard and shard config files into data directory
-        for copy_file in shardconfigs + shards:
+        for copy_file in shardconfigs: # + shards:
             copy_file_name = os.path.basename(copy_file.path)
             copy_file_name_path = os.path.basename(os.path.dirname(copy_file.path))
             copy_file.copy_to_local(
-                "/".join([prefix, copy_file_name_path, copy_file_name])
+                "/".join([prefix_config, copy_file_name_path, copy_file_name])
             )
         # Write training config file
         self.run_command(
@@ -474,9 +460,10 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
                 "--channel {}".format(self.channel),
                 "--masses {}".format(" ".join(self.masses)),
                 "--batches {}".format(" ".join(self.batch_nums)),
-                "--dataset-dir {}/{}_{}".format(
-                    prefix, self.branch_data["era"], self.channel
+                "--config-dir {}/{}_{}".format(
+                    prefix_config, self.branch_data["era"], self.channel
                 ),
+                "--dataset-dir {}".format(remote_shard_base),
                 "--processes {}".format(" ".join(processes)),
                 "--training-template datasets/templates/{}_{}_training.yaml".format(
                     self.branch_data["era"], self.channel
@@ -492,7 +479,7 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
             file_remote.parent.touch()
             file_remote.copy_from_local(file_local)
         # Remove data directories
-        rmtree(prefix)
+        rmtree(prefix_config)
 
 
 # Task to create config files for the NN trainings if all eras are used at once

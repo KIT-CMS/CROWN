@@ -222,6 +222,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
         description="Accounting group to be set in Hthe TCondor job submission."
     )
     htcondor_requirements = luigi.Parameter(
+        default = "",
         description="Job requirements to be set in the HTCondor job submission."
     )
     htcondor_remote_job = luigi.Parameter(
@@ -301,7 +302,8 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
         # config.custom_content.append(("Output", "out_{}to{}.txt".format(branches[0], branches[-1]))) #Remove before commit
         # config.custom_content.append(("stream_error", "True")) #
         # config.custom_content.append(("Output", "err_{}to{}.txt".format(branches[0], branches[-1]))) #
-        config.custom_content.append(("Requirements", self.htcondor_requirements))
+        if self.htcondor_requirements:
+            config.custom_content.append(("Requirements", self.htcondor_requirements))
         config.custom_content.append(("+RemoteJob", self.htcondor_remote_job))
         config.custom_content.append(("universe", self.htcondor_universe))
         config.custom_content.append(("docker_image", self.htcondor_docker_image))
