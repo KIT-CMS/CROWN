@@ -256,7 +256,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
         remote_shard_base = self.wlcg_path + os.path.dirname(
             os.path.dirname(allbranch_shards[0].path)
         )
-        
+
         # Copy config to local
         trainingconfig_name = os.path.basename(trainingconfig.path)
         trainingconfig.copy_to_local("/".join([local_dir, trainingconfig_name]))

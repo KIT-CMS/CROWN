@@ -222,7 +222,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
         description="Accounting group to be set in Hthe TCondor job submission."
     )
     htcondor_requirements = luigi.Parameter(
-        default = "",
+        default="",
         description="Job requirements to be set in the HTCondor job submission."
     )
     htcondor_remote_job = luigi.Parameter(

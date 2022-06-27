@@ -445,7 +445,7 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
         ]
 
         # Copy filtered shard and shard config files into data directory
-        for copy_file in shardconfigs: # + shards:
+        for copy_file in shardconfigs:
             copy_file_name = os.path.basename(copy_file.path)
             copy_file_name_path = os.path.basename(os.path.dirname(copy_file.path))
             copy_file.copy_to_local(
