@@ -1,8 +1,6 @@
 # Framework specific folders
 data/
 build/
-CROWN/
-sm-htt-analysis/
 .law/
 generation_logs/
 tarballs/

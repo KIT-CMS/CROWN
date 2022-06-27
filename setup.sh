@@ -149,14 +149,17 @@ action() {
     case ${ANA_NAME} in
         KingMaker)
             echo "Setting up CROWN ..."
-            if [ ! -d CROWN ]; then
-                git clone --recursive git@github.com:KIT-CMS/CROWN
+            if [ -z "$(ls -A CROWN)" ]; then
+                git submodule update --init --recursive -- CROWN
+            fi
+            if [ -z "$(ls -A sample_database)" ]; then
+                git submodule update --init --recursive -- sample_database
             fi
             ;;
         ML_train)
             echo "Setting up ML-scripts ..."
-            if [ ! -d sm-htt-analysis ]; then
-                git clone --recursive git@github.com:tvoigtlaender/sm-htt-analysis
+            if [ -z "$(ls -A sm-htt-analysis)" ]; then
+                git submodule update --init --recursive -- sm-htt-analysis
             fi
             ;;
         *)
@@ -166,7 +169,7 @@ action() {
 
     # Check is law was cloned, and set it up if not
     if [ -z "$(ls -A law)" ]; then
-        git submodule update --init --recursive
+        git submodule update --init --recursive -- law
     fi
 
     echo "Setting up Luigi/Law ..."
