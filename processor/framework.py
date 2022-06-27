@@ -223,7 +223,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
     )
     htcondor_requirements = luigi.Parameter(
         default="",
-        description="Job requirements to be set in the HTCondor job submission."
+        description="Job requirements to be set in the HTCondor job submission.",
     )
     htcondor_remote_job = luigi.Parameter(
         description="Whether RemoteJob should be set in the HTCondor job submission."
