@@ -3,6 +3,7 @@
 #include "RooTrace.h"
 #include "TStopwatch.h"
 #include "include/basefunctions.hxx"
+#include "include/genparticles.hxx"
 #include "include/htxs.hxx"
 #include "include/jets.hxx"
 #include "include/lorentzvectors.hxx"
@@ -24,5 +25,4 @@
 ROOT::RDF::RNode {subsetname} (ROOT::RDF::RNode df0) {
 
 //    { commands }
-
 }
