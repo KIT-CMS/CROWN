@@ -24,6 +24,44 @@ enum class GenMatchingCode : int {
 namespace genmatching {
 
 namespace tau {
+/**
+ * @brief implementation of the genmatching used in tau analyses, based
+ * on
+ * https://github.com/KIT-CMS/Artus/blob/dictchanges/KappaAnalysis/src/Utility/GeneratorInfo.cc
+ * implementation. The genmatches are represented as integer flags:
+    Decaytype         | Value
+    ------------------|-------
+    NONE              | 1,
+    IS_ELE_PROMPT     | 1,
+    IS_MUON_PROMPT    | 2,
+    IS_ELE_FROM_TAU   | 3,
+    IS_MUON_FROM_TAU  | 4,
+    IS_TAU_HAD_DECAY  | 5,
+    IS_FAKE           | 6
+
+    The genmatch is caluclated individually for each taupair candidate.
+
+ *
+ * @param df The dataframe to be used for the genmatching.
+ * @param outputname The name of the output column.
+ * @param hadronicGenTaus The name of the column containing the hadronicGenTaus
+ from genmatching::tau::hadronicGenTaus
+ * @param genparticles_pdgid The name of the column containing the pdgids of the
+ genparticles
+ * @param genparticles_statusFlag The name of the column containing the
+ statusFlags of the genparticles
+ * @param genparticles_pt The name of the column containing the pT of the
+ genparticles
+ * @param genparticles_eta The name of the column containing the eta of the
+ genparticles
+ * @param genparticles_phi The name of the column containing the phi of the
+ genparticles
+ * @param genparticles_mass The name of the column containing the mass of the
+ genparticles
+ * @param lepton_p4 The name of the column containing the p4 of the lepton to be
+ genmatched
+ * @return a dataframe with the genmatching as a column named outputname
+ */
 ROOT::RDF::RNode genmatching(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &hadronicGenTaus,
                              const std::string &genparticles_pdgid,
@@ -144,14 +182,21 @@ ROOT::RDF::RNode genmatching(ROOT::RDF::RNode df, const std::string &outputname,
  * @brief function to find all hadronicGenTaus needed for the genmatching, based
  * on
  * https://github.com/KIT-CMS/Artus/blob/dictchanges/KappaAnalysis/src/Utility/GeneratorInfo.cc
- * implementation
+ * implementation. Loop trough all genparticles and check, if a genparticle,
+ that is prompt, without any leptonic daughters can be found. If this
+ genparticle has a neutrino as daughter, the hadronicGenTau is added to the list
+ of hadronicGenTaus.
  *
- * @param df
- * @param outputname
- * @param genparticles_pdgid
- * @param genparticles_statusFlag
- * @param genparticles_motherid
- * @return ROOT::RDF::RNode
+ * @param df The dataframe to be extended with the hadronicGenTaus
+ * @param outputname The name of the column to be added to the dataframe
+ * @param genparticles_pdgid The name of the column containing the pdgids of the
+ genparticles
+ * @param genparticles_statusFlag The name of the column containing the
+ statusflags of the genparticles
+ * @param genparticles_motherid The name of the column containing the motherids
+ of the genparticles
+ * @return a new dataframe with the hadronicGenTaus added to the dataframe
+
  */
 
 ROOT::RDF::RNode hadronicGenTaus(ROOT::RDF::RNode df,
