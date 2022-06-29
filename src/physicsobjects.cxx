@@ -86,6 +86,33 @@ ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
     return df1;
 }
 
+ROOT::RDF::RNode CutVariableBarrelEndcap(ROOT::RDF::RNode df, const std::string &maskname,
+                                         const std::string &etaColumnName,
+                                         const std::string &cutVarColumnName,
+                                         const float &etaBoundary,
+                                         const float &lowerThresholdBarrel,
+                                         const float &upperThresholdBarrel,
+                                         const float &lowerThresholdEndcap,
+                                         const float &upperThresholdEndcap) {
+    auto lambda = [
+        etaBoundary,
+        lowerThresholdBarrel, upperThresholdBarrel,
+        lowerThresholdEndcap, upperThresholdEndcap
+    ] (
+        const ROOT::RVec<float> &eta, const ROOT::RVec<float> &variable
+    ) {
+        ROOT::RVec<int> mask = (
+            ((abs(eta) < etaBoundary)  && (variable >= lowerThresholdBarrel) && (variable < upperThresholdBarrel)) ||
+            ((abs(eta) >= etaBoundary) && (variable >= lowerThresholdEndcap) && (variable < upperThresholdEndcap))
+        );
+        return mask;
+    };
+    
+    auto df1 = df.Define(maskname, lambda,
+                         {etaColumnName, cutVarColumnName});
+    return df1;
+}
+
 /// Function to take a mask and create a new one where a particle candidate is
 /// set to false
 ///

@@ -10,6 +10,15 @@ ROOT::RDF::RNode CutDz(ROOT::RDF::RNode df, const std::string &quantity,
                        const std::string &maskname, const float &Threshold);
 ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
                         const std::string &maskname, const float &Threshold);
+ROOT::RDF::RNode CutVariableBarrelEndcap(ROOT::RDF::RNode df, const std::string &maskname,
+                                         const std::string &etaColumnName,
+                                         const std::string &cutVarColumnName,
+                                         const float &etaBoundary,
+                                         const float &lowerThresholdBarrel,
+                                         const float &upperThresholdBarrel,
+                                         const float &lowerThresholdEndcap,
+                                         const float &upperThresholdEndcap);
+
 /// Function to combine a list of masks into a single mask. This is done be
 /// multiplying all input masks
 ///
