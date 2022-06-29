@@ -1,6 +1,7 @@
 #ifndef GUARDBASEFUCTIONS_H
 #define GUARDBASEFUCTIONS_H
 
+#include "../include/defaults.hxx"
 #include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
@@ -72,6 +73,42 @@ inline ROOT::RDF::RNode rename(ROOT::RDF::RNode df,
                                const std::string &outputname) {
     return df.Define(outputname, [](const T &q) { return q; }, {inputname});
 }
+
+/// Function to writeout a variable from a particle. The particle
+/// is identified via the index stored in the input vector
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the variable value
+/// \param position index of the position in the input vector
+/// \param vecname name of the column containing the input vector
+/// \param column name of the column containing the dvariablexy values
+///
+/// \returns a dataframe with the new column
+
+template <typename T>
+ROOT::RDF::RNode getvar(ROOT::RDF::RNode df, const std::string &outputname,
+                        const int &position, const std::string &vecname,
+                        const std::string &column) {
+    return df.Define(
+        outputname,
+        [position](const ROOT::RVec<int> &vec, const ROOT::RVec<T> &col) {
+            const int index = vec.at(position);
+            return col.at(index, default_value<T>());
+        },
+        {vecname, column});
+}
+
+template <typename T>
+ROOT::RDF::RNode getvar(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &position, const std::string &column) {
+    return df.Define(
+        outputname,
+        [](const int &pos, const ROOT::RVec<T> &col) {
+            return col.at(pos, default_value<T>());
+        },
+        {position, column});
+}
+
 /// Function to add a new quantity with a defined value
 ///
 /// \param df the dataframe to add the quantity to
