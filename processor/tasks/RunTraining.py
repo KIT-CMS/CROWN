@@ -194,7 +194,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
         prefix = self.temporary_local_path("")
         run_loc = "sm-htt-analysis"
         # Create data directory for each branch
-        data_dir = "/".join(
+        local_dir = "/".join(
             [
                 prefix,
                 self.dir_template.format(
@@ -205,7 +205,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
                 ),
             ]
         )
-        os.makedirs("/".join([data_dir, self.era]), exist_ok=True)
+        os.makedirs("/".join([local_dir, self.era]), exist_ok=True)
         if self.era == "all_eras":
             use_eras = self.all_eras
         else:
@@ -213,7 +213,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
         files = [
             "/".join(
                 [
-                    data_dir,
+                    local_dir,
                     self.era,
                     file_template.format(fold=self.branch_data["fold"]),
                 ]
@@ -226,6 +226,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
                 "collection"
             ]
         )
+
         # Filter training config targets by name in each branch
         filefilter_training_config_string = "/".join(
             [
@@ -245,54 +246,24 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             for target in allbranch_trainingconfigs
             if filefilter_training_config.match(target.path)
         ][0]
-        # Get list of all shard targets
+
+        # Get prefix of remote storage for root shards
         allbranch_shards = flatten_collections(
             self.input()[
                 "CreateTrainingDataShard_{}".format(self.branch_data["channel"])
             ]["collection"]
         )
-        # Filter shard targets by name in each branch and for each process
-        processes, process_classes = zip(
-            *self.get_process_tuple(
-                self.branch_data["channel"],
-                self.branch_data["mass"],
-                self.branch_data["batch_num"],
-            )
+        remote_shard_base = self.wlcg_path + os.path.dirname(
+            os.path.dirname(allbranch_shards[0].path)
         )
-        shards_eras = {}
-        for era in use_eras:
-            filefilter_shard_strings = [
-                "/".join(
-                    [
-                        ".*",
-                        self.dir_template_in.format(
-                            era=era, channel=self.branch_data["channel"]
-                        ),
-                        self.file_template_shard.format(process=process, fold=fold),
-                    ]
-                )
-                for process in processes
-            ]
-            filefilters_shard = [
-                re.compile(string) for string in filefilter_shard_strings
-            ]
-            shards = [
-                [target for target in allbranch_shards if filefilter.match(target.path)]
-                for filefilter in filefilters_shard
-            ]
-            shards_eras[era] = shards
-        # Copy filtered shard and training config files into data directory for each era
-        for era in use_eras:
-            shards = [shard for shards in shards_eras[era] for shard in shards]
-            for shard in shards:
-                shard_name = os.path.basename(shard.path)
-                shard.copy_to_local("/".join([data_dir, era, shard_name]))
+
+        # Copy config to local
         trainingconfig_name = os.path.basename(trainingconfig.path)
-        trainingconfig.copy_to_local("/".join([data_dir, trainingconfig_name]))
+        trainingconfig.copy_to_local("/".join([local_dir, trainingconfig_name]))
 
         # self.run_command(
         #     command=["ls", "-R"],
-        #     run_location=data_dir
+        #     run_location=local_dir
         # )
         # Set maximum number of threads (this number is somewhat inaccurate
         # as TensorFlow only abides by it for some aspects of the training)
@@ -306,8 +277,10 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             command=[
                 "python",
                 "ml_trainings/keras_training.py",
-                "--data-dir {}".format(data_dir),
-                "--era {}".format(self.era),
+                "--data-dir {}".format(remote_shard_base),
+                "--config-dir {}".format(local_dir),
+                "--era-training {}".format(self.era),
+                "--channel-training {}".format(self.branch_data["channel"]),
                 "--fold {}".format(fold),
                 "--balance-batches 1",
                 "--max-threads {}".format(max_threads),
