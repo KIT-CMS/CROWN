@@ -10,6 +10,7 @@ logs/
 *.txt
 miniconda/
 output/
+CROWN/
 .nfs*
 
 #luigid pickle

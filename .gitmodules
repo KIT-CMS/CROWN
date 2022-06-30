@@ -7,6 +7,3 @@
 [submodule "sm-htt-analysis"]
 	path = sm-htt-analysis
 	url = git@github.com:tvoigtlaender/sm-htt-analysis.git
-[submodule "CROWN"]
-	path = CROWN
-	url = git@github.com:KIT-CMS/CROWN.git
