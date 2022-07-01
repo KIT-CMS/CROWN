@@ -31,7 +31,7 @@ namespace tau {
  * implementation. The genmatches are represented as integer flags:
     Decaytype         | Value
     ------------------|-------
-    NONE              | 1,
+    NONE              | -1,
     IS_ELE_PROMPT     | 1,
     IS_MUON_PROMPT    | 2,
     IS_ELE_FROM_TAU   | 3,
@@ -85,7 +85,7 @@ ROOT::RDF::RNode genmatching(ROOT::RDF::RNode df, const std::string &outputname,
         for (unsigned int i = 0; i < pdgids.size(); i++) {
             int pdgid = std::abs(pdgids.at(i));
             // check
-            // 1. if there is a gen electron or muos close to the lepton
+            // 1. if there is a gen electron or muon close to the lepton
             // 2. that the genparticle pt is larger than 8 GeV
             // 3. the genparticle is isPrompt (statusbit 0) or
             // isDirectPromptTauDecayProduct (statusbit 5)
@@ -103,7 +103,7 @@ ROOT::RDF::RNode genmatching(ROOT::RDF::RNode df, const std::string &outputname,
             }
         }
         Logger::get("genmatching::tau::genmatching")
-            ->debug("closted genelepton {} // DeltaR {}",
+            ->debug("closest genlepton {} // DeltaR {}",
                     closest_genparticle_index, min_delta_r);
         // now loop trough the gentaus and check, if they are closer to the
         // lepton than the closest lepton genparticle
@@ -211,7 +211,6 @@ ROOT::RDF::RNode hadronicGenTaus(ROOT::RDF::RNode df,
         // set default values for the output
         std::vector<int> hadronicGenTaus;
         if (pdgids.size() == 0) {
-            hadronicGenTaus.push_back(-1);
             hadronicGenTaus.push_back(-1);
             return hadronicGenTaus;
         }
