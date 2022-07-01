@@ -213,11 +213,15 @@ class CodeGenerator(object):
             self.main_counter[scope] = 0
             self.subset_calls[scope] = []
             self.output_commands[scope] = []
-        # get git status of the repo
+        # get git status of the main repo
         try:
-            repo = Repo("../../CROWN")
-            self.commit_hash = repo.head.commit
-            self.setup_is_clean = "false" if repo.is_dirty() else "true"
+            main_repo_path = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)), "../../CROWN"
+            )
+            log.info("Getting git status of {}".format(main_repo_path))
+            main_repo = Repo(main_repo_path)
+            self.commit_hash = main_repo.head.commit
+            self.setup_is_clean = "false" if main_repo.is_dirty() else "true"
         except (ValueError, InvalidGitRepositoryError, NoSuchPathError):
             self.commit_hash = "undefined"
             self.setup_is_clean = "false"
@@ -505,7 +509,9 @@ class CodeGenerator(object):
             shifts += '{{ {outputname}, {{"'.format(
                 outputname=self._outputfiles_generated[scope]
             )
-            shifts += '", "'.join([s for s in self.configuration.shifts[scope]])
+            shiftlist = list(self.configuration.shifts[scope])
+            shiftlist.sort()
+            shifts += '", "'.join(shiftlist)
             shifts += '"} },'
         shifts = shifts[:-1] + "}"
         return shifts
@@ -519,12 +525,20 @@ class CodeGenerator(object):
         """
         output_quantities = "{"
         for scope in self._outputfiles_generated.keys():
+            # get the outputset for the scope
+            outputset = list(
+                set(
+                    self.output_commands[scope]
+                    + self.output_commands[self.global_scope]
+                )
+            )
+            # now split by __ and get a set of all the shifts
+            quantityset = list(set([x.split("__")[0] for x in outputset]))
+            quantityset.sort()
             output_quantities += '{{ {outputname}, {{"'.format(
                 outputname=self._outputfiles_generated[scope]
             )
-            output_quantities += '", "'.join(
-                [q.name for q in self.configuration.outputs[scope]]
-            )
+            output_quantities += '", "'.join(quantityset)
             output_quantities += '"} },'
         output_quantities = output_quantities[:-1] + "}"
         return output_quantities
