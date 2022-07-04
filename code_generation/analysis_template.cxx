@@ -2,6 +2,7 @@
 #include "ROOT/RDataFrame.hxx"
 #include "RooTrace.h"
 #include "TStopwatch.h"
+#include "include/genparticles.hxx"
 #include "include/htxs.hxx"
 #include "include/jets.hxx"
 #include "include/lorentzvectors.hxx"
