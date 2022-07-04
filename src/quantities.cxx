@@ -8,6 +8,7 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>
+#include <Math/VectorUtil.h>
 
 /// The namespace that is used to hold the functions for basic quantities that
 /// are needed for every event
@@ -297,7 +298,7 @@ ROOT::RDF::RNode deltaR(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &p_1_p4, const std::string &p_2_p4) {
     auto calculate_deltaR = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
                                ROOT::Math::PtEtaPhiMVector &p_2_p4) {
-        return ROOT::Math::VectorUtil::DeltaR(p_1_p4, p_2_p4)
+        return ROOT::Math::VectorUtil::DeltaR(p_1_p4, p_2_p4);
     };
     return df.Define(outputname, calculate_deltaR, {p_1_p4, p_2_p4});
 }
