@@ -158,9 +158,9 @@ class CROWNRun(HTCondorWorkflow, law.LocalWorkflow):
         for i, outputfile in enumerate(outputs):
             outputfile.parent.touch()
             local_filename = os.path.join(
-                    _workdir,
-                    _outputfile.replace(".root", "_{}.root".format(self.scopes[i])),
-                )
+                _workdir,
+                _outputfile.replace(".root", "_{}.root".format(self.scopes[i])),
+            )
             # if the output files were produced in multithreaded mode, we have to open the files once again, setting the
             # kEntriesReshuffled bit to false, otherwise, we cannot add any friends to the trees
             self.run_command(
