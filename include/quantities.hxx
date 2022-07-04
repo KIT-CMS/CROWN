@@ -87,6 +87,45 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &outputname,
 ROOT::RDF::RNode is_global(ROOT::RDF::RNode df, const std::string &outputname,
                            const int &position, const std::string &pairname,
                            const std::string &globalflagcolumn);
+
+ROOT::RDF::RNode rndm(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &objCollection,
+    int seed
+);
+
+ROOT::RDF::RNode applyRoccoRData(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &filename,
+    const int &position,
+    const std::string &objCollection,
+    const std::string &chargColumn,
+    const std::string &ptColumn,
+    const std::string &etaColumn,
+    const std::string &phiColumn,
+    int error_set,
+    int error_member
+);
+
+ROOT::RDF::RNode applyRoccoRMC(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &filename,
+    const int &position,
+    const std::string &objCollection,
+    const std::string &chargColumn,
+    const std::string &ptColumn,
+    const std::string &etaColumn,
+    const std::string &phiColumn,
+    const std::string &genPtColumn,
+    const std::string &nTrackerLayersColumn,
+    const std::string &rndmColumn,
+    int error_set,
+    int error_member
+);
+
 } // namespace muon
 } // end namespace quantities
 #endif /* GUARD_QUANTITIES_H */
