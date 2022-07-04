@@ -706,10 +706,9 @@ ROOT::RDF::RNode applyRoccoRData(
         const ROOT::RVec<float> &etaCol,
         const ROOT::RVec<float> &phiCol
     ) {
-        const auto rc = new RoccoR();
-        rc->init(filename);
+        RoccoR rc(filename); 
         const int index = objects.at(position);
-        double pt_rc = ptCol.at(index) * rc->kScaleDT(
+        double pt_rc = ptCol.at(index) * rc.kScaleDT(
             chargCol.at(index),
             ptCol.at(index),
             etaCol.at(index),
@@ -752,12 +751,11 @@ ROOT::RDF::RNode applyRoccoRMC(
         const ROOT::RVec<int> &nTrackerLayersCol,
         const ROOT::RVec<float> &rndmCol
     ) {
-        const auto rc = new RoccoR();
-        rc->init(filename);
+        RoccoR rc(filename); 
         double pt_rc = default_float;
         const int index = objects.at(position);
         if (genPt > 0.) {
-            pt_rc = ptCol.at(index) * rc->kSpreadMC(
+            pt_rc = ptCol.at(index) * rc.kSpreadMC(
                 chargCol.at(index),
                 ptCol.at(index),
                 etaCol.at(index),
@@ -767,7 +765,7 @@ ROOT::RDF::RNode applyRoccoRMC(
                 error_member
             );
         } else {
-            pt_rc = ptCol.at(index) * rc->kSmearMC(
+            pt_rc = ptCol.at(index) * rc.kSmearMC(
                 chargCol.at(index),
                 ptCol.at(index),
                 etaCol.at(index),
