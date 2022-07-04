@@ -280,6 +280,27 @@ ROOT::RDF::RNode mTdileptonMET(ROOT::RDF::RNode df,
     return df.Define(outputname, calculate_mTdileptonMET,
                      {p_1_p4, p_2_p4, met});
 }
+
+/**
+ * @brief function used to calculate the deltaR between two lorentz vectors. It
+ is defined as \f[ \Delta R = \sqrt{(\eta_1 - \eta_2)^2 + (\phi_1 - \phi_2)^2}
+ \f$ where $\eta_1$ and $\phi_1$ are from the first lorentz vector and $\eta_2$
+ and $\phi_2$ are from the second lorentz vector.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the deltaR value
+ * @param p_1_p4 first lorentz vector
+ * @param p_2_p4 second lorentz vector of
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode deltaR(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &p_1_p4, const std::string &p_2_p4) {
+    auto calculate_deltaR = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
+                               ROOT::Math::PtEtaPhiMVector &p_2_p4) {
+        return ROOT::Math::VectorUtil::DeltaR(p_1_p4, p_2_p4)
+    };
+    return df.Define(outputname, calculate_deltaR, {p_1_p4, p_2_p4});
+}
 /**
  * @brief function used to calculate the transverse mass of a particle. The
  * transverse mass is calculated using the vectoroperations::calculateMT
