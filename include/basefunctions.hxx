@@ -81,7 +81,7 @@ inline ROOT::RDF::RNode rename(ROOT::RDF::RNode df,
 /// \param outputname name of the new column containing the variable value
 /// \param position index of the position in the input vector
 /// \param vecname name of the column containing the input vector
-/// \param column name of the column containing the dvariablexy values
+/// \param column name of the column containing the variable values
 ///
 /// \returns a dataframe with the new column
 
@@ -97,6 +97,15 @@ ROOT::RDF::RNode getvar(ROOT::RDF::RNode df, const std::string &outputname,
         },
         {vecname, column});
 }
+
+/// Function to writeout a variable from a index to a NanoAOD column.
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the variable value
+/// \param position index of the position in the input vector
+/// \param column name of the column containing the variable values
+///
+/// \returns a dataframe with the new column
 
 template <typename T>
 ROOT::RDF::RNode getvar(ROOT::RDF::RNode df, const std::string &outputname,

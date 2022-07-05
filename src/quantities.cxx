@@ -5,10 +5,8 @@
 #include "../include/defaults.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/vectoroperations.hxx"
-#include "../include/RoccoR/RoccoR.cc"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
-#include "TRandom3.h"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 
@@ -664,128 +662,6 @@ ROOT::RDF::RNode is_global(ROOT::RDF::RNode df, const std::string &outputname,
                      },
                      {pairname, globalflagcolumn});
 }
-
-ROOT::RDF::RNode rndm(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &objCollection,
-    int seed
-) {
-    return df.Define(
-        outputname,
-        [seed](const ROOT::RVec<int> &objects) {
-            TRandom3 randm = TRandom3(seed);
-            const int len = objects.size();
-            float rndm[len]; randm.RndmArray(len, rndm);
-            ROOT::RVec<float> out = {};
-            for (auto & x : rndm) {
-                out.push_back(x);
-            }
-            return out;
-        },
-        {objCollection});
-}
-
-ROOT::RDF::RNode applyRoccoRData(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &filename,
-    const int &position,
-    const std::string &objCollection,
-    const std::string &chargColumn,
-    const std::string &ptColumn,
-    const std::string &etaColumn,
-    const std::string &phiColumn,
-    int error_set,
-    int error_member
-) {
-    auto lambda = [filename, position, error_set, error_member](
-        const ROOT::RVec<int> &objects,
-        const ROOT::RVec<int> &chargCol,
-        const ROOT::RVec<float> &ptCol,
-        const ROOT::RVec<float> &etaCol,
-        const ROOT::RVec<float> &phiCol
-    ) {
-        RoccoR rc(filename); 
-        const int index = objects.at(position);
-        double pt_rc = ptCol.at(index) * rc.kScaleDT(
-            chargCol.at(index),
-            ptCol.at(index),
-            etaCol.at(index),
-            phiCol.at(index),
-            error_set,
-            error_member
-        );
-        return pt_rc;
-    };
-
-    return df.Define(
-        outputname,
-        lambda,
-        {objCollection, chargColumn, ptColumn, etaColumn, phiColumn});
-}
-
-ROOT::RDF::RNode applyRoccoRMC(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &filename,
-    const int &position,
-    const std::string &objCollection,
-    const std::string &chargColumn,
-    const std::string &ptColumn,
-    const std::string &etaColumn,
-    const std::string &phiColumn,
-    const std::string &genPtColumn,
-    const std::string &nTrackerLayersColumn,
-    const std::string &rndmColumn,
-    int error_set,
-    int error_member
-) {
-    auto lambda = [filename, position, error_set, error_member](
-        const ROOT::RVec<int> &objects,
-        const ROOT::RVec<int> &chargCol,
-        const ROOT::RVec<float> &ptCol,
-        const ROOT::RVec<float> &etaCol,
-        const ROOT::RVec<float> &phiCol,
-        const float &genPt,
-        const ROOT::RVec<int> &nTrackerLayersCol,
-        const ROOT::RVec<float> &rndmCol
-    ) {
-        RoccoR rc(filename); 
-        double pt_rc = default_float;
-        const int index = objects.at(position);
-        if (genPt > 0.) {
-            pt_rc = ptCol.at(index) * rc.kSpreadMC(
-                chargCol.at(index),
-                ptCol.at(index),
-                etaCol.at(index),
-                phiCol.at(index),
-                genPt,
-                error_set,
-                error_member
-            );
-        } else {
-            pt_rc = ptCol.at(index) * rc.kSmearMC(
-                chargCol.at(index),
-                ptCol.at(index),
-                etaCol.at(index),
-                phiCol.at(index),
-                nTrackerLayersCol.at(index),
-                rndmCol.at(position),
-                error_set,
-                error_member
-            );
-        }
-        
-        return pt_rc;
-    };
-
-    return df.Define(
-        outputname,
-        lambda,
-        {objCollection, chargColumn, ptColumn, etaColumn, phiColumn, genPtColumn, nTrackerLayersColumn, rndmColumn});
-}
-
 } // end namespace muon
 } // end namespace quantities
 #endif /* GUARD_QUANTITIES_H */
