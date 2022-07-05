@@ -14,8 +14,7 @@ const bool default_bool = false;
 const auto default_lorentzvector = ROOT::Math::PtEtaPhiMVector(
     default_float, default_float, default_float, default_float);
 
-template <typename T>
-const T default_value() {
+template <typename T> const T default_value() {
     if (std::is_same<T, int>::value) {
         return default_int;
     } else if (std::is_same<T, const int>::value) {
