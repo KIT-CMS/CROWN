@@ -4,8 +4,10 @@
 #include "../include/basefunctions.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/utility.hxx"
+#include "../include/RoccoR.hxx"
 #include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
+#include "TRandom3.h"
 #include "correction.h"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
@@ -360,6 +362,172 @@ ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
     return df1;
 }
 
+
+/// Function to create a column of vector of random numbers between 0 and 1 
+/// with size of the input object collection
+///
+/// \param[in] df the input dataframe
+/// \param[out] outputname the name of the output column that is created
+/// \param[in] objCollection the name of the input object collection
+/// \param[in] seed the seed of the random number generator 
+///
+/// \return a dataframe with the new column
+ROOT::RDF::RNode rndm(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &objCollection,
+    int seed
+) {
+    auto lambda = [seed](const ROOT::RVec<int> &objects) {
+        TRandom3 randm = TRandom3(seed);
+        const int len = objects.size();
+        float rndm[len]; randm.RndmArray(len, rndm);
+        ROOT::RVec<float> out = {};
+        for (auto & x : rndm) {
+            out.push_back(x);
+        }
+        return out;
+    };
+    return df.Define(
+        outputname,
+        lambda,
+        {objCollection});
+}
+
+/// Function to create a column of Rochester correction applied transverse 
+/// momentum for data, see https://gitlab.cern.ch/akhukhun/roccor
+///
+/// \param[in] df the input dataframe
+/// \param[out] outputname the name of the output column that is created
+/// \param[in] filename the name of Rochester correction file
+/// \param[in] position index of the position in the input vector
+/// \param[in] objCollection the name of the column containing the input vector
+/// \param[in] chargColumn the name of the column containing muon charges
+/// \param[in] ptColumn the name of the column containing muon charge values
+/// \param[in] etaColumn the name of the column containing muon eta values
+/// \param[in] phiColumn the name of the column containing muon phi values
+/// \param[in] error_set the error set number
+/// \param[in] error_member the error member number
+///
+/// \return a dataframe with the new column
+ROOT::RDF::RNode applyRoccoRData(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &filename,
+    const int &position,
+    const std::string &objCollection,
+    const std::string &chargColumn,
+    const std::string &ptColumn,
+    const std::string &etaColumn,
+    const std::string &phiColumn,
+    int error_set,
+    int error_member
+) {
+    RoccoR rc(filename);
+    auto lambda = [rc, position, error_set, error_member](
+        const ROOT::RVec<int> &objects,
+        const ROOT::RVec<int> &chargCol,
+        const ROOT::RVec<float> &ptCol,
+        const ROOT::RVec<float> &etaCol,
+        const ROOT::RVec<float> &phiCol
+    ) {
+        const int index = objects.at(position);
+        double pt_rc = ptCol.at(index) * rc.kScaleDT(
+            chargCol.at(index),
+            ptCol.at(index),
+            etaCol.at(index),
+            phiCol.at(index),
+            error_set,
+            error_member
+        );
+        return pt_rc;
+    };
+
+    return df.Define(
+        outputname,
+        lambda,
+        {objCollection, chargColumn, ptColumn, etaColumn, phiColumn});
+}
+
+/// Function to create a column of Rochester correction applied transverse 
+/// momentum for MC, see https://gitlab.cern.ch/akhukhun/roccor
+///
+/// \param[in] df the input dataframe
+/// \param[out] outputname the name of the output column that is created
+/// \param[in] filename the name of Rochester correction file
+/// \param[in] position index of the position in the input vector
+/// \param[in] objCollection the name of the column containing the input vector
+/// \param[in] chargColumn the name of the column containing muon charges
+/// \param[in] ptColumn the name of the column containing muon charge values
+/// \param[in] etaColumn the name of the column containing muon eta values
+/// \param[in] phiColumn the name of the column containing muon phi values
+/// \param[in] genPtColumn the name of the column containing gen-level transverse momentum value of the target muon
+/// \param[in] nTrackerLayersColumn the name of the column containing number of tracker layers values
+/// \param[in] rndmColumn the name of the column containing random number generated for each muon
+/// \param[in] error_set the error set number
+/// \param[in] error_member the error member number
+///
+/// \return a dataframe with the new column
+ROOT::RDF::RNode applyRoccoRMC(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &filename,
+    const int &position,
+    const std::string &objCollection,
+    const std::string &chargColumn,
+    const std::string &ptColumn,
+    const std::string &etaColumn,
+    const std::string &phiColumn,
+    const std::string &genPtColumn,
+    const std::string &nTrackerLayersColumn,
+    const std::string &rndmColumn,
+    int error_set,
+    int error_member
+) {
+    RoccoR rc(filename);
+    auto lambda = [rc, position, error_set, error_member](
+        const ROOT::RVec<int> &objects,
+        const ROOT::RVec<int> &chargCol,
+        const ROOT::RVec<float> &ptCol,
+        const ROOT::RVec<float> &etaCol,
+        const ROOT::RVec<float> &phiCol,
+        const float &genPt,
+        const ROOT::RVec<int> &nTrackerLayersCol,
+        const ROOT::RVec<float> &rndmCol
+    ) {
+        double pt_rc = default_float;
+        const int index = objects.at(position);
+        if (genPt > 0.) {
+            pt_rc = ptCol.at(index) * rc.kSpreadMC(
+                chargCol.at(index),
+                ptCol.at(index),
+                etaCol.at(index),
+                phiCol.at(index),
+                genPt,
+                error_set,
+                error_member
+            );
+        } else {
+            pt_rc = ptCol.at(index) * rc.kSmearMC(
+                chargCol.at(index),
+                ptCol.at(index),
+                etaCol.at(index),
+                phiCol.at(index),
+                nTrackerLayersCol.at(index),
+                rndmCol.at(position),
+                error_set,
+                error_member
+            );
+        }
+        
+        return pt_rc;
+    };
+
+    return df.Define(
+        outputname,
+        lambda,
+        {objCollection, chargColumn, ptColumn, etaColumn, phiColumn, genPtColumn, nTrackerLayersColumn, rndmColumn});
+}
 } // end namespace muon
 /// Tau specific functions
 namespace tau {
