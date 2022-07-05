@@ -801,8 +801,8 @@ auto PairSelectionAlgo(const float &mindeltaR) {
         Logger::get("leptonic::PairSelectionAlgo")
             ->debug("good pts: {}", good_pts);
         Logger::get("leptonic::PairSelectionAlgo")
-            ->debug("selected_lepton_indices: {}, {}", selected_lepton_indices[0],
-                    selected_lepton_indices[1]);
+            ->debug("selected_lepton_indices: {}, {}",
+                    selected_lepton_indices[0], selected_lepton_indices[1]);
         selected_pair = {static_cast<int>(selected_lepton_indices[0]),
                          static_cast<int>(selected_lepton_indices[1])};
         return selected_pair;
@@ -898,8 +898,8 @@ auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
         }
         Logger::get("ZBosonPairSelectionAlgo")->debug("good pts: {}", good_pts);
         Logger::get("ZBosonPairSelectionAlgo")
-            ->debug("selected_lepton_indices: {}, {}", selected_lepton_indices[0],
-                    selected_lepton_indices[1]);
+            ->debug("selected_lepton_indices: {}, {}",
+                    selected_lepton_indices[0], selected_lepton_indices[1]);
 
         selected_pair = {static_cast<int>(selected_lepton_indices[0]),
                          static_cast<int>(selected_lepton_indices[1])};

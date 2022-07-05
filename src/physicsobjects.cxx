@@ -1,10 +1,10 @@
 #ifndef GUARD_PHYSICSOBJECTS_H
 #define GUARD_PHYSICSOBJECTS_H
 
+#include "../include/RoccoR.hxx"
 #include "../include/basefunctions.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/utility.hxx"
-#include "../include/RoccoR.hxx"
 #include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "TRandom3.h"
@@ -87,31 +87,40 @@ ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
         df.Define(maskname, basefunctions::FilterAbsMax(Threshold), {quantity});
     return df1;
 }
-
-ROOT::RDF::RNode CutVariableBarrelEndcap(ROOT::RDF::RNode df, const std::string &maskname,
-                                         const std::string &etaColumnName,
-                                         const std::string &cutVarColumnName,
-                                         const float &etaBoundary,
-                                         const float &lowerThresholdBarrel,
-                                         const float &upperThresholdBarrel,
-                                         const float &lowerThresholdEndcap,
-                                         const float &upperThresholdEndcap) {
-    auto lambda = [
-        etaBoundary,
-        lowerThresholdBarrel, upperThresholdBarrel,
-        lowerThresholdEndcap, upperThresholdEndcap
-    ] (
-        const ROOT::RVec<float> &eta, const ROOT::RVec<float> &variable
-    ) {
-        ROOT::RVec<int> mask = (
-            ((abs(eta) < etaBoundary)  && (variable >= lowerThresholdBarrel) && (variable < upperThresholdBarrel)) ||
-            ((abs(eta) >= etaBoundary) && (variable >= lowerThresholdEndcap) && (variable < upperThresholdEndcap))
-        );
+/// Function to select objects with eta dependent upper and lower thesholds
+/// for a given variable
+///
+/// \param[in] df the input dataframe
+/// \param[out] maskname the name of the mask to be added as column to the
+/// \param[in] etaColumnName name of the eta column in the NanoAOD dataframe
+/// \param[in] cutVarColumnName name of the variable column to apply the
+/// selection in the NanoAOD dataframe \param[in] etaBoundary boundary of
+/// absolute eta for the barrel and endcap regions of the detector \param[in]
+/// lowerThresholdBarrel lower threshold for the barrel \param[in]
+/// upperThresholdBarrel upper threshold for the barrel \param[in]
+/// lowerThresholdEndcap lower threshold for the endcap \param[in]
+/// upperThresholdEndcap upper threshold for the barrel
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode CutVariableBarrelEndcap(
+    ROOT::RDF::RNode df, const std::string &maskname,
+    const std::string &etaColumnName, const std::string &cutVarColumnName,
+    const float &etaBoundary, const float &lowerThresholdBarrel,
+    const float &upperThresholdBarrel, const float &lowerThresholdEndcap,
+    const float &upperThresholdEndcap) {
+    auto lambda = [etaBoundary, lowerThresholdBarrel, upperThresholdBarrel,
+                   lowerThresholdEndcap,
+                   upperThresholdEndcap](const ROOT::RVec<float> &eta,
+                                         const ROOT::RVec<float> &variable) {
+        ROOT::RVec<int> mask =
+            (((abs(eta) < etaBoundary) && (variable >= lowerThresholdBarrel) &&
+              (variable < upperThresholdBarrel)) ||
+             ((abs(eta) >= etaBoundary) && (variable >= lowerThresholdEndcap) &&
+              (variable < upperThresholdEndcap)));
         return mask;
     };
-    
-    auto df1 = df.Define(maskname, lambda,
-                         {etaColumnName, cutVarColumnName});
+
+    auto df1 = df.Define(maskname, lambda, {etaColumnName, cutVarColumnName});
     return df1;
 }
 
@@ -362,39 +371,32 @@ ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
     return df1;
 }
 
-
-/// Function to create a column of vector of random numbers between 0 and 1 
+/// Function to create a column of vector of random numbers between 0 and 1
 /// with size of the input object collection
 ///
 /// \param[in] df the input dataframe
 /// \param[out] outputname the name of the output column that is created
 /// \param[in] objCollection the name of the input object collection
-/// \param[in] seed the seed of the random number generator 
+/// \param[in] seed the seed of the random number generator
 ///
 /// \return a dataframe with the new column
-ROOT::RDF::RNode rndm(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &objCollection,
-    int seed
-) {
+ROOT::RDF::RNode rndm(ROOT::RDF::RNode df, const std::string &outputname,
+                      const std::string &objCollection, int seed) {
     auto lambda = [seed](const ROOT::RVec<int> &objects) {
         TRandom3 randm = TRandom3(seed);
         const int len = objects.size();
-        float rndm[len]; randm.RndmArray(len, rndm);
+        float rndm[len];
+        randm.RndmArray(len, rndm);
         ROOT::RVec<float> out = {};
-        for (auto & x : rndm) {
+        for (auto &x : rndm) {
             out.push_back(x);
         }
         return out;
     };
-    return df.Define(
-        outputname,
-        lambda,
-        {objCollection});
+    return df.Define(outputname, lambda, {objCollection});
 }
 
-/// Function to create a column of Rochester correction applied transverse 
+/// Function to create a column of Rochester correction applied transverse
 /// momentum for data, see https://gitlab.cern.ch/akhukhun/roccor
 ///
 /// \param[in] df the input dataframe
@@ -410,46 +412,34 @@ ROOT::RDF::RNode rndm(
 /// \param[in] error_member the error member number
 ///
 /// \return a dataframe with the new column
-ROOT::RDF::RNode applyRoccoRData(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &filename,
-    const int &position,
-    const std::string &objCollection,
-    const std::string &chargColumn,
-    const std::string &ptColumn,
-    const std::string &etaColumn,
-    const std::string &phiColumn,
-    int error_set,
-    int error_member
-) {
+ROOT::RDF::RNode
+applyRoccoRData(ROOT::RDF::RNode df, const std::string &outputname,
+                const std::string &filename, const int &position,
+                const std::string &objCollection,
+                const std::string &chargColumn, const std::string &ptColumn,
+                const std::string &etaColumn, const std::string &phiColumn,
+                int error_set, int error_member) {
     RoccoR rc(filename);
-    auto lambda = [rc, position, error_set, error_member](
-        const ROOT::RVec<int> &objects,
-        const ROOT::RVec<int> &chargCol,
-        const ROOT::RVec<float> &ptCol,
-        const ROOT::RVec<float> &etaCol,
-        const ROOT::RVec<float> &phiCol
-    ) {
+    auto lambda = [rc, position, error_set,
+                   error_member](const ROOT::RVec<int> &objects,
+                                 const ROOT::RVec<int> &chargCol,
+                                 const ROOT::RVec<float> &ptCol,
+                                 const ROOT::RVec<float> &etaCol,
+                                 const ROOT::RVec<float> &phiCol) {
         const int index = objects.at(position);
-        double pt_rc = ptCol.at(index) * rc.kScaleDT(
-            chargCol.at(index),
-            ptCol.at(index),
-            etaCol.at(index),
-            phiCol.at(index),
-            error_set,
-            error_member
-        );
+        double pt_rc =
+            ptCol.at(index) * rc.kScaleDT(chargCol.at(index), ptCol.at(index),
+                                          etaCol.at(index), phiCol.at(index),
+                                          error_set, error_member);
         return pt_rc;
     };
 
     return df.Define(
-        outputname,
-        lambda,
+        outputname, lambda,
         {objCollection, chargColumn, ptColumn, etaColumn, phiColumn});
 }
 
-/// Function to create a column of Rochester correction applied transverse 
+/// Function to create a column of Rochester correction applied transverse
 /// momentum for MC, see https://gitlab.cern.ch/akhukhun/roccor
 ///
 /// \param[in] df the input dataframe
@@ -461,72 +451,53 @@ ROOT::RDF::RNode applyRoccoRData(
 /// \param[in] ptColumn the name of the column containing muon charge values
 /// \param[in] etaColumn the name of the column containing muon eta values
 /// \param[in] phiColumn the name of the column containing muon phi values
-/// \param[in] genPtColumn the name of the column containing gen-level transverse momentum value of the target muon
-/// \param[in] nTrackerLayersColumn the name of the column containing number of tracker layers values
-/// \param[in] rndmColumn the name of the column containing random number generated for each muon
-/// \param[in] error_set the error set number
-/// \param[in] error_member the error member number
+/// \param[in] genPtColumn the name of the column containing gen-level
+/// transverse momentum value of the target muon \param[in] nTrackerLayersColumn
+/// the name of the column containing number of tracker layers values \param[in]
+/// rndmColumn the name of the column containing random number generated for
+/// each muon \param[in] error_set the error set number \param[in] error_member
+/// the error member number
 ///
 /// \return a dataframe with the new column
-ROOT::RDF::RNode applyRoccoRMC(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &filename,
-    const int &position,
-    const std::string &objCollection,
-    const std::string &chargColumn,
-    const std::string &ptColumn,
-    const std::string &etaColumn,
-    const std::string &phiColumn,
-    const std::string &genPtColumn,
-    const std::string &nTrackerLayersColumn,
-    const std::string &rndmColumn,
-    int error_set,
-    int error_member
-) {
+ROOT::RDF::RNode
+applyRoccoRMC(ROOT::RDF::RNode df, const std::string &outputname,
+              const std::string &filename, const int &position,
+              const std::string &objCollection, const std::string &chargColumn,
+              const std::string &ptColumn, const std::string &etaColumn,
+              const std::string &phiColumn, const std::string &genPtColumn,
+              const std::string &nTrackerLayersColumn,
+              const std::string &rndmColumn, int error_set, int error_member) {
     RoccoR rc(filename);
     auto lambda = [rc, position, error_set, error_member](
-        const ROOT::RVec<int> &objects,
-        const ROOT::RVec<int> &chargCol,
-        const ROOT::RVec<float> &ptCol,
-        const ROOT::RVec<float> &etaCol,
-        const ROOT::RVec<float> &phiCol,
-        const float &genPt,
-        const ROOT::RVec<int> &nTrackerLayersCol,
-        const ROOT::RVec<float> &rndmCol
-    ) {
+                      const ROOT::RVec<int> &objects,
+                      const ROOT::RVec<int> &chargCol,
+                      const ROOT::RVec<float> &ptCol,
+                      const ROOT::RVec<float> &etaCol,
+                      const ROOT::RVec<float> &phiCol, const float &genPt,
+                      const ROOT::RVec<int> &nTrackerLayersCol,
+                      const ROOT::RVec<float> &rndmCol) {
         double pt_rc = default_float;
         const int index = objects.at(position);
         if (genPt > 0.) {
-            pt_rc = ptCol.at(index) * rc.kSpreadMC(
-                chargCol.at(index),
-                ptCol.at(index),
-                etaCol.at(index),
-                phiCol.at(index),
-                genPt,
-                error_set,
-                error_member
-            );
+            pt_rc = ptCol.at(index) *
+                    rc.kSpreadMC(chargCol.at(index), ptCol.at(index),
+                                 etaCol.at(index), phiCol.at(index), genPt,
+                                 error_set, error_member);
         } else {
-            pt_rc = ptCol.at(index) * rc.kSmearMC(
-                chargCol.at(index),
-                ptCol.at(index),
-                etaCol.at(index),
-                phiCol.at(index),
-                nTrackerLayersCol.at(index),
-                rndmCol.at(position),
-                error_set,
-                error_member
-            );
+            pt_rc = ptCol.at(index) *
+                    rc.kSmearMC(chargCol.at(index), ptCol.at(index),
+                                etaCol.at(index), phiCol.at(index),
+                                nTrackerLayersCol.at(index),
+                                rndmCol.at(position), error_set, error_member);
         }
-        
+
         return pt_rc;
     };
 
-    return df.Define(
-        outputname,
-        lambda,
-        {objCollection, chargColumn, ptColumn, etaColumn, phiColumn, genPtColumn, nTrackerLayersColumn, rndmColumn});
+    return df.Define(outputname, lambda,
+                     {objCollection, chargColumn, ptColumn, etaColumn,
+                      phiColumn, genPtColumn, nTrackerLayersColumn,
+                      rndmColumn});
 }
 } // end namespace muon
 /// Tau specific functions

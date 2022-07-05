@@ -109,13 +109,13 @@ ROOT::RDF::RNode getvar(ROOT::RDF::RNode df, const std::string &outputname,
 
 template <typename T>
 ROOT::RDF::RNode getvar(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::string &position, const std::string &column) {
-    return df.Define(
-        outputname,
-        [](const int &pos, const ROOT::RVec<T> &col) {
-            return col.at(pos, default_value<T>());
-        },
-        {position, column});
+                        const std::string &position,
+                        const std::string &column) {
+    return df.Define(outputname,
+                     [](const int &pos, const ROOT::RVec<T> &col) {
+                         return col.at(pos, default_value<T>());
+                     },
+                     {position, column});
 }
 
 /// Function to add a new quantity with a defined value
