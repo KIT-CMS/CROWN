@@ -228,9 +228,6 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
     htcondor_remote_job = luigi.Parameter(
         description="Whether RemoteJob should be set in the HTCondor job submission."
     )
-    htcondor_user_proxy = luigi.Parameter(
-        description="VOMS-proxy in HTCondor job submission."
-    )
     htcondor_walltime = luigi.Parameter(
         description="Runtime to be set in HTCondor job submission."
     )

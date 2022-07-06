@@ -33,56 +33,68 @@ class CreateTrainingDataShardConfig(Task):
     # Define output targets.
     # Task is considerd complete if all targets are present.
     def output(self):
+        targets_collection = {}
         processes, process_classes = zip(*self.processes_and_classes)
-        files = [
-            "/".join(
-                [
-                    self.dir_template.format(era=era, channel=self.channel),
-                    self.file_template.format(process=process),
-                ]
-            )
-            for era in self.eras
-            for process in processes
-        ]
-        targets = self.remote_targets(files)
-        for target in flatten_collections(targets):
-            target.parent.touch()
-        # Wrap targets into a nested sibling file collection.
-        targets_collection = NestedSiblingFileCollection(targets)
+        for era in self.eras:
+            files = [
+                "/".join(
+                    [
+                        self.dir_template.format(era=era, channel=self.channel),
+                        self.file_template.format(process=process),
+                    ]
+                )
+                for process in processes
+            ]
+            targets = self.remote_targets(files)
+            for target in flatten_collections(targets):
+                target.parent.touch()
+            # Wrap targets into a nested sibling file collection.
+            targets_collection[era] = NestedSiblingFileCollection(targets)
         return targets_collection
 
     def run(self):
         processes, process_classes = zip(*self.processes_and_classes)
         # Check for each output target if it already exists
-        missing_confs_bools = [
-            not target.exists() for target in flatten_collections(self.output())
-        ]
+        missing_confs_bools = {
+            era: [not target.exists() for target in flatten_collections(self.output()[era])]
+            for era in self.eras
+        }
         # Create list of missing processes, process classes and output targets
-        missing_processes = list(compress(processes, missing_confs_bools))
-        missing_process_classes = list(compress(process_classes, missing_confs_bools))
-        missing_outputs = [
-            output
-            for output in flatten_collections(self.output())
-            if not output.exists()
-        ]
+        missing_processes = {
+            era: list(compress(processes, missing_confs_bools[era]))
+            for era in self.eras
+        }
+        missing_process_classes = {
+            era: list(compress(process_classes, missing_confs_bools[era]))
+            for era in self.eras
+        }
+        missing_outputs = {
+            era: list(compress(flatten_collections(self.output()[era]), missing_confs_bools[era]))
+            for era in self.eras
+        }
         # Create new temporary data directory
         prefix = self.temporary_local_path("")
         os.makedirs(prefix, exist_ok=True)
         run_loc = "sm-htt-analysis"
-        files = [
-            "/".join(
-                [
-                    prefix,
-                    self.dir_template.format(era=era, channel=self.channel),
-                    self.file_template.format(process=process),
-                ]
-            )
+        files = {
+            era: [
+                "/".join(
+                    [
+                        prefix,
+                        self.dir_template.format(era=era, channel=self.channel),
+                        self.file_template.format(process=process),
+                    ]
+                )
+                for process in missing_processes[era]
+            ]
             for era in self.eras
-            for process in missing_processes
-        ]
+        }
+        # print(files)
 
         # Loop over eras
         for era in self.eras:
+            if not missing_processes[era]:
+                continue
             # Create output dir for each era
             os.makedirs(
                 "/".join([prefix, "{}_{}".format(era, self.channel)]), exist_ok=True
@@ -98,8 +110,8 @@ class CreateTrainingDataShardConfig(Task):
                     "ml_datasets/write_datashard_config.py",
                     "--era {}".format(era),
                     "--channel {}".format(self.channel),
-                    "--processes {}".format(" ".join(missing_processes)),
-                    "--process-classes {}".format(" ".join(missing_process_classes)),
+                    "--processes {}".format(" ".join(missing_processes[era])),
+                    "--process-classes {}".format(" ".join(missing_process_classes[era])),
                     "--base-path $ARTUS_OUTPUTS",
                     "--friend-paths {}".format(friends),
                     "--database $KAPPA_DATABASE",
@@ -116,9 +128,10 @@ class CreateTrainingDataShardConfig(Task):
             )
         # self.run_command(command=["ls", "-R"], run_location=prefix)
         # Copy locally created files to remote storage
-        for file_remote, file_local in zip(missing_outputs, files):
-            file_remote.parent.touch()
-            file_remote.copy_from_local(file_local)
+        for era in self.eras:
+            for file_remote, file_local in zip(missing_outputs[era], files[era]):
+                file_remote.parent.touch()
+                file_remote.copy_from_local(file_local)
         # Remove temporary data directory
         rmtree(prefix)
 
@@ -147,11 +160,11 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
             {
                 "era": era,
                 "channel": self.channel,
-                "process": process,
+                "process_and_class": process_and_class,
                 "fold": fold,
             }
             for era in self.eras
-            for process in processes
+            for process_and_class in self.processes_and_classes
             for fold in ["0", "1"]
         ]
         assert (
@@ -165,11 +178,21 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
     # Set prerequisites of this task:
     # All configs for the dataset shards have to be completed
     def requires(self):
-        return self.workflow_requires()
+        processes, process_classes = zip(*self.processes_and_classes)
+        requirements = {}
+        requirements_args = {
+            "eras": [self.branch_data["era"]],
+            "channel": self.channel,
+            "processes_and_classes": [self.branch_data["process_and_class"]],
+        }
+        requirements["CreateTrainingDataShardConfig"] = CreateTrainingDataShardConfig(
+            **requirements_args
+        )
+        return requirements
 
     def workflow_requires(self):
         processes, process_classes = zip(*self.processes_and_classes)
-        requirements = super(CreateTrainingDataShard, self).workflow_requires()
+        requirements = {}
         requirements_args = {
             "eras": self.eras,
             "channel": self.channel,
@@ -182,6 +205,7 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
 
     # Define output targets. Task is considerd complete if all targets are present.
     def output(self):
+        process, class_name = self.branch_data["process_and_class"]
         files = [
             "/".join(
                 [
@@ -189,7 +213,7 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
                         era=self.branch_data["era"], channel=self.branch_data["channel"]
                     ),
                     self.files_template.format(
-                        process=self.branch_data["process"],
+                        process=process,
                         fold=self.branch_data["fold"],
                     ),
                 ]
@@ -201,6 +225,7 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
         return targets
 
     def run(self):
+        process, class_name = self.branch_data["process_and_class"]
         prefix = self.temporary_local_path("")
         run_loc = "sm-htt-analysis"
         # Create data directory
@@ -218,21 +243,23 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
                 [
                     data_dir,
                     self.files_template.format(
-                        process=self.branch_data["process"],
+                        process=process,
                         fold=self.branch_data["fold"],
                     ),
                 ]
             )
         ]
         # Get list of all shard config targets
-        allbranch_targets = self.input()["CreateTrainingDataShardConfig"].targets
+        allbranch_targets = self.input()[
+            "CreateTrainingDataShardConfig"
+        ][self.branch_data["era"]].targets
         # Filter targets by name in each branch
         filefilter = "/".join(
             [
                 self.dir_template.format(
                     era=self.branch_data["era"], channel=self.branch_data["channel"]
                 ),
-                self.files_template_in.format(process=self.branch_data["process"]),
+                self.files_template_in.format(process=process),
             ]
         )
         datashard_config = [
@@ -244,7 +271,7 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
             [
                 data_dir,
                 "{process}_datashard_config.yaml".format(
-                    process=self.branch_data["process"]
+                    process=process
                 ),
             ]
         )
@@ -258,7 +285,7 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
                 "python",
                 "ml_datasets/create_training_datashard.py",
                 "--config {}".format(local_config_path),
-                "--process {}".format(self.branch_data["process"]),
+                "--process {}".format(process),
                 "--fold {}".format(self.branch_data["fold"]),
                 "--output-dir {}/".format(data_dir),
             ],
@@ -317,7 +344,7 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
 
     # Create map for the branches of this task
     def create_branch_map(self):
-        branches = [{"era": era, "channel": self.channel} for era in self.eras]
+        branches = [{"era": era} for era in self.eras]
         assert (
             branches
         ), "There are no valid branches for this set of parameters: \
@@ -330,11 +357,23 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
     # All configs for the dataset shards have to be completed
     # All dataset shards have to be completed
     def requires(self):
-        return self.workflow_requires()
+        requirements = {}
+        requirements_args = {
+            "eras": [self.branch_data["era"]],
+            "channel": self.channel,
+            "processes_and_classes": self.processes_and_classes,
+        }
+        requirements["CreateTrainingDataShard"] = CreateTrainingDataShard(
+            **requirements_args
+        )
+        requirements["CreateTrainingDataShardConfig"] = CreateTrainingDataShardConfig(
+            **requirements_args
+        )
+
+        return requirements
 
     def workflow_requires(self):
-        requirements = super(CreateTrainingConfig, self).workflow_requires()
-
+        requirements = {}
         requirements_args = {
             "eras": self.eras,
             "channel": self.channel,
@@ -356,7 +395,7 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
                 [
                     self.dir_template.format(
                         era=self.branch_data["era"],
-                        channel=self.branch_data["channel"],
+                        channel=self.channel,
                         mass=mass,
                         batch=batch_num,
                     ),
@@ -385,7 +424,7 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
                             prefix_config,
                             self.dir_template.format(
                                 era=self.branch_data["era"],
-                                channel=self.branch_data["channel"],
+                                channel=self.channel,
                                 mass=mass,
                                 batch=batch_num,
                             ),
@@ -400,7 +439,7 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
                     prefix_config,
                     self.dir_template.format(
                         era=self.branch_data["era"],
-                        channel=self.branch_data["channel"],
+                        channel=self.channel,
                         mass=mass,
                         batch=batch_num,
                     ),
@@ -415,19 +454,20 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
         allbranch_shards = flatten_collections(
             self.input()["CreateTrainingDataShard"]["collection"]
         )
-
         # Get prefix of remote storage for root shards
         remote_shard_base = self.wlcg_path + os.path.dirname(allbranch_shards[0].path)
 
         # Get list of all shard config targets
-        allbranch_shardconfigs = self.input()["CreateTrainingDataShardConfig"].targets
+        allbranch_shardconfigs = self.input()[
+            "CreateTrainingDataShardConfig"
+        ][self.branch_data["era"]].targets
         # Filter shard config targets by name in each branch and process
         filefilter_shard_config_strings = [
             "/".join(
                 [
                     ".*",
                     self.dir_template_in.format(
-                        era=self.branch_data["era"], channel=self.branch_data["channel"]
+                        era=self.branch_data["era"], channel=self.channel
                     ),
                     self.files_template_shard_config.format(process=process),
                 ]
@@ -488,7 +528,7 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
 # For this the training configs of the individual eras are merged
 class CreateTrainingConfigAllEras(Task, law.LocalWorkflow):
     # Define luigi parameters
-    eras = luigi.ListParameter(description="List of run eras")
+    eras = luigi.ListParameter(description="Eras")
     channel = luigi.Parameter(description="Decay Channel")
     masses = luigi.ListParameter(
         description="List of mass hypotheses of heavy NMSSM Higgs boson."
@@ -526,8 +566,7 @@ class CreateTrainingConfigAllEras(Task, law.LocalWorkflow):
     # Create map for the branches of this task
     def create_branch_map(self):
         branches = [
-            {"era": era, "mass": mass, "batch_num": batch_num}
-            for era in self.eras
+            {"mass": mass, "batch_num": batch_num}
             for mass in self.masses
             for batch_num in self.valid_batches(mass)
         ]
@@ -542,10 +581,19 @@ class CreateTrainingConfigAllEras(Task, law.LocalWorkflow):
     # Set prerequisites of this task:
     # Training configs for each era have to be completed
     def requires(self):
-        return self.workflow_requires()
+        requirements = {}
+        requirements_args = {
+            "eras": self.all_eras,
+            "channel": self.channel,
+            "processes_and_classes": self.processes_and_classes,
+            "masses": [self.branch_data["mass"]],
+            "batch_nums": [self.branch_data["batch_num"]],
+        }
+        requirements["CreateTrainingConfig"] = CreateTrainingConfig(**requirements_args)
+        return requirements
 
     def workflow_requires(self):
-        requirements = super(CreateTrainingConfigAllEras, self).workflow_requires()
+        requirements = {}
         requirements_args = {
             "eras": self.all_eras,
             "channel": self.channel,
@@ -562,7 +610,7 @@ class CreateTrainingConfigAllEras(Task, law.LocalWorkflow):
             "/".join(
                 [
                     self.dir_template.format(
-                        era=self.branch_data["era"],
+                        era=self.eras[0],
                         channel=self.channel,
                         mass=self.branch_data["mass"],
                         batch=self.branch_data["batch_num"],
@@ -584,7 +632,7 @@ class CreateTrainingConfigAllEras(Task, law.LocalWorkflow):
             [
                 prefix,
                 self.dir_template.format(
-                    era=self.branch_data["era"],
+                    era=self.eras[0],
                     channel=self.channel,
                     mass=self.branch_data["mass"],
                     batch=self.branch_data["batch_num"],

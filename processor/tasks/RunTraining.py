@@ -112,7 +112,43 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
     # All training config files have to be completed
     # The prerequisites are also dependant on whether all_eras is used
     def requires(self):
-        return self.workflow_requires()
+        requirements = {}
+
+        processes_and_classes = self.get_process_tuple(
+            self.branch_data["channel"],
+            self.branch_data["mass"],
+            self.branch_data["batch_num"],
+        )
+        requirements_conf = {
+            "eras": [self.era],
+            "channel": self.branch_data["channel"],
+            "processes_and_classes": processes_and_classes,
+            "masses": [self.branch_data["mass"]],
+            "batch_nums": [self.branch_data["batch_num"]],
+        }
+        if self.era == "all_eras":
+            # requires CreateTrainingConfigAllEras task if all_eras is used
+            requirements[
+                "CreateTrainingConfig_{}".format(self.branch_data["channel"])
+            ] = CreateTrainingConfigAllEras(**requirements_conf)
+
+            use_eras = self.all_eras
+        else:
+            # requires CreateTrainingConfig task if all_eras is not used
+            requirements[
+                "CreateTrainingConfig_{}".format(self.branch_data["channel"])
+            ] = CreateTrainingConfig(**requirements_conf)
+            use_eras = [self.era]
+        # use_eras is set to be either given era, or a list of all eras
+        requirements_shard = {
+            "eras": use_eras,
+            "channel": self.branch_data["channel"],
+            "processes_and_classes": processes_and_classes,
+        }
+        requirements[
+            "CreateTrainingDataShard_{}".format(self.branch_data["channel"])
+        ] = CreateTrainingDataShard(**requirements_shard)
+        return requirements
 
     def workflow_requires(self):
         requirements = super(RunTraining, self).workflow_requires()
@@ -221,6 +257,9 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             for file_template in self.file_templates
         ]
         # Get list of all training config targets
+        trainingconfig = self.input()[
+            "CreateTrainingConfig_{}".format(self.branch_data["channel"])
+        ]["collection"]
         allbranch_trainingconfigs = flatten_collections(
             self.input()["CreateTrainingConfig_{}".format(self.branch_data["channel"])][
                 "collection"
