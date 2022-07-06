@@ -256,7 +256,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             )
             for file_template in self.file_templates
         ]
-        # Get list of all training config targets
+        # Get training config target
         branch_trainingconfigs = flatten_collections(
             self.input()["CreateTrainingConfig_{}".format(self.branch_data["channel"])][
                 "collection"

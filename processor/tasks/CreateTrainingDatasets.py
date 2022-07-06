@@ -249,7 +249,7 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
                 ]
             )
         ]
-        # Get list of all shard config targets
+        # Get config target
         allbranch_targets = self.input()[
             "CreateTrainingDataShardConfig"
         ][self.branch_data["era"]].targets
@@ -257,7 +257,7 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
             "There should be 1 target, but there are {}".format(len(allbranch_targets))
         datashard_config = allbranch_targets[0]
 
-        # Copy filtered config file into data directory
+        # Copy config file into data directory
         local_config_path = "/".join(
             [
                 data_dir,
@@ -448,7 +448,7 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
         # Get prefix of remote storage for root shards
         remote_shard_base = self.wlcg_path + os.path.dirname(allbranch_shards[0].path)
 
-        # Get list of all shard config targets
+        # Get shard config targets
         branch_shardconfigs = self.input()[
             "CreateTrainingDataShardConfig"
         ][self.branch_data["era"]].targets
@@ -458,7 +458,7 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
                 len(branch_shardconfigs),
             )
 
-        # Copy filtered shard and shard config files into data directory
+        # Copy shard config files into data directory
         for copy_file in branch_shardconfigs:
             copy_file_name = os.path.basename(copy_file.path)
             copy_file_name_path = os.path.basename(os.path.dirname(copy_file.path))
@@ -615,7 +615,8 @@ class CreateTrainingConfigAllEras(Task, law.LocalWorkflow):
         )
         os.makedirs("/".join([data_dir, "all_eras"]), exist_ok=True)
         files = ["/".join([data_dir, "all_eras", self.file_template])]
-        # Get list of all training config targets
+
+        # Get training config target
         branch_trainingconfigs = flatten_collections(
             self.input()["CreateTrainingConfig"]["collection"]
         )
@@ -625,7 +626,7 @@ class CreateTrainingConfigAllEras(Task, law.LocalWorkflow):
                 len(branch_trainingconfigs),
             )
 
-        # Copy filtered training config files into data directories
+        # Copy training config file into data directorie
         for config, era in zip(branch_trainingconfigs, self.all_eras):
             config_name = os.path.basename(config.path)
             config.copy_to_local("/".join([data_dir, era, config_name]))
