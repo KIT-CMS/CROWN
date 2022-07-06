@@ -253,18 +253,9 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
         allbranch_targets = self.input()[
             "CreateTrainingDataShardConfig"
         ][self.branch_data["era"]].targets
-        # Filter targets by name in each branch
-        filefilter = "/".join(
-            [
-                self.dir_template.format(
-                    era=self.branch_data["era"], channel=self.branch_data["channel"]
-                ),
-                self.files_template_in.format(process=process),
-            ]
-        )
-        datashard_config = [
-            target for target in allbranch_targets if filefilter in target.path
-        ][0]
+        assert len(allbranch_targets)==1, \
+            "There should be 1 target, but there are {}".format(len(allbranch_targets))
+        datashard_config = allbranch_targets[0]
 
         # Copy filtered config file into data directory
         local_config_path = "/".join(
@@ -458,34 +449,17 @@ class CreateTrainingConfig(Task, law.LocalWorkflow):
         remote_shard_base = self.wlcg_path + os.path.dirname(allbranch_shards[0].path)
 
         # Get list of all shard config targets
-        allbranch_shardconfigs = self.input()[
+        branch_shardconfigs = self.input()[
             "CreateTrainingDataShardConfig"
         ][self.branch_data["era"]].targets
-        # Filter shard config targets by name in each branch and process
-        filefilter_shard_config_strings = [
-            "/".join(
-                [
-                    ".*",
-                    self.dir_template_in.format(
-                        era=self.branch_data["era"], channel=self.channel
-                    ),
-                    self.files_template_shard_config.format(process=process),
-                ]
+        assert len(branch_shardconfigs)==len(processes), \
+            "There should be {} targets, but there are {}".format(
+                len(processes), 
+                len(branch_shardconfigs),
             )
-            for process in processes
-        ]
-        filefilter_shard_configs = [
-            re.compile(string) for string in filefilter_shard_config_strings
-        ]
-        shardconfigs = [
-            target
-            for target in allbranch_shardconfigs
-            for filt in filefilter_shard_configs
-            if filt.match(target.path)
-        ]
 
         # Copy filtered shard and shard config files into data directory
-        for copy_file in shardconfigs:
+        for copy_file in branch_shardconfigs:
             copy_file_name = os.path.basename(copy_file.path)
             copy_file_name_path = os.path.basename(os.path.dirname(copy_file.path))
             copy_file.copy_to_local(
@@ -642,34 +616,17 @@ class CreateTrainingConfigAllEras(Task, law.LocalWorkflow):
         os.makedirs("/".join([data_dir, "all_eras"]), exist_ok=True)
         files = ["/".join([data_dir, "all_eras", self.file_template])]
         # Get list of all training config targets
-        allbranch_trainingconfigs = flatten_collections(
+        branch_trainingconfigs = flatten_collections(
             self.input()["CreateTrainingConfig"]["collection"]
         )
-        # Filter training config targets by name for every era
-        filefilter_training_config_string = "/".join(
-            [
-                ".*",
-                self.dir_template.format(
-                    era=".*",
-                    channel=self.channel,
-                    mass=self.branch_data["mass"],
-                    batch=self.branch_data["batch_num"],
-                ),
-                self.file_template,
-            ]
-        )
-        filefilter_training_config = re.compile(filefilter_training_config_string)
-        trainingconfigs = [
-            target
-            for target in allbranch_trainingconfigs
-            if filefilter_training_config.match(target.path)
-        ]
-        training_config_names = [
-            os.path.basename(file.path) for file in trainingconfigs
-        ]
+        assert len(branch_trainingconfigs)==len(self.all_eras), \
+            "There should be {} targets, but there are {}".format(
+                len(self.all_eras), 
+                len(branch_trainingconfigs),
+            )
 
         # Copy filtered training config files into data directories
-        for config, era in zip(trainingconfigs, self.all_eras):
+        for config, era in zip(branch_trainingconfigs, self.all_eras):
             config_name = os.path.basename(config.path)
             config.copy_to_local("/".join([data_dir, era, config_name]))
         # Combine the configs of each era

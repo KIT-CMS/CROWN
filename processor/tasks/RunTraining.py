@@ -257,34 +257,14 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             for file_template in self.file_templates
         ]
         # Get list of all training config targets
-        trainingconfig = self.input()[
-            "CreateTrainingConfig_{}".format(self.branch_data["channel"])
-        ]["collection"]
-        allbranch_trainingconfigs = flatten_collections(
+        branch_trainingconfigs = flatten_collections(
             self.input()["CreateTrainingConfig_{}".format(self.branch_data["channel"])][
                 "collection"
             ]
         )
-
-        # Filter training config targets by name in each branch
-        filefilter_training_config_string = "/".join(
-            [
-                ".*",
-                self.dir_template.format(
-                    era=self.era,
-                    channel=self.branch_data["channel"],
-                    mass=self.branch_data["mass"],
-                    batch=self.branch_data["batch_num"],
-                ),
-                self.file_template_config,
-            ]
-        )
-        filefilter_training_config = re.compile(filefilter_training_config_string)
-        trainingconfig = [
-            target
-            for target in allbranch_trainingconfigs
-            if filefilter_training_config.match(target.path)
-        ][0]
+        assert len(branch_trainingconfigs)==1, \
+            "There should be 1 target, but there are {}".format(len(branch_trainingconfigs))
+        trainingconfig = branch_trainingconfigs[0]
 
         # Get prefix of remote storage for root shards
         allbranch_shards = flatten_collections(
