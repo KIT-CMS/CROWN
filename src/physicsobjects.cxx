@@ -380,13 +380,14 @@ ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
 /// \param[in] seed the seed of the random number generator
 ///
 /// \return a dataframe with the new column
-ROOT::RDF::RNode rndm(ROOT::RDF::RNode df, const std::string &outputname,
-                      const std::string &objCollection, int seed) {
-    auto lambda = [seed](const ROOT::RVec<int> &objects) {
-        TRandom3 randm = TRandom3(seed);
+ROOT::RDF::RNode GenerateRndm(ROOT::RDF::RNode df,
+                              const std::string &outputname,
+                              const std::string &objCollection, int seed) {
+    gRandom->SetSeed(seed);
+    auto lambda = [](const ROOT::RVec<int> &objects) {
         const int len = objects.size();
         float rndm[len];
-        randm.RndmArray(len, rndm);
+        gRandom->RndmArray(len, rndm);
         ROOT::RVec<float> out = {};
         for (auto &x : rndm) {
             out.push_back(x);
