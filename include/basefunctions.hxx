@@ -92,13 +92,22 @@ ROOT::RDF::RNode getvar(ROOT::RDF::RNode df, const std::string &outputname,
     return df.Define(
         outputname,
         [position](const ROOT::RVec<int> &vec, const ROOT::RVec<T> &col) {
-            const int index = vec.at(position);
-            return col.at(index, default_value<T>());
+            T out = default_value<T>();
+
+            try {
+                const int index = vec.at(position);
+                out = col.at(index, default_value<T>());
+            } catch (const std::out_of_range &e) {
+                Logger::get("getvar")->debug(
+                    "Index not found, retuning dummy value !");
+            }
+
+            return out;
         },
         {vecname, column});
 }
 
-/// Function to writeout a variable from a index to a NanoAOD column.
+/// Function to writeout a variable from a RVec index to a NanoAOD column.
 ///
 /// \param df the dataframe to add the quantity to
 /// \param outputname name of the new column containing the variable value
