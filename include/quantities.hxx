@@ -38,6 +38,8 @@ ROOT::RDF::RNode mTdileptonMET(ROOT::RDF::RNode df,
                                const std::string &p_1_p4,
                                const std::string &p_2_p4,
                                const std::string &met);
+ROOT::RDF::RNode deltaR(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &p_1_p4, const std::string &p_2_p4);
 ROOT::RDF::RNode mT(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &particle_p4, const std::string &met);
 ROOT::RDF::RNode pt_tt(ROOT::RDF::RNode df, const std::string &outputname,
