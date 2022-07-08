@@ -380,9 +380,9 @@ ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
 /// \param[in] seed the seed of the random number generator
 ///
 /// \return a dataframe with the new column
-ROOT::RDF::RNode GenerateRndm(ROOT::RDF::RNode df,
-                              const std::string &outputname,
-                              const std::string &objCollection, int seed) {
+ROOT::RDF::RNode GenerateRndmRVec(ROOT::RDF::RNode df,
+                                  const std::string &outputname,
+                                  const std::string &objCollection, int seed) {
     gRandom->SetSeed(seed);
     auto lambda = [](const ROOT::RVec<int> &objects) {
         const int len = objects.size();
