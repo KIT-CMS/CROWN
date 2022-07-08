@@ -15,7 +15,6 @@ from law.target.collection import flatten_collections
 import re
 from CreateTrainingDatasets import (
     CreateTrainingConfig,
-    CreateTrainingConfigAllEras,
     CreateTrainingDataShard,
 )
 
@@ -120,34 +119,32 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             self.branch_data["batch_num"],
         )
         requirements_conf = {
-            "eras": [self.era],
+            "era": self.era,
             "channel": self.branch_data["channel"],
             "processes_and_classes": processes_and_classes,
             "masses": [self.branch_data["mass"]],
             "batch_nums": [self.branch_data["batch_num"]],
         }
+        requirements[
+            "CreateTrainingConfig_{}".format(self.branch_data["channel"])
+        ] = CreateTrainingConfig(**requirements_conf)
         if self.era == "all_eras":
-            # requires CreateTrainingConfigAllEras task if all_eras is used
-            requirements[
-                "CreateTrainingConfig_{}".format(self.branch_data["channel"])
-            ] = CreateTrainingConfigAllEras(**requirements_conf)
-
             use_eras = self.all_eras
         else:
-            # requires CreateTrainingConfig task if all_eras is not used
-            requirements[
-                "CreateTrainingConfig_{}".format(self.branch_data["channel"])
-            ] = CreateTrainingConfig(**requirements_conf)
             use_eras = [self.era]
         # use_eras is set to be either given era, or a list of all eras
-        requirements_shard = {
-            "eras": use_eras,
-            "channel": self.branch_data["channel"],
-            "processes_and_classes": processes_and_classes,
-        }
-        requirements[
-            "CreateTrainingDataShard_{}".format(self.branch_data["channel"])
-        ] = CreateTrainingDataShard(**requirements_shard)
+        for era in use_eras:
+            requirements_shard = {
+                "era": era,
+                "channel": self.branch_data["channel"],
+                "processes_and_classes": processes_and_classes,
+            }
+            requirements[
+                "CreateTrainingDataShard_{}_{}".format(
+                    self.branch_data["channel"], 
+                    era,
+                )
+            ] = CreateTrainingDataShard(**requirements_shard)
         return requirements
 
     def workflow_requires(self):
@@ -174,34 +171,33 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             )
             processes_and_classes = [list(elem) for elem in processes_and_classes]
             requirements_conf = {
-                "eras": [self.era],
+                "era": self.era,
                 "channel": channel,
                 "processes_and_classes": processes_and_classes,
                 "masses": self.masses,
                 "batch_nums": self.batch_nums,
             }
+            # requires CreateTrainingConfig task if all_eras is not used
+            requirements[
+                "CreateTrainingConfig_{}".format(channel)
+            ] = CreateTrainingConfig(**requirements_conf)
             if self.era == "all_eras":
-                # requires CreateTrainingConfigAllEras task if all_eras is used
-                requirements[
-                    "CreateTrainingConfig_{}".format(channel)
-                ] = CreateTrainingConfigAllEras(**requirements_conf)
-
                 use_eras = self.all_eras
             else:
-                # requires CreateTrainingConfig task if all_eras is not used
-                requirements[
-                    "CreateTrainingConfig_{}".format(channel)
-                ] = CreateTrainingConfig(**requirements_conf)
                 use_eras = [self.era]
             # use_eras is set to be either given era, or a list of all eras
-            requirements_shard = {
-                "eras": use_eras,
-                "channel": channel,
-                "processes_and_classes": processes_and_classes,
-            }
-            requirements[
-                "CreateTrainingDataShard_{}".format(channel)
-            ] = CreateTrainingDataShard(**requirements_shard)
+            for era in use_eras:
+                requirements_shard = {
+                    "era": era,
+                    "channel": channel,
+                    "processes_and_classes": processes_and_classes,
+                }
+                requirements[
+                    "CreateTrainingDataShard_{}_{}".format(
+                        channel, 
+                        era,
+                    )
+                ] = CreateTrainingDataShard(**requirements_shard)
         return requirements
 
     # Define output targets. Task is considerd complete if all targets are present.
@@ -257,28 +253,40 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             for file_template in self.file_templates
         ]
         # Get training config target
-        branch_trainingconfigs = flatten_collections(
-            self.input()["CreateTrainingConfig_{}".format(self.branch_data["channel"])][
-                "collection"
-            ]
-        )
+        branch_trainingconfigs = self.input()[
+            "CreateTrainingConfig_{}".format(self.branch_data["channel"])
+        ]
         assert len(branch_trainingconfigs)==1, \
             "There should be 1 target, but there are {}".format(len(branch_trainingconfigs))
         trainingconfig = branch_trainingconfigs[0]
 
         # Get prefix of remote storage for root shards
-        allbranch_shards = flatten_collections(
-            self.input()[
-                "CreateTrainingDataShard_{}".format(self.branch_data["channel"])
-            ]["collection"]
-        )
-        remote_shard_base = self.wlcg_path + os.path.dirname(
-            os.path.dirname(allbranch_shards[0].path)
-        )
+        allbranch_shards = {
+            era: flatten_collections(
+                self.input()[
+                    "CreateTrainingDataShard_{}_{}".format(
+                        self.branch_data["channel"],
+                        era,
+                    )
+                ]["collection"]
+            )
+            for era in use_eras
+        }
+        remote_shard_base = [
+            self.wlcg_path + os.path.dirname(
+                os.path.dirname(allbranch_shards[era][0].path)
+            )
+            for era in use_eras
+        ]
+        assert len(set(remote_shard_base)) == 1,\
+            "Basepaths of different eras do not match"
+        remote_shard_base = remote_shard_base[0]
 
         # Copy config to local
         trainingconfig_name = os.path.basename(trainingconfig.path)
+        self.publish_message("File copy in start.")
         trainingconfig.copy_to_local("/".join([local_dir, trainingconfig_name]))
+        self.publish_message("File copy in end.")
 
         # self.run_command(
         #     command=["ls", "-R"],
@@ -311,9 +319,11 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
         #     run_location=prefix_w
         # )
         # Copy locally created files to remote storage
+        self.publish_message("File copy out start.")
         for file_remote, file_local in zip(self.output(), files):
             file_remote.parent.touch()
             file_remote.copy_from_local(file_local)
+        self.publish_message("File copy out end.")
         # Remove data directories
         rmtree(prefix)
 
