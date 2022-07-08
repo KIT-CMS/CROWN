@@ -53,11 +53,15 @@ class CreateTrainingDataShardConfig(Task):
     def run(self):
         processes, process_classes = zip(*self.processes_and_classes)
         # Check for each output target if it already exists
-        missing_confs_bools = [not target.exists() for target in flatten_collections(self.output())]
+        missing_confs_bools = [
+            not target.exists() for target in flatten_collections(self.output())
+        ]
         # Create list of missing processes, process classes and output targets
         missing_processes = list(compress(processes, missing_confs_bools))
         missing_process_classes = list(compress(process_classes, missing_confs_bools))
-        missing_outputs = list(compress(flatten_collections(self.output()), missing_confs_bools))
+        missing_outputs = list(
+            compress(flatten_collections(self.output()), missing_confs_bools)
+        )
         # Create new temporary data directory
         prefix = self.temporary_local_path("")
         os.makedirs(prefix, exist_ok=True)
@@ -227,20 +231,17 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
             )
         ]
         # Get config target
-        allbranch_targets = self.input()[
-            "CreateTrainingDataShardConfig"
-        ].targets
-        assert len(allbranch_targets)==1, \
-            "There should be 1 target, but there are {}".format(len(allbranch_targets))
+        allbranch_targets = self.input()["CreateTrainingDataShardConfig"].targets
+        assert (
+            len(allbranch_targets) == 1
+        ), "There should be 1 target, but there are {}".format(len(allbranch_targets))
         datashard_config = allbranch_targets[0]
 
         # Copy config file into data directory
         local_config_path = "/".join(
             [
                 data_dir,
-                "{process}_datashard_config.yaml".format(
-                    process=process
-                ),
+                "{process}_datashard_config.yaml".format(process=process),
             ]
         )
         self.publish_message("File copy in start.")
@@ -275,7 +276,7 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
 # One config file is created for each valid combination of:
 # era, channel, mass and batch
 # For this the shards are combined and reused as necessary
-class CreateTrainingConfig(Task): #, law.LocalWorkflow):
+class CreateTrainingConfig(Task):
     # Define luigi parameters
     era = luigi.Parameter(description="Run era")
     channel = luigi.Parameter(description="Decay Channel")
@@ -332,10 +333,12 @@ class CreateTrainingConfig(Task): #, law.LocalWorkflow):
                 "channel": self.channel,
                 "processes_and_classes": self.processes_and_classes,
             }
-            requirements["CreateTrainingDataShard_{}".format(era)] = \
-                CreateTrainingDataShard(**requirements_args)
-            requirements["CreateTrainingDataShardConfig_{}".format(era)] = \
-                CreateTrainingDataShardConfig(**requirements_args)
+            requirements[
+                "CreateTrainingDataShard_{}".format(era)
+            ] = CreateTrainingDataShard(**requirements_args)
+            requirements[
+                "CreateTrainingDataShardConfig_{}".format(era)
+            ] = CreateTrainingDataShardConfig(**requirements_args)
 
         return requirements
 
@@ -420,18 +423,17 @@ class CreateTrainingConfig(Task): #, law.LocalWorkflow):
 
         # Get shard config targets
         branch_shardconfigs = {
-            era: self.input()[
-                "CreateTrainingDataShardConfig_{}".format(era)
-            ].targets
+            era: self.input()["CreateTrainingDataShardConfig_{}".format(era)].targets
             for era in use_eras
         }
 
         for era in use_eras:
-            assert len(branch_shardconfigs[era])==len(processes), \
-                "There should be {} targets, but there are {}".format(
-                    len(processes), 
-                    len(branch_shardconfigs[era]),
-                )
+            assert len(branch_shardconfigs[era]) == len(
+                processes
+            ), "There should be {} targets, but there are {}".format(
+                len(processes),
+                len(branch_shardconfigs[era]),
+            )
 
         # Copy shard config files into data directory
         self.publish_message("File copy in start.")
@@ -453,9 +455,7 @@ class CreateTrainingConfig(Task): #, law.LocalWorkflow):
                     "--channel {}".format(self.channel),
                     "--masses {}".format(" ".join(self.masses)),
                     "--batches {}".format(" ".join(self.batch_nums)),
-                    "--config-dir {}/{}_{}".format(
-                        prefix, era, self.channel
-                    ),
+                    "--config-dir {}/{}_{}".format(prefix, era, self.channel),
                     "--dataset-dir {}".format(remote_shard_base[era]),
                     "--processes {}".format(" ".join(processes)),
                     "--training-template datasets/templates/{}_{}_training.yaml".format(
@@ -493,7 +493,7 @@ class CreateTrainingConfig(Task): #, law.LocalWorkflow):
                         ],
                         run_location=run_loc,
                     )
-        
+
         # Copy locally created files to remote storage
         self.publish_message("File copy out start.")
         for file_remote, file_local in zip(self.output(), files):

@@ -141,7 +141,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             }
             requirements[
                 "CreateTrainingDataShard_{}_{}".format(
-                    self.branch_data["channel"], 
+                    self.branch_data["channel"],
                     era,
                 )
             ] = CreateTrainingDataShard(**requirements_shard)
@@ -194,7 +194,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
                 }
                 requirements[
                     "CreateTrainingDataShard_{}_{}".format(
-                        channel, 
+                        channel,
                         era,
                     )
                 ] = CreateTrainingDataShard(**requirements_shard)
@@ -256,8 +256,11 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
         branch_trainingconfigs = self.input()[
             "CreateTrainingConfig_{}".format(self.branch_data["channel"])
         ]
-        assert len(branch_trainingconfigs)==1, \
-            "There should be 1 target, but there are {}".format(len(branch_trainingconfigs))
+        assert (
+            len(branch_trainingconfigs) == 1
+        ), "There should be 1 target, but there are {}".format(
+            len(branch_trainingconfigs)
+        )
         trainingconfig = branch_trainingconfigs[0]
 
         # Get prefix of remote storage for root shards
@@ -273,13 +276,13 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             for era in use_eras
         }
         remote_shard_base = [
-            self.wlcg_path + os.path.dirname(
-                os.path.dirname(allbranch_shards[era][0].path)
-            )
+            self.wlcg_path
+            + os.path.dirname(os.path.dirname(allbranch_shards[era][0].path))
             for era in use_eras
         ]
-        assert len(set(remote_shard_base)) == 1,\
-            "Basepaths of different eras do not match"
+        assert (
+            len(set(remote_shard_base)) == 1
+        ), "Basepaths of different eras do not match"
         remote_shard_base = remote_shard_base[0]
 
         # Copy config to local
