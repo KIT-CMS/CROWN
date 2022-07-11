@@ -9,11 +9,18 @@ import os
 import luigi
 import law
 from shutil import rmtree
-from framework import Task, HTCondorWorkflow
+from rich.console import Console
+from framework import Task, HTCondorWorkflow, PuppetMaster
 from itertools import compress
 from law.target.collection import flatten_collections, NestedSiblingFileCollection
 from ast import literal_eval
 import re
+
+try:
+    current_width = os.get_terminal_size().columns
+except OSError:
+    current_width = 140
+console = Console(width=current_width)
 
 # Task to create config files for the necessary datashards
 # One config is created for each process (like "ff" and "NMSSM_240_125_60")
@@ -110,11 +117,11 @@ class CreateTrainingDataShardConfig(Task):
         )
         # self.run_command(command=["ls", "-R"], run_location=prefix)
         # Copy locally created files to remote storage
-        self.publish_message("File copy out start.")
+        console.log("File copy out start.")
         for file_remote, file_local in zip(missing_outputs, files):
             file_remote.parent.touch()
             file_remote.copy_from_local(file_local)
-        self.publish_message("File copy out end.")
+        console.log("File copy out end.")
         # Remove temporary data directory
         rmtree(prefix)
 
@@ -172,6 +179,9 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
         return requirements
 
     def workflow_requires(self):
+        # Shortcut is necessary for Remote workflows without access to local filesystem
+        if self.is_branch():
+            return None
         processes, process_classes = zip(*self.processes_and_classes)
         requirements = {}
         requirements_args = {
@@ -179,8 +189,9 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
             "channel": self.channel,
             "processes_and_classes": self.processes_and_classes,
         }
-        requirements["CreateTrainingDataShardConfig"] = CreateTrainingDataShardConfig(
-            **requirements_args
+        requirements["CreateTrainingDataShardConfig"] = PuppetMaster(
+            puppet_task=CreateTrainingDataShardConfig(**requirements_args),
+            identifier=[self.era, self.channel],
         )
         return requirements
 
@@ -244,9 +255,9 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
                 "{process}_datashard_config.yaml".format(process=process),
             ]
         )
-        self.publish_message("File copy in start.")
+        console.log("File copy in start.")
         datashard_config.copy_to_local(local_config_path)
-        self.publish_message("File copy in end.")
+        console.log("File copy in end.")
 
         # Create datashard based on config file
         # ROOT_XRD_QUERY_READV_PARAMS=0 is necessary for streaming root files from dCache
@@ -263,11 +274,11 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
             run_location=run_loc,
         )
         # Copy locally created files to remote storage
-        self.publish_message("File copy out start.")
+        console.log("File copy out start.")
         for file_remote, file_local in zip(self.output(), files):
             file_remote.parent.touch()
             file_remote.copy_from_local(file_local)
-        self.publish_message("File copy out end.")
+        console.log("File copy out end.")
         # Remove data directory
         rmtree(prefix)
 
@@ -333,13 +344,16 @@ class CreateTrainingConfig(Task):
                 "channel": self.channel,
                 "processes_and_classes": self.processes_and_classes,
             }
-            requirements[
-                "CreateTrainingDataShard_{}".format(era)
-            ] = CreateTrainingDataShard(**requirements_args)
-            requirements[
-                "CreateTrainingDataShardConfig_{}".format(era)
-            ] = CreateTrainingDataShardConfig(**requirements_args)
-
+            requirements["CreateTrainingDataShard_{}".format(era)] = \
+                PuppetMaster(
+                    puppet_task=CreateTrainingDataShard(**requirements_args),
+                    identifier=[era,self.channel],
+                )
+            requirements["CreateTrainingDataShardConfig_{}".format(era)] = \
+                PuppetMaster(
+                    puppet_task=CreateTrainingDataShardConfig(**requirements_args),
+                    identifier=[era,self.channel],
+                )
         return requirements
 
     # Define output targets. Task is considerd complete if all targets are present.
@@ -411,9 +425,10 @@ class CreateTrainingConfig(Task):
         # Get list of all shard targets
         allbranch_shards = {
             era: flatten_collections(
-                self.input()["CreateTrainingDataShard_{}".format(era)]["collection"]
-            )
-            for era in use_eras
+                self.requires()[
+                    "CreateTrainingDataShard_{}".format(era)
+                ].give_puppet_outputs()["collection"]
+            ) for era in use_eras
         }
         # Get prefix of remote storage for root shards
         remote_shard_base = {
@@ -423,7 +438,9 @@ class CreateTrainingConfig(Task):
 
         # Get shard config targets
         branch_shardconfigs = {
-            era: self.input()["CreateTrainingDataShardConfig_{}".format(era)].targets
+            era: self.requires()[
+                "CreateTrainingDataShardConfig_{}".format(era)
+            ].give_puppet_outputs().targets 
             for era in use_eras
         }
 
@@ -436,7 +453,7 @@ class CreateTrainingConfig(Task):
             )
 
         # Copy shard config files into data directory
-        self.publish_message("File copy in start.")
+        console.log("File copy in start.")
         for era in use_eras:
             for copy_file in branch_shardconfigs[era]:
                 copy_file_name = os.path.basename(copy_file.path)
@@ -444,7 +461,7 @@ class CreateTrainingConfig(Task):
                 copy_file.copy_to_local(
                     "/".join([prefix, copy_file_name_path, copy_file_name])
                 )
-        self.publish_message("File copy in end.")
+        console.log("File copy in end.")
         # Write training config file
         for era in use_eras:
             self.run_command(
@@ -482,7 +499,6 @@ class CreateTrainingConfig(Task):
                             ),
                         ]
                     )
-                    print(conf_files)
                     # Combine the configs of each era
                     self.run_command(
                         [
@@ -495,10 +511,10 @@ class CreateTrainingConfig(Task):
                     )
 
         # Copy locally created files to remote storage
-        self.publish_message("File copy out start.")
+        console.log("File copy out start.")
         for file_remote, file_local in zip(self.output(), files):
             file_remote.parent.touch()
             file_remote.copy_from_local(file_local)
-        self.publish_message("File copy out end.")
+        console.log("File copy out end.")
         # Remove data directories
         rmtree(prefix)

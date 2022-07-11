@@ -9,7 +9,8 @@ import os
 import luigi
 import law
 from shutil import rmtree
-from framework import Task, HTCondorWorkflow
+from rich.console import Console
+from framework import Task, HTCondorWorkflow, PuppetMaster
 from ast import literal_eval
 from law.target.collection import flatten_collections
 import re
@@ -19,6 +20,12 @@ from CreateTrainingDatasets import (
 )
 
 law.contrib.load("tasks")  # to have the RunOnceTask class
+
+try:
+    current_width = os.get_terminal_size().columns
+except OSError:
+    current_width = 140
+console = Console(width=current_width)
 
 # Task to run NN training (2 folds)
 # One training is performed for each valid combination of:
@@ -148,6 +155,9 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
         return requirements
 
     def workflow_requires(self):
+        # Shortcut is necessary for Remote workflows without access to local filesystem
+        if self.is_branch():
+            return None
         requirements = super(RunTraining, self).workflow_requires()
 
         process_tuple = {
@@ -178,9 +188,11 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
                 "batch_nums": self.batch_nums,
             }
             # requires CreateTrainingConfig task if all_eras is not used
-            requirements[
-                "CreateTrainingConfig_{}".format(channel)
-            ] = CreateTrainingConfig(**requirements_conf)
+            requirements["CreateTrainingConfig_{}".format(channel)] = \
+                PuppetMaster(
+                    puppet_task=CreateTrainingConfig(**requirements_conf),
+                    identifier=[channel],
+                )
             if self.era == "all_eras":
                 use_eras = self.all_eras
             else:
@@ -192,12 +204,11 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
                     "channel": channel,
                     "processes_and_classes": processes_and_classes,
                 }
-                requirements[
-                    "CreateTrainingDataShard_{}_{}".format(
-                        channel,
-                        era,
+                requirements["CreateTrainingDataShard_{}_{}".format(channel,era)] = \
+                    PuppetMaster(
+                        puppet_task=CreateTrainingDataShard(**requirements_shard),
+                        identifier=[era, channel],
                     )
-                ] = CreateTrainingDataShard(**requirements_shard)
         return requirements
 
     # Define output targets. Task is considerd complete if all targets are present.
@@ -287,9 +298,9 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
 
         # Copy config to local
         trainingconfig_name = os.path.basename(trainingconfig.path)
-        self.publish_message("File copy in start.")
+        console.log("File copy in start.")
         trainingconfig.copy_to_local("/".join([local_dir, trainingconfig_name]))
-        self.publish_message("File copy in end.")
+        console.log("File copy in end.")
 
         # self.run_command(
         #     command=["ls", "-R"],
@@ -322,11 +333,11 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
         #     run_location=prefix_w
         # )
         # Copy locally created files to remote storage
-        self.publish_message("File copy out start.")
+        console.log("File copy out start.")
         for file_remote, file_local in zip(self.output(), files):
             file_remote.parent.touch()
             file_remote.copy_from_local(file_local)
-        self.publish_message("File copy out end.")
+        console.log("File copy out end.")
         # Remove data directories
         rmtree(prefix)
 
@@ -357,8 +368,8 @@ class RunAllTrainings(Task, law.tasks.RunOnceTask):
             ],
             "batch_nums": ["1", "2", "3", "4", "5", "6", "7"],
         }
-        return RunTraining(**requirements)
+        return PuppetMaster(puppet_task=RunTraining(**requirements))
 
     def run(self):
-        self.publish_message("All trainings are done!")
+        console.log("All trainings are done!")
         self.mark_complete()
