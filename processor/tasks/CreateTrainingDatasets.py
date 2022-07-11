@@ -344,16 +344,14 @@ class CreateTrainingConfig(Task):
                 "channel": self.channel,
                 "processes_and_classes": self.processes_and_classes,
             }
-            requirements["CreateTrainingDataShard_{}".format(era)] = \
-                PuppetMaster(
-                    puppet_task=CreateTrainingDataShard(**requirements_args),
-                    identifier=[era,self.channel],
-                )
-            requirements["CreateTrainingDataShardConfig_{}".format(era)] = \
-                PuppetMaster(
-                    puppet_task=CreateTrainingDataShardConfig(**requirements_args),
-                    identifier=[era,self.channel],
-                )
+            requirements["CreateTrainingDataShard_{}".format(era)] = PuppetMaster(
+                puppet_task=CreateTrainingDataShard(**requirements_args),
+                identifier=[era, self.channel],
+            )
+            requirements["CreateTrainingDataShardConfig_{}".format(era)] = PuppetMaster(
+                puppet_task=CreateTrainingDataShardConfig(**requirements_args),
+                identifier=[era, self.channel],
+            )
         return requirements
 
     # Define output targets. Task is considerd complete if all targets are present.
@@ -428,7 +426,8 @@ class CreateTrainingConfig(Task):
                 self.requires()[
                     "CreateTrainingDataShard_{}".format(era)
                 ].give_puppet_outputs()["collection"]
-            ) for era in use_eras
+            )
+            for era in use_eras
         }
         # Get prefix of remote storage for root shards
         remote_shard_base = {
@@ -438,9 +437,9 @@ class CreateTrainingConfig(Task):
 
         # Get shard config targets
         branch_shardconfigs = {
-            era: self.requires()[
-                "CreateTrainingDataShardConfig_{}".format(era)
-            ].give_puppet_outputs().targets 
+            era: self.requires()["CreateTrainingDataShardConfig_{}".format(era)]
+            .give_puppet_outputs()
+            .targets
             for era in use_eras
         }
 

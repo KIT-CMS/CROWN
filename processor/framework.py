@@ -415,7 +415,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
 
 # Class to shorten lookup times for large amounts of output targets
 #    puppet_task: Task to be run
-#    identifier: parameters by which the Class instance can be differentiated 
+#    identifier: parameters by which the Class instance can be differentiated
 #       from other PuppetMaster tasks that supervise Tasks with the same name
 # Output targets of puppet are saved to the checkfile after puppet is run
 # If output targets of puppet don't match with saved targets, checkfile is removed
@@ -445,15 +445,14 @@ class PuppetMaster(Task):
                 # Remove old file if not
                 console.log("Missmatch in output files found. Removing checkfile.")
                 console.log(
-                    list(target_paths_from_file-target_paths) + \
-                    list(target_paths-target_paths_from_file)
+                    list(target_paths_from_file - target_paths)
+                    + list(target_paths - target_paths_from_file)
                 )
                 target.remove()
                 if target.exists():
-                    raise Exception(
-                        "File {} could not be deleted".format(target.path)
-                    )
+                    raise Exception("File {} could not be deleted".format(target.path))
         return target
+
     def run(self):
         puppet = self.puppet_task
         # Add puppet to shedduler
@@ -471,8 +470,9 @@ class PuppetMaster(Task):
     def give_puppet_outputs(self):
         return self.puppet_task.output()
 
+
 # Function to get string of random characters of length <length>
 def get_random_str(length=10):
     choices = string.ascii_letters + string.digits
-    rand_str = ''.join(random.choices(choices, k=length))
+    rand_str = "".join(random.choices(choices, k=length))
     return rand_str

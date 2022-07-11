@@ -188,11 +188,10 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
                 "batch_nums": self.batch_nums,
             }
             # requires CreateTrainingConfig task if all_eras is not used
-            requirements["CreateTrainingConfig_{}".format(channel)] = \
-                PuppetMaster(
-                    puppet_task=CreateTrainingConfig(**requirements_conf),
-                    identifier=[channel],
-                )
+            requirements["CreateTrainingConfig_{}".format(channel)] = PuppetMaster(
+                puppet_task=CreateTrainingConfig(**requirements_conf),
+                identifier=[channel],
+            )
             if self.era == "all_eras":
                 use_eras = self.all_eras
             else:
@@ -204,11 +203,12 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
                     "channel": channel,
                     "processes_and_classes": processes_and_classes,
                 }
-                requirements["CreateTrainingDataShard_{}_{}".format(channel,era)] = \
-                    PuppetMaster(
-                        puppet_task=CreateTrainingDataShard(**requirements_shard),
-                        identifier=[era, channel],
-                    )
+                requirements[
+                    "CreateTrainingDataShard_{}_{}".format(channel, era)
+                ] = PuppetMaster(
+                    puppet_task=CreateTrainingDataShard(**requirements_shard),
+                    identifier=[era, channel],
+                )
         return requirements
 
     # Define output targets. Task is considerd complete if all targets are present.
