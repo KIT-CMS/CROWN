@@ -21,8 +21,66 @@ enum class GenMatchingCode : int {
     IS_FAKE = 6
 };
 
-namespace genmatching {
+enum class GenStatusFlag : int {
+    NONE = -1,
+    isPrompt = 0,
+    isDecayedLeptonHadron = 1,
+    isTauDecayProduct = 2,
+    isPromptTauDecayProduct = 3,
+    isDirectTauDecayProduct = 4,
+    isDirectPromptTauDecayProduct = 5,
+    isDirectHadronDecayProduct = 6,
+    isHardProcess = 7,
+    fromHardProcess = 8,
+    isHardProcessTauDecayProduct = 9,
+    isDirectHardProcessTauDecayProduct = 10,
+    fromHardProcessBeforeFSR = 11,
+    isFirstCopy = 12,
+    isLastCopy = 13,
+    isLastCopyBeforeFSR = 14
+};
 
+namespace genflag {
+/**
+ * @brief Function to writeout a boolean flag to select a specific DY decay mode based on gen-level PDG ID
+ *
+ * @param df The input dataframe
+ * @param outputname The name of the output column
+ * @param genparticles_pdgid The name of the column containing the pdgids of the
+ genparticles
+ * @param genparticles_statusFlag The name of the column containing the
+ statusFlags of the genparticles
+ * @param pdgId The PDG ID of decayed leptons
+ * @return a dataframe with the output flag as a column named outputname
+ */
+ROOT::RDF::RNode DYGenFlag(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &genparticles_pdgid,
+                             const std::string &genparticles_statusFlag,
+                             const int &pdgId) {
+    auto lambda = [pdgId](const ROOT::RVec<int> &pdgids, const ROOT::RVec<int> &status_flags) {
+        bool found_0 = false;
+        bool found_1 = false;
+        for (unsigned int i = 0; i < pdgids.size(); i++) {
+            int pdgid = pdgids.at(i);
+            int status_flag = status_flags.at(i);
+            if (pdgid == pdgId && IntBits(status_flag).test((int)GenStatusFlag::isHardProcess)) {
+                found_0 = true;
+            } else if (pdgid == -pdgId && IntBits(status_flag).test((int)GenStatusFlag::isHardProcess)) {
+                found_1 = true;
+            }
+            if (found_0 && found_1)
+                break;
+        }
+        return (found_0 && found_1);
+    };
+    auto df1 =
+        df.Define(outputname, lambda,
+                  {genparticles_pdgid, genparticles_statusFlag});
+    return df1;
+}
+}
+
+namespace genmatching {
 namespace tau {
 /**
  * @brief implementation of the genmatching used in tau analyses, based

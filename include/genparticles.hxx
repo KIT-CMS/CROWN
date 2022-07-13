@@ -10,6 +10,13 @@
 #include <Math/VectorUtil.h>
 #include <cmath>
 
+namespace genflag {
+ROOT::RDF::RNode DYGenFlag(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &genparticles_pdgid,
+                             const std::string &genparticles_statusFlag,
+                             const int &pdgId);
+}
+
 namespace genmatching {
 namespace tau {
 ROOT::RDF::RNode genmatching(ROOT::RDF::RNode df, const std::string &outputname,
