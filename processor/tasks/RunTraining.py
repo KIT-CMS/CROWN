@@ -136,9 +136,9 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
             "batch_nums": [batch_num],
             "identifier": [channel],
         }
-        requirements[
-            "CreateTrainingConfig_{}".format(channel)
-        ] = CreateTrainingConfig(**requirements_conf)
+        requirements["CreateTrainingConfig_{}".format(channel)] = CreateTrainingConfig(
+            **requirements_conf
+        )
         if self.era == "all_eras":
             use_eras = self.all_eras
         else:

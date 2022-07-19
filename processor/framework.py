@@ -46,7 +46,7 @@ class Task(law.Task):
     )
     identifier = luigi.ListParameter(
         default=[],
-        description="List of values to distinguish a specific Task from other instances of the same Task. Only takes strings."
+        description="List of values to distinguish a specific Task from other instances of the same Task. Only takes strings.",
     )
     output_collection_cls = law.NestedSiblingFileCollection
 
