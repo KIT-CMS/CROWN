@@ -172,6 +172,7 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
             "era": self.era,
             "channel": self.channel,
             "processes_and_classes": [self.branch_data["process_and_class"]],
+            "identifier": [self.era, self.channel],
         }
         requirements["CreateTrainingDataShardConfig"] = CreateTrainingDataShardConfig(
             **requirements_args
@@ -188,6 +189,7 @@ class CreateTrainingDataShard(HTCondorWorkflow, law.LocalWorkflow):
             "era": self.era,
             "channel": self.channel,
             "processes_and_classes": self.processes_and_classes,
+            "identifier": [self.era, self.channel],
         }
         requirements["CreateTrainingDataShardConfig"] = PuppetMaster(
             puppet_task=CreateTrainingDataShardConfig(**requirements_args),
@@ -343,6 +345,7 @@ class CreateTrainingConfig(Task):
                 "era": era,
                 "channel": self.channel,
                 "processes_and_classes": self.processes_and_classes,
+                "identifier": [self.channel],
             }
             requirements["CreateTrainingDataShard_{}".format(era)] = PuppetMaster(
                 puppet_task=CreateTrainingDataShard(**requirements_args),

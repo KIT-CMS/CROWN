@@ -13,6 +13,7 @@ from law.contrib.htcondor.job import HTCondorJobManager
 from tempfile import mkdtemp
 from getpass import getuser
 from law.target.collection import flatten_collections
+from law.target.local import LocalDirectoryTarget, LocalFileSystem
 
 law.contrib.load("wlcg")
 law.contrib.load("htcondor")
@@ -42,6 +43,10 @@ class Task(law.Task):
     production_tag = luigi.Parameter(
         default="default/{}".format(startup_time),
         description="Tag to differentiate workflow runs. Set to a timestamp as default.",
+    )
+    identifier = luigi.ListParameter(
+        default=[],
+        description="List of values to distinguish a specific Task from other instances of the same Task. Only takes strings."
     )
     output_collection_cls = law.NestedSiblingFileCollection
 
@@ -272,7 +277,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
         # Add random-str to prevent interferance between different tasks of the same class
         # Expand path to account for use of env variables (like $USER)
         return law.wlcg.WLCGDirectoryTarget(
-            self.remote_path("htcondor_files", get_random_str()),
+            self.remote_path("htcondor_files", "_".join(self.identifier)),
             law.wlcg.WLCGFileSystem(
                 None, base="{}".format(os.path.expandvars(self.wlcg_path))
             ),
@@ -421,7 +426,6 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
 # If output targets of puppet don't match with saved targets, checkfile is removed
 class PuppetMaster(Task):
     puppet_task = luigi.TaskParameter()
-    identifier = luigi.ListParameter(default=[])
 
     # Requirements are the same as puppet task
     def requires(self):
@@ -429,7 +433,7 @@ class PuppetMaster(Task):
 
     def output(self):
         puppet = self.puppet_task
-        # Construct output filename from class name of puppet and identifiers
+        # Construct output filename from class name of puppet and identifier
         class_name = puppet.__class__.__name__
         unique_par_str = "_".join([class_name] + list(self.identifier))
         filename = unique_par_str + ".json"

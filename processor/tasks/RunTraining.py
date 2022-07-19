@@ -118,22 +118,26 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
     # All training config files have to be completed
     # The prerequisites are also dependant on whether all_eras is used
     def requires(self):
+        channel = self.branch_data["channel"]
+        mass = self.branch_data["mass"]
+        batch_num = self.branch_data["batch_num"]
         requirements = {}
 
         processes_and_classes = self.get_process_tuple(
-            self.branch_data["channel"],
-            self.branch_data["mass"],
-            self.branch_data["batch_num"],
+            channel,
+            mass,
+            batch_num,
         )
         requirements_conf = {
             "era": self.era,
-            "channel": self.branch_data["channel"],
+            "channel": channel,
             "processes_and_classes": processes_and_classes,
-            "masses": [self.branch_data["mass"]],
-            "batch_nums": [self.branch_data["batch_num"]],
+            "masses": [mass],
+            "batch_nums": [batch_num],
+            "identifier": [channel],
         }
         requirements[
-            "CreateTrainingConfig_{}".format(self.branch_data["channel"])
+            "CreateTrainingConfig_{}".format(channel)
         ] = CreateTrainingConfig(**requirements_conf)
         if self.era == "all_eras":
             use_eras = self.all_eras
@@ -143,12 +147,13 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
         for era in use_eras:
             requirements_shard = {
                 "era": era,
-                "channel": self.branch_data["channel"],
+                "channel": channel,
                 "processes_and_classes": processes_and_classes,
+                "identifier": [era, channel],
             }
             requirements[
                 "CreateTrainingDataShard_{}_{}".format(
-                    self.branch_data["channel"],
+                    channel,
                     era,
                 )
             ] = CreateTrainingDataShard(**requirements_shard)
@@ -186,6 +191,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
                 "processes_and_classes": processes_and_classes,
                 "masses": self.masses,
                 "batch_nums": self.batch_nums,
+                "identifier": [channel],
             }
             # requires CreateTrainingConfig task if all_eras is not used
             requirements["CreateTrainingConfig_{}".format(channel)] = PuppetMaster(
@@ -202,6 +208,7 @@ class RunTraining(HTCondorWorkflow, law.LocalWorkflow):
                     "era": era,
                     "channel": channel,
                     "processes_and_classes": processes_and_classes,
+                    "identifier": [era, channel],
                 }
                 requirements[
                     "CreateTrainingDataShard_{}_{}".format(channel, era)
