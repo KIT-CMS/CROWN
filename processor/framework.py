@@ -13,7 +13,6 @@ from law.contrib.htcondor.job import HTCondorJobManager
 from tempfile import mkdtemp
 from getpass import getuser
 from law.target.collection import flatten_collections
-from law.target.local import LocalDirectoryTarget, LocalFileSystem
 
 law.contrib.load("wlcg")
 law.contrib.load("htcondor")
@@ -483,10 +482,3 @@ class PuppetMaster(Task):
     # Get outputs of puppet (Used in non-workflow)
     def give_puppet_outputs(self):
         return self.puppet_task.output()
-
-
-# Function to get string of random characters of length <length>
-def get_random_str(length=10):
-    choices = string.ascii_letters + string.digits
-    rand_str = "".join(random.choices(choices, k=length))
-    return rand_str
