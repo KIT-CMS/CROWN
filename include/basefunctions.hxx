@@ -376,7 +376,9 @@ inline auto FilterID(const int &index) {
 /// \returns a lambda function to be used in RDF Define
 inline auto FilterJetID(const int &index) {
     return [index](const ROOT::RVec<Int_t> &IDs) {
-        ROOT::RVec<int> mask = IDs == index;
+        ROOT::RVec<int> mask = IDs >= index;
+        Logger::get("FilterJetID")->debug("IDs: {}", IDs);
+         Logger::get("FilterJetID")->debug("Filtered mask: {}", mask);
         return mask;
     };
 }
@@ -395,6 +397,11 @@ inline auto FilterJetPUID(const int &PUindex, const float &PUptcut) {
         ROOT::RVec<int> tmp_mask1 = PUIDs >= PUindex;
         ROOT::RVec<int> tmp_mask2 = jet_pts >= PUptcut;
         ROOT::RVec<int> mask = (tmp_mask1 + tmp_mask2) > 0;
+        Logger::get("FilterJetPUID")->debug("PUIDs: {}", PUIDs);
+        Logger::get("FilterJetPUID")->debug("PUID mask: {}", tmp_mask1);
+        Logger::get("FilterJetPUID")->debug("jpts: {}", jet_pts);
+        Logger::get("FilterJetPUID")->debug("jetpt mask: {}", tmp_mask2);
+        Logger::get("FilterJetPUID")->debug("PUID_final mask: {}", mask);
         return mask;
     };
 }
