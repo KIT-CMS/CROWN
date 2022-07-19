@@ -425,8 +425,10 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
 # Output targets of puppet are saved to the checkfile after puppet is run
 # If output targets of puppet don't match with saved targets, checkfile is removed
 class PuppetMaster(Task):
-    puppet_task = luigi.TaskParameter()
-
+    puppet_task = luigi.TaskParameter(description="Task to be supervised.")
+    fulltask = luigi.BoolParameter(
+        default=False, description="Whether the full puppet task should be displayed."
+    )
     # Requirements are the same as puppet task
     def requires(self):
         return self.puppet_task.requires()
@@ -456,6 +458,14 @@ class PuppetMaster(Task):
                 if target.exists():
                     raise Exception("File {} could not be deleted".format(target.path))
         return target
+
+    def repr(self, all_params=False, color=None, **kwargs):
+        representation = super(PuppetMaster, self).repr(all_params, color, **kwargs)
+        if self.fulltask:
+            representation += " of " + self.puppet_task.repr(
+                all_params, color, **kwargs
+            )
+        return representation
 
     def run(self):
         puppet = self.puppet_task
