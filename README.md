@@ -110,8 +110,6 @@ The default configuration provided in the repository should work out of the box.
 
 ---
 
-
----
 # The ML_train workflow
 ---
 ## Workflow
@@ -120,13 +118,17 @@ The ML_train workflow currently contains a number of the tasks necessary for the
 The tasks are:
 
 1. [CreateTrainingDataShardConfig](processor/tasks/CreateTrainingDatasets.py)
-    Task that creates configuration files from which the process-datasets for the machine learning tasks are created. Uses the [write_datashard_config](sm-htt-analysis/ml_datasets/write_datashard_config.py) script. Some aspects of the process-datasets depend on the decay channel. For this reason the datasets for different channels are handled in seperate tasks. Although not specifically necessary, the different run eras are also handled in seperate tasks.
+    Task that creates configuration files from which the process-datasets for the machine learning tasks are created. Uses the [write_datashard_config](sm-htt-analysis/ml_datasets/write_datashard_config.py) script. \
+    Some aspects of the process-datasets depend on the decay channel. For this reason the datasets for different channels are handled in seperate tasks. Although not specifically necessary, the different run eras are also handled in seperate tasks.
 2. [CreateTrainingDataShard](processor/tasks/CreateTrainingDatasets.py)
-    Remote workflow task that creates the process-datasets for the machine learning tasks from the config files created by the `CreateTrainingDataShardConfig` Task. Uses the [create_training_datashard](sm-htt-analysis/ml_datasets/create_training_datashard.py) script. The task also uses the `ntuples` and `friend trees` described in the [Sample file](sm-htt-analysis/utils/setup_samples.sh). These dependencies are currently not checked by LAW. The task branches each return a root file that consists of only one fold of one process of one run era and one decay channel. These files can then be used for the machine learning tasks. Some aspects of the process-datasets depend on the decay channel. For this reason the datasets for different channels are handled in seperate tasks. Although not specifically necessary, the different run eras are also handled in seperate tasks.
+    Remote workflow task that creates the process-datasets for the machine learning tasks from the config files created by the `CreateTrainingDataShardConfig` Task. The task uses the `ntuples` and `friend trees` described in the [Sample setup](sm-htt-analysis/utils/setup_samples.sh). These dependencies are currently not checked by LAW. Also uses the [create_training_datashard](sm-htt-analysis/ml_datasets/create_training_datashard.py) script. \
+    The task branches each return a root file that consists of only one fold of one process of one run era and one decay channel. These files can then be used for the machine learning tasks. Some aspects of the process-datasets depend on the decay channel. For this reason the datasets for different channels are handled in seperate tasks. Although not specifically necessary, the different run eras are also handled in seperate tasks.
 3. [CreateTrainingConfig](processor/tasks/RunTraining.py)
-    Task that creates configuration files used for the machine learning tasks. Uses the [write_datashard_config](sm-htt-analysis/ml_trainings/write_training_config.py) and the [create_combined_config](sm-htt-analysis/ml_trainings/create_combined_config.py) scripts. The resulting config files contain information about which processes are used in the training, the combined event weights of the classes, and multiple hyperparameters that influence the training process. The training task is able to merge the datasets of the different run eras for a single training. For this reason the config file for such a training is a combination of the config files of the different run eras. At this point the seperate run era tasks are merged and only the different decay channels are still treated as seperate tasks.
+    Task that creates configuration files used for the machine learning tasks. Uses the [write_datashard_config](sm-htt-analysis/ml_trainings/write_training_config.py) and the [create_combined_config](sm-htt-analysis/ml_trainings/create_combined_config.py) scripts. \
+    The resulting config files contain information about which processes are used in the training, the combined event weights of the classes, and multiple hyperparameters that influence the training process. The training task is able to merge the datasets of the different run eras for a single training. For this reason the config file for such a training is a combination of the config files of the different run eras. At this point the seperate run era tasks are merged and only the different decay channels are still treated as seperate tasks.
 4. [RunTraining](processor/tasks/RunTraining.py)
-    Remote workflow task that performs the neural network training using GPU resources if possible. Uses the [keras_training](sm-htt-analysis/ml_trainings/keras_training.py) script. The hyperparameters of this training are provided by the config files of the `CreateTrainingConfig` task. The [get_processes](sm-htt-analysis/utils/get_processes.py) script is used to select the signal and background processes for the individual training groups. The script can currntly only handle the `NMSSM` groups. Each branch task returns a set of files for one fold of one training group of one decay channel. Each set includes the trained `.h5` model, the preprocessing object as a `.pickle` file and a graph of the loss as a `.pdf` and `.png`. This task can run all trainings in parallel without splitting them into seperate tasks, so the tasks of the different decay channels are merged here.
+    Remote workflow task that performs the neural network training using GPU resources if possible. Uses the [keras_training](sm-htt-analysis/ml_trainings/keras_training.py) script. The hyperparameters of this training are provided by the config files of the `CreateTrainingConfig` task. The [get_processes](sm-htt-analysis/utils/get_processes.py) script is used to select the signal and background processes for the individual training groups. The script can currntly only handle the `NMSSM` groups. \
+    Each branch task returns a set of files for one fold of one training group of one decay channel. Each set includes the trained `.h5` model, the preprocessing object as a `.pickle` file and a graph of the loss as a `.pdf` and `.png`. This task can run all trainings in parallel without splitting them into seperate tasks, so the tasks of the different decay channels are merged here.
 5. [RunAllTrainings](processor/tasks/RunTraining.py)
     Task to run all possible trainings.
 
@@ -144,9 +146,9 @@ There are a number of parameters to be set in the [luigi](lawluigi_configs/ML_tr
 1. The run era. Can be either `2016`, `2017`, `2018` or `all_eras`.
 2. The decay channels. A list of channels that can include `tt`, `et` and `mt`.
 3. The masses of the heavy additional higgs boson. A list that can include `240`, `280`, `320`, `360`, `400`, `450`, `500`, `550`, `600`, `700`, `800`, `900`, `1000` and `heavier`.
-4. The groups of masses of the light additional higgs boson. A list that can include `1`, `2`, `3`, `4`, `5`, `6` and `7`.
-Note: Only valid combinations of heavy and light masses are used, as determined by the `valid_batches` function of `RunTraining`.
-By default these parameters are already set to show the proper syntax.
+4. The groups of masses of the light additional higgs boson. A list that can include `1`, `2`, `3`, `4`, `5`, `6` and `7`.\
+**Note**: Only valid combinations of heavy and light masses are used, as determined by the `valid_batches` function of `RunTraining`.\
+By default these parameters are already set to show the proper syntax.\
 If the `RunAllTrainings` task is used, all of the parameters are set, ignoring the config file.
 5. Optional: The production_tag. Can be any string. Used to differentiate the runs. Default is a unique timestamp.
 
@@ -158,11 +160,11 @@ Command line arguments:
 ## Not yet implemented
 A number of necessary scripts are not yet implemented. This includes the ML testing scripts as well as the conversion of the `.h5` network files to a different format.
 
-
+---
 # Other analyses
 Analyses apart from KingMaker itself are still beeing worked on.
-The `ML_LAW` analysis is an example for an analysis that aims to utilize remote GPU resources (e.g. machine learning applications).
 
+---
 # Additional Features
 A collection of additional function and tasks have added to the central [framework](processor/framework.py).
 
