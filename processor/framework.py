@@ -2,8 +2,6 @@ import os
 import luigi
 import law
 import select
-import string
-import random
 from law.util import interruptable_popen, readable_popen
 from subprocess import PIPE, Popen
 from rich.console import Console
@@ -273,7 +271,7 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
         return HTCondorJobManager(**kwargs)
 
     def htcondor_output_directory(self):
-        # Add random-str to prevent interferance between different tasks of the same class
+        # Add identification-str to prevent interference between different tasks of the same class
         # Expand path to account for use of env variables (like $USER)
         return law.wlcg.WLCGDirectoryTarget(
             self.remote_path("htcondor_files", "_".join(self.identifier)),
