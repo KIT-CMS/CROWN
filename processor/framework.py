@@ -5,11 +5,12 @@ import select
 from law.util import interruptable_popen, readable_popen
 from subprocess import PIPE, Popen
 from rich.console import Console
-from law.util import merge_dicts
+from law.util import merge_dicts, DotDict
 from datetime import datetime
 from law.contrib.htcondor.job import HTCondorJobManager
 from tempfile import mkdtemp
 from getpass import getuser
+from law.target.collection import flatten_collections
 
 law.contrib.load("wlcg")
 law.contrib.load("htcondor")
@@ -39,6 +40,10 @@ class Task(law.Task):
     production_tag = luigi.Parameter(
         default="default/{}".format(startup_time),
         description="Tag to differentiate workflow runs. Set to a timestamp as default.",
+    )
+    identifier = luigi.ListParameter(
+        default=[],
+        description="List of values to distinguish a specific Task from other instances of the same Task. Only takes strings.",
     )
     output_collection_cls = law.NestedSiblingFileCollection
 
@@ -228,9 +233,6 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
     htcondor_remote_job = luigi.Parameter(
         description="Whether RemoteJob should be set in the HTCondor job submission."
     )
-    htcondor_user_proxy = luigi.Parameter(
-        description="VOMS-proxy in HTCondor job submission."
-    )
     htcondor_walltime = luigi.Parameter(
         description="Runtime to be set in HTCondor job submission."
     )
@@ -269,9 +271,10 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
         return HTCondorJobManager(**kwargs)
 
     def htcondor_output_directory(self):
+        # Add identification-str to prevent interference between different tasks of the same class
         # Expand path to account for use of env variables (like $USER)
         return law.wlcg.WLCGDirectoryTarget(
-            self.remote_path("htcondor_files"),
+            self.remote_path("htcondor_files", "_".join(self.identifier)),
             law.wlcg.WLCGFileSystem(
                 None, base="{}".format(os.path.expandvars(self.wlcg_path))
             ),
@@ -410,3 +413,70 @@ class HTCondorWorkflow(Task, law.htcondor.HTCondorWorkflow):
         config.render_variables["LOCAL_TIMESTAMP"] = startup_time
 
         return config
+
+
+# Class to shorten lookup times for large amounts of output targets
+#    puppet_task: Task to be run
+#    identifier: parameters by which the Class instance can be differentiated
+#       from other PuppetMaster tasks that supervise Tasks with the same name
+# Output targets of puppet are saved to the checkfile after puppet is run
+# If output targets of puppet don't match with saved targets, checkfile is removed
+class PuppetMaster(Task):
+    puppet_task = luigi.TaskParameter(description="Task to be supervised.")
+    fulltask = luigi.BoolParameter(
+        default=False, description="Whether the full puppet task should be displayed."
+    )
+    # Requirements are the same as puppet task
+    def requires(self):
+        return self.puppet_task.requires()
+
+    def output(self):
+        puppet = self.puppet_task
+        # Construct output filename from class name of puppet and identifier
+        class_name = puppet.__class__.__name__
+        unique_par_str = "_".join([class_name] + list(self.identifier))
+        filename = unique_par_str + ".json"
+        target = self.local_target(filename)
+        # Check if existing file matches with new file
+        if target.exists():
+            out = puppet.output()
+            if isinstance(out, DotDict) and "collection" in out.keys():
+                out = out["collection"]
+            target_paths = set([targ.path for targ in flatten_collections(out)])
+            target_paths_from_file = set(target.load())
+            if target_paths != target_paths_from_file:
+                # Remove old file if not
+                console.log("Missmatch in output files found. Removing checkfile.")
+                console.log(
+                    list(target_paths_from_file - target_paths)
+                    + list(target_paths - target_paths_from_file)
+                )
+                target.remove()
+                if target.exists():
+                    raise Exception("File {} could not be deleted".format(target.path))
+        return target
+
+    def repr(self, all_params=False, color=None, **kwargs):
+        representation = super(PuppetMaster, self).repr(all_params, color, **kwargs)
+        if self.fulltask:
+            representation += " of " + self.puppet_task.repr(
+                all_params, color, **kwargs
+            )
+        return representation
+
+    def run(self):
+        puppet = self.puppet_task
+        # Add puppet to shedduler
+        # PuppetMaster Tasks restarts after yield
+        print("Add task to shedduler: ", puppet)
+        yield puppet
+        # Write output targets of puppet to PuppetMaster output target
+        out = puppet.output()
+        if isinstance(out, DotDict) and "collection" in out.keys():
+            out = out["collection"]
+        target_paths = [targ.path for targ in flatten_collections(out)]
+        self.output().dump(target_paths, formatter="json")
+
+    # Get outputs of puppet (Used in non-workflow)
+    def give_puppet_outputs(self):
+        return self.puppet_task.output()
