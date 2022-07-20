@@ -264,6 +264,7 @@ class CreateTrainingConfig(Task):
         # Remove data directories
         rmtree(prefix)
 
+
 # Task to run NN training (2 folds)
 # One training is performed for each valid combination of:
 # channel, mass, batch and fold
