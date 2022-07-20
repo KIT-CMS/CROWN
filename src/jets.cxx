@@ -35,28 +35,30 @@ VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
         [deltaRmin](const ROOT::RVec<float> &jet_eta,
                     const ROOT::RVec<float> &jet_phi,
                     const ROOT::Math::PtEtaPhiMVector &p4_1,
-                    ROOT::Math::PtEtaPhiMVector &p4_2) {
-            Logger::get("VetoOverlappingJets")->debug("Checking jets");
+                    const ROOT::Math::PtEtaPhiMVector &p4_2) {
+            Logger::get("VetoOverlappingJets (2 particles)")->debug("Checking jets");
             ROOT::RVec<int> mask(jet_eta.size(), 1);
             for (std::size_t idx = 0; idx < mask.size(); ++idx) {
                 ROOT::Math::RhoEtaPhiVectorF jet(0, jet_eta.at(idx),
                                                  jet_phi.at(idx));
-                Logger::get("VetoOverlappingJets")
+                Logger::get("VetoOverlappingJets (2 particles)")
                     ->debug("Jet:  Eta: {} Phi: {} ", jet.Eta(), jet.Phi());
-                Logger::get("VetoOverlappingJets")
+                Logger::get("VetoOverlappingJets (2 particles)")
                     ->debug("Letpon 1 {}:  Eta: {} Phi: {}, Pt{}", p4_1,
                             p4_1.Eta(), p4_1.Phi(), p4_1.Pt());
-                Logger::get("VetoOverlappingJets")
+                Logger::get("VetoOverlappingJets (2 particles)")
                     ->debug("Lepton 2 {}:  Eta: {} Phi: {}, Pt{}", p4_2,
                             p4_2.Eta(), p4_2.Phi(), p4_2.Pt());
                 auto deltaR_1 = ROOT::Math::VectorUtil::DeltaR(jet, p4_1);
                 auto deltaR_2 = ROOT::Math::VectorUtil::DeltaR(jet, p4_2);
-                Logger::get("VetoOverlappingJets")
+                Logger::get("VetoOverlappingJets (2 particles)")
                     ->debug("DeltaR 1 {}", deltaR_1);
-                Logger::get("VetoOverlappingJets")
+                Logger::get("VetoOverlappingJets (2 particles)")
                     ->debug("DeltaR 2 {}", deltaR_2);
                 mask[idx] = (deltaR_1 > deltaRmin && deltaR_2 > deltaRmin);
             }
+            Logger::get("VetoOverlappingJets (2 particles)")
+                    ->debug("vetomask due to overlap: {}", mask);
             return mask;
         },
         {jet_eta, jet_phi, p4_1, p4_2});
@@ -96,6 +98,8 @@ VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
                     ->debug("DeltaR 1 {}", deltaR_1);
                 mask[idx] = (deltaR_1 > deltaRmin);
             }
+            Logger::get("VetoOverlappingJets")
+                    ->debug("vetomask due to overlap: {}", mask);
             return mask;
         },
         {jet_eta, jet_phi, p4_1});

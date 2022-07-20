@@ -30,7 +30,7 @@ jobs:
         run: pacman -Syy --noconfirm && pacman -Sy archlinux-keyring --noconfirm
 
       - name: Install missing software
-        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi --ignore root --ignore libinih
+        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost --ignore root --ignore libinih
 
       # - name: apt update
       #   run: apt-get -y update
