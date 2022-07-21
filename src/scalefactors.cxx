@@ -855,25 +855,31 @@ ROOT::RDF::RNode selection_id(ROOT::RDF::RNode df, const std::string &pt,
  * `mc` for monte carlo
  * @param idAlgorithm the name of the scale factor in the correctionlib
  * file
+ * @param extrapolation_factor The extrapolation factor to be used for the scale
+ * factor, defaults to 1.
  * @return ROOT::RDF::RNode
  */
 ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
                          const std::string &eta, const std::string &output,
                          const std::string &sf_file,
                          const std::string correctiontype,
-                         const std::string &idAlgorithm) {
+                         const std::string &idAlgorithm,
+                         const float &extrapolation_factor = 1.0) {
 
     Logger::get("EmbeddingMuonSF")->debug("Correction - Name {}", idAlgorithm);
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
     auto df1 = df.Define(
         output,
-        [evaluator, correctiontype](const float &pt, const float &eta) {
+        [evaluator, correctiontype, extrapolation_factor](const float &pt,
+                                                          const float &eta) {
             Logger::get("EmbeddingMuonSF")
-                ->debug(" pt {}, eta {}, correctiontype {}", pt, eta,
-                        correctiontype);
+                ->debug(" pt {}, eta {}, correctiontype {}, extrapolation "
+                        "factor {}",
+                        pt, eta, correctiontype, extrapolation_factor);
             double sf = 1.;
-            sf = evaluator->evaluate({pt, std::abs(eta), correctiontype});
+            sf = extrapolation_factor *
+                 evaluator->evaluate({pt, std::abs(eta), correctiontype});
             Logger::get("EmbeddingMuonSF")->debug("sf {}", sf);
             return sf;
         },
@@ -893,13 +899,16 @@ ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
  * `mc` for monte carlo
  * @param idAlgorithm the name of the scale factor in the correctionlib
  * file
+ * @param extrapolation_factor The extrapolation factor to be used for the scale
+ * factor, defaults to 1.
  * @return ROOT::RDF::RNode
  */
 ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
                              const std::string &eta, const std::string &output,
                              const std::string &sf_file,
                              const std::string correctiontype,
-                             const std::string &idAlgorithm) {
+                             const std::string &idAlgorithm,
+                             const float &extrapolation_factor = 1.0) {
 
     Logger::get("EmbeddingElectronSF")
         ->debug("Correction - Name {}", idAlgorithm);
@@ -907,12 +916,15 @@ ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
         correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
     auto df1 = df.Define(
         output,
-        [evaluator, correctiontype](const float &pt, const float &eta) {
+        [evaluator, correctiontype, extrapolation_factor](const float &pt,
+                                                          const float &eta) {
             Logger::get("EmbeddingElectronSF")
-                ->debug(" pt {}, eta {}, correctiontype {}", pt, eta,
-                        correctiontype);
+                ->debug(" pt {}, eta {}, correctiontype {}, extrapolation "
+                        "factor {}",
+                        pt, eta, correctiontype, extrapolation_factor);
             double sf = 1.;
-            sf = evaluator->evaluate({pt, std::abs(eta), correctiontype});
+            sf = extrapolation_factor *
+                 evaluator->evaluate({pt, std::abs(eta), correctiontype});
             Logger::get("EmbeddingElectronSF")->debug("sf {}", sf);
             return sf;
         },
