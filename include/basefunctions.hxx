@@ -378,7 +378,7 @@ inline auto FilterJetID(const int &index) {
     return [index](const ROOT::RVec<Int_t> &IDs) {
         ROOT::RVec<int> mask = IDs >= index;
         Logger::get("FilterJetID")->debug("IDs: {}", IDs);
-         Logger::get("FilterJetID")->debug("Filtered mask: {}", mask);
+        Logger::get("FilterJetID")->debug("Filtered mask: {}", mask);
         return mask;
     };
 }

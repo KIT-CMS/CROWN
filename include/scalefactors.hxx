@@ -98,12 +98,14 @@ ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
                          const std::string &eta, const std::string &output,
                          const std::string &sf_file,
                          const std::string correctiontype,
-                         const std::string &idAlgorithm);
+                         const std::string &idAlgorithm,
+                         const float &extrapolation_factor = 1.0);
 ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
                              const std::string &eta, const std::string &output,
                              const std::string &sf_file,
                              const std::string correctiontype,
-                             const std::string &idAlgorithm);
+                             const std::string &idAlgorithm,
+                             const float &extrapolation_factor = 1.0);
 } // namespace embedding
 } // namespace scalefactor
 #endif /* GUARD_SCALEFACTORS_H */
