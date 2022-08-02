@@ -286,7 +286,7 @@ ROOT::RDF::RNode DeltaRParticleVeto(
     const std::string &particle_mask, const std::string &particle_pt,
     const std::string &particle_eta, const std::string &particle_phi,
     const std::string &particle_mass, const float dR_cut) {
-    auto veto_overlapping_photon =
+    auto veto_overlapping_particle =
         [dR_cut](const ROOT::Math::PtEtaPhiMVector &p4,
                  const ROOT::RVec<float> &particle_pt,
                  const ROOT::RVec<float> &particle_eta,
@@ -316,7 +316,7 @@ ROOT::RDF::RNode DeltaRParticleVeto(
             // if no particle is close enough to the p4, return false
             return false;
         };
-    auto df1 = df.Define(output_flag, veto_overlapping_photon,
+    auto df1 = df.Define(output_flag, veto_overlapping_particle,
                          {p4, particle_pt, particle_eta, particle_phi,
                           particle_mass, particle_mask});
     return df1;
