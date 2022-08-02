@@ -63,6 +63,11 @@ ROOT::RDF::RNode CutNFlag(ROOT::RDF::RNode df, const std::string &outputname,
 ROOT::RDF::RNode SelectedObjects(ROOT::RDF::RNode df,
                                  const std::string &outputname,
                                  const std::string &inputmaskname);
+ROOT::RDF::RNode DeltaRParticleVeto(
+    ROOT::RDF::RNode df, const std::string &output_flag, const std::string &p4,
+    const std::string &particle_mask, const std::string &particle_pt,
+    const std::string &particle_eta, const std::string &particle_phi,
+    const std::string &particle_mass, const float dR_cut);
 ROOT::RDF::RNode ObjectMassCorrectionWithPt(ROOT::RDF::RNode df,
                                             const std::string &corrected_mass,
                                             const std::string &raw_mass,

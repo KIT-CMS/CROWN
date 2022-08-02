@@ -256,6 +256,72 @@ ROOT::RDF::RNode SelectedObjects(ROOT::RDF::RNode df,
                      {inputmaskname});
 }
 
+/**
+ * @brief Function used to veto a particle, if it is overlapping within a given
+ * DeltaR value with another particle within a mask. For the particle to test,
+ * the lorentz vector is used, for the veto, the mask and all input quantities
+ * needed to calculate the lorentz vector are used. Returns true if the particle
+ * is vetoed, false if it is not.
+ *
+ * @param df The input dataframe
+ * @param output_flag The name of the veto flag to be added as column to the
+ * dataframe
+ * @param p4 The name of the Lorentz vector column to be used for the particle
+ * to test
+ * @param particle_mask The name of the mask to be used for the veto
+ * @param particle_pt The name of the pt column to be used for the particles to
+ * test against
+ * @param particle_eta The name of the eta column to be used for the particles
+ * to test against
+ * @param particle_phi The name of the phi column to be used for the particles
+ * to test against
+ * @param particle_mass The name of the mass column to be used for the particles
+ * to test against
+ * @param dR_cut The maximum dR to be used for the veto
+ * @return ROOT::RDF::RNode a dataframe containing the new veto flag
+ */
+
+ROOT::RDF::RNode DeltaRParticleVeto(
+    ROOT::RDF::RNode df, const std::string &output_flag, const std::string &p4,
+    const std::string &particle_mask, const std::string &particle_pt,
+    const std::string &particle_eta, const std::string &particle_phi,
+    const std::string &particle_mass, const float dR_cut) {
+    auto veto_overlapping_photon =
+        [dR_cut](const ROOT::Math::PtEtaPhiMVector &p4,
+                 const ROOT::RVec<float> &particle_pt,
+                 const ROOT::RVec<float> &particle_eta,
+                 const ROOT::RVec<float> &particle_phi,
+                 const ROOT::RVec<float> &particle_mass,
+                 const ROOT::RVec<int> &particle_mask) {
+            // for all particles in the mask, check if they overlap with the
+            // particle, if so, return true
+            ROOT::RVec<int> valid_particle_indices =
+                ROOT::VecOps::Nonzero(particle_mask);
+            const auto selected_pt =
+                ROOT::VecOps::Take(particle_pt, valid_particle_indices);
+            const auto selected_eta =
+                ROOT::VecOps::Take(particle_eta, valid_particle_indices);
+            const auto selected_phi =
+                ROOT::VecOps::Take(particle_phi, valid_particle_indices);
+            const auto selected_mass =
+                ROOT::VecOps::Take(particle_mass, valid_particle_indices);
+            auto selected_p4s =
+                ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(
+                    selected_pt, selected_eta, selected_phi, selected_mass);
+            for (const auto &p4_test : selected_p4s) {
+                if (ROOT::Math::VectorUtil::DeltaR(p4_test, p4) < dR_cut) {
+                    return true;
+                }
+            }
+            // if no particle is close enough to the p4, return false
+            return false;
+        };
+    auto df1 = df.Define(output_flag, veto_overlapping_photon,
+                         {p4, particle_pt, particle_eta, particle_phi,
+                          particle_mass, particle_mask});
+    return df1;
+}
+
 /// Function to correct object mass in alignment with object pt correction
 ///
 /// \param[in] df the input dataframe
