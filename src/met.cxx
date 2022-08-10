@@ -121,6 +121,119 @@ ROOT::RDF::RNode calculateGenBosonVector(
         });
     }
 }
+
+/// Function to calculate the recoil component for dilepton channels and add it to
+/// the dataframe
+///
+/// \param df the dataframe to add the quantity to
+/// \param paralell_outputname name of the new column containing the parallell recoil
+/// \param perpendicular_outputname name of the new column containing the perpendicilar recoil
+/// \param lepton1 name of the column containing the leading lepton lorentz vector
+/// \param lepton2 name of the column containing the trailing lepton lorentz vector
+/// \param met_p4 name of the column containing the MET lorentz vector
+///
+/// \returns a dataframe with the new column
+ROOT::RDF::RNode DefineRecoilsDilep(ROOT::RDF::RNode df,
+                               const std::string &paralell_outputname,
+                               const std::string &perpendicular_outputname,
+                               const std::string &lepton1,
+                               const std::string &lepton2,
+                               const std::string &met_p4) {
+    
+    //paralell
+    auto df1 = df.Define(paralell_outputname, 
+                    [](const ROOT::Math::PtEtaPhiMVector &lepton1,
+                       const ROOT::Math::PtEtaPhiMVector &lepton2,
+                       const ROOT::Math::PtEtaPhiMVector &met_p4) {
+        const ROOT::Math::PtEtaPhiMVector dilepton_vector = lepton1 + lepton2;
+        double corrMet = met_p4.Et();
+        double corrMetPhi = met_p4.Phi();
+
+        double pUX = -corrMet * cos(corrMetPhi)
+                     - dilepton_vector.Pt() * cos(dilepton_vector.Phi());
+        double pUY = -corrMet * sin(corrMetPhi)
+                     - dilepton_vector.Pt() * sin(dilepton_vector.Phi());
+        double pU = sqrt(pUX * pUX + pUY * pUY);
+        double pCos = (pUX * cos(dilepton_vector.Phi()) + pUY * sin(dilepton_vector.Phi())) / pU;
+        double pSin = -(pUX * sin(dilepton_vector.Phi()) - pUY * cos(dilepton_vector.Phi())) / pU;
+        
+        return pU * pCos;
+    },{lepton1, lepton2, met_p4});
+
+    //perpendicular
+    return df1.Define(perpendicular_outputname, 
+                    [](const ROOT::Math::PtEtaPhiMVector &lepton1,
+                       const ROOT::Math::PtEtaPhiMVector &lepton2,
+                       const ROOT::Math::PtEtaPhiMVector &met_p4) {
+        const ROOT::Math::PtEtaPhiMVector dilepton_vector = lepton1 + lepton2;
+        double corrMet = met_p4.Et();
+        double corrMetPhi = met_p4.Phi();
+
+        double pUX = corrMet * cos(corrMetPhi)
+                     + dilepton_vector.Pt() * cos(dilepton_vector.Phi());
+        double pUY = corrMet * sin(corrMetPhi)
+                     + dilepton_vector.Pt() * sin(dilepton_vector.Phi());
+        double pU = sqrt(pUX * pUX + pUY * pUY);
+        double pCos = -(pUX * cos(dilepton_vector.Phi()) + pUY * sin(dilepton_vector.Phi())) / pU;
+        double pSin = (pUX * sin(dilepton_vector.Phi()) - pUY * cos(dilepton_vector.Phi())) / pU;
+        
+        return pU * pSin;
+    },{lepton1, lepton2, met_p4});
+}
+
+/// Function to calculate the recoil component for single lepton channels and add it to
+/// the dataframe
+///
+/// \param df the dataframe to add the quantity to
+/// \param paralell_outputname name of the new column containing the parallell recoil
+/// \param perpendicular_outputname name of the new column containing the perpendicilar recoil
+/// \param lepton1 name of the column containing the leading lepton lorentz vector
+/// \param met_p4 name of the column containing the MET lorentz vector
+///
+/// \returns a dataframe with the new column
+ROOT::RDF::RNode DefineRecoilsSinglelep(ROOT::RDF::RNode df,
+                               const std::string &paralell_outputname,
+                               const std::string &perpendicular_outputname,
+                               const std::string &lepton1,
+                               const std::string &met_p4) {
+    
+    //paralell
+    auto df1 = df.Define(paralell_outputname, 
+                    [](const ROOT::Math::PtEtaPhiMVector &lepton1,
+                       const ROOT::Math::PtEtaPhiMVector &met_p4) {
+        double corrMet = met_p4.Et();
+        double corrMetPhi = met_p4.Phi();
+
+        double pUX = -corrMet * cos(corrMetPhi)
+                     - lepton1.Pt() * cos(lepton1.Phi());
+        double pUY = -corrMet * sin(corrMetPhi)
+                     - lepton1.Pt() * sin(lepton1.Phi());
+        double pU = sqrt(pUX * pUX + pUY * pUY);
+        double pCos = (pUX * cos(lepton1.Phi()) + pUY * sin(lepton1.Phi())) / pU;
+        double pSin = -(pUX * sin(lepton1.Phi()) - pUY * cos(lepton1.Phi())) / pU;
+        
+        return pU * pCos;
+    },{lepton1, met_p4});
+
+    //perpendicular
+    return df1.Define(perpendicular_outputname, 
+                    [](const ROOT::Math::PtEtaPhiMVector &lepton1,
+                       const ROOT::Math::PtEtaPhiMVector &met_p4) {
+        double corrMet = met_p4.Et();
+        double corrMetPhi = met_p4.Phi();
+
+        double pUX = corrMet * cos(corrMetPhi)
+                     + lepton1.Pt() * cos(lepton1.Phi());
+        double pUY = corrMet * sin(corrMetPhi)
+                     + lepton1.Pt() * sin(lepton1.Phi());
+        double pU = sqrt(pUX * pUX + pUY * pUY);
+        double pCos = -(pUX * cos(lepton1.Phi()) + pUY * sin(lepton1.Phi())) / pU;
+        double pSin = (pUX * sin(lepton1.Phi()) - pUY * cos(lepton1.Phi())) / pU;
+        
+        return pU * pSin;
+    },{lepton1, met_p4});
+}
+
 /// Function to calculate the mass from the genboson double vector and add it to
 /// the dataframe
 ///
