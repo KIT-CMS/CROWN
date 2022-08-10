@@ -949,6 +949,40 @@ ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
         df.Define(maskname, basefunctions::FilterMinInt(IDvalue), {nameID});
     return df1;
 }
+
+ROOT::RDF::RNode CutCBIDNoIso(ROOT::RDF::RNode df, const std::string &maskname,
+                              const std::string &nameID, const int &IDvalue) {
+    
+    // decision for each cut represented by 3 bits (0:fail, 1:veto, 2:loose, 3:medium, 4:tight)
+    // Electron_vidNestedWPBitmap
+    //0 - MinPtCut
+    //1 - GsfEleSCEtaMultiRangeCut
+    //2 - GsfEleDEtaInSeedCut
+    //3 - GsfEleDPhiInCut
+    //4 - GsfEleFull5x5SigmaIEtaIEtaCut
+    //5 - GsfEleHadronicOverEMEnergyScaledCut
+    //6 - GsfEleEInverseMinusPInverseCut
+    //7 - GsfEleRelPFIsoScaledCut
+    //8 - GsfEleConversionVetoCut
+    //9 - GsfEleMissingHitsCut
+
+    auto lambda = [IDvalue](const ROOT::RVec<int> &IDBits) {
+        ROOT::RVec<int> mask = (IDBits > -1);  // all true
+        for (unsigned idx = 0; idx < IDBits.size(); ++idx) {
+            int pass = 1;
+            for (int i(0); i<10; i++) {
+                if (i==7) continue;
+                if ( ((IDBits.at(idx) >> i*3) & 0x7) < IDvalue) pass = 0;
+            }
+            mask.at(idx) = pass;
+        }
+        return mask;
+    };
+
+    auto df1 = df.Define(maskname, lambda, {nameID});
+    return df1;
+}
+
 /// Function to cut electrons based on the electron isolation using
 /// basefunctions::FilterMax
 ///
