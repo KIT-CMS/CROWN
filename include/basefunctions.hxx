@@ -74,6 +74,38 @@ inline ROOT::RDF::RNode rename(ROOT::RDF::RNode df,
     return df.Define(outputname, [](const T &q) { return q; }, {inputname});
 }
 
+/// Function to writeout an addition of two columns
+///
+/// \param df the dataframe to add the quantity to
+/// \param inputname1 name of the first input column
+/// \param inputname2 name of the second input column
+/// \param outputname name of the new column
+///
+/// \returns a dataframe with the new column
+
+template <typename T>
+inline ROOT::RDF::RNode add(ROOT::RDF::RNode df,
+                            const std::string &inputname1,
+                            const std::string &inputname2,
+                            const std::string &outputname) {
+    return df.Define(outputname, [](const T &q1, const T &q2) { return (q1+q2); }, {inputname1, inputname2});
+}
+
+/// Function to writeout an absolute value of a column
+///
+/// \param df the dataframe to add the quantity to
+/// \param inputname name of the input column
+/// \param outputname name of the new column
+///
+/// \returns a dataframe with the new column
+
+template <typename T>
+inline ROOT::RDF::RNode abs(ROOT::RDF::RNode df,
+                            const std::string &inputname,
+                            const std::string &outputname) {
+    return df.Define(outputname, [](const T &q) { return abs(q); }, {inputname});
+}
+
 /// Function to writeout a variable from a particle. The particle
 /// is identified via the index stored in the input vector
 ///
