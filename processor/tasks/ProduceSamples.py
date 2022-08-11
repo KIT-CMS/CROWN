@@ -30,7 +30,8 @@ class ProduceSamples(Task):
         elif "," in self.sample_list:
             samples = self.sample_list.split(",")
         else:
-            raise ValueError("sample-list is neither a file nor a comma separated list")
+            samples = [self.sample_list]
+
         for nick in samples:
             data["details"][nick] = {}
             # check if sample exists in datasets.yaml
