@@ -22,8 +22,15 @@ class ProduceSamples(Task):
         data["sampletypes"] = set()
         data["eras"] = set()
         data["details"] = {}
-        with open(self.sample_list) as file:
-            samples = [nick.replace("\n", "") for nick in file.readlines()]
+        samples = []
+        # check if sample list is a file or a comma separated list
+        if self.sample_list.endswith(".txt"):
+            with open(self.sample_list) as file:
+                samples = [nick.replace("\n", "") for nick in file.readlines()]
+        elif "," in self.sample_list:
+            samples = self.sample_list.split(",")
+        else:
+            raise ValueError("sample-list is neither a file nor a comma separated list")
         for nick in samples:
             data["details"][nick] = {}
             # check if sample exists in datasets.yaml
