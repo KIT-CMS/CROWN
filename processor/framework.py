@@ -175,31 +175,35 @@ class Task(law.Task):
             if run_location:
                 logstring += " from {}".format(run_location)
             console.log(logstring)
-            p = Popen(
-                " ".join(command),
-                shell=True,
-                stdout=PIPE,
-                stderr=PIPE,
-                env=run_env,
-                cwd=run_location,
-                encoding="utf-8",
-            )
-            while True:
-                reads = [p.stdout.fileno(), p.stderr.fileno()]
-                ret = select.select(reads, [], [])
+            try:
+                p = Popen(
+                    " ".join(command),
+                    shell=True,
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    env=run_env,
+                    cwd=run_location,
+                    encoding="utf-8",
+                )
+                while True:
+                    reads = [p.stdout.fileno(), p.stderr.fileno()]
+                    ret = select.select(reads, [], [])
 
-                for fd in ret[0]:
-                    if fd == p.stdout.fileno():
-                        read = p.stdout.readline()
-                        if read != "\n":
-                            console.log(read.strip())
-                    if fd == p.stderr.fileno():
-                        read = p.stderr.readline()
-                        if read != "\n":
-                            console.log(read.strip())
+                    for fd in ret[0]:
+                        if fd == p.stdout.fileno():
+                            read = p.stdout.readline()
+                            if read != "\n":
+                                console.log(read.strip())
+                        if fd == p.stderr.fileno():
+                            read = p.stderr.readline()
+                            if read != "\n":
+                                console.log(read.strip())
 
-                if p.poll() != None:
-                    break
+                    if p.poll() != None:
+                        break
+            except Exception as e:
+                console.log("Error: {}".format(e))
+                raise Exception("{} failed".format(list(command)))
         else:
             raise Exception("No command provided.")
 
