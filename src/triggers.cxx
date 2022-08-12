@@ -118,15 +118,15 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
                    const float &pt_cut, const float &eta_cut,
                    const int &trigger_particle_id_cut,
                    const int &triggerbit_cut) {
-    Logger::get("CheckTriggerMatch")->warn("Checking Triggerobjects");
+    Logger::get("CheckTriggerMatch")->debug("Checking Triggerobjects");
     Logger::get("CheckTriggerMatch")
-        ->warn("Total number of triggerobjects: {}", triggerobject_pts.size());
+        ->debug("Total number of triggerobjects: {}", triggerobject_pts.size());
     for (std::size_t idx = 0; idx < triggerobject_pts.size(); ++idx) {
-        Logger::get("CheckTriggerMatch")->warn("Triggerobject Nr. {}", idx);
+        Logger::get("CheckTriggerMatch")->debug("Triggerobject Nr. {}", idx);
         Logger::get("CheckTriggerMatch")
-            ->warn("bit Value: {}", IntBits(triggerobject_bits[idx]));
+            ->debug("bit Value: {}", IntBits(triggerobject_bits[idx]));
         Logger::get("CheckTriggerMatch")
-            ->warn("bit Value: {}", triggerobject_bits[idx]);
+            ->debug("bit Value: {}", triggerobject_bits[idx]);
         auto triggerobject = ROOT::Math::RhoEtaPhiVectorF(
             0, triggerobject_etas[idx], triggerobject_phis[idx]);
         // We check the deltaR match as well as that the pt and eta of the
@@ -136,32 +136,32 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
         // if we don't want to do any matching here, the triggerbut_cut value is
         // -1
         Logger::get("CheckTriggerMatch")
-            ->warn("bit Value: {}", triggerobject_bits[idx]);
+            ->debug("bit Value: {}", triggerobject_bits[idx]);
         bool bit = (triggerbit_cut == -1) ||
                    (IntBits(triggerobject_bits[idx]).test(triggerbit_cut));
         bool id = triggerobject_ids[idx] == trigger_particle_id_cut;
         bool pt = particle.pt() > pt_cut;
         bool eta = abs(particle.eta()) < eta_cut;
         Logger::get("CheckTriggerMatch")
-            ->warn("-------------------------------------------------------");
-        Logger::get("CheckTriggerMatch")->warn("deltaR Check: {}", deltaR);
+            ->debug("-------------------------------------------------------");
+        Logger::get("CheckTriggerMatch")->debug("deltaR Check: {}", deltaR);
         Logger::get("CheckTriggerMatch")
-            ->warn("deltaR Value: {}",
+            ->debug("deltaR Value: {}",
                     ROOT::Math::VectorUtil::DeltaR(triggerobject, particle));
-        Logger::get("CheckTriggerMatch")->warn("id Check: {}", id);
+        Logger::get("CheckTriggerMatch")->debug("id Check: {}", id);
         Logger::get("CheckTriggerMatch")
-            ->warn("id Value: {}", triggerobject_ids[idx]);
-        Logger::get("CheckTriggerMatch")->warn("bit Check: {}", bit);
+            ->debug("id Value: {}", triggerobject_ids[idx]);
+        Logger::get("CheckTriggerMatch")->debug("bit Check: {}", bit);
         Logger::get("CheckTriggerMatch")
-            ->warn("bit Value: {}", IntBits(triggerobject_bits[idx]));
-        Logger::get("CheckTriggerMatch")->warn("pt Check: {}", pt);
+            ->debug("bit Value: {}", IntBits(triggerobject_bits[idx]));
+        Logger::get("CheckTriggerMatch")->debug("pt Check: {}", pt);
         Logger::get("CheckTriggerMatch")
-            ->warn("pt Value: {}", triggerobject_pts[idx]);
-        Logger::get("CheckTriggerMatch")->warn("eta Check: {}", eta);
+            ->debug("pt Value: {}", triggerobject_pts[idx]);
+        Logger::get("CheckTriggerMatch")->debug("eta Check: {}", eta);
         Logger::get("CheckTriggerMatch")
-            ->warn("eta Value: {}", triggerobject_etas[idx]);
+            ->debug("eta Value: {}", triggerobject_etas[idx]);
         Logger::get("CheckTriggerMatch")
-            ->warn("-------------------------------------------------------");
+            ->debug("-------------------------------------------------------");
         if (deltaR && bit && id && pt && eta) {
             // remove the matching object from the object vectors so it cant be
             // matched by the next particle as well (if there is one)
@@ -224,12 +224,12 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
                          ROOT::RVec<float> triggerobject_pts,
                          ROOT::RVec<float> triggerobject_etas,
                          ROOT::RVec<float> triggerobject_phis) {
-            Logger::get("GenerateSingleTriggerFlag")->warn("Checking Trigger");
+            Logger::get("GenerateSingleTriggerFlag")->debug("Checking Trigger");
             bool result = false;
             bool match_result = false;
             if (hltpath) {
                 Logger::get("CheckTriggerMatch")
-                    ->warn("Checking Triggerobject match with particles ....");
+                    ->debug("Checking Triggerobject match with particles ....");
                 match_result = matchParticle(
                     particle_p4, triggerobject_pts, triggerobject_etas,
                     triggerobject_phis, triggerobject_bits, triggerobject_ids,
@@ -238,11 +238,11 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
             }
             result = hltpath & match_result;
             Logger::get("GenerateSingleTriggerFlag")
-                ->warn("---> HLT Match: {}", hltpath);
+                ->debug("---> HLT Match: {}", hltpath);
             Logger::get("GenerateSingleTriggerFlag")
-                ->warn("---> Total Match: {}", match_result);
+                ->debug("---> Total Match: {}", match_result);
             Logger::get("GenerateSingleTriggerFlag")
-                ->warn("--->>>> result: {}", result);
+                ->debug("--->>>> result: {}", result);
             return result;
         };
     auto available_trigger = df.GetColumnNames();
@@ -253,7 +253,7 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
     for (auto &trigger : available_trigger) {
         if (std::regex_match(trigger, hltpath_regex)) {
             Logger::get("GenerateSingleTriggerFlag")
-                ->warn("Found matching trigger: {}", trigger);
+                ->debug("Found matching trigger: {}", trigger);
             matched_trigger_names.push_back(trigger);
         }
     }
@@ -267,12 +267,12 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
         return df1;
     } else if (matched_trigger_names.size() > 1) {
         Logger::get("GenerateSingleTriggerFlag")
-            ->warn("More than one matching trigger found, not implemented yet");
+            ->debug("More than one matching trigger found, not implemented yet");
         throw std::invalid_argument(
             "received too many matching trigger paths, not implemented yet");
     } else {
         Logger::get("GenerateSingleTriggerFlag")
-            ->warn("Found matching trigger: {}", matched_trigger_names[0]);
+            ->debug("Found matching trigger: {}", matched_trigger_names[0]);
         auto df1 =
             df.Define(triggerflag_name, triggermatch,
                       {matched_trigger_names[0], particle_p4,
@@ -356,20 +356,20 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
-        Logger::get("GenerateDoubleTriggerFlag")->warn("Checking Trigger");
+        Logger::get("GenerateDoubleTriggerFlag")->debug("Checking Trigger");
         bool result = false;
         bool match_result_p1 = false;
         bool match_result_p2 = false;
         if (hltpath) {
             Logger::get("GenerateDoubleTriggerFlag")
-                ->warn("Checking Triggerobject match with particles ....");
-            Logger::get("GenerateDoubleTriggerFlag")->warn("First particle");
+                ->debug("Checking Triggerobject match with particles ....");
+            Logger::get("GenerateDoubleTriggerFlag")->debug("First particle");
             match_result_p1 = matchParticle(
                 particle1_p4, triggerobject_pts, triggerobject_etas,
                 triggerobject_phis, triggerobject_bits, triggerobject_ids,
                 DeltaR_threshold, p1_pt_cut, p1_eta_cut,
                 p1_trigger_particle_id_cut, p1_triggerbit_cut);
-            Logger::get("GenerateDoubleTriggerFlag")->warn("Second particle");
+            Logger::get("GenerateDoubleTriggerFlag")->debug("Second particle");
             match_result_p2 = matchParticle(
                 particle2_p4, triggerobject_pts, triggerobject_etas,
                 triggerobject_phis, triggerobject_bits, triggerobject_ids,
@@ -378,13 +378,13 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
         }
         result = hltpath & match_result_p1 & match_result_p2;
         Logger::get("GenerateDoubleTriggerFlag")
-            ->warn("---> HLT Match: {}", hltpath);
+            ->debug("---> HLT Match: {}", hltpath);
         Logger::get("GenerateDoubleTriggerFlag")
-            ->warn("---> Total Match P1: {}", match_result_p1);
+            ->debug("---> Total Match P1: {}", match_result_p1);
         Logger::get("GenerateDoubleTriggerFlag")
-            ->warn("---> Total Match P2: {}", match_result_p2);
+            ->debug("---> Total Match P2: {}", match_result_p2);
         Logger::get("GenerateDoubleTriggerFlag")
-            ->warn("--->>>> result: {}", result);
+            ->debug("--->>>> result: {}", result);
         return result;
     };
     auto available_trigger = df.GetColumnNames();
@@ -395,7 +395,7 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
     for (auto &trigger : available_trigger) {
         if (std::regex_match(trigger, hltpath_regex)) {
             Logger::get("GenerateDoubleTriggerFlag")
-                ->warn("Found matching trigger: {}", trigger);
+                ->debug("Found matching trigger: {}", trigger);
             matched_trigger_names.push_back(trigger);
         }
     }
@@ -409,12 +409,12 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
         return df1;
     } else if (matched_trigger_names.size() > 1) {
         Logger::get("GenerateDoubleTriggerFlag")
-            ->warn("More than one matching trigger found, not implemented yet");
+            ->debug("More than one matching trigger found, not implemented yet");
         throw std::invalid_argument(
             "received too many matching trigger paths, not implemented yet");
     } else {
         Logger::get("GenerateDoubleTriggerFlag")
-            ->warn("Found matching trigger: {}", matched_trigger_names[0]);
+            ->debug("Found matching trigger: {}", matched_trigger_names[0]);
         auto df1 =
             df.Define(triggerflag_name, triggermatch,
                       {matched_trigger_names[0], particle1_p4, particle2_p4,
@@ -497,14 +497,14 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
         bool match_result_p1 = false;
         bool match_result_p2 = false;
         Logger::get("MatchDoubleTriggerObject")
-            ->warn("Checking Triggerobject match with particles ....");
-        Logger::get("MatchDoubleTriggerObject")->warn("First particle");
+            ->debug("Checking Triggerobject match with particles ....");
+        Logger::get("MatchDoubleTriggerObject")->debug("First particle");
         match_result_p1 = matchParticle(
             particle1_p4, triggerobject_pts, triggerobject_etas,
             triggerobject_phis, triggerobject_bits, triggerobject_ids,
             DeltaR_threshold, p1_pt_cut, p1_eta_cut,
             p1_trigger_particle_id_cut, p1_triggerbit_cut);
-        Logger::get("MatchDoubleTriggerObject")->warn("Second particle");
+        Logger::get("MatchDoubleTriggerObject")->debug("Second particle");
         match_result_p2 = matchParticle(
             particle2_p4, triggerobject_pts, triggerobject_etas,
             triggerobject_phis, triggerobject_bits, triggerobject_ids,
@@ -512,11 +512,11 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
             p2_trigger_particle_id_cut, p2_triggerbit_cut);
         bool result = match_result_p1 & match_result_p2;
         Logger::get("MatchDoubleTriggerObject")
-            ->warn("---> Total Match P1: {}", match_result_p1);
+            ->debug("---> Total Match P1: {}", match_result_p1);
         Logger::get("MatchDoubleTriggerObject")
-            ->warn("---> Total Match P2: {}", match_result_p2);
+            ->debug("---> Total Match P2: {}", match_result_p2);
         Logger::get("MatchDoubleTriggerObject")
-            ->warn("--->>>> result: {}", result);
+            ->debug("--->>>> result: {}", result);
         return result;
     };
     auto df1 =
@@ -570,16 +570,16 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
-        Logger::get("MatchSingleTriggerObject")->warn("Checking Trigger");
+        Logger::get("MatchSingleTriggerObject")->debug("Checking Trigger");
         Logger::get("MatchSingleTriggerObject")
-            ->warn("Checking Triggerobject match with particles ....");
+            ->debug("Checking Triggerobject match with particles ....");
         bool match_result =
             matchParticle(particle_p4, triggerobject_pts, triggerobject_etas,
                           triggerobject_phis, triggerobject_bits,
                           triggerobject_ids, DeltaR_threshold, pt_cut, eta_cut,
                           trigger_particle_id_cut, triggerbit_cut);
         Logger::get("MatchSingleTriggerObject")
-            ->warn("--->>>> match_result: {}", match_result);
+            ->debug("--->>>> match_result: {}", match_result);
         return match_result;
     };
     auto df1 =
