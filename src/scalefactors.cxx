@@ -1074,4 +1074,4 @@ ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
 }
 } // namespace embedding
 } // namespace scalefactor
-#endif /* GUARD_SCALEFACTORS_H */                               
+#endif /* GUARD_SCALEFACTORS_H */
