@@ -141,6 +141,11 @@ PtCorrection_genTau(ROOT::RDF::RNode df, const std::string &corrected_pt,
 
 namespace electron {
 
+ROOT::RDF::RNode
+PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
+                     const std::string &pt, const std::string &eta,
+                     const float &sf_barrel, const float &sf_endcap);
+
 ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
                        const std::string &nameID);
 ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
