@@ -8,7 +8,7 @@
 
 ---
 
-[![Repobeats analytics image](https://repobeats.axiom.co/api/embed/bac34668655cc1118c86a0b1831cf095e159606f.svg "Repobeats analytics image")(https://github.com/KIT-CMS/CROWN/pulse)
+[![Repobeats analytics image](https://repobeats.axiom.co/api/embed/bac34668655cc1118c86a0b1831cf095e159606f.svg "Repobeats analytics image")](https://github.com/KIT-CMS/CROWN/pulse)
 
 ---
 
