@@ -338,6 +338,8 @@ class Configuration(object):
                 scopes_to_shift = [
                     scope for scope in shift.get_scopes() if scope in self.scopes
                 ]
+                # if a modifier is used within the shift config, we have to resolve it
+                #  here using the resolve_modifiers function
                 if self.global_scope in scopes_to_shift:
                     for scope in self.scopes:
                         if scope in shift.get_scopes():
@@ -345,19 +347,21 @@ class Configuration(object):
                             shift.apply(scope)
                             self.shifts[scope][
                                 shift.shiftname
-                            ] = shift.get_shift_config(scope)
+                            ] = self.resolve_modifiers(shift.get_shift_config(scope))
                         else:
                             self._add_available_shift(shift, scope)
                             shift.apply(self.global_scope)
                             self.shifts[scope][
                                 shift.shiftname
-                            ] = shift.get_shift_config(self.global_scope)
+                            ] = self.resolve_modifiers(
+                                shift.get_shift_config(self.global_scope)
+                            )
                 else:
                     for scope in scopes_to_shift:
                         self._add_available_shift(shift, scope)
                         shift.apply(scope)
-                        self.shifts[scope][shift.shiftname] = shift.get_shift_config(
-                            scope
+                        self.shifts[scope][shift.shiftname] = self.resolve_modifiers(
+                            shift.get_shift_config(scope)
                         )
 
     def _is_valid_shift(
