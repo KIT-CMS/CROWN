@@ -22,6 +22,17 @@ ROOT::RDF::RNode genBosonPhi(ROOT::RDF::RNode df, const std::string &outputname,
 ROOT::RDF::RNode genBosonRapidity(ROOT::RDF::RNode df,
                                   const std::string &outputname,
                                   const std::string &inputvector);
+ROOT::RDF::RNode DefineRecoilsDilep(ROOT::RDF::RNode df,
+                                    const std::string &paralell_outputname,
+                                    const std::string &perpendicular_outputname,
+                                    const std::string &lepton1,
+                                    const std::string &lepton2,
+                                    const std::string &met_p4);
+ROOT::RDF::RNode
+DefineRecoilsSinglelep(ROOT::RDF::RNode df,
+                       const std::string &paralell_outputname,
+                       const std::string &perpendicular_outputname,
+                       const std::string &lepton1, const std::string &met_p4);
 ROOT::RDF::RNode
 propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
                       const std::string &p4_1_uncorrected,

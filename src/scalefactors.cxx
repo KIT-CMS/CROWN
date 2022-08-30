@@ -289,6 +289,147 @@ id_vsJet_lt(ROOT::RDF::RNode df, const std::string &pt,
     return df1;
 }
 /**
+ * @brief Function used to evaluate vsJets tau id scale factors in the lt
+channel with the correctionlib for tauembedded samples
+
+
+ * @param df The input dataframe
+ * @param pt tau pt
+ * @param wp working point of the ID cut
+ * @param sf_vsjet_tau20to25 id for the variation of the scale factor "sf" for
+nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param sf_vsjet_tau25to30 id for the variation of the scale factor "sf" for
+nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param sf_vsjet_tau30to35 id for the variation of the scale factor "sf" for
+nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param sf_vsjet_tau35to40 id for the variation of the scale factor "sf"
+for nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param sf_vsjet_tau40toInf id for the variation of the scale factor "sf"
+for nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param id_output name of the id scale factor column
+ * @param sf_file path to the file with the tau scale factors
+ * @param correctionset name of the correction set containing the tau id scale
+factor
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode id_vsJet_lt_embedding(
+    ROOT::RDF::RNode df, const std::string &pt, const std::string &wp,
+    const std::string &sf_vsjet_tau20to25,
+    const std::string &sf_vsjet_tau25to30,
+    const std::string &sf_vsjet_tau30to35,
+    const std::string &sf_vsjet_tau35to40,
+    const std::string &sf_vsjet_tau40toInf, const std::string &id_output,
+    const std::string &sf_file, const std::string &correctionset) {
+
+    Logger::get("TauIDvsJet_lt_SF_embedding")
+        ->debug("Setting up function for tau id vsJet sf");
+    Logger::get("TauIDvsJet_lt_SF_embedding")
+        ->debug("ID - Name {}", correctionset);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(correctionset);
+    auto idSF_calculator = [evaluator, wp, sf_vsjet_tau20to25,
+                            sf_vsjet_tau25to30, sf_vsjet_tau30to35,
+                            sf_vsjet_tau35to40, sf_vsjet_tau40toInf,
+                            correctionset](const float &pt) {
+        double sf = 1.;
+        Logger::get("TauIDvsJet_lt_SF_embedding")
+            ->debug("ID {} - pt {}, wp {} "
+                    "sf_vsjet_tau20to25 {}, sf_vsjet_tau25to30 {}, "
+                    "sf_vsjet_tau30to35{}, sf_vsjet_tau35to40 {}, "
+                    "sf_vsjet_tau40toInf {},",
+                    correctionset, pt, wp, sf_vsjet_tau20to25,
+                    sf_vsjet_tau25to30, sf_vsjet_tau30to35, sf_vsjet_tau35to40,
+                    sf_vsjet_tau40toInf);
+        if (pt >= 20.0 && pt < 25.0) {
+            sf = evaluator->evaluate({pt, sf_vsjet_tau20to25, wp});
+        } else if (pt >= 25.0 && pt < 30.0) {
+            sf = evaluator->evaluate({pt, sf_vsjet_tau25to30, wp});
+        } else if (pt >= 30.0 && pt < 35.0) {
+            sf = evaluator->evaluate({pt, sf_vsjet_tau30to35, wp});
+        } else if (pt >= 35.0 && pt < 40.0) {
+            sf = evaluator->evaluate({pt, sf_vsjet_tau35to40, wp});
+        } else if (pt >= 40.0 && pt < 10000.0) {
+            sf = evaluator->evaluate({pt, sf_vsjet_tau40toInf, wp});
+        } else {
+            sf = 1.;
+        }
+        Logger::get("TauIDvsJet_lt_SF_embedding")->debug("Scale Factor {}", sf);
+        return sf;
+    };
+    auto df1 = df.Define(id_output, idSF_calculator, {pt});
+    return df1;
+}
+/**
+ * @brief Function used to evaluate vsJets tau id scale factors in the tt
+channel with the correctionlib for tauembedded samples
+
+ * @param df The input dataframe
+ * @param decayMode decay mode of the tau
+ * @param wp working point of the ID cut
+ * @param sf_vsjet_tauDM0 id for the variation of the scale factor "sf" for
+nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param sf_vsjet_tauDM1 id for the variation of the scale factor "sf" for
+nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param sf_vsjet_tauDM10 id for the variation of the scale factor "sf" for
+nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param sf_vsjet_tauDM11 id for the variation of the scale factor "sf"
+for nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param id_output name of the id scale factor column
+ * @param sf_file path to the file with the tau scale factors
+ * @param correctionset name of the correction set containing the tau id scale
+factor
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode id_vsJet_tt_embedding(
+    ROOT::RDF::RNode df, const std::string &decaymode, const std::string &wp,
+    const std::string &sf_vsjet_tauDM0, const std::string &sf_vsjet_tauDM1,
+    const std::string &sf_vsjet_tauDM10, const std::string &sf_vsjet_tauDM11,
+    const std::string &id_output, const std::string &sf_file,
+    const std::string &correctionset) {
+
+    Logger::get("TauIDvsJet_tt_SF_embedding")
+        ->debug("Setting up function for tau id vsJet sf");
+    Logger::get("TauIDvsJet_tt_SF_embedding")
+        ->debug("ID - Name {}", correctionset);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(correctionset);
+    auto idSF_calculator = [evaluator, wp, sf_vsjet_tauDM0, sf_vsjet_tauDM1,
+                            sf_vsjet_tauDM10, sf_vsjet_tauDM11,
+                            correctionset](const int &decaymode) {
+        double sf = 1.;
+        Logger::get("TauIDvsJet_tt_SF_embedding")
+            ->debug("ID {} - decaymode {}, wp {} "
+                    "sf_vsjet_tauDM0 {}, sf_vsjet_tauDM1 {}, "
+                    "sf_vsjet_tauDM10{}, sf_vsjet_tauDM11 {}, ",
+                    correctionset, decaymode, wp, sf_vsjet_tauDM0,
+                    sf_vsjet_tauDM1, sf_vsjet_tauDM10, sf_vsjet_tauDM11);
+        if (decaymode == 0) {
+            sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM0, wp});
+        } else if (decaymode == 1) {
+            sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM1, wp});
+        } else if (decaymode == 10) {
+            sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM10, wp});
+        } else if (decaymode == 11) {
+            sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM11, wp});
+        } else {
+            sf = 1.;
+        }
+        Logger::get("TauIDvsJet_tt_SF_embedding")->debug("Scale Factor {}", sf);
+        return sf;
+    };
+    auto df1 = df.Define(id_output, idSF_calculator, {decaymode});
+    return df1;
+}
+/**
  * @brief Function used to evaluate vsJets tau id scale factors in the tt
 channel with
  * correctionlib

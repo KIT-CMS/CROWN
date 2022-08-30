@@ -6,6 +6,11 @@
 <a href="https://crown.readthedocs.io/en/latest/?badge=latest"><img alt="Documentation Status" src="https://readthedocs.org/projects/crown/badge/?version=latest"></a>
 </p>
 
+---
+
+[![Repobeats analytics image](https://repobeats.axiom.co/api/embed/bac34668655cc1118c86a0b1831cf095e159606f.svg "Repobeats analytics image")](https://github.com/KIT-CMS/CROWN/pulse)
+
+---
 
 Crown
 =======

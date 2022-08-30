@@ -921,11 +921,44 @@ PtCorrection_genTau(ROOT::RDF::RNode df, const std::string &corrected_pt,
 } // end namespace tau
 
 namespace electron {
+/// Function to correct electron pt
+///
+/// \param[in] df the input dataframe
+/// \param[out] corrected_pt name of the corrected electron pt to be calculated
+/// \param[in] pt name of the raw electron pt
+/// \param[in] eta the name of the raw electron eta
+/// \param[in] sf_barrel scale factor to be applied to electrons in the barrel
+/// \param[in] sf_endcap scale factor to be applied to electrons in the endcap
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode
+PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
+                     const std::string &pt, const std::string &eta,
+                     const float &sf_barrel, const float &sf_endcap) {
+    auto electron_pt_correction_lambda =
+        [sf_barrel, sf_endcap](const ROOT::RVec<float> &pt_values,
+                               const ROOT::RVec<float> &eta) {
+            ROOT::RVec<float> corrected_pt_values(pt_values.size());
+            for (int i = 0; i < pt_values.size(); i++) {
+                if (abs(eta.at(i)) <= 1.479) {
+                    corrected_pt_values[i] = pt_values.at(i) * sf_barrel;
+                } else if (abs(eta.at(i)) > 1.479) {
+                    corrected_pt_values[i] = pt_values.at(i) * sf_endcap;
+                } else {
+                    corrected_pt_values[i] = pt_values.at(i);
+                }
+            }
+            return corrected_pt_values;
+        };
+    auto df1 =
+        df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
+    return df1;
+}
 /// Function to cut electrons based on the electron MVA ID
 ///
 /// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe \param[in] nameID name of the ID column in the NanoAOD
+/// \param[out] maskname the name of the new mask to be added as column to
+/// the dataframe \param[in] nameID name of the ID column in the NanoAOD
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
@@ -938,9 +971,9 @@ ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
 } /// Function to cut jets based on the cut based electron ID
 ///
 /// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe \param[in] nameID name of the ID column in the NanoAOD \param[in]
-/// IDvalue value of the WP the has to be passed
+/// \param[out] maskname the name of the new mask to be added as column to
+/// the dataframe \param[in] nameID name of the ID column in the NanoAOD
+/// \param[in] IDvalue value of the WP the has to be passed
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
@@ -988,8 +1021,8 @@ ROOT::RDF::RNode CutCBIDNoIso(ROOT::RDF::RNode df, const std::string &maskname,
 ///
 /// \param[in] df the input dataframe
 /// \param[in] isolationName name of the isolation column in the NanoAOD
-/// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe \param[in] Threshold maximal isolation threshold
+/// \param[out] maskname the name of the new mask to be added as column to
+/// the dataframe \param[in] Threshold maximal isolation threshold
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,

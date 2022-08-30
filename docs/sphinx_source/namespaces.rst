@@ -6,6 +6,11 @@ Pairquantities
 .. doxygennamespace:: quantities
    :members:
 
+Genparticles
+***************
+.. doxygennamespace:: genmatching
+   :members:
+
 Metfilter
 ***********
 .. doxygennamespace:: metfilter
