@@ -380,6 +380,58 @@ ROOT::RDF::RNode pt_ttjj(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
+ * @brief function used to calculate the pt two leading jets
+ If the number of jets is less than 2, the quantity is set to 10
+ * instead.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the pt_dijet value
+ * @param jet_1_p4 lorentz vector of the first jet
+ * @param jet_2_p4 lorentz vector of the second jet
+ * @return a new dataframe with the new column
+ */
+
+ROOT::RDF::RNode pt_dijet(ROOT::RDF::RNode df, const std::string &outputname,
+                          const std::string &jet_1_p4,
+                          const std::string &jet_2_p4) {
+    auto calculate_pt_dijet = [](ROOT::Math::PtEtaPhiMVector &jet_1_p4,
+                                 ROOT::Math::PtEtaPhiMVector &jet_2_p4) {
+        if (jet_1_p4.pt() < 0.0 || jet_2_p4.pt() < 0.0)
+            return default_float;
+        auto dijetsystem = jet_1_p4 + jet_2_p4;
+        return (float)dijetsystem.Pt();
+    };
+    return df.Define(outputname, calculate_pt_dijet, {jet_1_p4, jet_2_p4});
+}
+
+/**
+ * @brief function used to check the hemisphere of the two leading jets, if both
+ jets are in the same hemisphere, the quantity is set to 1, otherwise it is set
+ to 0. If the number of jets is less than 2, the quantity is set to 10
+ * instead.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the jet hemisphere value
+ * @param jet_1_p4 lorentz vector of the first jet
+ * @param jet_2_p4 lorentz vector of the second jet
+ * @return a new dataframe with the new column
+ */
+
+ROOT::RDF::RNode jet_hemisphere(ROOT::RDF::RNode df,
+                                const std::string &outputname,
+                                const std::string &jet_1_p4,
+                                const std::string &jet_2_p4) {
+    auto calculate_jet_hemisphere = [](ROOT::Math::PtEtaPhiMVector &jet_1_p4,
+                                       ROOT::Math::PtEtaPhiMVector &jet_2_p4) {
+        if (jet_1_p4.pt() < 0.0 || jet_2_p4.pt() < 0.0)
+            return default_int;
+        return (int)(jet_1_p4.Eta() * jet_2_p4.Eta() > 0);
+    };
+    return df.Define(outputname, calculate_jet_hemisphere,
+                     {jet_1_p4, jet_2_p4});
+}
+
+/**
  * @brief function used to calculate `mt_tot`. It is defined as
  \f[
     m_{T}^{tot} = \sqrt{m_{T}^2(p_{1},E_{T}^{miss}) +
