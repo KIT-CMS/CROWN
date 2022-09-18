@@ -218,26 +218,29 @@ ROOT::RDF::RNode lhe_scale_weights(ROOT::RDF::RNode df,
     std::vector<float> allowed_values = {0.5, 1.0, 2.0};
     if (std::find(allowed_values.begin(), allowed_values.end(), muR) ==
         allowed_values.end()) {
-        Logger::get("lhe_scale_weights")->error("Invalid value for muR: {}}", muR);
+        Logger::get("lhe_scale_weights")
+            ->error("Invalid value for muR: {}}", muR);
         throw std::runtime_error("Invalid value for muR");
     }
     if (std::find(allowed_values.begin(), allowed_values.end(), muF) ==
         allowed_values.end()) {
-        Logger::get("lhe_scale_weights")->error("Invalid value for muF: {}}", muF);
+        Logger::get("lhe_scale_weights")
+            ->error("Invalid value for muF: {}}", muF);
         throw std::runtime_error("Invalid value for muF");
     }
     // now find the index
-    std::map<std::pair<const float,const float>, int> index_map = {
+    std::map<std::pair<const float, const float>, int> index_map = {
         {{0.5, 0.5}, 0}, {{1.0, 0.5}, 1}, {{2.0, 0.5}, 2},
         {{0.5, 1.0}, 3}, {{1.0, 1.0}, 4}, {{2.0, 1.0}, 5},
         {{0.5, 2.0}, 6}, {{1.0, 2.0}, 7}, {{2.0, 2.0}, 8}};
-    std::pair<const float,const float> variations = {muR, muF};
+    std::pair<const float, const float> variations = {muR, muF};
     int index = index_map[variations];
     auto lhe_scale_weights_lambda =
         [index](const ROOT::RVec<float> scale_weight) {
             return scale_weight.at(index);
         };
-    auto df1 = df.Define(weightname, lhe_scale_weights_lambda, {lhe_scale_weights});
+    auto df1 =
+        df.Define(weightname, lhe_scale_weights_lambda, {lhe_scale_weights});
     return df1;
 }
 } // namespace reweighting
