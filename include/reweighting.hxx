@@ -22,5 +22,9 @@ ROOT::RDF::RNode zPtMassReweighting(ROOT::RDF::RNode df,
                                     const std::string &workspace_file,
                                     const std::string &functor_name,
                                     const std::string &argset);
+ROOT::RDF::RNode lhe_scale_weights(ROOT::RDF::RNode df,
+                                   const std::string &weightname,
+                                   const std::string &lhe_scale_weights,
+                                   const float muR, const float muF);
 } // namespace reweighting
 #endif /* GUARD_REWEIGHTING_H */
