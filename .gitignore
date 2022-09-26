@@ -6,6 +6,7 @@ logs/
 analysis_configurations/*
 !analysis_configurations/unittest
 !analysis_configurations/template_analysis
+!analysis_configurations/tau
 # Doxygen Documentation
 docs/doxygen
 
