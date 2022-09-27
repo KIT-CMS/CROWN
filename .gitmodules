@@ -3,7 +3,7 @@
 	url = ssh://git@gitlab.cern.ch:7999/cms-nanoAOD/jsonpog-integration.git
 [submodule "analysis_configurations/tau"]
 	path = analysis_configurations/tau
-	url = ssh://git@github.com:KIT-CMS/TauAnalysis-CROWN
+	url = git@github.com:zhiyuanlcern/TauAnalysis-CROWN.git
 # for vscode
 [submodule "analysis_configurations"]
 	path = analysis_configurations
