@@ -90,7 +90,7 @@ dependencies:
   - tzdata=2021e=he74cb21_0
   - voms=2.1.0rc0=h82ee70a_4
   - wheel=0.37.1=pyhd8ed1ab_0
-  - xrootd=5.4.0=py39hf708bbc_0
+  - xrootd
   - xz=5.2.5=h516909a_1
   - yaml=0.2.5=h7f98852_2
   - zlib=1.2.11=h36c2ea0_1013

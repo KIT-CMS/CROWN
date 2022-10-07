@@ -11,7 +11,7 @@ action() {
     fi
 
     # Check if current machine is an etp portal machine.
-    PORTAL_LIST=("bms1.etp.kit.edu" "bms2.etp.kit.edu" "bms3.etp.kit.edu" "portal1.etp.kit.edu")
+    PORTAL_LIST=("bms1.etp.kit.edu" "bms2.etp.kit.edu" "bms3.etp.kit.edu" "portal1.etp.kit.edu" "lxplus795.cern.ch")
     CURRENT_HOST=$(hostname --long)
     if [[ ! " ${PORTAL_LIST[*]} " =~ " ${CURRENT_HOST} " ]]; then  
         echo "Current host (${CURRENT_HOST}) not in list of allowed machines:"
@@ -120,7 +120,7 @@ action() {
                 echo "Creating ${ENV_NAME}.tar.gz"
                 mkdir -p "tarballs/conda_envs"
                 conda activate ${ENV_NAME}
-                conda pack -n ${ENV_NAME} --output tarballs/conda_envs/${ENV_NAME}.tar.gz
+                conda package -n ${ENV_NAME} --output tarballs/conda_envs/${ENV_NAME}.tar.gz
                 conda deactivate
             fi
             CVMFS_ENV_PRESENT="False"
