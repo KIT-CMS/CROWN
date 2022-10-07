@@ -8,3 +8,7 @@
 [submodule "analysis_configurations"]
 	path = analysis_configurations
 	url = dummy_string_to_satisfy_vscode
+
+[submodule "KingMaker_sample_database"]
+	path = KingMaker_sample_database
+	url = git@github.com:zhiyuanlcern/KingMaker_sample_database.git
