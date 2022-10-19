@@ -135,38 +135,6 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 			    str_el_pt, str_el_eta, str_el_phi, str_el_mass}
 			);
 
-  // ROOT::Math::PtEtaPhiMVector lep_p4 = ROOT::Math::PtEtaPhiMVector(0,0,0,0);
-  // lep_p4.SetPtEtaPhiM(0,0,0,0);
-
-
-
-  // float lep_pt = 0;
-  // float lep_eta = 0;
-  // float lep_phi = 0;
-  // float lep_mass = 0;
-
-
-
-  // auto df3 = df2.Define(str_lep_p4,
-  // 			lep_p4,
-  // 			{lep_pt, lep_eta, lep_phi, lep_mass}
-  // 			);
-
-			// [](ROOT::Math::PtEtaPhiMVector lep_p4) {
-			//   return lep_p4;
-			// },
-			// [](const float &pt,
-			//    const float &eta,
-			//    const float &phi,
-			//    const float &mass) {
-			//   auto lep_p4 = ROOT::Math::PtEtaPhiMVector(pt,eta,phi,mass);
-			//   return lep_p4;
-			// },
-
-
-  //
-
-
   return df6;
 }
 
@@ -463,4 +431,29 @@ ROOT::RDF::RNode ReconstructLeptonicW_mt(ROOT::RDF::RNode df,
 }
 
 
-#endif /* GUARD_LEPSELECTION_H */
+
+ROOT::RDF::RNode JetSelection(ROOT::RDF::RNode df,
+			      const int &njets,
+			      const int &nbjets,
+			      const std::string &str_good_jets_mask,
+			      const std::string &str_good_bjets_mask
+			      ) {
+
+  auto df2 = df.Filter([njets, nbjets](const ROOT::RVec<int> &good_jets_mask,
+				       const ROOT::RVec<int> &good_bjets_mask) {
+
+			 int nj = ROOT::VecOps::Sum(good_jets_mask,0);
+			 int nbj = ROOT::VecOps::Sum(good_bjets_mask,0);
+
+			 return (nj == njets) && (nbj == nbjets);
+		       },
+		       {str_good_jets_mask, str_good_bjets_mask},
+		       "jet selection and b jet selection"
+			);
+
+  return df2;
+}
+
+
+
+#endif /* GUARD_TOPRECO_H */

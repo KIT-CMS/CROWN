@@ -47,5 +47,13 @@ ROOT::RDF::RNode ReconstructLeptonicW_mt(ROOT::RDF::RNode df,
 					 const std::string &particle_p4
 					 );
 
+ROOT::RDF::RNode JetSelection(ROOT::RDF::RNode df,
+			      const int &njets,
+			      const int &nbjets,
+			      const std::string &str_good_jets_mask,
+			      const std::string &str_good_bjets_mask
+			      );
+
+
 
 #endif /* GUARD_TOPRECO_H */
