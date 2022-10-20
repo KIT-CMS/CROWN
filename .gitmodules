@@ -1,7 +1,7 @@
 [submodule "data/jsonpog-integration"]
 	path = data/jsonpog-integration
 	url = ssh://git@gitlab.cern.ch:7999/cms-nanoAOD/jsonpog-integration.git
-# for vscode
 [submodule "analysis_configurations"]
 	path = analysis_configurations
 	url = dummy_string_to_satisfy_vscode
+

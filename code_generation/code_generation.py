@@ -467,6 +467,18 @@ class CodeGenerator(object):
                     outputname=self._outputfiles_generated[scope],
                     outputstring=outputstring,
                 )
+                runcommands += '    std::string weight_{outputname} = std::regex_replace(std::string(output_path), std::regex("\\\\.root"), "_{scope}.weight.root");\n'.format(
+                    scope=scope, outputname=self._outputfiles_generated[scope]
+                )
+                runcommands += '    ROOT::RDataFrame df{counter}_{scope}_runs("Runs", input_files); \n'.format(
+                    scope=scope,
+                    counter=self.main_counter[scope],    
+                )
+                runcommands += '    auto {scope}_weight = df{counter}_{scope}_runs.Snapshot("Runs", weight_{outputname},  {{"genEventCount","genEventSumw"}}, dfconfig);\n'.format(
+                    scope=scope,
+                    counter=self.main_counter[scope],
+                    outputname=self._outputfiles_generated[scope],
+                )
         # add code for tracking the progress
         runcommands += self.set_process_tracking()
         # add code for the time taken for the dataframe setup
@@ -475,6 +487,7 @@ class CodeGenerator(object):
         for scope in self.scopes:
             if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
                 runcommands += f"    {scope}_result.GetValue();\n"
+                runcommands += f"    {scope}_weight.GetValue();\n"
                 runcommands += f'    Logger::get("main")->info("{scope}:");\n'
                 runcommands += f"    {scope}_cutReport->Print();\n"
         log.info(
