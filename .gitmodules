@@ -5,6 +5,3 @@
 	path = analysis_configurations
 	url = dummy_string_to_satisfy_vscode
 
-[submodule "KingMaker"]
-	path = KingMaker
-	url = git@github.com:zhiyuanlcern/KingMaker.git
