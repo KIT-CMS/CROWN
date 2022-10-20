@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
     }
     std::vector<std::string> input_files;
     int nevents = 0;
+    double_t sumofweight = 0;
     Logger::get("main")->info("Checking input files");
     for (int i = 2; i < argc; i++) {
         input_files.push_back(std::string(argv[i]));
@@ -60,9 +61,17 @@ int main(int argc, char *argv[]) {
             return 1;
         }
         TTree *t1 = (TTree *)f1->Get("Events");
+        TTree *t2 = (TTree *)f1->Get("Runs");
+        double_t variable;
+        t2->SetBranchAddress("genEventSumw", &variable);
+        t2->GetEntry(0);
+
         nevents += t1->GetEntries();
+        sumofweight += variable;
         Logger::get("main")->info("input_file {}: {} - {} Events", i - 1,
                                   argv[i], t1->GetEntries());
+        Logger::get("main")->info("input_file {}: {} - SumOfGenWeight: {} ", i - 1,
+                                  argv[i], variable);                                  
     }
     const auto output_path = argv[1];
     Logger::get("main")->info("Output directory: {}", output_path);
@@ -96,6 +105,7 @@ int main(int argc, char *argv[]) {
     const std::string era = {ERATAG};
     const std::string sample = {SAMPLETAG};
     const std::string commit_hash = {COMMITHASH};
+    const std::string genEventSumw = "genEventSumw";
     bool setup_clean = {SETUP_IS_CLEAN};
     for (auto const &x : output_quanties) {
         TFile outputfile(x.first.c_str(), "UPDATE");
@@ -113,6 +123,8 @@ int main(int argc, char *argv[]) {
         conditions_meta.Branch(analysis.c_str(), &setup_clean);
         conditions_meta.Branch(era.c_str(), &setup_clean);
         conditions_meta.Branch(sample.c_str(), &setup_clean);
+        conditions_meta.Branch(genEventSumw.c_str(), &sumofweight);
+        conditions_meta.Fill();
         conditions_meta.Write();
         TTree commit_meta = TTree("commit", "commit");
         commit_meta.Branch(commit_hash.c_str(), &setup_clean);
@@ -120,6 +132,7 @@ int main(int argc, char *argv[]) {
         commit_meta.Write();
         outputfile.Close();
     }
+
 
     Logger::get("main")->info("Finished Evaluation");
     Logger::get("main")->info(
