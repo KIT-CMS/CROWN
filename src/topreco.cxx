@@ -12,6 +12,10 @@
 #include <Math/VectorUtil.h>
 #include "TMinuit.h"
 
+const float W_MASS = 80.377; // PDG value as of 10/22
+const float TOP_MASS = 172.5; // gen mass
+
+
 
 ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_n_loose_mu,
@@ -56,26 +60,30 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 			);
 
 
-  auto df3 = df2.Filter([](const int nloose,
-			   const int ntight) {
-			  return (nloose == 1) && (ntight == 1);
-			},
-			{str_n_loose_lep, str_n_tight_lep},
-			"lepton selection (exactly one tight lepton)"
-			);
+  // auto df3 = df2.Filter([](const int nloose,
+  // 			   const int ntight) {
+  // 			  return (nloose == 1) && (ntight == 1);
+  // 			},
+  // 			{str_n_loose_lep, str_n_tight_lep},
+  // 			"lepton selection (exactly one tight lepton)"
+  // 			);
 
-  auto df4 = df3.Define(str_is_mu,
-			[](const int &n_tight_mu) {
-			  return n_tight_mu;
+  auto df4 = df2.Define(str_is_mu,
+			[](const int &n_tight_mu,
+			   const int &n_loose_lep,
+			   const int &n_tight_lep) {
+			  return int(n_tight_mu && (n_loose_lep == 1) && (n_tight_lep == 1));
 			},
-			{str_n_tight_mu}
+			{str_n_tight_mu, str_n_loose_lep, str_n_tight_lep}
 			);
 
   auto df5 = df4.Define(str_is_el,
-			[](const int &n_tight_el) {
-			  return n_tight_el;
+			[](const int &n_tight_el,
+			   const int &n_loose_lep,
+			   const int &n_tight_lep) {
+			  return int(n_tight_el && (n_loose_lep == 1) && (n_tight_lep == 1));
 			},
-			{str_n_tight_el}
+			{str_n_tight_el, str_n_loose_lep, str_n_tight_lep}
 			);
 
   auto lep_p4 = [](const int is_mu,
@@ -100,7 +108,10 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
     Logger::get("lep_p4")->debug("index of max in mu {}, el {}",
     				 ROOT::VecOps::ArgMax(tight_muons_mask), ROOT::VecOps::ArgMax(tight_electrons_mask));
 
-    ROOT::Math::PtEtaPhiMVector lep;
+    auto lep = ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10);
+
+    if ((is_mu + is_el) == 0)
+      return lep;
 
     if (is_mu) {
       Logger::get("lep_p4")->debug("---> should reco mu...");
@@ -139,8 +150,6 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 }
 
 
-
-const float W_MASS = 80.377; // PDG value as of 10/22
 
 // helper function for minimizer constraint
 double rad_py(double x, double lep_px) {
@@ -197,6 +206,11 @@ ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
   auto leptonicW = [](const ROOT::Math::PtEtaPhiMVector lep_p4,
 		      const ROOT::Math::PtEtaPhiMVector met_p4) {
 
+    auto wlep_p4 = ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10) ;
+
+    if (lep_p4.Pt() < 0)
+      return wlep_p4;
+
     double lep_e  = lep_p4.E();
     double lep_pt = lep_p4.Pt();
     double lep_px = lep_p4.Px();
@@ -207,8 +221,6 @@ ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
     double nu_e = met_p4.Pt();
     double nu_px = met_p4.Px();
     double nu_py = met_p4.Py();
-
-    ROOT::Math::PtEtaPhiMVector wlep_p4;
 
     bool solution_is_real;
 
@@ -452,6 +464,270 @@ ROOT::RDF::RNode JetSelection(ROOT::RDF::RNode df,
 			);
 
   return df2;
+}
+
+
+
+ROOT::RDF::RNode TopReco(ROOT::RDF::RNode df,
+			 const std::string &str_wlep_p4,
+			 const std::string &str_n_nonbjets,
+			 const std::string &str_nonbjet_p4_1,
+			 const std::string &str_nonbjet_btag_1,
+			 const std::string &str_nonbjet_p4_2,
+			 const std::string &str_nonbjet_btag_2,
+			 const std::string &str_n_bjets,
+			 const std::string &str_bjet_p4_1,
+			 const std::string &str_bjet_btag_1,
+			 const std::string &str_bjet_p4_2,
+			 const std::string &str_bjet_btag_2,
+			 const std::string &str_is_reco,
+			 const std::string &str_is_jjb,
+			 const std::string &str_is_jjbb,
+			 const std::string &str_is_jjjb,
+			 const std::string &str_is_jjjbb,
+			 const std::string &str_top_p4,
+			 const std::string &str_tb_p4,
+			 const std::string &str_sb_p4
+			 ) {
+
+  auto df2 = df.Define(str_is_jjb,
+		       [](const int n_nonbjets,
+			  const int n_bjets){
+			 return int((n_nonbjets + n_bjets) == 2 && n_bjets == 1);
+		       },
+		       {str_n_nonbjets, str_n_bjets}
+		       );
+
+  auto df3 = df2.Define(str_is_jjbb,
+			[](const int n_nonbjets,
+			   const int n_bjets){
+			  return int((n_nonbjets + n_bjets) == 2 && n_bjets == 2);
+			},
+			{str_n_nonbjets, str_n_bjets}
+			);
+
+  auto df4 = df3.Define(str_is_jjjb,
+			[](const int n_nonbjets,
+			   const int n_bjets){
+			  return int((n_nonbjets + n_bjets) == 3 && n_bjets == 1);
+			},
+			{str_n_nonbjets, str_n_bjets}
+			);
+
+  auto df5 = df4.Define(str_is_jjjbb,
+			[](const int n_nonbjets,
+			   const int n_bjets){
+			  return int((n_nonbjets + n_bjets) == 3 && n_bjets == 2);
+			},
+			{str_n_nonbjets, str_n_bjets}
+			);
+
+  auto df6 = df5.Define(str_is_reco,
+		       [](const int is_jjb,
+			  const int is_jjbb,
+			  const int is_jjjb,
+			  const int is_jjjbb
+			  ){
+			 return is_jjb + is_jjbb + is_jjjb + is_jjjbb;
+		       },
+		       {str_is_jjb, str_is_jjbb, str_is_jjjb, str_is_jjjbb}
+		       );
+
+
+  auto top_reco = [](const int is_reco,
+		     const int is_jjb,
+		     const int is_jjbb,
+		     const int is_jjjb,
+		     const int is_jjjbb,
+		     const ROOT::Math::PtEtaPhiMVector wlep_p4,
+		     const ROOT::Math::PtEtaPhiMVector nonbjet_p4_1,
+		     const float nonbjet_btag_1,
+		     const ROOT::Math::PtEtaPhiMVector nonbjet_p4_2,
+		     const float nonbjet_btag_2,
+		     const ROOT::Math::PtEtaPhiMVector bjet_p4_1,
+		     const float bjet_btag_1,
+		     const ROOT::Math::PtEtaPhiMVector bjet_p4_2,
+		     const float bjet_btag_2
+		     ){
+
+    auto top_p4 = ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10);
+
+    if (wlep_p4.Pt() < 0)
+      return top_p4;
+
+    if (!is_reco)
+      return top_p4;
+
+    if (is_jjb || is_jjjb) {
+      top_p4 = wlep_p4 + bjet_p4_1;
+    }
+    else if (is_jjbb || is_jjjbb) {
+
+      auto cand1_p4 = wlep_p4 + bjet_p4_1;
+      auto cand2_p4 = wlep_p4 + bjet_p4_2;
+
+      if (abs(cand1_p4.M() - TOP_MASS) < abs(cand2_p4.M() - TOP_MASS))
+	top_p4 = cand1_p4;
+      else
+	top_p4 = cand2_p4;
+    }
+
+    return top_p4;
+  };
+
+  auto df7 = df6.Define(str_top_p4,
+			top_reco,
+			{str_is_reco,
+			    str_is_jjb,
+			    str_is_jjbb,
+			    str_is_jjjb,
+			    str_is_jjjbb,
+			    str_wlep_p4,
+			    str_nonbjet_p4_1,
+			    str_nonbjet_btag_1,
+			    str_nonbjet_p4_2,
+			    str_nonbjet_btag_2,
+			    str_bjet_p4_1,
+			    str_bjet_btag_1,
+			    str_bjet_p4_2,
+			    str_bjet_btag_2
+			    }
+			);
+
+
+  auto tb_reco = [](const int is_reco,
+		    const int is_jjb,
+		    const int is_jjbb,
+		    const int is_jjjb,
+		    const int is_jjjbb,
+		    const ROOT::Math::PtEtaPhiMVector wlep_p4,
+		    const ROOT::Math::PtEtaPhiMVector nonbjet_p4_1,
+		    const float nonbjet_btag_1,
+		    const ROOT::Math::PtEtaPhiMVector nonbjet_p4_2,
+		    const float nonbjet_btag_2,
+		    const ROOT::Math::PtEtaPhiMVector bjet_p4_1,
+		    const float bjet_btag_1,
+		    const ROOT::Math::PtEtaPhiMVector bjet_p4_2,
+		    const float bjet_btag_2
+		    ){
+
+    auto tb_p4 = ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10);
+
+    if (wlep_p4.Pt() < 0)
+      return tb_p4;
+
+    if (!is_reco)
+      return tb_p4;
+
+    if (is_jjb || is_jjjb) {
+      tb_p4 = bjet_p4_1;
+    }
+    else if (is_jjbb || is_jjjbb) {
+
+      auto cand1_p4 = wlep_p4 + bjet_p4_1;
+      auto cand2_p4 = wlep_p4 + bjet_p4_2;
+
+      if (abs(cand1_p4.M() - TOP_MASS) < abs(cand2_p4.M() - TOP_MASS))
+	tb_p4 = bjet_p4_1;
+      else
+	tb_p4 = bjet_p4_2;
+    }
+
+    return tb_p4;
+  };
+
+  auto df8 = df7.Define(str_tb_p4,
+			tb_reco,
+			{str_is_reco,
+			    str_is_jjb,
+			    str_is_jjbb,
+			    str_is_jjjb,
+			    str_is_jjjbb,
+			    str_wlep_p4,
+			    str_nonbjet_p4_1,
+			    str_nonbjet_btag_1,
+			    str_nonbjet_p4_2,
+			    str_nonbjet_btag_2,
+			    str_bjet_p4_1,
+			    str_bjet_btag_1,
+			    str_bjet_p4_2,
+			    str_bjet_btag_2
+			    }
+			);
+
+
+  auto sb_reco = [](const int is_reco,
+		    const int is_jjb,
+		    const int is_jjbb,
+		    const int is_jjjb,
+		    const int is_jjjbb,
+		    const ROOT::Math::PtEtaPhiMVector wlep_p4,
+		    const ROOT::Math::PtEtaPhiMVector nonbjet_p4_1,
+		    const float nonbjet_btag_1,
+		    const ROOT::Math::PtEtaPhiMVector nonbjet_p4_2,
+		    const float nonbjet_btag_2,
+		    const ROOT::Math::PtEtaPhiMVector bjet_p4_1,
+		    const float bjet_btag_1,
+		    const ROOT::Math::PtEtaPhiMVector bjet_p4_2,
+		    const float bjet_btag_2
+		    ){
+
+    auto sb_p4 = ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10);
+
+    if (wlep_p4.Pt() < 0)
+      return sb_p4;
+
+    if (!is_reco)
+      return sb_p4;
+
+    if (is_jjb) {
+      sb_p4 = nonbjet_p4_1;
+    }
+    else if (is_jjbb || is_jjjbb) {
+
+      auto cand1_p4 = wlep_p4 + bjet_p4_1;
+      auto cand2_p4 = wlep_p4 + bjet_p4_2;
+
+      if (abs(cand1_p4.M() - TOP_MASS) < abs(cand2_p4.M() - TOP_MASS))
+	sb_p4 = bjet_p4_2;
+      else
+	sb_p4 = bjet_p4_1;
+    }
+    else if (is_jjjb) {
+
+      if (nonbjet_btag_1 > nonbjet_btag_1)
+	sb_p4 = nonbjet_p4_1;
+      else
+	sb_p4 = nonbjet_p4_2;
+    }
+
+    return sb_p4;
+  };
+
+  auto df9 = df8.Define(str_sb_p4,
+			sb_reco,
+			{str_is_reco,
+			    str_is_jjb,
+			    str_is_jjbb,
+			    str_is_jjjb,
+			    str_is_jjjbb,
+			    str_wlep_p4,
+			    str_nonbjet_p4_1,
+			    str_nonbjet_btag_1,
+			    str_nonbjet_p4_2,
+			    str_nonbjet_btag_2,
+			    str_bjet_p4_1,
+			    str_bjet_btag_1,
+			    str_bjet_p4_2,
+			    str_bjet_btag_2
+			    }
+			);
+
+
+
+
+
+  return df9;
 }
 
 
