@@ -516,6 +516,23 @@ ROOT::RDF::RNode CutRawID(ROOT::RDF::RNode df, const std::string &quantity,
         df.Define(maskname, basefunctions::FilterMin(idThreshold), {quantity});
     return df1;
 }
+/// Function to select jets failing a ID requirement, using
+/// basefunctions::FilterMax
+///
+/// \param[in] df the input dataframe
+/// \param[in] quantity name of the rawID column in the NanoAOD
+/// \param[out] maskname the name of the mask to be added as column to the
+/// dataframe
+/// \param[in] idThreshold maximal ID value
+///
+/// \return a dataframe containing the new mask
+  ROOT::RDF::RNode AntiCutRawID(ROOT::RDF::RNode df, const std::string &quantity,
+				const std::string &maskname,
+				const float &idThreshold) {
+    auto df1 =
+      df.Define(maskname, basefunctions::FilterMax(idThreshold), {quantity});
+    return df1;
+}
 } // end namespace jet
 } // end namespace physicsobject
 

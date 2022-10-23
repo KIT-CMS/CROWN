@@ -47,6 +47,9 @@ JetPtCorrection_data(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
 ROOT::RDF::RNode CutRawID(ROOT::RDF::RNode df, const std::string &quantity,
                           const std::string &maskname,
                           const float &idThreshold);
+ROOT::RDF::RNode AntiCutRawID(ROOT::RDF::RNode df, const std::string &quantity,
+			      const std::string &maskname,
+			      const float &idThreshold);
 } // end namespace jet
 } // end namespace physicsobject
 
