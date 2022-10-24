@@ -85,6 +85,9 @@ ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
 ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
                               const std::string &isolationName,
                               const float &Threshold);
+ROOT::RDF::RNode AntiCutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
+				  const std::string &isolationName,
+				  const float &Threshold);
 ROOT::RDF::RNode GenerateRndmRVec(ROOT::RDF::RNode df,
                                   const std::string &outputname,
                                   const std::string &objCollection, int seed);
@@ -150,6 +153,8 @@ ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
                        const std::string &nameID);
 ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
                          const std::string &nameID, const int &IDvalue);
+ROOT::RDF::RNode AntiCutCBID(ROOT::RDF::RNode df, const std::string &maskname,
+			     const std::string &nameID, const int &IDvalue);
 ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
                               const std::string &isolationName,
                               const float &Threshold);
