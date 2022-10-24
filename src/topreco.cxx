@@ -36,6 +36,7 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_n_tight_lep,
 				 const std::string &str_is_mu,
 				 const std::string &str_is_el,
+				 const std::string &str_is_iso,
 				 const std::string &str_lep_p4
 				 ) {
 
@@ -60,19 +61,11 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 			);
 
 
-  // auto df3 = df2.Filter([](const int nloose,
-  // 			   const int ntight) {
-  // 			  return (nloose == 1) && (ntight == 1);
-  // 			},
-  // 			{str_n_loose_lep, str_n_tight_lep},
-  // 			"lepton selection (exactly one tight lepton)"
-  // 			);
-
   auto df4 = df2.Define(str_is_mu,
 			[](const int &n_tight_mu,
 			   const int &n_loose_lep,
 			   const int &n_tight_lep) {
-			  return int(n_tight_mu && (n_loose_lep == 1) && (n_tight_lep == 1));
+			  return int((n_tight_mu == 1) && (n_loose_lep == 1) && (n_tight_lep == 1));
 			},
 			{str_n_tight_mu, str_n_loose_lep, str_n_tight_lep}
 			);
@@ -81,7 +74,7 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 			[](const int &n_tight_el,
 			   const int &n_loose_lep,
 			   const int &n_tight_lep) {
-			  return int(n_tight_el && (n_loose_lep == 1) && (n_tight_lep == 1));
+			  return int((n_tight_el == 1) && (n_loose_lep == 1) && (n_tight_lep == 1));
 			},
 			{str_n_tight_el, str_n_loose_lep, str_n_tight_lep}
 			);
@@ -146,7 +139,155 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 			    str_el_pt, str_el_eta, str_el_phi, str_el_mass}
 			);
 
-  return df6;
+
+  auto is_iso = [](const ROOT::Math::PtEtaPhiMVector lep_p4){
+    return int(lep_p4.Pt() > 0);
+  };
+
+  auto df7 = df6.Define(str_is_iso,
+			is_iso,
+			{str_lep_p4}
+			);
+
+  return df7;
+}
+
+
+
+
+ROOT::RDF::RNode AntiLeptonSelection(ROOT::RDF::RNode df,
+				     const std::string &str_n_loose_mu,
+				     const std::string &str_n_loose_el,
+				     const std::string &str_n_antitight_mu,
+				     const std::string &str_n_antitight_el,
+				     const std::string &str_antitight_muons_mask,
+				     const std::string &str_antitight_electrons_mask,
+				     const std::string &str_mu_pt,
+				     const std::string &str_mu_eta,
+				     const std::string &str_mu_phi,
+				     const std::string &str_mu_mass,
+				     const std::string &str_el_pt,
+				     const std::string &str_el_eta,
+				     const std::string &str_el_phi,
+				     const std::string &str_el_mass,
+				     const std::string &str_n_loose_lep,
+				     const std::string &str_n_antitight_lep,
+				     const std::string &str_is_mu,
+				     const std::string &str_is_el,
+				     const std::string &str_is_iso,
+				     const std::string &str_lep_p4
+				     ) {
+
+  auto df1 = df.Define(str_n_loose_lep,
+		       [](const int &n_loose_mu,
+			  const int &n_loose_el) {
+			 Logger::get("lepsel")->debug("size of n_loose_mu and n_loose_el: {} {}",
+						      n_loose_mu, n_loose_el);
+			 return n_loose_mu + n_loose_el;
+		       },
+		       {str_n_loose_mu, str_n_loose_el}
+		       );
+
+  auto df2 = df1.Define(str_n_antitight_lep,
+			[](const int &n_antitight_mu,
+			   const int &n_antitight_el) {
+			  Logger::get("lepsel")->debug("size of n_antitight_mu and n_antitight_el: {} {}",
+						       n_antitight_mu, n_antitight_el);
+			  return n_antitight_mu + n_antitight_el;
+			},
+			{str_n_antitight_mu, str_n_antitight_el}
+			);
+
+
+  auto df4 = df2.Define(str_is_mu,
+			[](const int &n_antitight_mu,
+			   const int &n_loose_lep,
+			   const int &n_antitight_lep) {
+			  return int((n_antitight_mu == 1) && (n_loose_lep == 0) && (n_antitight_lep == 1));
+			},
+			{str_n_antitight_mu, str_n_loose_lep, str_n_antitight_lep}
+			);
+
+  auto df5 = df4.Define(str_is_el,
+			[](const int &n_antitight_el,
+			   const int &n_loose_lep,
+			   const int &n_antitight_lep) {
+			  return int((n_antitight_el == 1 )&& (n_loose_lep == 0) && (n_antitight_lep == 1));
+			},
+			{str_n_antitight_el, str_n_loose_lep, str_n_antitight_lep}
+			);
+
+  auto lep_p4 = [](const int is_mu,
+		   const int is_el,
+		   const ROOT::RVec<int> &antitight_muons_mask,
+		   const ROOT::RVec<int> &antitight_electrons_mask,
+		   const ROOT::RVec<float> &mu_pt,
+		   const ROOT::RVec<float> &mu_eta,
+		   const ROOT::RVec<float> &mu_phi,
+		   const ROOT::RVec<float> &mu_mass,
+		   const ROOT::RVec<float> &el_pt,
+		   const ROOT::RVec<float> &el_eta,
+		   const ROOT::RVec<float> &el_phi,
+		   const ROOT::RVec<float> &el_mass) {
+
+    Logger::get("lep_p4")->debug("masks mu {}, el {}",
+    				 antitight_muons_mask, antitight_electrons_mask);
+    Logger::get("lep_p4")->debug("mask sizes mu {}, el {}",
+    				 antitight_muons_mask.size(), antitight_electrons_mask.size());
+    Logger::get("lep_p4")->debug("max in mu {}, el {}",
+    				 ROOT::VecOps::Max(antitight_muons_mask), ROOT::VecOps::Max(antitight_electrons_mask));
+    Logger::get("lep_p4")->debug("index of max in mu {}, el {}",
+    				 ROOT::VecOps::ArgMax(antitight_muons_mask), ROOT::VecOps::ArgMax(antitight_electrons_mask));
+
+    auto lep = ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10);
+
+    if ((is_mu + is_el) == 0)
+      return lep;
+
+    if (is_mu) {
+      Logger::get("lep_p4")->debug("---> should reco mu...");
+      lep = ROOT::Math::PtEtaPhiMVector(mu_pt.at(ROOT::VecOps::ArgMax(antitight_muons_mask),2),
+					mu_eta.at(ROOT::VecOps::ArgMax(antitight_muons_mask),2),
+					mu_phi.at(ROOT::VecOps::ArgMax(antitight_muons_mask),2),
+					mu_mass.at(ROOT::VecOps::ArgMax(antitight_muons_mask),2));
+    }
+    else if (is_el) {
+      Logger::get("lep_p4")->debug("---> should reco el...");
+      lep = ROOT::Math::PtEtaPhiMVector(el_pt.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),3),
+					el_eta.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),3),
+					el_phi.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),3),
+					el_mass.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),3));
+    }
+    else {
+      lep = ROOT::Math::PtEtaPhiMVector(1,1,1,1);
+    }
+
+    Logger::get("final_lep")->debug("building p4 from lepton with {} {} {} {}",
+				    lep.Pt(), lep.Eta(), lep.Phi(), lep.M());
+
+    return lep;
+
+  };
+
+  auto df6 = df5.Define(str_lep_p4,
+			lep_p4,
+			{str_is_mu, str_is_el,
+			    str_antitight_muons_mask, str_antitight_electrons_mask,
+			    str_mu_pt, str_mu_eta, str_mu_phi, str_mu_mass,
+			    str_el_pt, str_el_eta, str_el_phi, str_el_mass}
+			);
+
+
+  auto is_antiiso = [](const ROOT::Math::PtEtaPhiMVector lep_p4){
+    return int(lep_p4.Pt() > 0)*(-1);
+  };
+
+  auto df7 = df6.Define(str_is_iso,
+			is_antiiso,
+			{str_lep_p4}
+			);
+
+  return df7;
 }
 
 
@@ -429,17 +570,6 @@ ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
 		   {str_lep_p4, str_met_p4}
 		   );
 
-}
-
-
-
-ROOT::RDF::RNode ReconstructLeptonicW_mt(ROOT::RDF::RNode df,
-					 const std::string &outputname,
-					 const std::string &particle_p4) {
-  auto calculate_mt = [](ROOT::Math::PtEtaPhiMVector &particle_p4) {
-    return particle_p4.Mt();;
-  };
-  return df.Define(outputname, calculate_mt, {particle_p4});
 }
 
 
