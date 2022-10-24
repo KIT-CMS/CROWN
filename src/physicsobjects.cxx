@@ -436,6 +436,22 @@ ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
                          {isolationName});
     return df1;
 }
+/// Function to cut on muons based on the muon isolation using
+/// basefunctions::FilterMin
+///
+/// \param[in] df the input dataframe
+/// \param[in] isolationName name of the isolation column in the NanoAOD
+/// \param[out] maskname the name of the new mask to be added as column to the
+/// dataframe \param[in] Threshold minimal isolation threshold
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode AntiCutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
+				  const std::string &isolationName,
+				  const float &Threshold) {
+    auto df1 = df.Define(maskname, basefunctions::FilterMin(Threshold),
+                         {isolationName});
+    return df1;
+}
 
 /// Function to create a column of vector of random numbers between 0 and 1
 /// with size of the input object collection
@@ -930,7 +946,8 @@ ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
         [](const ROOT::RVec<Bool_t> &id) { return (ROOT::RVec<int>)id; },
         {nameID});
     return df1;
-} /// Function to cut jets based on the cut based electron ID
+}
+/// Function to cut electrons based on the cut based electron ID
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to
@@ -944,6 +961,21 @@ ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
         df.Define(maskname, basefunctions::FilterMinInt(IDvalue), {nameID});
     return df1;
 }
+/// Function to cut electrons based on the cut based electron ID
+///
+/// \param[in] df the input dataframe
+/// \param[out] maskname the name of the new mask to be added as column to
+/// the dataframe \param[in] nameID name of the ID column in the NanoAOD
+/// \param[in] IDvalue value of the WP the has to be passed
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode AntiCutCBID(ROOT::RDF::RNode df, const std::string &maskname,
+                         const std::string &nameID, const int &IDvalue) {
+    auto df1 =
+        df.Define(maskname, basefunctions::FilterMaxInt(IDvalue), {nameID});
+    return df1;
+}
+
 /// Function to cut electrons based on the electron isolation using
 /// basefunctions::FilterMax
 ///
