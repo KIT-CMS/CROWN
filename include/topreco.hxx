@@ -13,8 +13,8 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_n_loose_el,
 				 const std::string &str_n_tight_mu,
 				 const std::string &str_n_tight_el,
-				 const std::string &tight_muons_mask,
-				 const std::string &tight_electrons_mask,
+				 const std::string &str_tight_muons_mask,
+				 const std::string &str_tight_electrons_mask,
 				 const std::string &str_mu_pt,
 				 const std::string &str_mu_eta,
 				 const std::string &str_mu_phi,
@@ -27,8 +27,32 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_n_tight_lep,
 				 const std::string &str_is_mu,
 				 const std::string &str_is_el,
+				 const std::string &str_is_iso,
 				 const std::string &str_lep_p4
 				 );
+
+ROOT::RDF::RNode AntiLeptonSelection(ROOT::RDF::RNode df,
+				     const std::string &str_n_loose_mu,
+				     const std::string &str_n_loose_el,
+				     const std::string &str_n_antitight_mu,
+				     const std::string &str_n_antitight_el,
+				     const std::string &str_antitight_muons_mask,
+				     const std::string &str_antitight_electrons_mask,
+				     const std::string &str_mu_pt,
+				     const std::string &str_mu_eta,
+				     const std::string &str_mu_phi,
+				     const std::string &str_mu_mass,
+				     const std::string &str_el_pt,
+				     const std::string &str_el_eta,
+				     const std::string &str_el_phi,
+				     const std::string &str_el_mass,
+				     const std::string &str_n_loose_lep,
+				     const std::string &str_n_antitight_lep,
+				     const std::string &str_is_mu,
+				     const std::string &str_is_el,
+				     const std::string &str_is_iso,
+				     const std::string &str_lep_p4
+				     );
 
 double rad_py(double x, double lep_px);
 double min_fplus(double *par);
@@ -42,10 +66,6 @@ ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
 				      const std::string &str_lepw_p4
 				      );
 
-ROOT::RDF::RNode ReconstructLeptonicW_mt(ROOT::RDF::RNode df,
-					 const std::string &outputname,
-					 const std::string &particle_p4
-					 );
 
 ROOT::RDF::RNode JetSelection(ROOT::RDF::RNode df,
 			      const int &njets,
