@@ -620,6 +620,8 @@ ROOT::RDF::RNode TopReco(ROOT::RDF::RNode df,
 			 const std::string &str_sb_p4
 			 ) {
 
+  const std::string str_tmp_vec_name = "tmp_vec_p4";
+
   auto df2 = df.Define(str_is_jjb,
 		       [](const int n_nonbjets,
 			  const int n_bjets){
@@ -680,32 +682,67 @@ ROOT::RDF::RNode TopReco(ROOT::RDF::RNode df,
 		     const float bjet_btag_2
 		     ){
 
-    auto top_p4 = ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10);
+
+    ROOT::RVec<ROOT::Math::PtEtaPhiMVector> reco_vec {
+      ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10), // top_p4
+      ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10), // tb_p4
+      ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10)  // sb_p4
+    };
+
 
     if (wlep_p4.Pt() < 0)
-      return top_p4;
+      return reco_vec;
 
     if (!is_reco)
-      return top_p4;
+      return reco_vec;
 
-    if (is_jjb || is_jjjb) {
-      top_p4 = wlep_p4 + bjet_p4_1;
+    if (is_jjb) { // 2j1b
+      reco_vec[0] = wlep_p4 + bjet_p4_1;
+      reco_vec[1] = bjet_p4_1;
+      reco_vec[2] = nonbjet_p4_1;
     }
-    else if (is_jjbb || is_jjjbb) {
-
+    else if (is_jjbb) { // 2j2b
       auto cand1_p4 = wlep_p4 + bjet_p4_1;
       auto cand2_p4 = wlep_p4 + bjet_p4_2;
-
-      if (abs(cand1_p4.M() - TOP_MASS) < abs(cand2_p4.M() - TOP_MASS))
-	top_p4 = cand1_p4;
+      if (abs(cand1_p4.M() - TOP_MASS) < abs(cand2_p4.M() - TOP_MASS)) {
+	reco_vec[0] = cand1_p4;
+	reco_vec[1] = bjet_p4_1;
+	reco_vec[2] = bjet_p4_2;
+      }
+      else {
+	reco_vec[0] = cand2_p4;
+	reco_vec[1] = bjet_p4_2;
+	reco_vec[2] = bjet_p4_1;
+      }
+    }
+    else if (is_jjjb) { // 3j1b
+      reco_vec[0] = wlep_p4 + bjet_p4_1;
+      reco_vec[1] = bjet_p4_1;
+      if (nonbjet_btag_1 > nonbjet_btag_2)
+	reco_vec[2] = nonbjet_p4_1;
       else
-	top_p4 = cand2_p4;
+	reco_vec[2] = nonbjet_p4_2;
+    }
+    else if (is_jjjbb) { // 3j2b
+      auto cand1_p4 = wlep_p4 + bjet_p4_1;
+      auto cand2_p4 = wlep_p4 + bjet_p4_2;
+      if (abs(cand1_p4.M() - TOP_MASS) < abs(cand2_p4.M() - TOP_MASS)) {
+	reco_vec[0] = cand1_p4;
+	reco_vec[1] = bjet_p4_1;
+	reco_vec[2] = bjet_p4_2;
+      }
+      else {
+	reco_vec[0] = cand2_p4;
+	reco_vec[1] = bjet_p4_2;
+	reco_vec[2] = bjet_p4_1;
+      }
     }
 
-    return top_p4;
+    return reco_vec;
   };
 
-  auto df7 = df6.Define(str_top_p4,
+
+  auto df7 = df6.Define(str_tmp_vec_name,
 			top_reco,
 			{str_is_reco,
 			    str_is_jjb,
@@ -724,140 +761,28 @@ ROOT::RDF::RNode TopReco(ROOT::RDF::RNode df,
 			    }
 			);
 
-
-  auto tb_reco = [](const int is_reco,
-		    const int is_jjb,
-		    const int is_jjbb,
-		    const int is_jjjb,
-		    const int is_jjjbb,
-		    const ROOT::Math::PtEtaPhiMVector wlep_p4,
-		    const ROOT::Math::PtEtaPhiMVector nonbjet_p4_1,
-		    const float nonbjet_btag_1,
-		    const ROOT::Math::PtEtaPhiMVector nonbjet_p4_2,
-		    const float nonbjet_btag_2,
-		    const ROOT::Math::PtEtaPhiMVector bjet_p4_1,
-		    const float bjet_btag_1,
-		    const ROOT::Math::PtEtaPhiMVector bjet_p4_2,
-		    const float bjet_btag_2
-		    ){
-
-    auto tb_p4 = ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10);
-
-    if (wlep_p4.Pt() < 0)
-      return tb_p4;
-
-    if (!is_reco)
-      return tb_p4;
-
-    if (is_jjb || is_jjjb) {
-      tb_p4 = bjet_p4_1;
-    }
-    else if (is_jjbb || is_jjjbb) {
-
-      auto cand1_p4 = wlep_p4 + bjet_p4_1;
-      auto cand2_p4 = wlep_p4 + bjet_p4_2;
-
-      if (abs(cand1_p4.M() - TOP_MASS) < abs(cand2_p4.M() - TOP_MASS))
-	tb_p4 = bjet_p4_1;
-      else
-	tb_p4 = bjet_p4_2;
-    }
-
-    return tb_p4;
-  };
-
-  auto df8 = df7.Define(str_tb_p4,
-			tb_reco,
-			{str_is_reco,
-			    str_is_jjb,
-			    str_is_jjbb,
-			    str_is_jjjb,
-			    str_is_jjjbb,
-			    str_wlep_p4,
-			    str_nonbjet_p4_1,
-			    str_nonbjet_btag_1,
-			    str_nonbjet_p4_2,
-			    str_nonbjet_btag_2,
-			    str_bjet_p4_1,
-			    str_bjet_btag_1,
-			    str_bjet_p4_2,
-			    str_bjet_btag_2
-			    }
+  auto df8 = df7.Define(str_top_p4,
+			[](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &vec) {
+			 return vec[0];
+			},
+			{str_tmp_vec_name}
 			);
 
-
-  auto sb_reco = [](const int is_reco,
-		    const int is_jjb,
-		    const int is_jjbb,
-		    const int is_jjjb,
-		    const int is_jjjbb,
-		    const ROOT::Math::PtEtaPhiMVector wlep_p4,
-		    const ROOT::Math::PtEtaPhiMVector nonbjet_p4_1,
-		    const float nonbjet_btag_1,
-		    const ROOT::Math::PtEtaPhiMVector nonbjet_p4_2,
-		    const float nonbjet_btag_2,
-		    const ROOT::Math::PtEtaPhiMVector bjet_p4_1,
-		    const float bjet_btag_1,
-		    const ROOT::Math::PtEtaPhiMVector bjet_p4_2,
-		    const float bjet_btag_2
-		    ){
-
-    auto sb_p4 = ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10);
-
-    if (wlep_p4.Pt() < 0)
-      return sb_p4;
-
-    if (!is_reco)
-      return sb_p4;
-
-    if (is_jjb) {
-      sb_p4 = nonbjet_p4_1;
-    }
-    else if (is_jjbb || is_jjjbb) {
-
-      auto cand1_p4 = wlep_p4 + bjet_p4_1;
-      auto cand2_p4 = wlep_p4 + bjet_p4_2;
-
-      if (abs(cand1_p4.M() - TOP_MASS) < abs(cand2_p4.M() - TOP_MASS))
-	sb_p4 = bjet_p4_2;
-      else
-	sb_p4 = bjet_p4_1;
-    }
-    else if (is_jjjb) {
-
-      if (nonbjet_btag_1 > nonbjet_btag_1)
-	sb_p4 = nonbjet_p4_1;
-      else
-	sb_p4 = nonbjet_p4_2;
-    }
-
-    return sb_p4;
-  };
-
-  auto df9 = df8.Define(str_sb_p4,
-			sb_reco,
-			{str_is_reco,
-			    str_is_jjb,
-			    str_is_jjbb,
-			    str_is_jjjb,
-			    str_is_jjjbb,
-			    str_wlep_p4,
-			    str_nonbjet_p4_1,
-			    str_nonbjet_btag_1,
-			    str_nonbjet_p4_2,
-			    str_nonbjet_btag_2,
-			    str_bjet_p4_1,
-			    str_bjet_btag_1,
-			    str_bjet_p4_2,
-			    str_bjet_btag_2
-			    }
+  auto df9 = df8.Define(str_tb_p4,
+			[](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &vec) {
+			 return vec[1];
+			},
+			{str_tmp_vec_name}
 			);
 
+  auto df10 = df9.Define(str_sb_p4,
+			 [](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &vec) {
+			 return vec[2];
+			},
+			{str_tmp_vec_name}
+			);
 
-
-
-
-  return df9;
+  return df10;
 }
 
 
