@@ -533,6 +533,9 @@ ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
 
       Logger::get("wlep")->debug("complex debug point 8");
 
+      delete gMinuit_plus;
+      delete gMinuit_minus;
+
     }
 
     else { // two real solutions for pz nu
