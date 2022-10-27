@@ -93,6 +93,7 @@ ROOT::RDF::RNode TopReco(ROOT::RDF::RNode df,
 			 const std::string &str_is_jjbb,
 			 const std::string &str_is_jjjb,
 			 const std::string &str_is_jjjbb,
+			 const std::string &str_reco_p4s,
 			 const std::string &str_top_p4,
 			 const std::string &str_tb_p4,
 			 const std::string &str_sb_p4
