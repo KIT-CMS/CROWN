@@ -744,7 +744,7 @@ ROOT::RDF::RNode TopReco(ROOT::RDF::RNode df,
   };
 
 
-  auto df7 = df6.Define(str_reco_p4,
+  auto df7 = df6.Define(str_reco_p4s,
 			top_reco,
 			{str_is_reco,
 			    str_is_jjb,
@@ -767,21 +767,21 @@ ROOT::RDF::RNode TopReco(ROOT::RDF::RNode df,
 			[](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &vec) {
 			 return vec[0];
 			},
-			{str_reco_p4}
+			{str_reco_p4s}
 			);
 
   auto df9 = df8.Define(str_tb_p4,
 			[](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &vec) {
 			 return vec[1];
 			},
-			{str_reco_p4}
+			{str_reco_p4s}
 			);
 
   auto df10 = df9.Define(str_sb_p4,
 			 [](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &vec) {
 			 return vec[2];
 			},
-			{str_reco_p4}
+			{str_reco_p4s}
 			);
 
   return df10;
