@@ -618,12 +618,11 @@ ROOT::RDF::RNode TopReco(ROOT::RDF::RNode df,
 			 const std::string &str_is_jjbb,
 			 const std::string &str_is_jjjb,
 			 const std::string &str_is_jjjbb,
+			 const std::string &str_reco_p4s,
 			 const std::string &str_top_p4,
 			 const std::string &str_tb_p4,
 			 const std::string &str_sb_p4
 			 ) {
-
-  const std::string str_tmp_vec_name = "tmp_vec_p4";
 
   auto df2 = df.Define(str_is_jjb,
 		       [](const int n_nonbjets,
@@ -745,7 +744,7 @@ ROOT::RDF::RNode TopReco(ROOT::RDF::RNode df,
   };
 
 
-  auto df7 = df6.Define(str_tmp_vec_name,
+  auto df7 = df6.Define(str_reco_p4,
 			top_reco,
 			{str_is_reco,
 			    str_is_jjb,
@@ -768,21 +767,21 @@ ROOT::RDF::RNode TopReco(ROOT::RDF::RNode df,
 			[](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &vec) {
 			 return vec[0];
 			},
-			{str_tmp_vec_name}
+			{str_reco_p4}
 			);
 
   auto df9 = df8.Define(str_tb_p4,
 			[](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &vec) {
 			 return vec[1];
 			},
-			{str_tmp_vec_name}
+			{str_reco_p4}
 			);
 
   auto df10 = df9.Define(str_sb_p4,
 			 [](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &vec) {
 			 return vec[2];
 			},
-			{str_tmp_vec_name}
+			{str_reco_p4}
 			);
 
   return df10;
