@@ -5,8 +5,10 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "TVector2.h"
+#include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <Math/Boost.h>
 
 ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_n_loose_mu,
@@ -19,16 +21,19 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_mu_eta,
 				 const std::string &str_mu_phi,
 				 const std::string &str_mu_mass,
+				 const std::string &str_mu_charge,
 				 const std::string &str_el_pt,
 				 const std::string &str_el_eta,
 				 const std::string &str_el_phi,
 				 const std::string &str_el_mass,
+				 const std::string &str_el_charge,
 				 const std::string &str_n_loose_lep,
 				 const std::string &str_n_tight_lep,
 				 const std::string &str_is_mu,
 				 const std::string &str_is_el,
 				 const std::string &str_is_iso,
-				 const std::string &str_lep_p4
+				 const std::string &str_lep_p4,
+				 const std::string &str_lep_charge
 				 );
 
 ROOT::RDF::RNode AntiLeptonSelection(ROOT::RDF::RNode df,
@@ -42,16 +47,19 @@ ROOT::RDF::RNode AntiLeptonSelection(ROOT::RDF::RNode df,
 				     const std::string &str_mu_eta,
 				     const std::string &str_mu_phi,
 				     const std::string &str_mu_mass,
+				     const std::string &str_mu_charge,
 				     const std::string &str_el_pt,
 				     const std::string &str_el_eta,
 				     const std::string &str_el_phi,
 				     const std::string &str_el_mass,
+				     const std::string &str_el_charge,
 				     const std::string &str_n_loose_lep,
 				     const std::string &str_n_antitight_lep,
 				     const std::string &str_is_mu,
 				     const std::string &str_is_el,
 				     const std::string &str_is_iso,
-				     const std::string &str_lep_p4
+				     const std::string &str_lep_p4,
+				     const std::string &str_lep_charge
 				     );
 
 double rad_py(double x, double lep_px);
@@ -98,6 +106,40 @@ ROOT::RDF::RNode TopReco(ROOT::RDF::RNode df,
 			 const std::string &str_tb_p4,
 			 const std::string &str_sb_p4
 			 );
+
+
+ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
+			       const std::string &str_is_reco,
+			       const std::string &str_lep_p4,
+			       const std::string &str_met_p4,
+			       const std::string &str_wlep_p4,
+			       const std::string &str_nonbjet_p4_1,
+			       const std::string &str_nonbjet_btag_1,
+			       const std::string &str_nonbjet_p4_2,
+			       const std::string &str_nonbjet_btag_2,
+			       const std::string &str_bjet_p4_1,
+			       const std::string &str_bjet_btag_1,
+			       const std::string &str_bjet_p4_2,
+			       const std::string &str_bjet_btag_2,
+			       const std::string &str_top_p4,
+			       const std::string &str_tb_p4,
+			       const std::string &str_sb_p4,
+			       const std::string &str_good_jetslowpt_mask,
+			       const std::string &str_jet_pt,
+			       const std::string &str_jet_eta,
+			       const std::string &str_jet_phi,
+			       const std::string &str_jet_mass,
+			       const std::string &str_dphi_top_bjet1,
+			       const std::string &str_deta_top_sb,
+			       const std::string &str_dphi_bjet_bjet,
+			       const std::string &str_deta_lep_bjet1,
+			       const std::string &str_m_lep_bjet2,
+			       const std::string &str_pt_bjet1_bjet2,
+			       const std::string &str_costhetastar,
+			       const std::string &str_sumht,
+			       const std::string &str_wolfram,
+			       const std::string &str_deta_topbjet2_bjet1
+			       );
 
 
 #endif /* GUARD_TOPRECO_H */

@@ -8,9 +8,12 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "TVector2.h"
+#include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include "TMinuit.h"
+#include <Math/Boost.h>
+
 
 const float W_MASS = 80.377; // PDG value as of 10/22
 const float TOP_MASS = 172.5; // gen mass
@@ -28,16 +31,19 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_mu_eta,
 				 const std::string &str_mu_phi,
 				 const std::string &str_mu_mass,
+				 const std::string &str_mu_charge,
 				 const std::string &str_el_pt,
 				 const std::string &str_el_eta,
 				 const std::string &str_el_phi,
 				 const std::string &str_el_mass,
+				 const std::string &str_el_charge,
 				 const std::string &str_n_loose_lep,
 				 const std::string &str_n_tight_lep,
 				 const std::string &str_is_mu,
 				 const std::string &str_is_el,
 				 const std::string &str_is_iso,
-				 const std::string &str_lep_p4
+				 const std::string &str_lep_p4,
+				 const std::string &str_lep_charge
 				 ) {
 
   auto df1 = df.Define(str_n_loose_lep,
@@ -149,7 +155,59 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 			{str_lep_p4}
 			);
 
-  return df7;
+
+  auto lep_charge= [](const int is_mu,
+		      const int is_el,
+		      const ROOT::RVec<int> &tight_muons_mask,
+		      const ROOT::RVec<int> &tight_electrons_mask,
+		      const ROOT::RVec<int> &mu_charge,
+		      const ROOT::RVec<int> &el_charge) {
+
+    Logger::get("lep_charge")->debug("masks mu {}, el {}",
+				     tight_muons_mask, tight_electrons_mask);
+    Logger::get("lep_charge")->debug("mask sizes mu {}, el {}",
+				     tight_muons_mask.size(), tight_electrons_mask.size());
+    Logger::get("lep_charge")->debug("max in mu {}, el {}",
+				     ROOT::VecOps::Max(tight_muons_mask), ROOT::VecOps::Max(tight_electrons_mask));
+    Logger::get("lep_charge")->debug("index of max in mu {}, el {}",
+				     ROOT::VecOps::ArgMax(tight_muons_mask), ROOT::VecOps::ArgMax(tight_electrons_mask));
+    Logger::get("lep_charge")->debug("charges mu {}, el {}",
+				     mu_charge, el_charge);
+
+    int charge = -10;
+
+    if ((is_mu + is_el) == 0)
+      return charge;
+
+    if (is_mu) {
+      Logger::get("lep_charge")->debug("---> should reco mu...");
+      charge = mu_charge.at(ROOT::VecOps::ArgMax(tight_muons_mask),-9);
+	}
+    else if (is_el) {
+      Logger::get("lep_charge")->debug("---> should reco el...");
+      charge = el_charge.at(ROOT::VecOps::ArgMax(tight_electrons_mask),-8);
+    }
+    else {
+      Logger::get("lep_charge")->debug("---> should something is wrong...");
+      charge = -7;
+    }
+
+    Logger::get("lep_charge")->debug("final charge: {}", charge);
+    return charge;
+
+  };
+
+
+  auto df8 = df7.Define(str_lep_charge,
+			lep_charge,
+			{str_is_mu, str_is_el,
+			    str_tight_muons_mask, str_tight_electrons_mask,
+			    str_mu_charge,
+			    str_el_charge}
+			);
+
+
+  return df8;
 }
 
 
@@ -166,16 +224,19 @@ ROOT::RDF::RNode AntiLeptonSelection(ROOT::RDF::RNode df,
 				     const std::string &str_mu_eta,
 				     const std::string &str_mu_phi,
 				     const std::string &str_mu_mass,
+				     const std::string &str_mu_charge,
 				     const std::string &str_el_pt,
 				     const std::string &str_el_eta,
 				     const std::string &str_el_phi,
 				     const std::string &str_el_mass,
+				     const std::string &str_el_charge,
 				     const std::string &str_n_loose_lep,
 				     const std::string &str_n_antitight_lep,
 				     const std::string &str_is_mu,
 				     const std::string &str_is_el,
 				     const std::string &str_is_iso,
-				     const std::string &str_lep_p4
+				     const std::string &str_lep_p4,
+				     const std::string &str_lep_charge
 				     ) {
 
   auto df1 = df.Define(str_n_loose_lep,
@@ -287,8 +348,48 @@ ROOT::RDF::RNode AntiLeptonSelection(ROOT::RDF::RNode df,
 			{str_lep_p4}
 			);
 
-  return df7;
+
+  auto lep_charge= [](const int is_mu,
+		      const int is_el,
+		      const ROOT::RVec<int> &antitight_muons_mask,
+		      const ROOT::RVec<int> &antitight_electrons_mask,
+		      const ROOT::RVec<int> &mu_charge,
+		      const ROOT::RVec<int> &el_charge) {
+
+    int charge = -10;
+
+    if ((is_mu + is_el) == 0)
+      return charge;
+
+    if (is_mu) {
+      charge = mu_charge.at(ROOT::VecOps::ArgMax(antitight_muons_mask),-9);
+	}
+    else if (is_el) {
+      charge = el_charge.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),-8);
+    }
+    else {
+      charge = -7;
+    }
+
+    return charge;
+
+  };
+
+
+  auto df8 = df7.Define(str_lep_charge,
+			lep_charge,
+			{str_is_mu, str_is_el,
+			    str_antitight_muons_mask, str_antitight_electrons_mask,
+			    str_mu_charge,
+			    str_el_charge}
+			);
+
+
+
+  return df8;
 }
+
+
 
 
 
@@ -788,5 +889,212 @@ ROOT::RDF::RNode TopReco(ROOT::RDF::RNode df,
 }
 
 
+
+ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
+			       const std::string &str_is_reco,
+			       const std::string &str_lep_p4,
+			       const std::string &str_met_p4,
+			       const std::string &str_wlep_p4,
+			       const std::string &str_nonbjet_p4_1,
+			       const std::string &str_nonbjet_btag_1,
+			       const std::string &str_nonbjet_p4_2,
+			       const std::string &str_nonbjet_btag_2,
+			       const std::string &str_bjet_p4_1,
+			       const std::string &str_bjet_btag_1,
+			       const std::string &str_bjet_p4_2,
+			       const std::string &str_bjet_btag_2,
+			       const std::string &str_top_p4,
+			       const std::string &str_tb_p4,
+			       const std::string &str_sb_p4,
+			       const std::string &str_good_jetslowpt_mask,
+			       const std::string &str_jet_pt,
+			       const std::string &str_jet_eta,
+			       const std::string &str_jet_phi,
+			       const std::string &str_jet_mass,
+			       const std::string &str_dphi_top_bjet1,
+			       const std::string &str_deta_top_sb,
+			       const std::string &str_dphi_bjet_bjet,
+			       const std::string &str_deta_lep_bjet1,
+			       const std::string &str_m_lep_bjet2,
+			       const std::string &str_pt_bjet1_bjet2,
+			       const std::string &str_costhetastar,
+			       const std::string &str_sumht,
+			       const std::string &str_wolfram,
+			       const std::string &str_deta_topbjet2_bjet1
+			       ) {
+
+  auto df2 = df.Define(str_dphi_top_bjet1,
+		       [](const int reco,
+			  const ROOT::Math::PtEtaPhiMVector &top,
+			  const ROOT::Math::PtEtaPhiMVector &b1) {
+			 if (!reco) {return -10.0;}
+			 return ROOT::Math::VectorUtil::DeltaPhi(top, b1);
+		       },
+		       {str_is_reco, str_top_p4, str_bjet_p4_1}
+		       );
+
+  auto df3 = df2.Define(str_deta_top_sb,
+			[](const int reco,
+			   const ROOT::Math::PtEtaPhiMVector &top,
+			   const ROOT::Math::PtEtaPhiMVector &sb) {
+			  if (!reco) {return -10.0;}
+			  return abs(top.Eta() - sb.Eta());
+			},
+			{str_is_reco, str_top_p4, str_sb_p4}
+			);
+
+  auto df4 = df3.Define(str_dphi_bjet_bjet,
+			[](const int reco,
+			   const ROOT::Math::PtEtaPhiMVector &tb,
+			   const ROOT::Math::PtEtaPhiMVector &sb) {
+			 if (!reco) {return -10.0;}
+			  return ROOT::Math::VectorUtil::DeltaPhi(tb, sb);
+			},
+			{str_is_reco, str_tb_p4, str_sb_p4}
+			);
+
+  auto df5 = df4.Define(str_deta_lep_bjet1,
+			[](const int reco,
+			   const ROOT::Math::PtEtaPhiMVector &lep,
+			   const ROOT::Math::PtEtaPhiMVector &b1) {
+			 if (!reco) {return -10.0;}
+			  return abs(lep.Eta() - b1.Eta());
+			},
+			{str_is_reco, str_lep_p4, str_bjet_p4_1}
+			);
+
+  auto df6 = df5.Define(str_m_lep_bjet2,
+			[](const int reco,
+			   const ROOT::Math::PtEtaPhiMVector &lep,
+			   const ROOT::Math::PtEtaPhiMVector &b2) {
+			 if (!reco) {return -10.0;}
+			  return (lep + b2).M();
+			},
+			{str_is_reco, str_lep_p4, str_bjet_p4_2}
+			);
+
+  auto df7 = df6.Define(str_pt_bjet1_bjet2,
+			[](const int reco,
+			   const ROOT::Math::PtEtaPhiMVector &b1,
+			   const ROOT::Math::PtEtaPhiMVector &b2) {
+			 if (!reco) {return -10.0;}
+			 return (b1 + b2).Pt();
+			},
+			{str_is_reco, str_bjet_p4_1, str_bjet_p4_2}
+			);
+
+  auto df8 = df7.Define(str_costhetastar,
+			[](const int reco,
+			   const ROOT::Math::PtEtaPhiMVector &top,
+			   const ROOT::Math::PtEtaPhiMVector &sb,
+			   const ROOT::Math::PtEtaPhiMVector &lep) {
+			  if (!reco) {
+			    return -10.0;}
+			  double costhetastar = 0;
+
+			  auto top_boost_vec = ROOT::Math::Cartesian3D(top.X()/top.T(), top.Y()/top.T(), top.Z()/top.T());
+			  ROOT::Math::Boost top_boost(top_boost_vec);
+			  top_boost.Invert();
+			  ROOT::Math::PtEtaPhiMVector lep_boosted = top_boost(lep);
+			  ROOT::Math::PtEtaPhiMVector sb_boosted = top_boost(sb);
+			  costhetastar = lep_boosted.Vect().Dot(sb_boosted.Vect()) / sqrt(lep_boosted.Vect().Mag2()*sb_boosted.Vect().Mag2());
+
+			  Logger::get("DNN_costhetastar")->debug("top_boost {} {} {}", top_boost_vec.X(), top_boost_vec.Y(), top_boost_vec.Z());
+			  Logger::get("DNN_costhetastar")->debug("sb boosted {} {} {} {}", sb_boosted.Pt(), sb_boosted.Eta(), sb_boosted.Phi(), sb_boosted.M());
+			  Logger::get("DNN_costhetastar")->debug("lep boosted {} {} {} {}", lep_boosted.Pt(), lep_boosted.Eta(), lep_boosted.Phi(), lep_boosted.M());
+			  Logger::get("DNN_costhetastar")->debug("costhetastar {}", costhetastar);
+
+			  return costhetastar;
+			},
+			{str_is_reco, str_top_p4, str_sb_p4, str_lep_p4}
+			);
+
+
+  auto df9 = df8.Define(str_sumht,
+			[](const int reco,
+			   const ROOT::Math::PtEtaPhiMVector &b1,
+			   const ROOT::Math::PtEtaPhiMVector &b2,
+			   const ROOT::Math::PtEtaPhiMVector &lep,
+			   const ROOT::Math::PtEtaPhiMVector &met) {
+			  if (!reco) {return -10.0;}
+			  return b1.Pt() + b2.Pt() + lep.Pt() + met.Pt();
+			},
+			{str_is_reco, str_bjet_p4_1, str_bjet_p4_2, str_lep_p4, str_met_p4}
+			);
+
+
+  auto df10 = df9.Define(str_wolfram,
+			[](const int reco,
+			   const ROOT::RVec<int> &jet_mask,
+			   const ROOT::RVec<float> &jet_pt,
+			   const ROOT::RVec<float> &jet_eta,
+			   const ROOT::RVec<float> &jet_phi,
+			   const ROOT::RVec<float> &jet_mass) {
+			  if (!reco) {return -10.0;}
+
+			  Logger::get("DNN_wolfram")->debug("eval sum_e...");
+			  Logger::get("DNN_wolfram")->debug("jet mask {}", jet_mask);
+
+			  float sum_e = 0;
+			  for (std::size_t index = 0; index < jet_pt.size(); index++) {
+			      Logger::get("DNN_wolfram")->debug("checking jet {}", index);
+			    if (jet_mask.at(index)) {
+			      sum_e += (ROOT::Math::PtEtaPhiMVector(jet_pt.at(index,0),
+								    jet_eta.at(index,0),
+								    jet_phi.at(index,0),
+								    jet_mass.at(index,0))
+					).E();
+			      Logger::get("DNN_wolfram")->debug("sum_e now {} after adding jet {}", sum_e, index);
+
+			    }
+			  }
+
+			  Logger::get("DNN_wolfram")->debug("now momenta");
+
+			  double h3 = 0;
+
+			  for (std::size_t index = 0; index < jet_pt.size(); index++) {
+			    for (std::size_t index2 = index + 1; index2 < jet_pt.size(); index2++) {
+			      if (jet_mask.at(index) && jet_mask.at(index2)) {
+
+				auto jet_a = ROOT::Math::PtEtaPhiMVector(jet_pt[index],jet_eta[index],jet_phi[index],jet_mass[index]);
+				auto jet_b = ROOT::Math::PtEtaPhiMVector(jet_pt[index2],jet_eta[index2],jet_phi[index2],jet_mass[index2]);
+
+				auto jet_aXYZT = ROOT::Math::XYZTVector(jet_a.X(),jet_a.Y(),jet_a.Z(),jet_a.T());
+				auto jet_bXYZT = ROOT::Math::XYZTVector(jet_b.X(),jet_b.Y(),jet_b.Z(),jet_b.T());
+
+				float costh = ROOT::Math::VectorUtil::CosTheta(jet_aXYZT,jet_bXYZT);
+				float p3 = 0.5*(5.0*costh*costh - 3.0*costh);
+				float pipj = jet_aXYZT.P()*jet_bXYZT.P();
+
+				h3 += (pipj/(sum_e*sum_e))*p3;
+
+			      }
+			    }
+			  }
+
+			  return h3;
+
+			},
+			 {str_is_reco, str_good_jetslowpt_mask, str_jet_pt, str_jet_eta, str_jet_phi, str_jet_mass}
+			 );
+
+  auto df11 = df10.Define(str_deta_topbjet2_bjet1,
+			  [](const int reco,
+			     const ROOT::Math::PtEtaPhiMVector &b1,
+			     const ROOT::Math::PtEtaPhiMVector &b2,
+			     const ROOT::Math::PtEtaPhiMVector &wlep) {
+			    if (!reco) {return -10.0;}
+			    return abs((b2 + wlep).Eta() - b1.Eta());
+			  },
+			  {str_is_reco, str_bjet_p4_1, str_bjet_p4_2, str_wlep_p4}
+			  );
+
+
+  return df11;
+
+
+
+}
 
 #endif /* GUARD_TOPRECO_H */
