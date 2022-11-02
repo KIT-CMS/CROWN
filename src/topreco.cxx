@@ -391,8 +391,6 @@ ROOT::RDF::RNode AntiLeptonSelection(ROOT::RDF::RNode df,
 
 
 
-
-
 // helper function for minimizer constraint
 double rad_py(double x, double lep_px) {
   return W_MASS*W_MASS + 4*lep_px*x;
@@ -911,26 +909,26 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 			       const std::string &str_jet_eta,
 			       const std::string &str_jet_phi,
 			       const std::string &str_jet_mass,
-			       const std::string &str_dphi_top_bjet1,
+			       const std::string &str_dphi_top_tb,
 			       const std::string &str_deta_top_sb,
-			       const std::string &str_dphi_bjet_bjet,
-			       const std::string &str_deta_lep_bjet1,
-			       const std::string &str_m_lep_bjet2,
-			       const std::string &str_pt_bjet1_bjet2,
+			       const std::string &str_dphi_tb_sb,
+			       const std::string &str_deta_lep_tb,
+			       const std::string &str_m_lep_sb,
+			       const std::string &str_pt_tb_sb,
 			       const std::string &str_costhetastar,
 			       const std::string &str_sumht,
 			       const std::string &str_wolfram,
-			       const std::string &str_deta_topbjet2_bjet1
+			       const std::string &str_deta_topsb_tb
 			       ) {
 
-  auto df2 = df.Define(str_dphi_top_bjet1,
+  auto df2 = df.Define(str_dphi_top_tb,
 		       [](const int reco,
 			  const ROOT::Math::PtEtaPhiMVector &top,
-			  const ROOT::Math::PtEtaPhiMVector &b1) {
+			  const ROOT::Math::PtEtaPhiMVector &tb) {
 			 if (!reco) {return -10.0;}
-			 return ROOT::Math::VectorUtil::DeltaPhi(top, b1);
+			 return ROOT::Math::VectorUtil::DeltaPhi(top, tb);
 		       },
-		       {str_is_reco, str_top_p4, str_bjet_p4_1}
+		       {str_is_reco, str_top_p4, str_tb_p4}
 		       );
 
   auto df3 = df2.Define(str_deta_top_sb,
@@ -943,7 +941,7 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 			{str_is_reco, str_top_p4, str_sb_p4}
 			);
 
-  auto df4 = df3.Define(str_dphi_bjet_bjet,
+  auto df4 = df3.Define(str_dphi_tb_sb,
 			[](const int reco,
 			   const ROOT::Math::PtEtaPhiMVector &tb,
 			   const ROOT::Math::PtEtaPhiMVector &sb) {
@@ -953,34 +951,34 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 			{str_is_reco, str_tb_p4, str_sb_p4}
 			);
 
-  auto df5 = df4.Define(str_deta_lep_bjet1,
+  auto df5 = df4.Define(str_deta_lep_tb,
 			[](const int reco,
 			   const ROOT::Math::PtEtaPhiMVector &lep,
-			   const ROOT::Math::PtEtaPhiMVector &b1) {
+			   const ROOT::Math::PtEtaPhiMVector &tb) {
 			 if (!reco) {return -10.0;}
-			  return abs(lep.Eta() - b1.Eta());
+			  return abs(lep.Eta() - tb.Eta());
 			},
-			{str_is_reco, str_lep_p4, str_bjet_p4_1}
+			{str_is_reco, str_lep_p4, str_tb_p4}
 			);
 
-  auto df6 = df5.Define(str_m_lep_bjet2,
+  auto df6 = df5.Define(str_m_lep_sb,
 			[](const int reco,
 			   const ROOT::Math::PtEtaPhiMVector &lep,
-			   const ROOT::Math::PtEtaPhiMVector &b2) {
+			   const ROOT::Math::PtEtaPhiMVector &sb) {
 			 if (!reco) {return -10.0;}
-			  return (lep + b2).M();
+			  return (lep + sb).M();
 			},
-			{str_is_reco, str_lep_p4, str_bjet_p4_2}
+			{str_is_reco, str_lep_p4, str_sb_p4}
 			);
 
-  auto df7 = df6.Define(str_pt_bjet1_bjet2,
+  auto df7 = df6.Define(str_pt_tb_sb,
 			[](const int reco,
-			   const ROOT::Math::PtEtaPhiMVector &b1,
-			   const ROOT::Math::PtEtaPhiMVector &b2) {
+			   const ROOT::Math::PtEtaPhiMVector &tb,
+			   const ROOT::Math::PtEtaPhiMVector &sb) {
 			 if (!reco) {return -10.0;}
-			 return (b1 + b2).Pt();
+			 return (tb + sb).Pt();
 			},
-			{str_is_reco, str_bjet_p4_1, str_bjet_p4_2}
+			{str_is_reco, str_tb_p4, str_sb_p4}
 			);
 
   auto df8 = df7.Define(str_costhetastar,
@@ -1012,14 +1010,14 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 
   auto df9 = df8.Define(str_sumht,
 			[](const int reco,
-			   const ROOT::Math::PtEtaPhiMVector &b1,
-			   const ROOT::Math::PtEtaPhiMVector &b2,
+			   const ROOT::Math::PtEtaPhiMVector &tb,
+			   const ROOT::Math::PtEtaPhiMVector &sb,
 			   const ROOT::Math::PtEtaPhiMVector &lep,
 			   const ROOT::Math::PtEtaPhiMVector &met) {
 			  if (!reco) {return -10.0;}
-			  return b1.Pt() + b2.Pt() + lep.Pt() + met.Pt();
+			  return tb.Pt() + sb.Pt() + lep.Pt() + met.Pt();
 			},
-			{str_is_reco, str_bjet_p4_1, str_bjet_p4_2, str_lep_p4, str_met_p4}
+			{str_is_reco, str_tb_p4, str_sb_p4, str_lep_p4, str_met_p4}
 			);
 
 
@@ -1079,15 +1077,15 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 			 {str_is_reco, str_good_jetslowpt_mask, str_jet_pt, str_jet_eta, str_jet_phi, str_jet_mass}
 			 );
 
-  auto df11 = df10.Define(str_deta_topbjet2_bjet1,
+  auto df11 = df10.Define(str_deta_topsb_tb,
 			  [](const int reco,
-			     const ROOT::Math::PtEtaPhiMVector &b1,
-			     const ROOT::Math::PtEtaPhiMVector &b2,
+			     const ROOT::Math::PtEtaPhiMVector &tb,
+			     const ROOT::Math::PtEtaPhiMVector &sb,
 			     const ROOT::Math::PtEtaPhiMVector &wlep) {
 			    if (!reco) {return -10.0;}
-			    return abs((b2 + wlep).Eta() - b1.Eta());
+			    return abs((sb + wlep).Eta() - tb.Eta());
 			  },
-			  {str_is_reco, str_bjet_p4_1, str_bjet_p4_2, str_wlep_p4}
+			  {str_is_reco, str_tb_p4, str_sb_p4, str_wlep_p4}
 			  );
 
 
