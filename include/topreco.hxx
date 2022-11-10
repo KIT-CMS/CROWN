@@ -121,4 +121,25 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 			       );
 
 
+
+ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
+				    const std::string &str_lep_pt,
+				    const std::string &str_lep_eta,
+				    const std::string &str_lep_is_mu,
+				    const std::string &str_lep_is_el,
+				    const std::string &str_lep_is_iso,
+				    const std::string &str_lep_sf_mu_id_nom,
+				    const std::string &str_lep_sf_mu_id_up,
+				    const std::string &str_lep_sf_mu_id_down,
+				    const std::string &sf_era,
+				    const std::string & muon_trigger_sf_file,
+				    const std::string & muon_trigger_sf_hist_name,
+				    const std::string & muon_iso_sf_file,
+				    const std::string & muon_iso_sf_hist_name,
+				    const std::string &mu_sf_file,
+				    const std::string &mu_idAlgorithm
+				    );
+
+
+
 #endif /* GUARD_TOPRECO_H */

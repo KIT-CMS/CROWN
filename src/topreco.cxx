@@ -13,7 +13,7 @@
 #include <Math/VectorUtil.h>
 #include "TMinuit.h"
 #include <Math/Boost.h>
-
+#include "correction.h"
 
 const float W_MASS = 80.377; // PDG value as of 10/22
 const float TOP_MASS = 172.5; // gen mass
@@ -970,5 +970,102 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 
 
 }
+
+
+
+
+
+ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
+				    const std::string &str_lep_pt,
+				    const std::string &str_lep_eta,
+				    const std::string &str_lep_is_mu,
+				    const std::string &str_lep_is_el,
+				    const std::string &str_lep_is_iso,
+				    const std::string &str_lep_sf_mu_id_nom,
+				    const std::string &str_lep_sf_mu_id_up,
+				    const std::string &str_lep_sf_mu_id_down,
+				    const std::string &sf_era,
+				    const std::string & muon_trigger_sf_file,
+				    const std::string & muon_trigger_sf_hist_name,
+				    const std::string & muon_iso_sf_file,
+				    const std::string & muon_iso_sf_hist_name,
+				    const std::string &mu_sf_file,
+				    const std::string &mu_idAlgorithm
+				    ) {
+
+
+
+  Logger::get("lepsf_muonIdSF")->debug("Setting up functions for muon id sf");
+  Logger::get("lepsf_muonIdSF")->debug("ID - File {}", mu_sf_file);
+  Logger::get("lepsf_muonIdSF")->debug("ID - Name {}", mu_idAlgorithm);
+  Logger::get("lepsf_muonIdSF")->debug("ID - Era {}", sf_era);
+  auto evaluator_mu_id = correction::CorrectionSet::from_file(mu_sf_file)->at(mu_idAlgorithm);
+
+  auto mu_id_nom = [evaluator_mu_id, sf_era](const float &pt,
+					     const float &eta,
+					     const int &is_mu,
+					     const int &is_el,
+					     const int &is_iso
+					     ) {
+    double sf = 1.;
+    if (is_mu == 0 || is_iso != +1)return sf;
+    Logger::get("lepsf_muonIdSF")->debug("ID - pt {}, eta {}", pt, eta);
+    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+      sf = evaluator_mu_id->evaluate({sf_era, std::abs(eta), pt, "sf"});
+    return sf;
+  };
+
+  auto mu_id_up = [evaluator_mu_id, sf_era](const float &pt,
+					     const float &eta,
+					     const int &is_mu,
+					     const int &is_el,
+					     const int &is_iso
+					     ) {
+    double sf = 1.;
+    if (is_mu == 0 || is_iso != +1) return sf;
+    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+      sf = evaluator_mu_id->evaluate({sf_era, std::abs(eta), pt, "systup"});
+    return sf;
+  };
+
+  auto mu_id_down = [evaluator_mu_id, sf_era](const float &pt,
+					     const float &eta,
+					     const int &is_mu,
+					     const int &is_el,
+					     const int &is_iso
+					     ) {
+    double sf = 1.;
+    if (is_mu == 0 || is_iso != +1) return sf;
+    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+      sf = evaluator_mu_id->evaluate({sf_era, std::abs(eta), pt, "systdown"});
+    return sf;
+  };
+
+
+
+  auto df2 = df.Define(str_lep_sf_mu_id_nom,
+		       mu_id_nom,
+		       {str_lep_pt, str_lep_eta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+		       );
+  auto df3 = df2.Define(str_lep_sf_mu_id_up,
+			mu_id_up,
+			{str_lep_pt, str_lep_eta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+			);
+  auto df4 = df3.Define(str_lep_sf_mu_id_down,
+			mu_id_down,
+			{str_lep_pt, str_lep_eta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+			);
+
+
+  auto df_final = df4;
+
+  return df_final;
+
+
+
+}
+
+
+
 
 #endif /* GUARD_TOPRECO_H */
