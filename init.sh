@@ -40,5 +40,9 @@ else
     then
         echo "Cloning analysis whtautau into ${SCRIPT_DIR}/analysis_configurations/whtautau"
         git clone git@github.com:KIT-CMS/WHTauTauAnalysis-CROWN.git ${SCRIPT_DIR}/analysis_configurations/whtautau
+    elif [[ "$1" == "s" && ! -d "${SCRIPT_DIR}/analysis_configurations/s" ]]
+    then
+        echo "Cloning analysis s-channel into ${SCRIPT_DIR}/analysis_configurations/s"
+        git clone git@github.com:nfaltermann/CROWNs.git ${SCRIPT_DIR}/analysis_configurations/s
     fi
 fi
