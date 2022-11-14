@@ -128,18 +128,27 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 				    const std::string &str_lep_is_mu,
 				    const std::string &str_lep_is_el,
 				    const std::string &str_lep_is_iso,
+				    const std::string &str_lep_sf_mu_trigger_nom,
+				    const std::string &str_lep_sf_mu_trigger_up,
+				    const std::string &str_lep_sf_mu_trigger_down,
+				    const std::string &str_lep_sf_mu_iso_nom,
+				    const std::string &str_lep_sf_mu_iso_up,
+				    const std::string &str_lep_sf_mu_iso_down,
 				    const std::string &str_lep_sf_mu_id_nom,
 				    const std::string &str_lep_sf_mu_id_up,
 				    const std::string &str_lep_sf_mu_id_down,
 				    const std::string &sf_era,
-				    const std::string & muon_trigger_sf_file,
-				    const std::string & muon_trigger_sf_hist_name,
-				    const std::string & muon_iso_sf_file,
-				    const std::string & muon_iso_sf_hist_name,
+				    const std::string &mu_trigger_sf_file,
+				    const std::string &mu_trigger_sf_file_syst,
+				    const std::string &mu_trigger_sf_name,
+				    const std::string &mu_trigger_sf_name_syst,
+				    const std::string &mu_iso_sf_file,
+				    const std::string &mu_iso_sf_file_syst,
+				    const std::string &mu_iso_sf_name,
+				    const std::string &mu_iso_sf_name_syst,
 				    const std::string &mu_sf_file,
-				    const std::string &mu_idAlgorithm
+				    const std::string &mu_id_sf_name
 				    );
-
 
 
 #endif /* GUARD_TOPRECO_H */

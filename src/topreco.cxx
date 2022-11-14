@@ -975,31 +975,185 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 
 
 
+void sf_from_root_file(TH2D* h, int nbinsx, int nbinsy, float pt, float eta, int var, double* sf) {
+// double sf_from_root_file(TH2D *h,float pt, float eta, int var, int nbinsx, int nbinsy, int ymax) {
+
+  Logger::get("trigger_func")->debug("complex debug point 1");
+
+  Logger::get("trigger_func")->debug("hist bins {} {}", h->GetXaxis()->GetNbins(), h->GetYaxis()->GetNbins());
+
+
+  int xbin_index = h->GetXaxis()->FindBin(eta);
+  int ybin_index = h->GetYaxis()->FindBin(pt);
+
+  // int ybin_max_index = h->GetYaxis()->FindBin(ymax);
+  Logger::get("trigger_func")->debug("complex debug point 2");
+
+  if(xbin_index > nbinsx) xbin_index = nbinsx;
+  if(ybin_index > nbinsy) ybin_index = nbinsy;
+  // if(ybin_max_index>nbinsy) ybin_max_index=nbinsy;
+  Logger::get("trigger_func")->debug("complex debug point 3");
+
+  if(xbin_index == 0) xbin_index = 1;
+  if(ybin_index == 0) ybin_index = 1;
+
+  // int bin_index;
+  Logger::get("trigger_func")->debug("complex debug point 4");
+
+  const int bin_index = h->GetBin(xbin_index, ybin_index, 0);
+  // const int bin_max_index = h->GetBin(xbin_index,ybin_max_index,0);
+  Logger::get("trigger_func")->debug("complex debug point 5");
+
+  *sf = 1.;
+
+  Logger::get("trigger_func")->debug("complex debug point 6");
+
+  if (var == 0)
+    *sf = h->GetBinContent(bin_index);
+  if (var == +1)
+    *sf = h->GetBinContent(bin_index) + h->GetBinError(bin_index);
+  if (var == -1)
+    *sf = h->GetBinContent(bin_index) - h->GetBinError(bin_index);
+}
+
 ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 				    const std::string &str_lep_pt,
 				    const std::string &str_lep_eta,
 				    const std::string &str_lep_is_mu,
 				    const std::string &str_lep_is_el,
 				    const std::string &str_lep_is_iso,
+				    const std::string &str_lep_sf_mu_trigger_nom,
+				    const std::string &str_lep_sf_mu_trigger_up,
+				    const std::string &str_lep_sf_mu_trigger_down,
+				    const std::string &str_lep_sf_mu_iso_nom,
+				    const std::string &str_lep_sf_mu_iso_up,
+				    const std::string &str_lep_sf_mu_iso_down,
 				    const std::string &str_lep_sf_mu_id_nom,
 				    const std::string &str_lep_sf_mu_id_up,
 				    const std::string &str_lep_sf_mu_id_down,
 				    const std::string &sf_era,
-				    const std::string & muon_trigger_sf_file,
-				    const std::string & muon_trigger_sf_hist_name,
-				    const std::string & muon_iso_sf_file,
-				    const std::string & muon_iso_sf_hist_name,
+				    const std::string &mu_trigger_sf_file,
+				    const std::string &mu_trigger_sf_file_syst,
+				    const std::string &mu_trigger_sf_name,
+				    const std::string &mu_trigger_sf_name_syst,
+				    const std::string &mu_iso_sf_file,
+				    const std::string &mu_iso_sf_file_syst,
+				    const std::string &mu_iso_sf_name,
+				    const std::string &mu_iso_sf_name_syst,
 				    const std::string &mu_sf_file,
-				    const std::string &mu_idAlgorithm
+				    const std::string &mu_id_sf_name
 				    ) {
 
+  Logger::get("lepsf_muonTriggerSF")->debug("Setting up functions for muon iso sf");
+  Logger::get("lepsf_muonTriggerSF")->debug("Trigger - File {}", mu_trigger_sf_file);
+  Logger::get("lepsf_muonTriggerSF")->debug("Trigger - Name {}", mu_trigger_sf_name);
+  auto evaluator_mu_trigger = correction::CorrectionSet::from_file(mu_trigger_sf_file)->at(mu_trigger_sf_name);
+  auto mu_trigger_nom = [evaluator_mu_trigger](const float &pt,
+					       const float &eta,
+					       const int &is_mu,
+					       const int &is_el,
+					       const int &is_iso){
+
+
+    double sf = 1.;
+    if (is_mu == 0 || is_iso != +1)return sf;
+    Logger::get("lepsf_muonTriggerSF")->debug("Muon - pt {}, eta {}", pt, eta);
+    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+      sf = evaluator_mu_trigger->evaluate({std::abs(eta), pt});
+    Logger::get("lepsf_muonTriggerSF")->debug("Trigger - sf {}", sf);
+    return sf;
+
+  };
+  Logger::get("lepsf_muonTriggerSF")->debug("Trigger syst - File {}", mu_trigger_sf_file_syst);
+  Logger::get("lepsf_muonTriggerSF")->debug("Trigger syst - Name {}", mu_trigger_sf_name_syst);
+  auto evaluator_mu_trigger_syst = correction::CorrectionSet::from_file(mu_trigger_sf_file_syst)->at(mu_trigger_sf_name_syst);
+  auto mu_trigger_up = [evaluator_mu_trigger, evaluator_mu_trigger_syst](const float &pt,
+									 const float &eta,
+									 const int &is_mu,
+									 const int &is_el,
+									 const int &is_iso){
+
+
+    double sf = 1.;
+    if (is_mu == 0 || is_iso != +1)return sf;
+    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+      sf = evaluator_mu_trigger->evaluate({std::abs(eta), pt}) + evaluator_mu_trigger_syst->evaluate({std::abs(eta), pt});
+    Logger::get("lepsf_muonTriggerSF")->debug("Trigger up - sf {}", sf);
+    return sf;
+  };
+  auto mu_trigger_down = [evaluator_mu_trigger, evaluator_mu_trigger_syst](const float &pt,
+									   const float &eta,
+									   const int &is_mu,
+									   const int &is_el,
+									   const int &is_iso){
+
+
+    double sf = 1.;
+    if (is_mu == 0 || is_iso != +1)return sf;
+    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+      sf = evaluator_mu_trigger->evaluate({std::abs(eta), pt}) - evaluator_mu_trigger_syst->evaluate({std::abs(eta), pt});
+    Logger::get("lepsf_muonTriggerSF")->debug("Trigger down - sf {}", sf);
+    return sf;
+  };
+
+
+  Logger::get("lepsf_muonIsoSF")->debug("Setting up functions for muon iso sf");
+  Logger::get("lepsf_muonIsoSF")->debug("ISO - File {}", mu_iso_sf_file);
+  Logger::get("lepsf_muonIsoSF")->debug("ISO - Name {}", mu_iso_sf_name);
+  auto evaluator_mu_iso = correction::CorrectionSet::from_file(mu_iso_sf_file)->at(mu_iso_sf_name);
+  auto mu_iso_nom = [evaluator_mu_iso](const float &pt,
+					       const float &eta,
+					       const int &is_mu,
+					       const int &is_el,
+					       const int &is_iso){
+
+
+    double sf = 1.;
+    if (is_mu == 0 || is_iso != +1)return sf;
+    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+      sf = evaluator_mu_iso->evaluate({std::abs(eta), pt});
+    Logger::get("lepsf_muonIsoSF")->debug("Iso - sf {}", sf);
+    return sf;
+
+  };
+  Logger::get("lepsf_muonisoSF")->debug("iso syst - File {}", mu_iso_sf_file_syst);
+  Logger::get("lepsf_muonisoSF")->debug("iso syst - Name {}", mu_iso_sf_name_syst);
+  auto evaluator_mu_iso_syst = correction::CorrectionSet::from_file(mu_iso_sf_file_syst)->at(mu_iso_sf_name_syst);
+  auto mu_iso_up = [evaluator_mu_iso, evaluator_mu_iso_syst](const float &pt,
+									 const float &eta,
+									 const int &is_mu,
+									 const int &is_el,
+									 const int &is_iso){
+
+
+    double sf = 1.;
+    if (is_mu == 0 || is_iso != +1)return sf;
+    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+      sf = evaluator_mu_iso->evaluate({std::abs(eta), pt}) + evaluator_mu_iso_syst->evaluate({std::abs(eta), pt});
+    Logger::get("lepsf_muonIsoSF")->debug("Iso up - sf {}", sf);
+    return sf;
+  };
+  auto mu_iso_down = [evaluator_mu_iso, evaluator_mu_iso_syst](const float &pt,
+									   const float &eta,
+									   const int &is_mu,
+									   const int &is_el,
+									   const int &is_iso){
+
+
+    double sf = 1.;
+    if (is_mu == 0 || is_iso != +1)return sf;
+    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+      sf = evaluator_mu_iso->evaluate({std::abs(eta), pt}) - evaluator_mu_iso_syst->evaluate({std::abs(eta), pt});
+    Logger::get("lepsf_muonIsoSF")->debug("Iso down - sf {}", sf);
+    return sf;
+  };
 
 
   Logger::get("lepsf_muonIdSF")->debug("Setting up functions for muon id sf");
   Logger::get("lepsf_muonIdSF")->debug("ID - File {}", mu_sf_file);
-  Logger::get("lepsf_muonIdSF")->debug("ID - Name {}", mu_idAlgorithm);
+  Logger::get("lepsf_muonIdSF")->debug("ID - Name {}", mu_id_sf_name);
   Logger::get("lepsf_muonIdSF")->debug("ID - Era {}", sf_era);
-  auto evaluator_mu_id = correction::CorrectionSet::from_file(mu_sf_file)->at(mu_idAlgorithm);
+  auto evaluator_mu_id = correction::CorrectionSet::from_file(mu_sf_file)->at(mu_id_sf_name);
 
   auto mu_id_nom = [evaluator_mu_id, sf_era](const float &pt,
 					     const float &eta,
@@ -1009,9 +1163,9 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 					     ) {
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1)return sf;
-    Logger::get("lepsf_muonIdSF")->debug("ID - pt {}, eta {}", pt, eta);
     if (pt >= 0.0 && std::abs(eta) >= 0.0)
       sf = evaluator_mu_id->evaluate({sf_era, std::abs(eta), pt, "sf"});
+    Logger::get("lepsf_muonIdSF")->debug("ID - sf {}", sf);
     return sf;
   };
 
@@ -1025,6 +1179,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
     if (is_mu == 0 || is_iso != +1) return sf;
     if (pt >= 0.0 && std::abs(eta) >= 0.0)
       sf = evaluator_mu_id->evaluate({sf_era, std::abs(eta), pt, "systup"});
+    Logger::get("lepsf_muonIsoSF")->debug("ID up - sf {}", sf);
     return sf;
   };
 
@@ -1038,26 +1193,53 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
     if (is_mu == 0 || is_iso != +1) return sf;
     if (pt >= 0.0 && std::abs(eta) >= 0.0)
       sf = evaluator_mu_id->evaluate({sf_era, std::abs(eta), pt, "systdown"});
+    Logger::get("lepsf_muonIsoSF")->debug("ID down - sf {}", sf);
     return sf;
   };
 
 
-
-  auto df2 = df.Define(str_lep_sf_mu_id_nom,
+  auto df1 = df.Define(str_lep_sf_mu_trigger_nom,
+  		       mu_trigger_nom,
+  		       {str_lep_pt, str_lep_eta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+  		       );
+  auto df2 = df1.Define(str_lep_sf_mu_trigger_up,
+			mu_trigger_up,
+			{str_lep_pt, str_lep_eta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+			);
+  auto df3 = df2.Define(str_lep_sf_mu_trigger_down,
+			mu_trigger_down,
+			{str_lep_pt, str_lep_eta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+			);
+  auto df4 = df3.Define(str_lep_sf_mu_iso_nom,
+		       mu_iso_nom,
+		       {str_lep_pt, str_lep_eta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+		       );
+  auto df5 = df4.Define(str_lep_sf_mu_iso_up,
+			mu_iso_up,
+			{str_lep_pt, str_lep_eta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+			);
+  auto df6 = df5.Define(str_lep_sf_mu_iso_down,
+			mu_iso_down,
+			{str_lep_pt, str_lep_eta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+			);
+  auto df7 = df6.Define(str_lep_sf_mu_id_nom,
 		       mu_id_nom,
 		       {str_lep_pt, str_lep_eta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
 		       );
-  auto df3 = df2.Define(str_lep_sf_mu_id_up,
+  auto df8 = df7.Define(str_lep_sf_mu_id_up,
 			mu_id_up,
 			{str_lep_pt, str_lep_eta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
 			);
-  auto df4 = df3.Define(str_lep_sf_mu_id_down,
+  auto df9 = df8.Define(str_lep_sf_mu_id_down,
 			mu_id_down,
 			{str_lep_pt, str_lep_eta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
 			);
 
 
-  auto df_final = df4;
+
+
+
+  auto df_final = df9;
 
   return df_final;
 
