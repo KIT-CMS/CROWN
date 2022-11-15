@@ -38,6 +38,7 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_mu_charge,
 				 const std::string &str_el_pt,
 				 const std::string &str_el_eta,
+				 const std::string &str_el_detasc,
 				 const std::string &str_el_phi,
 				 const std::string &str_el_mass,
 				 const std::string &str_el_charge,
@@ -48,6 +49,7 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_is_el,
 				 const std::string &str_is_iso,
 				 const std::string &str_lep_p4,
+				 const std::string &str_lep_sceta,
 				 const std::string &str_lep_charge
 				 ) {
 
@@ -209,6 +211,39 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 			    str_el_pt, str_el_eta, str_el_phi, str_el_mass}
 			);
 
+auto lep_sceta = [](const int is_el,
+		    const int is_iso,
+		    const ROOT::RVec<int> &tight_electrons_mask,
+		    const ROOT::RVec<int> &antitight_electrons_mask,
+		    const ROOT::RVec<float> &el_eta,
+		    const ROOT::RVec<float> &el_detasc) {
+
+  float lep_sceta = -10;
+
+    if (is_iso == 0) {
+      return lep_sceta;
+    }
+    else if (is_iso == +1) {
+      if (is_el) {
+	lep_sceta = el_eta.at(ROOT::VecOps::ArgMax(tight_electrons_mask),-5) + el_detasc.at(ROOT::VecOps::ArgMax(tight_electrons_mask),-5);
+      }
+    }
+    else if (is_iso == -1) {
+      if (is_el) {
+	lep_sceta = el_eta.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),-5) + el_detasc.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),-5);
+      }
+    }
+    return lep_sceta;
+  };
+
+  auto df7b = df7.Define(str_lep_sceta,
+			lep_sceta,
+			{str_is_el, str_is_iso,
+			    str_tight_electrons_mask,
+			    str_antitight_electrons_mask,
+			    str_el_eta, str_el_detasc}
+			);
+
 
 
   auto lep_charge= [](const int is_mu,
@@ -250,7 +285,7 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
   };
 
 
-  auto df8 = df7.Define(str_lep_charge,
+  auto df8 = df7b.Define(str_lep_charge,
 			lep_charge,
 			{str_is_mu, str_is_el, str_is_iso,
 			    str_tight_muons_mask, str_tight_electrons_mask,
@@ -1019,6 +1054,7 @@ void sf_from_root_file(TH2D* h, int nbinsx, int nbinsy, float pt, float eta, int
 ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 				    const std::string &str_lep_pt,
 				    const std::string &str_lep_eta,
+				    const std::string &str_lep_sceta,
 				    const std::string &str_lep_is_mu,
 				    const std::string &str_lep_is_el,
 				    const std::string &str_lep_is_iso,
@@ -1031,7 +1067,13 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 				    const std::string &str_lep_sf_mu_id_nom,
 				    const std::string &str_lep_sf_mu_id_up,
 				    const std::string &str_lep_sf_mu_id_down,
-				    const std::string &sf_era,
+				    const std::string &str_lep_sf_el_id_nom,
+				    const std::string &str_lep_sf_el_id_up,
+				    const std::string &str_lep_sf_el_id_down,
+				    const std::string &str_lep_sf_el_reco_nom,
+				    const std::string &str_lep_sf_el_reco_up,
+				    const std::string &str_lep_sf_el_reco_down,
+				    const std::string &mu_sf_era,
 				    const std::string &mu_trigger_sf_file,
 				    const std::string &mu_trigger_sf_file_syst,
 				    const std::string &mu_trigger_sf_name,
@@ -1041,7 +1083,10 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 				    const std::string &mu_iso_sf_name,
 				    const std::string &mu_iso_sf_name_syst,
 				    const std::string &mu_sf_file,
-				    const std::string &mu_id_sf_name
+				    const std::string &mu_id_sf_name,
+				    const std::string &el_sf_era,
+				    const std::string &el_sf_file,
+				    const std::string &el_id_sf_name
 				    ) {
 
   Logger::get("lepsf_muonTriggerSF")->debug("Setting up functions for muon iso sf");
@@ -1152,10 +1197,10 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
   Logger::get("lepsf_muonIdSF")->debug("Setting up functions for muon id sf");
   Logger::get("lepsf_muonIdSF")->debug("ID - File {}", mu_sf_file);
   Logger::get("lepsf_muonIdSF")->debug("ID - Name {}", mu_id_sf_name);
-  Logger::get("lepsf_muonIdSF")->debug("ID - Era {}", sf_era);
+  Logger::get("lepsf_muonIdSF")->debug("ID - Era {}", mu_sf_era);
   auto evaluator_mu_id = correction::CorrectionSet::from_file(mu_sf_file)->at(mu_id_sf_name);
 
-  auto mu_id_nom = [evaluator_mu_id, sf_era](const float &pt,
+  auto mu_id_nom = [evaluator_mu_id, mu_sf_era](const float &pt,
 					     const float &eta,
 					     const int &is_mu,
 					     const int &is_el,
@@ -1164,12 +1209,12 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1)return sf;
     if (pt >= 0.0 && std::abs(eta) >= 0.0)
-      sf = evaluator_mu_id->evaluate({sf_era, std::abs(eta), pt, "sf"});
+      sf = evaluator_mu_id->evaluate({mu_sf_era, std::abs(eta), pt, "sf"});
     Logger::get("lepsf_muonIdSF")->debug("ID - sf {}", sf);
     return sf;
   };
 
-  auto mu_id_up = [evaluator_mu_id, sf_era](const float &pt,
+  auto mu_id_up = [evaluator_mu_id, mu_sf_era](const float &pt,
 					     const float &eta,
 					     const int &is_mu,
 					     const int &is_el,
@@ -1178,12 +1223,12 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1) return sf;
     if (pt >= 0.0 && std::abs(eta) >= 0.0)
-      sf = evaluator_mu_id->evaluate({sf_era, std::abs(eta), pt, "systup"});
-    Logger::get("lepsf_muonIsoSF")->debug("ID up - sf {}", sf);
+      sf = evaluator_mu_id->evaluate({mu_sf_era, std::abs(eta), pt, "systup"});
+    Logger::get("lepsf_muonIdSF")->debug("ID up - sf {}", sf);
     return sf;
   };
 
-  auto mu_id_down = [evaluator_mu_id, sf_era](const float &pt,
+  auto mu_id_down = [evaluator_mu_id, mu_sf_era](const float &pt,
 					     const float &eta,
 					     const int &is_mu,
 					     const int &is_el,
@@ -1192,8 +1237,8 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1) return sf;
     if (pt >= 0.0 && std::abs(eta) >= 0.0)
-      sf = evaluator_mu_id->evaluate({sf_era, std::abs(eta), pt, "systdown"});
-    Logger::get("lepsf_muonIsoSF")->debug("ID down - sf {}", sf);
+      sf = evaluator_mu_id->evaluate({mu_sf_era, std::abs(eta), pt, "systdown"});
+    Logger::get("lepsf_muonIdSF")->debug("ID down - sf {}", sf);
     return sf;
   };
 
@@ -1239,7 +1284,130 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 
 
 
-  auto df_final = df9;
+  Logger::get("lepsf_electronIdSF")->debug("Setting up functions for electron id sf");
+  Logger::get("lepsf_electronIdSF")->debug("ID - File {}", el_sf_file);
+  Logger::get("lepsf_electronIdSF")->debug("ID - Name {}", el_id_sf_name);
+  Logger::get("lepsf_electronIdSF")->debug("ID - Era {}", el_sf_era);
+  auto evaluator_el_sf = correction::CorrectionSet::from_file(el_sf_file)->at(el_id_sf_name);
+
+  auto el_id_nom = [evaluator_el_sf, el_sf_era](const float &pt,
+					     const float &sceta,
+					     const int &is_mu,
+					     const int &is_el,
+					     const int &is_iso
+					     ) {
+    double sf = 1.;
+    if (is_el == 0 || is_iso != +1) return sf;
+    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+      sf = evaluator_el_sf->evaluate({el_sf_era, "sf", "Tight", sceta, pt});
+    Logger::get("lepsf_electronIdSF")->debug("ID - sf {}", sf);
+    return sf;
+  };
+
+  auto el_id_up = [evaluator_el_sf, el_sf_era](const float &pt,
+					     const float &sceta,
+					     const int &is_mu,
+					     const int &is_el,
+					     const int &is_iso
+					     ) {
+    double sf = 1.;
+    if (is_el == 0 || is_iso != +1) return sf;
+    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+      sf = evaluator_el_sf->evaluate({el_sf_era, "sfup", "Tight", sceta, pt});
+    Logger::get("lepsf_electronIdSF")->debug("ID up - sf {}", sf);
+    return sf;
+  };
+
+  auto el_id_down = [evaluator_el_sf, el_sf_era](const float &pt,
+					     const float &sceta,
+					     const int &is_mu,
+					     const int &is_el,
+					     const int &is_iso
+					     ) {
+    double sf = 1.;
+    if (is_el == 0 || is_iso != +1) return sf;
+    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+      sf = evaluator_el_sf->evaluate({el_sf_era, "sfdown", "Tight", sceta, pt});
+    Logger::get("lepsf_electronIdSF")->debug("ID down - sf {}", sf);
+    return sf;
+  };
+
+  auto el_reco_nom = [evaluator_el_sf, el_sf_era](const float &pt,
+					     const float &sceta,
+					     const int &is_mu,
+					     const int &is_el,
+					     const int &is_iso
+					     ) {
+    double sf = 1.;
+    if (is_el == 0 || is_iso != +1) return sf;
+    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+      sf = evaluator_el_sf->evaluate({el_sf_era, "sf", "RecoAbove20", sceta, pt});
+    Logger::get("lepsf_electronRecoSF")->debug("RECO - sf {}", sf);
+    return sf;
+  };
+
+  auto el_reco_up = [evaluator_el_sf, el_sf_era](const float &pt,
+					     const float &sceta,
+					     const int &is_mu,
+					     const int &is_el,
+					     const int &is_iso
+					     ) {
+    double sf = 1.;
+    if (is_el == 0 || is_iso != +1) return sf;
+    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+      sf = evaluator_el_sf->evaluate({el_sf_era, "sfup", "RecoAbove20", sceta, pt});
+    Logger::get("lepsf_electronRecoSF")->debug("RECO up - sf {}", sf);
+    return sf;
+  };
+
+  auto el_reco_down = [evaluator_el_sf, el_sf_era](const float &pt,
+					     const float &sceta,
+					     const int &is_mu,
+					     const int &is_el,
+					     const int &is_iso
+					     ) {
+    double sf = 1.;
+    if (is_el == 0 || is_iso != +1) return sf;
+    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+      sf = evaluator_el_sf->evaluate({el_sf_era, "sfdown", "RecoAbove20", sceta, pt});
+    Logger::get("lepsf_electronRecoSF")->debug("RECO down - sf {}", sf);
+    return sf;
+  };
+
+
+
+
+
+  auto df10 = df9.Define(str_lep_sf_el_id_nom,
+		       el_id_nom,
+		       {str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+		       );
+  auto df11 = df10.Define(str_lep_sf_el_id_up,
+			el_id_up,
+			{str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+			);
+  auto df12 = df11.Define(str_lep_sf_el_id_down,
+			el_id_down,
+			{str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+			);
+
+
+  auto df13 = df12.Define(str_lep_sf_el_reco_nom,
+		       el_reco_nom,
+		       {str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+		       );
+  auto df14 = df13.Define(str_lep_sf_el_reco_up,
+			el_reco_up,
+			{str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+			);
+  auto df15 = df14.Define(str_lep_sf_el_reco_down,
+			el_reco_down,
+			{str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+			);
+
+
+
+  auto df_final = df15;
 
   return df_final;
 
