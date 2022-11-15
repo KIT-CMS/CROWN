@@ -18,7 +18,7 @@
 const float W_MASS = 80.377; // PDG value as of 10/22
 const float TOP_MASS = 172.5; // gen mass
 
-
+namespace topreco {
 
 ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_n_loose_mu,
@@ -1416,6 +1416,6 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 }
 
 
-
+} // end namespace topreco
 
 #endif /* GUARD_TOPRECO_H */

@@ -10,6 +10,8 @@
 #include <Math/VectorUtil.h>
 #include <Math/Boost.h>
 
+namespace topreco {
+
 ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_n_loose_mu,
 				 const std::string &str_n_loose_el,
@@ -162,5 +164,6 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 				    const std::string &el_id_sf_name
 				    );
 
+} // end namespace topreco
 
 #endif /* GUARD_TOPRECO_H */
