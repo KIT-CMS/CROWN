@@ -992,6 +992,82 @@ ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
                          {isolationName});
     return df1;
 }
+/// Function to select electrons below an Dxy and Dz threshold, based on the electrons supercluster
+///
+/// \param[in] df the input dataframe
+/// \param[in] quantity name of the electron eta column in the NanoAOD
+/// \param[in] quantity name of the electron deltaEtaSC column in the NanoAOD
+/// \param[in] quantity name of the Dxy column in the NanoAOD
+/// \param[in] quantity name of the Dz column in the NanoAOD
+/// \param[out] maskname the name of the mask to be added as column to the
+/// dataframe
+/// \param[in] abs(eta) of the EB-EE transition
+/// \param[in] Threshold maximal Dxy value in the barrel
+/// \param[in] Threshold maximal Dz value in the barrel
+/// \param[in] Threshold maximal Dxy value in the endcap
+/// \param[in] Threshold maximal Dz value in the endcap
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode CutIP(ROOT::RDF::RNode df,
+		       const std::string &eta,
+		       const std::string &detasc,
+		       const std::string &dxy,
+		       const std::string &dz,
+                       const std::string &maskname,
+		       const float &abseta_eb_ee,
+		       const float &max_dxy_eb,
+		       const float &max_dz_eb,
+		       const float &max_dxy_ee,
+		       const float &max_dz_ee
+) {
+  auto lambda = [abseta_eb_ee, max_dxy_eb, max_dz_eb, max_dxy_ee, max_dz_ee]
+(const ROOT::RVec<float> &eta,
+const ROOT::RVec<float> &detasc,
+ const ROOT::RVec<float> &dxy,
+ const ROOT::RVec<float> &dz) {
+        ROOT::RVec<int> mask =
+            (((abs(eta + detasc) < abseta_eb_ee) && (dxy < max_dxy_eb) &&
+              (dz < max_dz_eb)) ||
+             ((abs(eta + detasc) >= abseta_eb_ee) && (dxy < max_dxy_ee) &&
+              (dz < max_dz_ee)));
+        return mask;
+    };
+
+  auto df1 = df.Define(maskname, lambda, {eta, detasc, dxy, dz});
+    return df1;
+}
+
+/// Function to veto electrons in the transition region of EB and EE, based on the electrons supercluster
+///
+/// \param[in] df the input dataframe
+/// \param[in] quantity name of the electron eta column in the NanoAOD
+/// \param[in] quantity name of the electron deltaEtaSC column in the NanoAOD
+/// \param[out] maskname the name of the mask to be added as column to the
+/// dataframe
+/// \param[in] abs(eta) of the beginning of the transition region
+/// \param[in] abs(eta) of the end of the transition region
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode CutGap(ROOT::RDF::RNode df,
+			const std::string &eta,
+		       const std::string &detasc,
+                       const std::string &maskname,
+		       const float &end_eb,
+		       const float &start_ee) {
+  auto lambda = [end_eb, start_ee]
+(const ROOT::RVec<float> &eta,
+const ROOT::RVec<float> &detasc
+) {
+        ROOT::RVec<int> mask =
+	(abs(eta + detasc) < end_eb) || (abs(eta + detasc) > start_ee);
+        return mask;
+    };
+
+  auto df1 = df.Define(maskname, lambda, {eta, detasc});
+    return df1;
+}
+
+
 
 } // end namespace electron
 
