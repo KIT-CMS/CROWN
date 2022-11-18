@@ -1341,7 +1341,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
     if (is_el == 0 || is_iso != +1) return sf;
     if (pt >= 0.0)
       sf = evaluator_el_trigger->evaluate({sceta, pt}) - evaluator_el_trigger_syst->evaluate({sceta, pt});
-    Logger::get("lepsf_electronTriggerSF")->debug("Trigger up - sf {}", sf);
+    Logger::get("lepsf_electronTriggerSF")->debug("Trigger down - sf {}", sf);
     return sf;
   };
 
