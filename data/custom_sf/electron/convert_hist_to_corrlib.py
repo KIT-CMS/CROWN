@@ -3,42 +3,43 @@ import json
 import gzip
 
 
-syst = ''
-#syst = '_combined_syst'
+#syst = ''
+syst = '_syststat'
 
 corrs = {}
 
 corrs['2016preVFP'] = {}
-corrs['2016preVFP']['trigger_histname'] = 'EGamma_SF2D'
-corrs['2016preVFP']['trigger_filename'] = '2016preVFP_UL/trig_2016preVFP.root'
+corrs['2016preVFP']['trigger_filename'] = '2016preVFP_UL/trig_2016preVFP.root'.replace('.root', syst + '.root')
 
 corrs['2016postVFP'] = {}
-corrs['2016postVFP']['trigger_histname'] = 'EGamma_SF2D'
-corrs['2016postVFP']['trigger_filename'] = '2016postVFP_UL/trig_2016postVFP.root'
+corrs['2016postVFP']['trigger_filename'] = '2016postVFP_UL/trig_2016postVFP.root'.replace('.root', syst + '.root')
 
 corrs['2017'] = {}
-corrs['2017']['trigger_histname'] = 'EGamma_SF2D'
-corrs['2017']['trigger_filename'] = '2017_UL/trig_2017.root'
+corrs['2017']['trigger_filename'] = '2017_UL/trig_2017.root'.replace('.root', syst + '.root')
 
 corrs['2018'] = {}
-corrs['2018']['trigger_histname'] = 'EGamma_SF2D'
-corrs['2018']['trigger_filename'] = '2018_UL/trig_2018.root'
+corrs['2018']['trigger_filename'] = '2018_UL/trig_2018.root'.replace('.root', syst + '.root')
+
 
 
 print(corrs.keys())
 print(corrs)
 
 for y in corrs.keys():
-    corrs[y]['trigger_corr'] = correctionlib.convert.from_uproot_THx(path = corrs[y]['trigger_filename'] + ':' + corrs[y]['trigger_histname'] + syst, axis_names = ['eta','pt'])
-    corrs[y]['trigger_corr'].description = 'Electron trigger SFs for ' + y
-    corrs[y]['trigger_corr'].data.flow = "clamp"
-
-
+        if syst:
+                corrs[y]['trigger_corr'] = correctionlib.convert.from_uproot_THx(path = corrs[y]['trigger_filename'] + ':' + 'h2_uncertaintiesEGamma', axis_names = ['eta','pt'])
+        else:
+                corrs[y]['trigger_corr'] = correctionlib.convert.from_uproot_THx(path = corrs[y]['trigger_filename'] + ':' + 'EGamma_SF2D', axis_names = ['eta','pt'])
+        corrs[y]['trigger_corr'].description = 'Electron trigger SFs for ' + y
+        corrs[y]['trigger_corr'].data.flow = "clamp"
 
 file_description = 'custom corrections for Electron HLT in UL'
 
 cset = {}
+
+
 for y in corrs.keys():
+
     cset[y] = correctionlib.schemav2.CorrectionSet(
         schema_version=2,
         description='{} ({})'.format(file_description, y),
