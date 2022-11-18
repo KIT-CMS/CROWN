@@ -1067,6 +1067,9 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 				    const std::string &str_lep_sf_mu_id_nom,
 				    const std::string &str_lep_sf_mu_id_up,
 				    const std::string &str_lep_sf_mu_id_down,
+				    const std::string &str_lep_sf_el_trigger_nom,
+				    const std::string &str_lep_sf_el_trigger_up,
+				    const std::string &str_lep_sf_el_trigger_down,
 				    const std::string &str_lep_sf_el_id_nom,
 				    const std::string &str_lep_sf_el_id_up,
 				    const std::string &str_lep_sf_el_id_down,
@@ -1085,11 +1088,14 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 				    const std::string &mu_sf_file,
 				    const std::string &mu_id_sf_name,
 				    const std::string &el_sf_era,
+				    const std::string &el_trigger_sf_file,
+				    const std::string &el_trigger_sf_name,
 				    const std::string &el_sf_file,
 				    const std::string &el_id_sf_name
 				    ) {
 
-  Logger::get("lepsf_muonTriggerSF")->debug("Setting up functions for muon iso sf");
+
+  Logger::get("lepsf_muonTriggerSF")->debug("Setting up functions for muon trigger sf");
   Logger::get("lepsf_muonTriggerSF")->debug("Trigger - File {}", mu_trigger_sf_file);
   Logger::get("lepsf_muonTriggerSF")->debug("Trigger - Name {}", mu_trigger_sf_name);
   auto evaluator_mu_trigger = correction::CorrectionSet::from_file(mu_trigger_sf_file)->at(mu_trigger_sf_name);
@@ -1207,7 +1213,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 					     const int &is_iso
 					     ) {
     double sf = 1.;
-    if (is_mu == 0 || is_iso != +1)return sf;
+    if (is_mu == 0 || is_iso != +1) return sf;
     if (pt >= 0.0 && std::abs(eta) >= 0.0)
       sf = evaluator_mu_id->evaluate({mu_sf_era, std::abs(eta), pt, "sf"});
     Logger::get("lepsf_muonIdSF")->debug("ID - sf {}", sf);
@@ -1284,10 +1290,36 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 
 
 
-  Logger::get("lepsf_electronIdSF")->debug("Setting up functions for electron id sf");
-  Logger::get("lepsf_electronIdSF")->debug("ID - File {}", el_sf_file);
-  Logger::get("lepsf_electronIdSF")->debug("ID - Name {}", el_id_sf_name);
-  Logger::get("lepsf_electronIdSF")->debug("ID - Era {}", el_sf_era);
+
+  Logger::get("lepsf_electronTriggerSF")->debug("Setting up functions for electron trigger sf");
+  Logger::get("lepsf_electronTriggerSF")->debug("Trigger - File {}", el_trigger_sf_file);
+  Logger::get("lepsf_electronTriggerSF")->debug("Trigger - Name {}", el_trigger_sf_name);
+  auto evaluator_el_trigger = correction::CorrectionSet::from_file(el_trigger_sf_file)->at(el_trigger_sf_name);
+  auto el_trigger_nom = [evaluator_el_trigger](const float &pt,
+					       const float &sceta,
+					       const int &is_mu,
+					       const int &is_el,
+					       const int &is_iso){
+
+
+    double sf = 1.;
+    if (is_el == 0 || is_iso != +1) return sf;
+    Logger::get("lepsf_electronTriggerSF")->debug("Electron - pt {}, sceta {}", pt, sceta);
+    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+      sf = evaluator_el_trigger->evaluate({sceta, pt});
+    Logger::get("lepsf_electronTriggerSF")->debug("Trigger - sf {}", sf);
+    return sf;
+
+  };
+
+
+  // TODO: trigger sf syst
+
+
+  Logger::get("lepsf_electronSF")->debug("Setting up functions for electron id+reco sf");
+  Logger::get("lepsf_electronSF")->debug("SF - File {}", el_sf_file);
+  Logger::get("lepsf_electronSF")->debug("SF - Name {}", el_id_sf_name);
+  Logger::get("lepsf_electronSF")->debug("SF - Era {}", el_sf_era);
   auto evaluator_el_sf = correction::CorrectionSet::from_file(el_sf_file)->at(el_id_sf_name);
 
   auto el_id_nom = [evaluator_el_sf, el_sf_era](const float &pt,
@@ -1376,40 +1408,51 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 
 
 
+  auto df10 = df9.Define(str_lep_sf_el_trigger_nom,
+		       el_trigger_nom,
+		       {str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+		       );
+  auto df11 = df10.Define(str_lep_sf_el_trigger_up,
+			// el_trigger_up,
+		       el_trigger_nom,
+			{str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+			);
+  auto df12 = df11.Define(str_lep_sf_el_trigger_down,
+			// el_trigger_down,
+			  el_trigger_nom,
+			{str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
+			);
 
 
-  auto df10 = df9.Define(str_lep_sf_el_id_nom,
+  auto df13 = df12.Define(str_lep_sf_el_id_nom,
 		       el_id_nom,
 		       {str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
 		       );
-  auto df11 = df10.Define(str_lep_sf_el_id_up,
+  auto df14 = df13.Define(str_lep_sf_el_id_up,
 			el_id_up,
 			{str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
 			);
-  auto df12 = df11.Define(str_lep_sf_el_id_down,
+  auto df15 = df14.Define(str_lep_sf_el_id_down,
 			el_id_down,
 			{str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
 			);
 
 
-  auto df13 = df12.Define(str_lep_sf_el_reco_nom,
+  auto df16 = df15.Define(str_lep_sf_el_reco_nom,
 		       el_reco_nom,
 		       {str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
 		       );
-  auto df14 = df13.Define(str_lep_sf_el_reco_up,
+  auto df17 = df16.Define(str_lep_sf_el_reco_up,
 			el_reco_up,
 			{str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
 			);
-  auto df15 = df14.Define(str_lep_sf_el_reco_down,
+  auto df18 = df17.Define(str_lep_sf_el_reco_down,
 			el_reco_down,
 			{str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
 			);
 
 
-
-  auto df_final = df15;
-
-  return df_final;
+  return df18;
 
 
 
