@@ -1089,7 +1089,9 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 				    const std::string &mu_id_sf_name,
 				    const std::string &el_sf_era,
 				    const std::string &el_trigger_sf_file,
+				    const std::string &el_trigger_sf_file_syst,
 				    const std::string &el_trigger_sf_name,
+				    const std::string &el_trigger_sf_name_syst,
 				    const std::string &el_sf_file,
 				    const std::string &el_id_sf_name
 				    ) {
@@ -1109,7 +1111,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1)return sf;
     Logger::get("lepsf_muonTriggerSF")->debug("Muon - pt {}, eta {}", pt, eta);
-    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_mu_trigger->evaluate({std::abs(eta), pt});
     Logger::get("lepsf_muonTriggerSF")->debug("Trigger - sf {}", sf);
     return sf;
@@ -1127,7 +1129,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1)return sf;
-    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_mu_trigger->evaluate({std::abs(eta), pt}) + evaluator_mu_trigger_syst->evaluate({std::abs(eta), pt});
     Logger::get("lepsf_muonTriggerSF")->debug("Trigger up - sf {}", sf);
     return sf;
@@ -1141,7 +1143,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1)return sf;
-    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_mu_trigger->evaluate({std::abs(eta), pt}) - evaluator_mu_trigger_syst->evaluate({std::abs(eta), pt});
     Logger::get("lepsf_muonTriggerSF")->debug("Trigger down - sf {}", sf);
     return sf;
@@ -1161,7 +1163,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1)return sf;
-    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_mu_iso->evaluate({std::abs(eta), pt});
     Logger::get("lepsf_muonIsoSF")->debug("Iso - sf {}", sf);
     return sf;
@@ -1179,7 +1181,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1)return sf;
-    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_mu_iso->evaluate({std::abs(eta), pt}) + evaluator_mu_iso_syst->evaluate({std::abs(eta), pt});
     Logger::get("lepsf_muonIsoSF")->debug("Iso up - sf {}", sf);
     return sf;
@@ -1193,7 +1195,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1)return sf;
-    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_mu_iso->evaluate({std::abs(eta), pt}) - evaluator_mu_iso_syst->evaluate({std::abs(eta), pt});
     Logger::get("lepsf_muonIsoSF")->debug("Iso down - sf {}", sf);
     return sf;
@@ -1214,7 +1216,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 					     ) {
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1) return sf;
-    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_mu_id->evaluate({mu_sf_era, std::abs(eta), pt, "sf"});
     Logger::get("lepsf_muonIdSF")->debug("ID - sf {}", sf);
     return sf;
@@ -1228,7 +1230,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 					     ) {
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1) return sf;
-    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_mu_id->evaluate({mu_sf_era, std::abs(eta), pt, "systup"});
     Logger::get("lepsf_muonIdSF")->debug("ID up - sf {}", sf);
     return sf;
@@ -1242,7 +1244,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 					     ) {
     double sf = 1.;
     if (is_mu == 0 || is_iso != +1) return sf;
-    if (pt >= 0.0 && std::abs(eta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_mu_id->evaluate({mu_sf_era, std::abs(eta), pt, "systdown"});
     Logger::get("lepsf_muonIdSF")->debug("ID down - sf {}", sf);
     return sf;
@@ -1305,7 +1307,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
     double sf = 1.;
     if (is_el == 0 || is_iso != +1) return sf;
     Logger::get("lepsf_electronTriggerSF")->debug("Electron - pt {}, sceta {}", pt, sceta);
-    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_el_trigger->evaluate({sceta, pt});
     Logger::get("lepsf_electronTriggerSF")->debug("Trigger - sf {}", sf);
     return sf;
@@ -1313,7 +1315,35 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
   };
 
 
-  // TODO: trigger sf syst
+  auto evaluator_el_trigger_syst = correction::CorrectionSet::from_file(el_trigger_sf_file_syst)->at(el_trigger_sf_name_syst);
+  auto el_trigger_up = [evaluator_el_trigger, evaluator_el_trigger_syst](const float &pt,
+									 const float &sceta,
+									 const int &is_mu,
+									 const int &is_el,
+									 const int &is_iso){
+
+
+    double sf = 1.;
+    if (is_el == 0 || is_iso != +1) return sf;
+    if (pt >= 0.0)
+      sf = evaluator_el_trigger->evaluate({sceta, pt}) + evaluator_el_trigger_syst->evaluate({sceta, pt});
+    Logger::get("lepsf_electronTriggerSF")->debug("Trigger up - sf {}", sf);
+    return sf;
+  };
+  auto el_trigger_down = [evaluator_el_trigger, evaluator_el_trigger_syst](const float &pt,
+									   const float &sceta,
+									   const int &is_mu,
+									   const int &is_el,
+									   const int &is_iso){
+
+
+    double sf = 1.;
+    if (is_el == 0 || is_iso != +1) return sf;
+    if (pt >= 0.0)
+      sf = evaluator_el_trigger->evaluate({sceta, pt}) - evaluator_el_trigger_syst->evaluate({sceta, pt});
+    Logger::get("lepsf_electronTriggerSF")->debug("Trigger up - sf {}", sf);
+    return sf;
+  };
 
 
   Logger::get("lepsf_electronSF")->debug("Setting up functions for electron id+reco sf");
@@ -1330,7 +1360,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 					     ) {
     double sf = 1.;
     if (is_el == 0 || is_iso != +1) return sf;
-    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_el_sf->evaluate({el_sf_era, "sf", "Tight", sceta, pt});
     Logger::get("lepsf_electronIdSF")->debug("ID - sf {}", sf);
     return sf;
@@ -1344,7 +1374,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 					     ) {
     double sf = 1.;
     if (is_el == 0 || is_iso != +1) return sf;
-    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_el_sf->evaluate({el_sf_era, "sfup", "Tight", sceta, pt});
     Logger::get("lepsf_electronIdSF")->debug("ID up - sf {}", sf);
     return sf;
@@ -1358,7 +1388,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 					     ) {
     double sf = 1.;
     if (is_el == 0 || is_iso != +1) return sf;
-    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_el_sf->evaluate({el_sf_era, "sfdown", "Tight", sceta, pt});
     Logger::get("lepsf_electronIdSF")->debug("ID down - sf {}", sf);
     return sf;
@@ -1372,7 +1402,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 					     ) {
     double sf = 1.;
     if (is_el == 0 || is_iso != +1) return sf;
-    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_el_sf->evaluate({el_sf_era, "sf", "RecoAbove20", sceta, pt});
     Logger::get("lepsf_electronRecoSF")->debug("RECO - sf {}", sf);
     return sf;
@@ -1386,7 +1416,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 					     ) {
     double sf = 1.;
     if (is_el == 0 || is_iso != +1) return sf;
-    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_el_sf->evaluate({el_sf_era, "sfup", "RecoAbove20", sceta, pt});
     Logger::get("lepsf_electronRecoSF")->debug("RECO up - sf {}", sf);
     return sf;
@@ -1400,7 +1430,7 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 					     ) {
     double sf = 1.;
     if (is_el == 0 || is_iso != +1) return sf;
-    if (pt >= 0.0 && std::abs(sceta) >= 0.0)
+    if (pt >= 0.0)
       sf = evaluator_el_sf->evaluate({el_sf_era, "sfdown", "RecoAbove20", sceta, pt});
     Logger::get("lepsf_electronRecoSF")->debug("RECO down - sf {}", sf);
     return sf;
@@ -1413,13 +1443,11 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 		       {str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
 		       );
   auto df11 = df10.Define(str_lep_sf_el_trigger_up,
-			// el_trigger_up,
-		       el_trigger_nom,
+			el_trigger_up,
 			{str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
 			);
   auto df12 = df11.Define(str_lep_sf_el_trigger_down,
-			// el_trigger_down,
-			  el_trigger_nom,
+			el_trigger_down,
 			{str_lep_pt, str_lep_sceta, str_lep_is_mu, str_lep_is_el, str_lep_is_iso}
 			);
 
