@@ -164,7 +164,9 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 				    const std::string &mu_id_sf_name,
 				    const std::string &el_sf_era,
 				    const std::string &el_trigger_sf_file,
+				    const std::string &el_trigger_sf_file_syst,
 				    const std::string &el_trigger_sf_name,
+				    const std::string &el_trigger_sf_name_syst,
 				    const std::string &el_sf_file,
 				    const std::string &el_id_sf_name
 				    );
