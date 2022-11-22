@@ -589,6 +589,34 @@ ROOT::RDF::RNode btagValue(ROOT::RDF::RNode df, const std::string &outputname,
                      },
                      {btagcolumn, jetcollection});
 }
+/// Function to writeout the hadron flavor for a jet.
+///
+/// \param[in] df the input dataframe
+/// \param[out] outputname the name of the produced quantity
+/// \param[in] jetcollection name of the vector that contains jet indices of the
+/// jets belonging to the collection, its length constitutes the output quantity
+/// \param position The position in the jet collection vector, which is used to
+/// store the index of the particle in the particle quantity vectors.
+///
+/// \returns a dataframe with the new column
+
+  ROOT::RDF::RNode flavor(ROOT::RDF::RNode df, const std::string &outputname,
+			  const std::string &flavorcolumn,
+			  const std::string &jetcollection,
+			  const int &position) {
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<int> &flavorvalue,
+                                const ROOT::RVec<int> &jetcollection) {
+                         float flavorValue = default_int;
+                         try {
+                             const int index = jetcollection.at(position);
+                             flavorValue = flavorvalue.at(index);
+                         } catch (const std::out_of_range &e) {
+                         }
+                         return flavorValue;
+                     },
+                     {flavorcolumn, jetcollection});
+}
 } // end namespace jet
 } // end namespace quantities
 #endif /* GUARDJETS_H */

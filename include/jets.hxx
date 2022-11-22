@@ -62,6 +62,10 @@ ROOT::RDF::RNode btagValue(ROOT::RDF::RNode df, const std::string &outputname,
                            const std::string &btagcolumn,
                            const std::string &jetcollection,
                            const int &position);
+  ROOT::RDF::RNode flavor(ROOT::RDF::RNode df, const std::string &outputname,
+			  const std::string &flavorcolumn,
+			  const std::string &jetcollection,
+			  const int &position);
 } // end namespace jet
 } // end namespace quantities
 #endif /* GUARDJETS_H */
