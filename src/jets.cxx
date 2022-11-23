@@ -607,7 +607,7 @@ ROOT::RDF::RNode btagValue(ROOT::RDF::RNode df, const std::string &outputname,
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &flavorvalue,
                                 const ROOT::RVec<int> &jetcollection) {
-                         float flavorValue = default_int;
+                         int flavorValue = default_int;
                          try {
                              const int index = jetcollection.at(position);
                              flavorValue = flavorvalue.at(index);
