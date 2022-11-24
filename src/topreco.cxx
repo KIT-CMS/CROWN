@@ -1512,6 +1512,7 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 				  const std::string &str_bjet_eta_2,
 				  const std::string &str_bjet_btag_2,
 				  const std::string &str_bjet_flavor_2,
+				  const std::string &str_btag_sf_vec,
 				  const std::string &str_btagw_nom,
 				  const std::string &str_btagw_HFup_corr,
 				  const std::string &str_btagw_HFup_uncorr,
@@ -1944,7 +1945,6 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
     return sf_vec;
   };
 
-  std::string str_btag_sf_vec = "btag_sf_vec";
 
   auto df2 = df.Define(str_btag_sf_vec,
 		       btag_sf,
