@@ -171,6 +171,47 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 				    const std::string &el_id_sf_name
 				    );
 
+
+ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
+				  const std::string &str_is_iso,
+				  const std::string &str_is_reco,
+				  const std::string &str_is_jjb,
+				  const std::string &str_is_jjbb,
+				  const std::string &str_is_jjjb,
+				  const std::string &str_is_jjjbb,
+				  const std::string &str_nonbjet_pt_1,
+				  const std::string &str_nonbjet_eta_1,
+				  const std::string &str_nonbjet_btag_1,
+				  const std::string &str_nonbjet_flavor_1,
+				  const std::string &str_nonbjet_pt_2,
+				  const std::string &str_nonbjet_eta_2,
+				  const std::string &str_nonbjet_btag_2,
+				  const std::string &str_nonbjet_flavor_2,
+				  const std::string &str_bjet_pt_1,
+				  const std::string &str_bjet_eta_1,
+				  const std::string &str_bjet_btag_1,
+				  const std::string &str_bjet_flavor_1,
+				  const std::string &str_bjet_pt_2,
+				  const std::string &str_bjet_eta_2,
+				  const std::string &str_bjet_btag_2,
+				  const std::string &str_bjet_flavor_2,
+				  const std::string &str_btagw_nom,
+				  const std::string &str_btagw_HFup_corr,
+				  const std::string &str_btagw_HFup_uncorr,
+				  const std::string &str_btagw_HFdown_corr,
+				  const std::string &str_btagw_HFdown_uncorr,
+				  const std::string &str_btagw_LFup_corr,
+				  const std::string &str_btagw_LFup_uncorr,
+				  const std::string &str_btagw_LFdown_corr,
+				  const std::string &str_btagw_LFdown_uncorr,
+				  const std::string &btag_sf_file,
+				  const std::string &btag_corr_algo_HF,
+				  const std::string &btag_corr_algo_LF,
+				  const std::string &btag_eff_file,
+				  const std::string &btag_eff_type,
+				  const std::string &btag_wp
+				  );
+
 } // end namespace topreco
 
 #endif /* GUARD_TOPRECO_H */

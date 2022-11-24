@@ -36,12 +36,12 @@ print(corrs)
 
 for y in corrs.keys():
         for f in ['b', 'c', 'udsg']:
-                corrs[y]['btag_eff_' + f + '_ttbar'] = correctionlib.convert.from_uproot_THx(path = y + '_UL/btag_ttbar.root:h_eff_bjets_m_deepjet', axis_names = ['eta','pt'])
+                corrs[y]['btag_eff_' + f + '_ttbar'] = correctionlib.convert.from_uproot_THx(path = y + '_UL/btag_ttbar.root:h_eff_' + f + 'jets_m_deepjet', axis_names = ['eta','pt'])
                 corrs[y]['btag_eff_' + f + '_ttbar'].description = 'btag eff (' + f +') for ttbar in ' + y
                 corrs[y]['btag_eff_' + f + '_ttbar'].data.flow = "clamp"
                 corrs[y]['btag_eff_' + f + '_ttbar'].name = 'ttbar_' + f
 
-                corrs[y]['btag_eff_' + f + '_wjets'] = correctionlib.convert.from_uproot_THx(path = y + '_UL/btag_wjets.root:h_eff_bjets_m_deepjet', axis_names = ['eta','pt'])
+                corrs[y]['btag_eff_' + f + '_wjets'] = correctionlib.convert.from_uproot_THx(path = y + '_UL/btag_wjets.root:h_eff_' + f + 'jets_m_deepjet', axis_names = ['eta','pt'])
                 corrs[y]['btag_eff_' + f + '_wjets'].description = 'btag eff (' + f +') for wjets in ' + y
                 corrs[y]['btag_eff_' + f + '_wjets'].data.flow = "clamp"
                 corrs[y]['btag_eff_' + f + '_wjets'].name = 'wjets_' + f
