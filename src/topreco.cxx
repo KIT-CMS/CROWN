@@ -1482,9 +1482,550 @@ ROOT::RDF::RNode LeptonScaleFactors(ROOT::RDF::RNode df,
 
   return df18;
 
+}
 
+
+
+
+
+
+ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
+				  const std::string &str_is_iso,
+				  const std::string &str_is_reco,
+				  const std::string &str_is_jjb,
+				  const std::string &str_is_jjbb,
+				  const std::string &str_is_jjjb,
+				  const std::string &str_is_jjjbb,
+				  const std::string &str_nonbjet_pt_1,
+				  const std::string &str_nonbjet_eta_1,
+				  const std::string &str_nonbjet_btag_1,
+				  const std::string &str_nonbjet_flavor_1,
+				  const std::string &str_nonbjet_pt_2,
+				  const std::string &str_nonbjet_eta_2,
+				  const std::string &str_nonbjet_btag_2,
+				  const std::string &str_nonbjet_flavor_2,
+				  const std::string &str_bjet_pt_1,
+				  const std::string &str_bjet_eta_1,
+				  const std::string &str_bjet_btag_1,
+				  const std::string &str_bjet_flavor_1,
+				  const std::string &str_bjet_pt_2,
+				  const std::string &str_bjet_eta_2,
+				  const std::string &str_bjet_btag_2,
+				  const std::string &str_bjet_flavor_2,
+				  const std::string &str_btagw_nom,
+				  const std::string &str_btagw_HFup_corr,
+				  const std::string &str_btagw_HFup_uncorr,
+				  const std::string &str_btagw_HFdown_corr,
+				  const std::string &str_btagw_HFdown_uncorr,
+				  const std::string &str_btagw_LFup_corr,
+				  const std::string &str_btagw_LFup_uncorr,
+				  const std::string &str_btagw_LFdown_corr,
+				  const std::string &str_btagw_LFdown_uncorr,
+				  const std::string &btag_sf_file,
+				  const std::string &btag_corr_algo_HF,
+				  const std::string &btag_corr_algo_LF,
+				  const std::string &btag_eff_file,
+				  const std::string &btag_eff_type,
+				  const std::string &btag_wp
+				  ) {
+
+
+  Logger::get("btagsf")->debug("Setting up functions for b tagging sf");
+  Logger::get("btagsf")->debug("B tagging SF - File {}", btag_sf_file);
+  Logger::get("btagsf")->debug("B tagging SF - Name HF {}", btag_corr_algo_HF);
+  auto evaluator_btag_sf_HF = correction::CorrectionSet::from_file(btag_sf_file)->at(btag_corr_algo_HF);
+  Logger::get("btagsf")->debug("B tagging SF - Name LF {}", btag_corr_algo_LF);
+  auto evaluator_btag_sf_LF = correction::CorrectionSet::from_file(btag_sf_file)->at(btag_corr_algo_LF);
+  Logger::get("btagsf")->debug("B tagging EFF - File {}", btag_eff_file);
+
+
+  std::string btag_eff_name_b = "ttbar_b";
+  std::string btag_eff_name_c = "ttbar_c";
+  std::string btag_eff_name_udsg = "ttbar_udsg";
+  if (btag_eff_type == "vjets") {
+    btag_eff_name_b = "wjets_b";
+    btag_eff_name_c = "wjets_c";
+    btag_eff_name_udsg = "wjets_udsg";
+  }
+
+  Logger::get("btagsf")->debug("B tagging EFF - Name {} b, {}", btag_eff_type, btag_eff_name_b);
+  auto evaluator_btag_eff_b = correction::CorrectionSet::from_file(btag_eff_file)->at(btag_eff_name_b);
+  Logger::get("btagsf")->debug("B tagging EFF - Name {} c, {}", btag_eff_type, btag_eff_name_c);
+  auto evaluator_btag_eff_c = correction::CorrectionSet::from_file(btag_eff_file)->at(btag_eff_name_c);
+  Logger::get("btagsf")->debug("B tagging EFF - Name {} udsg, {}", btag_eff_type, btag_eff_name_udsg);
+  auto evaluator_btag_eff_udsg = correction::CorrectionSet::from_file(btag_eff_file)->at(btag_eff_name_udsg);
+
+  // 0 cerntal
+  // 1 HFup_correlated
+  // 2 HFup_uncorrelated
+  // 3 HFdown_correlated
+  // 4 HFdown_uncorrelated
+  // 5 LFup_correlated
+  // 6 LFup_uncorrelated
+  // 7 LFdown_correlated
+  // 8 LFdown_uncorrelatedOD
+
+  const ROOT::RVec<std::string> shift_HF {
+    "central",
+      "up_correlated",
+      "up_uncorrelated",
+      "down_correlated",
+      "down_uncorrelated",
+      "central",
+      "central",
+      "central",
+      "central"
+    };
+
+  const ROOT::RVec<std::string> shift_LF {
+    "central",
+      "central",
+      "central",
+      "central",
+      "central",
+      "up_correlated",
+      "up_uncorrelated",
+      "down_correlated",
+      "down_uncorrelated"
+      };
+
+  auto btag_sf = [evaluator_btag_sf_HF,
+		  evaluator_btag_sf_LF,
+		  btag_corr_algo_HF,
+		  btag_corr_algo_LF,
+		  evaluator_btag_eff_b,
+		  evaluator_btag_eff_c,
+		  evaluator_btag_eff_udsg,
+		  btag_wp,
+		  shift_HF,
+		  shift_LF
+		  ](const int &is_iso,
+		      const int &is_reco,
+		      const int &is_jjb,
+		      const int &is_jjbb,
+		      const int &is_jjjb,
+		      const int &is_jjjbb,
+		      const float &nonbjet_pt_1,
+		      const float &nonbjet_eta_1,
+		      const float &nonbjet_btag_1,
+		      const int &nonbjet_flavor_1,
+		      const float &nonbjet_pt_2,
+		      const float &nonbjet_eta_2,
+		      const float &nonbjet_btag_2,
+		      const int &nonbjet_flavor_2,
+		      const float &bjet_pt_1,
+		      const float &bjet_eta_1,
+		      const float &bjet_btag_1,
+		      const int &bjet_flavor_1,
+		      const float &bjet_pt_2,
+		      const float &bjet_eta_2,
+		      const float &bjet_btag_2,
+		      const int &bjet_flavor_2) {
+
+    int n_var = shift_HF.size();
+
+    ROOT::RVec<double> sf_vec(n_var, 1.);
+
+    if (is_iso != +1 || is_reco == 0) return sf_vec;
+
+    double P_MC = 1.;
+    ROOT::RVec<double> P_data(n_var, 1.);
+
+    ROOT::RVec<double> sf_b1(n_var, 1.);
+    ROOT::RVec<double> sf_b2(n_var, 1.);
+    ROOT::RVec<double> sf_nonb1(n_var, 1.);
+    ROOT::RVec<double> sf_nonb2(n_var, 1.);
+
+    double eff_b1 = 1.;
+    double eff_b2 = 1.;
+    double eff_nonb1 = 1.;
+    double eff_nonb2 = 1.;
+
+
+    if (is_jjb) {
+
+      Logger::get("btagsf")->debug("bjet 1 ---> flavor: {}, eta: {}, pt: {}", bjet_flavor_1, bjet_eta_1, bjet_pt_1);
+      Logger::get("btagsf")->debug("nonbjet 1 ---> flavor: {}, eta: {}, pt: {}", nonbjet_flavor_1, nonbjet_eta_1, nonbjet_pt_1);
+
+      if (bjet_flavor_1 == 5) {
+	eff_b1 = evaluator_btag_eff_b->evaluate({bjet_eta_1, bjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
+	}
+      }
+      else if (bjet_flavor_1 == 4) {
+	eff_b1 = evaluator_btag_eff_c->evaluate({bjet_eta_1, bjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
+	}
+      }
+      else {
+	eff_b1 = evaluator_btag_eff_udsg->evaluate({bjet_eta_1, bjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
+	}
+      }
+
+      P_MC *= eff_b1;
+      for (int i = 0; i < n_var; i++) {
+	P_data[i] *= sf_b1[i] * eff_b1;
+	Logger::get("btagsf")->debug("updating P ... eff_b1 {}, sf_b1 {}, P_MC {}, P_data {}", eff_b1, sf_b1[i], P_MC, P_data[i]);
+      }
+
+
+      if (nonbjet_flavor_1 == 5) {
+	eff_nonb1 = evaluator_btag_eff_b->evaluate({nonbjet_eta_1, nonbjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
+	}
+      }
+      else if (nonbjet_flavor_1 == 4) {
+	eff_nonb1 = evaluator_btag_eff_c->evaluate({nonbjet_eta_1, nonbjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
+	}
+      }
+      else {
+	eff_nonb1 = evaluator_btag_eff_udsg->evaluate({nonbjet_eta_1, nonbjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_nonb1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
+	}
+      }
+
+      P_MC *= (1 - eff_nonb1);
+      for (int i = 0; i < n_var; i++) {
+	P_data[i] *= (1 - sf_nonb1[i] * eff_nonb1);
+	Logger::get("btagsf")->debug("updating P ... eff_nonb1 {}, sf_nonb1 {}, P_MC {}, P_data {}", eff_nonb1, sf_nonb1[i], P_MC, P_data[i]);
+      }
+
+
+    }
+
+
+    if (is_jjbb) {
+
+      Logger::get("btagsf")->debug("bjet 1 ---> flavor: {}, eta: {}, pt: {}", bjet_flavor_1, bjet_eta_1, bjet_pt_1);
+      Logger::get("btagsf")->debug("bjet 2 ---> flavor: {}, eta: {}, pt: {}", bjet_flavor_2, bjet_eta_2, bjet_pt_2);
+
+      if (bjet_flavor_1 == 5) {
+	eff_b1 = evaluator_btag_eff_b->evaluate({bjet_eta_1, bjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
+	}
+      }
+      else if (bjet_flavor_1 == 4) {
+	eff_b1 = evaluator_btag_eff_c->evaluate({bjet_eta_1, bjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
+	}
+      }
+      else {
+	eff_b1 = evaluator_btag_eff_udsg->evaluate({bjet_eta_1, bjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
+	}
+      }
+
+      P_MC *= eff_b1;
+      for (int i = 0; i < n_var; i++) {
+	P_data[i] *= sf_b1[i] * eff_b1;
+	Logger::get("btagsf")->debug("updating P ... eff_b1 {}, sf_b1 {}, P_MC {}, P_data {}", eff_b1, sf_b1[i], P_MC, P_data[i]);
+      }
+
+
+      if (bjet_flavor_2 == 5) {
+	eff_b2 = evaluator_btag_eff_b->evaluate({bjet_eta_2, bjet_pt_2});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
+	}
+      }
+      else if (bjet_flavor_2 == 4) {
+	eff_b2 = evaluator_btag_eff_c->evaluate({bjet_eta_2, bjet_pt_2});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
+	}
+      }
+      else {
+	eff_b2 = evaluator_btag_eff_udsg->evaluate({bjet_eta_2, bjet_pt_2});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b2[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
+	}
+      }
+
+      P_MC *= (1 - eff_b2);
+      for (int i = 0; i < n_var; i++) {
+	P_data[i] *= (1 - sf_b2[i] * eff_b2);
+	Logger::get("btagsf")->debug("updating P ... eff_b2 {}, sf_b2 {}, P_MC {}, P_data {}", eff_b2, sf_b2[i], P_MC, P_data[i]);
+      }
+
+
+    }
+
+
+    if (is_jjjb) {
+
+      Logger::get("btagsf")->debug("bjet 1 ---> flavor: {}, eta: {}, pt: {}", bjet_flavor_1, bjet_eta_1, bjet_pt_1);
+      Logger::get("btagsf")->debug("nonbjet 1 ---> flavor: {}, eta: {}, pt: {}", nonbjet_flavor_1, nonbjet_eta_1, nonbjet_pt_1);
+      Logger::get("btagsf")->debug("nonbjet 2 ---> flavor: {}, eta: {}, pt: {}", nonbjet_flavor_2, nonbjet_eta_2, nonbjet_pt_2);
+
+      if (bjet_flavor_1 == 5) {
+	eff_b1 = evaluator_btag_eff_b->evaluate({bjet_eta_1, bjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
+	}
+      }
+      else if (bjet_flavor_1 == 4) {
+	eff_b1 = evaluator_btag_eff_c->evaluate({bjet_eta_1, bjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
+	}
+      }
+      else {
+	eff_b1 = evaluator_btag_eff_udsg->evaluate({bjet_eta_1, bjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
+	}
+      }
+
+      P_MC *= eff_b1;
+      for (int i = 0; i < n_var; i++) {
+	P_data[i] *= sf_b1[i] * eff_b1;
+	Logger::get("btagsf")->debug("updating P ... eff_b1 {}, sf_b1 {}, P_MC {}, P_data {}", eff_b1, sf_b1[i], P_MC, P_data[i]);
+      }
+
+
+      if (nonbjet_flavor_1 == 5) {
+	eff_nonb1 = evaluator_btag_eff_b->evaluate({nonbjet_eta_1, nonbjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
+	}
+      }
+      else if (nonbjet_flavor_1 == 4) {
+	eff_nonb1 = evaluator_btag_eff_c->evaluate({nonbjet_eta_1, nonbjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
+	}
+      }
+      else {
+	eff_nonb1 = evaluator_btag_eff_udsg->evaluate({nonbjet_eta_1, nonbjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_nonb1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
+	}
+      }
+
+      P_MC *= (1 - eff_nonb1);
+      for (int i = 0; i < n_var; i++) {
+	P_data[i] *= (1 - sf_nonb1[i] * eff_nonb1);
+	Logger::get("btagsf")->debug("updating P ... eff_nonb1 {}, sf_nonb1 {}, P_MC {}, P_data {}", eff_nonb1, sf_nonb1[i], P_MC, P_data[i]);
+      }
+
+
+      if (nonbjet_flavor_2 == 5) {
+	eff_nonb2 = evaluator_btag_eff_b->evaluate({nonbjet_eta_2, nonbjet_pt_2});
+	for (int i = 0; i < n_var; i++) {
+	  sf_nonb2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_2, std::abs(nonbjet_eta_2), nonbjet_pt_2});
+	}
+      }
+      else if (nonbjet_flavor_2 == 4) {
+	eff_nonb2 = evaluator_btag_eff_c->evaluate({nonbjet_eta_2, nonbjet_pt_2});
+	for (int i = 0; i < n_var; i++) {
+	  sf_nonb2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_2, std::abs(nonbjet_eta_2), nonbjet_pt_2});
+	}
+      }
+      else {
+	eff_nonb2 = evaluator_btag_eff_udsg->evaluate({nonbjet_eta_2, nonbjet_pt_2});
+	for (int i = 0; i < n_var; i++) {
+	  sf_nonb2[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, nonbjet_flavor_2, std::abs(nonbjet_eta_2), nonbjet_pt_2});
+	}
+      }
+
+      P_MC *= (1 - eff_nonb2);
+      for (int i = 0; i < n_var; i++) {
+	P_data[i] *= (1 - sf_nonb2[i] * eff_nonb2);
+	Logger::get("btagsf")->debug("updating P ... eff_nonb2 {}, sf_nonb2 {}, P_MC {}, P_data {}", eff_nonb2, sf_nonb2[i], P_MC, P_data[i]);
+      }
+
+
+    }
+
+
+    if (is_jjjbb) {
+
+      Logger::get("btagsf")->debug("bjet 1 ---> flavor: {}, eta: {}, pt: {}", bjet_flavor_1, bjet_eta_1, bjet_pt_1);
+      Logger::get("btagsf")->debug("bjet 2 ---> flavor: {}, eta: {}, pt: {}", bjet_flavor_2, bjet_eta_2, bjet_pt_2);
+      Logger::get("btagsf")->debug("nonbjet 1 ---> flavor: {}, eta: {}, pt: {}", nonbjet_flavor_1, nonbjet_eta_1, nonbjet_pt_1);
+
+      if (bjet_flavor_1 == 5) {
+	eff_b1 = evaluator_btag_eff_b->evaluate({bjet_eta_1, bjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
+	}
+      }
+      else if (bjet_flavor_1 == 4) {
+	eff_b1 = evaluator_btag_eff_c->evaluate({bjet_eta_1, bjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
+	}
+      }
+      else {
+	eff_b1 = evaluator_btag_eff_udsg->evaluate({bjet_eta_1, bjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
+	}
+      }
+
+      P_MC *= eff_b1;
+      for (int i = 0; i < n_var; i++) {
+	P_data[i] *= sf_b1[i] * eff_b1;
+	Logger::get("btagsf")->debug("updating P ... eff_b1 {}, sf_b1 {}, P_MC {}, P_data {}", eff_b1, sf_b1[i], P_MC, P_data[i]);
+      }
+
+
+      if (bjet_flavor_2 == 5) {
+	eff_b2 = evaluator_btag_eff_b->evaluate({bjet_eta_2, bjet_pt_2});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
+	}
+      }
+      else if (bjet_flavor_2 == 4) {
+	eff_b2 = evaluator_btag_eff_c->evaluate({bjet_eta_2, bjet_pt_2});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
+	}
+      }
+      else {
+	eff_b2 = evaluator_btag_eff_udsg->evaluate({bjet_eta_2, bjet_pt_2});
+	for (int i = 0; i < n_var; i++) {
+	  sf_b2[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
+	}
+      }
+
+      P_MC *= (1 - eff_b2);
+      for (int i = 0; i < n_var; i++) {
+	P_data[i] *= (1 - sf_b2[i] * eff_b2);
+	Logger::get("btagsf")->debug("updating P ... eff_b2 {}, sf_b2 {}, P_MC {}, P_data {}", eff_b2, sf_b2[i], P_MC, P_data[i]);
+      }
+
+
+      if (nonbjet_flavor_1 == 5) {
+	eff_nonb1 = evaluator_btag_eff_b->evaluate({nonbjet_eta_1, nonbjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
+	}
+      }
+      else if (nonbjet_flavor_1 == 4) {
+	eff_nonb1 = evaluator_btag_eff_c->evaluate({nonbjet_eta_1, nonbjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
+	}
+      }
+      else {
+	eff_nonb1 = evaluator_btag_eff_udsg->evaluate({nonbjet_eta_1, nonbjet_pt_1});
+	for (int i = 0; i < n_var; i++) {
+	  sf_nonb1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
+	}
+      }
+
+      P_MC *= (1 - eff_nonb1);
+      for (int i = 0; i < n_var; i++) {
+	P_data[i] *= (1 - sf_nonb1[i] * eff_nonb1);
+	Logger::get("btagsf")->debug("updating P ... eff_nonb1 {}, sf_nonb1 {}, P_MC {}, P_data {}", eff_nonb1, sf_nonb1[i], P_MC, P_data[i]);
+      }
+
+
+    }
+
+    for (int i = 0; i < n_var; i++) {
+      sf_vec[i] = P_data[i] / P_MC;
+      Logger::get("btagsf")->debug("final btag SF (var {}): {}", i, sf_vec[i]);
+    }
+
+
+    return sf_vec;
+  };
+
+  std::string str_btag_sf_vec = "btag_sf_vec";
+
+  auto df2 = df.Define(str_btag_sf_vec,
+		       btag_sf,
+		       {str_is_iso, str_is_reco,
+			   str_is_jjb, str_is_jjbb, str_is_jjjb, str_is_jjjbb,
+			   str_nonbjet_pt_1, str_nonbjet_eta_1, str_nonbjet_btag_1, str_nonbjet_flavor_1,
+			   str_nonbjet_pt_2, str_nonbjet_eta_2, str_nonbjet_btag_2, str_nonbjet_flavor_2,
+			   str_bjet_pt_1, str_bjet_eta_1, str_bjet_btag_1, str_bjet_flavor_1,
+			   str_bjet_pt_2, str_bjet_eta_2, str_bjet_btag_2, str_bjet_flavor_2}
+			);
+
+
+  auto df3 = df2.Define(str_btagw_nom,
+			[](const ROOT::RVec<double> &sf_vec) {
+			 return sf_vec[0];
+			},
+			{str_btag_sf_vec}
+			);
+
+  auto df4 = df3.Define(str_btagw_HFup_corr,
+			[](const ROOT::RVec<double> &sf_vec) {
+			 return sf_vec[1];
+			},
+			{str_btag_sf_vec}
+			);
+
+  auto df5 = df4.Define(str_btagw_HFup_uncorr,
+			[](const ROOT::RVec<double> &sf_vec) {
+			 return sf_vec[2];
+			},
+			{str_btag_sf_vec}
+			);
+
+  auto df6 = df5.Define(str_btagw_HFdown_corr,
+			[](const ROOT::RVec<double> &sf_vec) {
+			 return sf_vec[3];
+			},
+			{str_btag_sf_vec}
+			);
+
+  auto df7 = df6.Define(str_btagw_HFdown_uncorr,
+			[](const ROOT::RVec<double> &sf_vec) {
+			 return sf_vec[4];
+			},
+			{str_btag_sf_vec}
+			);
+
+  auto df8 = df7.Define(str_btagw_LFup_corr,
+			[](const ROOT::RVec<double> &sf_vec) {
+			 return sf_vec[5];
+			},
+			{str_btag_sf_vec}
+			);
+
+  auto df9 = df8.Define(str_btagw_LFup_uncorr,
+			[](const ROOT::RVec<double> &sf_vec) {
+			 return sf_vec[6];
+			},
+			{str_btag_sf_vec}
+			);
+
+  auto df10 = df9.Define(str_btagw_LFdown_corr,
+			[](const ROOT::RVec<double> &sf_vec) {
+			 return sf_vec[7];
+			},
+			{str_btag_sf_vec}
+			);
+
+  auto df11 = df10.Define(str_btagw_LFdown_uncorr,
+			[](const ROOT::RVec<double> &sf_vec) {
+			 return sf_vec[8];
+			},
+			{str_btag_sf_vec}
+			);
+
+
+  return df11;
 
 }
+
+
 
 
 } // end namespace topreco
