@@ -112,16 +112,16 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 			       const std::string &str_jet_eta,
 			       const std::string &str_jet_phi,
 			       const std::string &str_jet_mass,
-			       const std::string &str_dphi_top_tb,
+			       const std::string &str_dphi_top_b1,
 			       const std::string &str_deta_top_sb,
-			       const std::string &str_dphi_tb_sb,
-			       const std::string &str_deta_lep_tb,
-			       const std::string &str_m_lep_sb,
-			       const std::string &str_pt_tb_sb,
+			       const std::string &str_dphi_b1_b2,
+			       const std::string &str_deta_lep_b1,
+			       const std::string &str_m_lep_b2,
+			       const std::string &str_pt_b1_b2,
 			       const std::string &str_costhetastar,
 			       const std::string &str_sumht,
 			       const std::string &str_wolfram,
-			       const std::string &str_deta_topsb_tb
+			       const std::string &str_deta_topb2_b1
 			       );
 
 
