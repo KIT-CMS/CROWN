@@ -820,26 +820,26 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 			       const std::string &str_jet_eta,
 			       const std::string &str_jet_phi,
 			       const std::string &str_jet_mass,
-			       const std::string &str_dphi_top_tb,
+			       const std::string &str_dphi_top_b1,
 			       const std::string &str_deta_top_sb,
-			       const std::string &str_dphi_tb_sb,
-			       const std::string &str_deta_lep_tb,
-			       const std::string &str_m_lep_sb,
-			       const std::string &str_pt_tb_sb,
+			       const std::string &str_dphi_b1_b2,
+			       const std::string &str_deta_lep_b1,
+			       const std::string &str_m_lep_b2,
+			       const std::string &str_pt_b1_b2,
 			       const std::string &str_costhetastar,
 			       const std::string &str_sumht,
 			       const std::string &str_wolfram,
-			       const std::string &str_deta_topsb_tb
+			       const std::string &str_deta_topb2_b1
 			       ) {
 
-  auto df2 = df.Define(str_dphi_top_tb,
+  auto df2 = df.Define(str_dphi_top_b1,
 		       [](const int reco,
 			  const ROOT::Math::PtEtaPhiMVector &top,
-			  const ROOT::Math::PtEtaPhiMVector &tb) {
+			  const ROOT::Math::PtEtaPhiMVector &b1) {
 			 if (!reco) {return -10.0;}
-			 return ROOT::Math::VectorUtil::DeltaPhi(top, tb);
+			 return ROOT::Math::VectorUtil::DeltaPhi(top, b1);
 		       },
-		       {str_is_reco, str_top_p4, str_tb_p4}
+		       {str_is_reco, str_top_p4, str_bjet_p4_1}
 		       );
 
   auto df3 = df2.Define(str_deta_top_sb,
@@ -852,44 +852,50 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 			{str_is_reco, str_top_p4, str_sb_p4}
 			);
 
-  auto df4 = df3.Define(str_dphi_tb_sb,
+  auto df4 = df3.Define(str_dphi_b1_b2,
 			[](const int reco,
-			   const ROOT::Math::PtEtaPhiMVector &tb,
-			   const ROOT::Math::PtEtaPhiMVector &sb) {
+			   const ROOT::Math::PtEtaPhiMVector &b1,
+			   const ROOT::Math::PtEtaPhiMVector &b2,
+			   const ROOT::Math::PtEtaPhiMVector &nonb1) {
 			 if (!reco) {return -10.0;}
-			  return ROOT::Math::VectorUtil::DeltaPhi(tb, sb);
+			 if (b2.Pt() > 0) return ROOT::Math::VectorUtil::DeltaPhi(b1, b2);
+			 return ROOT::Math::VectorUtil::DeltaPhi(b1, nonb1);
 			},
-			{str_is_reco, str_tb_p4, str_sb_p4}
+			{str_is_reco, str_bjet_p4_1, str_bjet_p4_2, str_nonbjet_p4_1}
 			);
 
-  auto df5 = df4.Define(str_deta_lep_tb,
+  auto df5 = df4.Define(str_deta_lep_b1,
 			[](const int reco,
 			   const ROOT::Math::PtEtaPhiMVector &lep,
-			   const ROOT::Math::PtEtaPhiMVector &tb) {
+			   const ROOT::Math::PtEtaPhiMVector &b1) {
 			 if (!reco) {return -10.0;}
-			  return abs(lep.Eta() - tb.Eta());
+			  return abs(lep.Eta() - b1.Eta());
 			},
-			{str_is_reco, str_lep_p4, str_tb_p4}
+			{str_is_reco, str_lep_p4, str_bjet_p4_1}
 			);
 
-  auto df6 = df5.Define(str_m_lep_sb,
+  auto df6 = df5.Define(str_m_lep_b2,
 			[](const int reco,
 			   const ROOT::Math::PtEtaPhiMVector &lep,
-			   const ROOT::Math::PtEtaPhiMVector &sb) {
-			 if (!reco) {return -10.0;}
-			  return (lep + sb).M();
+			   const ROOT::Math::PtEtaPhiMVector &b2,
+			   const ROOT::Math::PtEtaPhiMVector &nonb1) {
+			  if (!reco) {return -10.0;}
+			  if (b2.Pt() > 0) return (lep + b2).M();
+			  return (lep + nonb1).M();
 			},
-			{str_is_reco, str_lep_p4, str_sb_p4}
+			{str_is_reco, str_lep_p4, str_bjet_p4_2, str_nonbjet_p4_1}
 			);
 
-  auto df7 = df6.Define(str_pt_tb_sb,
+  auto df7 = df6.Define(str_pt_b1_b2,
 			[](const int reco,
-			   const ROOT::Math::PtEtaPhiMVector &tb,
-			   const ROOT::Math::PtEtaPhiMVector &sb) {
+			   const ROOT::Math::PtEtaPhiMVector &b1,
+			   const ROOT::Math::PtEtaPhiMVector &b2,
+			   const ROOT::Math::PtEtaPhiMVector &nonb1) {
 			 if (!reco) {return -10.0;}
-			 return (tb + sb).Pt();
+			  if (b2.Pt() > 0) return (b1 + b2).Pt();
+			 return (b1 + nonb1).Pt();
 			},
-			{str_is_reco, str_tb_p4, str_sb_p4}
+			{str_is_reco, str_bjet_p4_1, str_bjet_p4_2, str_nonbjet_p4_1}
 			);
 
   auto df8 = df7.Define(str_costhetastar,
@@ -921,14 +927,17 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 
   auto df9 = df8.Define(str_sumht,
 			[](const int reco,
-			   const ROOT::Math::PtEtaPhiMVector &tb,
-			   const ROOT::Math::PtEtaPhiMVector &sb,
+			   const ROOT::Math::PtEtaPhiMVector &b1,
+			   const ROOT::Math::PtEtaPhiMVector &b2,
 			   const ROOT::Math::PtEtaPhiMVector &lep,
 			   const ROOT::Math::PtEtaPhiMVector &met) {
 			  if (!reco) {return -10.0;}
-			  return tb.Pt() + sb.Pt() + lep.Pt() + met.Pt();
+			  double Ht = lep.Pt() + met.Pt();
+			  if (b1.Pt() > 0) Ht += b1.Pt();
+			  if (b2.Pt() > 0) Ht += b2.Pt();
+			  return Ht;
 			},
-			{str_is_reco, str_tb_p4, str_sb_p4, str_lep_p4, str_met_p4}
+			{str_is_reco, str_bjet_p4_1, str_bjet_p4_2, str_lep_p4, str_met_p4}
 			);
 
 
@@ -988,15 +997,18 @@ ROOT::RDF::RNode DNNQuantities(ROOT::RDF::RNode df,
 			 {str_is_reco, str_good_jetslowpt_mask, str_jet_pt, str_jet_eta, str_jet_phi, str_jet_mass}
 			 );
 
-  auto df11 = df10.Define(str_deta_topsb_tb,
+  auto df11 = df10.Define(str_deta_topb2_b1,
 			  [](const int reco,
-			     const ROOT::Math::PtEtaPhiMVector &tb,
-			     const ROOT::Math::PtEtaPhiMVector &sb,
+			     const ROOT::Math::PtEtaPhiMVector &b1,
+			     const ROOT::Math::PtEtaPhiMVector &b2,
+			     const ROOT::Math::PtEtaPhiMVector &nonb1,
 			     const ROOT::Math::PtEtaPhiMVector &wlep) {
 			    if (!reco) {return -10.0;}
-			    return abs((sb + wlep).Eta() - tb.Eta());
+			    if (b2.Pt() > 0) return abs((b2 + wlep).Eta() - b1.Eta());
+			    return abs((nonb1 + wlep).Eta() - b1.Eta());
+
 			  },
-			  {str_is_reco, str_tb_p4, str_sb_p4, str_wlep_p4}
+			  {str_is_reco, str_bjet_p4_1, str_bjet_p4_2, str_nonbjet_p4_1, str_wlep_p4}
 			  );
 
 
@@ -1590,16 +1602,11 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
       "down_uncorrelated"
       };
 
-  auto btag_sf = [evaluator_btag_sf_HF,
-		  evaluator_btag_sf_LF,
-		  btag_corr_algo_HF,
-		  btag_corr_algo_LF,
-		  evaluator_btag_eff_b,
-		  evaluator_btag_eff_c,
-		  evaluator_btag_eff_udsg,
+  auto btag_sf = [evaluator_btag_sf_HF, evaluator_btag_sf_LF,
+		  btag_corr_algo_HF, btag_corr_algo_LF,
+		  evaluator_btag_eff_b, evaluator_btag_eff_c, evaluator_btag_eff_udsg,
 		  btag_wp,
-		  shift_HF,
-		  shift_LF
+		  shift_HF, shift_LF
 		  ](const int &is_iso,
 		      const int &is_reco,
 		      const int &is_jjb,
@@ -1650,21 +1657,15 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 
       if (bjet_flavor_1 == 5) {
 	eff_b1 = evaluator_btag_eff_b->evaluate({bjet_eta_1, bjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
       }
       else if (bjet_flavor_1 == 4) {
 	eff_b1 = evaluator_btag_eff_c->evaluate({bjet_eta_1, bjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
       }
       else {
 	eff_b1 = evaluator_btag_eff_udsg->evaluate({bjet_eta_1, bjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_b1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
       }
 
       P_MC *= eff_b1;
@@ -1676,21 +1677,15 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 
       if (nonbjet_flavor_1 == 5) {
 	eff_nonb1 = evaluator_btag_eff_b->evaluate({nonbjet_eta_1, nonbjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
       }
       else if (nonbjet_flavor_1 == 4) {
 	eff_nonb1 = evaluator_btag_eff_c->evaluate({nonbjet_eta_1, nonbjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
       }
       else {
 	eff_nonb1 = evaluator_btag_eff_udsg->evaluate({nonbjet_eta_1, nonbjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_nonb1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_nonb1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
       }
 
       P_MC *= (1 - eff_nonb1);
@@ -1710,21 +1705,15 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 
       if (bjet_flavor_1 == 5) {
 	eff_b1 = evaluator_btag_eff_b->evaluate({bjet_eta_1, bjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
       }
       else if (bjet_flavor_1 == 4) {
 	eff_b1 = evaluator_btag_eff_c->evaluate({bjet_eta_1, bjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
       }
       else {
 	eff_b1 = evaluator_btag_eff_udsg->evaluate({bjet_eta_1, bjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_b1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
       }
 
       P_MC *= eff_b1;
@@ -1736,21 +1725,15 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 
       if (bjet_flavor_2 == 5) {
 	eff_b2 = evaluator_btag_eff_b->evaluate({bjet_eta_2, bjet_pt_2});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
-	}
+	for (int i = 0; i < n_var; i++) sf_b2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
       }
       else if (bjet_flavor_2 == 4) {
 	eff_b2 = evaluator_btag_eff_c->evaluate({bjet_eta_2, bjet_pt_2});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
-	}
+	for (int i = 0; i < n_var; i++) sf_b2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
       }
       else {
 	eff_b2 = evaluator_btag_eff_udsg->evaluate({bjet_eta_2, bjet_pt_2});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b2[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
-	}
+	for (int i = 0; i < n_var; i++) sf_b2[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
       }
 
       P_MC *= (1 - eff_b2);
@@ -1771,21 +1754,15 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 
       if (bjet_flavor_1 == 5) {
 	eff_b1 = evaluator_btag_eff_b->evaluate({bjet_eta_1, bjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
       }
       else if (bjet_flavor_1 == 4) {
 	eff_b1 = evaluator_btag_eff_c->evaluate({bjet_eta_1, bjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
       }
       else {
 	eff_b1 = evaluator_btag_eff_udsg->evaluate({bjet_eta_1, bjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_b1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
       }
 
       P_MC *= eff_b1;
@@ -1797,21 +1774,15 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 
       if (nonbjet_flavor_1 == 5) {
 	eff_nonb1 = evaluator_btag_eff_b->evaluate({nonbjet_eta_1, nonbjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
       }
       else if (nonbjet_flavor_1 == 4) {
 	eff_nonb1 = evaluator_btag_eff_c->evaluate({nonbjet_eta_1, nonbjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
       }
       else {
 	eff_nonb1 = evaluator_btag_eff_udsg->evaluate({nonbjet_eta_1, nonbjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_nonb1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_nonb1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
       }
 
       P_MC *= (1 - eff_nonb1);
@@ -1823,21 +1794,15 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 
       if (nonbjet_flavor_2 == 5) {
 	eff_nonb2 = evaluator_btag_eff_b->evaluate({nonbjet_eta_2, nonbjet_pt_2});
-	for (int i = 0; i < n_var; i++) {
-	  sf_nonb2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_2, std::abs(nonbjet_eta_2), nonbjet_pt_2});
-	}
+	for (int i = 0; i < n_var; i++) sf_nonb2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_2, std::abs(nonbjet_eta_2), nonbjet_pt_2});
       }
       else if (nonbjet_flavor_2 == 4) {
 	eff_nonb2 = evaluator_btag_eff_c->evaluate({nonbjet_eta_2, nonbjet_pt_2});
-	for (int i = 0; i < n_var; i++) {
-	  sf_nonb2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_2, std::abs(nonbjet_eta_2), nonbjet_pt_2});
-	}
+	for (int i = 0; i < n_var; i++) sf_nonb2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_2, std::abs(nonbjet_eta_2), nonbjet_pt_2});
       }
       else {
 	eff_nonb2 = evaluator_btag_eff_udsg->evaluate({nonbjet_eta_2, nonbjet_pt_2});
-	for (int i = 0; i < n_var; i++) {
-	  sf_nonb2[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, nonbjet_flavor_2, std::abs(nonbjet_eta_2), nonbjet_pt_2});
-	}
+	for (int i = 0; i < n_var; i++) sf_nonb2[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, nonbjet_flavor_2, std::abs(nonbjet_eta_2), nonbjet_pt_2});
       }
 
       P_MC *= (1 - eff_nonb2);
@@ -1858,21 +1823,15 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 
       if (bjet_flavor_1 == 5) {
 	eff_b1 = evaluator_btag_eff_b->evaluate({bjet_eta_1, bjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
       }
       else if (bjet_flavor_1 == 4) {
 	eff_b1 = evaluator_btag_eff_c->evaluate({bjet_eta_1, bjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_b1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
       }
       else {
 	eff_b1 = evaluator_btag_eff_udsg->evaluate({bjet_eta_1, bjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_b1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_1, std::abs(bjet_eta_1), bjet_pt_1});
       }
 
       P_MC *= eff_b1;
@@ -1884,21 +1843,15 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 
       if (bjet_flavor_2 == 5) {
 	eff_b2 = evaluator_btag_eff_b->evaluate({bjet_eta_2, bjet_pt_2});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
-	}
+	for (int i = 0; i < n_var; i++) sf_b2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
       }
       else if (bjet_flavor_2 == 4) {
 	eff_b2 = evaluator_btag_eff_c->evaluate({bjet_eta_2, bjet_pt_2});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
-	}
+	for (int i = 0; i < n_var; i++) sf_b2[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
       }
       else {
 	eff_b2 = evaluator_btag_eff_udsg->evaluate({bjet_eta_2, bjet_pt_2});
-	for (int i = 0; i < n_var; i++) {
-	  sf_b2[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
-	}
+	for (int i = 0; i < n_var; i++) sf_b2[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
       }
 
       P_MC *= (1 - eff_b2);
@@ -1910,21 +1863,15 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 
       if (nonbjet_flavor_1 == 5) {
 	eff_nonb1 = evaluator_btag_eff_b->evaluate({nonbjet_eta_1, nonbjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
       }
       else if (nonbjet_flavor_1 == 4) {
 	eff_nonb1 = evaluator_btag_eff_c->evaluate({nonbjet_eta_1, nonbjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_nonb1[i] = evaluator_btag_sf_HF->evaluate({shift_HF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
       }
       else {
 	eff_nonb1 = evaluator_btag_eff_udsg->evaluate({nonbjet_eta_1, nonbjet_pt_1});
-	for (int i = 0; i < n_var; i++) {
-	  sf_nonb1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
-	}
+	for (int i = 0; i < n_var; i++) sf_nonb1[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, nonbjet_flavor_1, std::abs(nonbjet_eta_1), nonbjet_pt_1});
       }
 
       P_MC *= (1 - eff_nonb1);
