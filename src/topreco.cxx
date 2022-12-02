@@ -1736,9 +1736,9 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 	for (int i = 0; i < n_var; i++) sf_b2[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
       }
 
-      P_MC *= (1 - eff_b2);
+      P_MC *= eff_b2;
       for (int i = 0; i < n_var; i++) {
-	P_data[i] *= (1 - sf_b2[i] * eff_b2);
+	P_data[i] *= sf_b2[i] * eff_b2;
 	Logger::get("btagsf")->debug("updating P ... eff_b2 {}, sf_b2 {}, P_MC {}, P_data {}", eff_b2, sf_b2[i], P_MC, P_data[i]);
       }
 
@@ -1854,9 +1854,9 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 	for (int i = 0; i < n_var; i++) sf_b2[i] = evaluator_btag_sf_LF->evaluate({shift_LF[i], btag_wp, bjet_flavor_2, std::abs(bjet_eta_2), bjet_pt_2});
       }
 
-      P_MC *= (1 - eff_b2);
+      P_MC *= eff_b2;
       for (int i = 0; i < n_var; i++) {
-	P_data[i] *= (1 - sf_b2[i] * eff_b2);
+	P_data[i] *= sf_b2[i] * eff_b2;
 	Logger::get("btagsf")->debug("updating P ... eff_b2 {}, sf_b2 {}, P_MC {}, P_data {}", eff_b2, sf_b2[i], P_MC, P_data[i]);
       }
 
