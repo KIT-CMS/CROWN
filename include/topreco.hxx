@@ -210,7 +210,8 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
 				  const std::string &btag_corr_algo_LF,
 				  const std::string &btag_eff_file,
 				  const std::string &btag_eff_type,
-				  const std::string &btag_wp
+				  const std::string &btag_wp,
+				  const float &max_bjet_eta_sf
 				  );
 
 } // end namespace topreco
