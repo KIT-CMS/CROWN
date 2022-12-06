@@ -1553,13 +1553,13 @@ ROOT::RDF::RNode BTagScaleFactors(ROOT::RDF::RNode df,
   Logger::get("btagsf")->debug("B tagging EFF - File {}", btag_eff_file);
 
 
-  std::string btag_eff_name_b = "ttbar_b";
-  std::string btag_eff_name_c = "ttbar_c";
-  std::string btag_eff_name_udsg = "ttbar_udsg";
-  if (btag_eff_type == "vjets") {
-    btag_eff_name_b = "wjets_b";
-    btag_eff_name_c = "wjets_c";
-    btag_eff_name_udsg = "wjets_udsg";
+  std::string btag_eff_name_b = "top_b";
+  std::string btag_eff_name_c = "top_c";
+  std::string btag_eff_name_udsg = "top_l";
+  if (btag_eff_type == "ewk") {
+    btag_eff_name_b = "ewk_b";
+    btag_eff_name_c = "ewk_c";
+    btag_eff_name_udsg = "ewk_l";
   }
 
   Logger::get("btagsf")->debug("B tagging EFF - Name {} b, {}", btag_eff_type, btag_eff_name_b);
