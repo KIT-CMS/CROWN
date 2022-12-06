@@ -961,12 +961,12 @@ ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
         df.Define(maskname, basefunctions::FilterMinInt(IDvalue), {nameID});
     return df1;
 }
-/// Function to cut electrons based on the cut based electron ID
+/// Function to cut electrons based on failing the cut based electron ID
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to
 /// the dataframe \param[in] nameID name of the ID column in the NanoAOD
-/// \param[in] IDvalue value of the WP the has to be passed
+/// \param[in] IDvalue value of the WP the has to be failed
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode AntiCutCBID(ROOT::RDF::RNode df, const std::string &maskname,
