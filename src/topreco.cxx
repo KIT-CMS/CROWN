@@ -50,7 +50,9 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_is_iso,
 				 const std::string &str_lep_p4,
 				 const std::string &str_lep_sceta,
-				 const std::string &str_lep_charge
+				 const std::string &str_lep_charge,
+				 const std::string &str_mu_index,
+				 const std::string &str_el_index
 				 ) {
 
 
@@ -129,13 +131,85 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 			);
 
 
+  auto lep_mu_index = [](const int is_mu,
+			 const int is_iso,
+			 const ROOT::RVec<int> &tight_muons_mask,
+			 const ROOT::RVec<int> &antitight_muons_mask) {
+
+    Logger::get("lep_mu_index")->debug("mask mu {}, mask size mu {}, max in mu {}, index of max in mu {}",
+				       tight_muons_mask,
+				       tight_muons_mask.size(),
+				       ROOT::VecOps::Max(tight_muons_mask),
+				       ROOT::VecOps::ArgMax(tight_muons_mask));
+
+    int lep_mu_index = -1;
+
+    if (is_iso == 0 || is_mu == 0) {
+      return lep_mu_index;
+    }
+    else if (is_iso == +1 && is_mu == 1) {
+	Logger::get("lep_mu_index")->debug("---> should reco iso mu...");
+	lep_mu_index = ROOT::VecOps::ArgMax(tight_muons_mask);
+    }
+    else if (is_iso == -1 && is_mu == 1) {
+	Logger::get("lep_mu_index")->debug("---> should reco antiiso mu...");
+	lep_mu_index = ROOT::VecOps::ArgMax(antitight_muons_mask);
+    }
+
+    return lep_mu_index;
+
+  };
+
+  auto df7 = df6.Define(str_mu_index,
+			lep_mu_index,
+			{str_is_mu, str_is_iso,
+			    str_tight_muons_mask,
+			    str_antitight_muons_mask}
+			);
+
+
+  auto lep_el_index = [](const int is_el,
+			 const int is_iso,
+			 const ROOT::RVec<int> &tight_electrons_mask,
+			 const ROOT::RVec<int> &antitight_electrons_mask) {
+
+    Logger::get("lep_el_index")->debug("mask el {}, mask size el {}, max in el {}, index of max in el {}",
+				       tight_electrons_mask,
+				       tight_electrons_mask.size(),
+				       ROOT::VecOps::Max(tight_electrons_mask),
+				       ROOT::VecOps::ArgMax(tight_electrons_mask));
+
+    int lep_el_index = -1;
+
+    if (is_iso == 0 || is_el == 0) {
+      return lep_el_index;
+    }
+    else if (is_iso == +1 && is_el == 1) {
+	Logger::get("lep_el_index")->debug("---> should reco iso el...");
+	lep_el_index = ROOT::VecOps::ArgMax(tight_electrons_mask);
+    }
+    else if (is_iso == -1 && is_el == 1) {
+	Logger::get("lep_el_index")->debug("---> should reco antiiso el...");
+	lep_el_index = ROOT::VecOps::ArgMax(antitight_electrons_mask);
+    }
+
+    return lep_el_index;
+
+  };
+
+  auto df7a = df7.Define(str_el_index,
+			lep_el_index,
+			{str_is_el, str_is_iso,
+			    str_tight_electrons_mask,
+			    str_antitight_electrons_mask}
+			);
+
+
   auto lep_p4 = [](const int is_mu,
 		   const int is_el,
 		   const int is_iso,
-		   const ROOT::RVec<int> &tight_muons_mask,
-		   const ROOT::RVec<int> &tight_electrons_mask,
-		   const ROOT::RVec<int> &antitight_muons_mask,
-		   const ROOT::RVec<int> &antitight_electrons_mask,
+		   const int mu_index,
+		   const int el_index,
 		   const ROOT::RVec<float> &mu_pt,
 		   const ROOT::RVec<float> &mu_eta,
 		   const ROOT::RVec<float> &mu_phi,
@@ -145,15 +219,6 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 		   const ROOT::RVec<float> &el_phi,
 		   const ROOT::RVec<float> &el_mass) {
 
-    Logger::get("lep_p4")->debug("masks mu {}, el {}",
-    				 tight_muons_mask, tight_electrons_mask);
-    Logger::get("lep_p4")->debug("mask sizes mu {}, el {}",
-    				 tight_muons_mask.size(), tight_electrons_mask.size());
-    Logger::get("lep_p4")->debug("max in mu {}, el {}",
-    				 ROOT::VecOps::Max(tight_muons_mask), ROOT::VecOps::Max(tight_electrons_mask));
-    Logger::get("lep_p4")->debug("index of max in mu {}, el {}",
-    				 ROOT::VecOps::ArgMax(tight_muons_mask), ROOT::VecOps::ArgMax(tight_electrons_mask));
-
     auto lep = ROOT::Math::PtEtaPhiMVector(-10,-10,-10,-10);
 
     if (is_iso == 0) {
@@ -161,34 +226,30 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
     }
     else if (is_iso == +1) {
       if (is_mu) {
-	Logger::get("lep_p4")->debug("---> should reco iso mu...");
-	lep = ROOT::Math::PtEtaPhiMVector(mu_pt.at(ROOT::VecOps::ArgMax(tight_muons_mask),-2),
-					  mu_eta.at(ROOT::VecOps::ArgMax(tight_muons_mask),-2),
-					  mu_phi.at(ROOT::VecOps::ArgMax(tight_muons_mask),-2),
-					  mu_mass.at(ROOT::VecOps::ArgMax(tight_muons_mask),-2));
+	lep = ROOT::Math::PtEtaPhiMVector(mu_pt.at(mu_index,-2),
+					  mu_eta.at(mu_index,-2),
+					  mu_phi.at(mu_index,-2),
+					  mu_mass.at(mu_index,-2));
       }
       else if (is_el) {
-	Logger::get("lep_p4")->debug("---> should reco iso el...");
-	lep = ROOT::Math::PtEtaPhiMVector(el_pt.at(ROOT::VecOps::ArgMax(tight_electrons_mask),-3),
-					  el_eta.at(ROOT::VecOps::ArgMax(tight_electrons_mask),-3),
-					  el_phi.at(ROOT::VecOps::ArgMax(tight_electrons_mask),-3),
-					  el_mass.at(ROOT::VecOps::ArgMax(tight_electrons_mask),-3));
+	lep = ROOT::Math::PtEtaPhiMVector(el_pt.at(el_index,-3),
+					  el_eta.at(el_index,-3),
+					  el_phi.at(el_index,-3),
+					  el_mass.at(el_index,-3));
       }
     }
     else if (is_iso == -1) {
       if (is_mu) {
-	Logger::get("lep_p4")->debug("---> should reco antiiso mu...");
-	lep = ROOT::Math::PtEtaPhiMVector(mu_pt.at(ROOT::VecOps::ArgMax(antitight_muons_mask),-4),
-					  mu_eta.at(ROOT::VecOps::ArgMax(antitight_muons_mask),-4),
-					  mu_phi.at(ROOT::VecOps::ArgMax(antitight_muons_mask),-4),
-					  mu_mass.at(ROOT::VecOps::ArgMax(antitight_muons_mask),-4));
+	lep = ROOT::Math::PtEtaPhiMVector(mu_pt.at(mu_index,-4),
+					  mu_eta.at(mu_index,-4),
+					  mu_phi.at(mu_index,-4),
+					  mu_mass.at(mu_index,-4));
       }
       else if (is_el) {
-	Logger::get("lep_p4")->debug("---> should reco antiiso el...");
-	lep = ROOT::Math::PtEtaPhiMVector(el_pt.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),-5),
-					  el_eta.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),-5),
-					  el_phi.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),-5),
-					  el_mass.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),-5));
+	lep = ROOT::Math::PtEtaPhiMVector(el_pt.at(el_index,-5),
+					  el_eta.at(el_index,-5),
+					  el_phi.at(el_index,-5),
+					  el_mass.at(el_index,-5));
       }
     }
     else {
@@ -202,19 +263,19 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 
   };
 
-  auto df7 = df6.Define(str_lep_p4,
+  auto df7b = df7a.Define(str_lep_p4,
 			lep_p4,
 			{str_is_mu, str_is_el, str_is_iso,
-			    str_tight_muons_mask, str_tight_electrons_mask,
-			    str_antitight_muons_mask, str_antitight_electrons_mask,
+			    str_mu_index, str_el_index,
 			    str_mu_pt, str_mu_eta, str_mu_phi, str_mu_mass,
 			    str_el_pt, str_el_eta, str_el_phi, str_el_mass}
 			);
 
+
+
 auto lep_sceta = [](const int is_el,
 		    const int is_iso,
-		    const ROOT::RVec<int> &tight_electrons_mask,
-		    const ROOT::RVec<int> &antitight_electrons_mask,
+		    const int el_index,
 		    const ROOT::RVec<float> &el_eta,
 		    const ROOT::RVec<float> &el_detasc) {
 
@@ -225,22 +286,21 @@ auto lep_sceta = [](const int is_el,
     }
     else if (is_iso == +1) {
       if (is_el) {
-	lep_sceta = el_eta.at(ROOT::VecOps::ArgMax(tight_electrons_mask),-5) + el_detasc.at(ROOT::VecOps::ArgMax(tight_electrons_mask),-5);
+	lep_sceta = el_eta.at(el_index,-5) + el_detasc.at(el_index,-5);
       }
     }
     else if (is_iso == -1) {
       if (is_el) {
-	lep_sceta = el_eta.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),-5) + el_detasc.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),-5);
+	lep_sceta = el_eta.at(el_index,-5) + el_detasc.at(el_index,-5);
       }
     }
     return lep_sceta;
   };
 
-  auto df7b = df7.Define(str_lep_sceta,
+  auto df7c = df7b.Define(str_lep_sceta,
 			lep_sceta,
 			{str_is_el, str_is_iso,
-			    str_tight_electrons_mask,
-			    str_antitight_electrons_mask,
+			    str_el_index,
 			    str_el_eta, str_el_detasc}
 			);
 
@@ -249,10 +309,8 @@ auto lep_sceta = [](const int is_el,
   auto lep_charge= [](const int is_mu,
 		      const int is_el,
 		      const int is_iso,
-		      const ROOT::RVec<int> &tight_muons_mask,
-		      const ROOT::RVec<int> &tight_electrons_mask,
-		      const ROOT::RVec<int> &antitight_muons_mask,
-		      const ROOT::RVec<int> &antitight_electrons_mask,
+		      const int mu_index,
+		      const int el_index,
 		      const ROOT::RVec<int> &mu_charge,
 		      const ROOT::RVec<int> &el_charge) {
 
@@ -263,18 +321,18 @@ auto lep_sceta = [](const int is_el,
     }
     else if (is_iso == +1) {
       if (is_mu) {
-	charge = mu_charge.at(ROOT::VecOps::ArgMax(tight_muons_mask),-2);
+	charge = mu_charge.at(mu_index,-2);
       }
       else if (is_el) {
-	charge = el_charge.at(ROOT::VecOps::ArgMax(tight_electrons_mask),-3);
+	charge = el_charge.at(el_index,-3);
       }
     }
     else if (is_iso == -1) {
       if (is_mu) {
-	charge = mu_charge.at(ROOT::VecOps::ArgMax(antitight_muons_mask),-4);
+	charge = mu_charge.at(mu_index,-4);
       }
       else if (is_el) {
-	charge = el_charge.at(ROOT::VecOps::ArgMax(antitight_electrons_mask),-5);
+	charge = el_charge.at(el_index,-5);
       }
     }
     else {
@@ -285,11 +343,10 @@ auto lep_sceta = [](const int is_el,
   };
 
 
-  auto df8 = df7b.Define(str_lep_charge,
+  auto df8 = df7c.Define(str_lep_charge,
 			lep_charge,
 			{str_is_mu, str_is_el, str_is_iso,
-			    str_tight_muons_mask, str_tight_electrons_mask,
-			    str_antitight_muons_mask, str_antitight_electrons_mask,
+			    str_mu_index, str_el_index,
 			    str_mu_charge,
 			    str_el_charge}
 			);
