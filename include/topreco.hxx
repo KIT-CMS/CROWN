@@ -42,7 +42,9 @@ ROOT::RDF::RNode LeptonSelection(ROOT::RDF::RNode df,
 				 const std::string &str_is_iso,
 				 const std::string &str_lep_p4,
 				 const std::string &str_lep_sceta,
-				 const std::string &str_lep_charge
+				 const std::string &str_lep_charge,
+				 const std::string &str_mu_index,
+				 const std::string &str_el_index
 				 );
 
 double rad_py(double x, double lep_px);
