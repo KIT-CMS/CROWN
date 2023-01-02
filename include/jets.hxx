@@ -11,6 +11,11 @@ ROOT::RDF::RNode
 VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
                     const std::string &jet_eta, const std::string &jet_phi,
                     const std::string &p4_1, const float &deltaRmin);
+ROOT::RDF::RNode
+VetoOverlappingJetsIsoLepOnly(ROOT::RDF::RNode df, const std::string &output_col,
+			      const std::string &jet_eta, const std::string &jet_phi,
+			      const std::string &p4_1, const std::string &lep_is_iso,
+			      const float &deltaRmin);
 ROOT::RDF::RNode OrderJetsByPt(ROOT::RDF::RNode df,
                                const std::string &output_col,
                                const std::string &jet_pt,
