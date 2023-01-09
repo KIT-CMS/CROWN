@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: update Arch keyring
-        run: pacman -Syy --needed archlinux-keyring --noconfirm
+        run: pacman -Sy archlinux-keyring --noconfirm && yes | pacman-key --init && yes | pacman-key --populate && pacman -Sy archlinux-keyring
 
       - name: Install missing software
         run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost --ignore root --ignore libinih
