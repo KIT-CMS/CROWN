@@ -22,7 +22,7 @@ jobs:
   build_project:
     runs-on: ubuntu-20.04
     container:
-      image: rootproject/root:6.26.00-arch
+      image: rootproject/6.26.10-arch
       options: --user 0 # run as root
 
     steps:
