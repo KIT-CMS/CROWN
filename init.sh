@@ -14,11 +14,9 @@ echo "Setting up CROWN for $distro Version $os_version"
 if [[ "$distro" == "CentOS" ]]; then
     # if the first number of os_version is a 7, we are on centOS 7
     if [[ ${os_version:0:1} == "7" ]]; then # if uname -a | grep -E 'el7' -q
-        # source /cvmfs/sft.cern.ch/lcg/views/LCG_99/x86_64-centos7-clang10-opt/setup.sh
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-gcc11-opt/setup.sh
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-clang12-opt/setup.sh
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-gcc11-dbg/setup.sh
-        ### Use a more permanent LCG stack, for now LCG 102
         source /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/setup.sh
     else
         echo "Unsupported CentOS version, exiting..."
