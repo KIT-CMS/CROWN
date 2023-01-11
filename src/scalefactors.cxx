@@ -369,7 +369,7 @@ ROOT::RDF::RNode id_vsJet_lt_embedding(
 channel with the correctionlib for tauembedded samples
 
  * @param df The input dataframe
- * @param decayMode decay mode of the tau
+ * @param decaymode decay mode of the tau
  * @param wp working point of the ID cut
  * @param sf_vsjet_tauDM0 id for the variation of the scale factor "sf" for
 nominal
