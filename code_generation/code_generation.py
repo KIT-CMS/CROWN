@@ -313,6 +313,8 @@ class CodeGenerator(object):
                 .replace("{ANALYSISTAG}", '"Analysis={}"'.format(self.analysis_name))
                 .replace("{PROGRESS_CALLBACK}", self.set_process_tracking())
                 .replace("{OUTPUT_QUANTITIES}", self.set_output_quantities())
+                .replace("{SHIFT_QUANTITES_MAP}", self.set_shift_quantites_map())
+                .replace("{QUANTITES_SHIFT_MAP}", self.set_quantites_shift_map())
                 .replace("{SYSTEMATIC_VARIATIONS}", self.set_shifts())
                 .replace("{COMMITHASH}", '"{}"'.format(self.commit_hash))
                 .replace("{SETUP_IS_CLEAN}", self.setup_is_clean)
@@ -616,3 +618,107 @@ class CodeGenerator(object):
         )
         tracking += "    });\n"
         return tracking
+
+    def set_shift_quantites_map(self) -> str:
+        """
+        This function is used to generate a mappin of all quantites and the shifts,
+        the quantities are used in to be stored in the output file.
+        The ordering is based on the shifts:
+
+        Example:
+            {
+                "shift_1" : ["quantity_1", "quantity_2", "quantity_3"],
+                "shift_2" : ["quantity_1", "quantity_3"],
+                "shift_3" : ["quantity_1"]
+            }
+
+        This information will be stored in the root file as
+        shift_quantities_map and can be accessed to get the correct mapping
+        """
+        ctring = "{"
+        for scope in self.scopes:
+            outputset: List[str] = []
+            output_map: Dict[str, List[str]] = {}
+            for output in sorted(self.outputs[scope]):
+                self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
+            if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
+                # convert output lists to a set to remove duplicates
+                outputset = list(
+                    set(
+                        self.output_commands[scope]
+                        + self.output_commands[self.global_scope]
+                    )
+                )
+                # now split by __ and get a set of all the shifts per variable
+                for i, output in enumerate(outputset):
+                    try:
+                        quantity, shift = output.split("__")
+                    except ValueError:
+                        quantity = output
+                        shift = ""
+                    if shift not in output_map.keys():
+                        output_map[shift] = []
+                    output_map[shift].append(quantity)
+                # now do some string magic to get the correct format, dont ask about the details..
+                output_map_str = "{ "
+                for shift in output_map.keys():
+                    output_map_str += f'"{shift}"' + ' , { "'
+                    output_map_str += '", "'.join(output_map[shift])
+                    output_map_str += '" }},{'
+                output_map_str = output_map_str[:-4] + "}}"
+                ctring += "{" + self._outputfiles_generated[scope] + " , {"
+                ctring += f"{output_map_str}" + "}},"
+        ctring = ctring[:-2] + " }}"
+        return ctring
+
+    def set_quantites_shift_map(self) -> str:
+        """
+        This function is used to generate a mappin of all quantites and the shifts,
+        the quantities are used in to be stored in the output file.
+        The ordering is based on the quantities:
+
+        Example:
+        {
+            "quantity_1" : ["shift_1", "shift_2", "shift_3"],
+            "quantity_2" : ["shift_1"],
+            "quantity_3" : ["shift_1", "shift_2"],
+        }
+
+        This information will be stored in the root file as quantities_shift_map
+        and can be accessed to get the correct mapping
+        """
+        ctring = "{"
+        for scope in self.scopes:
+            outputset: List[str] = []
+            output_map: Dict[str, List[str]] = {}
+            for output in sorted(self.outputs[scope]):
+                self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
+            if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
+                # convert output lists to a set to remove duplicates
+                outputset = list(
+                    set(
+                        self.output_commands[scope]
+                        + self.output_commands[self.global_scope]
+                    )
+                )
+                # now split by __ and get a set of all the shifts per variable
+                for i, output in enumerate(outputset):
+                    try:
+                        quantity, shift = output.split("__")
+                    except ValueError:
+                        quantity = output
+                        shift = ""
+                    if quantity not in output_map.keys():
+                        output_map[quantity] = []
+                    output_map[quantity].append(shift)
+                # now do some string magic to get the correct format, dont ask about the details..
+                output_map_str = "{ "
+                for quantity in output_map.keys():
+                    output_map_str += f'"{quantity}"' + ' , { "'
+                    output_map_str += '", "'.join(output_map[quantity])
+                    output_map_str += '" }},{'
+                output_map_str = output_map_str[:-4] + "}}"
+                ctring += "{" + self._outputfiles_generated[scope] + " , {"
+                ctring += f"{output_map_str}" + "}},"
+        ctring = ctring[:-2] + " }}"
+        return ctring
