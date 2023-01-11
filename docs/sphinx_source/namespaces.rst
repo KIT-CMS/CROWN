@@ -1,9 +1,14 @@
 Documentation of Namespaces from C++
 =====================================
 
-Pairquantities
+Basefunctions
 ***************
-.. doxygennamespace:: quantities
+.. doxygennamespace:: basefunctions
+   :members:
+
+Pairselection
+*************
+.. doxygennamespace:: ditau_pairselection
    :members:
 
 Genparticles
@@ -11,31 +16,9 @@ Genparticles
 .. doxygennamespace:: genmatching
    :members:
 
-Metfilter
-***********
-.. doxygennamespace:: metfilter
-   :members:
-
-Basefunctions
-*************
-.. doxygennamespace:: basefunctions
-   :members:
-.. doxygennamespace:: vectoroperations
-   :members:
-
-Pairselection
-*************
-.. doxygennamespace:: pairselection
-   :members:
-
-Physicsobjects
+HTXS
 ***************
-.. doxygennamespace:: physicsobject
-   :members:
-
-Scalefactors
-***************
-.. doxygennamespace:: scalefactor
+.. doxygennamespace:: htxs
    :members:
 
 Jets
@@ -43,27 +26,53 @@ Jets
 .. doxygennamespace:: jet
    :members:
 
-Trigger
-***************
-.. doxygennamespace:: trigger
-   :members:
-
 Lorentzvectors
 ***************
 .. doxygennamespace:: lorentzvectors
    :members:
 
-HTXS
+MET
 ***************
-.. doxygennamespace:: htxs
+.. doxygennamespace:: met
    :members:
+
+Metfilter
+***********
+.. doxygennamespace:: metfilter
+   :members:
+
+Physicsobjects
+***************
+.. doxygennamespace:: physicsobject
+   :members:
+
+Particle Quantities
+********************
+.. doxygennamespace:: quantities
+   :members:
+
 
 Reweighting
 ***************
 .. doxygennamespace:: reweighting
    :members:
-   
-MET
+
+Scalefactors
 ***************
-.. doxygennamespace:: met
+.. doxygennamespace:: scalefactor
    :members:
+
+
+Trigger
+***************
+.. doxygennamespace:: trigger
+   :members:
+
+
+Vectoroperations
+******************
+.. doxygennamespace:: vectoroperations
+   :members:
+
+
+   

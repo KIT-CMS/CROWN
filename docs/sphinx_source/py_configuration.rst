@@ -90,9 +90,15 @@ Parameters are added using the :py:func:`~code_generation.configuration.Configur
 
 This adds the parameters ``muon_iso_cut``, ``min_muon_pt``, ``max_muon_eta`` and ``muon_id`` to the parameter list of the producers ``mm`` and ``mt``. These parameters can be used by any producer in the ``mm`` and ``mt`` scope, and will be set to the given values. So e.g. in the :py:obj:`~code_generation.producers.muons.GoodMuonPtCut` producer
 
-.. literalinclude:: ../../code_generation/producers/muons.py
-   :language: python
-   :lines: 71-77
+.. code-block:: python
+
+    GoodMuonPtCut = Producer(
+        name="GoodMuonPtCut",
+        call="physicsobject::CutPt({df}, {input}, {output}, {min_muon_pt})",
+        input=[nanoAOD.Muon_pt],
+        output=[],
+        scopes=["em", "mt", "mm"],
+    )
 
 the parameter ``min_muon_pt`` will be set to 23.0.
 
@@ -165,7 +171,7 @@ The set of producers to be run can be defined using the :py:func:`~code_generati
 
 In this example, the producers ``GoodMuons``, ``VetoMuons``, ``MMPairSelection`` and ``GoodMMPairFilter`` are added to the list of producers ``mm``. The producers added here can be both a :py:class:`~code_generation.producer.Producer` or a :py:class:`~code_generation.producers.ProducerGroup`. Also, the order of the producers is not important. Using the :py:func:`~code_generation.configuration.Configuration.optimize` function, the producers ordering will be optimized, such that filters are always run first, and that producers that depend on other producers are run after the producers that they depend on.
 
-The collection of available producers can be found in the :py:mod:`code_generation.producers` folder. An explanation on how producers are setup and linked to their corresponding C++ function is given in :ref:`Implementing the python interface for a new Producer`.
+The collection of available producers can be found in the :py:mod:`code_generation.producers` folder. An explanation on how producers are setup and linked to their corresponding C++ function is given in :ref:`Defining a new python Producer`.
 
 Systematic Variations
 **********************

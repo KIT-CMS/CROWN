@@ -42,12 +42,13 @@ find_python_package(sphinx_rtd_theme sphinx_rtd_theme 0.5)
 
 # Find all headers
 file(GLOB_RECURSE HEADERS
-    ${PROJECT_SOURCE_DIR}/../*.hxx
-    ${PROJECT_SOURCE_DIR}/../utility/*.hxx)
+    ${PROJECT_SOURCE_DIR}/../include/*.hxx
+    ${PROJECT_SOURCE_DIR}/../include/*/*.hxx)
 
 # Write doxyfile
 # Replace variables inside @@ with the current values
-set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/../src) # set in Doxyfile.in
+set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/../src ${PROJECT_SOURCE_DIR}/../include ${PROJECT_SOURCE_DIR}/../src/utility) # set in Doxyfile.in
+list(JOIN DOXYGEN_INPUT_DIR "\" \"" DOXYGEN_INPUT_DIR)
 set(DOXYGEN_OUTPUT_DIR ${PROJECT_BINARY_DIR}/docs/) # set in Doxyfile.in
 set(DOXYFILE_IN ${PROJECT_SOURCE_DIR}/Doxyfile.in)
 set(DOXYFILE_OUT ${PROJECT_BINARY_DIR}/Doxyfile)
