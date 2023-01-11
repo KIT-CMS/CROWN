@@ -17,7 +17,10 @@
 #include "include/utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
 #include <TFile.h>
+#include <TMap.h>
+#include <TObjString.h>
 #include <TTree.h>
+#include <TVector.h>
 #include <regex>
 #include <string>
 
@@ -52,7 +55,7 @@ int main(int argc, char *argv[]) {
         input_files.push_back(std::string(argv[i]));
         // Check if the input file exists and is readable, also get the number
         // of events, using a timeout of 30 seconds
-        TFile *f1 = TFile::Open(argv[i],"TIMEOUT=30");
+        TFile *f1 = TFile::Open(argv[i], "TIMEOUT=30");
         if (!f1 || f1->IsZombie()) {
             Logger::get("main")->critical("File {} does not exist or is not "
                                           "readable",
@@ -91,21 +94,23 @@ int main(int argc, char *argv[]) {
     // clang-format off
     const std::map<std::string, std::vector<std::string>> output_quanties = {OUTPUT_QUANTITIES};
     const std::map<std::string, std::vector<std::string>> variations = {SYSTEMATIC_VARIATIONS};
+    std::map<std::string, std::map<std::string, std::vector<std::string>>> shift_quantities_map = {SHIFT_QUANTITES_MAP};
+    std::map<std::string, std::map<std::string, std::vector<std::string>>> quantities_shift_map = {QUANTITES_SHIFT_MAP};
     // clang-format on
     const std::string analysis = {ANALYSISTAG};
     const std::string era = {ERATAG};
     const std::string sample = {SAMPLETAG};
     const std::string commit_hash = {COMMITHASH};
     bool setup_clean = {SETUP_IS_CLEAN};
-    for (auto const &x : output_quanties) {
-        TFile outputfile(x.first.c_str(), "UPDATE");
+    for (auto const &scope : output_quanties) {
+        TFile outputfile(scope.first.c_str(), "UPDATE");
         TTree quantities_meta = TTree("quantities", "quantities");
-        for (auto const &quantity : x.second) {
+        for (auto const &quantity : scope.second) {
             quantities_meta.Branch(quantity.c_str(), &setup_clean);
         }
         quantities_meta.Write();
         TTree variations_meta = TTree("variations", "variations");
-        for (auto const &variation : variations.at(x.first)) {
+        for (auto const &variation : variations.at(scope.first)) {
             variations_meta.Branch(variation.c_str(), &setup_clean);
         }
         variations_meta.Write();
@@ -119,6 +124,13 @@ int main(int argc, char *argv[]) {
         commit_meta.Fill();
         commit_meta.Write();
         outputfile.Close();
+        TFile *fout = TFile::Open(scope.first.c_str(), "UPDATE");
+        Logger::get("main")->info("Writing quantities map to {}", scope.first);
+        fout->WriteObject(&shift_quantities_map.at(scope.first),
+                          "shift_quantities_map");
+        fout->WriteObject(&quantities_shift_map.at(scope.first),
+                          "quantities_shift_map");
+        fout->Close();
     }
 
     Logger::get("main")->info("Finished Evaluation");
