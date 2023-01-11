@@ -607,7 +607,8 @@ class CodeGenerator(object):
         the quantities are used in to be stored in the output file.
         The ordering is based on the shifts:
 
-        Example:
+        Example::
+
             {
                 "shift_1" : ["quantity_1", "quantity_2", "quantity_3"],
                 "shift_2" : ["quantity_1", "quantity_3"],
@@ -659,12 +660,13 @@ class CodeGenerator(object):
         the quantities are used in to be stored in the output file.
         The ordering is based on the quantities:
 
-        Example:
-        {
-            "quantity_1" : ["shift_1", "shift_2", "shift_3"],
-            "quantity_2" : ["shift_1"],
-            "quantity_3" : ["shift_1", "shift_2"],
-        }
+        Example::
+
+            {
+                "quantity_1" : ["shift_1", "shift_2", "shift_3"],
+                "quantity_2" : ["shift_1"],
+                "quantity_3" : ["shift_1", "shift_2"],
+            }
 
         This information will be stored in the root file as quantities_shift_map
         and can be accessed to get the correct mapping
