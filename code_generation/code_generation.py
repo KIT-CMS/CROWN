@@ -25,6 +25,7 @@ class CodeSubset(object):
         scope: The scope of the code generation.
         folder: The folder in which the code will be generated.
         parameters: The parameters to be used for the generation.
+        name: The name of the code subset.
 
     Returns:
         None
@@ -38,12 +39,13 @@ class CodeSubset(object):
         scope: str,
         folder: str,
         configuration_parameters: Dict[str, Any],
+        name: str,
     ):
         self.file_name = file_name
         self.template = template
         self.producer = producer
         self.scope = scope
-        self.name = producer.name + "_" + scope
+        self.name = name
         self.configuration_parameters = configuration_parameters
         self.count = 0
         self.folder = folder
@@ -378,9 +380,23 @@ class CodeGenerator(object):
         # in order to map the dfs correctly, we have to count the number of subset calls
         is_first = True
         counter = 0
+        generated_producers = []
         for producer in self.configuration.producers[scope]:
+            producer_name = producer.name
+            # check if the producer name is unique, if not, add an index to make it unique
+            if producer_name in generated_producers:
+                log.warn(
+                    "Producer {} is used twice in scope {}".format(producer_name, scope)
+                )
+                producer_name += "_"
+                index = 1
+                # add an additional index to the producer name till it is unique
+                while producer_name + str(index) in generated_producers:
+                    index += 1
+                producer_name += str(index)
+                log.warn("Using {} as a substitute name instead".format(producer_name))
             subset = CodeSubset(
-                file_name=producer.name,
+                file_name=producer_name,
                 template=self.subset_template,
                 producer=producer,
                 scope=scope,
@@ -388,13 +404,15 @@ class CodeGenerator(object):
                     self.output_folder, self.executable_name + "_generated_code"
                 ),
                 configuration_parameters=self.configuration.config_parameters[scope],
+                name=producer_name + "_" + scope,
             )
             subset.create()
             subset.write()
             self.number_of_defines += subset.count
+            generated_producers.append(producer_name)
             log.debug(
                 "Adding {} defines for {} in scope {}".format(
-                    subset.count, producer.name, scope
+                    subset.count, producer_name, scope
                 )
             )
             # two special cases:
