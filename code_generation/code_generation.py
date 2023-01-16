@@ -313,8 +313,8 @@ class CodeGenerator(object):
                 .replace("{ANALYSISTAG}", '"Analysis={}"'.format(self.analysis_name))
                 .replace("{PROGRESS_CALLBACK}", self.set_process_tracking())
                 .replace("{OUTPUT_QUANTITIES}", self.set_output_quantities())
-                .replace("{SHIFT_QUANTITES_MAP}", self.set_shift_quantites_map())
-                .replace("{QUANTITES_SHIFT_MAP}", self.set_quantites_shift_map())
+                .replace("{SHIFT_QUANTITIES_MAP}", self.set_shift_quantities_map())
+                .replace("{QUANTITIES_SHIFT_MAP}", self.set_quantities_shift_map())
                 .replace("{SYSTEMATIC_VARIATIONS}", self.set_shifts())
                 .replace("{COMMITHASH}", '"{}"'.format(self.commit_hash))
                 .replace("{SETUP_IS_CLEAN}", self.setup_is_clean)
@@ -619,9 +619,9 @@ class CodeGenerator(object):
         tracking += "    });\n"
         return tracking
 
-    def set_shift_quantites_map(self) -> str:
+    def set_shift_quantities_map(self) -> str:
         """
-        This function is used to generate a mappin of all quantites and the shifts,
+        This function is used to generate a mapping of all quantities and the shifts,
         the quantities are used in to be stored in the output file.
         The ordering is based on the shifts:
 
@@ -672,9 +672,9 @@ class CodeGenerator(object):
         ctring = ctring[:-2] + " }}"
         return ctring
 
-    def set_quantites_shift_map(self) -> str:
+    def set_quantities_shift_map(self) -> str:
         """
-        This function is used to generate a mappin of all quantites and the shifts,
+        This function is used to generate a mapping of all quantities and the shifts,
         the quantities are used in to be stored in the output file.
         The ordering is based on the quantities:
 
