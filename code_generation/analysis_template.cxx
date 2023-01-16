@@ -94,8 +94,8 @@ int main(int argc, char *argv[]) {
     // clang-format off
     const std::map<std::string, std::vector<std::string>> output_quanties = {OUTPUT_QUANTITIES};
     const std::map<std::string, std::vector<std::string>> variations = {SYSTEMATIC_VARIATIONS};
-    std::map<std::string, std::map<std::string, std::vector<std::string>>> shift_quantities_map = {SHIFT_QUANTITES_MAP};
-    std::map<std::string, std::map<std::string, std::vector<std::string>>> quantities_shift_map = {QUANTITES_SHIFT_MAP};
+    std::map<std::string, std::map<std::string, std::vector<std::string>>> shift_quantities_map = {SHIFT_QUANTITIES_MAP};
+    std::map<std::string, std::map<std::string, std::vector<std::string>>> quantities_shift_map = {QUANTITIES_SHIFT_MAP};
     // clang-format on
     const std::string analysis = {ANALYSISTAG};
     const std::string era = {ERATAG};
