@@ -720,24 +720,30 @@ class Configuration(object):
         """
         String representation of the configuration.
         """
-        returnstr = "Configuration:"
-        returnstr += "  Era: {}".format(self.era)
-        returnstr += "  Sample: {}".format(self.sample)
-        returnstr += "  Scopes: {}".format(self.scopes)
-        returnstr += "  Shifts: {}".format(self.shifts)
-        returnstr += "  Rules:  {}".format(self.rules)
-        returnstr += "  Outputs:"
+        returnstr = "Configuration: \n"
+        returnstr += "  Era: {}\n".format(self.era)
+        returnstr += "  Sample: {}\n".format(self.sample)
+        returnstr += "  Scopes: {}\n".format(self.scopes)
+        returnstr += "  Shifts: {}\n".format(self.shifts)
+        returnstr += "  Rules:  {}\n".format(self.rules)
+        returnstr += "  Outputs:\n"
         for scope in self.scopes:
-            returnstr += "    {}: {}".format(scope, self.outputs[scope])
-        returnstr += "  Producers:"
+            returnstr += "    {}: {}\n".format(scope, self.outputs[scope])
+        returnstr += "  Producers:\n"
         for scope in self.scopes:
-            returnstr += "    {}: {}".format(scope, self.producers[scope])
-        returnstr += "  Config Parameters:"
+            returnstr += "    {}: {}\n".format(scope, self.producers[scope])
+        returnstr += "  Config Parameters:\n"
         for scope in self.scopes:
-            returnstr += "    {}: {}".format(scope, self.config_parameters[scope])
+            returnstr += "    {}: {}\n".format(scope, self.config_parameters[scope])
         return returnstr
 
     def expanded_configuration(self) -> Configuration:
+        """Function used to generate an expanded version of the configuration, where all shifts are applied.
+        This expanded configuration is used by the code generator to generate the C++ code.
+
+        Returns:
+            Configuration: Expanded configuration
+        """
         expanded_configuration = {}
         for scope in self.scopes:
             expanded_configuration[scope] = {}
