@@ -421,22 +421,26 @@ class CodeGenerator(object):
             if self.global_scope is None:
                 if is_first:
                     self.subset_calls[scope].append(
-                        subset.call(inputscope="df0", outputscope=f"df{counter+1}_{scope}")
+                        subset.call(
+                            inputscope="df0", outputscope=f"df{counter+1}_{scope}"
+                        )
                     )
                 else:
                     self.subset_calls[scope].append(
-                    subset.call(
-                        inputscope=f"df{counter}_{scope}",
-                        outputscope=f"df{counter+1}_{scope}",
+                        subset.call(
+                            inputscope=f"df{counter}_{scope}",
+                            outputscope=f"df{counter+1}_{scope}",
+                        )
                     )
-                )
             else:
                 # two special cases:
                 # 1. global scope: there we have to use df0 as the input df
                 # 2. first call of all other scopes: we have to use the last global df as the input df
                 if scope == self.global_scope and is_first:
                     self.subset_calls[scope].append(
-                        subset.call(inputscope="df0", outputscope=f"df{counter+1}_{scope}")
+                        subset.call(
+                            inputscope="df0", outputscope=f"df{counter+1}_{scope}"
+                        )
                     )
                 elif is_first:
                     self.subset_calls[scope].append(
@@ -485,12 +489,7 @@ class CodeGenerator(object):
                     global_commands = self.output_commands[self.global_scope]
                 else:
                     global_commands = []
-                outputset = list(
-                    set(
-                        self.output_commands[scope]
-                        + global_commands
-                    )
-                )
+                outputset = list(set(self.output_commands[scope] + global_commands))
                 # sort the output list to get alphabetical order of the output names
                 outputset.sort()
                 outputstring = '", "'.join(outputset)
@@ -571,12 +570,7 @@ class CodeGenerator(object):
                 global_commands = self.output_commands[self.global_scope]
             else:
                 global_commands = []
-            outputset = list(
-                set(
-                    self.output_commands[scope]
-                    + global_commands
-                )
-            )
+            outputset = list(set(self.output_commands[scope] + global_commands))
             # now split by __ and get a set of all the shifts
             quantityset = list(set([x.split("__")[0] for x in outputset]))
             quantityset.sort()
@@ -629,10 +623,8 @@ class CodeGenerator(object):
         tracking += "    c_{scope}.OnPartialResultSlot(quantile, [&{scope}_bar_mutex, &{scope}_processed, &quantile, &nevents](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
             scope=scope
         )
-        tracking += (
-            "\n        std::lock_guard<std::mutex> lg({scope}_bar_mutex);\n".format(
-                scope=scope
-            )
+        tracking += "\n        std::lock_guard<std::mutex> lg({scope}_bar_mutex);\n".format(
+            scope=scope
         )
         tracking += "        {scope}_processed += quantile;\n".format(scope=scope)
         tracking += "        float percentage = 100 * (float){scope}_processed / (float)nevents;\n".format(
@@ -673,12 +665,7 @@ class CodeGenerator(object):
                     global_commands = self.output_commands[self.global_scope]
                 else:
                     global_commands = []
-                outputset = list(
-                    set(
-                        self.output_commands[scope]
-                        + global_commands
-                    )
-                )
+                outputset = list(set(self.output_commands[scope] + global_commands))
                 # now split by __ and get a set of all the shifts per variable
                 for i, output in enumerate(outputset):
                     try:
@@ -730,12 +717,7 @@ class CodeGenerator(object):
                     global_commands = self.output_commands[self.global_scope]
                 else:
                     global_commands = []
-                outputset = list(
-                    set(
-                        self.output_commands[scope]
-                        + global_commands
-                    )
-                )
+                outputset = list(set(self.output_commands[scope] + global_commands))
                 # now split by __ and get a set of all the shifts per variable
                 for i, output in enumerate(outputset):
                     try:

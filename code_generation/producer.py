@@ -181,13 +181,13 @@ class Producer:
             config[shift]["output"] = ""
             config[shift]["output_vec"] = ""
         else:
-            log.warning(f"Available shifts: {config.keys()}")
-            log.warning(f"Configuration: {config[shift]}")
-            log.warning("Writing call for {}".format(self.name))
-            log.warning("output: {}".format(self.output))
-            log.warning("name: {}".format(self.name))
-            log.warning("shift: {}".format(shift))
-            log.warning("Scopes: {}".format(config[shift].keys()))
+            # log.warning(f"Available shifts: {config.keys()}")
+            # log.warning(f"Configuration: {config[shift]}")
+            # log.warning("Writing call for {}".format(self.name))
+            # log.warning("output: {}".format(self.output))
+            # log.warning("name: {}".format(self.name))
+            # log.warning("shift: {}".format(shift))
+            # log.warning("Scopes: {}".format(config[shift].keys()))
             config[shift]["output"] = (
                 '"' + '","'.join([x.get_leaf(shift, scope) for x in self.output]) + '"'
             )
