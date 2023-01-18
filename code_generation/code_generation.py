@@ -497,6 +497,7 @@ class CodeGenerator(object):
                 runcommands += f"    {scope}_result.GetValue();\n"
                 runcommands += f'    Logger::get("main")->info("{scope}:");\n'
                 runcommands += f"    {scope}_cutReport->Print();\n"
+                runcommands += f"    cutReports.push_back({scope}_cutReport);\n"
         log.info(
             "Output files generated for scopes: {}".format(
                 self._outputfiles_generated.keys()
@@ -604,10 +605,8 @@ class CodeGenerator(object):
         tracking += "    c_{scope}.OnPartialResultSlot(quantile, [&{scope}_bar_mutex, &{scope}_processed, &quantile, &nevents](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
             scope=scope
         )
-        tracking += (
-            "\n        std::lock_guard<std::mutex> lg({scope}_bar_mutex);\n".format(
-                scope=scope
-            )
+        tracking += "\n        std::lock_guard<std::mutex> lg({scope}_bar_mutex);\n".format(
+            scope=scope
         )
         tracking += "        {scope}_processed += quantile;\n".format(scope=scope)
         tracking += "        float percentage = 100 * (float){scope}_processed / (float)nevents;\n".format(
