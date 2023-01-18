@@ -415,27 +415,43 @@ class CodeGenerator(object):
                     subset.count, producer_name, scope
                 )
             )
-            # two special cases:
-            # 1. global scope: there we have to use df0 as the input df
-            # 2. first call of all other scopes: we have to use the last global df as the input df
-            if scope == self.global_scope and is_first:
-                self.subset_calls[scope].append(
-                    subset.call(inputscope="df0", outputscope=f"df{counter+1}_{scope}")
-                )
-            elif is_first:
-                self.subset_calls[scope].append(
-                    subset.call(
-                        inputscope=f"df{self.main_counter[self.global_scope]}_{self.global_scope}",
-                        outputscope=f"df{counter+1}_{scope}",
+            # two  cases:
+            # 1. no global scope exists: we have to use df0 as the input df
+            # 2. there is a global scope, jump down
+            if self.global_scope is None:
+                if is_first:
+                    self.subset_calls[scope].append(
+                        subset.call(inputscope="df0", outputscope=f"df{counter+1}_{scope}")
                     )
-                )
-            else:
-                self.subset_calls[scope].append(
+                else:
+                    self.subset_calls[scope].append(
                     subset.call(
                         inputscope=f"df{counter}_{scope}",
                         outputscope=f"df{counter+1}_{scope}",
                     )
                 )
+            else:
+                # two special cases:
+                # 1. global scope: there we have to use df0 as the input df
+                # 2. first call of all other scopes: we have to use the last global df as the input df
+                if scope == self.global_scope and is_first:
+                    self.subset_calls[scope].append(
+                        subset.call(inputscope="df0", outputscope=f"df{counter+1}_{scope}")
+                    )
+                elif is_first:
+                    self.subset_calls[scope].append(
+                        subset.call(
+                            inputscope=f"df{self.main_counter[self.global_scope]}_{self.global_scope}",
+                            outputscope=f"df{counter+1}_{scope}",
+                        )
+                    )
+                else:
+                    self.subset_calls[scope].append(
+                        subset.call(
+                            inputscope=f"df{counter}_{scope}",
+                            outputscope=f"df{counter+1}_{scope}",
+                        )
+                    )
             self.subset_includes.append(subset.include())
             self.main_counter[scope] += 1
             counter += 1
@@ -464,10 +480,15 @@ class CodeGenerator(object):
                     scope=scope
                 )
                 # convert output lists to a set to remove duplicates
+
+                if self.global_scope is not None:
+                    global_commands = self.output_commands[self.global_scope]
+                else:
+                    global_commands = []
                 outputset = list(
                     set(
                         self.output_commands[scope]
-                        + self.output_commands[self.global_scope]
+                        + global_commands
                     )
                 )
                 # sort the output list to get alphabetical order of the output names
@@ -546,10 +567,14 @@ class CodeGenerator(object):
         output_quantities = "{"
         for scope in self._outputfiles_generated.keys():
             # get the outputset for the scope
+            if self.global_scope is not None:
+                global_commands = self.output_commands[self.global_scope]
+            else:
+                global_commands = []
             outputset = list(
                 set(
                     self.output_commands[scope]
-                    + self.output_commands[self.global_scope]
+                    + global_commands
                 )
             )
             # now split by __ and get a set of all the shifts
@@ -644,10 +669,14 @@ class CodeGenerator(object):
                 self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
             if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
                 # convert output lists to a set to remove duplicates
+                if self.global_scope is not None:
+                    global_commands = self.output_commands[self.global_scope]
+                else:
+                    global_commands = []
                 outputset = list(
                     set(
                         self.output_commands[scope]
-                        + self.output_commands[self.global_scope]
+                        + global_commands
                     )
                 )
                 # now split by __ and get a set of all the shifts per variable
@@ -697,10 +726,14 @@ class CodeGenerator(object):
                 self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
             if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
                 # convert output lists to a set to remove duplicates
+                if self.global_scope is not None:
+                    global_commands = self.output_commands[self.global_scope]
+                else:
+                    global_commands = []
                 outputset = list(
                     set(
                         self.output_commands[scope]
-                        + self.output_commands[self.global_scope]
+                        + global_commands
                     )
                 )
                 # now split by __ and get a set of all the shifts per variable
