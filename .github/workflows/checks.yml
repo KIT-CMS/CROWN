@@ -106,7 +106,7 @@ jobs:
 
       - name: Test
         shell: bash
-        run: cd ${{github.workspace}}/build && ctest -V --exclude-regex "friends.*."
+        run: cd ${{github.workspace}}/build && ctest -V --tests-regex "friends.*."
 
 
   python_format:
