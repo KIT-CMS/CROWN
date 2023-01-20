@@ -605,8 +605,10 @@ class CodeGenerator(object):
         tracking += "    c_{scope}.OnPartialResultSlot(quantile, [&{scope}_bar_mutex, &{scope}_processed, &quantile, &nevents](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
             scope=scope
         )
-        tracking += "\n        std::lock_guard<std::mutex> lg({scope}_bar_mutex);\n".format(
-            scope=scope
+        tracking += (
+            "\n        std::lock_guard<std::mutex> lg({scope}_bar_mutex);\n".format(
+                scope=scope
+            )
         )
         tracking += "        {scope}_processed += quantile;\n".format(scope=scope)
         tracking += "        float percentage = 100 * (float){scope}_processed / (float)nevents;\n".format(
