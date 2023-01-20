@@ -26,7 +26,7 @@ def run(args):
     available_scopes = ["et", "mt", "tt", "em", "mm", "ee"]
 
     ## setup variables
-    shifts = set([shift.lower() for shift in args.shifts])
+    shifts = set([shift for shift in args.shifts])
     sample_group = args.sample
     era = args.era
     scopes = list(set([scope.lower() for scope in args.scopes]))

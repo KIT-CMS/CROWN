@@ -171,6 +171,25 @@ class Producer:
         for entry in self.output:
             entry.shift(name, scope)
 
+    def shift_inputs(self, name: str, scope: str, inputs_to_shift: List[str]) -> None:
+        """
+        Shift all inputs of a producer. This is an internal function and should not be called by the user.
+
+        Args:
+            name: Name of the shift
+            scope: Name of the scope where the shift is to be applied
+        """
+        if scope not in self.scopes:
+            log.error(
+                "Trying to add shift %s to producer %s in scope %s, but producer does not exist in given scope!"
+                % (name, self.name, scope)
+            )
+            raise Exception
+        for entry in self.input[scope]:
+            if entry in inputs_to_shift:
+                log.info(f"Shifting {entry.name}")
+                entry.shift(name, scope)
+
     def ignore_shift(self, name: str, scope: str = "global") -> None:
         """Ingore a given shift for a producer. This in an internal function and should not be called by the user.
 
@@ -610,8 +629,7 @@ class ProducerGroup:
         output: Union[List[q.Quantity], None],
         scopes: List[str],
         subproducers: Union[
-            List[Producer | ProducerGroup],
-            Dict[str, List[Producer | ProducerGroup]],
+            List[Producer | ProducerGroup], Dict[str, List[Producer | ProducerGroup]],
         ],
     ):
         """A ProducerGroup can be used to group multiple producers. This is useful to keep the configuration simpler and to ensure that the producers are called in the correct order. ProducerGroups can be nested.
@@ -877,8 +895,7 @@ class Filter(ProducerGroup):
         input: Union[List[q.Quantity], Dict[str, List[q.Quantity]]],
         scopes: List[str],
         subproducers: Union[
-            List[Producer | ProducerGroup],
-            Dict[str, List[Producer | ProducerGroup]],
+            List[Producer | ProducerGroup], Dict[str, List[Producer | ProducerGroup]],
         ],
     ):
         """A Filter is used to filter events. Wraps the BaseFilter class, and is a ProducerGroup.

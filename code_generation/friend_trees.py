@@ -1,14 +1,20 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 
 import logging
+import ROOT
+import json
+import glob
+import os
+from time import time
 from code_generation.configuration import Configuration
-from typing import List, Union
+from typing import List, Union, Dict
 
 from code_generation.exceptions import (
     ConfigurationError,
     InvalidOutputError,
     InsufficientShiftInformationError,
 )
+from code_generation.producer import Producer, ProducerGroup
 from code_generation.rules import ProducerRule
 
 log = logging.getLogger(__name__)
@@ -22,6 +28,9 @@ class FriendTreeConfiguration(Configuration):
         * the nominal version of quantities is optional and should only run if the user specifies it
         * no global scope is required
         * The ordering is not optimized, but taken directly from the configuration file
+        * information about the input file is required. This information can be provided,
+            by a json file, or by providing an input root file.
+        * When using an input root file, only a single sample type is allowed
     """
 
     def __init__(
@@ -33,6 +42,7 @@ class FriendTreeConfiguration(Configuration):
         available_sample_types: Union[str, List[str]],
         available_eras: Union[str, List[str]],
         available_scopes: Union[str, List[str]],
+        input_information: Union[str, Dict[str, List[str]]],
         run_nominal=False,
     ):
         super().__init__(
@@ -55,12 +65,117 @@ class FriendTreeConfiguration(Configuration):
         if shifts == "all":
             raise InsufficientShiftInformationError(shifts)
 
+        # all requested shifts are stored in a seperate varaiable, they have to be added to all producers later
+        self.input_shifts = shifts
+        self.input_quantities_mapping = self._readout_input_information(
+            input_information
+        )
+
+    def _readout_input_information(
+        self, input_information: Union[str, Dict[str, List[str]]],
+    ) -> Dict[str, List[str]]:
+        """
+        """
+
+        # first check if the input is a root file or a json file
+        data = {}
+        if isinstance(input_information, str):
+            if input_information.endswith(".root"):
+                data = self._readout_input_root_file(input_information)
+            elif input_information.endswith(".json"):
+                data = self._readout_input_json_file(input_information)
+            else:
+                raise ConfigurationError(
+                    f"Input information file {input_information} is not a json or root file"
+                )
+        return data
+
+    def _readout_input_root_file(self, input_file: str) -> Dict[str, List[str]]:
+        """Read the shift_quantities_map from the input root file and return it as a dictionary
+
+        Args:
+            input_file (str): Path to the input root file
+
+        Returns:
+            Dict[str, List[str]]: Dictionary containing the shift_quantities_map
+        """
+
+        data = {}
+        start = time()
+        log.info(f"Reading quantities information from {input_file}")
+        ROOT.gSystem.Load(os.path.abspath(__file__), "/maplib.so")
+        f = ROOT.TFile.Open(input_file)
+        name = "shift_quantities_map"
+        m = f.Get(name)
+        for shift, quantities in m:
+            data[shift] = [quantity for quantity in quantities]
+        f.Close()
+        log.info(
+            f"Reading quantities information took {round(time() - start,2)} seconds"
+        )
+        return data
+
+    def _readout_input_root_file_alternative(
+        self, input_file: str
+    ) -> Dict[str, List[str]]:
+        """Read the shift_quantities_map from the input root file and return it as a dictionary
+
+        Args:
+            input_file (str): Path to the input root file
+
+        Returns:
+            Dict[str, List[str]]: Dictionary containing the shift_quantities_map
+        """
+
+        data = {}
+        start = time()
+        log.info(f"Reading quantities information from {input_file}")
+        f = ROOT.TFile.Open(input_file)
+        quantities = f.Get("ntuple").GetListOfLeaves()
+        for quantity in quantities:
+            try:
+                (quantity, shift) = quantity.GetName().split("__")
+
+            except ValueError:
+                quantity = quantity.GetName()
+                shift = ""
+            if shift not in data:
+                data[shift] = []
+            data[shift].append(quantity)
+        f.Close()
+        log.info(
+            f"Reading quantities information took {round(time() - start,2)} seconds"
+        )
+        return data
+
+    def _readout_input_json_file(self, input_file: str) -> Dict[str, List[str]]:
+        """Read the shift_quantities_map from the input json file and return it as a dictionary
+
+        Args:
+            input_file (str): Path to the input json file
+
+        Returns:
+            Dict[str, List[str]]: Dictionary containing the shift_quantities_map
+        """
+        with open(input_file) as f:
+            data = json.load(f)
+        if self.sample not in data:
+            raise ConfigurationError(
+                f"Sample type {self.sample} not found in input information file {input_file}"
+            )
+        else:
+            data = data[self.sample]
+
     def optimize(self) -> None:
         """
-        Function used to optimize the FriendTreeConfiguration. In this case, no ordering optimization is performed. Optimizaion steps are:
+        Function used to optimize the FriendTreeConfiguration. In this case, no ordering
+        optimization is performed. Optimizaion steps are:
 
-            1. Remove empty scopes
-            2. Apply rules
+
+            1. Apply rules
+            2. Add all requested shifts to all producers. This addition is trivial, since
+                the shifted quantities are already available in the input file
+            3. Remove empty scopes
 
         Args:
             None
@@ -69,7 +184,38 @@ class FriendTreeConfiguration(Configuration):
             None
         """
         self._apply_rules()
+        self._add_requested_shifts()
         self._remove_empty_scopes()
+
+    def _add_requested_shifts(self) -> None:
+        # first shift the output quantities
+        for scope in self.scopes:
+            for shift in self.input_shifts:
+                if shift != "nominal":
+                    shiftname = "__" + shift
+                    for producer in self.producers[scope]:
+                        log.warn("Adding shift %s to producer %s", shift, producer)
+                        producer.shift(shiftname, scope)
+                        # second step is to shift the inputs of the producer
+                        self._shift_producer_inputs(producer, shift, scope)
+                        self.shifts[scope][shiftname] = {}
+
+    def _shift_producer_inputs(self, producer, shift, scope):
+        # if the producer is not of Type ProducerGroup we can directly shift the inputs
+        if isinstance(producer, Producer):
+            inputs = producer.get_inputs(scope)
+            # only shift if necessary
+            if shift in self.input_quantities_mapping.keys():
+                inputs_to_shift = []
+                for input in inputs:
+                    if input.name in self.input_quantities_mapping[shift]:
+                        inputs_to_shift.append(input)
+                log.info(f"Shifting inputs {inputs_to_shift} of producer {producer}")
+                producer.shift_inputs("__" + shift, scope, inputs_to_shift)
+                print(producer)
+        elif isinstance(producer, ProducerGroup):
+            for producer in producer.producers:
+                self._shift_producer_inputs(producer, shift, scope)
 
     def _validate_outputs(self) -> None:
         """
@@ -140,8 +286,6 @@ class FriendTreeConfiguration(Configuration):
                         expanded_configuration[scope][shift] = (
                             self.config_parameters[scope] | self.shifts[scope][shift]
                         )
-            # log.warn("Expanded configuration for scope {}".format(scope))
-            # log.warn(expanded_configuration[scope])
         # check if any shift (including the nominal) is run, if not, exit with an error
         if not any(
             [len(expanded_configuration[scope]) > 0 for scope in expanded_configuration]
