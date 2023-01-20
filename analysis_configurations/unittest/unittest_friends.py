@@ -1,7 +1,7 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 
 from typing import List
-
+import os
 from .producers import muon_sf_friends as muon_sf_friends
 from .producers import event as event
 from .producers import genparticles as genparticles
@@ -15,6 +15,7 @@ from .producers import taus as taus
 from .producers import triggers as triggers
 from .quantities import nanoAOD as nanoAOD
 from .quantities import output as q
+
 # from code_generation.configuration import Configuration
 from code_generation.friend_trees import FriendTreeConfiguration
 
@@ -28,10 +29,10 @@ def build_config(
     available_eras: List[str],
     available_scopes: List[str],
 ):
-    input_testfile = "/work/sbrommer/ntuple_prototype/CROWNTestingSamples/CrownNtuple.root"
-    run_nominal = (
-        True if "nominal" in shifts else False
+    input_testfile = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "dyjets_shift_quantities_map.json"
     )
+    run_nominal = True if "nominal" in shifts else False
     configuration = FriendTreeConfiguration(
         era,
         sample,
@@ -55,10 +56,19 @@ def build_config(
 
     configuration.add_producers(
         ["mt"],
-        [muon_sf_friends.MuonIDSF_friends_1, muon_sf_friends.MuonIsoSF_friends_1,],
+        [
+            muon_sf_friends.MuonIDSF_friends_1,
+            muon_sf_friends.MuonIsoSF_friends_1,
+        ],
     )
 
-    configuration.add_outputs(["mt"], [q.id_wgt_mu_friend_1, q.iso_wgt_mu_friend_1,])
+    configuration.add_outputs(
+        ["mt"],
+        [
+            q.id_wgt_mu_friend_1,
+            q.iso_wgt_mu_friend_1,
+        ],
+    )
 
     #########################
     # Finalize and validate the configuration
@@ -67,4 +77,3 @@ def build_config(
     configuration.validate()
     configuration.report()
     return configuration.expanded_configuration()
-
