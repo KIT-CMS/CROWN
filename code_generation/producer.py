@@ -591,7 +591,8 @@ class ProducerGroup:
         output: Union[List[q.Quantity], None],
         scopes: List[str],
         subproducers: Union[
-            List[Producer | ProducerGroup], Dict[str, List[Producer | ProducerGroup]],
+            List[Producer | ProducerGroup],
+            Dict[str, List[Producer | ProducerGroup]],
         ],
     ):
         """A ProducerGroup can be used to group multiple producers. This is useful to keep the configuration simpler and to ensure that the producers are called in the correct order. ProducerGroups can be nested.
@@ -840,7 +841,8 @@ class Filter(ProducerGroup):
         input: Union[List[q.Quantity], Dict[str, List[q.Quantity]]],
         scopes: List[str],
         subproducers: Union[
-            List[Producer | ProducerGroup], Dict[str, List[Producer | ProducerGroup]],
+            List[Producer | ProducerGroup],
+            Dict[str, List[Producer | ProducerGroup]],
         ],
     ):
         """A Filter is used to filter events. Wraps the BaseFilter class, and is a ProducerGroup.

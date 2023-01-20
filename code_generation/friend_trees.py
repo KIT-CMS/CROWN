@@ -72,10 +72,10 @@ class FriendTreeConfiguration(Configuration):
         )
 
     def _readout_input_information(
-        self, input_information: Union[str, Dict[str, List[str]]],
+        self,
+        input_information: Union[str, Dict[str, List[str]]],
     ) -> Dict[str, List[str]]:
-        """
-        """
+        """ """
 
         # first check if the input is a root file or a json file
         data = {}
