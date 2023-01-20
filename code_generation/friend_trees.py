@@ -108,7 +108,7 @@ class FriendTreeConfiguration(Configuration):
         name = "shift_quantities_map"
         m = f.Get(name)
         for shift, quantities in m:
-            data[shift] = [quantity for quantity in quantities]
+            data[str(shift)] = [str(quantity) for quantity in quantities]
         f.Close()
         log.info(
             f"Reading quantities information took {round(time() - start,2)} seconds"
@@ -165,6 +165,7 @@ class FriendTreeConfiguration(Configuration):
             )
         else:
             data = data[self.sample]
+        return data
 
     def optimize(self) -> None:
         """
