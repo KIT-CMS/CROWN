@@ -517,6 +517,7 @@ class CodeGenerator(object):
                 runcommands += f"    {scope}_result.GetValue();\n"
                 runcommands += f'    Logger::get("main")->info("{scope}:");\n'
                 runcommands += f"    {scope}_cutReport->Print();\n"
+                runcommands += f"    cutReports.push_back({scope}_cutReport);\n"
         log.info(
             "Output files generated for scopes: {}".format(
                 self._outputfiles_generated.keys()
