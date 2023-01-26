@@ -95,8 +95,9 @@ class InsufficientShiftInformationError(ConfigurationError):
     Exception raised if "all" is used for the shift settings for a FriendTree
     """
 
-    def __init__(self, shift: Union[str, List[str]]):
-        self.message = "Shift(s) {} cannot be used for a FriendTreeConfiguration ! You have to specify all shifts that are requried.".format(
+    def __init__(self, shift: Union[str, List[str]], available_shifts: List[str]):
+        self.message = "Shift(s) {} cannot be used for the FriendTreeConfiguration, it is not found in the provided ntuples \n".format(
             shift
         )
+        self.message += "Available shifts are: {}".format(available_shifts)
         super().__init__(self.message)

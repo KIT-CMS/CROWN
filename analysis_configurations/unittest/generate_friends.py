@@ -70,11 +70,12 @@ def run(args):
         available_samples,
         available_eras,
         available_scopes,
+        args.quantities_map,
     )
-        # check if the config is of type FriendTreeConfiguration
-    if isinstance(config, FriendTreeConfiguration):
+    # check if the config is of type FriendTreeConfiguration
+    if not isinstance(config, FriendTreeConfiguration):
         raise ValueError(
-            f"Configuration {configname} is a FriendTreeConfiguration."
+            f"Configuration {configname} is not a FriendTreeConfiguration."
         )
     # create a CodeGenerator object
     generator = CodeGenerator(

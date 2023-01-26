@@ -1,6 +1,6 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 
-from typing import List
+from typing import List, Union
 import os
 from .producers import muon_sf_friends as muon_sf_friends
 from .producers import event as event
@@ -28,11 +28,12 @@ def build_config(
     available_sample_types: List[str],
     available_eras: List[str],
     available_scopes: List[str],
+    quantities_map: Union[str, None] = None,
 ):
-    input_testfile = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "dyjets_shift_quantities_map.json"
-    )
-    run_nominal = True if "nominal" in shifts else False
+    if quantities_map is None:
+        quantities_map = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "dyjets_shift_quantities_map.json"
+        )
     configuration = FriendTreeConfiguration(
         era,
         sample,
@@ -41,8 +42,7 @@ def build_config(
         available_sample_types,
         available_eras,
         available_scopes,
-        input_testfile,
-        run_nominal=run_nominal,
+        quantities_map
     )
 
     configuration.add_config_parameters(
