@@ -47,6 +47,9 @@ parser.add_argument(
 )
 parser.add_argument("--threads", type=int, help="number of threads to be used")
 parser.add_argument("--debug", type=str, help="set debug mode for building")
+# the following arguments are only used for the production of friend trees
+parser.add_argument("--friends", type=str, help="set production of friend trees")
+parser.add_argument("--quantities-map", type=str, help="path to the quantities map")
 args = parser.parse_args()
 
 # find available analyses, every folder in analysis_configurations is an analysis
@@ -89,15 +92,29 @@ if analysis not in available_analysis:
         f"The analysis {analysis} is not available. Available analysiss are: {available_analysis}"
     )
 else:
+    # check if friends are requested
+    if args.friends == "true":
+        # check if the quantity map is provided
+        if args.quantities_map is None:
+            raise ValueError(
+                "The quantity map is not provided. Please provide a path to the quantity map when producing friends."
+            )
+        else:
+            basefile = "generate_friends.py"
+    else:
+        basefile = "generate.py"
+
     # load and run the generate.py function of the analysis
     if not os.path.exists(
         os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             args.analysis_folder,
             analysis,
-            "generate.py",
+            basefile,
         )
     ):
         raise ValueError(f"The generate.py file for analysis {analysis} does not exist")
-    generator = importlib.import_module(f"analysis_configurations.{analysis}.generate")
+    generator = importlib.import_module(
+        f"analysis_configurations.{analysis}.{basefile.replace('.py', '')}"
+    )
     generator.run(args)
