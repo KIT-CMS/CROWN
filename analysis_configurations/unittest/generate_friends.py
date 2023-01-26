@@ -5,6 +5,7 @@ import logging.handlers
 from code_generation.code_generation import CodeGenerator
 from code_generation.friend_trees import FriendTreeConfiguration
 
+
 def run(args):
 
     # the unittest is based on the tau analysis config

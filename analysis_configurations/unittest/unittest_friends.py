@@ -32,7 +32,8 @@ def build_config(
 ):
     if quantities_map is None:
         quantities_map = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "dyjets_shift_quantities_map.json"
+            os.path.dirname(os.path.abspath(__file__)),
+            "dyjets_shift_quantities_map.json",
         )
     configuration = FriendTreeConfiguration(
         era,
@@ -42,7 +43,7 @@ def build_config(
         available_sample_types,
         available_eras,
         available_scopes,
-        quantities_map
+        quantities_map,
     )
 
     configuration.add_config_parameters(

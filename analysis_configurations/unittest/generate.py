@@ -3,6 +3,7 @@ import importlib
 from code_generation.code_generation import CodeGenerator
 from code_generation.friend_trees import FriendTreeConfiguration
 
+
 def run(args):
     # the unittest is based on the tau analysis config
     analysis_name = "unittest"
@@ -51,11 +52,9 @@ def run(args):
         available_eras,
         available_scopes,
     )
-        # check if the config is of type FriendTreeConfiguration
+    # check if the config is of type FriendTreeConfiguration
     if isinstance(config, FriendTreeConfiguration):
-        raise ValueError(
-            f"Configuration {configname} is a FriendTreeConfiguration."
-        )
+        raise ValueError(f"Configuration {configname} is a FriendTreeConfiguration.")
     # create a CodeGenerator object
     generator = CodeGenerator(
         main_template_path=args.template,
