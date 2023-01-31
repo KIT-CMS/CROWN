@@ -187,7 +187,6 @@ class CodeGenerator(object):
         executable_name: str,
         output_folder: str,
         threads: int = 1,
-        single_scope: bool = False,
     ):
         self.main_template = self.load_template(main_template_path)
         self.subset_template = self.load_template(sub_template_path)
@@ -198,7 +197,6 @@ class CodeGenerator(object):
         self.executable_name = executable_name
         self.analysis_name = analysis_name
         self.output_folder = output_folder
-        self.single_scope = single_scope
         self.executable = os.path.join(
             output_folder,
             self.executable_name + "_generated_code",
@@ -229,10 +227,6 @@ class CodeGenerator(object):
         except (ValueError, InvalidGitRepositoryError, NoSuchPathError):
             self.commit_hash = "undefined"
             self.setup_is_clean = "false"
-        if self.single_scope:
-            # in case of a single scope, the name of the scope is added to the executable name
-            # this is needed for friend trees
-            self.executable_name = self.executable_name + "_" + self.scopes[0]
 
         log.info("Code generator initialized")
 
@@ -256,11 +250,11 @@ class CodeGenerator(object):
         for subfolder in ["src", "include"]:
             for scope in self.scopes:
                 folders = os.path.join(
-                            self.output_folder,
-                            self.executable_name + "_generated_code",
-                            subfolder,
-                            scope,
-                        )
+                    self.output_folder,
+                    self.executable_name + "_generated_code",
+                    subfolder,
+                    scope,
+                )
                 if not os.path.exists(folders):
                     os.makedirs(folders)
         # self.generate_subsets(self.global_scope)

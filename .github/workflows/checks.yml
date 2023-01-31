@@ -17,6 +17,7 @@ env:
   ERAS: 2018
   SCOPES: "mt,mm,et"
   SHIFTS: "all"
+  FRIEND_SCOPES: "mt,mm"
   FRIEND_CONFIG: unittest_friends
   FRIEND_SHIFTS: "nominal,jetUncTotalUp,jetUncTotalDown,tauMuFakeEsDown"
 
@@ -62,7 +63,7 @@ jobs:
 
       - name: Test
         shell: bash
-        run: cd ${{github.workspace}}/build && ctest -V --exclude-regex "friends.*."
+        run: cd ${{github.workspace}}/build && ctest -V --label-regex "ntuple.*."
 
   build_friends:
     runs-on: ubuntu-20.04
@@ -98,7 +99,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false
 
       - name: Build
         shell: bash
@@ -106,7 +107,7 @@ jobs:
 
       - name: Test
         shell: bash
-        run: cd ${{github.workspace}}/build && ctest -V --tests-regex "friends.*."
+        run: cd ${{github.workspace}}/build && ctest -V --label-regex "friends.*."
 
 
   python_format:

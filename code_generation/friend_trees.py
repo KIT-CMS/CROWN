@@ -61,9 +61,9 @@ class FriendTreeConfiguration(Configuration):
         self.global_scope = None
 
         # if more than one scope is specified, raise an error
-        if len(self.scopes) > 1:
+        if len(self.selected_scopes) > 1:
             raise ConfigurationError(
-                f"FriendTree configurations can only have one scope, but multiple {self.scopes} were specified"
+                f"FriendTree configurations can only have one scope, but multiple {self.selected_scopes} were specified"
             )
 
         self.input_quantities_mapping = self._readout_input_information(
@@ -250,7 +250,6 @@ class FriendTreeConfiguration(Configuration):
                         inputs_to_shift.append(input)
                 log.debug(f"Shifting inputs {inputs_to_shift} of producer {producer}")
                 producer.shift_inputs("__" + shift, scope, inputs_to_shift)
-                print(producer)
         elif isinstance(producer, ProducerGroup):
             for producer in producer.producers:
                 self._shift_producer_inputs(producer, shift, scope)

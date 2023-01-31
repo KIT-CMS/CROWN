@@ -4,6 +4,7 @@ import logging
 import logging.handlers
 from code_generation.code_generation import CodeGenerator
 from code_generation.friend_trees import FriendTreeConfiguration
+import inspect
 
 
 def run(args):
@@ -72,9 +73,6 @@ def run(args):
         available_eras,
         available_scopes,
     )
-    # check if the config is of type FriendTreeConfiguration
-    if isinstance(config, FriendTreeConfiguration):
-        raise ValueError(f"Configuration {configname} is a FriendTreeConfiguration.")
     # create a CodeGenerator object
     generator = CodeGenerator(
         main_template_path=args.template,

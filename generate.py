@@ -1,6 +1,7 @@
 import argparse
 import importlib
 import os
+import inspect
 
 
 class SplitArgs(argparse.Action):
@@ -67,30 +68,41 @@ if analysis not in available_analysis:
     raise ValueError(
         f"The analysis {analysis} is not available. Available analysiss are: {available_analysis}"
     )
-else:
-    # check if friends are requested
-    if args.friends == "true":
-        # check if the quantity map is provided
-        if args.quantities_map is None:
-            raise ValueError(
-                "The quantity map is not provided. Please provide a path to the quantity map when producing friends."
-            )
-        else:
-            basefile = "generate_friends.py"
-    else:
-        basefile = "generate.py"
-
-    # load and run the generate.py function of the analysis
-    if not os.path.exists(
-        os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            args.analysis_folder,
-            analysis,
-            basefile,
-        )
-    ):
-        raise ValueError(f"The generate.py file for analysis {analysis} does not exist")
-    generator = importlib.import_module(
-        f"analysis_configurations.{analysis}.{basefile.replace('.py', '')}"
+configname = args.config
+config = importlib.import_module(f"analysis_configurations.{analysis}.{configname}")
+# check if the config is of type FriendTreeConfiguration
+imported_members = [x[0] for x in inspect.getmembers(config, inspect.isclass)]
+if (
+    "FriendTreeConfiguration" in imported_members
+    and "Configuration" in imported_members
+):
+    raise ValueError(
+        f"Configuration {configname} contains both a Configuration and a FriendTreeConfiguration."
     )
-    generator.run(args)
+elif "Configuration" in imported_members:
+    basefile = "generate.py"
+elif "FriendTreeConfiguration" in imported_members:
+    if args.quantities_map is None:
+        raise ValueError(
+            "The quantity map is not provided. Please provide a path to the quantity map when using a FriendTreeConfiguration."
+        )
+    basefile = "generate_friends.py"
+else:
+    raise ValueError(
+        f"Configuration {configname} does not contain a Configuration or a FriendTreeConfiguration."
+    )
+
+# load and run the generate.py function of the analysis
+if not os.path.exists(
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        args.analysis_folder,
+        analysis,
+        basefile,
+    )
+):
+    raise ValueError(f"The generate.py file for analysis {analysis} does not exist")
+generator = importlib.import_module(
+    f"analysis_configurations.{analysis}.{basefile.replace('.py', '')}"
+)
+generator.run(args)
