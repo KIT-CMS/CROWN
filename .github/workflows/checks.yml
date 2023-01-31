@@ -19,7 +19,7 @@ env:
   SHIFTS: "all"
   FRIEND_SCOPES: "mt,mm"
   FRIEND_CONFIG: unittest_friends
-  FRIEND_SHIFTS: "nominal,jetUncTotalUp,jetUncTotalDown,tauMuFakeEsDown"
+  FRIEND_SHIFTS: "nominal,jesUncTotalUp,jesUncTotalDown,tauMuFakeEsDown"
 
 jobs:
   build_project:
