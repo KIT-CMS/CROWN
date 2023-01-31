@@ -187,6 +187,7 @@ class CodeGenerator(object):
         executable_name: str,
         output_folder: str,
         threads: int = 1,
+        single_scope: bool = False,
     ):
         self.main_template = self.load_template(main_template_path)
         self.subset_template = self.load_template(sub_template_path)
@@ -197,6 +198,7 @@ class CodeGenerator(object):
         self.executable_name = executable_name
         self.analysis_name = analysis_name
         self.output_folder = output_folder
+        self.single_scope = single_scope
         self.executable = os.path.join(
             output_folder,
             self.executable_name + "_generated_code",
@@ -227,13 +229,21 @@ class CodeGenerator(object):
         except (ValueError, InvalidGitRepositoryError, NoSuchPathError):
             self.commit_hash = "undefined"
             self.setup_is_clean = "false"
+        if self.single_scope:
+            # in case of a single scope, the name of the scope is added to the executable name
+            # this is needed for friend trees
+            self.executable_name = self.executable_name + "_" + self.scopes[0]
+
         log.info("Code generator initialized")
 
     def generate_code(self) -> None:
         """
-        Generate the code from the configuration and create the subsets. Run through the whole configuration and create a subset for each producer within the configuration.
+        Generate the code from the configuration and create the subsets.
+        Run through the whole configuration and create a subset for each
+        producer within the configuration.
 
-        Start with the global scope and then all other scopes. All generated code is stored in the folder self.output_folder.
+        Start with the global scope and then all other scopes.
+        All generated code is stored in the folder self.output_folder.
 
         Args:
             None
@@ -245,22 +255,14 @@ class CodeGenerator(object):
 
         for subfolder in ["src", "include"]:
             for scope in self.scopes:
-                if not os.path.exists(
-                    os.path.join(
-                        self.output_folder,
-                        self.executable_name + "_generated_code",
-                        subfolder,
-                        scope,
-                    )
-                ):
-                    os.makedirs(
-                        os.path.join(
+                folders = os.path.join(
                             self.output_folder,
                             self.executable_name + "_generated_code",
                             subfolder,
                             scope,
                         )
-                    )
+                if not os.path.exists(folders):
+                    os.makedirs(folders)
         # self.generate_subsets(self.global_scope)
         for scope in self.scopes:
             self.generate_subsets(scope)
@@ -335,7 +337,8 @@ class CodeGenerator(object):
 
     def generate_main_code(self) -> Tuple[str, str]:
         """
-        Generate the call commands for all the subsets. Additionally, generate all include statements for the main executable.
+        Generate the call commands for all the subsets. Additionally,
+        generate all include statements for the main executable.
         Args:
             None
         Returns:
@@ -435,7 +438,8 @@ class CodeGenerator(object):
             else:
                 # two special cases:
                 # 1. global scope: there we have to use df0 as the input df
-                # 2. first call of all other scopes: we have to use the last global df as the input df
+                # 2. first call of all other scopes: we have to use the
+                # last global df as the input df
                 if scope == self.global_scope and is_first:
                     self.subset_calls[scope].append(
                         subset.call(
@@ -463,7 +467,9 @@ class CodeGenerator(object):
 
     def generate_run_commands(self) -> str:
         """
-        generate the dataframe snapshot commands for the main executable. A seperate output file is generated for each scope, that contains at least one output quantity.
+        generate the dataframe snapshot commands for the main executable.
+        A seperate output file is generated for each scope,
+        that contains at least one output quantity.
         The process tracking is also generated here.
 
         Args:

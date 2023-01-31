@@ -26,8 +26,9 @@ class FriendTreeConfiguration(Configuration):
     for a FriendTree configuration. The biggest differences
         * the nominal version of quantities is optional and should only run if the user specifies it
         * no global scope is required
+        * only one scope is allowed
         * The ordering is not optimized, but taken directly from the configuration file
-        * information about the input file is required. This information can be provided,
+        * information about the input file is required. This information can be provided
             by a json file, or by providing an input root file.
         * When using an input root file, only a single sample type and a single scope are allowed
     """
@@ -36,7 +37,7 @@ class FriendTreeConfiguration(Configuration):
         self,
         era: str,
         sample: str,
-        scopes: Union[str, List[str]],
+        scope: Union[str, List[str]],
         shifts: Set[str],
         available_sample_types: Union[str, List[str]],
         available_eras: Union[str, List[str]],
@@ -46,7 +47,7 @@ class FriendTreeConfiguration(Configuration):
         super().__init__(
             era,
             sample,
-            scopes,
+            scope,
             shifts,
             available_sample_types,
             available_eras,
@@ -58,6 +59,12 @@ class FriendTreeConfiguration(Configuration):
         if self.global_scope in self.scopes:
             self.scopes.remove(self.global_scope)
         self.global_scope = None
+
+        # if more than one scope is specified, raise an error
+        if len(self.scopes) > 1:
+            raise ConfigurationError(
+                f"FriendTree configurations can only have one scope, but multiple {self.scopes} were specified"
+            )
 
         self.input_quantities_mapping = self._readout_input_information(
             input_information
@@ -225,7 +232,7 @@ class FriendTreeConfiguration(Configuration):
                 if shift != "nominal":
                     shiftname = "__" + shift
                     for producer in self.producers[scope]:
-                        log.warn("Adding shift %s to producer %s", shift, producer)
+                        log.debug("Adding shift %s to producer %s", shift, producer)
                         producer.shift(shiftname, scope)
                         # second step is to shift the inputs of the producer
                         self._shift_producer_inputs(producer, shift, scope)
@@ -241,7 +248,7 @@ class FriendTreeConfiguration(Configuration):
                 for input in inputs:
                     if input.name in self.input_quantities_mapping[scope][shift]:
                         inputs_to_shift.append(input)
-                log.info(f"Shifting inputs {inputs_to_shift} of producer {producer}")
+                log.debug(f"Shifting inputs {inputs_to_shift} of producer {producer}")
                 producer.shift_inputs("__" + shift, scope, inputs_to_shift)
                 print(producer)
         elif isinstance(producer, ProducerGroup):
