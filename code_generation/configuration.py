@@ -592,7 +592,6 @@ class Configuration(object):
             elif isinstance(config[key], list):
                 subdict = copy.deepcopy(config[key])
                 for i, value in enumerate(subdict):
-
                     if value == {}:
                         log.info(
                             "Removing {}, (from {}) since it is an empty configuration parameter".format(
@@ -657,6 +656,27 @@ class Configuration(object):
                             raise InvalidShiftError(shift, self.sample, scope)
         log.info("Shift configuration is valid")
 
+    def _validate_parameters(self) -> None:
+        """
+        Function used to check, if parameters are set in the configuration, that are not used by any producer.
+        """
+        # first collect all parameters that are used by any producer
+        required_parameters = {}
+        for scope in self.scopes:
+            required_parameters[scope] = set()
+            for producer in self.producers[scope]:
+                required_parameters[scope] |= producer.parameters[scope]
+        # now check, which parameters are set in the configuration, but not used by any producer
+        for scope in self.scopes:
+            log.info("Validating parameters in scope {}".format(scope))
+            for parameter in self.config_parameters[scope]:
+                if parameter not in required_parameters[scope]:
+                    log.info(
+                        "[{} Scope] Parameter {} is set in the configuration, but not used by any requested producer".format(
+                            scope, parameter
+                        )
+                    )
+
     def validate(self) -> None:
         """
         Function used to validate the configuration. During the validation, the following steps are performed:
@@ -671,6 +691,7 @@ class Configuration(object):
             None
         """
         self._validate_outputs()
+        self._validate_parameters()
         self._remove_empty_configkeys(self.config_parameters)
         self._validate_all_shifts()
 
