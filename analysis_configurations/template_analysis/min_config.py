@@ -25,7 +25,6 @@ def build_config(
     available_eras: List[str],
     available_scopes: List[str],
 ):
-
     configuration = Configuration(
         era,
         sample,
