@@ -23,14 +23,14 @@ class FriendTreeConfiguration(Configuration):
     """
     Configuration class for a FriendTree production with the CROWN framework.
     Based on the main Configuration class, but with a few modifications nessessary
-    for a FriendTree configuration. The biggest differences
-        * the nominal version of quantities is optional and should only run if the user specifies it
-        * no global scope is required
-        * only one scope is allowed
-        * The ordering is not optimized, but taken directly from the configuration file
-        * information about the input file is required. This information can be provided
-            by a json file, or by providing an input root file.
-        * When using an input root file, only a single sample type and a single scope are allowed
+    for a FriendTree configuration. The biggest differences are
+
+    * the nominal version of quantities is optional and should only run if the user specifies it
+    * no global scope is required
+    * only one scope is allowed
+    * The ordering is not optimized, but taken directly from the configuration file
+    * information about the input file is required. This information can be provided by a json file, or by providing an input root file.
+    * When using an input root file, only a single sample type and a single scope are allowed
     """
 
     def __init__(
@@ -44,6 +44,20 @@ class FriendTreeConfiguration(Configuration):
         available_scopes: Union[str, List[str]],
         input_information: Union[str, Dict[str, List[str]]],
     ):
+        """Generate a configuration for a FriendTree production.
+
+        Args:
+            era (str): The era of the sample
+            sample (str): The sample type
+            scope (Union[str, List[str]]): The scope of the sample
+            shifts (Set[str]): The shifts to be applied, can be "all", "none" or a list of shifts
+            available_sample_types (Union[str, List[str]]): A list of available sample types
+            available_eras (Union[str, List[str]]): A list of available eras
+            available_scopes (Union[str, List[str]]): A list of available scopes
+            input_information (Union[str, Dict[str, List[str]]]): Information about the input file. Can be a json file or a root file
+
+        """    #
+
         super().__init__(
             era,
             sample,
