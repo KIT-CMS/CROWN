@@ -8,7 +8,6 @@ import inspect
 
 
 def run(args):
-
     # the unittest is based on the tau analysis config
     analysis_name = "unittest"
     available_samples = [
