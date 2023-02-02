@@ -56,7 +56,7 @@ class FriendTreeConfiguration(Configuration):
             available_scopes (Union[str, List[str]]): A list of available scopes
             input_information (Union[str, Dict[str, List[str]]]): Information about the input file. Can be a json file or a root file
 
-        """    #
+        """  #
 
         super().__init__(
             era,
@@ -138,7 +138,6 @@ class FriendTreeConfiguration(Configuration):
         self,
         input_information: Union[str, Dict[str, List[str]]],
     ) -> Dict[str, Dict[str, List[str]]]:
-
         # first check if the input is a root file or a json file
         data = {}
         if isinstance(input_information, str):
