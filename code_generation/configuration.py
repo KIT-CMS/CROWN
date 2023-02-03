@@ -592,7 +592,6 @@ class Configuration(object):
             elif isinstance(config[key], list):
                 subdict = copy.deepcopy(config[key])
                 for i, value in enumerate(subdict):
-
                     if value == {}:
                         log.info(
                             "Removing {}, (from {}) since it is an empty configuration parameter".format(
