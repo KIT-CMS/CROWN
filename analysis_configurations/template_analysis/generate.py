@@ -6,7 +6,6 @@ from code_generation.code_generation import CodeGenerator
 
 
 def run(args):
-
     analysis_name = "template_analysis"
     available_samples = [
         "data",
