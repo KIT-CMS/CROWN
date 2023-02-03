@@ -661,6 +661,12 @@ class Configuration(object):
         Function used to check, if parameters are set in the configuration, that are not used by any producer.
         """
         # first collect all parameters that are used by any producer
+        log.info("------------------------------------")
+        log.info("Checking for unused parameters")
+        log.info(
+            "Unused parameters are not an error, but can be a sign of a misconfiguration"
+        )
+
         required_parameters = {}
         for scope in self.scopes:
             required_parameters[scope] = set()
@@ -668,14 +674,24 @@ class Configuration(object):
                 required_parameters[scope] |= producer.parameters[scope]
         # now check, which parameters are set in the configuration, but not used by any producer
         for scope in self.scopes:
-            log.info("Validating parameters in scope {}".format(scope))
+            log.info("------------------------------------")
+            log.info("  Validating parameters in scope {}".format(scope))
+            log.info("------------------------------------")
             for parameter in self.config_parameters[scope]:
-                if parameter not in required_parameters[scope]:
+                # the sample parameters like is_data are skipped here, since they are added by default to every scope
+                sampletype_parameters = [
+                    f"is_{sampletype}" for sampletype in self.available_sample_types
+                ]
+                if (
+                    parameter not in required_parameters[scope]
+                    and parameter not in sampletype_parameters
+                ):
                     log.info(
-                        "[{} Scope] Parameter {} is set in the configuration, but not used by any requested producer".format(
+                        "    [{} Scope] Parameter {} is set in the configuration, but not used by any requested producer".format(
                             scope, parameter
                         )
                     )
+            log.info("------------------------------------")
 
     def validate(self) -> None:
         """

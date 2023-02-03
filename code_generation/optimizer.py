@@ -167,11 +167,11 @@ class ProducerOrdering:
                         self.get_position(wrongProducer),
                     )
         self.optimized_ordering = self.ordering
+        log.info("------------------------------------")
         log.info(
-            "Optimization for scope {} done after {} steps: {}".format(
-                self.scope, counter, self.optimized_ordering
-            )
+            "Optimization for scope {} done after {} steps.".format(self.scope, counter)
         )
+        log.info("------------------------------------")
 
     def check_ordering(
         self,

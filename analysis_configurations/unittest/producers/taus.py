@@ -34,14 +34,14 @@ VsMuonTauIDCut = Producer(
 ####################
 
 TauPtCorrection_byValue = Producer(
-    name="TauPtCorrection",
+    name="TauPtCorrection_byValue",
     call="physicsobject::tau::PtCorrection_byValue({df}, {output}, {input}, {tau_ES_shift_DM0}, {tau_ES_shift_DM1}, {tau_ES_shift_DM10}, {tau_ES_shift_DM11})",
     input=[
         nanoAOD.Tau_pt,
         nanoAOD.Tau_decayMode,
     ],
     output=[q.Tau_pt_corrected],
-    scopes=["global"],
+    scopes=["et", "mt", "tt"],
 )
 TauPtCorrection_eleFake = Producer(
     name="TauPtCorrection_eleFake",
