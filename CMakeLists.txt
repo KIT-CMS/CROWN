@@ -213,7 +213,6 @@ function(install_correctionlib)
     message(STATUS "Found correctionlib !")
 endfunction()
 
-find_python_package(GitPython git 3.1)
 # Adding correctionlib for scale factor evaluation
 # for now the official pip package has some problem 
 # in the future "find_python_package(correctionlib correctionlib X.X)" should hopefully work
