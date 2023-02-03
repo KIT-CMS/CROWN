@@ -57,7 +57,8 @@ def run(args):
         sub_template_path=args.subset_template,
         configuration=config,
         executable_name=f"{configname}_{sample_group}_{era}",
-        analysis_name=f"{analysis_name}_{configname}",
+        analysis_name=analysis_name,
+        config_name=configname,
         output_folder=args.output,
         threads=args.threads,
     )
