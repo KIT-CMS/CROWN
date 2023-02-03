@@ -559,7 +559,14 @@ class ProducerGroup:
         for scope in self.scopes:
             parameters[scope] = set()
             for producer in self.producers[scope]:
-                parameters[scope] = parameters[scope].union(producer.parameters[scope])
+                if scope in producer.parameters.keys():
+                    parameters[scope] = parameters[scope].union(
+                        producer.parameters[scope]
+                    )
+                else:
+                    log.warn(
+                        f"ProducerGroup {self} is setup for scope {scope}, but producer {producer} is not configured for this scope."
+                    )
         return parameters
 
     def check_producer_scopes(self) -> None:
