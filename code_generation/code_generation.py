@@ -235,7 +235,7 @@ class CodeGenerator(object):
         # run the script and get the output
         # the scipt needs to args: the absolute path to the main repo and the name of the analysis
         log.info(
-            f"Running { [script_path, os.path.dirname(os.path.realpath(__file__)), self.analysis_name]}"
+            f"Running { [script_path, os.path.dirname(os.path.dirname(os.path.realpath(__file__))), self.analysis_name]}"
         )
         try:
             output = subprocess.check_output(
@@ -257,6 +257,9 @@ class CodeGenerator(object):
         # split the output into lines
         for line in output.splitlines():
             # split the line into key and value
+            if not "=" in line:
+                print(line)
+                continue
             key, value = line.split("=")
             # set the value to the corresponding attribute
             setattr(self, key, value)
