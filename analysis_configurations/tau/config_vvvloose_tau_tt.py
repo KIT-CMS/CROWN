@@ -231,8 +231,8 @@ def build_config(
             "btag_cut": EraModifier(  # medium
                 {
                     "2016": 0.3093,
-                    "2017": 0.3040,
-                    "2018": 0.2783,
+                    "2017": 0.3033,
+                    "2018": 0.2770,
                 }
             ),
         },
@@ -385,12 +385,12 @@ def build_config(
     configuration.add_config_parameters(
         ["tt"],
         {
-            "min_tau_pt": 30.0,
-            "max_tau_eta": 2.3,
+            "min_tau_pt": 40.0,
+            "max_tau_eta": 2.1,
             "max_tau_dz": 0.2,
             "vsjet_tau_id_bit": 1,
             "vsele_tau_id_bit": 2,
-            "vsmu_tau_id_bit": 4,
+            "vsmu_tau_id_bit": 1,
         },
     )
 
@@ -622,6 +622,7 @@ def build_config(
             jets.JetEnergyCorrection,
             jets.GoodJets,
             jets.GoodBJets,
+            jets.GoodPreBJets,
             event.DiLeptonVeto,
             met.MetBasics,
         ],
@@ -641,6 +642,7 @@ def build_config(
             jets.JetCollection,
             jets.BasicJetQuantities,
             jets.BJetCollection,
+            jets.PreBJetCollection,
             jets.BasicBJetQuantities,
             scalefactors.btagging_SF,
             met.MetCorrections,
@@ -734,6 +736,8 @@ def build_config(
             # taus.BaseTaus,
             taus.GoodTaus,
             taus.NumberOfGoodTaus,
+            muons.ExtraMuonsVeto,
+            electrons.ExtraElectronsVeto,
             pairselection.TTPairSelection,
             pairselection.GoodTTPairFilter,
             pairselection.LVTau1,
@@ -1053,6 +1057,7 @@ def build_config(
             q.phi_1,
             q.phi_2,
             q.njets,
+            q.nprebjets,
             q.jpt_1,
             q.jpt_2,
             q.jeta_1,
@@ -1180,6 +1185,8 @@ def build_config(
     configuration.add_outputs(
         "tt",
         [
+            q.muon_veto_flag,
+            q.electron_veto_flag,
             q.ntaus,
             scalefactors.Tau_1_VsJetTauID_SF.output_group,
             scalefactors.Tau_1_VsEleTauID_SF.output_group,
@@ -1203,6 +1210,7 @@ def build_config(
             q.decaymode_2,
             q.tau_gen_match_1,
             q.tau_gen_match_2,
+
             # q.muon_veto_flag,
             # q.dimuon_veto,
             # q.electron_veto_flag,
