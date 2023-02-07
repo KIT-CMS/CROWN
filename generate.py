@@ -1,6 +1,9 @@
 import argparse
 import importlib
 import os
+import logging
+from code_generation.logger import CustomFormatter
+import logging.handlers
 
 
 class SplitArgs(argparse.Action):
@@ -57,8 +60,29 @@ available_analysis = [
 
 # sanitize arguments
 available_analysis = [x.lower() for x in available_analysis]
-
 analysis = args.analysis.lower()
+
+# setup logging
+
+## Setup Logging
+root = logging.getLogger()
+root.setLevel("INFO")
+if args.debug == "true":
+    root.setLevel("DEBUG")
+## setup logging
+if not os.path.exists("generation_logs"):
+    os.makedirs("generation_logs")
+terminal_handler = logging.StreamHandler()
+fmt = "[%(levelname)-8s] [%(filename)-19s:%(lineno)-3d] %(message)s"
+terminal_handler.setFormatter(CustomFormatter(fmt))
+root.addHandler(terminal_handler)
+handler = logging.handlers.WatchedFileHandler(
+    f"generation_logs/generation_{args.era}_{args.sample}.log",
+    "w",
+)
+handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+root.addHandler(handler)
+args.logger = root
 # first check if the analysis is available
 if analysis not in available_analysis:
     raise ValueError(
