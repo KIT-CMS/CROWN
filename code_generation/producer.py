@@ -1,6 +1,7 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 
 import logging
+import re
 from typing import Any, Dict, List, Set, Union
 
 from code_generation.exceptions import (
@@ -45,6 +46,7 @@ class Producer:
         self.call: str = call
         self.output: Union[List[q.Quantity], None] = output
         self.scopes = scopes
+        self.parameters: Dict[str, Set[str]] = self.extract_parameters()
         # if input not given as dict and therfore not scope specific transform into dict with all scopes
         if not isinstance(input, dict):
             inputdict = {}
@@ -83,6 +85,39 @@ class Producer:
 
     def __repr__(self) -> str:
         return "Producer: {}".format(self.name)
+
+    def extract_parameters(self) -> Dict[str, Set[str]]:
+        """
+        Function used to extract all parameters from a producer call. Parameters are enclosed in curly brackets.
+        Reserved parameters are:
+        - {output} : will be replaced by the output quantities
+        - {input} : will be replaced by the input quantities
+        - {output_vec} : will be replaced by the output quantities in vector form
+        - {input_vec} : will be replaced by the input quantities in vector form
+        - {df} : will be replaced by the dataframe name
+        - {vec_open} : will be replaced by the opening bracket of the vector
+        - {vec_close} : will be replaced by the closing bracket of the vector
+        """
+        regex = "\{([A-Za-z0-9_]+)\}"
+        reserved_parameters = [
+            "output",
+            "input",
+            "output_vec",
+            "input_vec",
+            "df",
+            "vec_open",
+            "vec_close",
+        ]
+        parameters = {}
+        for scope in self.scopes:
+            parameters[scope] = set(
+                [
+                    x
+                    for x in re.findall(regex, self.call)
+                    if x not in reserved_parameters
+                ]
+            )
+        return parameters
 
     # Check if a output_quantity is already used as an output by
     # another producer within the same scope.
@@ -312,6 +347,9 @@ class ExtendedVectorProducer(Producer):
         super().__init__(name, call, input, [quantity_group], scope)
         if self.output is None:
             raise InvalidProducerConfigurationError(self.name)
+        # add the vec config to the parameters of the producer
+        for scope in self.scopes:
+            self.parameters[scope].add(self.vec_config)
 
     def __str__(self) -> str:
         return "ExtendedVectorProducer: {}".format(self.name)
@@ -507,12 +545,29 @@ class ProducerGroup:
             )
 
         log.debug("-----------------------------------------")
+        # in the end, determine all parameters used by the producer group
+        self.parameters = self.extract_parameters()
 
     def __str__(self) -> str:
         return "ProducerGroup: {}".format(self.name)
 
     def __repr__(self) -> str:
         return "ProducerGroup: {}".format(self.name)
+
+    def extract_parameters(self) -> Dict[str, Set[str]]:
+        parameters = {}
+        for scope in self.scopes:
+            parameters[scope] = set()
+            for producer in self.producers[scope]:
+                if scope in producer.parameters.keys():
+                    parameters[scope] = parameters[scope].union(
+                        producer.parameters[scope]
+                    )
+                else:
+                    log.warn(
+                        f"ProducerGroup {self} is setup for scope {scope}, but producer {producer} is not configured for this scope."
+                    )
+        return parameters
 
     def check_producer_scopes(self) -> None:
         for scope in self.scopes:
