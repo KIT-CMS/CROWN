@@ -298,6 +298,8 @@ ROOT::RDF::RNode deltaR(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &p_1_p4, const std::string &p_2_p4) {
     auto calculate_deltaR = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
                                ROOT::Math::PtEtaPhiMVector &p_2_p4) {
+        if (p_1_p4.pt() < 0.0 || p_2_p4.pt() < 0.0)
+            return default_float;
         return (float)ROOT::Math::VectorUtil::DeltaR(p_1_p4, p_2_p4);
     };
     return df.Define(outputname, calculate_deltaR, {p_1_p4, p_2_p4});
@@ -381,7 +383,7 @@ ROOT::RDF::RNode pt_ttjj(ROOT::RDF::RNode df, const std::string &outputname,
 
 /**
  * @brief function used to calculate the pt two leading jets
- If the number of jets is less than 2, the quantity is set to 10
+ If the number of jets is less than 2, the quantity is set to -10
  * instead.
  *
  * @param df name of the dataframe
