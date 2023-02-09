@@ -839,7 +839,7 @@ btagSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &eta,
                                      const ROOT::RVec<int> &jet_mask,
                                      const ROOT::RVec<int> &bjet_mask,
                                      const ROOT::RVec<int> &jet_veto_mask) {
-        Logger::get("btagSF")->debug("Vatiation - Name {}", variation);
+        Logger::get("btagSF")->debug("Variation - Name {}", variation);
         float sf = 1.;
         for (int i = 0; i < pt_values.size(); i++) {
             Logger::get("btagSF")->debug(

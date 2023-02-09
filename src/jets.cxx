@@ -208,7 +208,7 @@ ROOT::RDF::RNode CutPUID(ROOT::RDF::RNode df, const std::string &maskname,
 /// \param[in] jec_file path to the file with JES/JER information
 /// \param[in] jer_tag era dependent tag for JER
 /// \param[in] jes_tag era dependent tag for JES
-/// \param[in] jec_algo algorithm used for jets e.g. AK4PFchs
+/// \param[in] jec_algo algorithm used for jets e.g. AK4PFchs, AK8PFPuppi
 ///
 /// \return a dataframe containing the modified jet pts
 ROOT::RDF::RNode
@@ -361,7 +361,8 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
             if (jes_shift != 0.0) {
                 if (jes_shift_sources.at(0) != "HEMIssue") {
                     // Differentiate between single source and combined source
-                    // for reduced scheme
+                    // for regrouped scheme -> deprecated, regrouped scheme now
+                    // included in jsonpog corrections
                     if (JetEnergyScaleShifts.size() == 1) {
                         pt_scale_sf =
                             1. +
@@ -572,6 +573,30 @@ ROOT::RDF::RNode btagValue(ROOT::RDF::RNode df, const std::string &outputname,
                      },
                      {btagcolumn, jetcollection});
 }
+/// Function to writeout the hadron flavour from a genjet. The jet
+/// is identified via the index stored in the pair vector
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the hadron flavour
+/// \param position index of the position in the pair vector
+/// \param pairname name of the column containing the pair vector
+/// \param hadflavcolumn name of the column containing the hadron flavour
+///
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode hadronFlavour(ROOT::RDF::RNode df,
+                               const std::string &outputname,
+                               const int &position, const std::string &pairname,
+                               const std::string &hadflavcolumn) {
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<int> &pair,
+                                const ROOT::RVec<UChar_t> &hadflav) {
+                         const int index = pair.at(position);
+                         return hadflav.at(index, default_uchar);
+                     },
+                     {pairname, hadflavcolumn});
+}
+
 } // end namespace jet
 } // end namespace quantities
 #endif /* GUARDJETS_H */

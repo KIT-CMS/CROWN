@@ -59,7 +59,7 @@ ROOT::RDF::RNode buildparticle(ROOT::RDF::RNode df,
                 p4 = ROOT::Math::PtEtaPhiMVector(default_float, default_float,
                                                  default_float, default_float);
                 Logger::get("lorentzvectors")
-                    ->debug("Index not found, retuning dummy vector !");
+                    ->debug("Index not found, returning dummy vector !");
             }
             Logger::get("lorentzvectors")
                 ->debug("P4 - Particle {} : {}", position, p4);

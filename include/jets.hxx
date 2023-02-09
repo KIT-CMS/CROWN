@@ -59,6 +59,10 @@ ROOT::RDF::RNode btagValue(ROOT::RDF::RNode df, const std::string &outputname,
                            const std::string &btagcolumn,
                            const std::string &jetcollection,
                            const int &position);
+ROOT::RDF::RNode hadronFlavour(ROOT::RDF::RNode df,
+                               const std::string &outputname,
+                               const int &position, const std::string &pairname,
+                               const std::string &hadflavcolumn);
 } // end namespace jet
 } // end namespace quantities
 #endif /* GUARDJETS_H */

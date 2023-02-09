@@ -49,7 +49,7 @@ namespace leptonic {
 auto ElMuPairSelectionAlgo(const float &mindeltaR);
 auto PairSelectionAlgo(const float &mindeltaR);
 auto ZBosonPairSelectionAlgo(const float &mindeltaR);
-} // namespace leptonic
+} // end namespace leptonic
 namespace mutau {
 
 ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
@@ -73,7 +73,7 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::string &pairname,
                                const float &mindeltaR);
 
-} // namespace tautau
+} // end namespace tautau
 
 namespace elmu {
 
@@ -81,7 +81,7 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &pairname,
                                const float &mindeltaR);
-} // namespace elmu
+} // end namespace elmu
 
 namespace mumu {
 
@@ -107,5 +107,14 @@ ZBosonPairSelection(ROOT::RDF::RNode df,
                     const std::vector<std::string> &input_vector,
                     const std::string &pairname, const float &mindeltaR);
 } // end namespace elel
-} // namespace ditau_pairselection
+} // end namespace ditau_pairselection
+
+namespace bb_pairselection {
+auto BBPairSelectionAlgo(const float &mindeltaR, const float &btag_WP_value);
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vector,
+                               const std::string &pairname,
+                               const float &mindeltaR,
+                               const float &btag_WP_value);
+} // end namespace bb_pairselection
 #endif /* GUARD_PAIRSELECTION_H */

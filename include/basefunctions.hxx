@@ -99,7 +99,7 @@ ROOT::RDF::RNode getvar(ROOT::RDF::RNode df, const std::string &outputname,
                 out = col.at(index, default_value<T>());
             } catch (const std::out_of_range &e) {
                 Logger::get("getvar")->debug(
-                    "Index not found, retuning dummy value !");
+                    "Index not found, returning dummy value !");
             }
 
             return out;
