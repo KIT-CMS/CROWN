@@ -63,13 +63,13 @@ namespace ditau_pairselection {
  * reference for the first pair particle
  * @param genindex_particle2 the column containing the index of the GenParticle
  * reference for the second pair particle
- * @param genpair name of the new column containing the GenDiTauPair
+ * @param genpairname name of the new column containing the GenDiTauPair
  * @return a new Dataframe with the GenDiTauPair column
  */
 ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
                               const std::string &genindex_particle1,
                               const std::string &genindex_particle2,
-                              const std::string &genpair) {
+                              const std::string &genpairname) {
     auto getGenPair = [](const ROOT::RVec<int> &recopair,
                          const ROOT::RVec<int> &genindex_particle1,
                          const ROOT::RVec<int> &genindex_particle2) {
@@ -81,7 +81,7 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
             ->debug("matching GenDiTauPair: {}", genpair);
         return genpair;
     };
-    return df.Define(genpair, getGenPair,
+    return df.Define(genpairname, getGenPair,
                      {recopair, genindex_particle1, genindex_particle2});
 }
 
@@ -109,6 +109,7 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
  * @param daughter_2_pdgid the PDGID of the second daughter particle
  * @return auto the new Dataframe with the genpair column
  */
+
 ROOT::RDF::RNode
 buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
                  const std::string &status, const std::string &pdgids,
@@ -156,13 +157,11 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
         }
         auto gen_candidates_1 = ROOT::VecOps::Filter(
             genparticles, [daughter_1_pdgid](const GenParticle &genparticle) {
-                return (daughter_1_pdgid == genparticle.pdgid) &&
-                       (genparticle.status == 1);
+                return (daughter_1_pdgid == genparticle.pdgid);
             });
         auto gen_candidates_2 = ROOT::VecOps::Filter(
             genparticles, [daughter_2_pdgid](const GenParticle &genparticle) {
-                return (daughter_2_pdgid == genparticle.pdgid) &&
-                       (genparticle.status == 1);
+                return (daughter_2_pdgid == genparticle.pdgid);
             });
         if (daughter_1_pdgid == daughter_2_pdgid) {
             // if the two daughter particles are the same, we need to find
