@@ -143,23 +143,6 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
         Logger::get("buildtruegenpair")
             ->debug("Checking for daugther 1: {}, daugther 2: {}, mother: {}",
                     daughter_1_pdgid, daughter_2_pdgid, mother_pdgid);
-        // Logger::get("buildtruegenpair")->debug("genparticles: ");
-        // for (auto &genparticle : genparticles) {
-        //     Logger::get("buildtruegenpair")
-        //         ->debug("|--------------------------------------------");
-        //     Logger::get("buildtruegenpair")
-        //         ->debug("|    Index: {}", genparticle.index);
-        //     Logger::get("buildtruegenpair")
-        //         ->debug("|    Status: {}", genparticle.status);
-        //     Logger::get("buildtruegenpair")
-        //         ->debug("|     Statusflag: {}", genparticle.statusflag);
-        //     Logger::get("buildtruegenpair")
-        //         ->debug("|    Pdgid: {}", genparticle.pdgid);
-        //     Logger::get("buildtruegenpair")
-        //         ->debug("|    motherid: {}", genparticle.motherid);
-        //     Logger::get("buildtruegenpair")
-        //         ->debug("|--------------------------------------------");
-        // }
 
         auto gen_candidates_1 = ROOT::VecOps::Filter(
             genparticles, [daughter_1_pdgid](const GenParticle &genparticle) {

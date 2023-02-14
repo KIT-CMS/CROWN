@@ -299,6 +299,109 @@ ROOT::RDF::RNode hadronicGenTaus(ROOT::RDF::RNode df,
 
 } // end namespace tau
 
+namespace jet {
+/**
+ * @brief function to match gen. pair particles to reconstructed pair particles
+ * and write out a flag. The matching is done with a deltaR criterium. The
+ * output is a flag with value 0, 1 or 2 which correspond to the amount of
+ * matched particles.
+ * @param df The dataframe to be extended with the flag
+ * @param outputname The name of the column to be added to the dataframe
+ * @param gen_particle_p4_1 The name of the column containing the lorentzvector
+ * of the leading gen. particle
+ * @param gen_particle_p4_2 The name of the column containing the lorentzvector
+ * of the subleading gen. particle
+ * @param reco_particle_p4_1 The name of the column containing the lorentzvector
+ * of the leading reco. particle
+ * @param reco_particle_p4_2 The name of the column containing the lorentzvector
+ * of the subleading reco. particle
+ * @param max_deltaR The maximal deltaR value for a gen. and reco. particle to
+ * be matched
+ * @return a new dataframe with the flag added to the dataframe
+ */
+
+ROOT::RDF::RNode particlePairRecoGenMatchFlag(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &gen_particle_p4_1, const std::string &gen_particle_p4_2,
+    const std::string &reco_particle_p4_1,
+    const std::string &reco_particle_p4_2, const float max_deltaR) {
+
+    auto flag = [max_deltaR](const ROOT::Math::PtEtaPhiMVector &gen_p4_1,
+                             const ROOT::Math::PtEtaPhiMVector &gen_p4_2,
+                             const ROOT::Math::PtEtaPhiMVector &reco_p4_1,
+                             const ROOT::Math::PtEtaPhiMVector &reco_p4_2) {
+        int matches = 0;
+        bool gen_1_matched = false;
+        bool gen_2_matched = false;
+        if ((reco_p4_1.pt() > 0) && (reco_p4_2.pt() > 0)) {
+            float delta_r_11 =
+                ROOT::Math::VectorUtil::DeltaR(gen_p4_1, reco_p4_1);
+            float delta_r_12 =
+                ROOT::Math::VectorUtil::DeltaR(gen_p4_1, reco_p4_2);
+            float delta_r_21 =
+                ROOT::Math::VectorUtil::DeltaR(gen_p4_2, reco_p4_1);
+            float delta_r_22 =
+                ROOT::Math::VectorUtil::DeltaR(gen_p4_2, reco_p4_2);
+            Logger::get("genmatching::jet::particlePairRecoGenMatchFlag")
+                ->debug("deltaR beween 1. gen and 1. reco particle: {}",
+                        delta_r_11);
+            Logger::get("genmatching::jet::particlePairRecoGenMatchFlag")
+                ->debug("deltaR beween 1. gen and 2. reco particle: {}",
+                        delta_r_12);
+            Logger::get("genmatching::jet::particlePairRecoGenMatchFlag")
+                ->debug("deltaR beween 2. gen and 1. reco particle: {}",
+                        delta_r_21);
+            Logger::get("genmatching::jet::particlePairRecoGenMatchFlag")
+                ->debug("deltaR beween 2. gen and 2. reco particle: {}",
+                        delta_r_22);
+
+            if ((delta_r_11 < max_deltaR) || (delta_r_21 < max_deltaR)) {
+                if ((delta_r_11 <= delta_r_21) && (delta_r_11 < delta_r_12)) {
+                    matches += 1;
+                    gen_1_matched = true;
+                } else if ((delta_r_11 > delta_r_21) &&
+                           (delta_r_21 < delta_r_22)) {
+                    matches += 1;
+                    gen_2_matched = true;
+                }
+            }
+            if ((delta_r_22 < max_deltaR) || (delta_r_12 < max_deltaR)) {
+                if ((delta_r_22 <= delta_r_12) && !gen_2_matched) {
+                    matches += 1;
+                    gen_2_matched = true;
+                } else if ((delta_r_22 > delta_r_12) && !gen_1_matched) {
+                    matches += 1;
+                    gen_1_matched = true;
+                }
+            }
+        } else if ((reco_p4_1.pt() > 0) && (reco_p4_2.pt() < 0)) {
+            float delta_r_11 =
+                ROOT::Math::VectorUtil::DeltaR(gen_p4_1, reco_p4_1);
+            float delta_r_21 =
+                ROOT::Math::VectorUtil::DeltaR(gen_p4_2, reco_p4_1);
+
+            if ((delta_r_11 < max_deltaR) || (delta_r_21 < max_deltaR)) {
+                if (delta_r_11 <= delta_r_21) {
+                    matches += 1;
+                    gen_1_matched = true;
+                } else if (delta_r_11 > delta_r_21) {
+                    matches += 1;
+                    gen_2_matched = true;
+                }
+            }
+        }
+
+        return matches;
+    };
+
+    auto df1 = df.Define(outputname, flag,
+                         {gen_particle_p4_1, gen_particle_p4_2,
+                          reco_particle_p4_1, reco_particle_p4_2});
+    return df1;
+}
+
+} // end namespace jet
+
 } // end namespace genmatching
 
 #endif /* GUARD_GENPARTICLES_H */

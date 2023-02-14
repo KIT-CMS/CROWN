@@ -29,5 +29,12 @@ ROOT::RDF::RNode hadronicGenTaus(ROOT::RDF::RNode df,
                                  const std::string &genparticles_motherid);
 } // end namespace tau
 
+namespace jet {
+ROOT::RDF::RNode particlePairRecoGenMatchFlag(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &gen_particle_p4_1, const std::string &gen_particle_p4_2,
+    const std::string &reco_particle_p4_1,
+    const std::string &reco_particle_p4_2, const float max_deltaR);
+}
 } // namespace genmatching
 #endif /* GUARD_GENPARTICLES_H */
