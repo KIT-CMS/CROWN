@@ -107,7 +107,8 @@ VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
     return df1;
 }
 
-/// Function to veto jets overlapping with particle candidates (with isolation condition)
+/// Function to veto jets overlapping with particle candidates (with isolation
+/// condition)
 ///
 /// \param[in] df the input dataframe
 /// \param[out] output_col the name of the produced mask \param[in] jet_eta name
@@ -116,17 +117,18 @@ VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
 /// distance in dR between jets and particle candidates
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-VetoOverlappingJetsIsoLepOnly(ROOT::RDF::RNode df, const std::string &output_col,
-			      const std::string &jet_eta, const std::string &jet_phi,
-			      const std::string &p4_1, const std::string &lep_is_iso,
-			      const float &deltaRmin) {
+ROOT::RDF::RNode VetoOverlappingJetsIsoLepOnly(ROOT::RDF::RNode df,
+                                               const std::string &output_col,
+                                               const std::string &jet_eta,
+                                               const std::string &jet_phi,
+                                               const std::string &p4_1,
+                                               const std::string &lep_is_iso,
+                                               const float &deltaRmin) {
     auto df1 = df.Define(
         output_col,
-        [deltaRmin](const ROOT::RVec<float> &jet_eta,
-                    const ROOT::RVec<float> &jet_phi,
-                    const ROOT::Math::PtEtaPhiMVector &p4_1,
-		    const int &lep_is_iso) {
+        [deltaRmin](
+            const ROOT::RVec<float> &jet_eta, const ROOT::RVec<float> &jet_phi,
+            const ROOT::Math::PtEtaPhiMVector &p4_1, const int &lep_is_iso) {
             Logger::get("VetoOverlappingJets")->debug("Checking jets");
             ROOT::RVec<int> mask(jet_eta.size(), 1);
             for (std::size_t idx = 0; idx < mask.size(); ++idx) {
@@ -140,8 +142,8 @@ VetoOverlappingJetsIsoLepOnly(ROOT::RDF::RNode df, const std::string &output_col
                 auto deltaR_1 = ROOT::Math::VectorUtil::DeltaR(jet, p4_1);
                 Logger::get("VetoOverlappingJets")
                     ->debug("DeltaR 1 {}", deltaR_1);
-		if (lep_is_iso == +1)
-		  mask[idx] = (deltaR_1 > deltaRmin);
+                if (lep_is_iso == +1)
+                    mask[idx] = (deltaR_1 > deltaRmin);
             }
             Logger::get("VetoOverlappingJets")
                 ->debug("vetomask due to overlap: {}", mask);
@@ -570,11 +572,11 @@ ROOT::RDF::RNode CutRawID(ROOT::RDF::RNode df, const std::string &quantity,
 /// \param[in] idThreshold maximal ID value
 ///
 /// \return a dataframe containing the new mask
-  ROOT::RDF::RNode AntiCutRawID(ROOT::RDF::RNode df, const std::string &quantity,
-				const std::string &maskname,
-				const float &idThreshold) {
+ROOT::RDF::RNode AntiCutRawID(ROOT::RDF::RNode df, const std::string &quantity,
+                              const std::string &maskname,
+                              const float &idThreshold) {
     auto df1 =
-      df.Define(maskname, basefunctions::FilterMax(idThreshold), {quantity});
+        df.Define(maskname, basefunctions::FilterMax(idThreshold), {quantity});
     return df1;
 }
 } // end namespace jet
@@ -644,10 +646,9 @@ ROOT::RDF::RNode btagValue(ROOT::RDF::RNode df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-  ROOT::RDF::RNode flavor(ROOT::RDF::RNode df, const std::string &outputname,
-			  const std::string &flavorcolumn,
-			  const std::string &jetcollection,
-			  const int &position) {
+ROOT::RDF::RNode flavor(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &flavorcolumn,
+                        const std::string &jetcollection, const int &position) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &flavorvalue,
                                 const ROOT::RVec<int> &jetcollection) {

@@ -131,8 +131,10 @@ int main(int argc, char *argv[]) {
         commit_meta.Branch(commit_hash.c_str(), &setup_clean);
         commit_meta.Fill();
         commit_meta.Write();
-        TTree analysis_commit_meta = TTree("analysis_commit", "analysis_commit");
-        analysis_commit_meta.Branch(analysis_commit_hash.c_str(), &analysis_setup_clean);
+        TTree analysis_commit_meta =
+            TTree("analysis_commit", "analysis_commit");
+        analysis_commit_meta.Branch(analysis_commit_hash.c_str(),
+                                    &analysis_setup_clean);
         analysis_commit_meta.Fill();
         analysis_commit_meta.Write();
         TH1D cutflow;
