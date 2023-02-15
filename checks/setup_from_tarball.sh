@@ -13,15 +13,18 @@ if [ ! -d "$checkout_location" ]; then
 fi
 
 if [ -d "$tarball" ]; then
+    echo "Using tarball folder $tarball"
     mkdir temp
     cp -r $tarball temp/
     tarball=$(realpath temp/$tarball)
-fi
 # if tarball is a file, unpack it here
-if [ -f "$tarball" ]; then
+elif [ -f "$tarball" ]; then
+    echo "Using tarball file $tarball"
     mkdir temp
     tar -xzf $tarball -C temp/
-    tarball=$(realpath temp/$tarball)
+    tarball=$(realpath temp)
+else
+    echo "ERROR: tarball must be a file or a folder"
 fi
 # go to the checkout location
 cd $checkout_location
@@ -46,4 +49,6 @@ git checkout $analysis_commit
 git apply $tarball/diff/analysis_diff.patch
 # cleanup the temporary tarball
 rm -rf $tarball
-echo "Setup from tarball finished. You can now run the analysis."
+echo "**************************************************************"
+echo "*  Setup from tarball finished. You can now run the analysis *"
+echo "**************************************************************"
