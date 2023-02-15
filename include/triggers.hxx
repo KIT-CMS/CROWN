@@ -49,9 +49,9 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
     const std::string &particle1_p4, const std::string &particle2_p4,
     const std::string &triggerobject_bits, const std::string &triggerobject_id,
     const std::string &triggerobject_pt, const std::string &triggerobject_eta,
-    const std::string &triggerobject_phi,
-    const float &p1_pt_cut, const float &p2_pt_cut, const float &p1_eta_cut,
-    const float &p2_eta_cut, const int &p1_trigger_particle_id_cut,
+    const std::string &triggerobject_phi, const float &p1_pt_cut,
+    const float &p2_pt_cut, const float &p1_eta_cut, const float &p2_eta_cut,
+    const int &p1_trigger_particle_id_cut,
     const int &p2_trigger_particle_id_cut, const int &p1_triggerbit_cut,
     const int &p2_triggerbit_cut, const float &DeltaR_threshold);
 

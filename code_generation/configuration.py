@@ -338,6 +338,8 @@ class Configuration(object):
                 scopes_to_shift = [
                     scope for scope in shift.get_scopes() if scope in self.scopes
                 ]
+                # if a modifier is used within the shift config, we have to resolve it
+                #  here using the resolve_modifiers function
                 if self.global_scope in scopes_to_shift:
                     for scope in self.scopes:
                         if scope in shift.get_scopes():
@@ -345,19 +347,21 @@ class Configuration(object):
                             shift.apply(scope)
                             self.shifts[scope][
                                 shift.shiftname
-                            ] = shift.get_shift_config(scope)
+                            ] = self.resolve_modifiers(shift.get_shift_config(scope))
                         else:
                             self._add_available_shift(shift, scope)
                             shift.apply(self.global_scope)
                             self.shifts[scope][
                                 shift.shiftname
-                            ] = shift.get_shift_config(self.global_scope)
+                            ] = self.resolve_modifiers(
+                                shift.get_shift_config(self.global_scope)
+                            )
                 else:
                     for scope in scopes_to_shift:
                         self._add_available_shift(shift, scope)
                         shift.apply(scope)
-                        self.shifts[scope][shift.shiftname] = shift.get_shift_config(
-                            scope
+                        self.shifts[scope][shift.shiftname] = self.resolve_modifiers(
+                            shift.get_shift_config(scope)
                         )
 
     def _is_valid_shift(
@@ -588,7 +592,6 @@ class Configuration(object):
             elif isinstance(config[key], list):
                 subdict = copy.deepcopy(config[key])
                 for i, value in enumerate(subdict):
-
                     if value == {}:
                         log.info(
                             "Removing {}, (from {}) since it is an empty configuration parameter".format(
@@ -653,6 +656,43 @@ class Configuration(object):
                             raise InvalidShiftError(shift, self.sample, scope)
         log.info("Shift configuration is valid")
 
+    def _validate_parameters(self) -> None:
+        """
+        Function used to check, if parameters are set in the configuration, that are not used by any producer.
+        """
+        # first collect all parameters that are used by any producer
+        log.info("------------------------------------")
+        log.info("Checking for unused parameters")
+        log.info(
+            "Unused parameters are not an error, but can be a sign of a misconfiguration"
+        )
+
+        required_parameters = {}
+        for scope in self.scopes:
+            required_parameters[scope] = set()
+            for producer in self.producers[scope]:
+                required_parameters[scope] |= producer.parameters[scope]
+        # now check, which parameters are set in the configuration, but not used by any producer
+        for scope in self.scopes:
+            log.info("------------------------------------")
+            log.info("  Validating parameters in scope {}".format(scope))
+            log.info("------------------------------------")
+            for parameter in self.config_parameters[scope]:
+                # the sample parameters like is_data are skipped here, since they are added by default to every scope
+                sampletype_parameters = [
+                    f"is_{sampletype}" for sampletype in self.available_sample_types
+                ]
+                if (
+                    parameter not in required_parameters[scope]
+                    and parameter not in sampletype_parameters
+                ):
+                    log.info(
+                        "    [{} Scope] Parameter {} is set in the configuration, but not used by any requested producer".format(
+                            scope, parameter
+                        )
+                    )
+            log.info("------------------------------------")
+
     def validate(self) -> None:
         """
         Function used to validate the configuration. During the validation, the following steps are performed:
@@ -667,6 +707,7 @@ class Configuration(object):
             None
         """
         self._validate_outputs()
+        self._validate_parameters()
         self._remove_empty_configkeys(self.config_parameters)
         self._validate_all_shifts()
 

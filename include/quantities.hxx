@@ -49,6 +49,13 @@ ROOT::RDF::RNode pt_ttjj(ROOT::RDF::RNode df, const std::string &outputname,
                          const std::string &p_1_p4, const std::string &p_2_p4,
                          const std::string &jet_1_p4,
                          const std::string &jet_2_p4, const std::string &met);
+ROOT::RDF::RNode pt_dijet(ROOT::RDF::RNode df, const std::string &outputname,
+                          const std::string &jet_1_p4,
+                          const std::string &jet_2_p4);
+ROOT::RDF::RNode jet_hemisphere(ROOT::RDF::RNode df,
+                                const std::string &outputname,
+                                const std::string &jet_1_p4,
+                                const std::string &jet_2_p4);
 ROOT::RDF::RNode mt_tot(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &p_1_p4, const std::string &p_2_p4,
                         const std::string &met);

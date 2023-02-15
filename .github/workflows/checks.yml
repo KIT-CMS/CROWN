@@ -22,15 +22,15 @@ jobs:
   build_project:
     runs-on: ubuntu-20.04
     container:
-      image: rootproject/root:6.26.00-arch
+      image: rootproject/root:6.26.10-arch
       options: --user 0 # run as root
 
     steps:
       - name: update Arch keyring
-        run: pacman -Syy --noconfirm && pacman -Sy archlinux-keyring --noconfirm
+        run: pacman -Sc && pacman -Syy --noconfirm && pacman -Sy archlinux-keyring --noconfirm
 
       - name: Install missing software
-        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost --ignore root --ignore libinih
+        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost openssh --ignore root --ignore openssl
 
       # - name: apt update
       #   run: apt-get -y update

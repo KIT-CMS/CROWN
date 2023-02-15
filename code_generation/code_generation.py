@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict, List, Union, Tuple
 import os
 import filecmp
-from git import Repo, InvalidGitRepositoryError, NoSuchPathError
+import subprocess
 
 from code_generation.producer import SafeDict, Producer, ProducerGroup
 
@@ -25,6 +25,7 @@ class CodeSubset(object):
         scope: The scope of the code generation.
         folder: The folder in which the code will be generated.
         parameters: The parameters to be used for the generation.
+        name: The name of the code subset.
 
     Returns:
         None
@@ -38,12 +39,13 @@ class CodeSubset(object):
         scope: str,
         folder: str,
         configuration_parameters: Dict[str, Any],
+        name: str,
     ):
         self.file_name = file_name
         self.template = template
         self.producer = producer
         self.scope = scope
-        self.name = producer.name + "_" + scope
+        self.name = name
         self.configuration_parameters = configuration_parameters
         self.count = 0
         self.folder = folder
@@ -182,6 +184,7 @@ class CodeGenerator(object):
         sub_template_path: str,
         configuration: Configuration,
         analysis_name: str,
+        config_name: str,
         executable_name: str,
         output_folder: str,
         threads: int = 1,
@@ -194,6 +197,7 @@ class CodeGenerator(object):
         self.global_scope = self.configuration.global_scope
         self.executable_name = executable_name
         self.analysis_name = analysis_name
+        self.config_name = config_name
         self.output_folder = output_folder
         self.executable = os.path.join(
             output_folder,
@@ -213,19 +217,52 @@ class CodeGenerator(object):
             self.main_counter[scope] = 0
             self.subset_calls[scope] = []
             self.output_commands[scope] = []
-        # get git status of the main repo
-        try:
-            main_repo_path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)), "../../CROWN"
-            )
-            log.info("Getting git status of {}".format(main_repo_path))
-            main_repo = Repo(main_repo_path)
-            self.commit_hash = main_repo.head.commit
-            self.setup_is_clean = "false" if main_repo.is_dirty() else "true"
-        except (ValueError, InvalidGitRepositoryError, NoSuchPathError):
-            self.commit_hash = "undefined"
-            self.setup_is_clean = "false"
+        # set git status default values
+        self.commit_hash = "undefined"
+        self.analysis_commit_hash = "undefined"
+        self.crown_is_clean = "false"
+        self.analysis_is_clean = "false"
+        self.get_git_status()
         log.info("Code generator initialized")
+
+    def get_git_status(self) -> None:
+        """
+        Get the git status of the main repo. The status is determined via the checks/git-status.sh script.
+        """
+        script_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "../checks/git-status.sh"
+        )
+        # run the script and get the output
+        # the scipt needs to args: the absolute path to the main repo and the name of the analysis
+        log.info(
+            f"Running { [script_path, os.path.dirname(os.path.dirname(os.path.realpath(__file__))), self.analysis_name]}"
+        )
+        try:
+            output = subprocess.check_output(
+                [
+                    script_path,
+                    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+                    self.analysis_name,
+                ],
+                stderr=subprocess.STDOUT,
+            )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(
+                "command '{}' return with error (code {}): {}".format(
+                    e.cmd, e.returncode, e.output
+                )
+            )
+
+        output = output.decode("utf-8")
+        # split the output into lines
+        for line in output.splitlines():
+            # split the line into key and value
+            if not "=" in line:
+                print(line)
+                continue
+            key, value = line.split("=")
+            # set the value to the corresponding attribute
+            setattr(self, key, value)
 
     def generate_code(self) -> None:
         """
@@ -309,11 +346,18 @@ class CodeGenerator(object):
                     "{SAMPLETAG}", '"Samplegroup={}"'.format(self.configuration.sample)
                 )
                 .replace("{ANALYSISTAG}", '"Analysis={}"'.format(self.analysis_name))
+                .replace("{CONFIGTAG}", '"Config={}"'.format(self.config_name))
                 .replace("{PROGRESS_CALLBACK}", self.set_process_tracking())
                 .replace("{OUTPUT_QUANTITIES}", self.set_output_quantities())
+                .replace("{SHIFT_QUANTITIES_MAP}", self.set_shift_quantities_map())
+                .replace("{QUANTITIES_SHIFT_MAP}", self.set_quantities_shift_map())
                 .replace("{SYSTEMATIC_VARIATIONS}", self.set_shifts())
                 .replace("{COMMITHASH}", '"{}"'.format(self.commit_hash))
-                .replace("{SETUP_IS_CLEAN}", self.setup_is_clean)
+                .replace("{CROWN_IS_CLEAN}", self.crown_is_clean)
+                .replace(
+                    "{ANALYSIS_COMMITHASH}", '"{}"'.format(self.analysis_commit_hash)
+                )
+                .replace("{ANALYSIS_IS_CLEAN}", self.analysis_is_clean)
             )
         log.info("Code written to {}".format(self.executable))
         log.info("------------------------------------")
@@ -376,9 +420,23 @@ class CodeGenerator(object):
         # in order to map the dfs correctly, we have to count the number of subset calls
         is_first = True
         counter = 0
+        generated_producers = []
         for producer in self.configuration.producers[scope]:
+            producer_name = producer.name
+            # check if the producer name is unique, if not, add an index to make it unique
+            if producer_name in generated_producers:
+                log.warn(
+                    "Producer {} is used twice in scope {}".format(producer_name, scope)
+                )
+                producer_name += "_"
+                index = 1
+                # add an additional index to the producer name till it is unique
+                while producer_name + str(index) in generated_producers:
+                    index += 1
+                producer_name += str(index)
+                log.warn("Using {} as a substitute name instead".format(producer_name))
             subset = CodeSubset(
-                file_name=producer.name,
+                file_name=producer_name,
                 template=self.subset_template,
                 producer=producer,
                 scope=scope,
@@ -386,13 +444,15 @@ class CodeGenerator(object):
                     self.output_folder, self.executable_name + "_generated_code"
                 ),
                 configuration_parameters=self.configuration.config_parameters[scope],
+                name=producer_name + "_" + scope,
             )
             subset.create()
             subset.write()
             self.number_of_defines += subset.count
+            generated_producers.append(producer_name)
             log.debug(
                 "Adding {} defines for {} in scope {}".format(
-                    subset.count, producer.name, scope
+                    subset.count, producer_name, scope
                 )
             )
             # two special cases:
@@ -477,6 +537,7 @@ class CodeGenerator(object):
                 runcommands += f"    {scope}_result.GetValue();\n"
                 runcommands += f'    Logger::get("main")->info("{scope}:");\n'
                 runcommands += f"    {scope}_cutReport->Print();\n"
+                runcommands += f"    cutReports.push_back({scope}_cutReport);\n"
         log.info(
             "Output files generated for scopes: {}".format(
                 self._outputfiles_generated.keys()
@@ -598,3 +659,109 @@ class CodeGenerator(object):
         )
         tracking += "    });\n"
         return tracking
+
+    def set_shift_quantities_map(self) -> str:
+        """
+        This function is used to generate a mapping of all quantities and the shifts,
+        the quantities are used in to be stored in the output file.
+        The ordering is based on the shifts:
+
+        Example::
+
+            {
+                "shift_1" : ["quantity_1", "quantity_2", "quantity_3"],
+                "shift_2" : ["quantity_1", "quantity_3"],
+                "shift_3" : ["quantity_1"]
+            }
+
+        This information will be stored in the root file as
+        shift_quantities_map and can be accessed to get the correct mapping
+        """
+        ctring = "{"
+        for scope in self.scopes:
+            outputset: List[str] = []
+            output_map: Dict[str, List[str]] = {}
+            for output in sorted(self.outputs[scope]):
+                self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
+            if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
+                # convert output lists to a set to remove duplicates
+                outputset = list(
+                    set(
+                        self.output_commands[scope]
+                        + self.output_commands[self.global_scope]
+                    )
+                )
+                # now split by __ and get a set of all the shifts per variable
+                for i, output in enumerate(outputset):
+                    try:
+                        quantity, shift = output.split("__")
+                    except ValueError:
+                        quantity = output
+                        shift = ""
+                    if shift not in output_map.keys():
+                        output_map[shift] = []
+                    output_map[shift].append(quantity)
+                # now do some string magic to get the correct format, dont ask about the details..
+                output_map_str = "{ "
+                for shift in output_map.keys():
+                    output_map_str += f'"{shift}"' + ' , { "'
+                    output_map_str += '", "'.join(output_map[shift])
+                    output_map_str += '" }},{'
+                output_map_str = output_map_str[:-4] + "}}"
+                ctring += "{" + self._outputfiles_generated[scope] + " , {"
+                ctring += f"{output_map_str}" + "}},"
+        ctring = ctring[:-2] + " }}"
+        return ctring
+
+    def set_quantities_shift_map(self) -> str:
+        """
+        This function is used to generate a mapping of all quantities and the shifts,
+        the quantities are used in to be stored in the output file.
+        The ordering is based on the quantities:
+
+        Example::
+
+            {
+                "quantity_1" : ["shift_1", "shift_2", "shift_3"],
+                "quantity_2" : ["shift_1"],
+                "quantity_3" : ["shift_1", "shift_2"],
+            }
+
+        This information will be stored in the root file as quantities_shift_map
+        and can be accessed to get the correct mapping
+        """
+        ctring = "{"
+        for scope in self.scopes:
+            outputset: List[str] = []
+            output_map: Dict[str, List[str]] = {}
+            for output in sorted(self.outputs[scope]):
+                self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
+            if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
+                # convert output lists to a set to remove duplicates
+                outputset = list(
+                    set(
+                        self.output_commands[scope]
+                        + self.output_commands[self.global_scope]
+                    )
+                )
+                # now split by __ and get a set of all the shifts per variable
+                for i, output in enumerate(outputset):
+                    try:
+                        quantity, shift = output.split("__")
+                    except ValueError:
+                        quantity = output
+                        shift = ""
+                    if quantity not in output_map.keys():
+                        output_map[quantity] = []
+                    output_map[quantity].append(shift)
+                # now do some string magic to get the correct format, dont ask about the details..
+                output_map_str = "{ "
+                for quantity in output_map.keys():
+                    output_map_str += f'"{quantity}"' + ' , { "'
+                    output_map_str += '", "'.join(output_map[quantity])
+                    output_map_str += '" }},{'
+                output_map_str = output_map_str[:-4] + "}}"
+                ctring += "{" + self._outputfiles_generated[scope] + " , {"
+                ctring += f"{output_map_str}" + "}},"
+        ctring = ctring[:-2] + " }}"
+        return ctring

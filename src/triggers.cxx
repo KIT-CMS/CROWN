@@ -267,7 +267,8 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
         return df1;
     } else if (matched_trigger_names.size() > 1) {
         Logger::get("GenerateSingleTriggerFlag")
-            ->debug("More than one matching trigger found, not implemented yet");
+            ->debug(
+                "More than one matching trigger found, not implemented yet");
         throw std::invalid_argument(
             "received too many matching trigger paths, not implemented yet");
     } else {
@@ -409,7 +410,8 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
         return df1;
     } else if (matched_trigger_names.size() > 1) {
         Logger::get("GenerateDoubleTriggerFlag")
-            ->debug("More than one matching trigger found, not implemented yet");
+            ->debug(
+                "More than one matching trigger found, not implemented yet");
         throw std::invalid_argument(
             "received too many matching trigger paths, not implemented yet");
     } else {
@@ -471,58 +473,57 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
  *
  */
 
-
 ROOT::RDF::RNode MatchDoubleTriggerObject(
     ROOT::RDF::RNode df, const std::string &triggerflag_name,
     const std::string &particle1_p4, const std::string &particle2_p4,
     const std::string &triggerobject_bits, const std::string &triggerobject_id,
     const std::string &triggerobject_pt, const std::string &triggerobject_eta,
-    const std::string &triggerobject_phi,
-    const float &p1_pt_cut, const float &p2_pt_cut, const float &p1_eta_cut,
-    const float &p2_eta_cut, const int &p1_trigger_particle_id_cut,
+    const std::string &triggerobject_phi, const float &p1_pt_cut,
+    const float &p2_pt_cut, const float &p1_eta_cut, const float &p2_eta_cut,
+    const int &p1_trigger_particle_id_cut,
     const int &p2_trigger_particle_id_cut, const int &p1_triggerbit_cut,
     const int &p2_triggerbit_cut, const float &DeltaR_threshold) {
 
-    auto triggermatch = [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut,
-                         p2_eta_cut, p1_trigger_particle_id_cut,
-                         p2_trigger_particle_id_cut, p1_triggerbit_cut,
-                         p2_triggerbit_cut](
-                            const ROOT::Math::PtEtaPhiMVector &particle1_p4,
+    auto triggermatch =
+        [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut, p2_eta_cut,
+         p1_trigger_particle_id_cut, p2_trigger_particle_id_cut,
+         p1_triggerbit_cut,
+         p2_triggerbit_cut](const ROOT::Math::PtEtaPhiMVector &particle1_p4,
                             const ROOT::Math::PtEtaPhiMVector &particle2_p4,
                             ROOT::RVec<int> triggerobject_bits,
                             ROOT::RVec<int> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
-        bool match_result_p1 = false;
-        bool match_result_p2 = false;
-        Logger::get("MatchDoubleTriggerObject")
-            ->debug("Checking Triggerobject match with particles ....");
-        Logger::get("MatchDoubleTriggerObject")->debug("First particle");
-        match_result_p1 = matchParticle(
-            particle1_p4, triggerobject_pts, triggerobject_etas,
-            triggerobject_phis, triggerobject_bits, triggerobject_ids,
-            DeltaR_threshold, p1_pt_cut, p1_eta_cut,
-            p1_trigger_particle_id_cut, p1_triggerbit_cut);
-        Logger::get("MatchDoubleTriggerObject")->debug("Second particle");
-        match_result_p2 = matchParticle(
-            particle2_p4, triggerobject_pts, triggerobject_etas,
-            triggerobject_phis, triggerobject_bits, triggerobject_ids,
-            DeltaR_threshold, p2_pt_cut, p2_eta_cut,
-            p2_trigger_particle_id_cut, p2_triggerbit_cut);
-        bool result = match_result_p1 & match_result_p2;
-        Logger::get("MatchDoubleTriggerObject")
-            ->debug("---> Total Match P1: {}", match_result_p1);
-        Logger::get("MatchDoubleTriggerObject")
-            ->debug("---> Total Match P2: {}", match_result_p2);
-        Logger::get("MatchDoubleTriggerObject")
-            ->debug("--->>>> result: {}", result);
-        return result;
-    };
-    auto df1 =
-        df.Define(triggerflag_name, triggermatch,
-                  {particle1_p4, particle2_p4, triggerobject_bits, triggerobject_id,
-                   triggerobject_pt, triggerobject_eta, triggerobject_phi});
+            bool match_result_p1 = false;
+            bool match_result_p2 = false;
+            Logger::get("MatchDoubleTriggerObject")
+                ->debug("Checking Triggerobject match with particles ....");
+            Logger::get("MatchDoubleTriggerObject")->debug("First particle");
+            match_result_p1 = matchParticle(
+                particle1_p4, triggerobject_pts, triggerobject_etas,
+                triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                DeltaR_threshold, p1_pt_cut, p1_eta_cut,
+                p1_trigger_particle_id_cut, p1_triggerbit_cut);
+            Logger::get("MatchDoubleTriggerObject")->debug("Second particle");
+            match_result_p2 = matchParticle(
+                particle2_p4, triggerobject_pts, triggerobject_etas,
+                triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                DeltaR_threshold, p2_pt_cut, p2_eta_cut,
+                p2_trigger_particle_id_cut, p2_triggerbit_cut);
+            bool result = match_result_p1 & match_result_p2;
+            Logger::get("MatchDoubleTriggerObject")
+                ->debug("---> Total Match P1: {}", match_result_p1);
+            Logger::get("MatchDoubleTriggerObject")
+                ->debug("---> Total Match P2: {}", match_result_p2);
+            Logger::get("MatchDoubleTriggerObject")
+                ->debug("--->>>> result: {}", result);
+            return result;
+        };
+    auto df1 = df.Define(triggerflag_name, triggermatch,
+                         {particle1_p4, particle2_p4, triggerobject_bits,
+                          triggerobject_id, triggerobject_pt, triggerobject_eta,
+                          triggerobject_phi});
     return df1;
 }
 
@@ -588,7 +589,6 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
                    triggerobject_pt, triggerobject_eta, triggerobject_phi});
     return df1;
 }
-
 
 } // end namespace trigger
 #endif /* GUARD_TRIGGERS_H */
