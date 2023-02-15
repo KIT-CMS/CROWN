@@ -22,7 +22,7 @@
 #include <TTree.h>
 #include <regex>
 #include <string>
-ROOT::RDF::RNode {subsetname} (ROOT::RDF::RNode df0) {
+ROOT::RDF::RNode{subsetname}(ROOT::RDF::RNode df0) {
 
-//    { commands }
+    //    { commands }
 }
