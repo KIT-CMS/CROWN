@@ -18,9 +18,9 @@ base_diff=$resultfolder/base_diff.patch
 commit_hash=$resultfolder/base_commit_hash.txt
 touch $base_diff
 for next in $(git ls-files --others --exclude-standard); do
-    git --no-pager diff --no-index /dev/null $next >> $base_diff;
+    git --no-pager diff --no-index /dev/null $next >>$base_diff
 done
-git rev-parse HEAD > $commit_hash
+git rev-parse HEAD >$commit_hash
 
 # cd into the analysis directory
 analysispath=$basepath/analysis_configurations/$analysis
@@ -31,10 +31,10 @@ if [ -d "$analysispath" ]; then
     analysis_name=$resultfolder/analysis_name.txt
     touch $analysis_diff
     for next in $(git ls-files --others --exclude-standard); do
-        git --no-pager diff --no-index /dev/null $next >> $analysis_diff;
+        git --no-pager diff --no-index /dev/null $next >>$analysis_diff
     done
-    git rev-parse HEAD > $analysis_commit
-    echo $analysis > $analysis_name
+    git rev-parse HEAD >$analysis_commit
+    echo $analysis >$analysis_name
 else
     analysiscommit="not_found"
 fi
