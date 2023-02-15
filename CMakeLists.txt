@@ -335,6 +335,7 @@ foreach(FILENAME ${FILELIST})
         LINK_FLAGS "-Wl,-rpath,$ORIGIN/lib")
     # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
     install(TARGETS ${TARGET_NAME} DESTINATION ${INSTALLDIR})
+    install(CODE "execute_process(COMMAND ${CMAKE_SOURCE_DIR}/checks/get-diff.sh ${CMAKE_SOURCE_DIR} ${ANALYSIS} ${INSTALLDIR}/diff )")
 
 endforeach()
 
