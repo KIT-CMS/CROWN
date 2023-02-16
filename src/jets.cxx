@@ -650,14 +650,12 @@ ROOT::RDF::RNode flavor(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &flavorcolumn,
                         const std::string &jetcollection, const int &position) {
     return df.Define(outputname,
-                     [position](const ROOT::RVec<int> &flavorvalue,
+                     [position](const ROOT::RVec<int> &flavorvalues,
                                 const ROOT::RVec<int> &jetcollection) {
                          int flavorValue = default_int;
-                         try {
-                             const int index = jetcollection.at(position);
-                             flavorValue = flavorvalue.at(index);
-                         } catch (const std::out_of_range &e) {
-                         }
+                         const int index =
+                             jetcollection.at(position, default_int);
+                         flavorValue = flavorvalues.at(index, default_int);
                          return flavorValue;
                      },
                      {flavorcolumn, jetcollection});
