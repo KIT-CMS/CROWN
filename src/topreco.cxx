@@ -20,6 +20,45 @@ const float TOP_MASS = 172.5; // gen mass
 
 namespace topreco {
 
+/// Function to create columns for isolated and antiisolated leptons quantities,
+/// as used for a semileptonic top selection
+///
+/// \param[in] df the input dataframe
+/// \param[in] name of the column containing the number of loose muons
+/// \param[in] name of the column containing the number of loose electrons
+/// \param[in] name of the column containing the number of tight muons
+/// \param[in] name of the column containing the number of tight electrons
+/// \param[in] name of the column containing the mask for tight muons
+/// \param[in] name of the column containing the mask for tight electrons
+/// \param[in] name of the column containing the number of antitight muons
+/// \param[in] name of the column containing the number of antitight electrons
+/// \param[in] name of the column containing the mask for antitight muons
+/// \param[in] name of the column containing the mask for antitight electrons
+/// \param[in] name of the column for the muon pT in nanoAOD
+/// \param[in] name of the column for the muon eta in nanoAOD
+/// \param[in] name of the column for the muon phi in nanoAOD
+/// \param[in] name of the column for the muon mass in nanoAOD
+/// \param[in] name of the column for the muon charge in nanoAOD
+/// \param[in] name of the column for the electron pT in nanoAOD
+/// \param[in] name of the column for the electron eta in nanoAOD
+/// \param[in] name of the column for the electron delta eta eta_sc in nanoAOD
+/// \param[in] name of the column for the electron phi in nanoAOD
+/// \param[in] name of the column for the electron mass in nanoAOD
+/// \param[in] name of the column for the electron charge in nanoAOD
+/// \param[out] name of the output column for the number of loose leptons
+/// \param[out] name of the output column for the number of tight leptons
+/// \param[out] name of the output column for the number of antitight leptons
+/// \param[out] name of the output column for a muon flag (tight and antitight)
+/// \param[out] name of the output column for an electron flag (tight and
+/// antitight) \param[out] name of the output column for an isolation flag (muon
+/// and electron) \param[out] name of the output column for the lepton
+/// four-momenta \param[out] name of the output column for the lepton
+/// supercluster eta \param[out] name of the output column for the lepton charge
+/// \param[out] name of the output column for the muon index with respect to the
+/// nanoAOD input branches \param[out] name of the output column for the
+/// electron index with respect to the nanoAOD input branches
+///
+/// \return a dataframe containing the new columns
 ROOT::RDF::RNode LeptonSelection(
     ROOT::RDF::RNode df, const std::string &str_n_loose_mu,
     const std::string &str_n_loose_el, const std::string &str_n_tight_mu,
@@ -332,6 +371,16 @@ void fcn_minus(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par,
     f = min_fminus(par);
 }
 
+/// Function to reconstruct a leptonic W boson based on mass constraints and a
+/// numerical quadratic equation solver
+///
+/// \param[in] df the input dataframe
+/// \param[in] name of the column containing the lepton four-momenta
+/// \param[in] name of the column containing the missing transverse momentum
+/// four-momenta \param[out] name of the output column for reconstructed W boson
+/// four-momenta
+///
+/// \return a dataframe containing the new columns
 ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
                                       const std::string &str_lep_p4,
                                       const std::string &str_met_p4,
@@ -611,6 +660,36 @@ ROOT::RDF::RNode JetSelection(ROOT::RDF::RNode df, const int &njets,
     return df2;
 }
 
+/// Function to reconstruct a leptonic top quark from a b jet and a W boson
+/// based on the number of jets and b jets in the event
+///
+/// \param[in] df the input dataframe
+/// \param[in] name of the column containing the W boson four-momenta
+/// \param[in] name of the column containing the number of untagged jets in the
+/// event \param[in] name of the column containing the hardest untagged jet
+/// four-momenta \param[in] name of the column containing the hardest untagged
+/// jet b tagging score \param[in] name of the column containing the second
+/// hardest untagged jet four-momenta \param[in] name of the column containing
+/// the second hardest untagged jet b tagging score \param[in] name of the
+/// column containing the number of b-tagged jets in the event \param[in] name
+/// of the column containing the hardest b-tagged jet four-momenta \param[in]
+/// name of the column containing the hardest b-tagged jet b tagging score
+/// \param[in] name of the column containing the second hardest b-tagged jet
+/// four-momenta \param[in] name of the column containing the second hardest
+/// b-tagged jet b tagging score \param[out] name of the output column for the
+/// flag if the top quark is reconstructable \param[out] name of the output
+/// column for the flag if the event falls into the 2j1b category \param[out]
+/// name of the output column for the flag if the event falls into the 2j2b
+/// category \param[out] name of the output column for the flag if the event
+/// falls into the 3j1b category \param[out] name of the output column for the
+/// flag if the event falls into the 3j2b category \param[out] name of the
+/// output column for the vector of reconstructed particles four-momenta
+/// \param[out] name of the output column for the reconstructed top quark
+/// four-momenta \param[out] name of the output column for the reconstructed b
+/// quark (top quark decay) four-momenta \param[out] name of the output column
+/// for the reconstructed b quark (top quark production) four-momenta
+///
+/// \return a dataframe containing the new columns
 ROOT::RDF::RNode
 TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
         const std::string &str_n_nonbjets, const std::string &str_nonbjet_p4_1,
@@ -754,6 +833,45 @@ TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
     return df10;
 }
 
+/// Function to create additional variables useful in a DNN training
+///
+/// \param[in] df the input dataframe
+/// \param[in] name of the column containing the flag if a top quark was
+/// reconstructed \param[in] name of the column containing the lepton
+/// four-momenta \param[in] name of the column containing the missing transverse
+/// momentum four-momenta \param[in] name of the column containing the W boson
+/// four-momenta \param[in] name of the column containing the hardest untagged
+/// jet four-momenta \param[in] name of the column containing the hardest
+/// untagged jet b tagging score \param[in] name of the column containing the
+/// second hardest untagged jet four-momenta \param[in] name of the column
+/// containing the second hardest untagged jet b tagging score \param[in] name
+/// of the column containing the hardest b-tagged jet four-momenta \param[in]
+/// name of the column containing the hardest b-tagged jet b tagging score
+/// \param[in] name of the column containing the second hardest b-tagged jet
+/// four-momenta \param[in] name of the column containing the second hardest
+/// b-tagged jet b tagging score \param[in] name of the column containing the
+/// reconstructed top quark four-momenta \param[in] name of the column
+/// containing the reconstructed b quark (top quark decay) four-momenta
+/// \param[in] name of the column containing the reconstructed b quark (top
+/// quark production) four-momenta \param[in] name of the column containing the
+/// mask for low pT jets \param[in] name of the column for the jet pT \param[in]
+/// name of the column for the jet eta \param[in] name of the column for the jet
+/// phi \param[in] name of the column for the jet mass \param[out] name of the
+/// output column for the delta phi between the reconstructed top quark and the
+/// hardest b jet \param[out] name of the output column for the delta eta
+/// between the reconstructed top quark and the jet assigned to b quark of the
+/// top quark decay \param[out] name of the output column for the delta phi
+/// between the two b jets \param[out] name of the output column for the delta
+/// eta between the lepton and the hardest b jet \param[out] name of the output
+/// column for the invariant mass of the lepton and the second hardest b jet
+/// \param[out] name of the output column for the transverse momentum of the two
+/// combined b jets \param[out] name of the output column for the polarization
+/// angle \param[out] name of the output column for the sum of Ht \param[out]
+/// name of the output column for the third Fox-Wolfram moment \param[out] name
+/// of the output column for the delta eta between the top quark reconstructed
+/// from the second hardest b jet and the hardest b jet
+///
+/// \return a dataframe containing the new columns
 ROOT::RDF::RNode DNNQuantities(
     ROOT::RDF::RNode df, const std::string &str_is_reco,
     const std::string &str_lep_p4, const std::string &str_met_p4,
@@ -1031,6 +1149,63 @@ void sf_from_root_file(TH2D *h, int nbinsx, int nbinsy, float pt, float eta,
         *sf = h->GetBinContent(bin_index) - h->GetBinError(bin_index);
 }
 
+/// Function to add columns for various different lepton scale factors
+///
+/// \param[in] df the input dataframe
+/// \param[in] name of the column containing the lepton pT
+/// \param[in] name of the column containing the lepton eta
+/// \param[in] name of the column containing the lepton supercluster (electrons
+/// only) \param[in] name of the column containing the flag if the event
+/// contains a muon \param[in] name of the column containing the flag if the
+/// event contains an electron \param[in] name of the column containing the flag
+/// if the event is (anti-)isolated \param[out] name of the output column for
+/// the nominal muon trigger scale factor \param[out] name of the output column
+/// for the up-shifted muon trigger scale factor \param[out] name of the output
+/// column for the down-shifted muon trigger scale factor \param[out] name of
+/// the output column for the nominal muon isolation scale factor \param[out]
+/// name of the output column for the up-shifted muon isolation scale factor
+/// \param[out] name of the output column for the down-shifted muon isolation
+/// scale factor \param[out] name of the output column for the nominal muon ID
+/// scale factor \param[out] name of the output column for the up-shifted muon
+/// ID scale factor \param[out] name of the output column for the down-shifted
+/// muon ID scale factor \param[out] name of the output column for the nominal
+/// electron trigger scale factor \param[out] name of the output column for the
+/// up-shifted electron trigger scale factor \param[out] name of the output
+/// column for the down-shifted electron trigger scale factor \param[out] name
+/// of the output column for the nominal electron isolation scale factor
+/// \param[out] name of the output column for the up-shifted electron isolation
+/// scale factor \param[out] name of the output column for the down-shifted
+/// electron isolation scale factor \param[out] name of the output column for
+/// the nominal electron ID scale factor \param[out] name of the output column
+/// for the up-shifted electron ID scale factor \param[out] name of the output
+/// column for the down-shifted electron ID scale factor \param[out] name of the
+/// output column for the nominal electron ID scale factor \param[out] name of
+/// the output column for the up-shifted electron ID scale factor \param[out]
+/// name of the output column for the down-shifted muon ID scale factor
+/// \param[out] name of the output column for the nominal electron
+/// reconstruction scale factor \param[out] name of the output column for the
+/// up-shifted electron reconstruction scale factor \param[out] name of the
+/// output column for the down-shifted muon reconstruction scale factor
+/// \param[in] name tag for the muon scale factors
+/// \param[in] file name for the nominal muon trigger scale factor file
+/// \param[in] file name for the shifted muon trigger scale factor file
+/// \param[in] name of the nominal muon trigger scale factor in the JSON file
+/// \param[in] name of the shifted muon trigger scale factor in the JSON file
+/// \param[in] file name for the nominal muon isolation scale factor file
+/// \param[in] file name for the shifted muon isolation scale factor file
+/// \param[in] name of the nominal muon isolation scale factor in the JSON file
+/// \param[in] name of the shifted muon isolation scale factor in the JSON file
+/// \param[in] file name for the MUO POG correction lib file
+/// \param[in] name of the muon ID scale factors
+/// \param[in] name tag for the electron scale factors
+/// \param[in] file name for the nominal electron trigger scale factor file
+/// \param[in] file name for the shifted electron trigger scale factor file
+/// \param[in] name of the nominal electron trigger scale factor in the JSON
+/// file \param[in] name of the shifted electron trigger scale factor in the
+/// JSON file \param[in] file name for the EGM POG correction lib file
+/// \param[in] name of the electron ID scale factors
+///
+/// \return a dataframe containing the new columns
 ROOT::RDF::RNode LeptonScaleFactors(
     ROOT::RDF::RNode df, const std::string &str_lep_pt,
     const std::string &str_lep_eta, const std::string &str_lep_sceta,
@@ -1423,6 +1598,56 @@ ROOT::RDF::RNode LeptonScaleFactors(
     return df18;
 }
 
+/// Function to add columns for fixedWP b tagging scale factors based on the
+/// event category
+///
+/// \param[in] df the input dataframe
+/// \param[in] name of the column containing the lepton isolation category
+/// \param[in] name of the column containing the flag if the event is
+/// reconstructable \param[in] name of the column containing the flag if the
+/// event falls into the 2j1b category \param[in] name of the column containing
+/// the flag if the event falls into the 2j2b category \param[in] name of the
+/// column containing the flag if the event falls into the 3j1b category
+/// \param[in] name of the column containing the flag if the event falls into
+/// the 3j2b category \param[in] name of the column containing the hardest
+/// untagged jet pT \param[in] name of the column containing the hardest
+/// untagged jet eta \param[in] name of the column containing the hardest
+/// untagged jet b tagging value \param[in] name of the column containing the
+/// hardest untagged jet hadron falvor \param[in] name of the column containing
+/// the second hardest untagged jet pT \param[in] name of the column containing
+/// the second hardest untagged jet eta \param[in] name of the column containing
+/// the second hardest untagged jet b tagging value \param[in] name of the
+/// column containing the second hardest untagged jet hadron falvor \param[in]
+/// name of the column containing the hardest b-tagged jet pT \param[in] name of
+/// the column containing the hardest b-tagged jet eta \param[in] name of the
+/// column containing the hardest b-tagged jet b tagging value \param[in] name
+/// of the column containing the hardest b-tagged jet hadron falvor \param[in]
+/// name of the column containing the second hardest b-tagged jet pT \param[in]
+/// name of the column containing the second hardest b-tagged jet eta \param[in]
+/// name of the column containing the second hardest b-tagged jet b tagging
+/// value \param[in] name of the column containing the second hardest b-tagged
+/// jet hadron falvor \param[out] name of the output column for the vector
+/// containing all scale factor variations \param[out] name of the output column
+/// for the nominal scale factor \param[out] name of the output column for the
+/// HF up-shifted scale factor, correlated fraction among the years \param[out]
+/// name of the output column for the HF up-shifted scale factor, uncorrelated
+/// fraction among the years \param[out] name of the output column for the HF
+/// down-shifted scale factor, correlated fraction among the years \param[out]
+/// name of the output column for the HF down-shifted scale factor, uncorrelated
+/// fraction among the years \param[out] name of the output column for the LF
+/// up-shifted scale factor, correlated fraction among the years \param[out]
+/// name of the output column for the LF up-shifted scale factor, uncorrelated
+/// fraction among the years \param[out] name of the output column for the LF
+/// down-shifted scale factor, correlated fraction among the years \param[out]
+/// name of the output column for the LF down-shifted scale factor, uncorrelated
+/// fraction among the years \param[in] file name for the BTV POG correction lib
+/// file \param[in] name of the scale factor method for HF jets \param[in] name
+/// of the scale factor method for LF jets \param[in] file name for the b
+/// tagging efficiency maps \param[in] type of process for the efficiency map
+/// \param[in] b tagging working point
+/// \param[in] maximum eta for b jets
+///
+/// \return a dataframe containing the new columns
 ROOT::RDF::RNode BTagScaleFactors(
     ROOT::RDF::RNode df, const std::string &str_is_iso,
     const std::string &str_is_reco, const std::string &str_is_jjb,
