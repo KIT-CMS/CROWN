@@ -282,6 +282,19 @@ inline auto FilterMax(const float &cut) {
     };
 }
 
+/// Function to apply a maximal filter requirement to an integer quantity.
+/// Returns true if the value is smaller than the given cut value
+///
+/// \param cut The cut value of the filter
+///
+/// \returns a lambda function to be used in RDF Define
+inline auto FilterMaxInt(const int &cut) {
+    return [cut](const ROOT::RVec<int> &values) {
+        ROOT::RVec<int> mask = values < cut;
+        return mask;
+    };
+}
+
 /// Function to apply a maximal filter requirement to a quantity.
 /// Returns true if the absolute value is smaller than the given cut value
 ///
