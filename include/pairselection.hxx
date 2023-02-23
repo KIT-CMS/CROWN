@@ -19,7 +19,7 @@ struct GenParticle {
 bool check_mother(ROOT::RVec<GenParticle> genparticles, const int index,
                   const int mother_pdgid);
 
-namespace ditau_pairselection {
+namespace pairselection {
 ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
                               const std::string &genindex_particle1,
                               const std::string &genindex_particle2,
@@ -32,6 +32,9 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
                  const int daughter_1_pdgid, const int daughter_2_pdgid);
 ROOT::RDF::RNode flagGoodPairs(ROOT::RDF::RNode df, const std::string &flagname,
                                const std::string &pairname);
+}// end namespace pairselection
+
+namespace ditau_pairselection {
 auto compareForPairs(const ROOT::RVec<float> &lep1pt,
                      const ROOT::RVec<float> &lep1iso,
                      const ROOT::RVec<float> &lep2pt,

@@ -7,7 +7,7 @@ from code_generation.producer import Producer, ProducerGroup
 ####################
 MMGenPair = Producer(
     name="MMGenPair",
-    call="ditau_pairselection::buildgenpair({df}, {input}, {output})",
+    call="pairselection::buildgenpair({df}, {input}, {output})",
     input=[q.dileptonpair, nanoAOD.Muon_indexToGen, nanoAOD.Muon_indexToGen],
     output=[q.gen_dileptonpair],
     scopes=["mm"],
@@ -15,7 +15,7 @@ MMGenPair = Producer(
 
 MMTrueGenPair = Producer(
     name="GenPair",
-    call="ditau_pairselection::buildtruegenpair({df}, {input}, {output}, {truegen_mother_pdgid}, {truegen_daughter_1_pdgid}, {truegen_daugher_2_pdgid})",
+    call="pairselection::buildtruegenpair({df}, {input}, {output}, {truegen_mother_pdgid}, {truegen_daughter_1_pdgid}, {truegen_daugher_2_pdgid})",
     input=[
         nanoAOD.GenParticle_statusFlags,
         nanoAOD.GenParticle_status,

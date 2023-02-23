@@ -29,7 +29,7 @@ MTPairSelection = Producer(
 
 GoodMTPairFlag = Producer(
     name="GoodMTPairFlag",
-    call="ditau_pairselection::flagGoodPairs({df}, {output}, {input})",
+    call="pairselection::flagGoodPairs({df}, {output}, {input})",
     input=[q.dileptonpair],
     output=[],
     scopes=["mt"],
@@ -72,7 +72,7 @@ ZMMPairSelection = Producer(
 
 GoodMMPairFlag = Producer(
     name="GoodMMPairFlag",
-    call="ditau_pairselection::flagGoodPairs({df}, {output}, {input})",
+    call="pairselection::flagGoodPairs({df}, {output}, {input})",
     input=[q.dileptonpair],
     output=[],
     scopes=["mm"],
@@ -109,7 +109,7 @@ ETPairSelection = Producer(
 
 GoodETPairFlag = Producer(
     name="GoodETPairFlag",
-    call="ditau_pairselection::flagGoodPairs({df}, {output}, {input})",
+    call="pairselection::flagGoodPairs({df}, {output}, {input})",
     input=[q.dileptonpair],
     output=[],
     scopes=["et"],
@@ -143,7 +143,7 @@ TTPairSelection = Producer(
 
 GoodTTPairFlag = Producer(
     name="GoodTTPairFlag",
-    call="ditau_pairselection::flagGoodPairs({df}, {output}, {input})",
+    call="pairselection::flagGoodPairs({df}, {output}, {input})",
     input=[q.dileptonpair],
     output=[],
     scopes=["tt"],
@@ -183,7 +183,7 @@ EMPairSelection = Producer(
 
 GoodEMPairFlag = Producer(
     name="GoodEMPairFlag",
-    call="ditau_pairselection::flagGoodPairs({df}, {output}, {input})",
+    call="pairselection::flagGoodPairs({df}, {output}, {input})",
     input=[q.dileptonpair],
     output=[],
     scopes=["em"],

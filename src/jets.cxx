@@ -640,6 +640,7 @@ ROOT::RDF::RNode btagValue(ROOT::RDF::RNode df, const std::string &outputname,
 ///
 /// \param[in] df the input dataframe
 /// \param[out] outputname the name of the produced quantity
+/// \param[in] flavorcolumn name of the jet flavor column
 /// \param[in] jetcollection name of the vector that contains jet indices of the
 /// jets belonging to the collection, its length constitutes the output quantity
 /// \param position The position in the jet collection vector, which is used to

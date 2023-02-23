@@ -54,20 +54,20 @@ bool check_mother(ROOT::RVec<GenParticle> genparticles, const int index,
     }
 }
 
-namespace ditau_pairselection {
+namespace pairselection {
 /**
  * @brief Function used to build a pair of GenParticles from the selected
- * DiTauPair. This uses the references of the reco particles to the gen
+ * particle pair. This uses the references of the reco particles to the gen
  * particles.
  *
  * @param df the Dataframe
- * @param recopair the column containing the DiTauPair vector
+ * @param recopair the column containing the Pair vector
  * @param genindex_particle1 the column containing the index of the GenParticle
  * reference for the first pair particle
  * @param genindex_particle2 the column containing the index of the GenParticle
  * reference for the second pair particle
- * @param genpairname name of the new column containing the GenDiTauPair
- * @return a new Dataframe with the GenDiTauPair column
+ * @param genpairname name of the new column containing the GenPair
+ * @return a new Dataframe with the GenPair column
  */
 ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
                               const std::string &genindex_particle1,
@@ -77,11 +77,11 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
                          const ROOT::RVec<int> &genindex_particle1,
                          const ROOT::RVec<int> &genindex_particle2) {
         ROOT::RVec<int> genpair = {-1, -1};
-        Logger::get("buildgenpair")->debug("existing DiTauPair: {}", recopair);
+        Logger::get("buildgenpair")->debug("existing Pair: {}", recopair);
         genpair[0] = genindex_particle1.at(recopair.at(0), -1);
         genpair[1] = genindex_particle2.at(recopair.at(1), -1);
         Logger::get("buildgenpair")
-            ->debug("matching GenDiTauPair: {}", genpair);
+            ->debug("matching GenPair: {}", genpair);
         return genpair;
     };
     return df.Define(genpairname, getGenPair,
@@ -89,7 +89,7 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
 }
 
 /**
- * @brief Function to get the true gen-level di-tau pair from the event. The
+ * @brief Function to get the true gen-level particle pair from the event. The
  * pair is build by searching for the gen mother particle and the two requested
  * daughter particles. For each stable daughter particle found in the collection
  of gen particles, it is checked if the particle is a daughter of the requested
@@ -265,8 +265,7 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
 /// \param flagname The name of the generated flag column
 /// \param pairname The name of the column, containing the indices of the
 /// particles in the particle quantity vectors.
-/// \returns a dataframe with the
-/// new flag
+/// \returns a dataframe with the new flag
 ROOT::RDF::RNode flagGoodPairs(ROOT::RDF::RNode df, const std::string &flagname,
                                const std::string &pairname) {
     using namespace ROOT::VecOps;
@@ -275,7 +274,9 @@ ROOT::RDF::RNode flagGoodPairs(ROOT::RDF::RNode df, const std::string &flagname,
         [](const ROOT::RVec<int> &pair) { return bool(Min(pair) >= 0); },
         {pairname});
 }
+} // end namespace pairselection
 
+namespace ditau_pairselection {
 /// Function used to sort two particles based on the isolation and the
 /// pt of the two particles. The function is used as the ordering
 /// function for the
