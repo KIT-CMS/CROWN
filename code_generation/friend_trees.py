@@ -73,7 +73,7 @@ class FriendTreeConfiguration(Configuration):
         if self.global_scope in self.scopes:
             self.scopes.remove(self.global_scope)
         self.global_scope = None
-
+        log.warn(f"Selected scopes: {self.selected_scopes}")
         # if more than one scope is specified, raise an error
         if len(self.selected_scopes) > 1:
             raise ConfigurationError(
