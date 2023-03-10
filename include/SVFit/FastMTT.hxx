@@ -95,8 +95,8 @@ class FastMTT {
     void initialize();
 
     /// Run fastMTT algorithm for given input
-    void run(const std::vector<fastmtt::MeasuredTauLepton> &,
-             const double &, const double &, const TMatrixD &);
+    void run(const std::vector<fastmtt::MeasuredTauLepton> &, const double &,
+             const double &, const TMatrixD &);
 
     /// Set likelihood shape parameters. Two parameters are expected:
     /// power of 1/mVis, and scaling factor of mTest
