@@ -51,7 +51,8 @@ MeasuredTauLepton::MeasuredTauLepton(int type, double pt, double eta,
     //         type_string = "tau -> had decay";
     //     else {
     //         std::cerr << "Error: Invalid type " << type_
-    //                   << " declared for leg: Pt = " << pt_ << ", eta = " << eta_
+    //                   << " declared for leg: Pt = " << pt_ << ", eta = " <<
+    //                   eta_
     //                   << ", phi = " << phi_ << ", mass = " << mass_ << " !!"
     //                   << std::endl;
     //         assert(0);

@@ -179,10 +179,11 @@ ROOT::RDF::RNode m_vis(ROOT::RDF::RNode df, const std::string &outputname,
         inputvectors);
 }
 
-
 /**
- * @brief Function used to calculate the FastMTT p4 from the given inputs. The implementation is based on https://github.com/SVfit/ClassicSVfit/tree/fastMTT_19_02_2019
- * 
+ * @brief Function used to calculate the FastMTT p4 from the given inputs. The
+ * implementation is based on
+ * https://github.com/SVfit/ClassicSVfit/tree/fastMTT_19_02_2019
+ *
  * @param df The dataframe to add the quantity to
  * @param outputname name of the new column containing the lorentz vector value
  * @param pt_1 the name of the column containing the pt of the first particle
@@ -191,16 +192,21 @@ ROOT::RDF::RNode m_vis(ROOT::RDF::RNode df, const std::string &outputname,
  * @param eta_2 the name of the column containing the eta of the second particle
  * @param phi_1 the name of the column containing the phi of the first particle
  * @param phi_2 the name of the column containing the phi of the second particle
- * @param mass_1 the name of the column containing the mass of the first particle
- * @param mass_2 the name of the column containing the mass of the second particle
+ * @param mass_1 the name of the column containing the mass of the first
+ * particle
+ * @param mass_2 the name of the column containing the mass of the second
+ * particle
  * @param met_pt the name of the column containing the met pt
  * @param met_phi the name of the column containing the met phi
  * @param met_cov_xx the name of the column containing the met covariance xx
  * @param met_cov_xy the name of the column containing the met covariance xy
  * @param met_cov_yy the name of the column containing the met covariance yy
- * @param decay_mode_1 the name of the column containing the decay mode of the first particle
- * @param decay_mode_2 the name of the column containing the decay mode of the second particle
- * @param finalstate the final state of the ditaudecay. Supported are "mt", "et", "tt", "em"
+ * @param decay_mode_1 the name of the column containing the decay mode of the
+ * first particle
+ * @param decay_mode_2 the name of the column containing the decay mode of the
+ * second particle
+ * @param finalstate the final state of the ditaudecay. Supported are "mt",
+ * "et", "tt", "em"
  * @return ROOT::RDF::RNode
  */
 ROOT::RDF::RNode
@@ -212,15 +218,15 @@ p4_fastmtt(ROOT::RDF::RNode df, const std::string &outputname,
            const std::string &met_pt, const std::string &met_phi,
            const std::string &met_cov_xx, const std::string &met_cov_xy,
            const std::string &met_cov_yy, const std::string &decay_mode_1,
-           const std::string &decay_mode_2, const std::string &finalstate)
-    {
+           const std::string &decay_mode_2, const std::string &finalstate) {
     auto calculate_fast_mtt =
         [finalstate](const float &pt_1, const float &pt_2, const float &eta_1,
-           const float &eta_2, const float &phi_1, const float &phi_2,
-           const float &mass_1, const float &mass_2, const float &met_pt,
-           const float &met_phi, const float &met_cov_xx,
-           const float &met_cov_xy, const float &met_cov_yy,
-           const int &decay_mode_1, const int &decay_mode_2) {
+                     const float &eta_2, const float &phi_1, const float &phi_2,
+                     const float &mass_1, const float &mass_2,
+                     const float &met_pt, const float &met_phi,
+                     const float &met_cov_xx, const float &met_cov_xy,
+                     const float &met_cov_yy, const int &decay_mode_1,
+                     const int &decay_mode_2) {
             std::vector<fastmtt::MeasuredTauLepton> measuredTauLeptons;
             TMatrixD covMET(2, 2);
             covMET[0][0] = met_cov_xx;
