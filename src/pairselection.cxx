@@ -1287,25 +1287,18 @@ auto BBPairSelectionAlgo(const float &mindeltaR, const float &btag_WP_value) {
                 }
             }
 
-            if (highest_non_tag_jet_index != -1) {
-                selected_pair = {static_cast<int>(good_bjet_collection[0]),
-                                 static_cast<int>(highest_non_tag_jet_index)};
-                Logger::get("bb::PairSelectionAlgo")
-                    ->debug("Final pair {} {}", selected_pair[0],
-                            selected_pair[1]);
+            selected_pair = {static_cast<int>(leading_bjet_index),
+                                static_cast<int>(highest_non_tag_jet_index)};
+            Logger::get("bb::PairSelectionAlgo")
+                ->debug("Final pair {} {}", selected_pair[0],
+                        selected_pair[1]);
 
-                return selected_pair;
-            } else {
-                selected_pair = {static_cast<int>(good_bjet_collection[0]), -1};
-                Logger::get("bb::PairSelectionAlgo")
-                    ->debug("Final pair {} {}", selected_pair[0],
-                            selected_pair[1]);
-
-                return selected_pair;
-            }
+            return selected_pair;
+           
         } else if (good_bjet_collection.size() >= 2) {
             Logger::get("bb::PairSelectionAlgo")
                 ->debug("Running algorithm on at least two good bjets");
+
             auto leading_bjet_index = good_bjet_collection[0];
             ROOT::Math::PtEtaPhiMVector leading_bjet =
                 ROOT::Math::PtEtaPhiMVector(jet_pt.at(leading_bjet_index),
@@ -1327,8 +1320,8 @@ auto BBPairSelectionAlgo(const float &mindeltaR, const float &btag_WP_value) {
                 if ((index != leading_bjet_index) &&
                     (ROOT::Math::VectorUtil::DeltaR(
                          leading_bjet, subleading_candidate) > mindeltaR)) {
-                    selected_pair = {static_cast<int>(good_bjet_collection[0]),
-                                     static_cast<int>(good_bjet_collection[1])};
+                    selected_pair = {static_cast<int>(leading_bjet_index),
+                                     static_cast<int>(index)};
                     Logger::get("bb::PairSelectionAlgo")
                         ->debug("Final pair {} {}", selected_pair[0],
                                 selected_pair[1]);
