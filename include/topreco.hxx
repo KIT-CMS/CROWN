@@ -145,6 +145,24 @@ ROOT::RDF::RNode BTagScaleFactors(
     const std::string &btag_eff_file, const std::string &btag_eff_type,
     const std::string &btag_wp, const float &max_bjet_eta_sf);
 
+ROOT::RDF::RNode BTagScaleFactorsGeneric(
+    ROOT::RDF::RNode df, const std::string &str_jet_pt,
+    const std::string &str_jet_eta, const std::string &str_jet_btag,
+    const std::string &str_jet_flavor, const std::string &str_jet_collection,
+    const std::string &str_btag_sf_vec, const std::string &str_btagw_nom,
+    const std::string &str_btagw_HFup_corr,
+    const std::string &str_btagw_HFup_uncorr,
+    const std::string &str_btagw_HFdown_corr,
+    const std::string &str_btagw_HFdown_uncorr,
+    const std::string &str_btagw_LFup_corr,
+    const std::string &str_btagw_LFup_uncorr,
+    const std::string &str_btagw_LFdown_corr,
+    const std::string &str_btagw_LFdown_uncorr, const std::string &btag_sf_file,
+    const std::string &btag_corr_algo_HF, const std::string &btag_corr_algo_LF,
+    const std::string &btag_eff_file, const std::string &btag_eff_type,
+    const std::string &btag_wp, const float &btag_cut,
+    const float &max_bjet_eta_sf);
+
 } // end namespace topreco
 
 #endif /* GUARD_TOPRECO_H */
