@@ -15,12 +15,8 @@ MeasuredTauLepton::MeasuredTauLepton(int type, double pt, double eta,
                                      double phi, double mass, int decayMode)
     : type_(type), pt_(pt), eta_(eta), phi_(phi), mass_(mass),
       decayMode_(decayMode) {
-    // std::cout << "<MeasuredTauLepton>:" << std::endl;
-    // std::cout << " Pt = " << pt_ << ", eta = " << eta_ << ", phi = " << phi_
-    // << ", mass = " << mass_ << std::endl;
     double minVisMass = electronMass;
     double maxVisMass = tauLeptonMass;
-    std::string type_string;
     if (type_ == kTauToElecDecay) {
         minVisMass = electronMass;
         maxVisMass = minVisMass;
@@ -40,37 +36,11 @@ MeasuredTauLepton::MeasuredTauLepton(int type, double pt, double eta,
         }
     }
     preciseVisMass_ = mass_;
-    // if (preciseVisMass_ < (0.9 * minVisMass) ||
-    //     preciseVisMass_ > (1.1 * maxVisMass)) {
-    //     std::string type_string;
-    //     if (type_ == kTauToElecDecay)
-    //         type_string = "tau -> electron decay";
-    //     else if (type_ == kTauToMuDecay)
-    //         type_string = "tau -> muon decay";
-    //     else if (type_ == kTauToHadDecay)
-    //         type_string = "tau -> had decay";
-    //     else {
-    //         std::cerr << "Error: Invalid type " << type_
-    //                   << " declared for leg: Pt = " << pt_ << ", eta = " <<
-    //                   eta_
-    //                   << ", phi = " << phi_ << ", mass = " << mass_ << " !!"
-    //                   << std::endl;
-    //         assert(0);
-    //     }
-    //     std::cerr << "Warning: " << type_string
-    //               << " declared for leg: Pt = " << pt_ << ", eta = " << eta_
-    //               << ", phi = " << phi_ << ", mass = " << mass_ << " !!"
-    //               << std::endl;
-    //     std::cerr << " (mass expected in the range = " << minVisMass << ".."
-    //               << maxVisMass << ")" << std::endl;
-    // }
     if (preciseVisMass_ < minVisMass)
         preciseVisMass_ = minVisMass;
     if (preciseVisMass_ > maxVisMass)
         preciseVisMass_ = maxVisMass;
     initialize();
-    // std::cout << " En = " << energy_ << ", Px = " << px_ << ", Py = " << py_
-    // << ", Pz = " << pz_ << std::endl;
 }
 
 MeasuredTauLepton::MeasuredTauLepton(const MeasuredTauLepton &measuredTauLepton)
