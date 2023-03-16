@@ -287,7 +287,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 file(GLOB SOURCES_1 ${CMAKE_SOURCE_DIR}/src/*.cxx)
 file(GLOB SOURCES_2
     ${CMAKE_SOURCE_DIR}/src/utility/*.cxx
-    ${CMAKE_SOURCE_DIR}/src/RecoilCorrections/*.cxx)
+    ${CMAKE_SOURCE_DIR}/src/RecoilCorrections/*.cxx
+    ${CMAKE_SOURCE_DIR}/src/SVFit/*.cxx)
 set(SOURCES ${SOURCES_1} ${SOURCES_2})
 add_library(CROWNLIB SHARED ${SOURCES})
 target_include_directories(CROWNLIB PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
