@@ -107,6 +107,52 @@ VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
     return df1;
 }
 
+/// Function to veto jets overlapping with particle candidates (with isolation
+/// condition)
+///
+/// \param[in] df the input dataframe
+/// \param[out] output_col the name of the produced mask \param[in] jet_eta name
+/// of the jet etas \param[in] jet_phi name of the jet phis \param[in] p4_1 four
+/// vector of the first particle candidate \param[in] deltaRmin minimum required
+/// distance in dR between jets and particle candidates
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode VetoOverlappingJetsIsoLepOnly(ROOT::RDF::RNode df,
+                                               const std::string &output_col,
+                                               const std::string &jet_eta,
+                                               const std::string &jet_phi,
+                                               const std::string &p4_1,
+                                               const std::string &lep_is_iso,
+                                               const float &deltaRmin) {
+    auto df1 = df.Define(
+        output_col,
+        [deltaRmin](
+            const ROOT::RVec<float> &jet_eta, const ROOT::RVec<float> &jet_phi,
+            const ROOT::Math::PtEtaPhiMVector &p4_1, const int &lep_is_iso) {
+            Logger::get("VetoOverlappingJets")->debug("Checking jets");
+            ROOT::RVec<int> mask(jet_eta.size(), 1);
+            for (std::size_t idx = 0; idx < mask.size(); ++idx) {
+                ROOT::Math::RhoEtaPhiVectorF jet(0, jet_eta.at(idx),
+                                                 jet_phi.at(idx));
+                Logger::get("VetoOverlappingJets")
+                    ->debug("Jet:  Eta: {} Phi: {} ", jet.Eta(), jet.Phi());
+                Logger::get("VetoOverlappingJets")
+                    ->debug("Letpon 1 {}:  Eta: {} Phi: {}, Pt{}", p4_1,
+                            p4_1.Eta(), p4_1.Phi(), p4_1.Pt());
+                auto deltaR_1 = ROOT::Math::VectorUtil::DeltaR(jet, p4_1);
+                Logger::get("VetoOverlappingJets")
+                    ->debug("DeltaR 1 {}", deltaR_1);
+                if (lep_is_iso == +1)
+                    mask[idx] = (deltaR_1 > deltaRmin);
+            }
+            Logger::get("VetoOverlappingJets")
+                ->debug("vetomask due to overlap: {}", mask);
+            return mask;
+        },
+        {jet_eta, jet_phi, p4_1, lep_is_iso});
+    return df1;
+}
+
 /// Function to determine pt order of jets
 ///
 /// \param[in] df the input dataframe
@@ -516,6 +562,23 @@ ROOT::RDF::RNode CutRawID(ROOT::RDF::RNode df, const std::string &quantity,
         df.Define(maskname, basefunctions::FilterMin(idThreshold), {quantity});
     return df1;
 }
+/// Function to select jets failing a ID requirement, using
+/// basefunctions::FilterMax
+///
+/// \param[in] df the input dataframe
+/// \param[in] quantity name of the rawID column in the NanoAOD
+/// \param[out] maskname the name of the mask to be added as column to the
+/// dataframe
+/// \param[in] idThreshold maximal ID value
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode AntiCutRawID(ROOT::RDF::RNode df, const std::string &quantity,
+                              const std::string &maskname,
+                              const float &idThreshold) {
+    auto df1 =
+        df.Define(maskname, basefunctions::FilterMax(idThreshold), {quantity});
+    return df1;
+}
 } // end namespace jet
 } // end namespace physicsobject
 
@@ -571,6 +634,31 @@ ROOT::RDF::RNode btagValue(ROOT::RDF::RNode df, const std::string &outputname,
                          return btagValue;
                      },
                      {btagcolumn, jetcollection});
+}
+/// Function to writeout the hadron flavor for a jet.
+///
+/// \param[in] df the input dataframe
+/// \param[out] outputname the name of the produced quantity
+/// \param[in] jetcollection name of the vector that contains jet indices of the
+/// jets belonging to the collection, its length constitutes the output quantity
+/// \param position The position in the jet collection vector, which is used to
+/// store the index of the particle in the particle quantity vectors.
+///
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode flavor(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &flavorcolumn,
+                        const std::string &jetcollection, const int &position) {
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<int> &flavorvalues,
+                                const ROOT::RVec<int> &jetcollection) {
+                         int flavorValue = default_int;
+                         const int index =
+                             jetcollection.at(position, default_int);
+                         flavorValue = flavorvalues.at(index, default_int);
+                         return flavorValue;
+                     },
+                     {flavorcolumn, jetcollection});
 }
 } // end namespace jet
 } // end namespace quantities
