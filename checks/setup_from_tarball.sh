@@ -25,27 +25,28 @@ elif [ -f "$tarball" ]; then
     tarball=$(realpath temp)
 else
     echo "ERROR: tarball must be a file or a folder"
+    exit 1
 fi
 # go to the checkout location
 cd $checkout_location
 echo "Using temporary tarball copy in $tarball"
-# now read the commit hashes from the diff folder in the tarball
+# read the commit hashes from the diff folder in the tarball
 base_commit=$(cat $tarball/diff/base_commit_hash.txt)
 analysis_commit=$(cat $tarball/diff/analysis_commit_hash.txt)
 analysis_name=$(cat $tarball/diff/analysis_name.txt)
 
-# now checkout the base repository with the commit hash
+# checkout the base repository with the commit hash
 git clone --recursive git@github.com:KIT-CMS/CROWN
 cd CROWN
 git checkout $base_commit
-# now apply the base diff
+# apply the base diff
 git apply $tarball/diff/base_diff.patch
-# now setup the analysis with the init script
+# setup the analysis with the init script
 bash init.sh $analysis_name
-# now checkout the analysis repository with the commit hash
+# checkout the analysis repository with the commit hash
 cd analysis_configurations/$analysis_name
 git checkout $analysis_commit
-# now apply the analysis diff
+# apply the analysis diff
 git apply $tarball/diff/analysis_diff.patch
 # cleanup the temporary tarball
 rm -rf $tarball
