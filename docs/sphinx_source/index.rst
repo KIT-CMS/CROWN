@@ -36,6 +36,8 @@ Documentation Content
 
    introduction.rst
    changelog.rst
+   friend_trees.rst
+   kingmaker.rst
    postprocessing.rst
 
 Documentation

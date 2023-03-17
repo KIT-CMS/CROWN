@@ -21,6 +21,14 @@ if (NOT DEFINED SHIFTS)
     set(SHIFTS "all")
 endif()
 
+if (NOT DEFINED QUANTITIESMAP)
+    message(STATUS "No quantities map specified, none will be used. If you want to produce friends, you have to specify a quantities map e.g. -DQUANTITIESMAP=quantities_map.json. The input can be a json file or a root file (for debugging purposes).")
+    set(FRIENDS "false")
+    set(QUANTITIESMAP "none")
+else()
+    set(FRIENDS "true")
+endif()
+
 if (NOT DEFINED DEBUG)
     message(STATUS "No Debug mode set, activate with -DDEBUG=true --> compile with debug symbols and run code generation with debug output")
     set(DEBUG "false")
@@ -80,7 +88,7 @@ endif()
 
 string (REPLACE "," ";" ERAS "${ERAS}")
 string (REPLACE "," ";" SAMPLES "${SAMPLES}")
-message(STATUS "Set up analysis with --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --threads ${THREADS} --debug ${DEBUG_PARSED}")
+message(STATUS "Set up analysis with --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --threads ${THREADS} --debug ${DEBUG_PARSED} --friends ${FRIENDS} --quantities_map ${QUANTITIESMAP}")
 
 
 # Set the default install directory to the build directory
@@ -268,7 +276,7 @@ file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
 foreach (ERA IN LISTS ERAS)
     foreach (SAMPLE IN LISTS SAMPLES)
         execute_process(
-            COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --subset-template ${GENERATE_CPP_SUBSET_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --sample ${SAMPLE} --era ${ERA} --threads ${THREADS} --debug ${DEBUG_PARSED} RESULT_VARIABLE ret)
+            COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --subset-template ${GENERATE_CPP_SUBSET_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --sample ${SAMPLE} --era ${ERA} --threads ${THREADS} --debug ${DEBUG_PARSED} --friends ${FRIENDS} --quantities-map ${QUANTITIESMAP} RESULT_VARIABLE ret)
         if(ret EQUAL "1")
             message( FATAL_ERROR "Code Generation Failed - Exiting !")
         endif()
