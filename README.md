@@ -9,6 +9,7 @@
 
 ---
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a9c6a65fbd84760bb72694e22a2bd52)](https://app.codacy.com/gh/KIT-CMS/CROWN?utm_source=github.com&utm_medium=referral&utm_content=KIT-CMS/CROWN&utm_campaign=Badge_Grade)
 [![Repobeats analytics image](https://repobeats.axiom.co/api/embed/bac34668655cc1118c86a0b1831cf095e159606f.svg "Repobeats analytics image")](https://github.com/KIT-CMS/CROWN/pulse)
 
 ---
