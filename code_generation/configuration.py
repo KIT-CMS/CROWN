@@ -58,7 +58,7 @@ class Configuration(object):
         era: str,
         sample: str,
         scopes: Union[str, List[str]],
-        shifts: Union[str, List[str]],
+        shifts: Union[str, List[str], Set[str]],
         available_sample_types: Union[str, List[str]],
         available_eras: Union[str, List[str]],
         available_scopes: Union[str, List[str]],
@@ -81,7 +81,7 @@ class Configuration(object):
         """
         self.era = era
         self.sample = sample
-        self.initiated_scopes = set(scopes)
+        self.selected_scopes = set(scopes)
         self.selected_shifts = shifts
         self.available_sample_types = set(available_sample_types)
         self.available_eras = set(available_eras)
@@ -110,7 +110,7 @@ class Configuration(object):
         Returns:
             None
         """
-        missing_scopes = self.initiated_scopes - self.available_scopes
+        missing_scopes = self.selected_scopes - self.available_scopes
         if len(missing_scopes) > 0:
             raise ScopeConfigurationError(missing_scopes, self.available_scopes)
 
@@ -488,7 +488,7 @@ class Configuration(object):
         scopes_to_test = [scope for scope in self.scopes]
         for scope in scopes_to_test:
             if (len(self.producers[scope]) == 0) or (
-                scope not in self.initiated_scopes and scope is not self.global_scope
+                scope not in self.selected_scopes and scope is not self.global_scope
             ):
                 log.warning("Removing unrequested / empty scope {}".format(scope))
                 self.scopes.remove(scope)
@@ -642,7 +642,7 @@ class Configuration(object):
                     continue
                 # we do not need to check the global scope, since shifts from
                 # the global scope are always propagated down to all scopes
-                if scope in self.initiated_scopes:
+                if scope in self.selected_scopes:
                     for shift in self.shifts[scope].keys():
                         log.debug(
                             "Validating shift {} in scope {}".format(shift, scope)
@@ -757,24 +757,30 @@ class Configuration(object):
         """
         String representation of the configuration.
         """
-        returnstr = "Configuration:"
-        returnstr += "  Era: {}".format(self.era)
-        returnstr += "  Sample: {}".format(self.sample)
-        returnstr += "  Scopes: {}".format(self.scopes)
-        returnstr += "  Shifts: {}".format(self.shifts)
-        returnstr += "  Rules:  {}".format(self.rules)
-        returnstr += "  Outputs:"
+        returnstr = "Configuration: \n"
+        returnstr += "  Era: {}\n".format(self.era)
+        returnstr += "  Sample: {}\n".format(self.sample)
+        returnstr += "  Scopes: {}\n".format(self.scopes)
+        returnstr += "  Shifts: {}\n".format(self.shifts)
+        returnstr += "  Rules:  {}\n".format(self.rules)
+        returnstr += "  Outputs:\n"
         for scope in self.scopes:
-            returnstr += "    {}: {}".format(scope, self.outputs[scope])
-        returnstr += "  Producers:"
+            returnstr += "    {}: {}\n".format(scope, self.outputs[scope])
+        returnstr += "  Producers:\n"
         for scope in self.scopes:
-            returnstr += "    {}: {}".format(scope, self.producers[scope])
-        returnstr += "  Config Parameters:"
+            returnstr += "    {}: {}\n".format(scope, self.producers[scope])
+        returnstr += "  Config Parameters:\n"
         for scope in self.scopes:
-            returnstr += "    {}: {}".format(scope, self.config_parameters[scope])
+            returnstr += "    {}: {}\n".format(scope, self.config_parameters[scope])
         return returnstr
 
     def expanded_configuration(self) -> Configuration:
+        """Function used to generate an expanded version of the configuration, where all shifts are applied.
+        This expanded configuration is used by the code generator to generate the C++ code.
+
+        Returns:
+            Configuration: Expanded configuration
+        """
         expanded_configuration = {}
         for scope in self.scopes:
             expanded_configuration[scope] = {}
