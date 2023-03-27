@@ -623,9 +623,9 @@ ROOT::RDF::RNode GetPrescaleValues(ROOT::RDF::RNode df,
         // Logger::get("prescale")->debug("run, lumi: {},{}", run, lumiblock);
 
         if (hlt == false) {
-            // Logger::get("prescale")->debug("no HLT hit,  prescale value: {}",
-            // prescale);
             prescale = -2;
+            // Logger::get("prescale")->debug("no HLT hit,  prescale value:
+            // {}",prescale);
             return prescale;
         }
 
@@ -642,21 +642,21 @@ ROOT::RDF::RNode GetPrescaleValues(ROOT::RDF::RNode df,
                             std::stoi(i_key), int(i_value));
                 if (lumiblock > std::stoi(i_key)) {
                     if (std::stoi(i_key) >= highest_lumi) {
+                        highest_lumi = std::stoi(i_key);
+                        prescale = i_value;
                         Logger::get("prescale")
                             ->debug("... assigning prescale value: {}",
                                     prescale);
-                        highest_lumi = std::stoi(i_key);
-                        prescale = i_value;
                     }
                 }
             }
 
         } else {
+            prescale = -3;
             Logger::get("prescale")
                 ->debug(
                     "could not find run and lumi in JSON, prescale value: {}",
                     prescale);
-            prescale = -3;
         }
 
         return prescale;
