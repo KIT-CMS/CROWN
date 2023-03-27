@@ -618,14 +618,14 @@ ROOT::RDF::RNode GetPrescaleValues(ROOT::RDF::RNode df,
 
     auto get_prescale = [prescale_json](const Bool_t hlt, const UInt_t run,
                                         const UInt_t lumiblock) {
-        int prescale = 1;
+        int prescale = -1;
 
         // Logger::get("prescale")->debug("run, lumi: {},{}", run, lumiblock);
 
         if (hlt == false) {
             // Logger::get("prescale")->debug("no HLT hit,  prescale value: {}",
             // prescale);
-            prescale = -1;
+            prescale = -2;
             return prescale;
         }
 
@@ -656,8 +656,7 @@ ROOT::RDF::RNode GetPrescaleValues(ROOT::RDF::RNode df,
                 ->debug(
                     "could not find run and lumi in JSON, prescale value: {}",
                     prescale);
-            prescale = -2;
-            return prescale;
+            prescale = -3;
         }
 
         return prescale;
