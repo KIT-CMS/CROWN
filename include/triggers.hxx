@@ -55,5 +55,12 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
     const int &p2_trigger_particle_id_cut, const int &p1_triggerbit_cut,
     const int &p2_triggerbit_cut, const float &DeltaR_threshold);
 
+ROOT::RDF::RNode GetPrescaleValues(ROOT::RDF::RNode df,
+                                   const std::string &prescale_columnname,
+                                   const std::string &hlt_columnname,
+                                   const std::string &run_columnname,
+                                   const std::string &lumiblock_columnname,
+                                   const std::string &prescale_json_file);
+
 } // end namespace trigger
 #endif /* GUARD_TRIGGERS_H */
