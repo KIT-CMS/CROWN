@@ -404,8 +404,6 @@ ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
         double nu_px = met_p4.Px();
         double nu_py = met_p4.Py();
 
-        bool solution_is_real;
-
         Logger::get("wlep")->debug(
             "building wlep p4 from lepton with E: {} px: {} py: {} pz: {}",
             lep_e, lep_px, lep_py, lep_pz);
@@ -626,7 +624,6 @@ ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
             nu_p4.SetPxPyPzE(
                 nu_px, nu_py, nu_pz,
                 sqrt(nu_px * nu_px + nu_py * nu_py + nu_pz * nu_pz));
-            solution_is_real = true;
         }
 
         wlep_p4 = lep_p4 + nu_p4;
