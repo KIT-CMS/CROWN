@@ -1,6 +1,9 @@
 #ifndef FastMTT_FastMTT_H
 #define FastMTT_FastMTT_H
 
+#include "Math/LorentzVector.h"
+#include "TBenchmark.h"
+#include "TMatrixD.h"
 #include <bitset>
 #include <string>
 #include <tuple>
@@ -17,10 +20,6 @@ class Functor;
 } // namespace Math
 } // namespace ROOT
 class TVector2;
-
-#include "Math/LorentzVector.h"
-#include "TBenchmark.h"
-#include "TMatrixD.h"
 
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double>> LorentzVector;
 
