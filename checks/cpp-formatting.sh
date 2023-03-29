@@ -2,7 +2,7 @@
 
 for FILENAME in $(find . -name "*.[h,c]xx");
 do
-    clang-format -i $FILENAME
+    clang-format -i "$FILENAME"
 done
 
 DIFF=$(git --no-pager diff)
