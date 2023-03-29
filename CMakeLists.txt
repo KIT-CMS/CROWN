@@ -21,6 +21,14 @@ if (NOT DEFINED SHIFTS)
     set(SHIFTS "all")
 endif()
 
+if (NOT DEFINED QUANTITIESMAP)
+    message(STATUS "No quantities map specified, none will be used. If you want to produce friends, you have to specify a quantities map e.g. -DQUANTITIESMAP=quantities_map.json. The input can be a json file or a root file (for debugging purposes).")
+    set(FRIENDS "false")
+    set(QUANTITIESMAP "none")
+else()
+    set(FRIENDS "true")
+endif()
+
 if (NOT DEFINED DEBUG)
     message(STATUS "No Debug mode set, activate with -DDEBUG=true --> compile with debug symbols and run code generation with debug output")
     set(DEBUG "false")
@@ -80,7 +88,7 @@ endif()
 
 string (REPLACE "," ";" ERAS "${ERAS}")
 string (REPLACE "," ";" SAMPLES "${SAMPLES}")
-message(STATUS "Set up analysis with --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --threads ${THREADS} --debug ${DEBUG_PARSED}")
+message(STATUS "Set up analysis with --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --threads ${THREADS} --debug ${DEBUG_PARSED} --friends ${FRIENDS} --quantities_map ${QUANTITIESMAP}")
 
 
 # Set the default install directory to the build directory
@@ -90,7 +98,7 @@ message(STATUS "Creating Project")
 project(CROWN CXX)
 message(STATUS "Finding Packages")
 # Find ROOT and print details
-find_package(ROOT 6.26 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit)
+find_package(ROOT 6.26 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit GenVector)
 # add OpenMP and MPI
 find_package(OpenMP)
 find_package(MPI)
@@ -213,9 +221,8 @@ function(install_correctionlib)
     message(STATUS "Found correctionlib !")
 endfunction()
 
-find_python_package(GitPython git 3.1)
 # Adding correctionlib for scale factor evaluation
-# for now the official pip package has some problem 
+# for now the official pip package has some problem
 # in the future "find_python_package(correctionlib correctionlib X.X)" should hopefully work
 install_correctionlib()
 message(STATUS "Setting up correctionlib ...")
@@ -269,7 +276,7 @@ file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
 foreach (ERA IN LISTS ERAS)
     foreach (SAMPLE IN LISTS SAMPLES)
         execute_process(
-            COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --subset-template ${GENERATE_CPP_SUBSET_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --sample ${SAMPLE} --era ${ERA} --threads ${THREADS} --debug ${DEBUG_PARSED} RESULT_VARIABLE ret)
+            COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --subset-template ${GENERATE_CPP_SUBSET_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --sample ${SAMPLE} --era ${ERA} --threads ${THREADS} --debug ${DEBUG_PARSED} --friends ${FRIENDS} --quantities-map ${QUANTITIESMAP} RESULT_VARIABLE ret)
         if(ret EQUAL "1")
             message( FATAL_ERROR "Code Generation Failed - Exiting !")
         endif()
@@ -286,13 +293,14 @@ endif()
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 file(GLOB SOURCES_1 ${CMAKE_SOURCE_DIR}/src/*.cxx)
-file(GLOB SOURCES_2 
+file(GLOB SOURCES_2
     ${CMAKE_SOURCE_DIR}/src/utility/*.cxx
-    ${CMAKE_SOURCE_DIR}/src/RecoilCorrections/*.cxx)
+    ${CMAKE_SOURCE_DIR}/src/RecoilCorrections/*.cxx
+    ${CMAKE_SOURCE_DIR}/src/SVFit/*.cxx)
 set(SOURCES ${SOURCES_1} ${SOURCES_2})
 add_library(CROWNLIB SHARED ${SOURCES})
 target_include_directories(CROWNLIB PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
-target_link_libraries(CROWNLIB ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib nlohmann_json::nlohmann_json)
+target_link_libraries(CROWNLIB ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit ROOT::GenVector logging correctionlib nlohmann_json::nlohmann_json)
 
 # Iterate over files from output filelist and add build and install targets
 FILE(READ ${GENERATE_CPP_OUTPUT_FILELIST} FILELIST)
@@ -325,7 +333,7 @@ foreach(FILENAME ${FILELIST})
     add_executable(${TARGET_NAME} ${FULL_PATH} ${GENERATED_CXX_FILES})
     # Adds a pre-build event to the Target copying the correctionlib.so file into the /lib folder in the install directory
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} $ORIGIN/lib/ lib/)
-    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit logging correctionlib nlohmann_json::nlohmann_json CROWNLIB)
+    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit ROOT::GenVector logging correctionlib nlohmann_json::nlohmann_json CROWNLIB)
     add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CORRECTION_LIB_PATH}"
@@ -336,6 +344,7 @@ foreach(FILENAME ${FILELIST})
         LINK_FLAGS "-Wl,-rpath,$ORIGIN/lib")
     # Add install target, basically just copying the executable around relative to CMAKE_INSTALL_PREFIX
     install(TARGETS ${TARGET_NAME} DESTINATION ${INSTALLDIR})
+    install(CODE "execute_process(COMMAND ${CMAKE_SOURCE_DIR}/checks/get-diff.sh ${CMAKE_SOURCE_DIR} ${ANALYSIS} ${INSTALLDIR}/diff )")
 
 endforeach()
 

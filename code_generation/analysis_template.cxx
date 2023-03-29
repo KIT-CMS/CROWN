@@ -13,6 +13,7 @@
 #include "include/quantities.hxx"
 #include "include/reweighting.hxx"
 #include "include/scalefactors.hxx"
+#include "include/topreco.hxx"
 #include "include/triggers.hxx"
 #include "include/utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
@@ -23,7 +24,6 @@
 #include <TVector.h>
 #include <regex>
 #include <string>
-
 // {INCLUDES}
 
 int main(int argc, char *argv[]) {
@@ -51,6 +51,7 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> input_files;
     int nevents = 0;
     Logger::get("main")->info("Checking input files");
+    std::string basetree = "Events";
     for (int i = 2; i < argc; i++) {
         input_files.push_back(std::string(argv[i]));
         // Check if the input file exists and is readable, also get the number
@@ -62,10 +63,26 @@ int main(int argc, char *argv[]) {
                                           argv[i]);
             return 1;
         }
-        TTree *t1 = (TTree *)f1->Get("Events");
-        nevents += t1->GetEntries();
-        Logger::get("main")->info("input_file {}: {} - {} Events", i - 1,
-                                  argv[i], t1->GetEntries());
+        // Get a list of all keys in the file
+        TList *list = f1->GetListOfKeys();
+        // Check if the Events tree exists
+        if (list->FindObject("Events")) {
+            TTree *t1 = (TTree *)f1->Get("Events");
+            nevents += t1->GetEntries();
+            Logger::get("main")->info("NanoAOD input_file {}: {} - {} Events",
+                                      i - 1, argv[i], t1->GetEntries());
+        } else if (list->FindObject("ntuple")) {
+            TTree *t1 = (TTree *)f1->Get("ntuple");
+            nevents += t1->GetEntries();
+            basetree = "ntuple";
+            Logger::get("main")->info("CROWN input_file {}: {} - {} Events",
+                                      i - 1, argv[i], t1->GetEntries());
+        } else {
+            Logger::get("main")->critical("File {} does not contain a tree "
+                                          "named 'Events' or 'ntuple'",
+                                          argv[i]);
+            return 1;
+        }
     }
     const auto output_path = argv[1];
     Logger::get("main")->info("Output directory: {}", output_path);
@@ -79,7 +96,7 @@ int main(int argc, char *argv[]) {
     // {MULTITHREADING}
 
     // initialize df
-    ROOT::RDataFrame df0("Events", input_files);
+    ROOT::RDataFrame df0(basetree, input_files);
     Logger::get("main")->info("Starting Setup of Dataframe with {} events",
                               nevents);
 
@@ -99,10 +116,13 @@ int main(int argc, char *argv[]) {
     std::map<std::string, std::map<std::string, std::vector<std::string>>> quantities_shift_map = {QUANTITIES_SHIFT_MAP};
     // clang-format on
     const std::string analysis = {ANALYSISTAG};
+    const std::string config = {CONFIGTAG};
     const std::string era = {ERATAG};
     const std::string sample = {SAMPLETAG};
     const std::string commit_hash = {COMMITHASH};
-    bool setup_clean = {SETUP_IS_CLEAN};
+    bool setup_clean = {CROWN_IS_CLEAN};
+    const std::string analysis_commit_hash = {ANALYSIS_COMMITHASH};
+    bool analysis_setup_clean = {ANALYSIS_IS_CLEAN};
     int scope_counter = 0;
     for (auto const &output : output_quanties) {
         // output.first is the output file name
@@ -120,6 +140,7 @@ int main(int argc, char *argv[]) {
         variations_meta.Write();
         TTree conditions_meta = TTree("conditions", "conditions");
         conditions_meta.Branch(analysis.c_str(), &setup_clean);
+        conditions_meta.Branch(config.c_str(), &setup_clean);
         conditions_meta.Branch(era.c_str(), &setup_clean);
         conditions_meta.Branch(sample.c_str(), &setup_clean);
         conditions_meta.Write();
@@ -127,6 +148,12 @@ int main(int argc, char *argv[]) {
         commit_meta.Branch(commit_hash.c_str(), &setup_clean);
         commit_meta.Fill();
         commit_meta.Write();
+        TTree analysis_commit_meta =
+            TTree("analysis_commit", "analysis_commit");
+        analysis_commit_meta.Branch(analysis_commit_hash.c_str(),
+                                    &analysis_setup_clean);
+        analysis_commit_meta.Fill();
+        analysis_commit_meta.Write();
         TH1D cutflow;
         cutflow.SetName("cutflow");
         cutflow.SetTitle("cutflow");
