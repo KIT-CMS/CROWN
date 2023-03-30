@@ -17,6 +17,9 @@ env:
   ERAS: 2018
   SCOPES: "mt,mm,et"
   SHIFTS: "all"
+  FRIEND_SCOPES: "mt,mm"
+  FRIEND_CONFIG: unittest_friends
+  FRIEND_SHIFTS: "nominal,jesUncTotalUp,jesUncTotalDown,tauMuFakeEsDown"
 
 jobs:
   build_project:
@@ -27,25 +30,10 @@ jobs:
 
     steps:
       - name: update Arch keyring
-        run: pacman -Sc && pacman -Syy --noconfirm && pacman -Sy archlinux-keyring --noconfirm
+        run: pacman -Sc --noconfirm && pacman -Syy --noconfirm && pacman -Sy archlinux-keyring --noconfirm
 
       - name: Install missing software
         run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost openssh --ignore root --ignore openssl
-
-      # - name: apt update
-      #   run: apt-get -y update
-
-      # - name: add python 3.9 from deadsnakes
-      #   run: apt-get install -y software-properties-common && add-apt-repository -y ppa:deadsnakes/ppa
-
-      # - name: Install python 3.9
-      #   run: apt-get install -y python3.9 python3.9-dev python3.9-venv
-
-      # - name: apt update
-      #   run: apt-get -y update
-
-      # - name: Install missing software
-      #   run: apt-get install -y make git build-essential mlocate
 
       - name: Install python packages
         run: python -m ensurepip --default-pip && python -m pip install GitPython && python -m pip install numpy --upgrade && python -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
@@ -71,11 +59,56 @@ jobs:
 
       - name: Build
         shell: bash
-        run: cd ${{github.workspace}}/build && make install
+        run: cd ${{github.workspace}}/build && make install -j 2
 
       - name: Test
         shell: bash
-        run: cd ${{github.workspace}}/build && ctest -V
+        run: cd ${{github.workspace}}/build && ctest -V --label-regex "ntuple.*."
+
+  build_friends:
+    runs-on: ubuntu-20.04
+    container:
+      image: rootproject/root:6.26.10-arch
+      options: --user 0 # run as root
+
+    steps:
+      - name: update Arch keyring
+        run: pacman -Sc --noconfirm && pacman -Syy --noconfirm && pacman -Sy archlinux-keyring --noconfirm
+
+      - name: Install missing software
+        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost openssh --ignore root --ignore openssl
+
+
+      - name: Install python packages
+        run: python -m ensurepip --default-pip && python -m pip install GitPython && python -m pip install numpy --upgrade && python -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
+
+      - name: Clone project
+        uses: actions/checkout@v3
+        with:
+          ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
+          submodules: "recursive"
+          ssh-strict: "false"
+          ssh-known-hosts: "[gitlab.cern.ch]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubVS0czgKaPkC5cfB75CI3XjgWBv7pj2ILiZezVf8okkCAYr+bf4w6VrH2pyv3NRUW5Mm8U/3zoSNcrYIqhFFpz6R62/3xt8hMrPKJKstbt1lSIr8QhEyD24SJEKugMi560BWRPkTzXrrFgxz0X4vuKKytpvihRsccZ7F1JaX76UCWEJ3Xr2BFCEnnN6gj9nvFr4gvSMneunWVLGw2KcHwS1OJfnWBlp3fB0rYWSxZAoVjcjZjvv3hioEftaTapff2PkdQIX//N9Cc555FzdmMzixTvU5j/i+QvjxWVbEBNSKI6te6udC4fYUZMePs2QQnqw9mXUQtaQtw+HV7utuw=="
+
+      - name: Create Build Environment
+        shell: bash
+        run: cmake -E make_directory ${{github.workspace}}/build
+
+      - name: adding a system path
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Configure CMake
+        shell: bash
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false
+
+      - name: Build
+        shell: bash
+        run: cd ${{github.workspace}}/build && make install -j 2
+
+      - name: Test
+        shell: bash
+        run: cd ${{github.workspace}}/build && ctest -V --label-regex "friends.*."
+
 
   python_format:
     runs-on: ubuntu-20.04

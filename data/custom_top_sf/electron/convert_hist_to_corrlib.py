@@ -52,7 +52,6 @@ cset = {}
 
 
 for y in corrs.keys():
-
     cset[y] = correctionlib.schemav2.CorrectionSet(
         schema_version=2,
         description="{} ({})".format(file_description, y),

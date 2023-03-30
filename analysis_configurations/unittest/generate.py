@@ -1,6 +1,8 @@
 from os import path, makedirs
 import importlib
 from code_generation.code_generation import CodeGenerator
+from code_generation.friend_trees import FriendTreeConfiguration
+import inspect
 
 
 def run(args):
@@ -26,7 +28,7 @@ def run(args):
     available_scopes = ["et", "mt", "tt", "em", "mm", "ee"]
 
     ## setup variables
-    shifts = set([shift.lower() for shift in args.shifts])
+    shifts = set([shift for shift in args.shifts])
     sample_group = args.sample
     era = args.era
     scopes = list(set([scope.lower() for scope in args.scopes]))

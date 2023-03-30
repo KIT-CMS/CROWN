@@ -52,6 +52,7 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> input_files;
     int nevents = 0;
     Logger::get("main")->info("Checking input files");
+    std::string basetree = "Events";
     for (int i = 2; i < argc; i++) {
         input_files.push_back(std::string(argv[i]));
         // Check if the input file exists and is readable, also get the number
@@ -63,10 +64,26 @@ int main(int argc, char *argv[]) {
                                           argv[i]);
             return 1;
         }
-        TTree *t1 = (TTree *)f1->Get("Events");
-        nevents += t1->GetEntries();
-        Logger::get("main")->info("input_file {}: {} - {} Events", i - 1,
-                                  argv[i], t1->GetEntries());
+        // Get a list of all keys in the file
+        TList *list = f1->GetListOfKeys();
+        // Check if the Events tree exists
+        if (list->FindObject("Events")) {
+            TTree *t1 = (TTree *)f1->Get("Events");
+            nevents += t1->GetEntries();
+            Logger::get("main")->info("NanoAOD input_file {}: {} - {} Events",
+                                      i - 1, argv[i], t1->GetEntries());
+        } else if (list->FindObject("ntuple")) {
+            TTree *t1 = (TTree *)f1->Get("ntuple");
+            nevents += t1->GetEntries();
+            basetree = "ntuple";
+            Logger::get("main")->info("CROWN input_file {}: {} - {} Events",
+                                      i - 1, argv[i], t1->GetEntries());
+        } else {
+            Logger::get("main")->critical("File {} does not contain a tree "
+                                          "named 'Events' or 'ntuple'",
+                                          argv[i]);
+            return 1;
+        }
     }
     const auto output_path = argv[1];
     Logger::get("main")->info("Output directory: {}", output_path);
@@ -80,7 +97,7 @@ int main(int argc, char *argv[]) {
     // {MULTITHREADING}
 
     // initialize df
-    ROOT::RDataFrame df0("Events", input_files);
+    ROOT::RDataFrame df0(basetree, input_files);
     Logger::get("main")->info("Starting Setup of Dataframe with {} events",
                               nevents);
 
