@@ -118,13 +118,14 @@ int main(int argc, char *argv[]) {
     std::map<std::string, std::map<std::string, std::vector<std::string>>> quantities_shift_map = {QUANTITIES_SHIFT_MAP};
     // clang-format on
     const std::string analysis = {ANALYSISTAG};
-    const std::string config = {CONFIGTAG};
+    // const std::string config = {CONFIGTAG};
     const std::string era = {ERATAG};
     const std::string sample = {SAMPLETAG};
     const std::string commit_hash = {COMMITHASH};
-    bool setup_clean = {CROWN_IS_CLEAN};
-    const std::string analysis_commit_hash = {ANALYSIS_COMMITHASH};
-    bool analysis_setup_clean = {ANALYSIS_IS_CLEAN};
+    // bool setup_clean = {CROWN_IS_CLEAN};
+    bool setup_clean = {SETUP_IS_CLEAN};
+    // const std::string analysis_commit_hash = {ANALYSIS_COMMITHASH};
+    // bool analysis_setup_clean = {ANALYSIS_IS_CLEAN};
     int scope_counter = 0;
     for (auto const &output : output_quanties) {
         // output.first is the output file name
@@ -142,7 +143,7 @@ int main(int argc, char *argv[]) {
         variations_meta.Write();
         TTree conditions_meta = TTree("conditions", "conditions");
         conditions_meta.Branch(analysis.c_str(), &setup_clean);
-        conditions_meta.Branch(config.c_str(), &setup_clean);
+        // conditions_meta.Branch(config.c_str(), &setup_clean);
         conditions_meta.Branch(era.c_str(), &setup_clean);
         conditions_meta.Branch(sample.c_str(), &setup_clean);
         conditions_meta.Write();
@@ -152,8 +153,8 @@ int main(int argc, char *argv[]) {
         commit_meta.Write();
         TTree analysis_commit_meta =
             TTree("analysis_commit", "analysis_commit");
-        analysis_commit_meta.Branch(analysis_commit_hash.c_str(),
-                                    &analysis_setup_clean);
+        // analysis_commit_meta.Branch(analysis_commit_hash.c_str(),
+        //                             &analysis_setup_clean);
         analysis_commit_meta.Fill();
         analysis_commit_meta.Write();
         TH1D cutflow;
