@@ -73,7 +73,7 @@ class FriendTreeConfiguration(Configuration):
         if self.global_scope in self.scopes:
             self.scopes.remove(self.global_scope)
         self.global_scope = None
-
+        log.warn(f"Selected scopes: {self.selected_scopes}")
         # if more than one scope is specified, raise an error
         if len(self.selected_scopes) > 1:
             raise ConfigurationError(
@@ -146,9 +146,13 @@ class FriendTreeConfiguration(Configuration):
             elif input_information.endswith(".json"):
                 data = self._readout_input_json_file(input_information)
             else:
-                raise ConfigurationError(
-                    f"Input information file {input_information} is not a json or root file"
+                error_message = f"\n      Input information file {input_information} is not a json or root file \n"
+                error_message += (
+                    "      Did you forget to specify the input information file? \n"
                 )
+                error_message += "      The input information has to be a json file or a root file \n"
+                error_message += "      and added to the cmake command via the -DQUANTITIESMAP=... option"
+                raise ConfigurationError(error_message)
         return data
 
     def _readout_input_root_file(

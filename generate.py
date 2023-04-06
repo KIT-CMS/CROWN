@@ -1,10 +1,10 @@
 import argparse
 import importlib
 import os
+import inspect
 import logging
 from code_generation.logger import CustomFormatter
 import logging.handlers
-import inspect
 
 
 class SplitArgs(argparse.Action):
