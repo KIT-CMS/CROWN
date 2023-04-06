@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict, List, Union, Tuple
 import os
 import filecmp
-import subprocess
+from git import Repo, InvalidGitRepositoryError, NoSuchPathError
 
 from code_generation.producer import SafeDict, Producer, ProducerGroup
 
@@ -184,7 +184,6 @@ class CodeGenerator(object):
         sub_template_path: str,
         configuration: Configuration,
         analysis_name: str,
-        config_name: str,
         executable_name: str,
         output_folder: str,
         threads: int = 1,
@@ -197,7 +196,6 @@ class CodeGenerator(object):
         self.global_scope = self.configuration.global_scope
         self.executable_name = executable_name
         self.analysis_name = analysis_name
-        self.config_name = config_name
         self.output_folder = output_folder
         self.executable = os.path.join(
             output_folder,
@@ -217,58 +215,29 @@ class CodeGenerator(object):
             self.main_counter[scope] = 0
             self.subset_calls[scope] = []
             self.output_commands[scope] = []
-        # set git status default values
-        self.commit_hash = "undefined"
-        self.analysis_commit_hash = "undefined"
-        self.crown_is_clean = "false"
-        self.analysis_is_clean = "false"
-        self.get_git_status()
-        log.info("Code generator initialized")
-
-    def get_git_status(self) -> None:
-        """
-        Get the git status of the main repo. The status is determined via the checks/git-status.sh script.
-        """
-        script_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "../checks/git-status.sh"
-        )
-        # run the script and get the output
-        # the scipt needs to args: the absolute path to the main repo and the name of the analysis
-        log.info(
-            f"Running { [script_path, os.path.dirname(os.path.dirname(os.path.realpath(__file__))), self.analysis_name]}"
-        )
+        # get git status of the main repo
         try:
-            output = subprocess.check_output(
-                [
-                    script_path,
-                    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-                    self.analysis_name,
-                ],
-                stderr=subprocess.STDOUT,
+            main_repo_path = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)), "../../CROWN"
             )
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(
-                "command '{}' return with error (code {}): {}".format(
-                    e.cmd, e.returncode, e.output
-                )
-            )
+            log.info("Getting git status of {}".format(main_repo_path))
+            main_repo = Repo(main_repo_path)
+            self.commit_hash = main_repo.head.commit
+            self.setup_is_clean = "false" if main_repo.is_dirty() else "true"
+        except (ValueError, InvalidGitRepositoryError, NoSuchPathError):
+            self.commit_hash = "undefined"
+            self.setup_is_clean = "false"
 
-        output = output.decode("utf-8")
-        # split the output into lines
-        for line in output.splitlines():
-            # split the line into key and value
-            if not "=" in line:
-                print(line)
-                continue
-            key, value = line.split("=")
-            # set the value to the corresponding attribute
-            setattr(self, key, value)
+        log.info("Code generator initialized")
 
     def generate_code(self) -> None:
         """
-        Generate the code from the configuration and create the subsets. Run through the whole configuration and create a subset for each producer within the configuration.
+        Generate the code from the configuration and create the subsets.
+        Run through the whole configuration and create a subset for each
+        producer within the configuration.
 
-        Start with the global scope and then all other scopes. All generated code is stored in the folder self.output_folder.
+        Start with the global scope and then all other scopes.
+        All generated code is stored in the folder self.output_folder.
 
         Args:
             None
@@ -280,22 +249,14 @@ class CodeGenerator(object):
 
         for subfolder in ["src", "include"]:
             for scope in self.scopes:
-                if not os.path.exists(
-                    os.path.join(
-                        self.output_folder,
-                        self.executable_name + "_generated_code",
-                        subfolder,
-                        scope,
-                    )
-                ):
-                    os.makedirs(
-                        os.path.join(
-                            self.output_folder,
-                            self.executable_name + "_generated_code",
-                            subfolder,
-                            scope,
-                        )
-                    )
+                folders = os.path.join(
+                    self.output_folder,
+                    self.executable_name + "_generated_code",
+                    subfolder,
+                    scope,
+                )
+                if not os.path.exists(folders):
+                    os.makedirs(folders)
         # self.generate_subsets(self.global_scope)
         for scope in self.scopes:
             self.generate_subsets(scope)
@@ -346,18 +307,13 @@ class CodeGenerator(object):
                     "{SAMPLETAG}", '"Samplegroup={}"'.format(self.configuration.sample)
                 )
                 .replace("{ANALYSISTAG}", '"Analysis={}"'.format(self.analysis_name))
-                .replace("{CONFIGTAG}", '"Config={}"'.format(self.config_name))
                 .replace("{PROGRESS_CALLBACK}", self.set_process_tracking())
                 .replace("{OUTPUT_QUANTITIES}", self.set_output_quantities())
                 .replace("{SHIFT_QUANTITIES_MAP}", self.set_shift_quantities_map())
                 .replace("{QUANTITIES_SHIFT_MAP}", self.set_quantities_shift_map())
                 .replace("{SYSTEMATIC_VARIATIONS}", self.set_shifts())
                 .replace("{COMMITHASH}", '"{}"'.format(self.commit_hash))
-                .replace("{CROWN_IS_CLEAN}", self.crown_is_clean)
-                .replace(
-                    "{ANALYSIS_COMMITHASH}", '"{}"'.format(self.analysis_commit_hash)
-                )
-                .replace("{ANALYSIS_IS_CLEAN}", self.analysis_is_clean)
+                .replace("{SETUP_IS_CLEAN}", self.setup_is_clean)
             )
         log.info("Code written to {}".format(self.executable))
         log.info("------------------------------------")
@@ -375,7 +331,8 @@ class CodeGenerator(object):
 
     def generate_main_code(self) -> Tuple[str, str]:
         """
-        Generate the call commands for all the subsets. Additionally, generate all include statements for the main executable.
+        Generate the call commands for all the subsets. Additionally,
+        generate all include statements for the main executable.
         Args:
             None
         Returns:
@@ -475,7 +432,8 @@ class CodeGenerator(object):
             else:
                 # two special cases:
                 # 1. global scope: there we have to use df0 as the input df
-                # 2. first call of all other scopes: we have to use the last global df as the input df
+                # 2. first call of all other scopes: we have to use the
+                # last global df as the input df
                 if scope == self.global_scope and is_first:
                     self.subset_calls[scope].append(
                         subset.call(
@@ -503,7 +461,9 @@ class CodeGenerator(object):
 
     def generate_run_commands(self) -> str:
         """
-        generate the dataframe snapshot commands for the main executable. A seperate output file is generated for each scope, that contains at least one output quantity.
+        generate the dataframe snapshot commands for the main executable.
+        A seperate output file is generated for each scope,
+        that contains at least one output quantity.
         The process tracking is also generated here.
 
         Args:

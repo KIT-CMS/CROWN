@@ -16,8 +16,12 @@ from .producers import triggers as triggers
 from .quantities import nanoAOD as nanoAOD
 from .quantities import output as q
 
-# from code_generation.configuration import Configuration
+# from code_generation.configuration import Cnofiguration
 from code_generation.friend_trees import FriendTreeConfiguration
+
+
+def is_friend():
+    return True
 
 
 def build_config(
@@ -30,11 +34,11 @@ def build_config(
     available_scopes: List[str],
     quantities_map: Union[str, None] = None,
 ):
-    if quantities_map is None:
-        quantities_map = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "dyjets_shift_quantities_map.json",
-        )
+    # for the test, we provide a quantities map
+    quantities_map = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "dyjets_shift_quantities_map.json",
+    )
     configuration = FriendTreeConfiguration(
         era,
         sample,
@@ -47,7 +51,7 @@ def build_config(
     )
 
     configuration.add_config_parameters(
-        ["mt"],
+        ["mt", "mm"],
         {
             "muon_sf_file": "data/embedding/muon_2018UL.json.gz",
             "muon_id_sf": "ID_pt_eta_bins",
@@ -56,7 +60,7 @@ def build_config(
     )
 
     configuration.add_producers(
-        ["mt"],
+        ["mt", "mm"],
         [
             muon_sf_friends.MuonIDSF_friends_1,
             muon_sf_friends.MuonIsoSF_friends_1,
@@ -64,7 +68,7 @@ def build_config(
     )
 
     configuration.add_outputs(
-        ["mt"],
+        ["mt", "mm"],
         [
             q.id_wgt_mu_friend_1,
             q.iso_wgt_mu_friend_1,

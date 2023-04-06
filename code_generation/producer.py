@@ -187,7 +187,7 @@ class Producer:
             raise Exception
         for entry in self.input[scope]:
             if entry in inputs_to_shift:
-                log.info(f"Shifting {entry.name}")
+                log.debug(f"Shifting {entry.name}")
                 entry.shift(name, scope)
 
     def ignore_shift(self, name: str, scope: str = "global") -> None:
