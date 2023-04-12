@@ -76,6 +76,11 @@ id_vsMu(ROOT::RDF::RNode df, const std::string &eta,
         const std::string &sf_vsmu_wheel3, const std::string &sf_vsmu_wheel4,
         const std::string &sf_vsmu_wheel5, const std::string &id_output,
         const std::string &sf_file, const std::string &idAlgorithm);
+ROOT::RDF::RNode
+tau_trigger_sf(ROOT::RDF::RNode df, const std::string &decaymode,
+               const std::string &pt, const std::string &wp,
+               const std::string &type, const std::string &id_output,
+               const std::string &sf_file, const std::string &correctionset);
 } // namespace tau
 
 namespace electron {
