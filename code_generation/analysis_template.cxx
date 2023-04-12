@@ -20,6 +20,7 @@
 #include <ROOT/RLogger.hxx>
 #include <TFile.h>
 #include <TMap.h>
+#include <filesystem>
 #include <TObjString.h>
 #include <TTree.h>
 #include <TVector.h>
@@ -47,6 +48,13 @@ int main(int argc, char *argv[]) {
             "files \n"
             "Example:\n"
             "./analysis output.root /path/to/inputfiles/*.root");
+        return 1;
+    }
+    // check if CROWN is run from the correct directory, if the folder "data" does not exist, exit
+    if (!std::filesystem::exists("data")) {
+        Logger::get("main")->critical(
+            "CROWN is not run from the correct directory, "
+            "data folder does not exist. Did you run CROWN from the correct directory?");
         return 1;
     }
     std::vector<std::string> input_files;
