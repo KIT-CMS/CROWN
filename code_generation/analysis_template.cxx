@@ -15,6 +15,7 @@
 #include "include/scalefactors.hxx"
 #include "include/topreco.hxx"
 #include "include/triggers.hxx"
+#include "include/fakefactors.hxx"
 #include "include/utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
 #include <TFile.h>
