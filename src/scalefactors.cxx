@@ -738,15 +738,17 @@ id_vsMu(ROOT::RDF::RNode df, const std::string &eta,
 /**
  * @brief Function to evaluate the tau trigger scale factor from a xpog file
  *
- * @param df
- * @param decaymode
- * @param wp
- * @param type
- * @param pt
- * @param id_output
- * @param sf_file
- * @param correctionset
- * @return ROOT::RDF::RNode
+ * @param df the input dataframe
+ * @param decaymode the name of the column containing the tau decay mode
+ * variable
+ * @param wp the name of the the tau id working point
+ * @param type the type of the tau trigger scale factor, available are emb and
+ * mc
+ * @param pt the name of the column containing the tau pt variable
+ * @param id_output name of the id scale factor column
+ * @param sf_file path to the file with the tau scale factors
+ * @param correctionset name of the tau trigger scale factor
+ * @return ROOT::RDF::RNode a new dataframe containing the new sf column
  */
 
 ROOT::RDF::RNode
@@ -757,18 +759,18 @@ tau_trigger_sf(ROOT::RDF::RNode df, const std::string &decaymode,
 
     Logger::get("tau_trigger_sf")
         ->info("Setting up function for tau trigger sf");
-    Logger::get("tau_trigger_sf")->info("ID - Name {}, file {}", correctionset, sf_file);
+    Logger::get("tau_trigger_sf")
+        ->info("ID - Name {}, file {}", correctionset, sf_file);
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at(correctionset);
-    Logger::get("tau_trigger_sf")
-        ->info("WP {} - type {}", wp, type);
+    Logger::get("tau_trigger_sf")->info("WP {} - type {}", wp, type);
     auto trigger_sf_calculator = [evaluator, wp, type, correctionset](
-                               const int &decaymode, const float &pt) {
+                                     const int &decaymode, const float &pt) {
         float sf = 1.;
         Logger::get("tau_trigger_sf")
             ->info("ID {} - decaymode {}, wp {} "
-                    "pt {}, type {}, ",
-                    correctionset, decaymode, wp, pt, type);
+                   "pt {}, type {}, ",
+                   correctionset, decaymode, wp, pt, type);
         sf = evaluator->evaluate({decaymode, wp, type, pt});
         Logger::get("tau_trigger_sf")->info("Scale Factor {}", sf);
         return sf;
