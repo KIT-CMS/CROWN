@@ -108,15 +108,17 @@ int main(int argc, char *argv[]) {
     ROOT::RDataFrame df0(basetree, input_files);
     Logger::get("main")->info("Starting Setup of Dataframe with {} events",
                               nevents);
-
-    // {CODE_GENERATION}
-
-    ROOT::RDF::RSnapshotOptions dfconfig;
-    dfconfig.fLazy = true;
     std::vector<ROOT::RDF::RResultPtr<ROOT::RDF::RCutFlowReport>> cutReports;
-
-    // {RUN_COMMANDS}
-
+    // setup output files
+    // {OUTPUT_PATHS}
+    if (nevents == 0){
+        // {ZERO_EVENTS_FALLBACK}
+    } else {
+        // {CODE_GENERATION}
+        ROOT::RDF::RSnapshotOptions dfconfig;
+        dfconfig.fLazy = true;
+        // {RUN_COMMANDS}
+    }
     // Add meta-data
     // clang-format off
     const std::map<std::string, std::vector<std::string>> output_quanties = {OUTPUT_QUANTITIES};
@@ -163,22 +165,24 @@ int main(int argc, char *argv[]) {
                                     &analysis_setup_clean);
         analysis_commit_meta.Fill();
         analysis_commit_meta.Write();
-        TH1D cutflow;
-        cutflow.SetName("cutflow");
-        cutflow.SetTitle("cutflow");
-        // iterate through the cutflow vector and fill the histogram with the
-        // .GetPass() values
-        for (auto cut = cutReports[scope_counter].begin();
-             cut != cutReports[scope_counter].end(); cut++) {
-            cutflow.SetBinContent(
-                std::distance(cutReports[scope_counter].begin(), cut) + 1,
-                cut->GetPass());
-            cutflow.GetXaxis()->SetBinLabel(
-                std::distance(cutReports[scope_counter].begin(), cut) + 1,
-                cut->GetName().c_str());
+        if (nevents != 0){
+            TH1D cutflow;
+            cutflow.SetName("cutflow");
+            cutflow.SetTitle("cutflow");
+            // iterate through the cutflow vector and fill the histogram with the
+            // .GetPass() values
+            for (auto cut = cutReports[scope_counter].begin();
+                cut != cutReports[scope_counter].end(); cut++) {
+                cutflow.SetBinContent(
+                    std::distance(cutReports[scope_counter].begin(), cut) + 1,
+                    cut->GetPass());
+                cutflow.GetXaxis()->SetBinLabel(
+                    std::distance(cutReports[scope_counter].begin(), cut) + 1,
+                    cut->GetName().c_str());
+            }
+            // store it in the output file
+            cutflow.Write();
         }
-        // store it in the output file
-        cutflow.Write();
         outputfile.Close();
         TFile *fout = TFile::Open(output.first.c_str(), "UPDATE");
         Logger::get("main")->info("Writing quantities map to {}", output.first);
