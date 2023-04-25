@@ -453,7 +453,25 @@ ROOT::RDF::RNode AntiCutIsolation(ROOT::RDF::RNode df,
                          {isolationName});
     return df1;
 }
-
+/// Function to cut on muons based on the muon signature: isTracker or isGlobal
+///
+/// \param[in] df the input dataframe
+/// \param[in] isTracker name of the signature column in the NanoAOD
+/// \param[in] isGlobal name of the signature column in the NanoAOD
+/// \param[out] maskname the name of the new mask to be added as column to the
+/// dataframe 
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode CutIsTrackerOrIsGlobal(ROOT::RDF::RNode df, const std::string &isTracker, const std::string &isGlobal, const std::string &maskname) {
+        auto lambda = [](const ROOT::RVec<Bool_t>  &tracker, const ROOT::RVec<Bool_t>  &global) {
+            ROOT::RVec<int> mask = (tracker == 1 || global == 1);
+            Logger::get("lep1lep1_lep2::TripleSelectionAlgo")
+                ->debug("istracker {}, isglobal {}, mask {}", tracker, global, mask);
+            return mask;
+        };
+        auto df1 = df.Define(maskname, lambda, {isTracker, isGlobal});
+        return df1;
+}
 /// Function to create a column of vector of random numbers between 0 and 1
 /// with size of the input object collection
 ///
