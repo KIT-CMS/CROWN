@@ -89,6 +89,7 @@ ROOT::RDF::RNode AntiCutIsolation(ROOT::RDF::RNode df,
                                   const std::string &maskname,
                                   const std::string &isolationName,
                                   const float &Threshold);
+ROOT::RDF::RNode CutIsTrackerOrIsGlobal(ROOT::RDF::RNode df, const std::string &isTracker, const std::string &isGlobal, const std::string &maskname);
 ROOT::RDF::RNode GenerateRndmRVec(ROOT::RDF::RNode df,
                                   const std::string &outputname,
                                   const std::string &objCollection, int seed);
