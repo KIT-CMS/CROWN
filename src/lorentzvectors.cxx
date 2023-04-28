@@ -122,7 +122,7 @@ ROOT::RDF::RNode buildMet(ROOT::RDF::RNode df, const std::string &met_pt,
  * @param df the input dataframe
  * @param outputname name of the new column containing the missing transverse
  * energy lorentz vector.
- * @param inputvectors a vector of the two names of the columns containing the required lorentz vectors
+ * @param inputvector a vector of the two names of the columns containing the required lorentz vectors
  * @param p4_miss_sf the scale factor, that is applied to the di lepton system to obtain the vector of missing
  * energy
  * @return a new df, containing the new column
@@ -135,22 +135,20 @@ ROOT::RDF::RNode buildMet(ROOT::RDF::RNode df, const std::string &met_pt,
 
 ///
 /// \returns a dataframe with the new column
-ROOT::RDF::RNode p4_miss(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::vector<std::string> &inputvectors, const float &p4_miss_sf) {
+ROOT::RDF::RNode scaleP4(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::vector<std::string> &inputvector, const float &p4_miss_sf) {
     return df.Define(
         outputname,
-        [p4_miss_sf](const ROOT::Math::PtEtaPhiMVector &p4_1,
-           const ROOT::Math::PtEtaPhiMVector &p4_2) {
-            if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0)
-                return ROOT::Math::PtEtaPhiEVector(default_float,default_float,default_float,
+        [p4_miss_sf](const ROOT::Math::PtEtaPhiMVector &p4_23) {
+            if (p4_23.pt() < 0.0)
+                return ROOT::Math::PtEtaPhiMVector(default_float,default_float,default_float,
                 default_float);;
-            auto dileptonsystem = p4_1 + p4_2;
-            auto dileptonsystem_scaled = p4_miss_sf*dileptonsystem;
-            ROOT::Math::PtEtaPhiEVector neutrinos_p4 = ROOT::Math::PtEtaPhiEVector(dileptonsystem_scaled.Pt(),dileptonsystem_scaled.Eta(),dileptonsystem_scaled.Phi(),
-                dileptonsystem_scaled.E());
+            auto dileptonsystem_scaled = p4_miss_sf*p4_23;
+            ROOT::Math::PtEtaPhiMVector neutrinos_p4 = ROOT::Math::PtEtaPhiMVector(dileptonsystem_scaled.Pt(),dileptonsystem_scaled.Eta(),dileptonsystem_scaled.Phi(),
+                dileptonsystem_scaled.M());
             return neutrinos_p4;
         },
-        inputvectors);
+        inputvector);
 }
 } // namespace lorentzvectors
 #endif /* GUARDLVECS_H */
