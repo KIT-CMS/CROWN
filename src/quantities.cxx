@@ -162,7 +162,7 @@ ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode Lt(ROOT::RDF::RNode df, const std::string &outputname,
+ROOT::RDF::RNode scalarPtSum(ROOT::RDF::RNode df, const std::string &outputname,
                        const std::string &pt_1, const std::string &pt_2, const std::string &pt_3) {
     // build scalar sum of pts of 3 objects
     return df.Define(
@@ -374,7 +374,7 @@ ROOT::RDF::RNode pt_vis(ROOT::RDF::RNode df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode m_tt_lt(ROOT::RDF::RNode df, const std::string &outputname,
+ROOT::RDF::RNode m_tt(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::vector<std::string> &inputvectors) {
     // build visible pt from the two particles
     return df.Define(
@@ -423,7 +423,7 @@ ROOT::RDF::RNode pt_123(ROOT::RDF::RNode df, const std::string &outputname,
 ///
 /// \returns a dataframe with the new column
 
-ROOT::RDF::RNode pt_W_lt(ROOT::RDF::RNode df, const std::string &outputname,
+ROOT::RDF::RNode pt_W(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::vector<std::string> &inputvectors) {
     // build visible pt from the two particles
     return df.Define(
