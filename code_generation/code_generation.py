@@ -330,9 +330,15 @@ class CodeGenerator(object):
             threadcall = ""
         with open(self.executable, "w") as f:
             f.write(
-                self.main_template.replace("    // {CODE_GENERATION}", calls)
+                self.main_template.replace(
+                    "    // {OUTPUT_PATHS}", self.set_output_paths()
+                )
+                .replace(
+                    "        // {ZERO_EVENTS_FALLBACK}", self.zero_events_fallback()
+                )
+                .replace("        // {CODE_GENERATION}", calls)
                 .replace("// {INCLUDES}", includes)
-                .replace("    // {RUN_COMMANDS}", run_commands)
+                .replace("        // {RUN_COMMANDS}", run_commands)
                 .replace("// {MULTITHREADING}", threadcall)
                 .replace("// {DEBUGLEVEL}", self.set_debug_flag())
                 .replace("{ERATAG}", '"Era={}"'.format(self.configuration.era))
@@ -378,8 +384,8 @@ class CodeGenerator(object):
         """
         main_calls = ""
         for scope in self.scopes:
-            main_calls += "    // {}\n".format(scope)
-            main_calls += "".join(self.subset_calls[scope])
+            main_calls += "        // {}\n    ".format(scope)
+            main_calls += "    ".join(self.subset_calls[scope])
         main_includes = "".join(self.subset_includes)
         return main_calls, main_includes
 
@@ -533,13 +539,10 @@ class CodeGenerator(object):
                 outputstring = '", "'.join(outputset)
 
                 self.number_of_outputs += len(self.output_commands[scope])
-                runcommands += "    auto {scope}_cutReport = df{counter}_{scope}.Report();\n".format(
+                runcommands += "        auto {scope}_cutReport = df{counter}_{scope}.Report();\n".format(
                     scope=scope, counter=self.main_counter[scope]
                 )
-                runcommands += '    std::string {outputname} = std::regex_replace(std::string(output_path), std::regex("\\\\.root"), "_{scope}.root");\n'.format(
-                    scope=scope, outputname=self._outputfiles_generated[scope]
-                )
-                runcommands += '    auto {scope}_result = df{counter}_{scope}.Snapshot("ntuple", {outputname}, {{"{outputstring}"}}, dfconfig);\n'.format(
+                runcommands += '        auto {scope}_result = df{counter}_{scope}.Snapshot("ntuple", {outputname}, {{"{outputstring}"}}, dfconfig);\n'.format(
                     scope=scope,
                     counter=self.main_counter[scope],
                     outputname=self._outputfiles_generated[scope],
@@ -552,10 +555,10 @@ class CodeGenerator(object):
         # add trigger of dataframe execution, for nonempty scopes
         for scope in self.scopes:
             if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
-                runcommands += f"    {scope}_result.GetValue();\n"
-                runcommands += f'    Logger::get("main")->info("{scope}:");\n'
-                runcommands += f"    {scope}_cutReport->Print();\n"
-                runcommands += f"    cutReports.push_back({scope}_cutReport);\n"
+                runcommands += f"       {scope}_result.GetValue();\n"
+                runcommands += f'       Logger::get("main")->info("{scope}:");\n'
+                runcommands += f"       {scope}_cutReport->Print();\n"
+                runcommands += f"       cutReports.push_back({scope}_cutReport);\n"
         log.info(
             "Output files generated for scopes: {}".format(
                 self._outputfiles_generated.keys()
@@ -638,11 +641,46 @@ class CodeGenerator(object):
         adds the code for the timing information on the dataframe setup to the run commands.
         """
         printout = ""
-        printout += '   Logger::get("main")->info("Finished Setup");\n'
-        printout += '   Logger::get("main")->info("Runtime for setup (real time: {0:.2f}, CPU time: {1:.2f})",\n'
-        printout += "                           timer.RealTime(), timer.CpuTime());\n"
-        printout += "   timer.Continue();\n"
-        printout += '   Logger::get("main")->info("Starting Evaluation");\n'
+        printout += '       Logger::get("main")->info("Finished Setup");\n'
+        printout += '       Logger::get("main")->info("Runtime for setup (real time: {0:.2f}, CPU time: {1:.2f})",\n'
+        printout += (
+            "                               timer.RealTime(), timer.CpuTime());\n"
+        )
+        printout += "       timer.Continue();\n"
+        printout += '       Logger::get("main")->info("Starting Evaluation");\n'
+
+        return printout
+
+    def set_output_paths(self) -> str:
+        """
+        adds the code for the output paths to the run commands.
+        """
+        printout = ""
+        for scope in self._outputfiles_generated.keys():
+            printout += '    std::string {outputname} = std::regex_replace(std::string(output_path), std::regex("\\\\.root"), "_{scope}.root");\n'.format(
+                scope=scope, outputname=self._outputfiles_generated[scope]
+            )
+        return printout
+
+    def zero_events_fallback(self) -> str:
+        """
+        In case of an empty input file, this function creates a fallback code that creates an empty output file.
+        """
+        printout = '        Logger::get("main")->warn("No events found in input file, will create an empty output file");\n'
+        # now setup outfiles for all scopes
+        for scope in self._outputfiles_generated.keys():
+            printout += '        TFile empty_outputfile_{scope}({outputname}.c_str(), "RECREATE");\n'.format(
+                scope=scope, outputname=self._outputfiles_generated[scope]
+            )
+            printout += (
+                '        TTree ntuple_{scope} = TTree("ntuple", "ntuple");\n'.format(
+                    scope=scope
+                )
+            )
+            printout += "        ntuple_{scope}.Write();\n".format(scope=scope)
+            printout += "        empty_outputfile_{scope}.Close();\n".format(
+                scope=scope
+            )
 
         return printout
 
@@ -654,27 +692,27 @@ class CodeGenerator(object):
         """
         tracking = ""
         scope = self.scopes[-1]
-        tracking += "    ULong64_t {scope}_processed = 0;\n".format(scope=scope)
-        tracking += "    std::mutex {scope}_bar_mutex;\n".format(scope=scope)
-        tracking += "    auto c_{scope} = df{counter}_{scope}.Count();\n".format(
+        tracking += "        ULong64_t {scope}_processed = 0;\n".format(scope=scope)
+        tracking += "        std::mutex {scope}_bar_mutex;\n".format(scope=scope)
+        tracking += "        auto c_{scope} = df{counter}_{scope}.Count();\n".format(
             counter=self.main_counter[scope], scope=scope
         )
-        tracking += "    c_{scope}.OnPartialResultSlot(quantile, [&{scope}_bar_mutex, &{scope}_processed, &quantile, &nevents](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
+        tracking += "        c_{scope}.OnPartialResultSlot(quantile, [&{scope}_bar_mutex, &{scope}_processed, &quantile, &nevents](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
             scope=scope
         )
         tracking += (
-            "\n        std::lock_guard<std::mutex> lg({scope}_bar_mutex);\n".format(
+            "\n            std::lock_guard<std::mutex> lg({scope}_bar_mutex);\n".format(
                 scope=scope
             )
         )
-        tracking += "        {scope}_processed += quantile;\n".format(scope=scope)
-        tracking += "        float percentage = 100 * (float){scope}_processed / (float)nevents;\n".format(
+        tracking += "            {scope}_processed += quantile;\n".format(scope=scope)
+        tracking += "            float percentage = 100 * (float){scope}_processed / (float)nevents;\n".format(
             scope=scope
         )
-        tracking += '        Logger::get("main")->info("{{0:d}} / {{1:d}} ({{2:.2f}} %) Events processed ...", {scope}_processed, nevents, percentage);\n'.format(
+        tracking += '            Logger::get("main")->info("{{0:d}} / {{1:d}} ({{2:.2f}} %) Events processed ...", {scope}_processed, nevents, percentage);\n'.format(
             scope=scope
         )
-        tracking += "    });\n"
+        tracking += "        });\n"
         return tracking
 
     def set_shift_quantities_map(self) -> str:
