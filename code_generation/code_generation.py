@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict, List, Union, Tuple
 import os
 import filecmp
-from git import Repo, InvalidGitRepositoryError, NoSuchPathError
+import subprocess
 
 from code_generation.producer import SafeDict, Producer, ProducerGroup
 
@@ -340,13 +340,18 @@ class CodeGenerator(object):
                     "{SAMPLETAG}", '"Samplegroup={}"'.format(self.configuration.sample)
                 )
                 .replace("{ANALYSISTAG}", '"Analysis={}"'.format(self.analysis_name))
+                .replace("{CONFIGTAG}", '"Config={}"'.format(self.config_name))
                 .replace("{PROGRESS_CALLBACK}", self.set_process_tracking())
                 .replace("{OUTPUT_QUANTITIES}", self.set_output_quantities())
                 .replace("{SHIFT_QUANTITIES_MAP}", self.set_shift_quantities_map())
                 .replace("{QUANTITIES_SHIFT_MAP}", self.set_quantities_shift_map())
                 .replace("{SYSTEMATIC_VARIATIONS}", self.set_shifts())
                 .replace("{COMMITHASH}", '"{}"'.format(self.commit_hash))
-                .replace("{SETUP_IS_CLEAN}", self.setup_is_clean)
+                .replace("{CROWN_IS_CLEAN}", self.crown_is_clean)
+                .replace(
+                    "{ANALYSIS_COMMITHASH}", '"{}"'.format(self.analysis_commit_hash)
+                )
+                .replace("{ANALYSIS_IS_CLEAN}", self.analysis_is_clean)
             )
         log.info("Code written to {}".format(self.executable))
         log.info("------------------------------------")
