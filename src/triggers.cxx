@@ -58,6 +58,7 @@ OverlapFilter PFTau                 |  8    | 3
 2e-1mu                              |  256  | 8
 1e-2mu                              |  512  | 9
 1e (32_L1DoubleEG_AND_L1SingleEGOr) |  1024 | 10
+1e (CaloIdVT_GsfTrkIdT)             |  2048 | 11
 
 Muons               | Value | Bit (value used in the config)
 --------------------|-------|-------
@@ -73,6 +74,7 @@ OverlapFilter PFTau |  4    | 2
 3mu                 |  128  | 7
 2mu-1e              |  256  | 8
 1mu-2e              |  512  | 9
+1mu (Mu50)          |  1024 | 10
 
 Taus                 | Value | Bit (value used in the config)
 ---------------------|-------|-------

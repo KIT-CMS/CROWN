@@ -32,13 +32,13 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
                  const int daughter_1_pdgid, const int daughter_2_pdgid);
 ROOT::RDF::RNode flagGoodPairs(ROOT::RDF::RNode df, const std::string &flagname,
                                const std::string &pairname);
-}// end namespace pairselection
-
-namespace ditau_pairselection {
 auto compareForPairs(const ROOT::RVec<float> &lep1pt,
                      const ROOT::RVec<float> &lep1iso,
                      const ROOT::RVec<float> &lep2pt,
                      const ROOT::RVec<float> &lep2iso);
+}// end namespace pairselection
+
+namespace ditau_pairselection {
 namespace semileptonic {
 auto PairSelectionAlgo(const float &mindeltaR);
 } // end namespace semileptonic
@@ -111,6 +111,19 @@ ZBosonPairSelection(ROOT::RDF::RNode df,
                     const std::string &pairname, const float &mindeltaR);
 } // end namespace elel
 } // end namespace ditau_pairselection
+
+namespace boosted_ditau_pairselection {
+namespace semileptonic {
+auto PairSelectionAlgo(const float &mindeltaR, const float &maxdeltaR);
+} // end namespace semileptonic
+namespace mutau {
+
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vector,
+                               const std::string &pairname,
+                               const float &mindeltaR, const float &maxdeltaR);
+} // end namespace mutau
+} // end namespace boosted_ditau_pairselection
 
 namespace bb_pairselection {
 auto BBPairSelectionAlgo(const float &mindeltaR, const float &btag_WP_value);
