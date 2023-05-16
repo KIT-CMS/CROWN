@@ -142,7 +142,7 @@ ROOT::RDF::RNode scaleP4(ROOT::RDF::RNode df, const std::string &outputname,
         [p4_sf](const ROOT::Math::PtEtaPhiMVector &p4) {
             if (p4.pt() < 0.0)
                 return ROOT::Math::PtEtaPhiMVector(default_float,default_float,default_float,
-                default_float);;
+                default_float);
             auto p4_scaled = p4_sf*p4;
             return p4_scaled;
         },
