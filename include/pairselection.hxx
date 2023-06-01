@@ -113,6 +113,8 @@ ZBosonPairSelection(ROOT::RDF::RNode df,
 } // end namespace ditau_pairselection
 
 namespace boosted_ditau_pairselection {
+auto compareForPairs(const ROOT::RVec<float> &lep1pt,
+                     const ROOT::RVec<float> &lep2pt);
 namespace semileptonic {
 auto PairSelectionAlgo(const float &mindeltaR, const float &maxdeltaR);
 } // end namespace semileptonic
