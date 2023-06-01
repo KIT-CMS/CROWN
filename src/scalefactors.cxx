@@ -752,30 +752,37 @@ id_vsMu(ROOT::RDF::RNode df, const std::string &eta,
  */
 
 ROOT::RDF::RNode
-tau_trigger_sf(ROOT::RDF::RNode df, const std::string &decaymode,
-               const std::string &pt, const std::string &wp,
-               const std::string &type, const std::string &id_output,
-               const std::string &sf_file, const std::string &correctionset) {
+tau_trigger_sf(ROOT::RDF::RNode df, const std::string &pt, 
+               const std::string &decaymode, const std::string &output, const std::string &wp,
+               const std::string &sf_file, const std::string &type, 
+               const std::string &corrtype, const std::string &syst) {
 
     Logger::get("tau_trigger_sf")
-        ->info("Setting up function for tau trigger sf");
+        ->debug("Setting up function for tau trigger sf");
     Logger::get("tau_trigger_sf")
-        ->info("ID - Name {}, file {}", correctionset, sf_file);
+        ->debug("ID - corrtype {}, file {}", corrtype, sf_file);
     auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(correctionset);
-    Logger::get("tau_trigger_sf")->info("WP {} - type {}", wp, type);
-    auto trigger_sf_calculator = [evaluator, wp, type, correctionset](
-                                     const int &decaymode, const float &pt) {
+        correction::CorrectionSet::from_file(sf_file)->at("tauTriggerSF");
+    Logger::get("tau_trigger_sf")->debug("WP {} - type {}", wp, type);
+    auto trigger_sf_calculator = [evaluator, wp, type, corrtype, syst](
+                                     const float &pt, const int &decaymode) {
         float sf = 1.;
         Logger::get("tau_trigger_sf")
-            ->info("ID {} - decaymode {}, wp {} "
+            ->debug("ID {} - decaymode {}, wp {} "
                    "pt {}, type {}, ",
-                   correctionset, decaymode, wp, pt, type);
-        sf = evaluator->evaluate({decaymode, wp, type, pt});
-        Logger::get("tau_trigger_sf")->info("Scale Factor {}", sf);
+                   corrtype, decaymode, wp, pt, type);
+        if (pt > 0) {
+            if (decaymode==0 || decaymode==1 || decaymode==10 || decaymode==11) {
+                sf = evaluator->evaluate({pt, decaymode, type, wp, corrtype, syst});
+            }
+            else {
+                sf = evaluator->evaluate({pt, -1, type, wp, corrtype, syst});
+            }
+        }
+        Logger::get("tau_trigger_sf")->debug("Scale Factor {}", sf);
         return sf;
     };
-    auto df1 = df.Define(id_output, trigger_sf_calculator, {decaymode, pt});
+    auto df1 = df.Define(output, trigger_sf_calculator, {pt, decaymode});
     return df1;
 }
 } // namespace tau
