@@ -115,5 +115,38 @@ ROOT::RDF::RNode buildMet(ROOT::RDF::RNode df, const std::string &met_pt,
     };
     return df.Define(outputname, construct_metvector, {met_pt, met_phi});
 }
+/**
+ * @brief Function used to construct the missing transverse energy lorentz
+ * vector from the dileptonsystem from the Higgs boson
+ *
+ * @param df the input dataframe
+ * @param outputname name of the new column containing the missing transverse
+ * energy lorentz vector.
+ * @param inputvector a vector of the two names of the columns containing the required lorentz vectors
+ * @param p4_miss_sf the scale factor, that is applied to the di lepton system to obtain the vector of missing
+ * energy
+ * @return a new df, containing the new column
+ */
+/// Function to calculate the neutrino four vector from a pair of lorentz vectors (visible Higgs system) and
+/// add it to the dataframe. see AN(HIG-19-010)
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the pt value
+
+///
+/// \returns a dataframe with the new column
+ROOT::RDF::RNode scaleP4(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::vector<std::string> &inputvector, const float &p4_sf) {
+    return df.Define(
+        outputname,
+        [p4_sf](const ROOT::Math::PtEtaPhiMVector &p4) {
+            if (p4.pt() < 0.0)
+                return ROOT::Math::PtEtaPhiMVector(default_float,default_float,default_float,
+                default_float);
+            auto p4_scaled = p4_sf*p4;
+            return p4_scaled;
+        },
+        inputvector);
+}
 } // namespace lorentzvectors
 #endif /* GUARDLVECS_H */

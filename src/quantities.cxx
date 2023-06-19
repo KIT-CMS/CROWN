@@ -153,6 +153,65 @@ ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
         },
         {pairname, chargecolumn});
 }
+/// Function to calculate the scalar sum of pts for given lorentz vectors and add it to the
+/// dataframe
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the pt value
+/// \param inputvector name of the column containing the lorentz vector
+///
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode scalarPtSum(ROOT::RDF::RNode df, const std::string &outputname,
+                       const std::string &pt_1, const std::string &pt_2, const std::string &pt_3) {
+    // build scalar sum of pts of 3 objects
+    return df.Define(
+        outputname,
+        [](const float &pt_1,
+           const float &pt_2, const float &pt_3) {
+            if (pt_3 < 0.0 || pt_3 < 0.0 || pt_3 < 0.0)
+                return default_float;
+            auto const triple_lepton_pt = pt_1 + pt_2 + pt_3;
+            return (float)triple_lepton_pt;
+        },
+        {pt_1, pt_2, pt_3});
+}
+/**
+ * @brief function used to calculate the deltaPhi between two lorentz vectors. $\phi_1$ is from the first lorentz vector and $\phi_2$ is from the second lorentz vector.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the deltaR value
+ * @param p_1_p4 first lorentz vector
+ * @param p_2_p4 second lorentz vector of
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode deltaPhi(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &p_1_p4, const std::string &p_2_p4) {
+    auto calculate_deltaPhi = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
+                               ROOT::Math::PtEtaPhiMVector &p_2_p4) {
+        return ROOT::Math::VectorUtil::DeltaPhi(p_1_p4, p_2_p4);
+    };
+    return df.Define(outputname, calculate_deltaPhi, {p_1_p4, p_2_p4});
+}
+/**
+ * @brief function used to calculate the deltaPhi between the lepton from a W and the visible Higgs decay products. $\phi_1$ is from the first lorentz vector and $\phi_2$ is from the second lorentz vector and \phi_3$ is from the third lorentz vector.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the deltaR value
+ * @param p_1_p4 first lorentz vector
+ * @param p_2_p4 second lorentz vector
+ * @param p_3_p4 second lorentz vector
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode deltaPhi_WH(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &p_1_p4, const std::string &p_2_p4, const std::string &p_3_p4) {
+    auto calculate_deltaPhi = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
+                               ROOT::Math::PtEtaPhiMVector &p_2_p4, ROOT::Math::PtEtaPhiMVector &p_3_p4) {
+        auto const dileptonsystem = p_2_p4 + p_3_p4;
+        return ROOT::Math::VectorUtil::DeltaPhi(p_1_p4, dileptonsystem);
+    };
+    return df.Define(outputname, calculate_deltaPhi, {p_1_p4, p_2_p4, p_3_p4});
+}
 /// Function to calculate the visible mass from a pair of lorentz vectors and
 /// add it to the dataframe. The visible mass is calculated as the mass of the
 /// lorentz vector of the dilepton system.
@@ -304,7 +363,31 @@ ROOT::RDF::RNode pt_vis(ROOT::RDF::RNode df, const std::string &outputname,
         },
         inputvectors);
 }
+/// Function to calculate the pt of the W from a the visible lepton fourvector, the met four vector and the neutrino four vector from the Higgs system and
+/// add it to the dataframe.
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the pt value
+/// \param inputvectors a vector of the two names of the columns containing the
+/// required lorentz vectors
+///
+/// \returns a dataframe with the new column
 
+ROOT::RDF::RNode pt_W(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::vector<std::string> &inputvectors) {
+    // build visible pt from the two particles
+    return df.Define(
+        outputname,
+        [](const ROOT::Math::PtEtaPhiMVector &p4_1,
+           const ROOT::Math::PtEtaPhiMVector &p4_2,
+           const ROOT::Math::PtEtaPhiMVector &p4_3) {
+            if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0 || p4_3.pt() < 0.0)
+                return default_float;
+            auto const w_p4 = p4_1 + p4_2 - p4_3;
+            return (float)w_p4.Pt();
+        },
+        inputvectors);
+}
 /**
  * @brief Function to calculate the quantity `pZetaMissVis` from the two leptons
  in the event + the met vector. The variable is defined as
@@ -817,6 +900,56 @@ ROOT::RDF::RNode is_global(ROOT::RDF::RNode df, const std::string &outputname,
                      },
                      {pairname, globalflagcolumn});
 }
+/**
+ * @brief Function to writeout the is tracker flag of a muon.
+ *
+ * @param df the dataframe to add the quantity to
+ * @param outputname the name of the new quantity
+ * @param position position of the muon in the pair vector
+ * @param pairname name of the column containing the pair vector
+ * @param trackerflagcolumn name of the column containing the muon is global flag
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode is_tracker(ROOT::RDF::RNode df, const std::string &outputname,
+                           const int &position, const std::string &pairname,
+                           const std::string &trackerflagcolumn) {
+    Logger::get("muonIsTrackerflag")
+                ->debug(
+                    "is tracker pos {}", position);
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<int> &pair,
+                                const ROOT::RVec<bool> &trackerflag) {
+                         const int index = pair.at(position, -1);
+                         return trackerflag.at(index, false);
+                     },
+                     {pairname, trackerflagcolumn});
+}
 } // end namespace muon
+namespace electron {
+/**
+ * @brief Function to writeout the id of a electron.
+ *
+ * @param df the dataframe to add the quantity to
+ * @param outputname the name of the new quantity
+ * @param position position of the muon in the pair vector
+ * @param pairname name of the column containing the pair vector
+ * @param idcolumn name of the column containing the muon id values
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &outputname,
+                    const int &position, const std::string &pairname,
+                    const std::string &idcolumn) {
+    Logger::get("electronIDflag")
+                ->debug(
+                    "ele ID position {}", position);
+    return df.Define(
+        outputname,
+        [position](const ROOT::RVec<int> &pair, const ROOT::RVec<bool> &id) {
+            const int index = pair.at(position, -1);
+            return id.at(index, false);
+        },
+        {pairname, idcolumn});
+}
+} // end namespace electron
 } // end namespace quantities
 #endif /* GUARD_QUANTITIES_H */
