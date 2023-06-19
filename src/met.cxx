@@ -397,13 +397,12 @@ ROOT::RDF::RNode genBosonRapidity(ROOT::RDF::RNode df,
  not, the outputcolumn contains the original met value vector
  * @return a new df containing the corrected met lorentz vector
  */
-ROOT::RDF::RNode
-propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
-                      const std::string &p4_1_uncorrected,
-                      const std::string &p4_2_uncorrected,
-                      const std::string &p4_3_uncorrected,
-                      const std::string &p4_1, const std::string &p4_2, const std::string &p4_3,
-                      const std::string &outputname, bool apply_propagation) {
+ROOT::RDF::RNode propagateLeptonsToMet(
+    ROOT::RDF::RNode df, const std::string &met,
+    const std::string &p4_1_uncorrected, const std::string &p4_2_uncorrected,
+    const std::string &p4_3_uncorrected, const std::string &p4_1,
+    const std::string &p4_2, const std::string &p4_3,
+    const std::string &outputname, bool apply_propagation) {
     auto scaleMet = [](const ROOT::Math::PtEtaPhiMVector &met,
                        const ROOT::Math::PtEtaPhiMVector &uncorrected_object,
                        const ROOT::Math::PtEtaPhiMVector &corrected_object) {
@@ -441,23 +440,24 @@ propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
         Logger::get("propagateLeptonsToMet")
             ->debug("Setting up correction for first lepton {}", p4_1);
         Logger::get("propagateLeptonsToMet")
-            ->debug("p4 uncorr. {}, p4 corr {}", p4_1_uncorrected,p4_1);
+            ->debug("p4 uncorr. {}, p4 corr {}", p4_1_uncorrected, p4_1);
         auto df1 = df.Define(outputname + "_intermediate1", scaleMet,
                              {met, p4_1_uncorrected, p4_1});
-        // second correct for the second lepton with the p4_1 corrected met as input, store the met in an
-        // intermediate2 column
+        // second correct for the second lepton with the p4_1 corrected met as
+        // input, store the met in an intermediate2 column
         Logger::get("propagateLeptonsToMet")
             ->debug("Setting up correction for second lepton {}", p4_2);
         Logger::get("propagateLeptonsToMet")
-            ->debug("p4 uncorr. {}, p4 corr {}", p4_2_uncorrected,p4_2);
-        auto df2 = df1.Define(outputname + "_intermediate2", scaleMet,
-                             {outputname + "_intermediate1", p4_2_uncorrected, p4_2});
+            ->debug("p4 uncorr. {}, p4 corr {}", p4_2_uncorrected, p4_2);
+        auto df2 =
+            df1.Define(outputname + "_intermediate2", scaleMet,
+                       {outputname + "_intermediate1", p4_2_uncorrected, p4_2});
         // after the third lepton correction, the correct output column is
         // used
         Logger::get("propagateLeptonsToMet")
             ->debug("Setting up correction for third lepton {}", p4_3);
         Logger::get("propagateLeptonsToMet")
-            ->debug("p4 uncorr. {}, p4 corr {}", p4_3_uncorrected,p4_3);
+            ->debug("p4 uncorr. {}, p4 corr {}", p4_3_uncorrected, p4_3);
         return df2.Define(
             outputname, scaleMet,
             {outputname + "_intermediate2", p4_3_uncorrected, p4_3});
