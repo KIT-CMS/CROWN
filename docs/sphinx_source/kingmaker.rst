@@ -123,15 +123,18 @@ The different options are:
 - ``--scopes``: The scopes to be used, provided as a comma separated list.
 - ``--shifts``: The shifts to be used, provided as a comma separated list. If no shifts are provided, no shifts are applied. If ``All`` is provided, all shifts are applied, if ``None`` is provided, no shifts are applied.
 
+.. warning::
+    It can happen, that the law processes gets stuck after building the tarball, when trying to upload it to the dCache when using more than 1 worker. The task will be stuck indefinetly. To avoid this, the user must cancel the running law command using ``Ctrl+C``. Afterwards, the task can be restarted using the same command. The task will then continue with the upload of the tarball. The reason for this behaviour is unknown.
+
+
 Additionally, the following options can be useful:
+
 - ``--print-status -1``: Print the status of the tasks. If ``-1`` is provided, the status of every task is printed.
-- ``--remove-output -1``: Remove the output files. This option is useful if the production failed and the output files should be removed.
-This will trigger an interative CLI, where only parts of the production can be removed as well.
+- ``--remove-output -1``: Remove the output files. This option is useful if the production failed and the output files should be removed. This will trigger an interative CLI, where only parts of the production can be removed as well.
+- ``--CROWNRun-workflow local``: This option can be used to run the production locally. This is useful for debugging purposes, of if the batch system is currenty not available. However, be aware, that this option should only run with a limited amount of workers and samples, since it is very easy to overload the local machine.
 
 .. warning::
     When using the dCache as Ntuple storage, the remove option should be used with care. Since the dCache caches files without checking, if the file content changed, overwriting files can lead to errors, were the old file is still cached. The saver option is to remove the old files and store the new files using a seperate ``production-tag``.
-
-
 
 
 Production of friend trees
@@ -147,6 +150,10 @@ Some additional options are required:
 
 - ``--friend-config``: The friend config file to be used. The friend config file contains the information about the friend trees to be produced. The friend config file is located in the ``CROWN/analysis_configurations/<analysis>/config`` folder.
 - ``--friend-name``: The name of the friend tree to be produced. The name has to match the name in the friend config file. The resulting friend trees will be stored in the ``/<base>/<production-tag>/CROWNFriends/<friend-name>/`` folder.
+
+To perform the generation of friend trees locally, use
+
+- ``--CROWNFriends-workflow local --CROWNRun-workflow local``: This option can be used to run the production locally. This is useful for debugging purposes, of if the batch system is currenty not available. However, be aware, that this option should only run with a limited amount of workers and samples, since it is very easy to overload the local machine.
 
 
 
