@@ -127,9 +127,10 @@ ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
                              const float &extrapolation_factor = 1.0);
 ROOT::RDF::RNode
 ditau_trigger_sf(ROOT::RDF::RNode df, const std::string &pt,
-               const std::string &decaymode, const std::string &output, const std::string &wp,
-               const std::string &sf_file, const std::string &type,
-               const std::string &corrtype, const std::string &syst);
+                 const std::string &decaymode, const std::string &output,
+                 const std::string &wp, const std::string &sf_file,
+                 const std::string &type, const std::string &corrtype,
+                 const std::string &syst);
 } // namespace embedding
 } // namespace scalefactor
 #endif /* GUARD_SCALEFACTORS_H */
