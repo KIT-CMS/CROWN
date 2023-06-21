@@ -8,7 +8,7 @@
 namespace fakefactors {
 
 /// Function to calculate raw fake factors without corrections with
-/// correctionlib
+/// correctionlib for the semileptonic channels
 ///
 /// \param df the dataframe to add the quantity to
 /// \param outputname name of the output column for the fake factor
@@ -79,8 +79,71 @@ raw_fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
                          {tau_pt, njets, lep_mt, nbtags});
     return df1;
 }
+/// Function to calculate raw fake factors without corrections with
+/// correctionlib for the full hadronic channel
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the output column for the fake factor
+/// \param tau_idx index of the tau, leading/subleading
+/// \param tau_pt_1 pt of the leading hadronic tau in the tau pair
+/// \param tau_pt_2 pt of the subleading hadronic tau in the tau pair
+/// \param njets number of good jets in the event
+/// \param variation name of the uncertainty variation or nominal
+/// \param ff_file correctionlib json file with the fake factors
+///
+/// \returns a dataframe with the fake factors
+ROOT::RDF::RNode
+raw_fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
+                        const int &tau_idx, const std::string &tau_pt_1,
+                        const std::string &tau_pt_2, const std::string &njets,
+                        const std::string &variation,
+                        const std::string &ff_file) {
 
-/// Function to calculate fake factors with correctionlib
+    Logger::get("RawFakeFactor")
+        ->debug("Setting up functions for raw fake factor (without "
+                "corrections) evaluation with correctionlib");
+    Logger::get("RawFakeFactor")->debug("Variation - Name {}", variation);
+
+    auto qcd =
+        correction::CorrectionSet::from_file(ff_file)->at("QCD_fake_factors");
+
+    auto qcd_subleading = correction::CorrectionSet::from_file(ff_file)->at(
+        "QCD_subleading_fake_factors");
+
+    auto calc_fake_factor = [tau_idx, variation, qcd, qcd_subleading](
+                                const float &pt_1, const float &pt_2,
+                                const int &njets) {
+        float ff = -1.;
+        if (pt_2 >= 0.) {
+            Logger::get("RawFakeFactor")
+                ->debug("Leading Tau pt - value {}", pt_1);
+            Logger::get("RawFakeFactor")
+                ->debug("Subleading Tau pt - value {}", pt_2);
+            Logger::get("RawFakeFactor")->debug("N jets - value {}", njets);
+
+            float qcd_ff = -1.;
+            if (tau_idx == 0) {
+                float qcd_ff = qcd->evaluate({pt_1, (float)njets, variation});
+                Logger::get("RawFakeFactor")->debug("QCD - value {}", qcd_ff);
+                ff = qcd_ff;
+            } else if (tau_idx == 1) {
+                float qcd_ff =
+                    qcd_subleading->evaluate({pt_2, (float)njets, variation});
+                Logger::get("RawFakeFactor")->debug("QCD - value {}", qcd_ff);
+                ff = qcd_ff;
+            }
+        }
+
+        Logger::get("RawFakeFactor")->debug("Event Fake Factor {}", ff);
+        return ff;
+    };
+    auto df1 =
+        df.Define(outputname, calc_fake_factor, {tau_pt_1, tau_pt_2, njets});
+    return df1;
+}
+
+/// Function to calculate fake factors with correctionlib for the semileptonic
+/// channels
 ///
 /// \param df the dataframe to add the quantity to
 /// \param outputname name of the output column for the fake factor
@@ -206,6 +269,124 @@ fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
     auto df1 =
         df.Define(outputname, calc_fake_factor,
                   {tau_pt, njets, lep_mt, nbtags, lep_pt, lep_iso, m_vis});
+    return df1;
+}
+/// Function to calculate fake factors with correctionlib for the full hadronic
+/// channel
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the output column for the fake factor
+/// \param tau_idx index of the tau, leading/subleading
+/// \param tau_pt_1 pt of the leading hadronic tau in the tau pair
+/// \param tau_pt_2 pt of the subleading hadronic tau in the tau pair
+/// \param njets number of good jets in the event
+/// \param m_vis visible mass of the tau pair
+/// \param variation name of the uncertainty variation or nominal
+/// \param ff_file correctionlib json file with the fake factors
+/// \param ff_corr_file correctionlib json file with corrections for the fake
+/// factors
+///
+/// \returns a dataframe with the fake factors
+ROOT::RDF::RNode
+fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
+                    const int &tau_idx, const std::string &tau_pt_1,
+                    const std::string &tau_pt_2, const std::string &njets,
+                    const std::string &m_vis, const std::string &variation,
+                    const std::string &ff_file,
+                    const std::string &ff_corr_file) {
+
+    Logger::get("FakeFactor")
+        ->debug("Setting up functions for fake factor evaluation with "
+                "correctionlib");
+    Logger::get("FakeFactor")->debug("Variation - Name {}", variation);
+
+    auto qcd =
+        correction::CorrectionSet::from_file(ff_file)->at("QCD_fake_factors");
+
+    auto qcd_tau_pt_closure =
+        correction::CorrectionSet::from_file(ff_corr_file)
+            ->at("QCD_non_closure_subleading_lep_pt_correction");
+    auto qcd_m_vis_closure = correction::CorrectionSet::from_file(ff_corr_file)
+                                 ->at("QCD_non_closure_m_vis_correction");
+    auto qcd_DR_SR = correction::CorrectionSet::from_file(ff_corr_file)
+                         ->at("QCD_DR_SR_correction");
+
+    auto qcd_subleading = correction::CorrectionSet::from_file(ff_file)->at(
+        "QCD_subleading_fake_factors");
+
+    auto qcd_tau_pt_closure_subleading =
+        correction::CorrectionSet::from_file(ff_corr_file)
+            ->at("QCD_subleading_non_closure_leading_lep_pt_correction");
+    auto qcd_m_vis_closure_subleading =
+        correction::CorrectionSet::from_file(ff_corr_file)
+            ->at("QCD_subleading_non_closure_m_vis_correction");
+    auto qcd_DR_SR_subleading =
+        correction::CorrectionSet::from_file(ff_corr_file)
+            ->at("QCD_subleading_DR_SR_correction");
+
+    auto calc_fake_factor = [tau_idx, variation, qcd, qcd_tau_pt_closure,
+                             qcd_m_vis_closure, qcd_DR_SR, qcd_subleading,
+                             qcd_tau_pt_closure_subleading,
+                             qcd_m_vis_closure_subleading,
+                             qcd_DR_SR_subleading](
+                                const float &pt_1, const float &pt_2,
+                                const int &njets, const float &m_vis) {
+        float ff = -1.;
+        if (pt_2 >= 0.) {
+            Logger::get("FakeFactor")->debug("Leading Tau pt - value {}", pt_1);
+            Logger::get("FakeFactor")
+                ->debug("Subleading Tau pt - value {}", pt_2);
+            Logger::get("FakeFactor")->debug("m_vis - value {}", m_vis);
+            Logger::get("FakeFactor")->debug("N jets - value {}", njets);
+
+            float qcd_ff = -1.;
+            float qcd_tau_pt_corr = -1.;
+            float qcd_m_vis_corr = -1.;
+            float qcd_DR_SR_corr = -1.;
+            if (tau_idx == 0) {
+                float qcd_ff = qcd->evaluate({pt_1, (float)njets, variation});
+                Logger::get("FakeFactor")->debug("QCD - value {}", qcd_ff);
+                float qcd_tau_pt_corr =
+                    qcd_tau_pt_closure->evaluate({pt_2, variation});
+                Logger::get("FakeFactor")
+                    ->debug("QCD - lep pt correction {}", qcd_tau_pt_corr);
+                float qcd_m_vis_corr =
+                    qcd_m_vis_closure->evaluate({m_vis, variation});
+                Logger::get("FakeFactor")
+                    ->debug("QCD - visible mass correction {}", qcd_m_vis_corr);
+                float qcd_DR_SR_corr = qcd_DR_SR->evaluate({m_vis, variation});
+                Logger::get("FakeFactor")
+                    ->debug("QCD - DR to SR correction {}", qcd_DR_SR_corr);
+                ff = qcd_ff * qcd_tau_pt_corr * qcd_m_vis_corr * qcd_DR_SR_corr;
+            } else if (tau_idx == 1) {
+                float qcd_ff =
+                    qcd_subleading->evaluate({pt_2, (float)njets, variation});
+                Logger::get("FakeFactor")
+                    ->debug("QCD(subleading) - value {}", qcd_ff);
+                float qcd_tau_pt_corr =
+                    qcd_tau_pt_closure_subleading->evaluate({pt_1, variation});
+                Logger::get("FakeFactor")
+                    ->debug("QCD(subleading) - lep pt correction {}",
+                            qcd_tau_pt_corr);
+                float qcd_m_vis_corr =
+                    qcd_m_vis_closure_subleading->evaluate({m_vis, variation});
+                Logger::get("FakeFactor")
+                    ->debug("QCD(subleading) - visible mass correction {}",
+                            qcd_m_vis_corr);
+                float qcd_DR_SR_corr =
+                    qcd_DR_SR_subleading->evaluate({m_vis, variation});
+                Logger::get("FakeFactor")
+                    ->debug("QCD(subleading) - DR to SR correction {}",
+                            qcd_DR_SR_corr);
+                ff = qcd_ff * qcd_tau_pt_corr * qcd_m_vis_corr * qcd_DR_SR_corr;
+            }
+        }
+
+        Logger::get("FakeFactor")->debug("Event Fake Factor {}", ff);
+        return ff;
+    };
+    auto df1 = df.Define(outputname, calc_fake_factor,
+                         {tau_pt_1, tau_pt_2, njets, m_vis});
     return df1;
 }
 
