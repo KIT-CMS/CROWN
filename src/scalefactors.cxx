@@ -1116,6 +1116,61 @@ ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
         {pt, eta});
     return df1;
 }
+/**
+ * @brief Function to evaluate the di-tau trigger or etau/mutau cross trigger
+ * scale factor for embedded events from a xpog file
+ *
+ * @param df the input dataframe
+ * @param pt the name of the column containing the tau pt variable
+ * @param decaymode the name of the column containing the tau decay mode
+ * variable
+ * @param output name of the scale factor column
+ * @param wp the name of the the tau id working point VVVLoose-VVTight
+ * @param sf_file path to the file with the tau trigger scale factors
+ * @param type the type of the tau trigger, available are "ditau", "etau",
+ * "mutau", "ditauvbf"
+ * @param corrtype name of the tau trigger correction type, available are
+ * "eff_data", "eff_mc", "sf"
+ * @param syst name of the systematic variation, options are "nom", "up", "down"
+ * @return ROOT::RDF::RNode a new dataframe containing the new sf column
+ */
+
+ROOT::RDF::RNode
+ditau_trigger_sf(ROOT::RDF::RNode df, const std::string &pt,
+                 const std::string &decaymode, const std::string &output,
+                 const std::string &wp, const std::string &sf_file,
+                 const std::string &type, const std::string &corrtype,
+                 const std::string &syst) {
+
+    Logger::get("ditau_trigger")
+        ->debug("Setting up function for di-tau trigger sf");
+    Logger::get("ditau_trigger")
+        ->debug("correction type {}, file {}", corrtype, sf_file);
+    // tauTriggerSF is the only correction set in the file for now, might change
+    // with official sf release -> change into additional input parameter
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at("tauTriggerSF");
+    Logger::get("ditau_trigger")->debug("WP {} - trigger type {}", wp, type);
+    auto trigger_sf_calculator = [evaluator, wp, type, corrtype,
+                                  syst](const float &pt, const int &decaymode) {
+        float sf = 1.;
+        Logger::get("ditau_trigger")
+            ->debug("decaymode {}, pt {}", decaymode, pt);
+        if (pt > 0) {
+            if (decaymode == 0 || decaymode == 1 || decaymode == 10 ||
+                decaymode == 11) {
+                sf = evaluator->evaluate(
+                    {pt, decaymode, type, wp, corrtype, syst});
+            } else {
+                sf = evaluator->evaluate({pt, -1, type, wp, corrtype, syst});
+            }
+        }
+        Logger::get("ditau_trigger")->debug("Scale Factor {}", sf);
+        return sf;
+    };
+    auto df1 = df.Define(output, trigger_sf_calculator, {pt, decaymode});
+    return df1;
+}
 } // namespace embedding
 } // namespace scalefactor
 #endif /* GUARD_SCALEFACTORS_H */
