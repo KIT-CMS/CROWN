@@ -47,11 +47,11 @@ if read_the_docs_build:
 # -- Project information -----------------------------------------------------
 
 project = "CROWN"
-copyright = "2021, Sebastian Brommer, Maximilian Burkart, Artur Gottmann, Sebastian Wozniewski, Stefan Wunsch"
+copyright = "2023, Sebastian Brommer, Maximilian Burkart, Artur Gottmann, Sebastian Wozniewski, Stefan Wunsch"
 author = "Sebastian Brommer, Maximilian Burkart, Artur Gottmann, Sebastian Wozniewski, Stefan Wunsch"
 
 # The full version, including alpha/beta/rc tags
-release = "0.1"
+release = "0.2"
 
 
 # -- General configuration ---------------------------------------------------
