@@ -35,8 +35,8 @@ function(find_python_package PYPINAME NAME MIN_VERSION)
     message(STATUS "Found Python package ${PYPINAME} (require ${MIN_VERSION}, found ${PACKAGE_VERSION})")
 endfunction()
 
-find_python_package(breathe breathe 4.31)
-find_python_package(sphinx_rtd_theme sphinx_rtd_theme 0.5)
+find_python_package(breathe breathe 4.35)
+find_python_package(sphinx_rtd_theme sphinx_rtd_theme 1.2)
 
 # adapted from https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/
 
