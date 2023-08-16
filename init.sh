@@ -15,6 +15,7 @@ then
     ### Use a more permanent LCG stack, for now LCG 102
     source /cvmfs/sft.cern.ch/lcg/views/LCG_102rc1/x86_64-centos7-gcc11-opt/setup.sh
 else
+    source /cvmfs/sft.cern.ch/lcg/views/LCG_102rc1/x86_64-centos7-gcc11-opt/setup.sh
     echo "You are not running on CentOS7, things will propably break..."
 fi
 # add ~/.local/bin to path if it is not already there

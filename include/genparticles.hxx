@@ -10,8 +10,40 @@
 #include <Math/VectorUtil.h>
 #include <cmath>
 
+namespace genleptons {
+ROOT::RDF::RNode GenLepton(ROOT::RDF::RNode df,
+                           const std::string &genparticles_pt,
+                           const std::string &genparticles_eta,
+                           const std::string &genparticles_phi,
+                           const std::string &genparticles_mass,
+                           const std::string &genparticles_pdgid,
+                           const std::string &genparticles_status,
+                           const std::string &genparticles_statusFlag);
+ROOT::RDF::RNode GenLeptonPreFSR(ROOT::RDF::RNode df,
+                           const std::string &genparticles_pt,
+                           const std::string &genparticles_eta,
+                           const std::string &genparticles_phi,
+                           const std::string &genparticles_mass,
+                           const std::string &genparticles_pdgid,
+                           const std::string &genparticles_status,
+                           const std::string &genparticles_statusFlag);
+ROOT::RDF::RNode GenDressedLepton(ROOT::RDF::RNode df,
+                           const std::string &genparticles_pt,
+                           const std::string &genparticles_eta,
+                           const std::string &genparticles_phi,
+                           const std::string &genparticles_mass,
+                           const std::string &genparticles_pdgid,
+                           const std::string &genparticles_hasTauAnc,
+                           const std::string &genlep_p4_1,
+                           const std::string &genlep_p4_2);
+}
+
 namespace genflag {
 ROOT::RDF::RNode DYGenFlag(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &genparticles_pdgid,
+                             const std::string &genparticles_statusFlag,
+                             const int &pdgId);
+ROOT::RDF::RNode WGenFlag(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &genparticles_pdgid,
                              const std::string &genparticles_statusFlag,
                              const int &pdgId);
