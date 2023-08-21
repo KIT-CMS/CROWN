@@ -35,6 +35,12 @@ jobs:
       - name: Install missing software
         run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost openssh --ignore root --ignore openssl
 
+      - name: setup python venv for python deps
+        run: python -m venv $HOME/venv
+
+      - name: activate python venv
+        run: source $HOME/venv/bin/activate
+
       - name: Install python packages
         run: python -m ensurepip --default-pip && python -m pip install GitPython && python -m pip install numpy --upgrade && python -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
 
@@ -78,6 +84,11 @@ jobs:
       - name: Install missing software
         run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost openssh --ignore root --ignore openssl
 
+      - name: setup python venv for python deps
+        run: python -m venv $HOME/venv
+
+      - name: activate python venv
+        run: source $HOME/venv/bin/activate
 
       - name: Install python packages
         run: python -m ensurepip --default-pip && python -m pip install GitPython && python -m pip install numpy --upgrade && python -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
