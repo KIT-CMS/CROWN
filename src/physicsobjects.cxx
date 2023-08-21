@@ -94,12 +94,13 @@ ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
 /// \param[out] maskname the name of the mask to be added as column to the
 /// \param[in] etaColumnName name of the eta column in the NanoAOD dataframe
 /// \param[in] cutVarColumnName name of the variable column to apply the
-/// selection in the NanoAOD dataframe \param[in] etaBoundary boundary of
-/// absolute eta for the barrel and endcap regions of the detector \param[in]
-/// lowerThresholdBarrel lower threshold for the barrel \param[in]
-/// upperThresholdBarrel upper threshold for the barrel \param[in]
-/// lowerThresholdEndcap lower threshold for the endcap \param[in]
-/// upperThresholdEndcap upper threshold for the barrel
+/// selection in the NanoAOD dataframe
+/// \param[in] etaBoundary boundary of absolute eta for the barrel and endcap
+/// regions of the detector
+/// \param[in] lowerThresholdBarrel lower threshold for the barrel
+/// \param[in] upperThresholdBarrel upper threshold for the barrel
+/// \param[in] lowerThresholdEndcap lower threshold for the endcap
+/// \param[in] upperThresholdEndcap upper threshold for the barrel
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutVariableBarrelEndcap(
@@ -129,9 +130,10 @@ ROOT::RDF::RNode CutVariableBarrelEndcap(
 ///
 /// \param[in] df the input dataframe
 /// \param[out] outputmaskname the name of the new mask to be added as column to
-/// the dataframe \param[in] inputmaskname the name of the input mask \param[in]
-/// dileptonpair name of the column of the dileptonpair \param[in] index index
-/// of the particle candidate to be ignored by mask
+/// the dataframe
+/// \param[in] inputmaskname the name of the input mask
+/// \param[in] dileptonpair name of the column of the dileptonpair
+/// \param[in] index index of the particle candidate to be ignored by mask
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode VetoCandInMask(ROOT::RDF::RNode df,
@@ -326,9 +328,9 @@ ROOT::RDF::RNode DeltaRParticleVeto(
 ///
 /// \param[in] df the input dataframe
 /// \param[out] corrected_mass the name of the corrected masses to be determined
-/// \param[in] raw_mass name of the input mass \param[in] raw_pt name of the
-/// uncorrected object pts \param[in] corrected_pt name of the corrected object
-/// pts
+/// \param[in] raw_mass name of the input mass
+/// \param[in] raw_pt name of the uncorrected object pts
+/// \param[in] corrected_pt name of the corrected object pts
 ///
 /// \return a dataframe containing the modified object masses
 ROOT::RDF::RNode ObjectMassCorrectionWithPt(ROOT::RDF::RNode df,
@@ -361,10 +363,12 @@ ROOT::RDF::RNode ObjectMassCorrectionWithPt(ROOT::RDF::RNode df,
 /// \param[in] leptons_eta name of the input eta column of the lepton collection
 /// \param[in] leptons_phi name of the input phi column of the lepton collection
 /// \param[in] leptons_mass name of the input mass column of the lepton
-/// collection \param[in] leptons_charge name of the input charge column of the
-/// lepton collection \param[in] leptons_mask name of the input mask column of
-/// the lepton collection that marks lepton to be taken into account \param[in]
-/// dR_cut minimum required angular distance between the leptons
+/// collection
+/// \param[in] leptons_charge name of the input charge column of the
+/// lepton collection
+/// \param[in] leptons_mask name of the input mask column of
+/// the lepton collection that marks lepton to be taken into account
+/// \param[in] dR_cut minimum required angular distance between the leptons
 ///
 /// \return a dataframe containing the new bool column
 ROOT::RDF::RNode CheckForDiLeptonPairs(
@@ -409,7 +413,8 @@ namespace muon {
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe \param[in] nameID name of the ID column in the NanoAOD
+/// dataframe
+/// \param[in] nameID name of the ID column in the NanoAOD
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
@@ -426,7 +431,8 @@ ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
 /// \param[in] df the input dataframe
 /// \param[in] isolationName name of the isolation column in the NanoAOD
 /// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe \param[in] Threshold maximal isolation threshold
+/// dataframe
+/// \param[in] Threshold maximal isolation threshold
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
@@ -442,7 +448,8 @@ ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
 /// \param[in] df the input dataframe
 /// \param[in] isolationName name of the isolation column in the NanoAOD
 /// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe \param[in] Threshold minimal isolation threshold
+/// dataframe
+/// \param[in] Threshold minimal isolation threshold
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode AntiCutIsolation(ROOT::RDF::RNode df,
@@ -459,18 +466,23 @@ ROOT::RDF::RNode AntiCutIsolation(ROOT::RDF::RNode df,
 /// \param[in] isTracker name of the signature column in the NanoAOD
 /// \param[in] isGlobal name of the signature column in the NanoAOD
 /// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe 
+/// dataframe
 ///
 /// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutIsTrackerOrIsGlobal(ROOT::RDF::RNode df, const std::string &isTracker, const std::string &isGlobal, const std::string &maskname) {
-        auto lambda = [](const ROOT::RVec<Bool_t>  &tracker, const ROOT::RVec<Bool_t>  &global) {
-            ROOT::RVec<int> mask = (tracker == 1 || global == 1);
-            Logger::get("lep1lep1_lep2::TripleSelectionAlgo")
-                ->debug("istracker {}, isglobal {}, mask {}", tracker, global, mask);
-            return mask;
-        };
-        auto df1 = df.Define(maskname, lambda, {isTracker, isGlobal});
-        return df1;
+ROOT::RDF::RNode CutIsTrackerOrIsGlobal(ROOT::RDF::RNode df,
+                                        const std::string &isTracker,
+                                        const std::string &isGlobal,
+                                        const std::string &maskname) {
+    auto lambda = [](const ROOT::RVec<Bool_t> &tracker,
+                     const ROOT::RVec<Bool_t> &global) {
+        ROOT::RVec<int> mask = (tracker == 1 || global == 1);
+        Logger::get("lep1lep1_lep2::TripleSelectionAlgo")
+            ->debug("istracker {}, isglobal {}, mask {}", tracker, global,
+                    mask);
+        return mask;
+    };
+    auto df1 = df.Define(maskname, lambda, {isTracker, isGlobal});
+    return df1;
 }
 /// Function to create a column of vector of random numbers between 0 and 1
 /// with size of the input object collection
@@ -609,7 +621,8 @@ namespace tau {
 /// \param[in] df the input dataframe
 /// \param[in] tau_dms name of the column with tau decay modes
 /// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe \param[in] SelectedDecayModes a `std::vector<int>` containing the
+/// dataframe
+/// \param[in] SelectedDecayModes a `std::vector<int>` containing the
 /// decay modes, that should pass the cut
 ///
 /// \return a dataframe containing the new mask
@@ -651,7 +664,8 @@ ROOT::RDF::RNode CutTauID(ROOT::RDF::RNode df, const std::string &maskname,
 /// \param[in] eta name of raw tau eta
 /// \param[in] decayMode decay mode of the tau
 /// \param[in] genMatch column with genmatch values (from prompt e, prompt mu,
-/// tau->e, tau->mu, had. tau) \param[in] sf_file:
+/// tau->e, tau->mu, had. tau)
+/// \param[in] sf_file:
 ///     2018:
 ///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2018_UL.html
 ///     2017:
@@ -662,11 +676,13 @@ ROOT::RDF::RNode CutTauID(ROOT::RDF::RNode df, const std::string &maskname,
 /// \param[in] jsonESname name of the tau energy correction in the json file
 /// \param[in] idAlgorithm name of the used tau id algorithm
 /// \param[in] sf_dm0_b scale factor to be applied to taus with decay mode 0 and
-/// eta region barrel \param[in] sf_dm1_b scale factor to be applied to taus
-/// with decay mode 1 and eta region barrel \param[in] sf_dm0_e scale factor to
-/// be applied to taus with decay mode 0 and eta region endcap \param[in]
-/// sf_dm1_e scale factor to be applied to taus with decay mode 1 and eta region
-/// endcap name of the tau decay mode quantity
+/// eta region barrel
+/// \param[in] sf_dm1_b scale factor to be applied to taus
+/// with decay mode 1 and eta region barrel
+/// \param[in] sf_dm0_e scale factor to
+/// be applied to taus with decay mode 0 and eta region endcap
+/// \param[in] sf_dm1_e scale factor to be applied to taus with decay mode 1 and
+/// eta region endcap name of the tau decay mode quantity
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
@@ -796,7 +812,8 @@ PtCorrection_muFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
 ///
 /// \param[in] df the input dataframe
 /// \param[out] corrected_pt name of the corrected tau pt to be calculated
-/// \param[in] pt name of the raw tau pt \param[in] decayMode
+/// \param[in] pt name of the raw tau pt
+/// \param[in] decayMode decay mode of the tau
 /// \param[in] sf_dm0 scale factor to be applied to taus with decay mode 0
 /// \param[in] sf_dm1 scale factor to be applied to other 1 prong taus
 /// \param[in] sf_dm10 scale factor to be applied to taus with decay mode 10
@@ -970,7 +987,8 @@ ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe \param[in] nameID name of the ID column in the NanoAOD
+/// the dataframe
+/// \param[in] nameID name of the ID column in the NanoAOD
 /// \param[in] IDvalue value of the WP the has to be passed
 ///
 /// \return a dataframe containing the new mask
@@ -984,7 +1002,8 @@ ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe \param[in] nameID name of the ID column in the NanoAOD
+/// the dataframe
+/// \param[in] nameID name of the ID column in the NanoAOD
 /// \param[in] IDvalue value of the WP the has to be failed
 ///
 /// \return a dataframe containing the new mask
@@ -1001,7 +1020,8 @@ ROOT::RDF::RNode AntiCutCBID(ROOT::RDF::RNode df, const std::string &maskname,
 /// \param[in] df the input dataframe
 /// \param[in] isolationName name of the isolation column in the NanoAOD
 /// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe \param[in] Threshold maximal isolation threshold
+/// the dataframe
+/// \param[in] Threshold maximal isolation threshold
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
@@ -1015,17 +1035,18 @@ ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
 /// electrons supercluster
 ///
 /// \param[in] df the input dataframe
-/// \param[in] quantity name of the electron eta column in the NanoAOD
-/// \param[in] quantity name of the electron deltaEtaSC column in the NanoAOD
-/// \param[in] quantity name of the Dxy column in the NanoAOD
-/// \param[in] quantity name of the Dz column in the NanoAOD
+/// \param[in] eta quantity name of the electron eta column in the NanoAOD
+/// \param[in] detasc quantity name of the electron deltaEtaSC column in the
+/// NanoAOD
+/// \param[in] dxy quantity name of the Dxy column in the NanoAOD
+/// \param[in] dz quantity name of the Dz column in the NanoAOD
 /// \param[out] maskname the name of the mask to be added as column to the
 /// dataframe
-/// \param[in] abs(eta) of the EB-EE transition
-/// \param[in] Threshold maximal Dxy value in the barrel
-/// \param[in] Threshold maximal Dz value in the barrel
-/// \param[in] Threshold maximal Dxy value in the endcap
-/// \param[in] Threshold maximal Dz value in the endcap
+/// \param[in] abseta_eb_ee abs(eta) of the EB-EE transition
+/// \param[in] max_dxy_eb Threshold maximal Dxy value in the barrel
+/// \param[in] max_dz_eb Threshold maximal Dz value in the barrel
+/// \param[in] max_dxy_ee hreshold maximal Dxy value in the endcap
+/// \param[in] max_dz_ee Threshold maximal Dz value in the endcap
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutIP(ROOT::RDF::RNode df, const std::string &eta,
@@ -1054,12 +1075,14 @@ ROOT::RDF::RNode CutIP(ROOT::RDF::RNode df, const std::string &eta,
 /// the electrons supercluster
 ///
 /// \param[in] df the input dataframe
-/// \param[in] quantity name of the electron eta column in the NanoAOD
-/// \param[in] quantity name of the electron deltaEtaSC column in the NanoAOD
-/// \param[out] maskname the name of the mask to be added as column to the
-/// dataframe
-/// \param[in] abs(eta) of the beginning of the transition region
-/// \param[in] abs(eta) of the end of the transition region
+/// \param[in] eta quantity name of the electron eta column in the NanoAOD
+/// \param[in] detasc quantity name of the electron deltaEtaSC column in the
+/// NanoAOD
+/// \param[out] maskname the name of the mask to be added as column to
+/// the dataframe
+/// \param[in] end_eb abs(eta) of the beginning of the transition
+/// region
+///\param[in] start_ee abs(eta) of the end of the transition region
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutGap(ROOT::RDF::RNode df, const std::string &eta,

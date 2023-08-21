@@ -18,11 +18,13 @@ namespace jet {
 /// Function to veto jets overlapping with particle candidates
 ///
 /// \param[in] df the input dataframe
-/// \param[out] output_col the name of the produced mask \param[in] jet_eta name
-/// of the jet etas \param[in] jet_phi name of the jet phis \param[in] p4_1 four
-/// vector of the first particle candidate \param[in] p4_2 four vector of the
-/// second particle candidate \param[in] deltaRmin minimum required distance in
-/// dR between jets and particle candidates
+/// \param[out] output_col the name of the produced mask
+/// \param[in] jet_eta name of the jet etas
+/// \param[in] jet_phi name of the jet phis
+/// \param[in] p4_1 four vector of the first particle candidate
+/// \param[in] p4_2 four vector of the second particle candidate
+/// \param[in] deltaRmin minimum required distance in dR between jets and
+/// particle candidates
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
@@ -69,10 +71,12 @@ VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
 /// Function to veto jets overlapping with particle candidates
 ///
 /// \param[in] df the input dataframe
-/// \param[out] output_col the name of the produced mask \param[in] jet_eta name
-/// of the jet etas \param[in] jet_phi name of the jet phis \param[in] p4_1 four
-/// vector of the first particle candidate \param[in] deltaRmin minimum required
-/// distance in dR between jets and particle candidates
+/// \param[out] output_col the name of the produced mask
+/// \param[in] jet_eta name of the jet etas
+/// \param[in] jet_phi name of the jet phis
+/// \param[in] p4_1 four vector of the first particle candidate
+/// \param[in] deltaRmin minimum required distance in dR between jets and
+/// particle candidates
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
@@ -111,10 +115,13 @@ VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
 /// condition)
 ///
 /// \param[in] df the input dataframe
-/// \param[out] output_col the name of the produced mask \param[in] jet_eta name
-/// of the jet etas \param[in] jet_phi name of the jet phis \param[in] p4_1 four
-/// vector of the first particle candidate \param[in] deltaRmin minimum required
-/// distance in dR between jets and particle candidates
+/// \param[out] output_col the name of the produced mask
+/// \param[in] jet_eta name of the jet etas
+/// \param[in] jet_phi name of the jet phis
+/// \param[in] p4_1 four vector of the first particle candidate
+/// \param[in] lep_is_iso isolation condition of the first particle candidate
+/// \param[in] deltaRmin minimum required  distance in dR between jets and
+/// particle candidates
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode VetoOverlappingJetsIsoLepOnly(ROOT::RDF::RNode df,
@@ -203,8 +210,9 @@ namespace jet {
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe \param[in] nameID name of the ID column in the NanoAOD \param[in]
-/// idxID bitvalue of the WP the has to be passed
+/// dataframe
+/// \param[in] nameID name of the ID column in the NanoAOD
+/// \param[in] idxID bitvalue of the WP the has to be passed
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
@@ -216,9 +224,11 @@ ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe \param[in] nameID name of the ID column in the NanoAOD \param[in]
-/// idxID bitvalue of the WP the has to be passed \param[in] jet_pt name of the
-/// input jet pts \param[in] jet_pt_cut threshold for the input jet pts
+/// dataframe
+/// \param[in] nameID name of the ID column in the NanoAOD
+/// \param[in] idxID bitvalue of the WP the has to be passed
+/// \param[in] jet_pt name of the input jet pts
+/// \param[in] jet_pt_cut threshold for the input jet pts
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutPUID(ROOT::RDF::RNode df, const std::string &maskname,
@@ -639,6 +649,8 @@ ROOT::RDF::RNode btagValue(ROOT::RDF::RNode df, const std::string &outputname,
 ///
 /// \param[in] df the input dataframe
 /// \param[out] outputname the name of the produced quantity
+/// \param[in] flavorcolumn name of the column that contains flavor values of
+/// the jets
 /// \param[in] jetcollection name of the vector that contains jet indices of the
 /// jets belonging to the collection, its length constitutes the output quantity
 /// \param position The position in the jet collection vector, which is used to
