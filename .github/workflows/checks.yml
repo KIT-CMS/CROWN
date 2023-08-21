@@ -33,7 +33,7 @@ jobs:
         run: pacman -Sc --noconfirm && pacman -Syy --noconfirm && pacman -Sy archlinux-keyring --noconfirm
 
       - name: Install missing software
-        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost openssh --ignore root
+        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost openssh lsb-release --ignore root
 
       - uses: actions/setup-python@v4
         with:
@@ -82,7 +82,7 @@ jobs:
         run: pacman -Sc --noconfirm && pacman -Syy --noconfirm && pacman -Sy archlinux-keyring --noconfirm
 
       - name: Install missing software
-        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost openssh --ignore root
+        run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost openssh lsb-release --ignore root
 
       - uses: actions/setup-python@v4
         with:
