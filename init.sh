@@ -17,7 +17,7 @@ if [[ "$distro" == "CentOS" ]]; then
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-gcc11-opt/setup.sh
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-clang12-opt/setup.sh
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-gcc11-dbg/setup.sh
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_103/x86_64-centos7-gcc11-opt/setup.sh
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-centos7-gcc11-opt/setup.sh
     else
         echo "Unsupported CentOS version, exiting..."
         return 0
@@ -32,9 +32,9 @@ elif [[ "$distro" == "RedHatEnterprise" ]]; then
     fi
 elif [[ "$distro" == "Ubuntu" ]]; then
     if [[ ${os_version:0:2} == "20" ]]; then
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_103/x86_64-ubuntu2004-gcc9-opt/setup.sh
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-ubuntu2004-gcc9-opt/setup.sh
     elif [[ ${os_version:0:2} == "22" ]]; then
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_103/x86_64-ubuntu2204-gcc11-opt/setup.sh
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-ubuntu2204-gcc11-opt/setup.sh
     else
         echo "Unsupported Ubuntu version, exiting..."
         return 0
