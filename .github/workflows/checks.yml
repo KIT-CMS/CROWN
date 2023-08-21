@@ -87,11 +87,11 @@ jobs:
         with:
           python-version: "3.11.4"
 
-      - name: setup python dependencies
-        run:  python3 -m pip install ssl
+      # - name: setup python dependencies
+      #   run:  python3 -m pip install ssl
 
       - name: setup python dependencies
-        run:  python3 -m pip install GitPython numpy git+https://github.com/cms-nanoAOD/correctionlib.git
+        run:  python3 -m pip install GitPython numpy git+http://github.com/cms-nanoAOD/correctionlib.git
 
       - name: Clone project
         uses: actions/checkout@v3
