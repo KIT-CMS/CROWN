@@ -25,7 +25,7 @@ jobs:
   build_project:
     runs-on: ubuntu-20.04
     container:
-      image: rootproject/root:6.26.10-arch
+      image: rootproject/root:6.28.04-arch
       options: --user 0 # run as root
 
     steps:
@@ -68,7 +68,7 @@ jobs:
   build_friends:
     runs-on: ubuntu-20.04
     container:
-      image: rootproject/root:6.26.10-arch
+      image: rootproject/root:6.28.04-arch
       options: --user 0 # run as root
 
     steps:
