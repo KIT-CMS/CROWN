@@ -25,7 +25,7 @@ jobs:
   build_project:
     runs-on: ubuntu-20.04
     container:
-      image: rootproject/root:6.26.10-arch
+      image: rootproject/root:6.28.04-arch
       options: --user 0 # run as root
 
     steps:
@@ -36,7 +36,7 @@ jobs:
         run: pacman -Syu --noconfirm cmake make git python-pip openmp openmpi boost openssh --ignore root --ignore openssl
 
       - name: Install python packages
-        run: python -m ensurepip --default-pip && python -m pip install GitPython && python -m pip install numpy --upgrade && python -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
+        run: python -m ensurepip --default-pip && python -m pip install GitPython --break-system-packages && python -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git --break-system-packages
 
       - name: Clone project
         uses: actions/checkout@v3
@@ -68,7 +68,7 @@ jobs:
   build_friends:
     runs-on: ubuntu-20.04
     container:
-      image: rootproject/root:6.26.10-arch
+      image: rootproject/root:6.28.04-arch
       options: --user 0 # run as root
 
     steps:
@@ -80,7 +80,7 @@ jobs:
 
 
       - name: Install python packages
-        run: python -m ensurepip --default-pip && python -m pip install GitPython && python -m pip install numpy --upgrade && python -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
+        run: python -m ensurepip --default-pip && python -m pip install GitPython --break-system-packages && python -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git --break-system-packages
 
       - name: Clone project
         uses: actions/checkout@v3
