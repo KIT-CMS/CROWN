@@ -22,16 +22,18 @@ def build_config(
     available_sample_types: List[str],
     available_eras: List[str],
     available_scopes: List[str],
-    quantities_map: Union[ List[str], None] = None,
+    quantities_map: Union[List[str], None] = None,
 ):
-    quantities_map = [os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "dyjets_shift_quantities_map.json",
-    ),
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "dyjets_friend_shift_quantities_map.json",
-    ),]
+    quantities_map = [
+        os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "dyjets_shift_quantities_map.json",
+        ),
+        os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "dyjets_friend_shift_quantities_map.json",
+        ),
+    ]
     # for the test, we provide a quantities map
     configuration = FriendTreeConfiguration(
         era,

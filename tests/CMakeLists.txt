@@ -33,7 +33,7 @@ endforeach()
 # Add target to download input file
 add_test(NAME two_friends_download_sample
     WORKING_DIRECTORY ${INSTALLDIR}
-    COMMAND curl -OL https://github.com/KIT-CMS/CROWNTestingSamples/raw/main/CrownNtuple_friend.root)
+    COMMAND curl -OL https://github.com/KIT-CMS/CROWNTestingSamples/raw/main/{CrownNtuple_friend.root,CrownNtuple.root} )
 set_tests_properties(two_friends_download_sample PROPERTIES FIXTURES_SETUP two_friends_download_sample LABELS two_friends_download)
 
 # Generate a test for each generated target

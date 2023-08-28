@@ -17,8 +17,9 @@ env:
   ERAS: 2018
   SCOPES: "mt,mm,et"
   SHIFTS: "all"
-  FRIEND_SCOPES: "mt,mm"
+  SINGLE_FRIEND_SCOPES: "mt,mm"
   SINGLE_FRIEND_CONFIG: unittest_friends
+  TWO_FRIEND_SCOPES: "mt"
   TWO_FRIEND_CONFIG: unittest_friends_2
   FRIEND_SHIFTS: "nominal,jesUncTotalUp,jesUncTotalDown,tauMuFakeEsDown"
 
@@ -66,7 +67,7 @@ jobs:
         shell: bash
         run: cd ${{github.workspace}}/build && ctest -V --label-regex "ntuple.*."
 
-  build_single_friends:
+  build_single_friend:
     runs-on: ubuntu-20.04
     container:
       image: rootproject/root:6.28.04-arch
@@ -100,7 +101,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$SINGLE_FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$SINGLE_FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy"
 
       - name: Build
         shell: bash
@@ -108,7 +109,7 @@ jobs:
 
       - name: Test
         shell: bash
-        run: cd ${{github.workspace}}/build && ctest -V --label-regex "single_friends.*."
+        run: cd ${{github.workspace}}/build && ctest -V --label-regex "single_friend.*."
 
   build_two_friends:
     runs-on: ubuntu-20.04
@@ -144,7 +145,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$TWO_FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$TWO_FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$TWO_FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy"
 
       - name: Build
         shell: bash
