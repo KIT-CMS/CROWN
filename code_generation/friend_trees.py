@@ -3,7 +3,6 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 import logging
 import ROOT
 import json
-from pydantic.utils import deep_update
 import os
 from time import time
 from code_generation.configuration import Configuration
@@ -162,7 +161,6 @@ class FriendTreeConfiguration(Configuration):
 
         # first check if the input is a root file or a json file
         data = {}
-        log.info(data)
         for input_information in input_information_list:
             log.info(f"adding input information from {input_information}")
             if isinstance(input_information, str):
@@ -182,8 +180,6 @@ class FriendTreeConfiguration(Configuration):
                     error_message += "      The input information has to be a json file or a root file \n"
                     error_message += "      and added to the cmake command via the -DQUANTITIESMAP=... option"
                     raise ConfigurationError(error_message)
-            log.info(data)
-        log.info(data)
         return data
 
     def _readout_input_root_file(
@@ -302,7 +298,6 @@ class FriendTreeConfiguration(Configuration):
                 producer.shift_inputs("__" + shift, scope, inputs_to_shift)
         elif isinstance(producer, ProducerGroup):
             for producer in producer.producers[scope]:
-                assert isinstance(producer, Producer)
                 self._shift_producer_inputs(producer, shift, scope)
 
     def _validate_outputs(self) -> None:

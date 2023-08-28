@@ -485,7 +485,14 @@ MMDiTauPairQuantities = ProducerGroup(
     input=None,
     output=None,
     scopes=["mm"],
-    subproducers=[UnrollMuLV1, UnrollMuLV2, tau_decaymode_1_notau, tau_decaymode_2_notau, m_vis, pt_vis],
+    subproducers=[
+        UnrollMuLV1,
+        UnrollMuLV2,
+        tau_decaymode_1_notau,
+        tau_decaymode_2_notau,
+        m_vis,
+        pt_vis,
+    ],
 )
 ETDiTauPairQuantities = ProducerGroup(
     name="ETDiTauPairQuantities",
