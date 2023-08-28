@@ -50,7 +50,9 @@ parser.add_argument("--threads", type=int, help="number of threads to be used")
 parser.add_argument("--debug", type=str, help="set debug mode for building")
 # the following arguments are only used for the production of friend trees
 parser.add_argument("--friends", type=str, help="set production of friend trees")
-parser.add_argument("--quantities-map", type=str, help="path to the quantities map")
+parser.add_argument(
+    "--quantities-map", type=str, action=SplitArgs, help="path to the quantities map"
+)
 args = parser.parse_args()
 
 # find available analyses, every folder in analysis_configurations is an analysis

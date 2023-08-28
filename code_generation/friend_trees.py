@@ -3,6 +3,7 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 import logging
 import ROOT
 import json
+from pydantic.utils import deep_update
 import os
 from time import time
 from code_generation.configuration import Configuration
@@ -42,7 +43,9 @@ class FriendTreeConfiguration(Configuration):
         available_sample_types: Union[str, List[str]],
         available_eras: Union[str, List[str]],
         available_scopes: Union[str, List[str]],
-        input_information: Union[str, Dict[str, List[str]]],
+        input_information: Union[
+            str, List[str], Dict[str, List[str]], List[Dict[str, List[str]]]
+        ],
     ):
         """Generate a configuration for a FriendTree production.
 
@@ -79,9 +82,12 @@ class FriendTreeConfiguration(Configuration):
             raise ConfigurationError(
                 f"FriendTree configurations can only have one scope, but multiple {self.selected_scopes} were specified"
             )
-
+        if not isinstance(input_information, list):
+            input_information_list = [input_information]
+        else:
+            input_information_list = input_information
         self.input_quantities_mapping = self._readout_input_information(
-            input_information
+            input_information_list
         )
         # all requested shifts are stored in a seperate varaiable,
         # they have to be added to all producers later
@@ -136,23 +142,48 @@ class FriendTreeConfiguration(Configuration):
 
     def _readout_input_information(
         self,
-        input_information: Union[str, Dict[str, List[str]]],
+        input_information_list: Union[List[str], List[Dict[str, List[str]]]],
     ) -> Dict[str, Dict[str, List[str]]]:
+        def update_input_information(existing_data, new_data):
+            if existing_data == {}:
+                return new_data
+            else:
+                # otherwise we have to merge the contents, while not overwriting existing data
+                for scope in new_data.keys():
+                    if scope not in existing_data.keys():
+                        existing_data[scope] = {}
+                    for shift in new_data[scope].keys():
+                        if shift not in existing_data[scope].keys():
+                            existing_data[scope][shift] = []
+                        for quantity in new_data[scope][shift]:
+                            if quantity not in existing_data[scope][shift]:
+                                existing_data[scope][shift].append(quantity)
+            return existing_data
+
         # first check if the input is a root file or a json file
         data = {}
-        if isinstance(input_information, str):
-            if input_information.endswith(".root"):
-                data = self._readout_input_root_file(input_information)
-            elif input_information.endswith(".json"):
-                data = self._readout_input_json_file(input_information)
-            else:
-                error_message = f"\n      Input information file {input_information} is not a json or root file \n"
-                error_message += (
-                    "      Did you forget to specify the input information file? \n"
-                )
-                error_message += "      The input information has to be a json file or a root file \n"
-                error_message += "      and added to the cmake command via the -DQUANTITIESMAP=... option"
-                raise ConfigurationError(error_message)
+        log.info(data)
+        for input_information in input_information_list:
+            log.info(f"adding input information from {input_information}")
+            if isinstance(input_information, str):
+                if input_information.endswith(".root"):
+                    data = update_input_information(
+                        data, self._readout_input_root_file(input_information)
+                    )
+                elif input_information.endswith(".json"):
+                    data = update_input_information(
+                        data, self._readout_input_root_file(input_information)
+                    )
+                else:
+                    error_message = f"\n      Input information file {input_information} is not a json or root file \n"
+                    error_message += (
+                        "      Did you forget to specify the input information file? \n"
+                    )
+                    error_message += "      The input information has to be a json file or a root file \n"
+                    error_message += "      and added to the cmake command via the -DQUANTITIESMAP=... option"
+                    raise ConfigurationError(error_message)
+            log.info(data)
+        log.info(data)
         return data
 
     def _readout_input_root_file(
@@ -256,9 +287,11 @@ class FriendTreeConfiguration(Configuration):
                         self.shifts[scope][shiftname] = {}
 
     def _shift_producer_inputs(self, producer, shift, scope):
+        log.debug("Shifting inputs of producer %s", producer)
         # if the producer is not of Type ProducerGroup we can directly shift the inputs
         if isinstance(producer, Producer):
             inputs = producer.get_inputs(scope)
+            log.debug("Inputs of producer %s: %s", producer, inputs)
             # only shift if necessary
             if shift in self.input_quantities_mapping[scope].keys():
                 inputs_to_shift = []
@@ -268,7 +301,8 @@ class FriendTreeConfiguration(Configuration):
                 log.debug(f"Shifting inputs {inputs_to_shift} of producer {producer}")
                 producer.shift_inputs("__" + shift, scope, inputs_to_shift)
         elif isinstance(producer, ProducerGroup):
-            for producer in producer.producers:
+            for producer in producer.producers[scope]:
+                assert isinstance(producer, Producer)
                 self._shift_producer_inputs(producer, shift, scope)
 
     def _validate_outputs(self) -> None:
