@@ -1,6 +1,7 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 
 from typing import List, Union
+import os
 from .producers import muon_sf_friends as muon_sf_friends
 from .producers import pairquantities as pairquantities
 from .quantities import output as q
@@ -21,8 +22,16 @@ def build_config(
     available_sample_types: List[str],
     available_eras: List[str],
     available_scopes: List[str],
-    quantities_map: Union[str, None] = None,
+    quantities_map: Union[ List[str], None] = None,
 ):
+    quantities_map = [os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "dyjets_shift_quantities_map.json",
+    ),
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "dyjets_friend_shift_quantities_map.json",
+    ),]
     # for the test, we provide a quantities map
     configuration = FriendTreeConfiguration(
         era,
