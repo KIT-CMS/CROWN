@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
             cutflow.SetTitle("cutflow");
             // iterate through the cutflow vector and fill the histogram with
             // the .GetPass() values
-            if (cutReports.size() < scope_counter) {
+            if (cutReports.size() < scope_counter || cutReports.empty()) {
                 Logger::get("main")->critical(
                     "cutReports vector is too small, this should not happen");
                 return 1;
