@@ -44,15 +44,15 @@ int validate_rootfile(std::string file, std::string &basetree) {
     if (list->FindObject("Events")) {
         TTree *t1 = (TTree *)f1->Get("Events");
         nevents += t1->GetEntries();
-        Logger::get("main")->info("NanoAOD input_file: {} - {} Events",
-                                  file, t1->GetEntries());
+        Logger::get("main")->info("NanoAOD input_file: {} - {} Events", file,
+                                  t1->GetEntries());
         return nevents;
     } else if (list->FindObject("ntuple")) {
         TTree *t1 = (TTree *)f1->Get("ntuple");
         nevents += t1->GetEntries();
         basetree = "ntuple";
-        Logger::get("main")->info("CROWN input_file: {} - {} Events",
-                                  file, t1->GetEntries());
+        Logger::get("main")->info("CROWN input_file: {} - {} Events", file,
+                                  t1->GetEntries());
         return nevents;
     } else {
         Logger::get("main")->critical("File {} does not contain a tree "
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
         Logger::get("main")->debug("Adding friend file {}", friend_file);
         friend_chain->Add(friend_file.c_str());
         // then add the friend to the main dataset
-        dataset.AddFriend(friend_chain, chain_name.c_str() );
+        dataset.AddFriend(friend_chain, chain_name.c_str());
         friends.push_back(friend_chain);
     }
     // initialize df
@@ -154,8 +154,9 @@ int main(int argc, char *argv[]) {
     for (auto const &branch : df0.GetColumnNames()) {
         Logger::get("main")->debug("{}", branch);
     }
-    Logger::get("main")->info("Starting Setup of Dataframe with {} events and {} friends",
-                              nevents, nfriends);
+    Logger::get("main")->info(
+        "Starting Setup of Dataframe with {} events and {} friends", nevents,
+        nfriends);
     std::vector<ROOT::RDF::RResultPtr<ROOT::RDF::RCutFlowReport>> cutReports;
     // setup output files
     // {OUTPUT_PATHS}
@@ -219,6 +220,11 @@ int main(int argc, char *argv[]) {
             cutflow.SetTitle("cutflow");
             // iterate through the cutflow vector and fill the histogram with
             // the .GetPass() values
+            if (cutReports.size() < scope_counter) {
+                Logger::get("main")->critical(
+                    "cutReports vector is too small, this should not happen");
+                return 1;
+            }
             for (auto cut = cutReports[scope_counter].begin();
                  cut != cutReports[scope_counter].end(); cut++) {
                 cutflow.SetBinContent(
