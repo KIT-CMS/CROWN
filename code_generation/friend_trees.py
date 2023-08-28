@@ -170,7 +170,7 @@ class FriendTreeConfiguration(Configuration):
                     )
                 elif input_information.endswith(".json"):
                     data = update_input_information(
-                        data, self._readout_input_root_file(input_information)
+                        data, self._readout_input_json_file(input_information)
                     )
                 else:
                     error_message = f"\n      Input information file {input_information} is not a json or root file \n"
