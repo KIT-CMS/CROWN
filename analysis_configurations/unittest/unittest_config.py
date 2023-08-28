@@ -723,6 +723,8 @@ def build_config(
             q.pt_ttjj,
             q.mt_tot,
             q.genbosonmass,
+            q.tau_decaymode_1,
+            q.tau_decaymode_2,
         ],
     )
     configuration.add_outputs(
@@ -738,7 +740,6 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
-            q.decaymode_2,
             q.gen_match_2,
             q.muon_veto_flag,
             q.dimuon_veto,
@@ -760,7 +761,6 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
-            q.decaymode_2,
             q.gen_match_2,
             q.muon_veto_flag,
             q.dimuon_veto,
@@ -786,7 +786,6 @@ def build_config(
             q.taujet_pt_1,
             q.taujet_pt_2,
             q.decaymode_1,
-            q.decaymode_2,
             q.gen_match_1,
             q.gen_match_2,
         ],

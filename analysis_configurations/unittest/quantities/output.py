@@ -71,6 +71,14 @@ taujet_pt_2 = Quantity("taujet_pt_2")
 gen_taujet_pt_1 = Quantity("gen_taujet_pt_1")
 gen_taujet_pt_2 = Quantity("gen_taujet_pt_2")
 
+p4_fastmtt = Quantity("p4_fastmtt")
+m_fastmtt = Quantity("m_fastmtt")
+pt_fastmtt = Quantity("pt_fastmtt")
+eta_fastmtt = Quantity("eta_fastmtt")
+phi_fastmtt = Quantity("phi_fastmtt")
+tau_decaymode_1 = Quantity("tau_decaymode_1")
+tau_decaymode_2 = Quantity("tau_decaymode_2")
+
 # Combined event quantities
 m_vis = Quantity("m_vis")
 pt_vis = Quantity("pt_vis")
@@ -217,3 +225,4 @@ iso_wgt_mu_2 = Quantity("iso_wgt_mu_2")
 # friend tree weights
 id_wgt_mu_friend_1 = Quantity("id_wgt_mu_friend_1")
 iso_wgt_mu_friend_1 = Quantity("iso_wgt_mu_friend_1")
+id_wgt_mu_friend_1_renamed = Quantity("id_wgt_mu_friend_1_renamed")
