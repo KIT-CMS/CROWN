@@ -328,20 +328,25 @@ class ReplaceProducer(ProducerRule):
                     added_outputs[scope] = CollectProducersOutput(
                         [self.producers[1]], scope
                     )
-            for scope in scopes:
-                for removed_output in removed_outputs[scope]:
-                    if removed_output in outputs_to_be_updated[scope]:
-                        log.debug(
-                            "ReplaceProducer: Removing {} from outputs in scope {}".format(
-                                removed_output, scope
+            if added_outputs == removed_outputs:
+                log.debug(
+                    f"Outputs {added_outputs} are identical, no need to update outputs"
+                )
+            else:
+                for scope in scopes:
+                    for removed_output in removed_outputs[scope]:
+                        if removed_output in outputs_to_be_updated[scope]:
+                            log.debug(
+                                "ReplaceProducer: Removing {} from outputs in scope {}".format(
+                                    removed_output, scope
+                                )
                             )
-                        )
-                        outputs_to_be_updated[scope].remove(removed_output)
-                for added_output in added_outputs[scope]:
-                    if added_output in outputs_to_be_updated[scope]:
-                        log.debug(
-                            "ReplaceProducer: Adding {} from outputs in scope {}".format(
-                                added_output, scope
+                            outputs_to_be_updated[scope].remove(removed_output)
+                    for added_output in added_outputs[scope]:
+                        if added_output in outputs_to_be_updated[scope]:
+                            log.debug(
+                                "ReplaceProducer: Adding {} from outputs in scope {}".format(
+                                    added_output, scope
+                                )
                             )
-                        )
-                        outputs_to_be_updated[scope].add(added_output)
+                            outputs_to_be_updated[scope].add(added_output)

@@ -84,5 +84,18 @@ Vectoroperations
 .. doxygennamespace:: vectoroperations
    :members:
 
+TopReco
+***************
+.. doxygennamespace:: topreco
+   :members:
+
+
+TripleSelection
+***************
+.. doxygennamespace:: whtautau_tripleselection
+   :members:
+
+"""
+
 
    

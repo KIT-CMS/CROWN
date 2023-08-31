@@ -76,6 +76,11 @@ id_vsMu(ROOT::RDF::RNode df, const std::string &eta,
         const std::string &sf_vsmu_wheel3, const std::string &sf_vsmu_wheel4,
         const std::string &sf_vsmu_wheel5, const std::string &id_output,
         const std::string &sf_file, const std::string &idAlgorithm);
+ROOT::RDF::RNode
+tau_trigger_sf(ROOT::RDF::RNode df, const std::string &decaymode,
+               const std::string &pt, const std::string &wp,
+               const std::string &type, const std::string &id_output,
+               const std::string &sf_file, const std::string &correctionset);
 } // namespace tau
 
 namespace electron {
@@ -120,6 +125,12 @@ ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
                              const std::string correctiontype,
                              const std::string &idAlgorithm,
                              const float &extrapolation_factor = 1.0);
+ROOT::RDF::RNode
+ditau_trigger_sf(ROOT::RDF::RNode df, const std::string &pt,
+                 const std::string &decaymode, const std::string &output,
+                 const std::string &wp, const std::string &sf_file,
+                 const std::string &type, const std::string &corrtype,
+                 const std::string &syst);
 } // namespace embedding
 } // namespace scalefactor
 #endif /* GUARD_SCALEFACTORS_H */
