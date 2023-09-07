@@ -12,6 +12,7 @@ from code_generation.exceptions import (
     ConfigurationError,
     InvalidOutputError,
     InsufficientShiftInformationError,
+    InvalidInputError,
 )
 from code_generation.producer import Producer, ProducerGroup
 from code_generation.rules import ProducerRule
@@ -266,6 +267,7 @@ class FriendTreeConfiguration(Configuration):
         self._apply_rules()
         self._add_requested_shifts()
         self._remove_empty_scopes()
+        self._validate_inputs()
 
     def _add_requested_shifts(self) -> None:
         # first shift the output quantities
@@ -274,13 +276,25 @@ class FriendTreeConfiguration(Configuration):
                 if shift != "nominal":
                     shiftname = "__" + shift
                     for producer in self.producers[scope]:
-                        log.debug("Adding shift %s to producer %s", shift, producer)
-                        producer.shift(shiftname, scope)
                         # second step is to shift the inputs of the producer
-                        self._shift_producer_inputs(producer, shift, scope)
+                        self._shift_producer_inputs(producer, shift, shiftname, scope)
                         self.shifts[scope][shiftname] = {}
 
-    def _shift_producer_inputs(self, producer, shift, scope):
+    def _shift_producer_inputs(
+        self,
+        producer: Union[Producer, ProducerGroup],
+        shift: str,
+        shiftname: str,
+        scope: str,
+    ) -> None:
+        """Function used to determine which inputs of a producer have to be shifted. If none of the inputs of a producer is available in the shift_quantities_map, the producer is skipped.
+
+        Args:
+            producer (Union[Producer, ProducerGroup]): The producer to be checked and possibly shifted
+            shift (str): the shift to be added
+            shiftname (str): the name of the shift to be added
+            scope (str): The scope to be checked
+        """
         log.debug("Shifting inputs of producer %s", producer)
         # if the producer is not of Type ProducerGroup we can directly shift the inputs
         if isinstance(producer, Producer):
@@ -292,11 +306,20 @@ class FriendTreeConfiguration(Configuration):
                 for input in inputs:
                     if input.name in self.input_quantities_mapping[scope][shift]:
                         inputs_to_shift.append(input)
-                log.debug(f"Shifting inputs {inputs_to_shift} of producer {producer}")
-                producer.shift_inputs("__" + shift, scope, inputs_to_shift)
+                if len(inputs_to_shift) > 0:
+                    log.debug("Adding shift %s to producer %s", shift, producer)
+                    producer.shift(shiftname, scope)
+                    log.debug(
+                        f"Shifting inputs {inputs_to_shift} of producer {producer} by {shift}"
+                    )
+                    producer.shift_inputs(shiftname, scope, inputs_to_shift)
+                else:
+                    log.info(
+                        f"no inputs to shift for producer {producer} and shift {shift}, skipping"
+                    )
         elif isinstance(producer, ProducerGroup):
             for producer in producer.producers[scope]:
-                self._shift_producer_inputs(producer, shift, scope)
+                self._shift_producer_inputs(producer, shift, shiftname, scope)
 
     def _validate_outputs(self) -> None:
         """
@@ -316,6 +339,44 @@ class FriendTreeConfiguration(Configuration):
             missing_outputs = required_outputs - provided_outputs
             if len(missing_outputs) > 0:
                 raise InvalidOutputError(scope, missing_outputs)
+
+    def _validate_inputs(self) -> None:
+        """
+        The `_validate_inputs` function checks if all required inputs for each producer in the given scopes
+        are available, and raises an error if any inputs are missing.
+        """
+
+        for scope in [scope for scope in self.scopes]:
+            # get all inputs of all producers
+            required_inputs = set()
+            available_inputs = set()
+            for producer in self.producers[scope]:
+                required_inputs = required_inputs | set(
+                    [x.name for x in producer.get_inputs(scope)]
+                )
+                available_inputs = available_inputs | set(
+                    [x.name for x in producer.get_outputs(scope)]
+                )
+            # get all available inputs
+            for input in self.input_quantities_mapping[scope][""]:
+                available_inputs.add(input)
+            # now check if all inputs are available
+            missing_inputs = required_inputs - available_inputs
+            if len(missing_inputs) > 0:
+                for producer in self.producers[scope]:
+                    if (
+                        len(
+                            missing_inputs
+                            & set([x.name for x in producer.get_inputs(scope)])
+                        )
+                        > 0
+                    ):
+                        log.error(f"Missing inputs for {producer}")
+                        log.error(f"| Producer inputs: {producer.get_inputs(scope)}")
+                        log.error(
+                            f"| Missing inputs: {missing_inputs & set([ x.name for x in producer.get_inputs(scope)])}"
+                        )
+                raise InvalidInputError(scope, missing_inputs)
 
     def add_modification_rule(
         self, scopes: Union[str, List[str]], rule: ProducerRule
