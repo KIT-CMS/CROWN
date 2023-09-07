@@ -156,7 +156,7 @@ if more than one friend tree is required for the final friend tree, an additiona
 - ``--friend-dependencies``: A list of additional configurations to be run. The list has to be provided as a comma separated list. The resulting friend trees will be stored in the ``/<base>/<production-tag>/CROWNFriends/<friend-config>/`` folder.
 
 .. warning::
-    Currently, it is not possible to specify an explicit name for the friend trees that are produed automatically using the ``--friend-dependencies`` option. Therefore, the name of the friend tree is set to the name of the friend config file. In a future update, additional functionality will be added to allow the user to specify a name for the friend trees.
+    Currently, it is not possible to specify an explicit name for the friend trees that are produced automatically using the ``--friend-dependencies`` option. Therefore, the name of the friend tree is set to the name of the friend config file. In a future update, additional functionality will be added to allow the user to specify a name for the friend trees.
 
 As an exmaple, the command
 
