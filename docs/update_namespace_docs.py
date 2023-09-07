@@ -1,13 +1,10 @@
 import xml.etree.ElementTree as ET
 import argparse
 import os
-from rich import inspect
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--input", "-i", type=str, required=True)
-parser.add_argument(
-    "--output", "-o", type=str, default="sphinx_source/c_namespaces"
-)
+parser.add_argument("--output", "-o", type=str, default="sphinx_source/c_namespaces")
 args = parser.parse_args()
 
 
@@ -57,7 +54,9 @@ def update_namespace_docs(available_namespaces, output):
 
 if __name__ == "__main__":
     if not args.input.endswith(".xml"):
-        inputfile = os.path.abspath(os.path.join(args.input, "docs", "xml", "index.xml"))
+        inputfile = os.path.abspath(
+            os.path.join(args.input, "docs", "xml", "index.xml")
+        )
     else:
         inputfile = os.path.abspath(args.input)
     outputfolder = os.path.abspath(args.output)
