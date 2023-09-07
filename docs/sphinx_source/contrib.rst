@@ -181,6 +181,8 @@ C++ functions
 
 The main purpose of the framework is to be efficient and fast. Therefore, it is essential to write clear and fast C++ functions, with as little overhead as possible. We try to enforce the following minimal requirements for new functions:
 
+* The producer should live in a well defined namespace. If a producer is meant for electrons only, if should be contained in an electron namespace, rather than putting electron in the function name.
+
 * If possible, no jitting should be used. Although RDataFrames support jitted functions, this should be avoided if possible, since a jitted function can not be optimized at compile time and will slow down the execution time of the framework.
 
 * Use `const` references wherever possible
