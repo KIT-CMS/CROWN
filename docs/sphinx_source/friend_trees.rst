@@ -57,7 +57,7 @@ All other parameters are identical to the regular configuration. Setting up prod
 FriendTrees with multiple input friend trees
 --------------------------------------------
 
-Starting from version 0.3 of CROWN, it is also possible to use multiple input friend trees. A typical usecase for this feature is the evaluation of Classifiers, and storing the output of the classifier in the friend tree. This way, the classifier can utilizte quantities from both the main ntuple, and from additional friend trees. The interface for configuring such a FriendTree executable is similar to the regular FriendTree configuration, with the following differences:
+Starting from version 0.3 of CROWN, it is also possible to use multiple input friend trees. A typical usecase for this feature is the evaluation of Classifiers, and storing the output of the classifier in the friend tree. This way, the classifier can utilize quantities from both the main ntuple, and from additional friend trees. The interface for configuring such a FriendTree executable is similar to the regular FriendTree configuration, with the following differences:
 
 * The information for all input files has to be provided. This means that the ``DQUANTITIESMAP`` has to be extended. It is possible to
     1. provide a single json file, that contains the input information for all input files (the crown ntuple + all additional files)
