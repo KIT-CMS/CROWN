@@ -48,6 +48,9 @@ pathadd "${HOME}/.local/bin/"
 # set the cmake generator to Ninja
 # export CMAKE_GENERATOR="Ninja"
 export CMAKE_GENERATOR="Unix Makefiles"
+# set the compiler optimization for cling to O2, this
+# will result in about 20% faster JIT for the snapshot generation
+export EXTRA_CLING_ARGS='-O2'
 
 # clone a given analysis if an argument is given
 if [ -z "$1" ]; then
