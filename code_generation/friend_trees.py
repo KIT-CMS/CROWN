@@ -42,9 +42,7 @@ class FriendTreeConfiguration(Configuration):
         available_sample_types: Union[str, List[str]],
         available_eras: Union[str, List[str]],
         available_scopes: Union[str, List[str]],
-        input_information: Union[
-            str, List[str], Dict[str, List[str]], List[Dict[str, List[str]]]
-        ],
+        input_information: Union[str, List[str]],
     ):
         """Generate a configuration for a FriendTree production.
 
@@ -202,8 +200,8 @@ class FriendTreeConfiguration(Configuration):
 
         start = time()
         log.debug(f"Reading quantities information from {input_file}")
-        ROOT.gSystem.Load(os.path.abspath(__file__), "/maplib.so")
-        f = ROOT.TFile.Open(input_file)
+        ROOT.gSystem.Load(os.path.abspath(__file__), "/maplib.so")  # type: ignore
+        f = ROOT.TFile.Open(input_file)  # type: ignore
         name = "shift_quantities_map"
         m = f.Get(name)
         for shift, quantities in m:
