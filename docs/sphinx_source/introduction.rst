@@ -1,7 +1,7 @@
 Introduction
 =============
 
-The The **C** ++-based **RO** OT **W** orkflow for **N** -tuples (CROWN) is a fast new way to convert NanoAOD samples into flat :code:`TTrees` to be used in further analysis. The main focus of the framework is to provide a fast and clean way of selecting events, calculating quantities and weights. The framework has minimal dependencies and only uses ROOT and it's Dataframe as a backend.
+The **C** ++-based **RO** OT **W** orkflow for **N** -tuples (CROWN) is a fast new way to convert NanoAOD samples into flat :code:`TTrees` to be used in further analysis. The main focus of the framework is to provide a fast and clean way of selecting events and calculating quantities and weights. The framework has minimal dependencies and only uses ROOT and it's Dataframe as a backend.
 
 
 Design Idea
@@ -20,13 +20,13 @@ Getting started
 
 .. warning::
     The Framework depends on the scale factors provided by CMS. These are directly included in the repository via a git submodule. Since the scale factors are added from the CERN gitlab, access to the CERN gitlab repository (https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration), is needed. Since the repository is added via SSH, your SSH key must be added to the CERN gitlab instance ( A tutorial on how to do this can be found here: https://docs.gitlab.com/ee/user/ssh.html#add-an-ssh-key-to-your-gitlab-account).
-    For the instructions to work, you also have to add the SSH key to your github.com account. The instructions to do this can be found here: https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/
+    For the instructions to work, you also have to add the SSH key to your GitHub.com account. The instructions to do this can be found here: https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/
 
 
 
-After making sure, that the access right are given, setting up the framework is straight forward.
+After making sure, that the access rights are given, setting up the framework is straightforward.
 
-First clone the Repository
+First, clone the Repository
 
 .. code-block:: console
 
@@ -38,7 +38,7 @@ and source the current LCG stack (at the moment we use a nightly build)
 
    source init.sh
 
-after this, the framework should be installed, but without any analysis, other than the example analysis. If you want to setup a specific anlysis, you can do so by adding the name of the analysis to your ``init.sh`` command. Currently, supported analyses are:
+after this, the framework should be installed, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the name of the analysis to your ``init.sh`` command. Currently, supported analyses are:
 
 .. list-table:: Available Analyses
    :widths: 25 150
@@ -51,7 +51,7 @@ after this, the framework should be installed, but without any analysis, other t
    * - ``earlyrun3``
      - https://github.com/khaosmos93/CROWN-config-earlyRun3
 
-So in order to setup the `tau` Analysis, you can do so by running
+So to set the `tau` Analysis, you can do so by running
 
 .. code-block:: console
 
@@ -60,20 +60,20 @@ So in order to setup the `tau` Analysis, you can do so by running
 Running the framework
 **********************
 
-In order to create a new executable, first create a build directory
+To create a new executable, first create a build directory
 
 .. code-block:: console
 
    mkdir build && cd build
 
-and then run `cmake` to setup the Makefiles. A python configuration is needed in order to specify the code, that should be generated. Configurations are located in the :code:`analysis_configuations` directory. Within this folder, a subfolder for each type of analysis is created. Within the analysis folder, multiple Configurations belonging to the same analysis can be located. For example in the `tau` analysis, a main configuration `config.py` as well as several smaller Configurations exist.
+and then run `cmake` to set up the Makefiles. A python configuration is needed to specify the code, that should be generated. Configurations are located in the :code:`analysis_configuations` directory. Within this folder, a subfolder for each type of analysis is created. Within the analysis folder, multiple Configurations belonging to the same analysis can be located. For example in the `tau` analysis, a main configuration `config.py` as well as several smaller Configurations exist.
 
 .. Note::
    You have to provide both
    1. the analysis that you want to run e.g. `-DANALYSIS=template_analysis`
    2.  the configuration that should be used `-DCONFIG=min_config`.
 
-For the cmake command a minimal set of options has to be provided, in this case we use the template analysis with the minimal example
+For the cmake command, a minimal set of options has to be provided, in this case, we use the template analysis with the minimal example
 
 .. code-block:: console
 
@@ -82,12 +82,12 @@ For the cmake command a minimal set of options has to be provided, in this case 
 The options that are currently available are:
 
    * :code:`-DANALYSIS=template_analysis`: The analysis to be used. This is the name of the folder in the :code:`analysis_configurations` directory.
-   * :code:`-DCONFIG=min_config`: The configuration to be used. This is the name of the python configuration file. The file has to be located in the directory of the analysis and the path is provided in the python import syntax so e.g. :code:`subfolder.myspecialconfig`
-   * :code:`-DSAMPLES=emb`: The samples to be used. This is a single sample or a comma separated list of sample names.
-   * :code:`-DERAS=2018`: The era to be used. This is a single era or a comma separated list of era names.
-   * :code:`-DSCOPES=et`: The scopes to be run. This is a single scope or a comma separated list of scopes. The global scope is always run.
+   * :code:`-DCONFIG=min_config`: The configuration to be used. This is the name of the python configuration file. The file has to be located in the directory of the analysis and the path is provided in the Python import syntax e.g. :code:`subfolder.myspecialconfig`
+   * :code:`-DSAMPLES=emb`: The samples to be used. This is a single sample or a comma-separated list of sample names.
+   * :code:`-DERAS=2018`: The era to be used. This is a single era or a comma-separated list of era names.
+   * :code:`-DSCOPES=et`: The scopes to be run. This is a single scope or a comma-separated list of scopes. The global scope is always run.
    * :code:`-DTHREADS=20`: The number of threads to be used. Defaults to single threading.
-   * :code:`-DSHIFTS=all`: The shifts to be used. Defaults to all shifts. If set to :code:`all`, all shifts are used, if set to :code:`none`, no shifts are used, so only nominal is produced. If set to a comma separated list of shifts, only those shifts are used. If set to only a substring matching multiple shifts, all shifts matching that string will be produced e.g. :code:`-DSHIFTS=tauES` will produce all shifts containing :code:`tauES` in the name.
+   * :code:`-DSHIFTS=all`: The shifts to be used. Defaults to all shifts. If set to :code:`all`, all shifts are used, if set to :code:`none`, no shifts are used, so only nominal is produced. If set to a comma-separated list of shifts, only those shifts are used. If set to only a substring matching multiple shifts, all shifts matching that string will be produced e.g. :code:`-DSHIFTS=tauES` will produce all shifts containing :code:`tauES` in the name.
    * :code:`-DDEBUG=true`: If set to true, the code generation will run with debug information and the executable will be compiled with debug flags
    * :code:`-DOPTIMIZED=true`: If set to true, the compiler will run with :code:`-O3`, resulting in slower build times but faster runtimes. Should be used for developments, but not in production.
 
@@ -97,10 +97,10 @@ Compile the executable using
 
    make install -j 20
 
-The recommendded build system is using regular UNIX build files, however, as an additional option, the ninja build system (https://ninja-build.org/) can be used for CROWN. In order to use ninja, set :code:`export CMAKE_GENERATOR="Ninja"` in the :code:`init.sh` as env variable, and then use the :code:`ninja install -j 20` command to compile the executable. Since CROWN profits from the parallelization of the build process, the number of threads can and should be set using the :code:`-j` option.
+The recommended build system is using regular UNIX build files, however, as an additional option, the ninja build system (https://ninja-build.org/) can be used for CROWN. To use ninja, set :code:`export CMAKE_GENERATOR="Ninja"` in the :code:`init.sh` as env variable, and then use the :code:`ninja install -j 20` command to compile the executable. Since CROWN profits from the parallelization of the build process, the number of threads can and should be set using the :code:`-j` option.
 
 
-After the compilation, the CROWN executable can be found in the :code:`build/bin` folder. The executable can be used via, with a single output file followed by an arbitrary number of input files.
+After the compilation, the CROWN executable can be found in the :code:`build/bin` folder. The executable can be used via a single output file followed by an arbitrary number of input files.
 
 .. code-block:: console
 
@@ -116,7 +116,7 @@ The Web documentation at readthedocs is updated automatically. However, if you w
    mkdir build_docs && cd build_docs
 
 
-then run :code:`cmake` to setup the documentation building process
+then run :code:`cmake` to set the documentation building process
 
 .. code-block:: console
 
@@ -128,7 +128,7 @@ and build the documentation using
 
    make
 
-The resulting documentation can than be found in
+The resulting documentation can then be found in
 
 .. code-block:: console
 
