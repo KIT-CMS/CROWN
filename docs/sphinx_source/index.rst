@@ -45,18 +45,17 @@ Documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Python Configuration
+   :caption: Setup your own Configuration
 
+   contrib.rst
    py_configuration.rst
-   py_classes.rst
 
 .. toctree::
    :maxdepth: 2
-   :caption: C++ Configuration
+   :caption: Documentation
 
-   c_functions.rst
+   py_classes.rst
    namespaces.rst
-
 
 .. toctree::
    :maxdepth: 2
@@ -64,12 +63,6 @@ Documentation
 
    build_root.rst
    create_nanoaod.rst
-
-.. toctree::
-   :maxdepth: 2
-   :caption: How to contribute
-
-   contrib.rst
 
 
 Index

@@ -108,7 +108,7 @@ Production of NTuples
 
 To trigger a production of ntuples run
 
-.. code-block::bash
+.. code-block:: bash
 
     law run ProduceSamples --analysis tau --config config --sample-list samples.txt --production-tag debug_2 --workers 10 --scopes mt --print-status -1
 
@@ -142,7 +142,7 @@ Production of friend trees
 
 For the production of friend trees, the same options as for the production of ntuples are available. An example command is given below:
 
-.. code-block::bash
+.. code-block:: bash
 
     law run ProduceFriends --analysis tau --config config --friend-config tau_friends --sample-list samples.txt --shifts None --friend-name test --production-tag debugging_v81 --workers 2
 
@@ -150,6 +150,31 @@ Some additional options are required:
 
 - ``--friend-config``: The friend config file to be used. The friend config file contains the information about the friend trees to be produced. The friend config file is located in the ``CROWN/analysis_configurations/<analysis>/config`` folder.
 - ``--friend-name``: The name of the friend tree to be produced. The name has to match the name in the friend config file. The resulting friend trees will be stored in the ``/<base>/<production-tag>/CROWNFriends/<friend-name>/`` folder.
+
+if more than one friend tree is required for the final friend tree, an additional option is required:
+
+- ``--friend-dependencies``: A list of additional configurations to be run. The list has to be provided as a comma separated list. The resulting friend trees will be stored in the ``/<base>/<production-tag>/CROWNFriends/<friend-config>/`` folder.
+
+.. warning::
+    Currently, it is not possible to specify an explicit name for the friend trees that are produced automatically using the ``--friend-dependencies`` option. Therefore, the name of the friend tree is set to the name of the friend config file. In a future update, additional functionality will be added to allow the user to specify a name for the friend trees.
+
+As an exmaple, the command
+
+.. code-block:: bash
+
+    law run ProduceFriends --analysis tau --config config --friend-config tau_classifier --friend-dependencies tau_friends,tau_friends_2 --sample-list samples.txt --shifts None --friend-name special_tau_classifier --production-tag debugging_v81 --workers 2
+
+will produce not only ntuples for all samples specified in ``samples.txt`` using the config, but also the friend trees ``tau_friends`` and ``tau_friends_2``. All those three inputs will then be used, to produce the final friend tree ``special_tau_classifier``. The resulting folder structure will be
+
+.. code-block::
+
+    /<base>/<production-tag>/
+        |- CROWNRun/
+        |- CROWNFriends/
+                        |- tau_classifier/
+                        |- tau_friends/      (name automatically generated)
+                        |- tau_friends_2/    (name automatically generated)
+
 
 To perform the generation of friend trees locally, use
 
@@ -167,7 +192,7 @@ The two relevant configuration files can be found in the ``lawluigi_configs`` fo
 
 In the ``KingMaker_law.cfg`` file, the different tasks are defined. Also, the remote filesystem is defined here:
 
-.. code-bloc::config
+.. code-block::
 
     [wlcg_fs]
     base: root://cmsxrootd-kit.gridka.de//store/user/${USER}/CROWN/ntuples/
