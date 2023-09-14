@@ -3,8 +3,6 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 from typing import List, Union
 import os
 from .producers import muon_sf_friends as muon_sf_friends
-from .producers import pairquantities as pairquantities
-from .producers import scalefactors as scalefactors
 from .quantities import output as q
 
 # from code_generation.configuration import Cnofiguration

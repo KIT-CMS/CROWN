@@ -1,8 +1,6 @@
-from os import path, makedirs
+from os import path
 import importlib
 from code_generation.code_generation import CodeGenerator
-from code_generation.friend_trees import FriendTreeConfiguration
-import inspect
 
 
 def run(args):
