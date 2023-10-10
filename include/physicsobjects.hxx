@@ -170,7 +170,11 @@ ROOT::RDF::RNode CutIP(ROOT::RDF::RNode df, const std::string &eta,
 ROOT::RDF::RNode CutGap(ROOT::RDF::RNode df, const std::string &eta,
                         const std::string &detasc, const std::string &maskname,
                         const float &end_eb, const float &start_ee);
-
+ROOT::RDF::RNode superClusterEnergy(ROOT::RDF::RNode df,
+                            const std::string &ptColumnName,
+                            const std::string &scEtOverPtColumnName,
+                            const std::string &scEtaColumnName,
+                            const std::string &outputname);
 } // end namespace electron
 } // namespace physicsobject
 #endif /* GUARD_PHYSICSOBJECTS_H */
