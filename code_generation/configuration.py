@@ -6,8 +6,7 @@ from typing import Any, Dict, List, Set, Union
 
 from code_generation.exceptions import (
     ScopeConfigurationError,
-    
-mummConfigurationError,
+    ConfigurationError,
     EraConfigurationError,
     InvalidOutputError,
     SampleConfigurationError,

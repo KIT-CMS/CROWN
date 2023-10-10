@@ -2,6 +2,7 @@
 #define GUARD_GENPARTICLES_H
 
 #include "../include/utility/Logger.hxx"
+#include "../include/defaults.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "bitset"
@@ -22,6 +23,393 @@ enum class GenMatchingCode : int {
     IS_ELE_FROM_W = 7,
     IS_MUON_FROM_W = 8
 };
+
+enum class GenStatusFlag : int {
+    NONE = -1,
+    isPrompt = 0,
+    isDecayedLeptonHadron = 1,
+    isTauDecayProduct = 2,
+    isPromptTauDecayProduct = 3,
+    isDirectTauDecayProduct = 4,
+    isDirectPromptTauDecayProduct = 5,
+    isDirectHadronDecayProduct = 6,
+    isHardProcess = 7,
+    fromHardProcess = 8,
+    isHardProcessTauDecayProduct = 9,
+    isDirectHardProcessTauDecayProduct = 10,
+    fromHardProcessBeforeFSR = 11,
+    isFirstCopy = 12,
+    isLastCopy = 13,
+    isLastCopyBeforeFSR = 14
+};
+
+namespace genleptons {
+ROOT::RDF::RNode GenLepton(ROOT::RDF::RNode df,
+                           const std::string &genparticles_pt,
+                           const std::string &genparticles_eta,
+                           const std::string &genparticles_phi,
+                           const std::string &genparticles_mass,
+                           const std::string &genparticles_pdgid,
+                           const std::string &genparticles_status,
+                           const std::string &genparticles_statusFlag) {
+
+    auto lambda_idx_1 = [](
+        const ROOT::RVec<int> &rvec_pdgId,
+        const ROOT::RVec<int> &rvec_status,
+        const ROOT::RVec<int> &rvec_status_flag) {
+        int idx = -99;
+        for (unsigned int i = 0; i < rvec_pdgId.size(); i++) {
+            int pdgid = rvec_pdgId.at(i);
+            int status = rvec_status.at(i);
+            int status_flag = rvec_status_flag.at(i);
+            if ((pdgid == 11 || pdgid == 13) && status == 1 &&
+                 IntBits(status_flag).test((int)GenStatusFlag::fromHardProcess) &&
+                 IntBits(status_flag).test((int)GenStatusFlag::isPrompt) &&
+                 !IntBits(status_flag).test((int)GenStatusFlag::isTauDecayProduct)) {
+                if (idx > -1) {
+                    Logger::get("GenLepton")->critical("ERROR: more than 1 final state lepton with pdgId {}, prev idx {}, new idx {}", pdgid, idx, i);
+                    return -99;
+                }
+                idx = i;
+            }
+        }
+        return idx;
+    };
+
+    auto lambda_idx_2 = [](
+        const ROOT::RVec<int> &rvec_pdgId,
+        const ROOT::RVec<int> &rvec_status,
+        const ROOT::RVec<int> &rvec_status_flag) {
+        int idx = -99;
+        for (unsigned int i = 0; i < rvec_pdgId.size(); i++) {
+            int pdgid = rvec_pdgId.at(i);
+            int status = rvec_status.at(i);
+            int status_flag = rvec_status_flag.at(i);
+            if ((pdgid == -11 || pdgid == -13) && status == 1 &&
+                 IntBits(status_flag).test((int)GenStatusFlag::fromHardProcess) &&
+                 IntBits(status_flag).test((int)GenStatusFlag::isPrompt) &&
+                 !IntBits(status_flag).test((int)GenStatusFlag::isTauDecayProduct)) {
+                if (idx > -1) {
+                    Logger::get("GenLepton")->critical("ERROR: more than 1 final state lepton with pdgId {}, prev idx {}, new idx {}", pdgid, idx, i);
+                    return -99;
+                }
+                idx = i;
+            }
+        }
+        return idx;
+    };
+
+    auto lambda_float = [](const int &idx, const ROOT::RVec<float> &col) {
+        return col.at(idx, default_float);
+    };
+    auto lambda_int = [](const int &idx, const ROOT::RVec<int> &col) {
+        return col.at(idx, default_int);
+    };
+
+    auto lambd_p4 = [](const float &pt, const float &eta, const float &phi, const float &mass) {
+        ROOT::Math::PtEtaPhiMVector p4;
+        if (pt > 0.) {
+            p4 = ROOT::Math::PtEtaPhiMVector(pt, eta, phi, mass);
+        } else {
+            p4 = ROOT::Math::PtEtaPhiMVector(
+                default_float, default_float,
+                default_float, default_float
+            );
+        }
+        return p4;
+    };
+
+    auto df1  =   df.Define("genlep_idx_1", lambda_idx_1, {genparticles_pdgid, genparticles_status, genparticles_statusFlag});
+    auto df2  =  df1.Define("genlep_idx_2", lambda_idx_2, {genparticles_pdgid, genparticles_status, genparticles_statusFlag});
+    auto df3  =  df2.Define("genlep_pt_1", lambda_float, {"genlep_idx_1", genparticles_pt});
+    auto df4  =  df3.Define("genlep_eta_1", lambda_float, {"genlep_idx_1", genparticles_eta});
+    auto df5  =  df4.Define("genlep_phi_1", lambda_float, {"genlep_idx_1", genparticles_phi});
+    auto df6  =  df5.Define("genlep_mass_1", lambda_float, {"genlep_idx_1", genparticles_mass});
+    auto df7  =  df6.Define("genlep_pdgId_1", lambda_int, {"genlep_idx_1", genparticles_pdgid});
+    auto df8  =  df7.Define("genlep_pt_2", lambda_float, {"genlep_idx_2", genparticles_pt});
+    auto df9  =  df8.Define("genlep_eta_2", lambda_float, {"genlep_idx_2", genparticles_eta});
+    auto df10 =  df9.Define("genlep_phi_2", lambda_float, {"genlep_idx_2", genparticles_phi});
+    auto df11 = df10.Define("genlep_mass_2", lambda_float, {"genlep_idx_2", genparticles_mass});
+    auto df12 = df11.Define("genlep_pdgId_2", lambda_int, {"genlep_idx_2", genparticles_pdgid});
+    auto df13 = df12.Define("genlep_p4_1", lambd_p4, {"genlep_pt_1", "genlep_eta_1", "genlep_phi_1", "genlep_mass_1"});
+    auto df14 = df13.Define("genlep_p4_2", lambd_p4, {"genlep_pt_2", "genlep_eta_2", "genlep_phi_2", "genlep_mass_2"});
+
+    return df14;
+}
+
+ROOT::RDF::RNode GenLeptonPreFSR(ROOT::RDF::RNode df,
+                           const std::string &genparticles_pt,
+                           const std::string &genparticles_eta,
+                           const std::string &genparticles_phi,
+                           const std::string &genparticles_mass,
+                           const std::string &genparticles_pdgid,
+                           const std::string &genparticles_status,
+                           const std::string &genparticles_statusFlag) {
+
+    auto lambda_idx_1 = [](
+        const ROOT::RVec<int> &rvec_pdgId,
+        const ROOT::RVec<int> &rvec_status,
+        const ROOT::RVec<int> &rvec_status_flag) {
+        int idx = -99;
+        for (unsigned int i = 0; i < rvec_pdgId.size(); i++) {
+            int pdgid = rvec_pdgId.at(i);
+            int status = rvec_status.at(i);
+            int status_flag = rvec_status_flag.at(i);
+            if ((pdgid == 11 || pdgid == 13) &&
+                 IntBits(status_flag).test((int)GenStatusFlag::isHardProcess) &&
+                 IntBits(status_flag).test((int)GenStatusFlag::isPrompt) &&
+                 !IntBits(status_flag).test((int)GenStatusFlag::isTauDecayProduct)) {
+                if (idx > -1) {
+                    Logger::get("GenLepton")->critical("ERROR: more than 1 final state lepton with pdgId {}, prev idx {}, new idx {}", pdgid, idx, i);
+                    return -99;
+                }
+                idx = i;
+            }
+        }
+        return idx;
+    };
+
+    auto lambda_idx_2 = [](
+        const ROOT::RVec<int> &rvec_pdgId,
+        const ROOT::RVec<int> &rvec_status,
+        const ROOT::RVec<int> &rvec_status_flag) {
+        int idx = -99;
+        for (unsigned int i = 0; i < rvec_pdgId.size(); i++) {
+            int pdgid = rvec_pdgId.at(i);
+            int status = rvec_status.at(i);
+            int status_flag = rvec_status_flag.at(i);
+            if ((pdgid == -11 || pdgid == -13) &&
+                 IntBits(status_flag).test((int)GenStatusFlag::isHardProcess) &&
+                 IntBits(status_flag).test((int)GenStatusFlag::isPrompt) &&
+                 !IntBits(status_flag).test((int)GenStatusFlag::isTauDecayProduct)) {
+                if (idx > -1) {
+                    Logger::get("GenLepton")->critical("ERROR: more than 1 final state lepton with pdgId {}, prev idx {}, new idx {}", pdgid, idx, i);
+                    return -99;
+                }
+                idx = i;
+            }
+        }
+        return idx;
+    };
+
+    auto lambda_float = [](const int &idx, const ROOT::RVec<float> &col) {
+        return col.at(idx, default_float);
+    };
+    auto lambda_int = [](const int &idx, const ROOT::RVec<int> &col) {
+        return col.at(idx, default_int);
+    };
+
+    auto lambd_p4 = [](const float &pt, const float &eta, const float &phi, const float &mass) {
+        ROOT::Math::PtEtaPhiMVector p4;
+        if (pt > 0.) {
+            p4 = ROOT::Math::PtEtaPhiMVector(pt, eta, phi, mass);
+        } else {
+            p4 = ROOT::Math::PtEtaPhiMVector(
+                default_float, default_float,
+                default_float, default_float
+            );
+        }
+        return p4;
+    };
+
+    auto df1  =   df.Define("genlepPreFSR_idx_1", lambda_idx_1, {genparticles_pdgid, genparticles_status, genparticles_statusFlag});
+    auto df2  =  df1.Define("genlepPreFSR_idx_2", lambda_idx_2, {genparticles_pdgid, genparticles_status, genparticles_statusFlag});
+    auto df3  =  df2.Define("genlepPreFSR_pt_1", lambda_float, {"genlepPreFSR_idx_1", genparticles_pt});
+    auto df4  =  df3.Define("genlepPreFSR_eta_1", lambda_float, {"genlepPreFSR_idx_1", genparticles_eta});
+    auto df5  =  df4.Define("genlepPreFSR_phi_1", lambda_float, {"genlepPreFSR_idx_1", genparticles_phi});
+    auto df6  =  df5.Define("genlepPreFSR_mass_1", lambda_float, {"genlepPreFSR_idx_1", genparticles_mass});
+    auto df7  =  df6.Define("genlepPreFSR_pdgId_1", lambda_int, {"genlepPreFSR_idx_1", genparticles_pdgid});
+    auto df8  =  df7.Define("genlepPreFSR_pt_2", lambda_float, {"genlepPreFSR_idx_2", genparticles_pt});
+    auto df9  =  df8.Define("genlepPreFSR_eta_2", lambda_float, {"genlepPreFSR_idx_2", genparticles_eta});
+    auto df10 =  df9.Define("genlepPreFSR_phi_2", lambda_float, {"genlepPreFSR_idx_2", genparticles_phi});
+    auto df11 = df10.Define("genlepPreFSR_mass_2", lambda_float, {"genlepPreFSR_idx_2", genparticles_mass});
+    auto df12 = df11.Define("genlepPreFSR_pdgId_2", lambda_int, {"genlepPreFSR_idx_2", genparticles_pdgid});
+    auto df13 = df12.Define("genlepPreFSR_p4_1", lambd_p4, {"genlepPreFSR_pt_1", "genlepPreFSR_eta_1", "genlepPreFSR_phi_1", "genlepPreFSR_mass_1"});
+    auto df14 = df13.Define("genlepPreFSR_p4_2", lambd_p4, {"genlepPreFSR_pt_2", "genlepPreFSR_eta_2", "genlepPreFSR_phi_2", "genlepPreFSR_mass_2"});
+
+    return df14;
+}
+
+ROOT::RDF::RNode GenDressedLepton(ROOT::RDF::RNode df,
+                           const std::string &genparticles_pt,
+                           const std::string &genparticles_eta,
+                           const std::string &genparticles_phi,
+                           const std::string &genparticles_mass,
+                           const std::string &genparticles_pdgid,
+                           const std::string &genparticles_hasTauAnc,
+                           const std::string &genlep_p4_1,
+                           const std::string &genlep_p4_2) {
+
+    auto lambda_idx_1 = [](
+        const ROOT::RVec<float> &rvec_pt,
+        const ROOT::RVec<float> &rvec_eta,
+        const ROOT::RVec<float> &rvec_phi,
+        const ROOT::RVec<float> &rvec_mass,
+        const ROOT::RVec<int> &rvec_pdgId,
+        const ROOT::RVec<bool> &rvec_hasTauAnc,
+        ROOT::Math::PtEtaPhiMVector &genlep_p4) {
+        int idx = -99;
+        float dR_min = 0.3;
+
+        if (genlep_p4.pt() < 0.) {
+            return idx;
+        }
+
+        for (unsigned int i = 0; i < rvec_pt.size(); i++) {
+            ROOT::Math::PtEtaPhiMVector p4 = ROOT::Math::PtEtaPhiMVector(rvec_pt.at(i), rvec_eta.at(i), rvec_phi.at(i), rvec_mass.at(i));
+            int pdgid = rvec_pdgId.at(i);
+            bool hasTauAnc = rvec_hasTauAnc.at(i);
+            float dR_tmp = (float)ROOT::Math::VectorUtil::DeltaR(p4, genlep_p4);
+            if ((pdgid == 11 || pdgid == 13) && !hasTauAnc && (dR_tmp < dR_min)) {
+                idx = i;
+                dR_min = dR_tmp;
+            }
+        }
+        return idx;
+    };
+
+    auto lambda_idx_2 = [](
+        const ROOT::RVec<float> &rvec_pt,
+        const ROOT::RVec<float> &rvec_eta,
+        const ROOT::RVec<float> &rvec_phi,
+        const ROOT::RVec<float> &rvec_mass,
+        const ROOT::RVec<int> &rvec_pdgId,
+        const ROOT::RVec<bool> &rvec_hasTauAnc,
+        ROOT::Math::PtEtaPhiMVector &genlep_p4) {
+        int idx = -99;
+        float dR_min = 0.3;
+
+        if (genlep_p4.pt() < 0.) {
+            return idx;
+        }
+
+        for (unsigned int i = 0; i < rvec_pt.size(); i++) {
+            ROOT::Math::PtEtaPhiMVector p4 = ROOT::Math::PtEtaPhiMVector(rvec_pt.at(i), rvec_eta.at(i), rvec_phi.at(i), rvec_mass.at(i));
+            int pdgid = rvec_pdgId.at(i);
+            bool hasTauAnc = rvec_hasTauAnc.at(i);
+            float dR_tmp = (float)ROOT::Math::VectorUtil::DeltaR(p4, genlep_p4);
+            if ((pdgid == -11 || pdgid == -13) && !hasTauAnc && (dR_tmp < dR_min)) {
+                idx = i;
+                dR_min = dR_tmp;
+            }
+        }
+        return idx;
+    };
+
+    auto lambda_float = [](const int &idx, const ROOT::RVec<float> &col) {
+        return col.at(idx, default_float);
+    };
+    auto lambda_int = [](const int &idx, const ROOT::RVec<int> &col) {
+        return col.at(idx, default_int);
+    };
+
+    auto lambd_p4 = [](const float &pt, const float &eta, const float &phi, const float &mass) {
+        ROOT::Math::PtEtaPhiMVector p4;
+        if (pt > 0.) {
+            p4 = ROOT::Math::PtEtaPhiMVector(pt, eta, phi, mass);
+        } else {
+            p4 = ROOT::Math::PtEtaPhiMVector(
+                default_float, default_float,
+                default_float, default_float
+            );
+        }
+        return p4;
+    };
+
+    auto lambd_dR = [](ROOT::Math::PtEtaPhiMVector &genlep_p4, ROOT::Math::PtEtaPhiMVector &genDressed_p4) {
+        if (genlep_p4.pt() < 0. || genDressed_p4.pt() < 0.) {
+            return (float)99.;
+        }
+
+        return (float)ROOT::Math::VectorUtil::DeltaR(genDressed_p4, genlep_p4);
+    };
+
+    auto df1  =   df.Define("genDressed_idx_1", lambda_idx_1, {genparticles_pt, genparticles_eta, genparticles_phi, genparticles_mass, genparticles_pdgid, genparticles_hasTauAnc, genlep_p4_1});
+    auto df2  =  df1.Define("genDressed_idx_2", lambda_idx_2, {genparticles_pt, genparticles_eta, genparticles_phi, genparticles_mass, genparticles_pdgid, genparticles_hasTauAnc, genlep_p4_2});
+    auto df3  =  df2.Define("genDressed_pt_1", lambda_float, {"genDressed_idx_1", genparticles_pt});
+    auto df4  =  df3.Define("genDressed_eta_1", lambda_float, {"genDressed_idx_1", genparticles_eta});
+    auto df5  =  df4.Define("genDressed_phi_1", lambda_float, {"genDressed_idx_1", genparticles_phi});
+    auto df6  =  df5.Define("genDressed_mass_1", lambda_float, {"genDressed_idx_1", genparticles_mass});
+    auto df7  =  df6.Define("genDressed_pdgId_1", lambda_int, {"genDressed_idx_1", genparticles_pdgid});
+    auto df8  =  df7.Define("genDressed_pt_2", lambda_float, {"genDressed_idx_2", genparticles_pt});
+    auto df9  =  df8.Define("genDressed_eta_2", lambda_float, {"genDressed_idx_2", genparticles_eta});
+    auto df10 =  df9.Define("genDressed_phi_2", lambda_float, {"genDressed_idx_2", genparticles_phi});
+    auto df11 = df10.Define("genDressed_mass_2", lambda_float, {"genDressed_idx_2", genparticles_mass});
+    auto df12 = df11.Define("genDressed_pdgId_2", lambda_int, {"genDressed_idx_2", genparticles_pdgid});
+    auto df13 = df12.Define("genDressed_p4_1", lambd_p4, {"genDressed_pt_1", "genDressed_eta_1", "genDressed_phi_1", "genDressed_mass_1"});
+    auto df14 = df13.Define("genDressed_p4_2", lambd_p4, {"genDressed_pt_2", "genDressed_eta_2", "genDressed_phi_2", "genDressed_mass_2"});
+    auto df15 = df14.Define("genDressed_dR_1", lambd_dR, {genlep_p4_1, "genDressed_p4_1"});
+    auto df16 = df15.Define("genDressed_dR_2", lambd_dR, {genlep_p4_2, "genDressed_p4_2"});
+
+    return df16;
+}
+
+}
+
+namespace genflag {
+/**
+ * @brief Function to writeout a boolean flag to select a specific DY decay mode based on gen-level PDG ID
+ *
+ * @param df The input dataframe
+ * @param outputname The name of the output column
+ * @param genparticles_pdgid The name of the column containing the pdgids of the
+ genparticles
+ * @param genparticles_statusFlag The name of the column containing the
+ statusFlags of the genparticles
+ * @param pdgId The PDG ID of decayed leptons
+ * @return a dataframe with the output flag as a column named outputname
+ */
+ROOT::RDF::RNode DYGenFlag(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &genparticles_pdgid,
+                             const std::string &genparticles_statusFlag,
+                             const int &pdgId) {
+    auto lambda = [pdgId](const ROOT::RVec<int> &pdgids, const ROOT::RVec<int> &status_flags) {
+        bool found_0 = false;
+        bool found_1 = false;
+        for (unsigned int i = 0; i < pdgids.size(); i++) {
+            int pdgid = pdgids.at(i);
+            int status_flag = status_flags.at(i);
+            if (pdgid == pdgId && IntBits(status_flag).test((int)GenStatusFlag::isHardProcess)) {
+                found_0 = true;
+            } else if (pdgid == -pdgId && IntBits(status_flag).test((int)GenStatusFlag::isHardProcess)) {
+                found_1 = true;
+            }
+            if (found_0 && found_1)
+                break;
+        }
+        return (found_0 && found_1);
+    };
+    auto df1 =
+        df.Define(outputname, lambda,
+                  {genparticles_pdgid, genparticles_statusFlag});
+    return df1;
+}
+ROOT::RDF::RNode WGenFlag(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &genparticles_pdgid,
+                             const std::string &genparticles_statusFlag,
+                             const int &pdgId) {
+    auto lambda = [pdgId](const ROOT::RVec<int> &pdgids, const ROOT::RVec<int> &status_flags) {
+        bool found_0 = false;
+        bool found_1 = false;
+        for (unsigned int i = 0; i < pdgids.size(); i++) {
+            int pdgid = pdgids.at(i);
+            int status_flag = status_flags.at(i);
+            if (pdgid == pdgId && IntBits(status_flag).test((int)GenStatusFlag::isHardProcess)) {
+                found_0 = true;
+            } else if (pdgid == -pdgId && IntBits(status_flag).test((int)GenStatusFlag::isHardProcess)) {
+                found_1 = true;
+            }
+            if (found_0 || found_1)
+                break;
+        }
+        return (found_0 || found_1);
+    };
+    auto df1 =
+        df.Define(outputname, lambda,
+                  {genparticles_pdgid, genparticles_statusFlag});
+    return df1;
+}
+}
 
 namespace genmatching {
 
