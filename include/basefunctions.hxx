@@ -160,6 +160,25 @@ ROOT::RDF::RNode getvar(ROOT::RDF::RNode df, const std::string &outputname,
                      {position, column});
 }
 
+template <typename T>
+ROOT::RDF::RNode getvarsFromArray(ROOT::RDF::RNode df, const std::string &outputname_prefix,
+                                  const unsigned int &n,
+                                  const std::string &column) {
+    std::vector<ROOT::RDF::RNode> dfs_tmp = {df};
+    for (unsigned i=0; i<n; ++i) {
+        auto df_tmp = dfs_tmp.back().Define(
+            outputname_prefix+std::to_string(i),
+            [i](const ROOT::RVec<T> &col) {
+                return col.at(i, default_value<T>());
+            },
+            {column}
+        );
+        dfs_tmp.push_back(df_tmp);
+    }
+
+    return dfs_tmp.back();
+}
+
 /// Function to add a new quantity with a defined value
 ///
 /// \param df the dataframe to add the quantity to
