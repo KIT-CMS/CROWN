@@ -61,7 +61,7 @@ else
         git clone git@github.com:KIT-CMS/TauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/tau"
     elif [[ "$1" == "earlyrun3" && ! -d "${SCRIPT_DIR}/analysis_configurations/earlyrun3" ]]; then
         echo "Cloning analysis earlyrun3 into ${SCRIPT_DIR}/analysis_configurations/earlyrun3"
-        git clone https://github.com/khaosmos93/CROWN-config-earlyRun3.git "${SCRIPT_DIR}/analysis_configurations/earlyrun3"
+        git clone https://github.com/KIT-CMS/earlyRun3Analysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/earlyrun3"
     elif [[ "$1" == "whtautau" && ! -d "${SCRIPT_DIR}/analysis_configurations/whtautau" ]]; then
         echo "Cloning analysis whtautau into ${SCRIPT_DIR}/analysis_configurations/whtautau"
         git clone git@github.com:KIT-CMS/WHTauTauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/whtautau"
