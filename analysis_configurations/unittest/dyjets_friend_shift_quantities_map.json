@@ -1,0 +1,132 @@
+{
+    "2018": {
+        "dyjets": {
+            "et": {
+                "": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "jesUncTotalDown": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "jesUncTotalUp": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "metUnclusteredEnDown": [
+                    "iso_wgt_mu_friend_1",
+                    "id_wgt_mu_friend_1"
+                ],
+                "metUnclusteredEnUp": [
+                    "iso_wgt_mu_friend_1",
+                    "id_wgt_mu_friend_1"
+                ],
+                "tauES_1prong0pizeroDown": [
+                    "iso_wgt_mu_friend_1",
+                    "id_wgt_mu_friend_1"
+                ],
+                "tauMuFakeEsDown": [
+                    "iso_wgt_mu_friend_1",
+                    "id_wgt_mu_friend_1"
+                ],
+                "vsEleBarrelDown": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "vsJetTau30to35Down": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "vsMuWheel1Down": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ]
+            },
+            "mt": {
+                "": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "jesUncTotalDown": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "jesUncTotalUp": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "metUnclusteredEnDown": [
+                    "iso_wgt_mu_friend_1",
+                    "id_wgt_mu_friend_1"
+                ],
+                "metUnclusteredEnUp": [
+                    "iso_wgt_mu_friend_1",
+                    "id_wgt_mu_friend_1"
+                ],
+                "tauES_1prong0pizeroDown": [
+                    "iso_wgt_mu_friend_1",
+                    "id_wgt_mu_friend_1"
+                ],
+                "tauMuFakeEsDown": [
+                    "iso_wgt_mu_friend_1",
+                    "id_wgt_mu_friend_1"
+                ],
+                "vsEleBarrelDown": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "vsJetTau30to35Down": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "vsMuWheel1Down": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ]
+            },
+            "mm": {
+                "": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "jesUncTotalDown": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "jesUncTotalUp": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "metUnclusteredEnDown": [
+                    "iso_wgt_mu_friend_1",
+                    "id_wgt_mu_friend_1"
+                ],
+                "metUnclusteredEnUp": [
+                    "iso_wgt_mu_friend_1",
+                    "id_wgt_mu_friend_1"
+                ],
+                "tauES_1prong0pizeroDown": [
+                    "iso_wgt_mu_friend_1",
+                    "id_wgt_mu_friend_1"
+                ],
+                "tauMuFakeEsDown": [
+                    "iso_wgt_mu_friend_1",
+                    "id_wgt_mu_friend_1"
+                ],
+                "vsEleBarrelDown": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "vsJetTau30to35Down": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ],
+                "vsMuWheel1Down": [
+                    "id_wgt_mu_friend_1",
+                    "iso_wgt_mu_friend_1"
+                ]
+            }
+        }
+    }
+}

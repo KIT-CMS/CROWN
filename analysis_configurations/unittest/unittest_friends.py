@@ -3,17 +3,6 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 from typing import List, Union
 import os
 from .producers import muon_sf_friends as muon_sf_friends
-from .producers import event as event
-from .producers import genparticles as genparticles
-from .producers import jets as jets
-from .producers import met as met
-from .producers import muons as muons
-from .producers import pairquantities as pairquantities
-from .producers import pairselection as pairselection
-from .producers import scalefactors as scalefactors
-from .producers import taus as taus
-from .producers import triggers as triggers
-from .quantities import nanoAOD as nanoAOD
 from .quantities import output as q
 
 # from code_generation.configuration import Cnofiguration

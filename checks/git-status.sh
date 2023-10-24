@@ -8,7 +8,7 @@ if [ -z "$analysis" ] || [ -z "$basepath" ]; then
     exit 1
 fi
 # go to the basepath
-cd $basepath
+cd "$basepath"
 # get the status of the git repo and store it in a variable
 if output=$(git status --porcelain) && [ -z "$output" ]; then
     crown_is_clean="true"
@@ -19,9 +19,9 @@ fi
 # get the current commit hash and store it in a variable
 maingitcommit=$(git rev-parse HEAD)
 # cd into the analysis directory
-analysispath=$basepath/analysis_configurations/$analysis
+analysispath="$basepath/analysis_configurations/$analysis"
 if [ -d "$analysispath" ]; then
-    cd $analysispath
+    cd "$analysispath"
     # get the status of the git repo and store it in a variable
     if output=$(git status --porcelain) && [ -z "$output" ]; then
         analysis_is_clean="true"

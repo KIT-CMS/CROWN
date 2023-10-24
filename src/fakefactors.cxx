@@ -6,20 +6,20 @@
 #include "correction.h"
 
 namespace fakefactors {
-
-/// Function to calculate raw fake factors without corrections with
-/// correctionlib for the NMSSM Di-Higgs analysis for the semileptonic channel
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the output column for the fake factor
-/// \param tau_pt pt of the hadronic tau in the tau pair
-/// \param njets number of good jets in the event
-/// \param lep_mt transverse mass of the leptonic tau in the tau pair
-/// \param nbtags number of good b-tagged jets in the event
-/// \param variation name of the uncertainty variation or nominal
-/// \param ff_file correctionlib json file with the fake factors
-///
-/// \returns a dataframe with the fake factors
+/**
+ * @brief Function to calculate raw fake factors without corrections with
+ * correctionlib for the semileptonic channels
+ *
+ * @param df the input dataframe
+ * @param outputname name of the output column for the fake factor
+ * @param tau_pt pt of the hadronic tau in the tau pair
+ * @param njets number of good jets in the event
+ * @param lep_mt transverse mass of the leptonic tau in the tau pair
+ * @param nbtags number of good b-tagged jets in the event
+ * @param variation name of the uncertainty variation or nominal
+ * @param ff_file correctionlib json file with the fake factors
+ * @returns a dataframe with the fake factors
+ */
 ROOT::RDF::RNode
 raw_fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &tau_pt, const std::string &njets,
@@ -79,20 +79,20 @@ raw_fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
                          {tau_pt, njets, lep_mt, nbtags});
     return df1;
 }
-
-/// Function to calculate raw fake factors without corrections with
-/// correctionlib for the NMSSM Di-Higgs boosted analysis for the semileptonic channel
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the output column for the fake factor
-/// \param boosted_tau_pt pt of the hadronic tau in the boosted tau pair
-/// \param njets number of good jets in the event
-/// \param boosted_lep_mt transverse mass of the leptonic tau in the boosted tau pair
-/// \param nbtags number of good b-tagged jets in the event
-/// \param variation name of the uncertainty variation or nominal
-/// \param ff_file correctionlib json file with the fake factors
-///
-/// \returns a dataframe with the fake factors
+/**
+ * @brief Function to calculate raw fake factors without corrections with
+ * correctionlib for the NMSSM Di-Higgs boosted analysis for the semileptonic channel
+ *
+ * @param df the dataframe to add the quantity to
+ * @param outputname name of the output column for the fake factor
+ * @param boosted_tau_pt pt of the hadronic tau in the boosted tau pair
+ * @param njets number of good jets in the event
+ * @param boosted_lep_mt transverse mass of the leptonic tau in the boosted tau pair
+ * @param nbtags number of good b-tagged jets in the event
+ * @param variation name of the uncertainty variation or nominal
+ * @param ff_file correctionlib json file with the fake factors
+ * @returns a dataframe with the fake factors
+ */
 ROOT::RDF::RNode
 raw_fakefactor_nmssm_boosted_lt(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &boosted_tau_pt, const std::string &njets,
@@ -152,20 +152,20 @@ raw_fakefactor_nmssm_boosted_lt(ROOT::RDF::RNode df, const std::string &outputna
                          {boosted_tau_pt, njets, boosted_lep_mt, nbtags});
     return df1;
 }
-
-/// Function to calculate raw fake factors without corrections with
-/// correctionlib for the NMSSM Di-Higgs analysis for the full hadronic channel
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the output column for the fake factor
-/// \param tau_idx index of the tau, leading/subleading
-/// \param tau_pt_1 pt of the leading hadronic tau in the tau pair
-/// \param tau_pt_2 pt of the subleading hadronic tau in the tau pair
-/// \param njets number of good jets in the event
-/// \param variation name of the uncertainty variation or nominal
-/// \param ff_file correctionlib json file with the fake factors
-///
-/// \returns a dataframe with the fake factors
+/**
+ * @brief Function to calculate raw fake factors without corrections with
+ * correctionlib for the NMSSM Di-Higgs analysis for the full hadronic channel
+ *
+ * @param df the dataframe to add the quantity to
+ * @param outputname name of the output column for the fake factor
+ * @param tau_idx index of the tau, leading/subleading
+ * @param tau_pt_1 pt of the leading hadronic tau in the tau pair
+ * @param tau_pt_2 pt of the subleading hadronic tau in the tau pair
+ * @param njets number of good jets in the event
+ * @param variation name of the uncertainty variation or nominal
+ * @param ff_file correctionlib json file with the fake factors
+ * @returns a dataframe with the fake factors
+ */
 ROOT::RDF::RNode
 raw_fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname, 
                     const int &tau_idx, const std::string &tau_pt_1, 
@@ -188,8 +188,10 @@ raw_fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
                                 const int &njets) {
         float ff = -1.;
         if (pt_2 >= 0.) {
-            Logger::get("RawFakeFactor")->debug("Leading Tau pt - value {}", pt_1);
-            Logger::get("RawFakeFactor")->debug("Subleading Tau pt - value {}", pt_2);
+            Logger::get("RawFakeFactor")
+                ->debug("Leading Tau pt - value {}", pt_1);
+            Logger::get("RawFakeFactor")
+                ->debug("Subleading Tau pt - value {}", pt_2);
             Logger::get("RawFakeFactor")->debug("N jets - value {}", njets);
 
             float qcd_ff = -1.;
@@ -198,7 +200,8 @@ raw_fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
                 Logger::get("RawFakeFactor")->debug("QCD - value {}", qcd_ff);
                 ff = qcd_ff;
             } else if (tau_idx == 1) {
-                float qcd_ff = qcd_subleading ->evaluate({pt_2, (float)njets, variation});
+                float qcd_ff =
+                    qcd_subleading->evaluate({pt_2, (float)njets, variation});
                 Logger::get("RawFakeFactor")->debug("QCD - value {}", qcd_ff);
                 ff = qcd_ff;
             }
@@ -208,28 +211,28 @@ raw_fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
         return ff;
     };
     auto df1 =
-        df.Define(outputname, calc_fake_factor,
-                  {tau_pt_1, tau_pt_2, njets});
+        df.Define(outputname, calc_fake_factor, {tau_pt_1, tau_pt_2, njets});
     return df1;
 }
-
-/// Function to calculate fake factors with correctionlib for the NMSSM Di-Higgs analysis for the semileptonic channel
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the output column for the fake factor
-/// \param tau_pt pt of the hadronic tau in the tau pair
-/// \param njets number of good jets in the event
-/// \param lep_mt transverse mass of the leptonic tau in the tau pair
-/// \param nbtags number of good b-tagged jets in the event
-/// \param lep_pt pt of the leptonic tau in the tau pair
-/// \param lep_iso isolation of the leptonic tau in the tau pair
-/// \param m_vis visible mass of the tau pair
-/// \param variation name of the uncertainty variation or nominal
-/// \param ff_file correctionlib json file with the fake factors
-/// \param ff_corr_file correctionlib json file with corrections for the fake
-/// factors
-///
-/// \returns a dataframe with the fake factors
+/**
+ * @brief Function to calculate fake factors with correctionlib for the
+ * semileptonic channels
+ *
+ * @param df the input dataframe
+ * @param outputname name of the output column for the fake factor
+ * @param tau_pt pt of the hadronic tau in the tau pair
+ * @param njets number of good jets in the event
+ * @param lep_mt transverse mass of the leptonic tau in the tau pair
+ * @param nbtags number of good b-tagged jets in the event
+ * @param lep_pt pt of the leptonic tau in the tau pair
+ * @param lep_iso isolation of the leptonic tau in the tau pair
+ * @param m_vis visible mass of the tau pair
+ * @param variation name of the uncertainty variation or nominal
+ * @param ff_file correctionlib json file with the fake factors
+ * @param ff_corr_file correctionlib json file with corrections for the fake
+ * factors
+ * @returns a dataframe with the fake factors
+ */
 ROOT::RDF::RNode
 fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &tau_pt, const std::string &njets,
@@ -342,22 +345,22 @@ fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
     return df1;
 }
 
-/// Function to calculate fake factors with correctionlib for the NMSSM Di-Higgs boosted analysis for the semileptonic channel
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the output column for the fake factor
-/// \param boosted_tau_pt pt of the hadronic tau in the boosted tau pair
-/// \param njets number of good jets in the event
-/// \param boosted_lep_mt transverse mass of the leptonic tau in the boosted tau pair
-/// \param nbtags number of good b-tagged jets in the event
-/// \param boosted_lep_pt pt of the leptonic tau in the boosted tau pair
-/// \param boosted_m_vis visible mass of the boosted tau pair
-/// \param variation name of the uncertainty variation or nominal
-/// \param ff_file correctionlib json file with the fake factors
-/// \param ff_corr_file correctionlib json file with corrections for the fake
-/// factors
-///
-/// \returns a dataframe with the fake factors
+/** 
+ * @brief Function to calculate fake factors with correctionlib for the NMSSM Di-Higgs boosted analysis for the semileptonic channel
+ *
+ * @param df the dataframe to add the quantity to
+ * @param outputname name of the output column for the fake factor
+ * @param boosted_tau_pt pt of the hadronic tau in the boosted tau pair
+ * @param njets number of good jets in the event
+ * @param boosted_lep_mt transverse mass of the leptonic tau in the boosted tau pair
+ * @param nbtags number of good b-tagged jets in the event
+ * @param boosted_lep_pt pt of the leptonic tau in the boosted tau pair
+ * @param boosted_m_vis visible mass of the boosted tau pair
+ * @param variation name of the uncertainty variation or nominal
+ * @param ff_file correctionlib json file with the fake factors
+ * @param ff_corr_file correctionlib json file with corrections for the fake factors
+ * @returns a dataframe with the fake factors
+ */
 ROOT::RDF::RNode
 fakefactor_nmssm_boosted_lt(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &boosted_tau_pt, const std::string &njets,
@@ -471,22 +474,21 @@ fakefactor_nmssm_boosted_lt(ROOT::RDF::RNode df, const std::string &outputname,
                   {boosted_tau_pt, njets, boosted_lep_mt, nbtags, boosted_lep_pt, boosted_m_vis});
     return df1;
 }
-
-/// Function to calculate fake factors with correctionlib
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the output column for the fake factor
-/// \param tau_idx index of the tau, leading/subleading
-/// \param tau_pt_1 pt of the leading hadronic tau in the tau pair
-/// \param tau_pt_2 pt of the subleading hadronic tau in the tau pair
-/// \param njets number of good jets in the event
-/// \param m_vis visible mass of the tau pair
-/// \param variation name of the uncertainty variation or nominal
-/// \param ff_file correctionlib json file with the fake factors
-/// \param ff_corr_file correctionlib json file with corrections for the fake
-/// factors
-///
-/// \returns a dataframe with the fake factors
+/**
+ * @brief Function to calculate fake factors with correctionlib
+ *
+ * @param df the dataframe to add the quantity to
+ * @param outputname name of the output column for the fake factor
+ * @param tau_idx index of the tau, leading/subleading
+ * @param tau_pt_1 pt of the leading hadronic tau in the tau pair
+ * @param tau_pt_2 pt of the subleading hadronic tau in the tau pair
+ * @param njets number of good jets in the event
+ * @param m_vis visible mass of the tau pair
+ * @param variation name of the uncertainty variation or nominal
+ * @param ff_file correctionlib json file with the fake factors
+ * @param ff_corr_file correctionlib json file with corrections for the fake factors
+ * @returns a dataframe with the fake factors
+ */
 ROOT::RDF::RNode
 fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname, const int &tau_idx,
                     const std::string &tau_pt_1, const std::string &tau_pt_2,
@@ -529,7 +531,8 @@ fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname, const in
         float ff = -1.;
         if (pt_2 >= 0.) {
             Logger::get("FakeFactor")->debug("Leading Tau pt - value {}", pt_1);
-            Logger::get("FakeFactor")->debug("Subleading Tau pt - value {}", pt_2);
+            Logger::get("FakeFactor")
+                ->debug("Subleading Tau pt - value {}", pt_2);
             Logger::get("FakeFactor")->debug("m_vis - value {}", m_vis);
             Logger::get("FakeFactor")->debug("N jets - value {}", njets);
 
@@ -553,46 +556,51 @@ fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname, const in
                     ->debug("QCD - DR to SR correction {}", qcd_DR_SR_corr);
                 ff = qcd_ff * qcd_tau_pt_corr * qcd_m_vis_corr * qcd_DR_SR_corr;
             } else if (tau_idx == 1) {
-                float qcd_ff = qcd_subleading->evaluate({pt_2, (float)njets, variation});
-                Logger::get("FakeFactor")->debug("QCD(subleading) - value {}", qcd_ff);
+                float qcd_ff =
+                    qcd_subleading->evaluate({pt_2, (float)njets, variation});
+                Logger::get("FakeFactor")
+                    ->debug("QCD(subleading) - value {}", qcd_ff);
                 float qcd_tau_pt_corr =
                     qcd_tau_pt_closure_subleading->evaluate({pt_1, variation});
                 Logger::get("FakeFactor")
-                    ->debug("QCD(subleading) - lep pt correction {}", qcd_tau_pt_corr);
+                    ->debug("QCD(subleading) - lep pt correction {}",
+                            qcd_tau_pt_corr);
                 float qcd_m_vis_corr =
                     qcd_m_vis_closure_subleading->evaluate({m_vis, variation});
                 Logger::get("FakeFactor")
-                    ->debug("QCD(subleading) - visible mass correction {}", qcd_m_vis_corr);
-                float qcd_DR_SR_corr = qcd_DR_SR_subleading->evaluate({m_vis, variation});
+                    ->debug("QCD(subleading) - visible mass correction {}",
+                            qcd_m_vis_corr);
+                float qcd_DR_SR_corr =
+                    qcd_DR_SR_subleading->evaluate({m_vis, variation});
                 Logger::get("FakeFactor")
-                    ->debug("QCD(subleading) - DR to SR correction {}", qcd_DR_SR_corr);
+                    ->debug("QCD(subleading) - DR to SR correction {}",
+                            qcd_DR_SR_corr);
                 ff = qcd_ff * qcd_tau_pt_corr * qcd_m_vis_corr * qcd_DR_SR_corr;
-            }   
+            }
         }
 
         Logger::get("FakeFactor")->debug("Event Fake Factor {}", ff);
         return ff;
     };
-    auto df1 =
-        df.Define(outputname, calc_fake_factor,
-                  {tau_pt_1, tau_pt_2, njets, m_vis});
+    auto df1 = df.Define(outputname, calc_fake_factor,
+                         {tau_pt_1, tau_pt_2, njets, m_vis});
     return df1;
 }
-
-/// Function to calculate raw fake factors without corrections with
-/// correctionlib. In difference to the NMSSM version, njets is used for the
-/// fraction binning, and an additional split in deltaR is applied for wjets.
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the output column for the fake factor
-/// \param tau_pt pt of the hadronic tau in the tau pair
-/// \param njets number of good jets in the event
-/// \param lep_mt transverse mass of the leptonic tau in the tau pair
-/// \param delta_r delta R between the two taus
-/// \param variation name of the uncertainty variation or nominal
-/// \param ff_file correctionlib json file with the fake factors
-///
-/// \returns a dataframe with the fake factors
+/**
+ * @brief Function to calculate raw fake factors without corrections with
+ * correctionlib. In difference to the NMSSM version, njets is used for the
+ * fraction binning, and an additional split in deltaR is applied for wjets.
+ *
+ * @param df the input dataframe
+ * @param outputname name of the output column for the fake factor
+ * @param tau_pt pt of the hadronic tau in the tau pair
+ * @param njets number of good jets in the event
+ * @param lep_mt transverse mass of the leptonic tau in the tau pair
+ * @param delta_r delta R between the two taus
+ * @param variation name of the uncertainty variation or nominal
+ * @param ff_file correctionlib json file with the fake factors
+ * @returns a dataframe with the fake factors
+ */
 ROOT::RDF::RNode
 raw_fakefactor_sm_lt(ROOT::RDF::RNode df, const std::string &outputname,
                      const std::string &tau_pt, const std::string &njets,
@@ -655,27 +663,25 @@ raw_fakefactor_sm_lt(ROOT::RDF::RNode df, const std::string &outputname,
                          {tau_pt, njets, lep_mt, delta_r});
     return df1;
 }
-
-/// Function to calculate fake factors with correctionlib.
-/// In difference to the NMSSM version, njets is used for the
-/// fraction binning, and an additional split in deltaR is
-/// applied for wjets.
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the output column for the fake factor
-/// \param tau_pt pt of the hadronic tau in the tau pair
-/// \param njets number of good jets in the event
-/// \param lep_mt transverse mass of the leptonic tau in the tau pair
-/// \param lep_pt pt of the leptonic tau in the tau pair
-/// \param lep_iso isolation of the leptonic tau in the tau pair
-/// \param m_vis visible mass of the tau pair
-/// \param delta_r distance in eta-phi between the two taus
-/// \param variation name of the uncertainty variation or nominal
-/// \param ff_file correctionlib json file with the fake factors
-/// \param ff_corr_file correctionlib json file with corrections for the fake
-/// factors
-///
-/// \returns a dataframe with the fake factors
+/**
+ * @brief Function to calculate fake factors with correctionlib. In difference
+ * to the NMSSM version, njets is used for the fraction binning, and an
+ * additional split in deltaR is applied for wjets.
+ * @param df the input dataframe
+ * @param outputname name of the output column for the fake factor
+ * @param tau_pt pt of the hadronic tau in the tau pair
+ * @param njets number of good jets in the event
+ * @param lep_mt transverse mass of the leptonic tau in the tau pair
+ * @param lep_pt pt of the leptonic tau in the tau pair
+ * @param lep_iso isolation of the leptonic tau in the tau pair
+ * @param m_vis visible mass of the tau pair
+ * @param delta_r distance in eta-phi between the two taus
+ * @param variation name of the uncertainty variation or nominal
+ * @param ff_file correctionlib json file with the fake factors
+ * @param ff_corr_file correctionlib json file with corrections for the fake
+ * factors
+ * @returns a dataframe with the fake factors
+ */
 ROOT::RDF::RNode
 fakefactor_sm_lt(ROOT::RDF::RNode df, const std::string &outputname,
                  const std::string &tau_pt, const std::string &njets,

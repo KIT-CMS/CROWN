@@ -25,6 +25,18 @@ class InvalidOutputError(ConfigurationError):
         super().__init__(self.message)
 
 
+class InvalidInputError(ConfigurationError):
+    """
+    Exception raised when the list of avialable inputs does not cover all quantities required.
+    """
+
+    def __init__(self, scope: str, outputs: Union[Set[str], List[str]]):
+        self.message = "The required inputs {} for the scope '{}' are not provided by any inputfile or producer \n Please check the error message above to find all misconfigured producers".format(
+            outputs, scope
+        )
+        super().__init__(self.message)
+
+
 class ScopeConfigurationError(ConfigurationError):
     """
     Exception raised when the scope configuration provided by the user is not valid.

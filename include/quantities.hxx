@@ -116,6 +116,9 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &outputname,
 ROOT::RDF::RNode is_global(ROOT::RDF::RNode df, const std::string &outputname,
                            const int &position, const std::string &pairname,
                            const std::string &globalflagcolumn);
+ROOT::RDF::RNode is_tracker(ROOT::RDF::RNode df, const std::string &outputname,
+                            const int &position, const std::string &pairname,
+                            const std::string &trackerflagcolumn);
 } // namespace muon
 namespace electron {
 ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &outputname,
