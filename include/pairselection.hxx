@@ -36,6 +36,8 @@ auto compareForPairs(const ROOT::RVec<float> &lep1pt,
                      const ROOT::RVec<float> &lep1iso,
                      const ROOT::RVec<float> &lep2pt,
                      const ROOT::RVec<float> &lep2iso);
+ROOT::RDF::RNode findAdditionalTau(ROOT::RDF::RNode df, const std::string &outputname, 
+                                   const std::string &tau_mask, const std::string &pairname);
 }// end namespace pairselection
 
 namespace ditau_pairselection {
@@ -113,12 +115,19 @@ ZBosonPairSelection(ROOT::RDF::RNode df,
 } // end namespace ditau_pairselection
 
 namespace boosted_ditau_pairselection {
-auto compareForPairs(const ROOT::RVec<float> &lep1pt,
-                     const ROOT::RVec<float> &lep2pt);
+auto compareForPairs(const ROOT::RVec<float> &lep1pt, const ROOT::RVec<float> &lep1eta, const ROOT::RVec<float> &lep1phi, const ROOT::RVec<float> &lep1mass,
+                     const ROOT::RVec<float> &lep2pt, const ROOT::RVec<float> &lep2eta, const ROOT::RVec<float> &lep2phi, const ROOT::RVec<float> &lep2mass);
 namespace semileptonic {
 auto PairSelectionAlgo(const float &mindeltaR, const float &maxdeltaR);
 } // end namespace semileptonic
 namespace mutau {
+
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vector,
+                               const std::string &pairname,
+                               const float &mindeltaR, const float &maxdeltaR);
+} // end namespace mutau
+namespace eltau {
 
 ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,

@@ -358,6 +358,46 @@ auto compareForPairs(const ROOT::RVec<float> &lep1pt,
         return result;
     };
 }
+
+/**
+ * @brief Function to find the index of an additional hadronic tau besides the hadronic tau from 
+ * the selected tau pair. This function is constructed for the semileptonic channels.
+ *
+ * @param df the Dataframe
+ * @param outputname the column containing the name of the output column
+ * @param tau_mask the column containing the mask of good taus
+ * @param pairname the column containing the selected tau pair indices
+ * @return the new Dataframe with the additional tau index column
+ */
+ROOT::RDF::RNode findAdditionalTau(ROOT::RDF::RNode df, const std::string &tau_mask, 
+                                const std::string &pairname, const std::string &outputname) {
+    return df.Define(
+        outputname,
+        [](const ROOT::RVec<int> &mask, const ROOT::RVec<int> &pair) {
+            const int selected_index = pair.at(1);
+            ROOT::RVec<int> selected_additional_tau = {-1};
+            const auto original_tau_indices = ROOT::VecOps::Nonzero(mask);
+            Logger::get("findAdditionalTau")
+                ->debug("tau mask {}", original_tau_indices);
+            Logger::get("findAdditionalTau")
+                ->debug("Selected pair {}", pair);
+            if (original_tau_indices.size() == 0 || selected_index < 0) {
+                Logger::get("findAdditionalTau")
+                    ->debug("no add. tau {}", selected_additional_tau);
+                return selected_additional_tau;
+            }
+            for (auto &idx : original_tau_indices) {
+                if (selected_index != idx) {
+                    selected_additional_tau = {static_cast<int>(idx)};
+                    break;
+                }
+            }
+            Logger::get("findAdditionalTau")
+                ->debug("add. tau {}", selected_additional_tau);
+            return selected_additional_tau;
+        },
+        {tau_mask, pairname});
+}
 } // end namespace pairselection
 
 namespace ditau_pairselection {
@@ -1242,8 +1282,7 @@ namespace boosted_ditau_pairselection {
 /// of the second particle
 ///
 /// \returns true or false based on the particle ordering.
-auto compareForPairs(const ROOT::RVec<float> &lep1pt,
-                     const ROOT::RVec<float> &lep2pt) {
+auto compareForPairs(const ROOT::RVec<float> &lep1pt, const ROOT::RVec<float> &lep2pt) {
     return [lep1pt, lep2pt](auto value_next, auto value_previous) {
         Logger::get("PairSelectionCompare")->debug("lep1 Pt: {}", lep1pt);
         Logger::get("PairSelectionCompare")->debug("lep2 Pt: {}", lep2pt);
@@ -1257,18 +1296,17 @@ auto compareForPairs(const ROOT::RVec<float> &lep1pt,
                     std::to_string(value_previous.second));
         const auto i1_next = value_next.first;
         const auto i1_previous = value_previous.first;
+        const auto i2_next = value_next.second;
+        const auto i2_previous = value_previous.second;
         Logger::get("PairSelectionCompare")
             ->debug("i1_next: {}, i1_previous : {}", i1_next, i1_previous);
         // start with lep1 isolation
         const auto pt1_next = lep1pt.at(i1_next);
         const auto pt1_previous = lep1pt.at(i1_previous);
-        Logger::get("PairSelectionCompare")
-            ->debug("pt lep 1: {}, {}", pt1_next, pt1_previous);
+
         if (not utility::ApproxEqual(pt1_next, pt1_previous)) {
             result = pt1_next > pt1_previous;
         } else {
-            const auto i2_next = value_next.second;
-            const auto i2_previous = value_previous.second;
             // if too similar, compare lep2 pt
             Logger::get("PairSelectionCompare")
                 ->debug("pt lep 1 too similar, taking pt 2");
@@ -1439,6 +1477,47 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
     return df1;
 }
 } // end namespace mutau
+namespace eltau {
+
+/**
+ * @brief Function used to select the pair of boosted tau leptons based on the standard
+ * pair selection algorithm
+ *
+ * @param df the input dataframe
+ * @param input_vector vector of strings containing the columns needed for the
+ * alogrithm. For the ElTau pair selection these values are:
+    - boostedtau_pt
+    - boostedtau_eta
+    - boostedtau_phi
+    - boostedtau_mass
+    - electron_pt
+    - electron_eta
+    - electron_phi
+    - electron_mass
+    - boostedtau_mask containing the flags whether the tau is a good tau or not
+    - electron_mask containing the flags whether the electron is a good electron
+ or not
+ * @param pairname name of the new column containing the pair index
+ * @param mindeltaR the seperation between the electron at the tau has to be larger than
+ * this value
+ * @param maxdeltaR the seperation between the electron at the tau has to be smaller
+ * than this value
+ * @return a new dataframe with the pair index column added
+ */
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vector,
+                               const std::string &pairname,
+                               const float &mindeltaR, const float &maxdeltaR) {
+    Logger::get("eltau::PairSelection")
+        ->debug("Setting up boosted ElTau pair building");
+    auto df1 = df.Define(
+        pairname,
+        boosted_ditau_pairselection::semileptonic::PairSelectionAlgo(mindeltaR, maxdeltaR),
+        input_vector);
+    return df1;
+}
+
+} // end namespace eltau
 } // end namespace boosted_ditau_pairselection
 
 
