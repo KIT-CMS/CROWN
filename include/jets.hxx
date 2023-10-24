@@ -51,6 +51,10 @@ JetPtCorrection_data(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
                      const std::string &jet_rawFactor, const std::string &rho,
                      const std::string &jec_file, const std::string &jes_tag,
                      const std::string &jec_algo);
+ROOT::RDF::RNode
+BJetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_bjet_pt,
+                           const std::string &jet_pt, const std::string &good_bjet_mask,
+                           const std::string &corr_factor);
 ROOT::RDF::RNode CutRawID(ROOT::RDF::RNode df, const std::string &quantity,
                           const std::string &maskname,
                           const float &idThreshold);
