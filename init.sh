@@ -24,8 +24,8 @@ if [[ "$distro" == "CentOS" ]]; then
     fi
 elif [[ "$distro" == "RedHatEnterprise" ]]; then
     if [[ ${os_version:0:1} == "8" ]]; then # elif uname -a | grep -E 'el8' -q
-        # no lcg 103 available for centOS 8
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos8-gcc11-opt/setup.sh
+        # source /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos8-gcc11-opt/setup.sh
+	source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-centos8-gcc11-opt/setup.sh
     else
         echo "Unsupported CentOS version, exiting..."
         return 0
