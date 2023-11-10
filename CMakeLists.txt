@@ -273,7 +273,7 @@ if(BUILD_CROWNLIB_ONLY)
     message(STATUS "Building only the CROWNLIB library")
     add_library(CROWNLIB SHARED ${SOURCES})
     target_include_directories(CROWNLIB PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
-    target_link_libraries(CROWNLIB ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit ROOT::GenVector logging correctionlib nlohmann_json::nlohmann_json)
+    target_link_libraries(CROWNLIB ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit ROOT::GenVector ROOT::PyMVA logging correctionlib nlohmann_json::nlohmann_json)
     install(TARGETS CROWNLIB DESTINATION ${INSTALLDIR}/lib )
     return()
 endif()
@@ -284,7 +284,7 @@ if(NOT CROWNLIB_FOUND)
     # CROWNLIB not found, build it
     add_library(CROWNLIB SHARED ${SOURCES})
     target_include_directories(CROWNLIB PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
-    target_link_libraries(CROWNLIB ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit ROOT::GenVector logging correctionlib nlohmann_json::nlohmann_json)
+    target_link_libraries(CROWNLIB ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit ROOT::GenVector ROOT::PyMVA logging correctionlib nlohmann_json::nlohmann_json)
     install(TARGETS CROWNLIB DESTINATION ${INSTALLDIR}/lib)
 else()
     message(STATUS "Found CROWNLIB in ${CROWNLIB_FOUND}")
@@ -363,7 +363,7 @@ foreach(FILENAME ${FILELIST})
     add_executable(${TARGET_NAME} ${FULL_PATH} ${GENERATED_CXX_FILES})
     # Adds a pre-build event to the Target copying the correctionlib.so file into the /lib folder in the install directory
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} $ORIGIN/lib/ lib/)
-    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit ROOT::GenVector logging correctionlib nlohmann_json::nlohmann_json CROWNLIB)
+    target_link_libraries(${TARGET_NAME} ROOT::ROOTVecOps ROOT::ROOTDataFrame ROOT::RooFit ROOT::GenVector ROOT::PyMVA logging correctionlib nlohmann_json::nlohmann_json CROWNLIB)
     add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CORRECTION_LIB_PATH}"
