@@ -101,7 +101,7 @@ message(STATUS "Creating Project")
 project(CROWN CXX)
 message(STATUS "Finding Packages")
 # Find ROOT and print details
-find_package(ROOT 6.26 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit GenVector)
+find_package(ROOT 6.28 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit GenVector PyMVA)
 # add OpenMP and MPI
 find_package(OpenMP)
 find_package(MPI)
