@@ -147,11 +147,11 @@ namespace sofie {
 
   std::string SOFIEGenerator(const std::vector<std::string> &input_vec,
                                TMVA::Experimental::SOFIE::RModel &model,
-                               const std::string &modelfile) {
+                               const std::string &modelFilePath) {
 
-    std::string base_filename = std::filesystem::path(modelfile).filename();
-    std::string::size_type const p(base_filename.find_last_of('.'));
-    std::string modelName = base_filename.substr(0, p);
+    std::string modelFileName = std::filesystem::path(modelFilePath).filename();
+    std::string::size_type const p(modelFileName.find_last_of('.'));
+    std::string modelName = modelFileName.substr(0, p);
 
     std::string modelHeaderFile = modelName + std::string(".hxx");
 
@@ -189,16 +189,16 @@ namespace sofie {
 ROOT::RDF::RNode KerasEvaluate(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vec,
                                const std::string &outputname,
-                               const std::string &modelfile) {
+                               const std::string &modelFilePath) {
 
 
   Logger::get("KerasEvaluate")
-    ->debug("loading model file {} ...", modelfile);
-  TMVA::Experimental::SOFIE::RModel model = TMVA::Experimental::SOFIE::PyKeras::Parse(modelfile);
+    ->debug("loading model file {} ...", modelFilePath);
+  TMVA::Experimental::SOFIE::RModel model = TMVA::Experimental::SOFIE::PyKeras::Parse(modelFilePath);
   Logger::get("KerasEvaluate")
     ->debug("finished loading model");
 
-  auto df2 = df.Define(outputname, SOFIEGenerator(input_vec, model, modelfile));
+  auto df2 = df.Define(outputname, SOFIEGenerator(input_vec, model, modelFilePath));
 
   return df2;
 
@@ -208,7 +208,7 @@ ROOT::RDF::RNode KerasEvaluate(ROOT::RDF::RNode df,
 ROOT::RDF::RNode PyTorchEvaluate(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vec,
                                const std::string &outputname,
-                               const std::string &modelfile) {
+                               const std::string &modelFilePath) {
 
 
   Logger::get("PyTorchEvaluate")
@@ -217,12 +217,12 @@ ROOT::RDF::RNode PyTorchEvaluate(ROOT::RDF::RNode df,
   std::vector<std::vector<size_t>> inputShapesSequential{inputTensorShapeSequential};
 
   Logger::get("PyTorchEvaluate")
-    ->debug("loading model file {} ...", modelfile);
-  TMVA::Experimental::SOFIE::RModel model = TMVA::Experimental::SOFIE::PyTorch::Parse(modelfile, inputShapesSequential);
+    ->debug("loading model file {} ...", modelFilePath);
+  TMVA::Experimental::SOFIE::RModel model = TMVA::Experimental::SOFIE::PyTorch::Parse(modelFilePath, inputShapesSequential);
   Logger::get("PyTorchEvaluate")
     ->debug("finished loading model");
 
-  auto df2 = df.Define(outputname, SOFIEGenerator(input_vec, model, modelfile));
+  auto df2 = df.Define(outputname, SOFIEGenerator(input_vec, model, modelFilePath));
 
   return df2;
 

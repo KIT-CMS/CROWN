@@ -28,15 +28,15 @@ namespace sofie {
 
   std::string SOFIEGenerator(const std::vector<std::string> &input_vec,
 			     TMVA::Experimental::SOFIE::RModel &model,
-			     const std::string &modelfile);
+			     const std::string &modelFilePath);
 
   ROOT::RDF::RNode KerasEvaluate(ROOT::RDF::RNode df, const std::vector<std::string> &input_vec,
 				 const std::string &outputname,
-				 const std::string &modelfile);
+				 const std::string &modelFilePath);
 
   ROOT::RDF::RNode PyTorchEvaluate(ROOT::RDF::RNode df, const std::vector<std::string> &input_vec,
 				 const std::string &outputname,
-				 const std::string &modelfile);
+				 const std::string &modelFilePath);
 
 
 
