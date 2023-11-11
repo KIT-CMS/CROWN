@@ -38,6 +38,9 @@ namespace sofie {
 				 const std::string &outputname,
 				 const std::string &modelFilePath);
 
+  // ROOT::RDF::RNode ONNXEvaluate(ROOT::RDF::RNode df, const std::vector<std::string> &input_vec,
+  // 				 const std::string &outputname,
+  // 				 const std::string &modelFilePath);
 
 
 } // end namespace sofie

@@ -14,6 +14,7 @@
 #include "TMVA/RModel.hxx"
 #include "TMVA/RModelParser_Keras.h"
 #include "TMVA/RModelParser_PyTorch.h"
+// #include "TMVA/RModelParser_ONNX.hxx"
 #include "TMVA/SOFIEHelpers.hxx"
 #include "TInterpreter.h"
 #include "TSystem.h"
@@ -227,6 +228,29 @@ ROOT::RDF::RNode PyTorchEvaluate(ROOT::RDF::RNode df,
   return df2;
 
 }
+
+
+// ROOT::RDF::RNode ONNXEvaluate(ROOT::RDF::RNode df,
+//                                const std::vector<std::string> &input_vec,
+//                                const std::string &outputname,
+//                                const std::string &modelFilePath) {
+
+
+//   bool verboseParser = false;
+
+//   Logger::get("ONNXEvaluate")
+//     ->debug("loading model file {} ...", modelFilePath);
+//   TMVA::Experimental::SOFIE::RModelParser_ONNX  parser;
+//   TMVA::Experimental::SOFIE::RModel model = parser.Parse(modelFilePath, verboseParser);
+//   Logger::get("ONNXEvaluate")
+//     ->debug("finished loading model");
+
+//   auto df2 = df.Define(outputname, SOFIEGenerator(input_vec, model, modelFilePath));
+
+//   return df2;
+
+// }
+
 
 
 } // end namespace sofie
