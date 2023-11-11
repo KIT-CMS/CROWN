@@ -34,6 +34,10 @@ namespace sofie {
 				 const std::string &outputname,
 				 const std::string &modelfile);
 
+  ROOT::RDF::RNode PyTorchEvaluate(ROOT::RDF::RNode df, const std::vector<std::string> &input_vec,
+				 const std::string &outputname,
+				 const std::string &modelfile);
+
 
 
 } // end namespace sofie

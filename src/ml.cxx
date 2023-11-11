@@ -13,6 +13,7 @@
 
 #include "TMVA/RModel.hxx"
 #include "TMVA/RModelParser_Keras.h"
+#include "TMVA/RModelParser_PyTorch.h"
 #include "TMVA/SOFIEHelpers.hxx"
 #include "TInterpreter.h"
 #include "TSystem.h"
@@ -195,6 +196,30 @@ ROOT::RDF::RNode KerasEvaluate(ROOT::RDF::RNode df,
     ->debug("loading model file {} ...", modelfile);
   TMVA::Experimental::SOFIE::RModel model = TMVA::Experimental::SOFIE::PyKeras::Parse(modelfile);
   Logger::get("KerasEvaluate")
+    ->debug("finished loading model");
+
+  auto df2 = df.Define(outputname, SOFIEGenerator(input_vec, model, modelfile));
+
+  return df2;
+
+}
+
+
+ROOT::RDF::RNode PyTorchEvaluate(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vec,
+                               const std::string &outputname,
+                               const std::string &modelfile) {
+
+
+  Logger::get("PyTorchEvaluate")
+    ->debug("deriving input shapes...");
+  std::vector<size_t> inputTensorShapeSequential{1,input_vec.size()};
+  std::vector<std::vector<size_t>> inputShapesSequential{inputTensorShapeSequential};
+
+  Logger::get("PyTorchEvaluate")
+    ->debug("loading model file {} ...", modelfile);
+  TMVA::Experimental::SOFIE::RModel model = TMVA::Experimental::SOFIE::PyTorch::Parse(modelfile, inputShapesSequential);
+  Logger::get("PyTorchEvaluate")
     ->debug("finished loading model");
 
   auto df2 = df.Define(outputname, SOFIEGenerator(input_vec, model, modelfile));
