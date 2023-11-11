@@ -19,7 +19,7 @@
 
 
 #include <iostream>
-
+#include <filesystem>
 
 
 std::vector<std::vector<double>> readCSV(const std::string& filename) {
@@ -144,38 +144,33 @@ namespace sofie {
     return;
   }
 
-ROOT::RDF::RNode KerasEvaluate(ROOT::RDF::RNode df,
-                               const std::vector<std::string> &input_vec,
-                               const std::string &outputname,
+  std::string SOFIEGenerator(const std::vector<std::string> &input_vec,
+                               TMVA::Experimental::SOFIE::RModel &model,
                                const std::string &modelfile) {
 
-  Logger::get("KerasEvaluate")
-    ->debug("loading model file {} ...", modelfile);
-  TMVA::Experimental::SOFIE::RModel model = TMVA::Experimental::SOFIE::PyKeras::Parse(modelfile);
+    std::string base_filename = std::filesystem::path(modelfile).filename();
+    std::string::size_type const p(base_filename.find_last_of('.'));
+    std::string modelName = base_filename.substr(0, p);
 
-  Logger::get("KerasEvaluate")
-    ->debug("finished loading model");
+    std::string modelHeaderFile = modelName + std::string(".hxx");
 
-  std::string modelName = "complete";
-  std::string modelHeaderFile = modelName + std::string(".hxx");
-
-  Logger::get("KerasEvaluate")
+  Logger::get("SOFIEGenerator")
     ->debug("generating model code...");
   model.Generate();
-  Logger::get("KerasEvaluate")
-    ->debug("dumping model code...");
+  Logger::get("SOFIEGenerator")
+    ->debug("dumping model code... {}", modelHeaderFile);
   model.OutputGenerated(modelHeaderFile);
-  // Logger::get("KerasEvaluate")
+  // Logger::get("SOFIEGenerator")
   //   ->debug("printing model code...");
   // model.PrintGenerated();
 
   std::string modelWeightFile = modelName + std::string(".dat");
 
-  Logger::get("KerasEvaluate")
+  Logger::get("SOFIEGenerator")
     ->debug("compiling model code...");
   CompileModelForRDF(modelHeaderFile, input_vec.size());
 
-  Logger::get("KerasEvaluate")
+  Logger::get("SOFIEGenerator")
     ->debug("evaluating model code...");
 
   std::string sofie_func_str = "sofie_functor(rdfslot_, ";
@@ -185,13 +180,29 @@ ROOT::RDF::RNode KerasEvaluate(ROOT::RDF::RNode df,
   }
   sofie_func_str += ")";
 
+  return sofie_func_str;
 
-  auto df2 = df.Define(outputname, sofie_func_str);
+}
 
+
+ROOT::RDF::RNode KerasEvaluate(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vec,
+                               const std::string &outputname,
+                               const std::string &modelfile) {
+
+
+  Logger::get("KerasEvaluate")
+    ->debug("loading model file {} ...", modelfile);
+  TMVA::Experimental::SOFIE::RModel model = TMVA::Experimental::SOFIE::PyKeras::Parse(modelfile);
+  Logger::get("KerasEvaluate")
+    ->debug("finished loading model");
+
+  auto df2 = df.Define(outputname, SOFIEGenerator(input_vec, model, modelfile));
 
   return df2;
 
-};
+}
+
 
 } // end namespace sofie
 } // end namespace ml

@@ -6,6 +6,7 @@
 #include "utility/Logger.hxx"
 #include "vectoroperations.hxx"
 #include <Math/Vector4D.h>
+#include "TMVA/RModel.hxx"
 
 
 std::vector<std::vector<double>> readCSV(const std::string& filename);
@@ -24,9 +25,16 @@ namespace sofie {
 
   void CompileModelForRDF(const std::string & headerModelFile, unsigned int ninputs, unsigned int nslots=0);
 
+
+  std::string SOFIEGenerator(const std::vector<std::string> &input_vec,
+			     TMVA::Experimental::SOFIE::RModel &model,
+			     const std::string &modelfile);
+
   ROOT::RDF::RNode KerasEvaluate(ROOT::RDF::RNode df, const std::vector<std::string> &input_vec,
 				 const std::string &outputname,
 				 const std::string &modelfile);
+
+
 
 } // end namespace sofie
 } // end namespace ml
