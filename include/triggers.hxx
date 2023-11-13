@@ -55,6 +55,10 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
     const int &p2_trigger_particle_id_cut, const int &p1_triggerbit_cut,
     const int &p2_triggerbit_cut, const float &DeltaR_threshold);
 
+ROOT::RDF::RNode GenerateTriggerFlag(
+    ROOT::RDF::RNode df, const std::string &triggerflag_name,
+    const std::string &hltpath);
+
 ROOT::RDF::RNode GetPrescaleValues(ROOT::RDF::RNode df,
                                    const std::string &prescale_columnname,
                                    const std::string &hlt_columnname,

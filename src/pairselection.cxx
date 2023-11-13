@@ -1414,7 +1414,7 @@ auto PairSelectionAlgo(const float &mindeltaR, const float &maxdeltaR) {
             Logger::get("semileptonic::PairSelectionAlgo")
                 ->debug("DeltaR: {}",
                         ROOT::Math::VectorUtil::DeltaR(lepton, tau));
-            if (ROOT::Math::VectorUtil::DeltaR(lepton, tau) > mindeltaR && ROOT::Math::VectorUtil::DeltaR(lepton, tau) < maxdeltaR) {
+            if ((ROOT::Math::VectorUtil::DeltaR(lepton, tau) > mindeltaR) && (ROOT::Math::VectorUtil::DeltaR(lepton, tau) < maxdeltaR)) {
                 Logger::get("semileptonic::PairSelectionAlgo")
                     ->debug(
                         "Selected original pair indices: mu = {} , tau = {}",
@@ -1437,6 +1437,113 @@ auto PairSelectionAlgo(const float &mindeltaR, const float &maxdeltaR) {
     };
 }
 } // end namespace semileptonic
+
+namespace fullhadronic {
+
+/// Implementation of the ditau pair selection algorithm for the fullhadronic
+/// channel. First, only events that contain two goodboostedTaus are considered. Events
+/// contain at two good boostedtau, if the boostedtau_mask has at least two nonzero elements.
+/// These mask is contructed constructed using the functions from the
+/// physicsobject namespace (e.g. physicsobject::CutPt).
+///
+/// \returns an `ROOT::RVec<int>` with two values, the first one beeing
+/// the leading tau index and the second one beeing trailing tau index.
+auto PairSelectionAlgo(const float &mindeltaR, const float &maxdeltaR) {
+    Logger::get("fullhadronic::PairSelectionAlgo")
+        ->debug("Setting up algorithm");
+    return [mindeltaR, maxdeltaR](const ROOT::RVec<float> &tau_pt,
+                       const ROOT::RVec<float> &tau_eta,
+                       const ROOT::RVec<float> &tau_phi,
+                       const ROOT::RVec<float> &tau_mass,
+                       const ROOT::RVec<int> &boostedtau_mask) {
+        // first entry is the leading tau index,
+        // second entry is the trailing tau index
+        ROOT::RVec<int> selected_pair = {-1, -1};
+        const auto original_tau_indices = ROOT::VecOps::Nonzero(boostedtau_mask);
+
+        if (original_tau_indices.size() < 2) {
+            return selected_pair;
+        }
+        Logger::get("fullhadronic::PairSelectionAlgo")
+            ->debug("Running algorithm on good taus");
+
+        const auto selected_tau_pt =
+            ROOT::VecOps::Take(tau_pt, original_tau_indices);
+
+        Logger::get("fullhadronic::PairSelectionAlgo")
+            ->debug("Original TauPt: {}", tau_pt);
+
+        Logger::get("fullhadronic::PairSelectionAlgo")
+            ->debug("Selected TauPt: {}", selected_tau_pt);
+
+        const auto pair_indices = ROOT::VecOps::Combinations(
+            selected_tau_pt, 2); // Gives indices of tau-tau pairs
+        Logger::get("fullhadronic::PairSelectionAlgo")
+            ->debug("Pairs: {} {}", pair_indices[0], pair_indices[1]);
+
+        const auto pairs = ROOT::VecOps::Construct<std::pair<UInt_t, UInt_t>>(
+            pair_indices[0], pair_indices[1]);
+        Logger::get("fullhadronic::PairSelectionAlgo")
+            ->debug("Pairs size: {}", pairs.size());
+        int counter = 0;
+        for (auto &pair : pairs) {
+            counter++;
+            Logger::get("fullhadronic::PairSelectionAlgo")
+                ->debug("Constituents pair {}. : {} {}", counter, pair.first,
+                        pair.second);
+        }
+
+        const auto sorted_pairs = ROOT::VecOps::Sort(
+            pairs, boosted_ditau_pairselection::compareForPairs(selected_tau_pt,
+                                   selected_tau_pt));
+
+        // construct the four vectors of the selected taus to check
+        // deltaR and reject a pair if the candidates are too close
+        bool found = false;
+        for (auto &candidate : sorted_pairs) {
+            auto tau_index_1 = original_tau_indices[candidate.first];
+            ROOT::Math::PtEtaPhiMVector tau_1 = ROOT::Math::PtEtaPhiMVector(
+                tau_pt.at(tau_index_1), tau_eta.at(tau_index_1),
+                tau_phi.at(tau_index_1), tau_mass.at(tau_index_1));
+            Logger::get("fullhadronic::PairSelectionAlgo")
+                ->debug("{} leadint tau vector: {}", tau_index_1, tau_1);
+            auto tau_index_2 = original_tau_indices[candidate.second];
+            ROOT::Math::PtEtaPhiMVector tau_2 = ROOT::Math::PtEtaPhiMVector(
+                tau_pt.at(tau_index_2), tau_eta.at(tau_index_2),
+                tau_phi.at(tau_index_2), tau_mass.at(tau_index_2));
+            Logger::get("fullhadronic::PairSelectionAlgo")
+                ->debug("{} tau vector: {}", tau_index_2, tau_2);
+            Logger::get("fullhadronic::PairSelectionAlgo")
+                ->debug("DeltaR: {}",
+                        ROOT::Math::VectorUtil::DeltaR(tau_1, tau_2));
+            if ((ROOT::Math::VectorUtil::DeltaR(tau_1, tau_2) > mindeltaR) && (ROOT::Math::VectorUtil::DeltaR(tau_1, tau_2) < maxdeltaR)) {
+                Logger::get("fullhadronic::PairSelectionAlgo")
+                    ->debug("Selected original pair indices: tau_1 = {} , "
+                            "tau_2 = {}",
+                            tau_index_1, tau_index_2);
+                Logger::get("fullhadronic::PairSelectionAlgo")
+                    ->debug("Tau_1 Pt = {} , Tau_2 Pt = {} ", tau_1.Pt(),
+                            tau_2.Pt());
+                selected_pair = {static_cast<int>(tau_index_1),
+                                 static_cast<int>(tau_index_2)};
+                found = true;
+                break;
+            }
+        }
+        // sort it that the leading tau in pt is first
+        if (found) {
+            if (tau_pt.at(selected_pair[0]) < tau_pt.at(selected_pair[1])) {
+                std::swap(selected_pair[0], selected_pair[1]);
+            }
+        }
+        Logger::get("fullhadronic::PairSelectionAlgo")
+            ->debug("Final pair {} {}", selected_pair[0], selected_pair[1]);
+
+        return selected_pair;
+    };
+}
+
+} // end namespace fullhadronic
 
 namespace mutau {
 
@@ -1516,8 +1623,41 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
         input_vector);
     return df1;
 }
-
 } // end namespace eltau
+
+namespace tautau {
+
+/**
+ * @brief Function used to select the pair of boosted tau leptons based on the standard
+ * pair selection algorithm
+ *
+ * @param df the input dataframe
+ * @param input_vector vector of strings containing the columns needed for the
+ * alogrithm. For the TauTau pair selection these values are:
+    - boostedtau_pt
+    - boostedtau_eta
+    - boostedtau_phi
+    - boostedtau_mass
+    - boostedtau_mask containing the flags whether the tau is a good tau or not
+ * @param pairname name of the new column containing the pair index
+ * @param mindeltaR the seperation between the two tau candidates has to be
+ larger than
+ * this value
+ * @return a new dataframe with the pair index column added
+ */
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vector,
+                               const std::string &pairname,
+                               const float &mindeltaR, const float &maxdeltaR) {
+    Logger::get("tautau::PairSelection")
+        ->debug("Setting up boosted TauTau pair building");
+    auto df1 = df.Define(
+        pairname,
+        boosted_ditau_pairselection::fullhadronic::PairSelectionAlgo(mindeltaR, maxdeltaR),
+        input_vector);
+    return df1;
+}
+} // namespace tautau
 } // end namespace boosted_ditau_pairselection
 
 

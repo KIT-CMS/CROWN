@@ -120,6 +120,9 @@ auto compareForPairs(const ROOT::RVec<float> &lep1pt, const ROOT::RVec<float> &l
 namespace semileptonic {
 auto PairSelectionAlgo(const float &mindeltaR, const float &maxdeltaR);
 } // end namespace semileptonic
+namespace fullhadronic {
+auto PairSelectionAlgo(const float &mindeltaR, const float &maxdeltaR);
+} // end namespace fullhadronic
 namespace mutau {
 
 ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
@@ -134,6 +137,13 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const std::string &pairname,
                                const float &mindeltaR, const float &maxdeltaR);
 } // end namespace mutau
+namespace tautau {
+
+ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &input_vector,
+                               const std::string &pairname,
+                               const float &mindeltaR, const float &maxdeltaR);
+} // end namespace tautau
 } // end namespace boosted_ditau_pairselection
 
 namespace bb_pairselection {
