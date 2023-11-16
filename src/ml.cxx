@@ -137,7 +137,7 @@ namespace sofie {
       throw std::runtime_error("Error compiling : " + cmd);
     std::cout << "compiled : " << cmd << std::endl;
 
-    cmd = "auto sofie_functor = TMVA::Experimental::SofieFunctor<" + std::to_string(ninputs) + ",TMVA_SOFIE_" + modelName + "::Session>(" + std::to_string(nslots) + ");";
+    cmd = "auto sofie_functor_" + modelName + " = TMVA::Experimental::SofieFunctor<" + std::to_string(ninputs) + ",TMVA_SOFIE_" + modelName + "::Session>(" + std::to_string(nslots) + ");";
     ret = gInterpreter->Declare(cmd.c_str());
     if (!ret)
       throw std::runtime_error("Error compiling : " + cmd);
@@ -178,7 +178,7 @@ namespace sofie {
 	->debug("model already compiled, skipping");
     }
 
-  std::string sofie_func_str = "sofie_functor(rdfslot_, ";
+  std::string sofie_func_str = "sofie_functor_" + modelName + "(rdfslot_, ";
   sofie_func_str += input_vec[0];
   for (unsigned i = 1; i < input_vec.size(); i++) {
     sofie_func_str += ", " + input_vec[i];
