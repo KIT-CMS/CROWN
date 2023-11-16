@@ -2599,6 +2599,56 @@ ROOT::RDF::RNode BTagScaleFactorsGeneric(
     return df11;
 }
 
+/**
+ * Function to combine lepton flavor dependent DNN output into a single column
+ *
+ * @param[in] df The input dataframe.
+ * @param[in] str_lep_is_mu name of the column containing the flag if the event
+ * contains a muon
+ * @param[in] str_lep_is_el name of the column containing the flag if the event
+ * contains an electron
+ * @param[in] str_lep_is_iso name of the column containing the flag if the event
+ * is (anti-)isolated
+ * @param[in] str_is_reco The name of the column containing the flag if a top
+ * quark was reconstructed.
+ * @param[in] str_dnn_mu name of the column containing DNN output for muons
+ * @param[in] str_dnn_el name of the column containing DNN output for electrons
+ *
+ * @param[out] str_dnn Name of the output column for the final DNN output column
+ *
+ * @return A dataframe containing the new column.
+ */
+ROOT::RDF::RNode
+CombineDNNOutputs(ROOT::RDF::RNode df, const std::string &str_lep_is_mu,
+                  const std::string &str_lep_is_el,
+                  const std::string &str_lep_is_iso,
+                  const std::string &str_is_reco, const std::string &str_dnn_mu,
+                  const std::string &str_dnn_el, const std::string &str_dnn) {
+
+    auto DNN_output = [](const int is_mu, const int is_el, const int is_iso,
+                         const int is_reco, const double dnn_mu,
+                         const double dnn_el) {
+        double output = -10;
+
+        if (!is_reco or is_iso == 0)
+            return output;
+
+        if (is_mu)
+            output = dnn_mu;
+
+        if (is_el)
+            output = dnn_el;
+
+        return output;
+    };
+
+    auto df2 = df.Define(str_dnn, DNN_output,
+                         {str_lep_is_mu, str_lep_is_el, str_lep_is_iso,
+                          str_is_reco, str_dnn_mu, str_dnn_el});
+
+    return df2;
+}
+
 } // end namespace topreco
 
 #endif /* GUARD_TOPRECO_H */

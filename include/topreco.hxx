@@ -163,6 +163,13 @@ ROOT::RDF::RNode BTagScaleFactorsGeneric(
     const std::string &btag_wp, const float &btag_cut,
     const float &max_bjet_eta_sf);
 
+ROOT::RDF::RNode
+CombineDNNOutputs(ROOT::RDF::RNode df, const std::string &str_lep_is_mu,
+                  const std::string &str_lep_is_el,
+                  const std::string &str_lep_is_iso,
+                  const std::string &str_is_reco, const std::string &str_dnn_mu,
+                  const std::string &str_dnn_el, const std::string &str_dnn);
+
 } // end namespace topreco
 
 #endif /* GUARD_TOPRECO_H */
