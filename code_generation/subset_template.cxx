@@ -14,6 +14,7 @@
 #include "include/tripleselection.hxx"
 #include "include/physicsobjects.hxx"
 #include "include/quantities.hxx"
+#include "include/hhkinfit.hxx"
 #include "include/reweighting.hxx"
 #include "include/scalefactors.hxx"
 #include "include/topreco.hxx"

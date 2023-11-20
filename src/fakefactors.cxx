@@ -196,11 +196,11 @@ raw_fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
 
             float qcd_ff = -1.;
             if (tau_idx == 0) {
-                float qcd_ff = qcd->evaluate({pt_1, (float)njets, variation});
+                qcd_ff = qcd->evaluate({pt_1, (float)njets, variation});
                 Logger::get("RawFakeFactor")->debug("QCD - value {}", qcd_ff);
                 ff = qcd_ff;
             } else if (tau_idx == 1) {
-                float qcd_ff =
+                qcd_ff =
                     qcd_subleading->evaluate({pt_2, (float)njets, variation});
                 Logger::get("RawFakeFactor")->debug("QCD - value {}", qcd_ff);
                 ff = qcd_ff;
@@ -541,36 +541,36 @@ fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname, const in
             float qcd_m_vis_corr = -1.;
             float qcd_DR_SR_corr = -1.;
             if (tau_idx == 0) {
-                float qcd_ff = qcd->evaluate({pt_1, (float)njets, variation});
+                qcd_ff = qcd->evaluate({pt_1, (float)njets, variation});
                 Logger::get("FakeFactor")->debug("QCD - value {}", qcd_ff);
-                float qcd_tau_pt_corr =
+                qcd_tau_pt_corr =
                     qcd_tau_pt_closure->evaluate({pt_2, variation});
                 Logger::get("FakeFactor")
                     ->debug("QCD - lep pt correction {}", qcd_tau_pt_corr);
-                float qcd_m_vis_corr =
+                qcd_m_vis_corr =
                     qcd_m_vis_closure->evaluate({m_vis, variation});
                 Logger::get("FakeFactor")
                     ->debug("QCD - visible mass correction {}", qcd_m_vis_corr);
-                float qcd_DR_SR_corr = qcd_DR_SR->evaluate({m_vis, variation});
+                qcd_DR_SR_corr = qcd_DR_SR->evaluate({m_vis, variation});
                 Logger::get("FakeFactor")
                     ->debug("QCD - DR to SR correction {}", qcd_DR_SR_corr);
                 ff = qcd_ff * qcd_tau_pt_corr * qcd_m_vis_corr * qcd_DR_SR_corr;
             } else if (tau_idx == 1) {
-                float qcd_ff =
+                qcd_ff =
                     qcd_subleading->evaluate({pt_2, (float)njets, variation});
                 Logger::get("FakeFactor")
                     ->debug("QCD(subleading) - value {}", qcd_ff);
-                float qcd_tau_pt_corr =
+                qcd_tau_pt_corr =
                     qcd_tau_pt_closure_subleading->evaluate({pt_1, variation});
                 Logger::get("FakeFactor")
                     ->debug("QCD(subleading) - lep pt correction {}",
                             qcd_tau_pt_corr);
-                float qcd_m_vis_corr =
+                qcd_m_vis_corr =
                     qcd_m_vis_closure_subleading->evaluate({m_vis, variation});
                 Logger::get("FakeFactor")
                     ->debug("QCD(subleading) - visible mass correction {}",
                             qcd_m_vis_corr);
-                float qcd_DR_SR_corr =
+                qcd_DR_SR_corr =
                     qcd_DR_SR_subleading->evaluate({m_vis, variation});
                 Logger::get("FakeFactor")
                     ->debug("QCD(subleading) - DR to SR correction {}",

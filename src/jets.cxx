@@ -577,7 +577,7 @@ ROOT::RDF::RNode BJetPtCorrection(ROOT::RDF::RNode df, const std::string &correc
                             float corr_pt = jet_pt.at(i);
                             if (good_bjet_mask.at(i)) {
                                 // applying b jet energy correction
-                                float corr_pt = jet_pt.at(i) * corr_factor.at(i);
+                                corr_pt = jet_pt.at(i) * corr_factor.at(i);
                                 
                                 Logger::get("BJetEnergyCorrection")
                                     ->debug("applying b jet energy correction: orig. jet "

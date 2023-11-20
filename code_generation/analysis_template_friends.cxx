@@ -3,6 +3,7 @@
 #include "RooTrace.h"
 #include "TStopwatch.h"
 #include "include/fakefactors.hxx"
+#include "include/hhkinfit.hxx"
 #include "include/genparticles.hxx"
 #include "include/htxs.hxx"
 #include "include/jets.hxx"
