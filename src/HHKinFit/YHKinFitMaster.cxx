@@ -9,9 +9,11 @@
 #include "../include/utility/Logger.hxx"
 
 
-YHKinFitMaster::YHKinFitMaster(ROOT::Math::PtEtaPhiMVector bjet1, ROOT::Math::PtEtaPhiMVector bjet2, ROOT::Math::PtEtaPhiMVector tauvis1, ROOT::Math::PtEtaPhiMVector tauvis2, ROOT::Math::PtEtaPhiMVector met, TMatrixD met_cov, bool Ytautau):
+YHKinFitMaster::YHKinFitMaster(ROOT::Math::PtEtaPhiMVector bjet1, float bjet_reso_1, ROOT::Math::PtEtaPhiMVector bjet2, float bjet_reso_2, ROOT::Math::PtEtaPhiMVector tauvis1, ROOT::Math::PtEtaPhiMVector tauvis2, ROOT::Math::PtEtaPhiMVector met, TMatrixD met_cov, bool Ytautau):
     m_bjet1(bjet1),
     m_bjet2(bjet2),
+    m_bjet_reso1(bjet_reso_1),
+    m_bjet_reso2(bjet_reso_2),
     m_tauvis1(tauvis1),
     m_tauvis2(tauvis2),
     m_Ytautau(Ytautau),
@@ -107,11 +109,10 @@ void YHKinFitMaster::Fit(int mh, int mY)
     int mode = 1;             //  mode =1 for start of a new fit by PSfitter()
     //  --------------------------------
     
-    ROOT::Math::PtEtaPhiMVector Htt_vis = m_tauvis1 + m_tauvis2;
-    ROOT::Math::PtEtaPhiMVector Hbb = m_bjet1 + m_bjet2;
-    
-    double bjet1_reso = GetBjetResolution(m_bjet1.Eta(), m_bjet1.Et());
-    double bjet2_reso = GetBjetResolution(m_bjet2.Eta(), m_bjet2.Et());
+    // double bjet1_reso = GetBjetResolution(m_bjet1.Eta(), m_bjet1.Et());
+    // double bjet2_reso = GetBjetResolution(m_bjet2.Eta(), m_bjet2.Et());
+    double bjet1_reso = CalcBjetResolution(m_bjet1, m_bjet_reso1);
+    double bjet2_reso = CalcBjetResolution(m_bjet2, m_bjet_reso2);
 
     double bjet1UpperLimit = m_bjet1.E() + 5.0 * bjet1_reso;
     double bjet1LowerLimit = m_bjet1.E() - 5.0 * bjet1_reso;
@@ -119,7 +120,7 @@ void YHKinFitMaster::Fit(int mh, int mY)
     double bjet2LowerLimit = m_bjet2.E() - 5.0 * bjet2_reso;
 
     double tau1LowerLimit = m_tauvis1.E();
-    double tau2LowerLimit = m_tauvis1.E();
+    double tau2LowerLimit = m_tauvis2.E();
     
     if (m_Ytautau) {
         mHttHypo = mY;
@@ -129,7 +130,7 @@ void YHKinFitMaster::Fit(int mh, int mY)
         mHttHypo = 125.0;
         mHbbHypo = mY;
     }
-    double mHttReco  = Htt_vis.M();
+    
     double mtau  = 1.777;
 
     //Calculate Recoil CovMatrix
@@ -163,8 +164,12 @@ void YHKinFitMaster::Fit(int mh, int mY)
         m_tauvis2.SetM(mtau);
     }
 
+    ROOT::Math::PtEtaPhiMVector Htt_vis = m_tauvis1 + m_tauvis2;
+    ROOT::Math::PtEtaPhiMVector Hbb = m_bjet1 + m_bjet2;
+
     //Compute upper limit of E(tau1) by having set E(tau2)=E(tau2)_min and compute E(tau1)
     double tau1UpperLimit = ConstrainEnergy(Htt_vis, m_tauvis2, m_tauvis1, mHttHypo);
+    double tau2UpperLimit = ConstrainEnergy(Htt_vis, m_tauvis1, m_tauvis2, mHttHypo);
 
     if (tau1UpperLimit < m_tauvis1.E()) {
         m_convergence=-1;
@@ -175,7 +180,23 @@ void YHKinFitMaster::Fit(int mh, int mY)
         m_fitted_mX=-1;
         return;
     }
+    if (tau2UpperLimit < m_tauvis2.E()) {
+        m_convergence=-1;
+        m_chi2=9999;
+        m_chi2_b1=9999;
+        m_chi2_b2=9999;
+        m_chi2_balance=9999;
+        m_fitted_mX=-1;
+        return;
+    }
 
+    if (tau1UpperLimit > 13000.) {
+        tau1UpperLimit = 13000.;
+    }
+    if (tau2UpperLimit > 13000.) {
+        tau2UpperLimit = 13000.;
+    }
+    
     // fill initial tau fit parameters
     a_start[0] = m_bjet1.E();          // energy of first b-jet
     a_precision[0] = a_start[0]*0.002;             // precision for fit
@@ -184,10 +205,10 @@ void YHKinFitMaster::Fit(int mh, int mY)
     
     // fill initial step width
     h[0] = 0.5 * bjet1_reso;
-    h[1] = 0.1 * tau1LowerLimit;   //                
+    h[1] = 0.1 * tau1LowerLimit;                
 
-    daN[0] = 1.0;   //0.0                 // initial search direction in E_b-E_tau diagonal
-    daN[1] = 1.0;   //1.0
+    daN[0] = 1.0;                  // initial search direction in E_b-E_tau diagonal
+    daN[1] = 1.0; 
 
     // fit range
     if (bjet1LowerLimit<0.01) {
@@ -260,6 +281,7 @@ void YHKinFitMaster::Fit(int mh, int mY)
     double new_E_b2, new_E_tau2;
     
     for (int iloop = 0; iloop < nloopmax; iloop++) { // FIT loop
+        // Logger::get("YHKinFit")->debug("kinfit_convergence: {}, energy b {}, energy tau {}", m_convergence, new_E_b2, new_E_tau2); 
         bjet_1_fit.SetPxPyPzE(bjet_1_fit.Px()*a[0]/bjet_1_fit.E(), bjet_1_fit.Py()*a[0]/bjet_1_fit.E(), bjet_1_fit.Pz()*a[0]/bjet_1_fit.E(), a[0]);
 
         tau_1_fit.SetPxPyPzE(tau_1_fit.Px()*a[1]/tau_1_fit.E(), tau_1_fit.Py()*a[1]/tau_1_fit.E(), tau_1_fit.Pz()*a[1]/tau_1_fit.E(), a[1]);
@@ -268,10 +290,13 @@ void YHKinFitMaster::Fit(int mh, int mY)
         bjet_2_fit.SetPxPyPzE(bjet_2_fit.Px()*new_E_b2/bjet_2_fit.E(), bjet_2_fit.Py()*new_E_b2/bjet_2_fit.E(), bjet_2_fit.Pz()*new_E_b2/bjet_2_fit.E(), new_E_b2);
         
         new_E_tau2 = ConstrainEnergy(Htt_vis, ROOT::Math::PtEtaPhiMVector(tau_1_fit.Pt(), tau_1_fit.Eta(), tau_1_fit.Phi(), tau_1_fit.M()), m_tauvis2, mHttHypo);
+        if (new_E_tau2 > tau2UpperLimit) {
+            new_E_tau2 = tau2UpperLimit;
+        }
         tau_2_fit.SetPxPyPzE(tau_2_fit.Px()*new_E_tau2/tau_2_fit.E(), tau_2_fit.Py()*new_E_tau2/tau_2_fit.E(), tau_2_fit.Pz()*new_E_tau2/tau_2_fit.E(), new_E_tau2);
 
-        m_chi2_b1 = Chi2_V4(ROOT::Math::PtEtaPhiEVector(m_bjet1.Pt(), m_bjet1.Eta(), m_bjet1.Phi(), m_bjet1.E()), bjet_1_fit);
-        m_chi2_b2 = Chi2_V4(ROOT::Math::PtEtaPhiEVector(m_bjet2.Pt(), m_bjet2.Eta(), m_bjet2.Phi(), m_bjet2.E()), bjet_2_fit);
+        m_chi2_b1 = Chi2_V4(ROOT::Math::PtEtaPhiEVector(m_bjet1.Pt(), m_bjet1.Eta(), m_bjet1.Phi(), m_bjet1.E()), bjet_1_fit, m_bjet_reso1);
+        m_chi2_b2 = Chi2_V4(ROOT::Math::PtEtaPhiEVector(m_bjet2.Pt(), m_bjet2.Eta(), m_bjet2.Phi(), m_bjet2.E()), bjet_2_fit, m_bjet_reso2);
 
         if (m_Ytautau) {
             p4_Y_fit = tau_1_fit + tau_2_fit;
@@ -281,6 +306,7 @@ void YHKinFitMaster::Fit(int mh, int mY)
             p4_Y_fit = bjet_1_fit + bjet_2_fit;
             p4_h_fit = tau_1_fit + tau_2_fit;
         }
+        
         p4_X_fit = bjet_1_fit + bjet_2_fit + tau_1_fit + tau_2_fit;
         m_chi2_balance = Chi2_Balance(p4_X_fit);
         m_chi2 = m_chi2_b1 + m_chi2_b2 + m_chi2_balance; // chi2 calculation
@@ -350,6 +376,12 @@ TMatrixD YHKinFitMaster::CalcCov(ROOT::Math::PtEtaPhiMVector p4, double dE)
     cov[1][0] = sin(p4.Phi()) * cos(p4.Phi()) *dpt*dpt;
 
     return cov;
+}
+
+double YHKinFitMaster::CalcBjetResolution(ROOT::Math::PtEtaPhiMVector p4, double res){
+    double pt_res = p4.Pt()*res;
+    double dE = pt_res * p4.P() / sin(p4.Theta()) / p4.E();
+    return dE;
 }
 
 double YHKinFitMaster::GetBjetResolution(double eta, double et){
@@ -501,15 +533,29 @@ double YHKinFitMaster::ConstrainEnergy(ROOT::Math::PtEtaPhiMVector p4_mother, RO
     double E_2 = new_p4_2.E();
     double M_2 = new_p4_2.M();
 
-    double beta_2, gamma2_2, c, E_part1, E_part2;
+    double beta_2 = -10.;
+    double gamma2_2 = -10.;
+    double c = -10.;
+    double E_part1 = -10.;
+    double E_part2 = -10.;
     double new_E_2 = -10.;
 
     int loopCount = 0;
 
-    while(abs(M_reco - M_truth) > 0.000001){
+    while (abs(M_reco - M_truth) > 0.0001) {
         loopCount++;
-
-        if ( (M_2 < (1.e-3*E_2)) || (M_2 < 0.) || (loopCount > 1000000) ) { // massless case; if mass is negative or much smaller than the energy
+     
+        if (loopCount>=10) {
+            m_convergence=-3;
+            m_chi2=9999;
+            m_chi2_b1=9999;
+            m_chi2_b2=9999;
+            m_chi2_balance=9999;
+            m_fitted_mX=-1;
+            return new_E_2;
+        }
+        
+        if ( (M_2 < (1.e-3*E_2)) || (M_2 < 0.) ) { // massless case; if mass is negative or much smaller than the energy
             new_E_2 = E_2 * (M_truth / M_reco) * (M_truth / M_reco);
             return new_E_2;
         }
@@ -536,10 +582,11 @@ double YHKinFitMaster::ConstrainEnergy(ROOT::Math::PtEtaPhiMVector p4_mother, RO
     return new_E_2;
 }
 
-double YHKinFitMaster::Chi2_V4(ROOT::Math::PtEtaPhiEVector p4_reco, ROOT::Math::PtEtaPhiEVector p4_fit)
+double YHKinFitMaster::Chi2_V4(ROOT::Math::PtEtaPhiEVector p4_reco, ROOT::Math::PtEtaPhiEVector p4_fit, double res)
 {
     double chi2_E = 0;
-    double dE_fit = GetBjetResolution(p4_fit.Eta(), p4_fit.Et());
+    // double dE_fit = GetBjetResolution(p4_fit.Eta(), p4_fit.Et());
+    double dE_fit = CalcBjetResolution(ROOT::Math::PtEtaPhiMVector(p4_fit.Pt(), p4_fit.Eta(), p4_fit.Phi(), p4_fit.M()), res);
 
     if (dE_fit > 0.) {
         chi2_E = ((p4_reco.E() - p4_fit.E()) / dE_fit) * ((p4_reco.E() - p4_fit.E()) / dE_fit);

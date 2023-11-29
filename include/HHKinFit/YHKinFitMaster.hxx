@@ -11,7 +11,7 @@
 class YHKinFitMaster
 {
 public:
-    YHKinFitMaster(ROOT::Math::PtEtaPhiMVector bjet1, ROOT::Math::PtEtaPhiMVector bjet2, ROOT::Math::PtEtaPhiMVector tauvis1, ROOT::Math::PtEtaPhiMVector tauvis2, ROOT::Math::PtEtaPhiMVector met, TMatrixD met_cov, bool Ytautau);
+    YHKinFitMaster(ROOT::Math::PtEtaPhiMVector bjet1, float bjet_reso_1, ROOT::Math::PtEtaPhiMVector bjet2, float bjet_reso_2, ROOT::Math::PtEtaPhiMVector tauvis1, ROOT::Math::PtEtaPhiMVector tauvis2, ROOT::Math::PtEtaPhiMVector met, TMatrixD met_cov, bool Ytautau);
 
     void doFullFit();
     void Fit(int mh, int mY);
@@ -24,11 +24,12 @@ public:
     TMatrixD CalcCov(ROOT::Math::PtEtaPhiMVector p4, double dE);
     
     //Resolution  
+    double CalcBjetResolution(ROOT::Math::PtEtaPhiMVector p4, double res);
     double GetBjetResolution(double eta, double et);
 
     double ConstrainEnergy(ROOT::Math::PtEtaPhiMVector p4_mother, ROOT::Math::PtEtaPhiMVector p4_1, ROOT::Math::PtEtaPhiMVector p4_2, int mHypo);
 
-    double Chi2_V4(ROOT::Math::PtEtaPhiEVector p4_reco, ROOT::Math::PtEtaPhiEVector p4_fit);
+    double Chi2_V4(ROOT::Math::PtEtaPhiEVector p4_reco, ROOT::Math::PtEtaPhiEVector p4_fit, double res);
     double Chi2_Balance(ROOT::Math::PtEtaPhiEVector p4_X_fit);
 
     double GetPullBalanceX(ROOT::Math::PtEtaPhiEVector p4_X_fit);
@@ -58,6 +59,8 @@ private:
     //input vectors
     ROOT::Math::PtEtaPhiMVector m_bjet1;
     ROOT::Math::PtEtaPhiMVector m_bjet2;
+    float m_bjet_reso1;
+    float m_bjet_reso2;
     ROOT::Math::PtEtaPhiMVector m_tauvis1;
     ROOT::Math::PtEtaPhiMVector m_tauvis2;
     bool m_Ytautau;
