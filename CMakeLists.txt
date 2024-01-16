@@ -5,6 +5,8 @@ unset(CMAKE_CXX_FLAGS_RELEASE CACHE)
 
 # read debug and optimized flags from command line
 option(BUILD_CROWNLIB_ONLY "Build only the CROWNLIB library" OFF)
+set(REBUILD_CROWN_LIB "false") # used for non-production mode
+
 if (NOT DEFINED DEBUG)
     message(STATUS "No Debug mode set, activate with -DDEBUG=true --> compile with debug symbols and run code generation with debug output")
     set(DEBUG "false")
@@ -35,8 +37,16 @@ else()
 endif()
 # Only parse additional args if not building only the CROWNLIB library
 if(NOT BUILD_CROWNLIB_ONLY)
+
     if (NOT DEFINED ANALYSIS)
         message(FATAL_ERROR "Please specify the Analysis to be used with -DANALYSIS=my_analysis_name")
+    endif()
+    # if analysis is set, check the folder to find any potential payload files to be used
+    file(GLOB PAYLOADS ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/payloads/*)
+    if (NOT PAYLOADS)
+        message(STATUS "No payload files found in ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/payloads/ for analysis ${ANALYSIS}")
+    else()
+        message(STATUS "Found payload files in ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/payloads/ for analysis ${ANALYSIS}")
     endif()
 
     if (NOT DEFINED CONFIG)
@@ -68,6 +78,10 @@ if(NOT BUILD_CROWNLIB_ONLY)
         message(FATAL_ERROR "Please specify the eras to be used with -DERAS=eras")
     endif()
 
+    if (NOT DEFINED PRODUCTION)
+        message(STATUS "No production mode set --> will rebuild the CROWNLIB library if necessary")
+        set(REBUILD_CROWN_LIB "true")
+    endif()
     if (NOT DEFINED THREADS)
         message(STATUS "No threads set, using single threaded mode with -DTHREADS=1")
         set(THREADS "1")
@@ -279,7 +293,7 @@ if(BUILD_CROWNLIB_ONLY)
 endif()
 # check if CROWNLIB is already installed
 find_library(CROWNLIB_FOUND CROWNLIB HINTS ${INSTALLDIR}/lib ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib)
-if(NOT CROWNLIB_FOUND)
+if(NOT CROWNLIB_FOUND OR REBUILD_CROWN_LIB)
     message(STATUS "CROWNLIB not found, building it")
     # CROWNLIB not found, build it
     add_library(CROWNLIB SHARED ${SOURCES})
@@ -339,6 +353,9 @@ STRING(REGEX REPLACE "\n" ";" FILELIST ${FILELIST})
 set(TARGET_NAMES "")
 # copy all correction files into the install location
 install(DIRECTORY data/ DESTINATION ${INSTALLDIR}/data)
+if (PAYLOADS)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/payloads DESTINATION ${INSTALLDIR}/payloads)
+endif()
 
 # also copy inish script needed for job tarball
 install(FILES init.sh DESTINATION ${INSTALLDIR})
