@@ -331,7 +331,7 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
                                          const ROOT::RVec<float> &area_values,
                                          const ROOT::RVec<float>
                                              &rawFactor_values,
-                                         const ROOT::RVec<int> &ID_values,
+                                         const ROOT::RVec<unsigned char> &ID_values,
                                          const ROOT::RVec<float> &gen_pt_values,
                                          const ROOT::RVec<float>
                                              &gen_eta_values,

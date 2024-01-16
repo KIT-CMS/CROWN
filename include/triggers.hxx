@@ -10,7 +10,7 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
                    ROOT::RVec<float> &triggerobject_etas,
                    ROOT::RVec<float> &triggerobject_phis,
                    ROOT::RVec<int> &triggerobject_bits,
-                   ROOT::RVec<int> &triggerobject_ids, const float &matchDeltaR,
+                   ROOT::RVec<unsigned short> &triggerobject_ids, const float &matchDeltaR,
                    const float &pt_cut, const float &eta_cut,
                    const int &trigger_particle_id_cut,
                    const int &triggerbit_cut);

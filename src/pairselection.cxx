@@ -71,8 +71,8 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
                               const std::string &genindex_particle2,
                               const std::string &genpairname) {
     auto getGenPair = [](const ROOT::RVec<int> &recopair,
-                         const ROOT::RVec<int> &genindex_particle1,
-                         const ROOT::RVec<int> &genindex_particle2) {
+                         const ROOT::RVec<short> &genindex_particle1,
+                         const ROOT::RVec<short> &genindex_particle2) {
         ROOT::RVec<int> genpair = {-1, -1};
         Logger::get("buildgenpair")->debug("existing DiTauPair: {}", recopair);
         genpair[0] = genindex_particle1.at(recopair.at(0), -1);

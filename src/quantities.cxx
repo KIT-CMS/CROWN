@@ -145,13 +145,45 @@ ROOT::RDF::RNode dz(ROOT::RDF::RNode df, const std::string &outputname,
 ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
                         const int &position, const std::string &pairname,
                         const std::string &chargecolumn) {
-    return df.Define(
+
+    if (chargecolumn.find("Tau") != std::string::npos ){
+        std::cout << "++++++ Tau found" << std::endl;
+
+        return df.Define(
+        outputname,
+        [position](const ROOT::RVec<int> &pair, const ROOT::RVec<short> &charge) {
+            const int index = pair.at(position);
+            return charge.at(index, default_int);
+        },
+        {pairname, chargecolumn});
+    }else if (chargecolumn.find("Muon") != std::string::npos ){
+        std::cout << "++++++ Muon found" << std::endl;
+            return df.Define(
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &charge) {
             const int index = pair.at(position);
             return charge.at(index, default_int);
         },
         {pairname, chargecolumn});
+    }else if (chargecolumn.find("Electron") != std::string::npos ){
+        std::cout << "++++++ Electron found" << std::endl;
+            return df.Define(
+        outputname,
+        [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &charge) {
+            const int index = pair.at(position);
+            return charge.at(index, default_int);
+        },
+        {pairname, chargecolumn});
+    }else{
+        std::cout << "++++++ No lepton found" << std::endl;
+    }
+    // return df.Define(
+    //     outputname,
+    //     [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &charge) {
+    //         const int index = pair.at(position);
+    //         return charge.at(index, default_int);
+    //     },
+    //     {pairname, chargecolumn});
 }
 /// Function to calculate the scalar sum of pts for given lorentz vectors and
 /// add it to the dataframe
@@ -736,9 +768,9 @@ ROOT::RDF::RNode decaymode(ROOT::RDF::RNode df, const std::string &outputname,
                            const std::string &decaymodecolumn) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
-                                const ROOT::RVec<int> &decaymode) {
+                                const ROOT::RVec<unsigned char> &decaymode) {
                          const int index = pair.at(position);
-                         return decaymode.at(index, default_int);
+                         return decaymode.at(index, default_uchar);
                      },
                      {pairname, decaymodecolumn});
 }
@@ -792,7 +824,7 @@ ROOT::RDF::RNode matching_jet_pt(ROOT::RDF::RNode df,
                                  const std::string &jetpt_column) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
-                                const ROOT::RVec<int> &taujets,
+                                const ROOT::RVec<short> &taujets,
                                 const ROOT::RVec<float> &jetpt) {
                          const int tauindex = pair.at(position);
                          const int jetindex = taujets.at(tauindex, -1);
@@ -821,8 +853,8 @@ ROOT::RDF::RNode matching_genjet_pt(
     const std::string &genjet_index, const std::string &genjetpt_column) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
-                                const ROOT::RVec<int> &taujets,
-                                const ROOT::RVec<int> &genjets,
+                                const ROOT::RVec<short> &taujets,
+                                const ROOT::RVec<short> &genjets,
                                 const ROOT::RVec<float> &genjetpt) {
                          const int tauindex = pair.at(position);
                          const int jetindex = taujets.at(tauindex, -1);
@@ -855,8 +887,8 @@ ROOT::RDF::RNode TauIDFlag(ROOT::RDF::RNode df, const std::string &outputname,
                     "position tau in pair {}, pair {}, id bit {}, vsjet ids {}",
                     position, pair, idxID, IDs);
             const int index = pair.at(position);
-            const int ID = IDs.at(index, default_int);
-            if (ID != default_int)
+            const int ID = IDs.at(index, default_uchar);
+            if (ID != default_uchar)
                 return std::min(1, int(ID & 1 << (idxID - 1)));
             else
                 return int(ID);

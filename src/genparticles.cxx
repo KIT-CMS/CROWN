@@ -75,7 +75,7 @@ ROOT::RDF::RNode genmatching(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &lepton_p4) {
     auto match_lepton = [](const std::vector<int> &hadronicGenTaus,
                            const ROOT::RVec<int> &pdgids,
-                           const ROOT::RVec<int> &status_flags,
+                           const ROOT::RVec<unsigned short> &status_flags,
                            const ROOT::RVec<float> &pts,
                            const ROOT::RVec<float> &etas,
                            const ROOT::RVec<float> &phis,
@@ -408,8 +408,8 @@ ROOT::RDF::RNode hadronicGenTaus(ROOT::RDF::RNode df,
                                  const std::string &genparticles_motherid) {
 
     auto gentaus = [](const ROOT::RVec<int> &pdgids,
-                      const ROOT::RVec<int> &status_flags,
-                      const ROOT::RVec<int> &mother_index) {
+                      const ROOT::RVec<unsigned short> &status_flags,
+                      const ROOT::RVec<short> &mother_index) {
         // set default values for the output
         std::vector<int> hadronicGenTaus;
         if (pdgids.size() == 0) {

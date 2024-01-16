@@ -99,7 +99,7 @@ ROOT::RDF::RNode topptreweighting(ROOT::RDF::RNode df,
                                   const std::string &gen_pt) {
 
     auto ttbarreweightlambda = [](const ROOT::RVec<int> pdgid,
-                                  const ROOT::RVec<int> status,
+                                  const ROOT::RVec<unsigned short> status,
                                   const ROOT::RVec<float> pt) {
         std::vector<float> top_pts;
         for (size_t i = 0; i < pdgid.size(); i++) {
