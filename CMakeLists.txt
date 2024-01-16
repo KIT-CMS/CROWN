@@ -354,7 +354,7 @@ set(TARGET_NAMES "")
 # copy all correction files into the install location
 install(DIRECTORY data/ DESTINATION ${INSTALLDIR}/data)
 if (PAYLOADS)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/payloads DESTINATION ${INSTALLDIR}/payloads)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/payloads DESTINATION ${INSTALLDIR})
 endif()
 
 # also copy inish script needed for job tarball
