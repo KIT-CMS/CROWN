@@ -7,8 +7,15 @@ pathadd() {
 }
 # get the directory of the script
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &>/dev/null && pwd 2>/dev/null)"
-distro=$(lsb_release -i | cut -f2)
-os_version=$(lsb_release -r | cut -f2)
+if ! command -v lsb_release &> /dev/null
+then
+    source /etc/os-release
+    distro=$NAME
+    os_version=$VERSION_ID
+else
+    distro=$(lsb_release -i | cut -f2)
+    os_version=$(lsb_release -r | cut -f2)
+fi
 echo "Setting up CROWN for $distro Version $os_version"
 # check if the distro is centos
 if [[ "$distro" == "CentOS" ]]; then
@@ -22,7 +29,7 @@ if [[ "$distro" == "CentOS" ]]; then
         echo "Unsupported CentOS version, exiting..."
         return 0
     fi
-elif [[ "$distro" == "RedHatEnterprise" ]]; then
+elif [[ "$distro" == "RedHatEnterprise" || "$distro" == "AlmaLinux" || "$distro" == "RockyLinux" ]]; then
     if [[ ${os_version:0:1} == "8" ]]; then # elif uname -a | grep -E 'el8' -q
         # no lcg 103 available for centOS 8
         source /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos8-gcc11-opt/setup.sh
