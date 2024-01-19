@@ -86,7 +86,7 @@ class Configuration(object):
         self.available_sample_types = set(available_sample_types)
         self.available_eras = set(available_eras)
         self.available_scopes = set(available_scopes)
-        self.available_outputs: QuantitiesStore = {}
+        self.available_outputs: Dict[str, QuantitiesStore] = {}
         self.available_shifts: Dict[str, Set[str]] = {}
         self.global_scope = "global"
 
@@ -184,7 +184,9 @@ class Configuration(object):
             self.unpacked_producers[scope] = {}
             self.outputs[scope] = set()
             self.shifts[scope] = {}
-            self.available_outputs[scope] = set()
+            self.available_outputs[scope] = {}
+            for sampletype in self.available_sample_types:
+                self.available_outputs[scope][sampletype] = set()
             self.config_parameters[scope] = {}
             self.available_shifts[scope] = set()
         self._set_sample_parameters()
@@ -229,9 +231,10 @@ class Configuration(object):
             producers = [producers]
         for scope in scopes:
             self.producers[scope].extend(producers)
-            self.available_outputs[scope].update(
-                CollectProducersOutput(producers, scope)
-            )
+            for sampletype in self.available_sample_types:
+                self.available_outputs[scope][sampletype].update(
+                    CollectProducersOutput(producers, scope)
+                )
             self.unpack_producergroups(scope, producers)
 
     def unpack_producergroups(
@@ -409,7 +412,6 @@ class Configuration(object):
                         shift.shiftname, scope, self.available_scopes
                     )
                 )
-                return False
         if len(self.selected_shifts) == 1 and "all" in self.selected_shifts:
             return True
         elif len(self.selected_shifts) == 1 and "none" in self.selected_shifts:
@@ -520,7 +522,8 @@ class Configuration(object):
                 del self.outputs[scope]
                 del self.shifts[scope]
                 del self.config_parameters[scope]
-                del self.available_outputs[scope]
+                for sampletype in self.available_sample_types:
+                    del self.available_outputs[scope][sampletype]
 
     def _apply_rules(self) -> None:
         """
@@ -532,16 +535,17 @@ class Configuration(object):
             rule.apply(
                 self.sample, self.producers, self.unpacked_producers, self.outputs
             )
-            # also update the set of available outputs
-            for scope in rule.affected_scopes():
-                if isinstance(rule, RemoveProducer):
-                    self.available_outputs[scope] - CollectProducersOutput(
-                        rule.affected_producers(), scope
-                    )
-                else:
-                    self.available_outputs[scope].update(
-                        CollectProducersOutput(rule.affected_producers(), scope)
-                    )
+            # also update the set of available outputs if the affected sample is the current sample
+            if self.sample in rule.samples:
+                for scope in rule.affected_scopes():
+                    if isinstance(rule, RemoveProducer):
+                        self.available_outputs[scope][
+                            self.sample
+                        ] -= CollectProducersOutput(rule.affected_producers(), scope)
+                    else:
+                        self.available_outputs[scope][self.sample].update(
+                            CollectProducersOutput(rule.affected_producers(), scope)
+                        )
 
     def optimize(self) -> None:
         """
@@ -588,8 +592,8 @@ class Configuration(object):
             )
             # merge the two sets of outputs
             provided_outputs = (
-                self.available_outputs[scope]
-                | self.available_outputs[self.global_scope]
+                self.available_outputs[scope][self.sample]
+                | self.available_outputs[self.global_scope][self.sample]
             )
             missing_outputs = required_outputs - provided_outputs
             if len(missing_outputs) > 0:

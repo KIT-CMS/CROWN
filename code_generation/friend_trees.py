@@ -303,9 +303,12 @@ class FriendTreeConfiguration(Configuration):
             # only shift if necessary
             if shift in self.input_quantities_mapping[scope].keys():
                 inputs_to_shift = []
-                for input in inputs:
-                    if input.name in self.input_quantities_mapping[scope][shift]:
-                        inputs_to_shift.append(input)
+                for input_quantity in inputs:
+                    if (
+                        input_quantity.name
+                        in self.input_quantities_mapping[scope][shift]
+                    ):
+                        inputs_to_shift.append(input_quantity)
                 if len(inputs_to_shift) > 0:
                     log.debug("Adding shift %s to producer %s", shift, producer)
                     producer.shift(shiftname, scope)
@@ -335,7 +338,7 @@ class FriendTreeConfiguration(Configuration):
         for scope in [scope for scope in self.scopes]:
             required_outputs = set(output for output in self.outputs[scope])
             # merge the two sets of outputs
-            provided_outputs = self.available_outputs[scope]
+            provided_outputs = self.available_outputs[scope][self.sample]
             missing_outputs = required_outputs - provided_outputs
             if len(missing_outputs) > 0:
                 raise InvalidOutputError(scope, missing_outputs)
@@ -415,6 +418,10 @@ class FriendTreeConfiguration(Configuration):
             expanded_configuration[scope] = {}
             if self.run_nominal:
                 log.debug("Adding nominal in scope {}".format(scope))
+                if scope not in self.config_parameters.keys():
+                    raise ConfigurationError(
+                        "Scope {} not found in configuration parameters".format(scope)
+                    )
                 expanded_configuration[scope]["nominal"] = self.config_parameters[scope]
             if len(self.shifts[scope]) > 0:
                 for shift in self.shifts[scope]:

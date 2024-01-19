@@ -127,6 +127,7 @@ class ProducerRule:
         outputs_to_be_updated: QuantitiesStore,
     ) -> None:
         if self.is_applicable(sample):
+            log.critical(f"Applying rule {self} for sample {sample}")
             log.debug("For sample {}, applying >> {} ".format(sample, self))
             self.update_producers(producers_to_be_updated, unpacked_producers)
             self.update_outputs(outputs_to_be_updated)
