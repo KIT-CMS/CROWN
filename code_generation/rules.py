@@ -1,5 +1,5 @@
 import logging
-from typing import List, Union, Set
+from typing import List, Union
 
 from code_generation.producer import (
     CollectProducersOutput,

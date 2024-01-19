@@ -69,7 +69,7 @@ class SampleRuleConfigurationError(ConfigurationError):
     def __init__(
         self,
         sample: str,
-        rule: "ProducerRule",
+        rule,
         available_samples: Union[Set[str], List[str]],
     ):
         self.message = "Sampletype {} cannot be used in Rule {} since the type is not defined. Available samples types are {}".format(
