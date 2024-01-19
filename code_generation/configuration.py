@@ -316,7 +316,7 @@ class Configuration(object):
         self,
         shift: Union[SystematicShift, SystematicShiftByQuantity],
         samples: Union[str, List[str], None] = None,
-        excluded_samples: Union[str, List[str], None] = None,
+        exclude_samples: Union[str, List[str], None] = None,
     ) -> None:
         """
         Function used to add a systematics shift to the configuration. During this step, the shift is validated and applied.
@@ -325,14 +325,14 @@ class Configuration(object):
             shift: The shift to be added. This must be a SystematicShift object.
             samples: The samples to which the shift should be applied. This can be a list of samples or a single sample.
                 If ths option is not set, the shift is applied, regardless of the sample type.
-            excluded_samples: The samples to which the shift should not be applied. This can be a list of samples or a single sample. if excluded_samples is set, samples cannot be used.
+            exclude_samples: The samples to which the shift should not be applied. This can be a list of samples or a single sample. if exclude_samples is set, samples cannot be used.
 
         Returns:
             None
         """
-        if excluded_samples is not None and samples is not None:
+        if exclude_samples is not None and samples is not None:
             raise ConfigurationError(
-                f"You cannot use samples and excluded_samples at the same time -> Shift {shift}, samples {samples}, excluded_samples {excluded_samples}"
+                f"You cannot use samples and exclude_samples at the same time -> Shift {shift}, samples {samples}, exclude_samples {exclude_samples}"
             )
         if samples is not None:
             if isinstance(samples, str):
@@ -342,15 +342,15 @@ class Configuration(object):
                     raise ConfigurationError(
                         f"Sampletype {sample} is not available -> Shift {shift}, available_sample_types {self.available_sample_types}, sample_types {samples}"
                     )
-        if excluded_samples is not None:
-            if isinstance(excluded_samples, str):
-                excluded_samples = [excluded_samples]
-            for excluded_sample in excluded_samples:
+        if exclude_samples is not None:
+            if isinstance(exclude_samples, str):
+                exclude_samples = [exclude_samples]
+            for excluded_sample in exclude_samples:
                 if excluded_sample not in self.available_sample_types:
                     raise ConfigurationError(
-                        f"Sampletype {excluded_sample} is not available for exclusion -> Shift {shift}, available_sample_types {self.available_sample_types}, excluded_sample_types {excluded_samples}"
+                        f"Sampletype {excluded_sample} is not available for exclusion -> Shift {shift}, available_sample_types {self.available_sample_types}, excluded_sample_types {exclude_samples}"
                     )
-            samples = list(self.available_sample_types - set(excluded_samples))
+            samples = list(self.available_sample_types - set(exclude_samples))
         if self._is_valid_shift(shift):
             log.debug("Shift {} is valid".format(shift.shiftname))
             if not isinstance(shift, SystematicShift):

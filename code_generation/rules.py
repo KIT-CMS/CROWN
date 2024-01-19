@@ -19,7 +19,7 @@ class ProducerRule:
         self,
         producers: TProducerInput,
         samples: Union[str, List[str]] = [],
-        excluded_samples: Union[str, List[str]] = [],
+        exclude_samples: Union[str, List[str]] = [],
         scopes: Union[str, List[str]] = "global",
         invert: bool = False,
         update_output: bool = True,
@@ -28,8 +28,8 @@ class ProducerRule:
 
         Args:
             producers: A list of producers or producer groups to be modified.
-            samples: A list of samples, for which the rule should be applied. Only one of samples and excluded_samples can be defined.
-            excluded_samples: A list of samples, for which the rule should not be applied. Only one of samples and excluded_samples can be defined.
+            samples: A list of samples, for which the rule should be applied. Only one of samples and exclude_samples can be defined.
+            exclude_samples: A list of samples, for which the rule should not be applied. Only one of samples and exclude_samples can be defined.
             scopes: The scopes, in which the rule should be applied. Defaults to "global".
             invert: If set, the invert of the rule is applied. Defaults to False.
             update_output: If set, the output quantities are updated. Defaults to True.
@@ -43,10 +43,10 @@ class ProducerRule:
         self.invert = invert
         self.update_output = update_output
         self.global_scope = "global"
-        if isinstance(excluded_samples, str):
-            self.excluded_samples = [excluded_samples]
+        if isinstance(exclude_samples, str):
+            self.exclude_samples = [exclude_samples]
         else:
-            self.excluded_samples = excluded_samples
+            self.exclude_samples = exclude_samples
         if isinstance(samples, str):
             self.samples = [samples]
         else:
@@ -58,23 +58,21 @@ class ProducerRule:
             self.available_samples = [available_samples]
         else:
             self.available_samples = available_samples
-        # make sure that either samples or excluded_samples are defined
-        if self.excluded_samples == [] and self.samples == []:
+        # make sure that either samples or exclude_samples are defined
+        if self.exclude_samples == [] and self.samples == []:
             raise ValueError(
-                f"ProducerRule: Either samples or excluded_samples have to be defined!: (Rule: {self}, Samples: {self.samples}, Excluded Samples: {self.excluded_samples})"
+                f"ProducerRule: Either samples or exclude_samples have to be defined!: (Rule: {self}, Samples: {self.samples}, Excluded Samples: {self.exclude_samples})"
             )
-        if self.excluded_samples != [] and self.samples != []:
+        if self.exclude_samples != [] and self.samples != []:
             raise ValueError(
-                f"ProducerRule: Both samples and are excluded_samples are defined, pick one!: (Rule: {self}, Samples: {self.samples}, Excluded Samples: {self.excluded_samples})"
+                f"ProducerRule: Both samples and are exclude_samples are defined, pick one!: (Rule: {self}, Samples: {self.samples}, Excluded Samples: {self.exclude_samples})"
             )
         # make sure that the sampletypes are valid
         self.validate_sampletypes(self.samples)
-        self.validate_sampletypes(self.excluded_samples)
-        # if excluded_samples are defined, we have to contstruct the list of samples them from the list of available samples
-        if self.excluded_samples != []:
-            self.samples = list(
-                set(self.available_samples) - set(self.excluded_samples)
-            )
+        self.validate_sampletypes(self.exclude_samples)
+        # if exclude_samples are defined, we have to contstruct the list of samples them from the list of available samples
+        if self.exclude_samples != []:
+            self.samples = list(set(self.available_samples) - set(self.exclude_samples))
 
     def set_scopes(self, scopes: List[str]) -> None:
         if isinstance(scopes, str):
