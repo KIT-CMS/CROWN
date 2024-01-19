@@ -18,7 +18,8 @@ class ProducerRule:
     def __init__(
         self,
         producers: TProducerInput,
-        samples: Union[str, List[str]],
+        samples: Union[str, List[str]] = [],
+        excluded_samples: Union[str, List[str]] = [],
         scopes: Union[str, List[str]] = "global",
         invert: bool = False,
         update_output: bool = True,
@@ -27,7 +28,8 @@ class ProducerRule:
 
         Args:
             producers: A list of producers or producer groups to be modified.
-            samples: A list of samples, for which the rule should be applied.
+            samples: A list of samples, for which the rule should be applied. Only one of samples and excluded_samples can be defined.
+            excluded_samples: A list of samples, for which the rule should not be applied. Only one of samples and excluded_samples can be defined.
             scopes: The scopes, in which the rule should be applied. Defaults to "global".
             invert: If set, the invert of the rule is applied. Defaults to False.
             update_output: If set, the output quantities are updated. Defaults to True.
@@ -35,15 +37,44 @@ class ProducerRule:
         if isinstance(producers, ProducerGroup) or isinstance(producers, Producer):
             producers = [producers]
         self.producers = producers
-        if isinstance(samples, str):
-            samples = [samples]
-        self.samples = samples
         if isinstance(scopes, str):
             scopes = [scopes]
         self.scopes = scopes
         self.invert = invert
         self.update_output = update_output
         self.global_scope = "global"
+        if isinstance(excluded_samples, str):
+            self.excluded_samples = [excluded_samples]
+        else:
+            self.excluded_samples = excluded_samples
+        if isinstance(samples, str):
+            self.samples = [samples]
+        else:
+            self.samples = samples
+
+    def set_available_sampletypes(self, available_samples) -> None:
+        # sanitize input
+        if isinstance(available_samples, str):
+            self.available_samples = [available_samples]
+        else:
+            self.available_samples = available_samples
+        # make sure that either samples or excluded_samples are defined
+        if self.excluded_samples == [] and self.samples == []:
+            raise ValueError(
+                f"ProducerRule: Either samples or excluded_samples have to be defined!: (Rule: {self}, Samples: {self.samples}, Excluded Samples: {self.excluded_samples})"
+            )
+        if self.excluded_samples != [] and self.samples != []:
+            raise ValueError(
+                f"ProducerRule: Both samples and are excluded_samples are defined, pick one!: (Rule: {self}, Samples: {self.samples}, Excluded Samples: {self.excluded_samples})"
+            )
+        # make sure that the sampletypes are valid
+        self.validate_sampletypes(self.samples)
+        self.validate_sampletypes(self.excluded_samples)
+        # if excluded_samples are defined, we have to contstruct the list of samples them from the list of available samples
+        if self.excluded_samples != []:
+            self.samples = list(
+                set(self.available_samples) - set(self.excluded_samples)
+            )
 
     def set_scopes(self, scopes: List[str]) -> None:
         if isinstance(scopes, str):
@@ -59,7 +90,7 @@ class ProducerRule:
     def set_global_scope(self, global_scope: str) -> None:
         self.global_scope = global_scope
 
-    def validate_samples(self, available_samples: Set[str]) -> None:
+    def validate_sampletypes(self, sampletypes: List[str]) -> None:
         """Function to check, if a rule is applicable, or if one of the defined samples is not available.
 
         Args:
@@ -68,9 +99,9 @@ class ProducerRule:
         Returns:
             None
         """
-        for sample in self.samples:
-            if sample not in available_samples:
-                raise SampleRuleConfigurationError(sample, self, available_samples)
+        for sample in sampletypes:
+            if sample not in self.available_samples:
+                raise SampleRuleConfigurationError(sample, self, self.available_samples)
 
     # Evaluate whether modification should be applied depending on sample and inversion flag
     def is_applicable(self, sample: str) -> bool:
@@ -80,7 +111,11 @@ class ProducerRule:
         return applicable
 
     # Placeholder for the actual operation on a list. To be overwritten by inheriting classes
-    def update_producers(self, producers_to_be_updated: TProducerStore) -> None:
+    def update_producers(
+        self,
+        producers_to_be_updated: TProducerStore,
+        unpacked_producers: TProducerStore,
+    ) -> None:
         log.error("Operation not implemented for ProducerRule base class!")
 
     def update_outputs(self, outputs_to_be_updated: QuantitiesStore) -> None:
