@@ -43,7 +43,7 @@ jobs:
       - name: update ubuntu
         run: apt-get -y update
       - name: install packages
-        run: apt-get install -y git cmake make python3-pip openmpi-bin libopenmpi-dev libboost-all-dev openssh-client
+        run: apt-get install -y git cmake make python3-pip openmpi-bin libopenmpi-dev libboost-all-dev openssh-client nlohmann-json3-dev
       - name: install python packages
         run: python3 -m pip install GitPython && python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
 
