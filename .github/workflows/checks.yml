@@ -45,7 +45,7 @@ jobs:
       - name: install packages
         run: apt-get install -y git cmake make python3-pip openmpi-bin libopenmpi-dev libboost-all-dev openssh-client
       - name: install python packages
-        run: python3 -m pip install GitPython --break-system-packages && python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git --break-system-packages
+        run: python3 -m pip install GitPython && python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
 
       - name: Clone project
         uses: actions/checkout@v3
