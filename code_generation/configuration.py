@@ -431,6 +431,7 @@ class Configuration(object):
             scopes = [scopes]
         rule.set_scopes(scopes)
         rule.set_global_scope(self.global_scope)
+        rule.validate_samples(self.available_sample_types)
         self.rules.add(rule)
 
     def resolve_modifiers(self, configuration_dict: Dict[Any, Any]) -> TConfiguration:

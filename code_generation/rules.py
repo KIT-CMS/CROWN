@@ -1,5 +1,5 @@
 import logging
-from typing import List, Union
+from typing import List, Union, Set
 
 from code_generation.producer import (
     CollectProducersOutput,
@@ -9,6 +9,7 @@ from code_generation.producer import (
     TProducerStore,
 )
 from code_generation.quantity import QuantitiesStore
+from code_generation.exceptions import SampleRuleConfigurationError
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +58,19 @@ class ProducerRule:
 
     def set_global_scope(self, global_scope: str) -> None:
         self.global_scope = global_scope
+
+    def validate_samples(self, available_samples: Set[str]) -> None:
+        """Function to check, if a rule is applicable, or if one of the defined samples is not available.
+
+        Args:
+            available_samples (List[str]): List of available samples.
+
+        Returns:
+            None
+        """
+        for sample in self.samples:
+            if sample not in available_samples:
+                raise SampleRuleConfigurationError(sample, self, available_samples)
 
     # Evaluate whether modification should be applied depending on sample and inversion flag
     def is_applicable(self, sample: str) -> bool:
