@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
 
     // initialize df
     ROOT::RDataFrame df0(basetree, input_files);
-    ROOT::RDF::Experimental::AddProgressBar(df0);
+    // ROOT::RDF::Experimental::AddProgressBar(df0); ROOT 6.30 not available for CS8 on lcg
     Logger::get("main")->info("Starting Setup of Dataframe with {} events",
                               nevents);
     std::vector<ROOT::RDF::RResultPtr<ROOT::RDF::RCutFlowReport>> cutReports;
