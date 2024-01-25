@@ -18,7 +18,7 @@ else
 fi
 echo "Setting up CROWN for $distro Version $os_version"
 # check if the distro is centos
-if [[ "$distro" == "CentOS" ]]; then
+if [[ "$distro" == "CentOS" || "$distro" == "CentOS Linux"  ]]; then
     # if the first number of os_version is a 7, we are on centOS 7
     if [[ ${os_version:0:1} == "7" ]]; then # if uname -a | grep -E 'el7' -q
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-gcc11-opt/setup.sh
@@ -29,7 +29,7 @@ if [[ "$distro" == "CentOS" ]]; then
         echo "Unsupported CentOS version, exiting..."
         return 0
     fi
-elif [[ "$distro" == "RedHatEnterprise" || "$distro" == "AlmaLinux" || "$distro" == "RockyLinux" ]]; then
+elif [[ "$distro" == "RedHatEnterprise" || "$distro" == "AlmaLinux" || "$distro" == "Rocky Linux" ]]; then
     if [[ ${os_version:0:1} == "8" ]]; then # elif uname -a | grep -E 'el8' -q
         # no lcg 103 available for centOS 8
         source /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos8-gcc11-opt/setup.sh
