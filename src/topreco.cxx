@@ -724,6 +724,8 @@ ROOT::RDF::RNode JetSelection(ROOT::RDF::RNode df, const int &njets,
  * b-tagged jet b tagging score.
  * @param[out] str_is_reco Name of the output column for the flag if the top
  * quark is reconstructable.
+ * @param[out] str_is_jj Name of the output column for the flag if the event
+ * falls into the 2j0b category.
  * @param[out] str_is_jjb Name of the output column for the flag if the event
  * falls into the 2j1b category.
  * @param[out] str_is_jjbb Name of the output column for the flag if the event
@@ -751,14 +753,21 @@ TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
         const std::string &str_nonbjet_btag_2, const std::string &str_n_bjets,
         const std::string &str_bjet_p4_1, const std::string &str_bjet_btag_1,
         const std::string &str_bjet_p4_2, const std::string &str_bjet_btag_2,
-        const std::string &str_is_reco, const std::string &str_is_jjb,
+        const std::string &str_is_reco, const std::string &str_is_jj, const std::string &str_is_jjb,
         const std::string &str_is_jjbb, const std::string &str_is_jjjb,
         const std::string &str_is_jjjbb, const std::string &str_reco_p4s,
         const std::string &str_top_p4, const std::string &str_tb_p4,
         const std::string &str_sb_p4) {
 
+    auto df2a =
+        df.Define(str_is_jj,
+                  [](const int n_nonbjets, const int n_bjets) {
+                      return int((n_nonbjets + n_bjets) == 2 && n_bjets == 0);
+                  },
+                  {str_n_nonbjets, str_n_bjets});
+
     auto df2 =
-        df.Define(str_is_jjb,
+        df2a.Define(str_is_jjb,
                   [](const int n_nonbjets, const int n_bjets) {
                       return int((n_nonbjets + n_bjets) == 2 && n_bjets == 1);
                   },
@@ -792,7 +801,7 @@ TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
                           },
                           {str_is_jjb, str_is_jjbb, str_is_jjjb, str_is_jjjbb});
 
-    auto top_reco = [](const int is_reco, const int is_jjb, const int is_jjbb,
+    auto top_reco = [](const int is_reco, const int is_jj, const int is_jjb, const int is_jjbb, 
                        const int is_jjjb, const int is_jjjbb,
                        const ROOT::Math::PtEtaPhiMVector wlep_p4,
                        const ROOT::Math::PtEtaPhiMVector nonbjet_p4_1,
@@ -856,7 +865,7 @@ TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
     };
 
     auto df7 = df6.Define(str_reco_p4s, top_reco,
-                          {str_is_reco, str_is_jjb, str_is_jjbb, str_is_jjjb,
+                          {str_is_reco, str_is_jj, str_is_jjb, str_is_jjbb, str_is_jjjb,
                            str_is_jjjbb, str_wlep_p4, str_nonbjet_p4_1,
                            str_nonbjet_btag_1, str_nonbjet_p4_2,
                            str_nonbjet_btag_2, str_bjet_p4_1, str_bjet_btag_1,
@@ -1711,6 +1720,8 @@ ROOT::RDF::RNode LeptonScaleFactors(
  * category
  * @param[in] str_is_reco Name of the column containing the flag if the event is
  * reconstructable
+ * @param[out] str_is_jj Name of the output column for the flag if the event
+ * falls into the 2j0b category.
  * @param[in] str_is_jjb Name of the column containing the flag if the event
  * falls into the 2j1b category
  * @param[in] str_is_jjbb Name of the column containing the flag if the event
@@ -1783,7 +1794,7 @@ ROOT::RDF::RNode LeptonScaleFactors(
  */
 ROOT::RDF::RNode BTagScaleFactors(
     ROOT::RDF::RNode df, const std::string &str_is_iso,
-    const std::string &str_is_reco, const std::string &str_is_jjb,
+    const std::string &str_is_reco, const std::string &str_is_jj, const std::string &str_is_jjb,
     const std::string &str_is_jjbb, const std::string &str_is_jjjb,
     const std::string &str_is_jjjbb, const std::string &str_nonbjet_pt_1,
     const std::string &str_nonbjet_eta_1, const std::string &str_nonbjet_btag_1,
@@ -1870,7 +1881,7 @@ ROOT::RDF::RNode BTagScaleFactors(
                     btag_corr_algo_HF, btag_corr_algo_LF, evaluator_btag_eff_b,
                     evaluator_btag_eff_c, evaluator_btag_eff_udsg, btag_wp,
                     max_bjet_eta_sf, shift_HF, shift_LF](
-                       const int &is_iso, const int &is_reco, const int &is_jjb,
+                       const int &is_iso, const int &is_reco, const int &is_jj, const int &is_jjb, 
                        const int &is_jjbb, const int &is_jjjb,
                        const int &is_jjjbb, const float &nonbjet_pt_1,
                        const float &nonbjet_eta_1, const float &nonbjet_btag_1,
@@ -1900,6 +1911,78 @@ ROOT::RDF::RNode BTagScaleFactors(
         double eff_b2 = 1.;
         double eff_nonb1 = 1.;
         double eff_nonb2 = 1.;
+
+       if (is_jj) {
+            if (std::abs(nonbjet_eta_1) < max_bjet_eta_sf) {
+                if (nonbjet_flavor_1 == 5) {
+                    eff_nonb1 = evaluator_btag_eff_b->evaluate(
+                        {nonbjet_eta_1, nonbjet_pt_1});
+                    for (unsigned i = 0; i < n_vars; i++)
+                        sf_nonb1[i] = evaluator_btag_sf_HF->evaluate(
+                            {shift_HF[i], btag_wp, nonbjet_flavor_1,
+                             std::abs(nonbjet_eta_1), nonbjet_pt_1});
+                } else if (nonbjet_flavor_1 == 4) {
+                    eff_nonb1 = evaluator_btag_eff_c->evaluate(
+                        {nonbjet_eta_1, nonbjet_pt_1});
+                    for (unsigned i = 0; i < n_vars; i++)
+                        sf_nonb1[i] = evaluator_btag_sf_HF->evaluate(
+                            {shift_HF[i], btag_wp, nonbjet_flavor_1,
+                             std::abs(nonbjet_eta_1), nonbjet_pt_1});
+                } else {
+                    eff_nonb1 = evaluator_btag_eff_udsg->evaluate(
+                        {nonbjet_eta_1, nonbjet_pt_1});
+                    for (unsigned i = 0; i < n_vars; i++)
+                        sf_nonb1[i] = evaluator_btag_sf_LF->evaluate(
+                            {shift_LF[i], btag_wp, nonbjet_flavor_1,
+                             std::abs(nonbjet_eta_1), nonbjet_pt_1});
+                }
+
+                P_MC *= (1 - eff_nonb1);
+                for (unsigned i = 0; i < n_vars; i++) {
+                    P_data[i] *= (1 - sf_nonb1[i] * eff_nonb1);
+                    Logger::get("btagsf")->debug(
+                        "updating P ... eff_nonb1 {}, sf_nonb1 {}, P_MC {}, "
+                        "P_data {}",
+                        eff_nonb1, sf_nonb1[i], P_MC, P_data[i]);
+                }
+            }
+            if (std::abs(nonbjet_eta_2) < max_bjet_eta_sf) {
+                Logger::get("btagsf")->debug(
+                    "val 1 {}, val 2 {}, < ??? {}", std::abs(nonbjet_eta_2),
+                    max_bjet_eta_sf, std::abs(nonbjet_eta_2) < max_bjet_eta_sf);
+                if (nonbjet_flavor_2 == 5) {
+                    eff_nonb2 = evaluator_btag_eff_b->evaluate(
+                        {nonbjet_eta_2, nonbjet_pt_2});
+                    for (unsigned i = 0; i < n_vars; i++)
+                        sf_nonb2[i] = evaluator_btag_sf_HF->evaluate(
+                            {shift_HF[i], btag_wp, nonbjet_flavor_2,
+                             std::abs(nonbjet_eta_2), nonbjet_pt_2});
+                } else if (nonbjet_flavor_2 == 4) {
+                    eff_nonb2 = evaluator_btag_eff_c->evaluate(
+                        {nonbjet_eta_2, nonbjet_pt_2});
+                    for (unsigned i = 0; i < n_vars; i++)
+                        sf_nonb2[i] = evaluator_btag_sf_HF->evaluate(
+                            {shift_HF[i], btag_wp, nonbjet_flavor_2,
+                             std::abs(nonbjet_eta_2), nonbjet_pt_2});
+                } else {
+                    eff_nonb2 = evaluator_btag_eff_udsg->evaluate(
+                        {nonbjet_eta_2, nonbjet_pt_2});
+                    for (unsigned i = 0; i < n_vars; i++)
+                        sf_nonb2[i] = evaluator_btag_sf_LF->evaluate(
+                            {shift_LF[i], btag_wp, nonbjet_flavor_2,
+                             std::abs(nonbjet_eta_2), nonbjet_pt_2});
+                }
+
+                P_MC *= (1 - eff_nonb2);
+                for (unsigned i = 0; i < n_vars; i++) {
+                    P_data[i] *= (1 - sf_nonb2[i] * eff_nonb2);
+                    Logger::get("btagsf")->debug(
+                        "updating P ... eff_nonb2 {}, sf_nonb2 {}, P_MC {}, "
+                        "P_data {}",
+                        eff_nonb2, sf_nonb2[i], P_MC, P_data[i]);
+                }
+            }
+        }
 
         if (is_jjb) {
 
@@ -2283,7 +2366,8 @@ ROOT::RDF::RNode BTagScaleFactors(
 
     auto df2 = df.Define(
         str_btag_sf_vec, btag_sf,
-        {str_is_iso,           str_is_reco,          str_is_jjb,
+        {str_is_iso,           str_is_reco,          str_is_jj,
+	 str_is_jjb,
          str_is_jjbb,          str_is_jjjb,          str_is_jjjbb,
          str_nonbjet_pt_1,     str_nonbjet_eta_1,    str_nonbjet_btag_1,
          str_nonbjet_flavor_1, str_nonbjet_pt_2,     str_nonbjet_eta_2,
