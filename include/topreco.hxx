@@ -59,11 +59,11 @@ TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
         const std::string &str_nonbjet_btag_2, const std::string &str_n_bjets,
         const std::string &str_bjet_p4_1, const std::string &str_bjet_btag_1,
         const std::string &str_bjet_p4_2, const std::string &str_bjet_btag_2,
-        const std::string &str_is_reco, const std::string &str_is_jj, const std::string &str_is_jjb,
-        const std::string &str_is_jjbb, const std::string &str_is_jjjb,
-        const std::string &str_is_jjjbb, const std::string &str_reco_p4s,
-        const std::string &str_top_p4, const std::string &str_tb_p4,
-        const std::string &str_sb_p4);
+        const std::string &str_is_reco, const std::string &str_is_jj,
+        const std::string &str_is_jjb, const std::string &str_is_jjbb,
+        const std::string &str_is_jjjb, const std::string &str_is_jjjbb,
+        const std::string &str_reco_p4s, const std::string &str_top_p4,
+        const std::string &str_tb_p4, const std::string &str_sb_p4);
 
 ROOT::RDF::RNode DNNQuantities(
     ROOT::RDF::RNode df, const std::string &str_is_reco,
@@ -121,10 +121,11 @@ ROOT::RDF::RNode LeptonScaleFactors(
 
 ROOT::RDF::RNode BTagScaleFactors(
     ROOT::RDF::RNode df, const std::string &str_is_iso,
-    const std::string &str_is_reco, const std::string &str_is_jj, const std::string &str_is_jjb,
-    const std::string &str_is_jjbb, const std::string &str_is_jjjb,
-    const std::string &str_is_jjjbb, const std::string &str_nonbjet_pt_1,
-    const std::string &str_nonbjet_eta_1, const std::string &str_nonbjet_btag_1,
+    const std::string &str_is_reco, const std::string &str_is_jj,
+    const std::string &str_is_jjb, const std::string &str_is_jjbb,
+    const std::string &str_is_jjjb, const std::string &str_is_jjjbb,
+    const std::string &str_nonbjet_pt_1, const std::string &str_nonbjet_eta_1,
+    const std::string &str_nonbjet_btag_1,
     const std::string &str_nonbjet_flavor_1,
     const std::string &str_nonbjet_pt_2, const std::string &str_nonbjet_eta_2,
     const std::string &str_nonbjet_btag_2,

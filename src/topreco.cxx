@@ -753,11 +753,11 @@ TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
         const std::string &str_nonbjet_btag_2, const std::string &str_n_bjets,
         const std::string &str_bjet_p4_1, const std::string &str_bjet_btag_1,
         const std::string &str_bjet_p4_2, const std::string &str_bjet_btag_2,
-        const std::string &str_is_reco, const std::string &str_is_jj, const std::string &str_is_jjb,
-        const std::string &str_is_jjbb, const std::string &str_is_jjjb,
-        const std::string &str_is_jjjbb, const std::string &str_reco_p4s,
-        const std::string &str_top_p4, const std::string &str_tb_p4,
-        const std::string &str_sb_p4) {
+        const std::string &str_is_reco, const std::string &str_is_jj,
+        const std::string &str_is_jjb, const std::string &str_is_jjbb,
+        const std::string &str_is_jjjb, const std::string &str_is_jjjbb,
+        const std::string &str_reco_p4s, const std::string &str_top_p4,
+        const std::string &str_tb_p4, const std::string &str_sb_p4) {
 
     auto df2a =
         df.Define(str_is_jj,
@@ -768,10 +768,10 @@ TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
 
     auto df2 =
         df2a.Define(str_is_jjb,
-                  [](const int n_nonbjets, const int n_bjets) {
-                      return int((n_nonbjets + n_bjets) == 2 && n_bjets == 1);
-                  },
-                  {str_n_nonbjets, str_n_bjets});
+                    [](const int n_nonbjets, const int n_bjets) {
+                        return int((n_nonbjets + n_bjets) == 2 && n_bjets == 1);
+                    },
+                    {str_n_nonbjets, str_n_bjets});
 
     auto df3 =
         df2.Define(str_is_jjbb,
@@ -801,8 +801,8 @@ TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
                           },
                           {str_is_jjb, str_is_jjbb, str_is_jjjb, str_is_jjjbb});
 
-    auto top_reco = [](const int is_reco, const int is_jj, const int is_jjb, const int is_jjbb, 
-                       const int is_jjjb, const int is_jjjbb,
+    auto top_reco = [](const int is_reco, const int is_jj, const int is_jjb,
+                       const int is_jjbb, const int is_jjjb, const int is_jjjbb,
                        const ROOT::Math::PtEtaPhiMVector wlep_p4,
                        const ROOT::Math::PtEtaPhiMVector nonbjet_p4_1,
                        const float nonbjet_btag_1,
@@ -865,11 +865,11 @@ TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
     };
 
     auto df7 = df6.Define(str_reco_p4s, top_reco,
-                          {str_is_reco, str_is_jj, str_is_jjb, str_is_jjbb, str_is_jjjb,
-                           str_is_jjjbb, str_wlep_p4, str_nonbjet_p4_1,
-                           str_nonbjet_btag_1, str_nonbjet_p4_2,
-                           str_nonbjet_btag_2, str_bjet_p4_1, str_bjet_btag_1,
-                           str_bjet_p4_2, str_bjet_btag_2});
+                          {str_is_reco, str_is_jj, str_is_jjb, str_is_jjbb,
+                           str_is_jjjb, str_is_jjjbb, str_wlep_p4,
+                           str_nonbjet_p4_1, str_nonbjet_btag_1,
+                           str_nonbjet_p4_2, str_nonbjet_btag_2, str_bjet_p4_1,
+                           str_bjet_btag_1, str_bjet_p4_2, str_bjet_btag_2});
 
     auto df8 =
         df7.Define(str_top_p4,
@@ -1794,10 +1794,11 @@ ROOT::RDF::RNode LeptonScaleFactors(
  */
 ROOT::RDF::RNode BTagScaleFactors(
     ROOT::RDF::RNode df, const std::string &str_is_iso,
-    const std::string &str_is_reco, const std::string &str_is_jj, const std::string &str_is_jjb,
-    const std::string &str_is_jjbb, const std::string &str_is_jjjb,
-    const std::string &str_is_jjjbb, const std::string &str_nonbjet_pt_1,
-    const std::string &str_nonbjet_eta_1, const std::string &str_nonbjet_btag_1,
+    const std::string &str_is_reco, const std::string &str_is_jj,
+    const std::string &str_is_jjb, const std::string &str_is_jjbb,
+    const std::string &str_is_jjjb, const std::string &str_is_jjjbb,
+    const std::string &str_nonbjet_pt_1, const std::string &str_nonbjet_eta_1,
+    const std::string &str_nonbjet_btag_1,
     const std::string &str_nonbjet_flavor_1,
     const std::string &str_nonbjet_pt_2, const std::string &str_nonbjet_eta_2,
     const std::string &str_nonbjet_btag_2,
@@ -1881,17 +1882,17 @@ ROOT::RDF::RNode BTagScaleFactors(
                     btag_corr_algo_HF, btag_corr_algo_LF, evaluator_btag_eff_b,
                     evaluator_btag_eff_c, evaluator_btag_eff_udsg, btag_wp,
                     max_bjet_eta_sf, shift_HF, shift_LF](
-                       const int &is_iso, const int &is_reco, const int &is_jj, const int &is_jjb, 
-                       const int &is_jjbb, const int &is_jjjb,
-                       const int &is_jjjbb, const float &nonbjet_pt_1,
-                       const float &nonbjet_eta_1, const float &nonbjet_btag_1,
-                       const int &nonbjet_flavor_1, const float &nonbjet_pt_2,
-                       const float &nonbjet_eta_2, const float &nonbjet_btag_2,
-                       const int &nonbjet_flavor_2, const float &bjet_pt_1,
-                       const float &bjet_eta_1, const float &bjet_btag_1,
-                       const int &bjet_flavor_1, const float &bjet_pt_2,
-                       const float &bjet_eta_2, const float &bjet_btag_2,
-                       const int &bjet_flavor_2) {
+                       const int &is_iso, const int &is_reco, const int &is_jj,
+                       const int &is_jjb, const int &is_jjbb,
+                       const int &is_jjjb, const int &is_jjjbb,
+                       const float &nonbjet_pt_1, const float &nonbjet_eta_1,
+                       const float &nonbjet_btag_1, const int &nonbjet_flavor_1,
+                       const float &nonbjet_pt_2, const float &nonbjet_eta_2,
+                       const float &nonbjet_btag_2, const int &nonbjet_flavor_2,
+                       const float &bjet_pt_1, const float &bjet_eta_1,
+                       const float &bjet_btag_1, const int &bjet_flavor_1,
+                       const float &bjet_pt_2, const float &bjet_eta_2,
+                       const float &bjet_btag_2, const int &bjet_flavor_2) {
         unsigned n_vars = shift_HF.size();
 
         ROOT::RVec<double> sf_vec(n_vars, 1.);
@@ -1912,7 +1913,7 @@ ROOT::RDF::RNode BTagScaleFactors(
         double eff_nonb1 = 1.;
         double eff_nonb2 = 1.;
 
-       if (is_jj) {
+        if (is_jj) {
             if (std::abs(nonbjet_eta_1) < max_bjet_eta_sf) {
                 if (nonbjet_flavor_1 == 5) {
                     eff_nonb1 = evaluator_btag_eff_b->evaluate(
@@ -2366,15 +2367,14 @@ ROOT::RDF::RNode BTagScaleFactors(
 
     auto df2 = df.Define(
         str_btag_sf_vec, btag_sf,
-        {str_is_iso,           str_is_reco,          str_is_jj,
-	 str_is_jjb,
-         str_is_jjbb,          str_is_jjjb,          str_is_jjjbb,
-         str_nonbjet_pt_1,     str_nonbjet_eta_1,    str_nonbjet_btag_1,
-         str_nonbjet_flavor_1, str_nonbjet_pt_2,     str_nonbjet_eta_2,
-         str_nonbjet_btag_2,   str_nonbjet_flavor_2, str_bjet_pt_1,
-         str_bjet_eta_1,       str_bjet_btag_1,      str_bjet_flavor_1,
-         str_bjet_pt_2,        str_bjet_eta_2,       str_bjet_btag_2,
-         str_bjet_flavor_2});
+        {str_is_iso,         str_is_reco,          str_is_jj,
+         str_is_jjb,         str_is_jjbb,          str_is_jjjb,
+         str_is_jjjbb,       str_nonbjet_pt_1,     str_nonbjet_eta_1,
+         str_nonbjet_btag_1, str_nonbjet_flavor_1, str_nonbjet_pt_2,
+         str_nonbjet_eta_2,  str_nonbjet_btag_2,   str_nonbjet_flavor_2,
+         str_bjet_pt_1,      str_bjet_eta_1,       str_bjet_btag_1,
+         str_bjet_flavor_1,  str_bjet_pt_2,        str_bjet_eta_2,
+         str_bjet_btag_2,    str_bjet_flavor_2});
 
     auto df3 =
         df2.Define(str_btagw_nom,
