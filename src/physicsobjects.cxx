@@ -968,6 +968,55 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
         df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
     return df1;
 }
+/// Function to correct electron pt, based on correctionlib file
+///
+/// \param[in] df the input dataframe
+/// \param[out] corrected_pt name of the corrected tau pt to be calculated
+/// \param[in] pt name of the raw tau pt
+/// \param[in] eta name of raw tau eta
+/// \param[in] sf_barrel scale factor to be applied to electrons in the barrel
+/// \param[in] sf_endcap scale factor to be applied to electrons in the endcap
+/// \param[in] sf_file:
+/// \param[in] jsonESname name of the tau energy correction in the json file
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode
+PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
+                    const std::string &pt, const std::string &eta,
+                    const std::string &sf_barrel, const std::string &sf_endcap,
+                    const std::string &sf_file, const std::string &jsonESname) {
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
+    auto electron_pt_correction_lambda =
+        [evaluator, sf_barrel, sf_endcap](const ROOT::RVec<float> &pt_values,
+                                        const ROOT::RVec<float> &eta) {
+            ROOT::RVec<float> corrected_pt_values(pt_values.size());
+            for (int i = 0; i < pt_values.size(); i++) {
+                if (abs(eta.at(i)) <= 1.479) {
+                    auto sf = evaluator->evaluate(
+                        {"barrel", sf_barrel});
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                    Logger::get("eleEnergyCorrection")
+                ->debug("barrel: ele pt before {}, ele pt after {}, sf {}",
+                        pt_values.at(i), corrected_pt_values.at(i),
+                        sf);
+                } else if (abs(eta.at(i)) > 1.479) {
+                    auto sf = evaluator->evaluate(
+                        {"endcap", sf_endcap});
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                    Logger::get("eleEnergyCorrection")
+                ->debug("endcap: ele pt before {}, ele pt after {}, sf {}",
+                        pt_values.at(i), corrected_pt_values.at(i),
+                        sf);
+                } else {
+                    corrected_pt_values[i] = pt_values.at(i);
+                }
+            }
+            return corrected_pt_values;
+        };
+    auto df1 = df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
+    return df1;
+}
 /// Function to cut electrons based on the electron MVA ID
 ///
 /// \param[in] df the input dataframe

@@ -150,7 +150,10 @@ ROOT::RDF::RNode
 PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
                      const std::string &pt, const std::string &eta,
                      const float &sf_barrel, const float &sf_endcap);
-
+ROOT::RDF::RNode PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
+                    const std::string &pt, const std::string &eta,
+                    const std::string &sf_barrel, const std::string &sf_endcap,
+                    const std::string &sf_file, const std::string &jsonESname);
 ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
                        const std::string &nameID);
 ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
