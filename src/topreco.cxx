@@ -1897,7 +1897,7 @@ ROOT::RDF::RNode BTagScaleFactors(
 
         ROOT::RVec<double> sf_vec(n_vars, 1.);
 
-        if (is_iso != +1 || is_reco == 0)
+        if ( ( ( is_iso != +1 || is_reco == 0 ) && is_jj != 1 ) || ( is_iso != +1 && is_jj == 1 ) )
             return sf_vec;
 
         double P_MC = 1.;
