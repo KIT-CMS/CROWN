@@ -33,7 +33,7 @@ ROOT::RDF::RNode
 fakefactor_nmssm_boosted_lt(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &boosted_tau_pt, const std::string &njets,
                     const std::string &boosted_lep_mt, const std::string &nbtags,
-                    const std::string &boosted_lep_pt, const std::string &boosted_m_vis, 
+                    const std::string &boosted_lep_pt, const std::string &boosted_m_vis, const std::string &boosted_dR_ditau,
                     const std::string &variation, const std::string &ff_file,
                     const std::string &ff_corr_file);
 ROOT::RDF::RNode
