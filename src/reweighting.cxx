@@ -117,13 +117,17 @@ ROOT::RDF::RNode topptreweighting(ROOT::RDF::RNode df,
             top_pts[0] = 472.0;
         if (top_pts[1] > 472.0)
             top_pts[1] = 472.0;
-        const float parameter_a = 0.088;
-        const float parameter_b = -0.00087;
-        const float parameter_c = 0.00000092;
-        return sqrt(exp(parameter_a + parameter_b * top_pts[0] +
-                        parameter_c * top_pts[0] * top_pts[0]) *
-                    exp(parameter_a + parameter_b * top_pts[1] +
-                        parameter_c * top_pts[1] * top_pts[1]));
+        // const float parameter_a = 0.088;
+        // const float parameter_b = -0.00087;
+        // const float parameter_c = 0.00000092;
+        // return sqrt(exp(parameter_a + parameter_b * top_pts[0] +
+        //                 parameter_c * top_pts[0] * top_pts[0]) *
+        //             exp(parameter_a + parameter_b * top_pts[1] +
+        //                 parameter_c * top_pts[1] * top_pts[1]));
+        const float parameter_a = 0.0615; // based on https://twiki.cern.ch/twiki/bin/view/CMS/TopPtReweighting
+        const float parameter_b = -0.0005;
+        return sqrt(exp(parameter_a + parameter_b * top_pts[0]) *
+                    exp(parameter_a + parameter_b * top_pts[1]));
     };
     auto df1 = df.Define(weightname, ttbarreweightlambda,
                          {gen_pdgids, gen_status, gen_pt});
@@ -238,6 +242,74 @@ ROOT::RDF::RNode lhe_scale_weights(ROOT::RDF::RNode df,
     auto lhe_scale_weights_lambda =
         [index](const ROOT::RVec<float> scale_weight) {
             return scale_weight.at(index);
+        };
+    auto df1 =
+        df.Define(weightname, lhe_scale_weights_lambda, {lhe_scale_weights});
+    return df1;
+}
+/**
+ * @brief Function used to evaluate the lheScaleweight of an event from NMSSM signal samples. The weights
+are stored in the nanoAOD file an defined as w_var/w_nominal. Depending on the
+selected muR and muF value, a specific index has to be returned. The mapping
+between the index and the muR and muF values is:
+
+muF        | MuR   | index
+------------|-------|-------
+ 0.5        | 0.5   | 0
+ 1.0        | 0.5   | 1
+ 2.0        | 0.5   | 2
+ 0.5        | 1.0   | 3
+ 2.0        | 1.0   | 4
+ 0.5        | 2.0   | 5
+ 1.0        | 2.0   | 6
+ 2.0        | 2.0   | 7
+
+In the NMSSM sample is now state for muF=1, muR=1 saved, which is different to other nanoAOD samples. 
+
+ *
+ * @param df The input dataframe
+ * @param weightname the output name of the generated weight
+ * @param lhe_scale_weights name of the column containing the lhe scale weights
+ * @param muR the value of muR, possible values are 0.5, 1.0, 2.0
+ * @param muF the value of muF, possible values are 0.5, 1.0, 2.0
+ * @return ROOT::RDF::RNode
+ */
+
+ROOT::RDF::RNode nmssm_lhe_scale_weights(ROOT::RDF::RNode df,
+                                   const std::string &weightname,
+                                   const std::string &lhe_scale_weights,
+                                   const float muR, const float muF) {
+    // find the index we have to use, first check if the muR and muF values are
+    // valid, only 0.5, 1.0, 2.0 are allowed
+    std::vector<float> allowed_values = {0.5, 1.0, 2.0};
+    if (std::find(allowed_values.begin(), allowed_values.end(), muR) ==
+        allowed_values.end()) {
+        Logger::get("lhe_scale_weights")
+            ->error("Invalid value for muR: {}}", muR);
+        throw std::runtime_error("Invalid value for muR");
+    }
+    if (std::find(allowed_values.begin(), allowed_values.end(), muF) ==
+        allowed_values.end()) {
+        Logger::get("lhe_scale_weights")
+            ->error("Invalid value for muF: {}}", muF);
+        throw std::runtime_error("Invalid value for muF");
+    }
+    // now find the index
+    std::map<std::pair<const float, const float>, int> index_map = {
+        {{0.5, 0.5}, 0}, {{1.0, 0.5}, 1}, {{2.0, 0.5}, 2},
+        {{0.5, 1.0}, 3}, {{2.0, 1.0}, 4},
+        {{0.5, 2.0}, 5}, {{1.0, 2.0}, 6}, {{2.0, 2.0}, 7}, {{1.0, 1.0}, 8}};
+    std::pair<const float, const float> variations = {muR, muF};
+    int index = index_map[variations];
+    auto lhe_scale_weights_lambda =
+        [index](const ROOT::RVec<float> scale_weight) {
+            if (index==8) {
+                float default_weight = 1.;
+                return default_weight;
+            }
+            else {
+                return scale_weight.at(index);
+            }
         };
     auto df1 =
         df.Define(weightname, lhe_scale_weights_lambda, {lhe_scale_weights});

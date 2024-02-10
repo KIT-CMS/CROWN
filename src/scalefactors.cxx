@@ -73,6 +73,54 @@ ROOT::RDF::RNode iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
     return df1;
 }
 /**
+ * @brief Function used to evaluate reco scale factors from muons with
+ * correctionlib. Configuration:
+ * - [UL2018 Muon
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2018_UL.html)
+ * - [UL2017 Muon
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2017_UL.html)
+ * - [UL2016preVFP Muon
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2016preVFP_UL.html)
+ * - [UL2016postVFP Muon
+ * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2016postVFP_UL.html)
+ *
+ * @param df The input dataframe
+ * @param pt muon pt
+ * @param eta muon eta
+ * @param variation id for the variation of the scale factor "sf" for nominal
+ * and "systup"/"systdown" for up/down variation
+ * @param reco_output name of the id scale factor column
+ * @param sf_file path to the file with the muon scale factors
+ * @param idAlgorithm name of the muon reco scale factor
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode reco(ROOT::RDF::RNode df, const std::string &pt,
+                    const std::string &eta,
+                    const std::string &variation, const std::string &reco_output,
+                    const std::string &sf_file,
+                    const std::string &idAlgorithm) {
+
+    Logger::get("muonRecoSF")->debug("Setting up functions for muon reco sf");
+    Logger::get("muonRecoSF")->debug("Reco - Name {}", idAlgorithm);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto df1 = df.Define(
+        reco_output,
+        [evaluator, variation](const float &pt, const float &eta) {
+            Logger::get("muonRecoSF")->debug("Reco - pt {}, eta {}", pt, eta);
+            double sf = 1.;
+            // preventing muons with default values due to tau energy correction
+            // shifts below good tau pt selection
+            if (pt >= 40.0 && std::abs(eta) >= 0.0 && std::abs(eta) < 2.4) {
+                sf = evaluator->evaluate(
+                    {std::abs(eta), pt, variation});
+            }
+            return sf;
+        },
+        {pt, eta});
+    return df1;
+}
+/**
  * @brief Function used to evaluate id scale factors from muons with
  * correctionlib. Configuration:
  * - [UL2018 Muon
@@ -112,7 +160,7 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
             double sf = 1.;
             // preventing muons with default values due to tau energy correction
             // shifts below good tau pt selection
-            if (pt >= 0.0 && std::abs(eta) >= 0.0) {
+            if (pt >= 15.0 && std::abs(eta) >= 0.0 && std::abs(eta) < 2.4) {
                 sf = evaluator->evaluate(
                     {year_id, std::abs(eta), pt, variation});
             }
@@ -161,7 +209,7 @@ ROOT::RDF::RNode iso(ROOT::RDF::RNode df, const std::string &pt,
             double sf = 1.;
             // preventing muons with default values due to tau energy correction
             // shifts below good tau pt selection
-            if (pt >= 0.0 && std::abs(eta) >= 0.0) {
+            if (pt >= 15.0 && std::abs(eta) >= 0.0 && std::abs(eta) < 2.4) {
                 sf = evaluator->evaluate(
                     {year_id, std::abs(eta), pt, variation});
             }
@@ -193,7 +241,7 @@ ROOT::RDF::RNode iso(ROOT::RDF::RNode df, const std::string &pt,
  * @param idAlgorithm name of the muon trigger scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode no_iso_trigger(ROOT::RDF::RNode df, const std::string &pt,
+ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, const std::string &pt,
                      const std::string &eta, const std::string &year_id,
                      const std::string &variation,
                      const std::string &trigger_output, const std::string &sf_file,
@@ -205,11 +253,15 @@ ROOT::RDF::RNode no_iso_trigger(ROOT::RDF::RNode df, const std::string &pt,
         correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
     auto df1 = df.Define(
         trigger_output,
-        [evaluator, year_id, variation](const float &pt, const float &eta) {
+        [evaluator, year_id, variation, idAlgorithm](const float &pt, const float &eta) {
             Logger::get("muonTriggerSF")->debug("Trigger - pt {}, eta {}", pt, eta);
             double sf = 1.;
+            float low_pt_threshold = 26.0; // for IsoMu24 trigger
+            if (idAlgorithm.find("Mu50") != std::string::npos) {
+                low_pt_threshold = 52.0;
+            }
             // preventing muons for which scale factor is not defined for
-            if (pt > 52.0 && std::abs(eta) >= 0.0 && std::abs(eta) < 2.4) {
+            if (pt > low_pt_threshold && std::abs(eta) >= 0.0 && std::abs(eta) < 2.4) {
                 sf = evaluator->evaluate(
                     {year_id, std::abs(eta), pt, variation});
             }
@@ -1355,9 +1407,10 @@ ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
  * @param output name of the scale factor column
  * @param wp the name of the the tau id working point VVVLoose-VVTight
  * @param sf_file path to the file with the tau trigger scale factors
+ * @param corr_name name of the correction iht in the file
  * @param type the type of the tau trigger, available are "ditau", "etau",
  * "mutau", "ditauvbf"
- * @param corrtype name of the tau trigger correction type, available are
+ * @param corr_type name of the tau trigger correction type, available are
  * "eff_data", "eff_mc", "sf"
  * @param syst name of the systematic variation, options are "nom", "up", "down"
  * @return ROOT::RDF::RNode a new dataframe containing the new sf column
@@ -1366,31 +1419,31 @@ ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
 ROOT::RDF::RNode
 ditau_trigger_sf(ROOT::RDF::RNode df, const std::string &pt,
                  const std::string &decaymode, const std::string &output,
-                 const std::string &wp, const std::string &sf_file,
-                 const std::string &type, const std::string &corrtype,
+                 const std::string &wp, const std::string &sf_file, const std::string &corr_name,
+                 const std::string &type, const std::string &corr_type,
                  const std::string &syst) {
 
     Logger::get("ditau_trigger")
         ->debug("Setting up function for di-tau trigger sf");
     Logger::get("ditau_trigger")
-        ->debug("correction type {}, file {}", corrtype, sf_file);
+        ->debug("correction type {}, name {}, file {}", corr_type, corr_name, sf_file);
     // tauTriggerSF is the only correction set in the file for now, might change
     // with official sf release -> change into additional input parameter
     auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at("tauTriggerSF");
+        correction::CorrectionSet::from_file(sf_file)->at(corr_name);
     Logger::get("ditau_trigger")->debug("WP {} - trigger type {}", wp, type);
-    auto trigger_sf_calculator = [evaluator, wp, type, corrtype,
+    auto trigger_sf_calculator = [evaluator, wp, type, corr_type,
                                   syst](const float &pt, const int &decaymode) {
         float sf = 1.;
         Logger::get("ditau_trigger")
             ->debug("decaymode {}, pt {}", decaymode, pt);
-        if (pt > 0) {
+        if (pt > 40.) {
             if (decaymode == 0 || decaymode == 1 || decaymode == 10 ||
                 decaymode == 11) {
                 sf = evaluator->evaluate(
-                    {pt, decaymode, type, wp, corrtype, syst});
+                    {pt, decaymode, type, wp, corr_type, syst});
             } else {
-                sf = evaluator->evaluate({pt, -1, type, wp, corrtype, syst});
+                sf = evaluator->evaluate({pt, -1, type, wp, corr_type, syst});
             }
         }
         Logger::get("ditau_trigger")->debug("Scale Factor {}", sf);

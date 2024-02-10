@@ -450,7 +450,7 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
                 else if (jes_shift_sources.at(0) == "HEMIssue") {
                     if (jes_shift == (-1.) && pt_values_corrected.at(i) > 15. &&
                         phi_values.at(i) > (-1.57) &&
-                        phi_values.at(i) < (-0.87) && ID_values.at(i) == 2) {
+                        phi_values.at(i) < (-0.87) && ID_values.at(i) >= 2) {
                         if (eta_values.at(i) > (-2.5) &&
                             eta_values.at(i) < (-1.3))
                             pt_scale_sf = 0.8;

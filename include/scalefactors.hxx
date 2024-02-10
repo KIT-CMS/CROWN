@@ -16,6 +16,10 @@ ROOT::RDF::RNode iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
                                   const std::string &workspace_name,
                                   const std::string &iso_functor_name,
                                   const std::string &iso_arguments);
+ROOT::RDF::RNode reco(ROOT::RDF::RNode df, const std::string &pt,
+                    const std::string &eta,
+                    const std::string &variation, const std::string &reco_output,
+                    const std::string &sf_file, const std::string &idAlgorithm);
 ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
                     const std::string &eta, const std::string &year_id,
                     const std::string &variation, const std::string &id_output,
@@ -25,7 +29,7 @@ ROOT::RDF::RNode iso(ROOT::RDF::RNode df, const std::string &pt,
                      const std::string &variation,
                      const std::string &iso_output, const std::string &sf_file,
                      const std::string &idAlgorithm);
-ROOT::RDF::RNode no_iso_trigger(ROOT::RDF::RNode df, const std::string &pt,
+ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, const std::string &pt,
                      const std::string &eta, const std::string &year_id,
                      const std::string &variation,
                      const std::string &trigger_output, const std::string &sf_file,
@@ -144,8 +148,8 @@ ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
 ROOT::RDF::RNode
 ditau_trigger_sf(ROOT::RDF::RNode df, const std::string &pt,
                  const std::string &decaymode, const std::string &output,
-                 const std::string &wp, const std::string &sf_file,
-                 const std::string &type, const std::string &corrtype,
+                 const std::string &wp, const std::string &sf_file, const std::string &corr_name,
+                 const std::string &type, const std::string &corr_type,
                  const std::string &syst);
 } // namespace embedding
 } // namespace scalefactor
