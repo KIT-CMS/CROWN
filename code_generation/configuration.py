@@ -386,7 +386,6 @@ class Configuration(object):
                         shift.shiftname, scope, self.available_scopes
                     )
                 )
-                return False
         if len(self.selected_shifts) == 1 and "all" in self.selected_shifts:
             return True
         elif len(self.selected_shifts) == 1 and "none" in self.selected_shifts:
