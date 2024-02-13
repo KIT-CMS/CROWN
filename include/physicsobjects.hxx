@@ -79,6 +79,8 @@ ROOT::RDF::RNode CheckForDiLeptonPairs(
     const std::string &leptons_phi, const std::string &leptons_mass,
     const std::string &leptons_charge, const std::string &leptons_mask,
     const float dR_cut);
+ROOT::RDF::RNode SelectInt(ROOT::RDF::RNode df, const std::string &maskname,
+                           const std::string &nameID, const int &IDvalue);
 namespace muon {
 ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
                        const std::string &nameID);
