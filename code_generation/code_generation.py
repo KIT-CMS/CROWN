@@ -764,7 +764,7 @@ class CodeGenerator(object):
                     global_commands = []
                 outputset = list(set(self.output_commands[scope] + global_commands))
                 # now split by __ and get a set of all the shifts per variable
-                for i, output in enumerate(outputset):
+                for output in outputset:
                     try:
                         quantity, shift = output.split("__")
                     except ValueError:
