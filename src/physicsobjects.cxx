@@ -406,6 +406,21 @@ ROOT::RDF::RNode CheckForDiLeptonPairs(
                           leptons_charge, leptons_mask});
     return df1;
 }
+/// Function to select objects based on matching a specific integer value
+///
+/// \param[in] df the input dataframe
+/// \param[out] maskname the name of the new mask to be added as column to
+/// the dataframe
+/// \param[in] nameID name of the ID column in the NanoAOD
+/// \param[in] IDvalue value that has to match
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode SelectInt(ROOT::RDF::RNode df, const std::string &maskname,
+                         const std::string &nameID, const int &IDvalue) {
+    auto df1 =
+        df.Define(maskname, basefunctions::FilterEqualInt(IDvalue), {nameID});
+    return df1;
+}
 
 /// Muon specific functions
 namespace muon {
