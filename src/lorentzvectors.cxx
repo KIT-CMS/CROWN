@@ -69,6 +69,46 @@ ROOT::RDF::RNode buildparticle(ROOT::RDF::RNode df,
     return df1;
 }
 
+ROOT::RDF::RNode buildparticle_subjet(ROOT::RDF::RNode df,
+                               const std::vector<std::string> &quantities,
+                               const std::string &outputname,
+                               const short &position) {
+    auto df1 = df.Define(
+        outputname,
+        [position, outputname](
+            const ROOT::RVec<short> &pair, const ROOT::RVec<float> &pts,
+            const ROOT::RVec<float> &etas, const ROOT::RVec<float> &phis,
+            const ROOT::RVec<float> &masses) {
+            // the index of the particle is stored in the pair vector
+            ROOT::Math::PtEtaPhiMVector p4;
+            Logger::get("lorentzvectors")
+                ->debug("starting to build 4vector {}!", outputname);
+            try {
+                const short index = pair.at(position);
+                Logger::get("lorentzvectors")->debug("pair {}", pair);
+                Logger::get("lorentzvectors")->debug("pts {}", pts);
+                Logger::get("lorentzvectors")->debug("etas {}", etas);
+                Logger::get("lorentzvectors")->debug("phis {}", phis);
+                Logger::get("lorentzvectors")->debug("masses {}", masses);
+                Logger::get("lorentzvectors")->debug("Index {}", index);
+
+                p4 = ROOT::Math::PtEtaPhiMVector(pts.at(index), etas.at(index),
+                                                 phis.at(index),
+                                                 masses.at(index));
+            } catch (const std::out_of_range &e) {
+                p4 = ROOT::Math::PtEtaPhiMVector(default_float, default_float,
+                                                 default_float, default_float);
+                Logger::get("lorentzvectors")
+                    ->debug("Index not found, retuning dummy vector !");
+            }
+            Logger::get("lorentzvectors")
+                ->debug("P4 - Particle {} : {}", position, p4);
+            return p4;
+        },
+        quantities);
+    return df1;
+}
+
 /**
  * @brief Function used to construct a 4-vector for a pair particle.
  *
@@ -89,6 +129,15 @@ ROOT::RDF::RNode build(ROOT::RDF::RNode df,
     for (auto i : obj_quantities)
         Logger::get("lorentzvectors")->debug("Used object quantities {}", i);
     return lorentzvectors::buildparticle(df, obj_quantities, obj_p4_name,
+                                         pairindex);
+}
+ROOT::RDF::RNode build_subjet(ROOT::RDF::RNode df,
+                       const std::vector<std::string> &obj_quantities,
+                       const short pairindex, const std::string &obj_p4_name) {
+    Logger::get("lorentzvectors")->debug("Building {}", obj_p4_name);
+    for (auto i : obj_quantities)
+        Logger::get("lorentzvectors")->debug("Used object quantities {}", i);
+    return lorentzvectors::buildparticle_subjet(df, obj_quantities, obj_p4_name,
                                          pairindex);
 }
 

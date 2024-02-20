@@ -156,6 +156,8 @@ ROOT::RDF::RNode zPtMassReweighting(ROOT::RDF::RNode df,
     auto df1 = df.Define(gen_boson + "_pt",
                          [](const std::pair<ROOT::Math::PtEtaPhiMVector,
                                             ROOT::Math::PtEtaPhiMVector> &p4) {
+        Logger::get("zPtMassReweighting kinematics and genboson")
+        ->info(" first genboson mass {}, first genboson pt {}", p4.first.mass(), p4.first.pt());
                              return (float)p4.first.pt();
                          },
                          {gen_boson});
@@ -166,11 +168,13 @@ ROOT::RDF::RNode zPtMassReweighting(ROOT::RDF::RNode df,
                           },
                           {gen_boson});
 
+
+
     // set up workspace
     Logger::get("zPtMassReweighting")
-        ->debug("Setting up functions for zPtMassReweighting");
+        ->info("Setting up functions for zPtMassReweighting");
     Logger::get("zPtMassReweighting")
-        ->debug("zPtMassReweighting - Function {} // argset {}", functor_name,
+        ->info("zPtMassReweighting - Function {} // argset {}", functor_name,
                 argset);
 
     const std::shared_ptr<RooFunctorThreadsafe> weight_function =
@@ -235,6 +239,8 @@ ROOT::RDF::RNode lhe_scale_weights(ROOT::RDF::RNode df,
         {{0.5, 2.0}, 6}, {{1.0, 2.0}, 7}, {{2.0, 2.0}, 8}};
     std::pair<const float, const float> variations = {muR, muF};
     int index = index_map[variations];
+    Logger::get("lhe_scale_weights index")
+        ->info("Using index {} for muR = {} and muF = {}", index, muR, muF);
     auto lhe_scale_weights_lambda =
         [index](const ROOT::RVec<float> scale_weight) {
             return scale_weight.at(index);

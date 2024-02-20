@@ -147,7 +147,7 @@ ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &chargecolumn) {
 
     if (chargecolumn.find("Tau") != std::string::npos ){
-        std::cout << "++++++ Tau found" << std::endl;
+        // std::cout << "++++++ Tau found" << std::endl;
 
         return df.Define(
         outputname,
@@ -157,7 +157,7 @@ ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
         },
         {pairname, chargecolumn});
     }else if (chargecolumn.find("Muon") != std::string::npos ){
-        std::cout << "++++++ Muon found" << std::endl;
+        // std::cout << "++++++ Muon found" << std::endl;
             return df.Define(
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &charge) {
@@ -166,7 +166,7 @@ ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
         },
         {pairname, chargecolumn});
     }else if (chargecolumn.find("Electron") != std::string::npos ){
-        std::cout << "++++++ Electron found" << std::endl;
+        // std::cout << "++++++ Electron found" << std::endl;
             return df.Define(
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &charge) {
@@ -175,15 +175,24 @@ ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
         },
         {pairname, chargecolumn});
     }else{
-        std::cout << "++++++ No lepton found" << std::endl;
+        // std::cout << "++++++ No lepton found" << std::endl;
+        return df.Define(
+        outputname,
+        [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &charge) {
+            // const int index = pair.at(position);
+            return  default_int;
+        },
+        {pairname, chargecolumn}
+        );
+        
     }
-    // return df.Define(
-    //     outputname,
-    //     [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &charge) {
-    //         const int index = pair.at(position);
-    //         return charge.at(index, default_int);
-    //     },
-    //     {pairname, chargecolumn});
+//     return df.Define(
+//         outputname,
+//         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<short> &charge) {
+//             const int index = pair.at(position);
+//             return charge.at(index, default_int);
+//         },
+//         {pairname, chargecolumn});
 }
 /// Function to calculate the scalar sum of pts for given lorentz vectors and
 /// add it to the dataframe

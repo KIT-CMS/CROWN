@@ -499,6 +499,11 @@ ROOT::RDF::RNode hadronicGenTaus(ROOT::RDF::RNode df,
     return df1;
 }
 
+ROOT::RDF::RNode good_mu_fatjet_genmatching(
+    ROOT::RDF::RNode df, const std::string &outputname) {
+ 
+
+}
 } // end namespace tau
 
 } // end namespace genmatching
