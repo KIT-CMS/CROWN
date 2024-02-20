@@ -108,6 +108,7 @@ int main(int argc, char *argv[]) {
 
     // initialize df
     ROOT::RDataFrame df0(basetree, input_files);
+    // ROOT::RDF::Experimental::AddProgressBar(df0); ROOT 6.30 not available for CS8 on lcg
     Logger::get("main")->info("Starting Setup of Dataframe with {} events",
                               nevents);
     std::vector<ROOT::RDF::RResultPtr<ROOT::RDF::RCutFlowReport>> cutReports;
@@ -173,6 +174,11 @@ int main(int argc, char *argv[]) {
             cutflow.SetTitle("cutflow");
             // iterate through the cutflow vector and fill the histogram with the
             // .GetPass() values
+            if (scope_counter >= cutReports.size()) {
+                Logger::get("main")->critical(
+                    "Cutflow vector is too small, this should not happen");
+                return 1;
+            }
             for (auto cut = cutReports[scope_counter].begin();
                 cut != cutReports[scope_counter].end(); cut++) {
                 cutflow.SetBinContent(
