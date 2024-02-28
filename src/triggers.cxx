@@ -289,6 +289,103 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
     }
 }
 
+// ROOT::RDF::RNode GenerateSingleTriggerFlagFJ(
+//     ROOT::RDF::RNode df, const std::string &triggerflag_name,
+//     const std::string &muon_pt, const std::string &muon_eta,
+//     const std::string &muon_phi, const std::string &muon_mass,
+//     const std::string trig_muon_in_fatjet, const std::string &triggerobject_bits,
+//     const std::string &triggerobject_id, const std::string &triggerobject_pt,
+//     const std::string &triggerobject_eta, const std::string &triggerobject_phi,
+//     const std::string &hltpath, const float &pt_cut, const float &eta_cut,
+//     const int &trigger_particle_id_cut, const int &triggerbit_cut,
+//     const float &DeltaR_threshold) {
+
+//     auto triggermatch =
+//         [DeltaR_threshold, pt_cut, eta_cut, trigger_particle_id_cut,
+//          triggerbit_cut, hltpath](bool hltpath_match,
+//                          ROOT::RVec<float>muon_pt,
+//                          ROOT::RVec<float>muon_eta,
+//                          ROOT::RVec<float>muon_phi,
+//                          ROOT::RVec<float>muon_mass,
+//                          ROOT::RVec<int> trig_muon_in_fatjet,
+//                          ROOT::RVec<int> triggerobject_bits,
+//                          ROOT::RVec<unsigned short> triggerobject_ids,
+//                          ROOT::RVec<float> triggerobject_pts,
+//                          ROOT::RVec<float> triggerobject_etas,
+//                          ROOT::RVec<float> triggerobject_phis) {
+//             Logger::get("GenerateSingleTriggerFlag")->debug("Checking Trigger");
+//             Logger::get("CheckTriggerMatch")
+//                     ->debug("Selected trigger: {}", hltpath);
+//             bool result = false;
+//             bool match_result = false;
+//             if (hltpath_match) {
+//                 Logger::get("CheckTriggerMatch")
+//                     ->debug("Checking Triggerobject match with particles ....");
+
+//                 particle_p4 = ROOT::Math::PtEtaPhiMVector(muon_pt, muon_eta, muon_phi, muon_mass);
+
+//                 // if (trig_muon_in_fatjet.size() > 0) {
+//                     for (std::size_t idx = 0; idx < trig_muon_in_fatjet.size(); ++idx) {
+//                         if (trig_muon_in_fatjet[idx] == 1) {
+//                             match_result = matchParticle(
+//                                 particle_p4, triggerobject_pts, triggerobject_etas,
+//                                 triggerobject_phis, triggerobject_bits, triggerobject_ids,
+//                                 DeltaR_threshold, pt_cut, eta_cut, trigger_particle_id_cut,
+//                                 triggerbit_cut);
+//                         }
+//                         else {
+//                             match_result = false;
+//                         }
+//                     // }
+//                 }
+//             }
+//             result = hltpath_match & match_result;
+//             Logger::get("GenerateSingleTriggerFlag")
+//                 ->debug("---> HLT Match: {}", hltpath_match);
+//             Logger::get("GenerateSingleTriggerFlag")
+//                 ->debug("---> Total Match: {}", match_result);
+//             Logger::get("GenerateSingleTriggerFlag")
+//                 ->debug("--->>>> result: {}", result);
+//             return result;
+//         };
+//     auto available_trigger = df.GetColumnNames();
+//     std::vector<std::string> matched_trigger_names;
+//     std::regex hltpath_regex = std::regex(hltpath);
+//     // loop over all available trigger names and check if the hltpath is
+//     // matching any of them
+//     for (auto &trigger : available_trigger) {
+//         if (std::regex_match(trigger, hltpath_regex)) {
+//             Logger::get("GenerateSingleTriggerFlag")
+//                 ->debug("Found matching trigger: {}", trigger);
+//             matched_trigger_names.push_back(trigger);
+//         }
+//     }
+//     // if no matching trigger was found return the initial dataframe
+//     if (matched_trigger_names.size() == 0) {
+//         Logger::get("GenerateSingleTriggerFlag")
+//             ->info("No matching trigger for {} found, returning false for "
+//                    "trigger flag {}",
+//                    hltpath, triggerflag_name);
+//         auto df1 = df.Define(triggerflag_name, []() { return false; });
+//         return df1;
+//     } else if (matched_trigger_names.size() > 1) {
+//         Logger::get("GenerateSingleTriggerFlag")
+//             ->debug(
+//                 "More than one matching trigger found, not implemented yet");
+//         throw std::invalid_argument(
+//             "received too many matching trigger paths, not implemented yet");
+//     } else {
+//         Logger::get("GenerateSingleTriggerFlag")
+//             ->debug("Found matching trigger: {}", matched_trigger_names[0]);
+//         auto df1 =
+//             df.Define(triggerflag_name, triggermatch,
+//                       {matched_trigger_names[0], particle_p4,
+//                        triggerobject_bits, triggerobject_id, triggerobject_pt,
+//                        triggerobject_eta, triggerobject_phi});
+//         return df1;
+//     }
+// }
+
 /**
  * @brief Function to generate a trigger flag based on an hlt path and trigger
  * object matching for the given object. This relies on the

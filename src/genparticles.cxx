@@ -180,6 +180,281 @@ ROOT::RDF::RNode genmatching(ROOT::RDF::RNode df, const std::string &outputname,
                    genparticles_mass, lepton_p4});
     return df1;
 }
+
+
+// ROOT::RDF::RNode fatjet_lepton_genmatching(ROOT::RDF::RNode df, const std::string &outputname,
+//                              const std::string &hadronicGenTaus,
+//                              const std::string &genparticles_pdgid,
+//                              const std::string &genparticles_statusFlag,
+//                              const std::string &genparticles_pt,
+//                              const std::string &genparticles_eta,
+//                              const std::string &genparticles_phi,
+//                              const std::string &genparticles_mass,
+//                              const std::string &lepton_p4) {
+//     auto match_lepton = [](const std::vector<int> &hadronicGenTaus,
+//                            const ROOT::RVec<int> &pdgids,
+//                            const ROOT::RVec<unsigned short> &status_flags,
+//                            const ROOT::RVec<float> &pts,
+//                            const ROOT::RVec<float> &etas,
+//                            const ROOT::RVec<float> &phis,
+//                            const ROOT::RVec<float> &masses,
+//                            const ROOT::Math::PtEtaPhiMVector &lepton_p4) {
+//         // find closest lepton fulfilling the requirements
+//         float min_delta_r = 0.8;
+//         int closest_genparticle_index = 0;
+
+//         int r_value ;
+//         for (unsigned int i = 0; i < pdgids.size(); i++) {
+//             int pdgid = std::abs(pdgids.at(i));
+            
+//             bool statusbit = (IntBits(status_flags.at(i)).test(0) ||
+//                               IntBits(status_flags.at(i)).test(5));
+
+//             bool prompt =
+//                 IntBits(status_flags.at(closest_genparticle_index)).test(0);
+//             bool from_tau =
+//                 IntBits(status_flags.at(closest_genparticle_index)).test(5);
+//             if ( pts.at(i) > 8 && statusbit) {
+//                 ROOT::Math::PtEtaPhiMVector gen_p4(pts.at(i), etas.at(i),
+//                                                    phis.at(i), masses.at(i));
+//                 float delta_r =
+//                     ROOT::Math::VectorUtil::DeltaR(gen_p4, lepton_p4);
+//                 if (delta_r < 0.8) {
+//                     closest_genparticle_index = i;
+//                     min_delta_r = delta_r;
+//                     int closest_pdgid = std::abs(pdgids.at(closest_genparticle_index));
+//                     if (closest_pdgid == 11 && prompt) {
+//                         // statusbit 1 is prompt electron
+//                         Logger::get("genmatching::tau::fatjet_genmatching")
+//                             ->info("IS_ELE_PROMPT");
+//                         // return 1;
+//                         r_value = 1;
+//                     }
+//                     if (closest_pdgid == 13 && prompt) {
+//                         // statusbit 2 is prompt muon
+//                         Logger::get("genmatching::tau::fatjet_genmatching")
+//                             ->info("IS_MUON_PROMPT");
+//                         // return 2;
+//                         r_value = 2;
+//                     }
+//                     if (closest_pdgid == 11 && from_tau) {
+//                         // statusbit 3 is electron from tau
+//                         Logger::get("genmatching::tau::fatjet_genmatching")
+//                             ->info("IS_ELE_FROM_TAU");
+//                         // return 3;
+//                         r_value = 3;
+//                     }
+//                     if (closest_pdgid == 13 && from_tau) {
+//                         // statusbit 4 is muon from tau
+//                         Logger::get("genmatching::tau::fatjet_genmatching")
+//                             ->info("IS_MUON_FROM_TAU");
+//                         // return 4;
+//                         r_value = 4;
+//                     }
+                    
+//                 }else{
+//                     Logger::get("genmatching::tau::fatjet_genmatching")
+//                     ->info("Genmatching Muon from Tau is NOT found at DeltaR {}",delta_r);
+//                     // return 6;
+//                     r_value = 6;
+//                 }
+//             }
+//             return r_value;
+//         }
+//            Logger::get("genmatching::tau::fatjet_genmatching")
+//                     ->debug("End of code r_value {}", r_value);
+                    
+//     };
+
+//     auto df1 =
+//         df.Define(outputname, match_lepton,
+//                   {hadronicGenTaus, genparticles_pdgid, genparticles_statusFlag,
+//                    genparticles_pt, genparticles_eta, genparticles_phi,
+//                    genparticles_mass, lepton_p4});
+//     return df1;
+// }
+
+ROOT::RDF::RNode fatjet_lepton_genmatching(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &genparticles_pdgid,
+                             const std::string &genparticles_statusFlag,
+                             const std::string &genparticles_pt,
+                             const std::string &genparticles_eta,
+                             const std::string &genparticles_phi,
+                             const std::string &genparticles_mass,
+                             const std::string &lepton_p4) {
+    auto match_lepton = [](const ROOT::RVec<int> &pdgids,
+                           const ROOT::RVec<unsigned short> &status_flags,
+                           const ROOT::RVec<float> &pts,
+                           const ROOT::RVec<float> &etas,
+                           const ROOT::RVec<float> &phis,
+                           const ROOT::RVec<float> &masses,
+                           const ROOT::Math::PtEtaPhiMVector &lepton_p4) {
+
+        float min_delta_r = 0.8;
+        int closest_genparticle_index = 0;
+        for (unsigned int i = 0; i < pdgids.size(); i++) {
+            int pdgid = std::abs(pdgids.at(i));
+            // check
+            // 1. if there is a gen electron or muon close to the lepton
+            // 2. that the genparticle pt is larger than 8 GeV
+            // 3. the genparticle is isPrompt (statusbit 0) or
+            // isDirectPromptTauDecayProduct (statusbit 5)
+            bool statusbit = (IntBits(status_flags.at(i)).test(0) ||
+                              IntBits(status_flags.at(i)).test(5));
+            if ((pdgid == 11 || pdgid == 13) && pts.at(i) > 8 && statusbit) {
+                ROOT::Math::PtEtaPhiMVector gen_p4(pts.at(i), etas.at(i),
+                                                   phis.at(i), masses.at(i));
+                float delta_r =
+                    ROOT::Math::VectorUtil::DeltaR(gen_p4, lepton_p4);
+                if (delta_r < min_delta_r) {
+                    closest_genparticle_index = i;
+                    min_delta_r = delta_r;
+                }
+            }
+        }
+        Logger::get("genmatching::tau::genmatching")
+            ->info("closest genlepton {} // DeltaR {}",
+                    closest_genparticle_index, min_delta_r);
+
+        int closest_pdgid = std::abs(pdgids.at(closest_genparticle_index));
+
+        if (min_delta_r < 0.8) {
+
+            bool prompt =
+                IntBits(status_flags.at(closest_genparticle_index)).test(0);
+            bool from_tau =
+                IntBits(status_flags.at(closest_genparticle_index)).test(5);
+
+            if (closest_pdgid == 11 && prompt) {
+                // statusbit 1 is prompt electron
+                Logger::get("genmatching::tau::genmatching")
+                    ->debug("IS_ELE_PROMPT");
+                return 1;
+            }
+            if (closest_pdgid == 13 && prompt) {
+                // statusbit 2 is prompt muon
+                Logger::get("genmatching::tau::genmatching")
+                    ->debug("IS_MUON_PROMPT");
+                return 2;
+            }
+            if (closest_pdgid == 11 && from_tau) {
+                // statusbit 3 is electron from tau
+                Logger::get("genmatching::tau::genmatching")
+                    ->debug("IS_ELE_FROM_TAU");
+                return 3;
+            }
+            if (closest_pdgid == 13 && from_tau) {
+                // statusbit 4 is muon from tau
+                Logger::get("genmatching::tau::genmatching")
+                    ->debug("IS_MUON_FROM_TAU");
+                return 4;
+            }
+            Logger::get("genmatching::tau::genmatching")
+                    ->debug("Lepton genmatching is not found in dR {}",min_delta_r);
+            return 6;
+
+        }
+    };
+
+        auto df1 =
+        df.Define(outputname, match_lepton,
+                  { genparticles_pdgid, genparticles_statusFlag,
+                   genparticles_pt, genparticles_eta, genparticles_phi,
+                   genparticles_mass, lepton_p4});
+    return df1;
+
+    }
+
+ROOT::RDF::RNode fatjet_tau_had_genmatching(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &hadronicGenTaus,
+                             const std::string &genparticles_pdgid,
+                             const std::string &genparticles_statusFlag,
+                             const std::string &genparticles_pt,
+                             const std::string &genparticles_eta,
+                             const std::string &genparticles_phi,
+                             const std::string &genparticles_mass,
+                             const std::string &lepton_p4) {
+    auto match_lepton = [](const std::vector<int> &hadronicGenTaus,
+                           const ROOT::RVec<int> &pdgids,
+                           const ROOT::RVec<unsigned short> &status_flags,
+                           const ROOT::RVec<float> &pts,
+                           const ROOT::RVec<float> &etas,
+                           const ROOT::RVec<float> &phis,
+                           const ROOT::RVec<float> &masses,
+                           const ROOT::Math::PtEtaPhiMVector &lepton_p4) {
+        // find closest lepton fulfilling the requirements
+        float min_delta_r = 9999;
+        int closest_genparticle_index = 0;
+
+        Logger::get("genmatching::tau::fatjet_genmatching")
+                        ->info("\n &&&& start genmatchine  {}");
+
+            int gen_value = -1;
+
+
+            if (hadronicGenTaus.size() != 0) {
+
+                
+                Logger::get("genmatching::tau::fatjet_genmatching")
+                        ->info("\n Gentaus with non zero size  {}", hadronicGenTaus.size());
+                return gen_value;
+                for (auto hadronicGenTau : hadronicGenTaus) {
+
+                    Logger::get("genmatching::tau::fatjet_genmatching")
+                        ->info("Gentaus with non zero size index {}", hadronicGenTau);
+                    if (hadronicGenTau != -1) {
+
+         
+
+
+                        if (pts.at(hadronicGenTau) == 0 || etas.at(hadronicGenTau) == 0 || phis.at(hadronicGenTau) == 0 || masses.at(hadronicGenTau) == 0){
+                            Logger::get("genmatching::tau::fatjet_genmatching")
+                            ->info("Gentaus with some 0 quantities pt {}, eta {}, phi {}, mass {}", pts.at(hadronicGenTau), etas.at(hadronicGenTau), phis.at(hadronicGenTau), masses.at(hadronicGenTau));
+                            
+                            Logger::get("genmatching::tau::fatjet_genmatching") ->info("Genmatching Tau is NOT found");
+
+                            // return gen_value;
+                        }
+                        else{
+
+                         Logger::get("genmatching::tau::fatjet_genmatching")
+                            ->info("Gentaus with some NON 0 quantities pt {}, eta {}, phi {}, mass {}", pts.at(hadronicGenTau), etas.at(hadronicGenTau), phis.at(hadronicGenTau), masses.at(hadronicGenTau));
+
+                        ROOT::Math::PtEtaPhiMVector hadronicGenTau_p4(
+                        pts.at(hadronicGenTau), etas.at(hadronicGenTau),
+                        phis.at(hadronicGenTau), masses.at(hadronicGenTau));
+                        float gentau_delta_r =
+                            ROOT::Math::VectorUtil::DeltaR(hadronicGenTau_p4, lepton_p4);
+
+                        if ( gentau_delta_r < 0.8 ) {
+
+
+                            gen_value = 5;
+                            // return gen_value;
+                        }
+                    //   gen_value = 5;
+                    //     return gen_value;
+                    }
+                    }
+                }
+
+                }
+
+            Logger::get("genmatching::tau::fatjet_genmatching") ->info("Genmatching value is {}", gen_value);
+
+            return gen_value;
+
+    };
+
+    auto df1 =
+        df.Define(outputname, match_lepton,
+                  {hadronicGenTaus, genparticles_pdgid, genparticles_statusFlag,
+                   genparticles_pt, genparticles_eta, genparticles_phi,
+                   genparticles_mass, lepton_p4});
+
+    return df1;
+}
+
 /**
  * @brief implementation of the genmatching used in tau analyses, based
  * on
@@ -499,11 +774,49 @@ ROOT::RDF::RNode hadronicGenTaus(ROOT::RDF::RNode df,
     return df1;
 }
 
-ROOT::RDF::RNode good_mu_fatjet_genmatching(
-    ROOT::RDF::RNode df, const std::string &outputname) {
- 
+ROOT::RDF::RNode trigger_mu_in_fatjet(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &fatjet_p4,
+                                 const std::string &muon_pt,
+                                 const std::string &muon_eta,
+                                 const std::string &muon_phi,
+                                 const std::string &muon_mass) {
 
-}
+    auto match_muon_with_fatjet = [](const ROOT::Math::PtEtaPhiMVector &fatjet_p4,
+                                    const ROOT::RVec<float> &muon_pts,
+                                    const ROOT::RVec<float> &muon_etas,
+                                    const ROOT::RVec<float> &muon_phis,
+                                    const ROOT::RVec<float> &muon_masses) {
+
+         for (unsigned int i = 0; i < muon_pts.size(); i++) {
+
+            ROOT::Math::PtEtaPhiMVector muon_p4(muon_pts.at(i), muon_etas.at(i),
+                    muon_phis.at(i), muon_masses.at(i));
+            float delta_r =
+                    ROOT::Math::VectorUtil::DeltaR(muon_p4, fatjet_p4);
+
+            if (delta_r < 0.8 && muon_pts.at(i) > 50 ){
+                Logger::get("fatjet::trigger_mu_in_fatjet")
+                    ->debug("Muon found in fatjet with pt {} and eta {}",
+                            muon_pts.at(i), muon_etas.at(i));
+                return 1;
+            }
+            else {
+                Logger::get("fatjet::trigger_mu_in_fatjet")
+                ->debug("Muon NOT found in fatjet with pt {} and eta {}",
+                    muon_pts.at(i), muon_etas.at(i));
+                return 0;
+            }
+         }                                                    
+                                 
+};
+
+    auto df1 =
+        df.Define(outputname, match_muon_with_fatjet,
+                  {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass});
+    return df1;
+    }
+
 } // end namespace tau
 
 } // end namespace genmatching

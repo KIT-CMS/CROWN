@@ -34,6 +34,14 @@ ROOT::RDF::RNode
 subjet_1(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &subjetIDx1,
                     const std::string &fatjetcollection, const int &position);
+
+// ROOT::RDF::RNode trigger_mu_in_fatjet(ROOT::RDF::RNode df,
+//                                  const std::string &outputname,
+//                                  const std::string &fatjet_p4,
+//                                  const std::string &muon_pt,
+//                                  const std::string &muon_eta,
+//                                  const std::string &muon_phi,
+//                                  const std::string &muon_mass);
 } // end namespace fatjet
 } // end namespace quantities
 #endif /* GUARDFATJETS_H */
