@@ -35,7 +35,7 @@ namespace three_flavor {
 auto TripleSelectionAlgo(const float &mindeltaR_leptau, const float &mindeltaR_leplep, const std::string &triple);
 } // end namespace three_flavor
 namespace two_flavor {
-auto TripleSelectionAlgo(const float &mindeltaR_leptau, const float &mindeltaR_leplep);
+auto TripleSelectionAlgo(const float &mindeltaR_leptau, const float &mindeltaR_leplep, const std::string &ss_or_os);
 } // end namespace two_flavor
 namespace lep_tautau {
 auto TripleSelectionAlgo(const float &mindeltaR_leptau, const float &mindeltaR_tautau);
@@ -63,7 +63,7 @@ namespace mumutau {
 ROOT::RDF::RNode TripleSelection(ROOT::RDF::RNode df,
                                const std::vector<std::string> &input_vector,
                                const std::string &triplename,
-                               const float &mindeltaR_leptau, const float &mindeltaR_leplep);
+                               const float &mindeltaR_leptau, const float &mindeltaR_leplep, const std::string &ss_or_os);
 }
 namespace mu_tautau {
 ROOT::RDF::RNode TripleSelection(ROOT::RDF::RNode df,
