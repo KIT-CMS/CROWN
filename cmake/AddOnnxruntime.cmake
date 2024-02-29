@@ -13,7 +13,7 @@ if(DEFINED ENV{LCG_VERSION})
                            REALPATH)
     get_filename_component(ONNX_RUNTIME_INCLUDE_PATH
                            ${ONNX_RUNTIME_LIB_PATH}/../../include REALPATH)
-    message(STATUS "ONNXRuntime include path: ${ONNX_RUNTIME_INCLUDE_PATH}")
+    message(STATUS "ONNXRuntime include path: ${ONNX_RUNTIME_INCLUDE_PATH}/core/session")
     include_directories("${ONNX_RUNTIME_INCLUDE_PATH}/core/session")
   endif()
 
