@@ -416,7 +416,8 @@ auto TripleSelectionAlgo(const float &mindeltaR_leptau,
                 ->debug("{} debuging1 {}",
                         original_tau_indices.at(candidate_tau),
                         sorted_tau_idx.at(candidate_tau));
-            auto tauh_charge = tau_charge.at(original_tau_indices.at(candidate_tau));
+            auto tauh_charge =
+                tau_charge.at(original_tau_indices.at(candidate_tau));
             ROOT::Math::PtEtaPhiMVector tau = ROOT::Math::PtEtaPhiMVector(
                 tau_pt.at(original_tau_indices.at(candidate_tau)),
                 tau_eta.at(original_tau_indices.at(candidate_tau)),
@@ -450,8 +451,8 @@ auto TripleSelectionAlgo(const float &mindeltaR_leptau,
                             mindeltaR_leptau &&
                         ROOT::Math::VectorUtil::DeltaR(electron, muon) >
                             mindeltaR_leplep &&
-                            ((mu_charge*ele_charge) > 0.0) &&
-                            ((mu_charge*tauh_charge) < 0.0)) {
+                        ((mu_charge * ele_charge) > 0.0) &&
+                        ((mu_charge * tauh_charge) < 0.0)) {
                         Logger::get("three_flavor::TripleSmuctionAlgo")
                             ->debug("indices of selected candidates: muon {}, "
                                     "electron {}, tau {}",
@@ -653,25 +654,26 @@ namespace two_flavor {
 /// second one beeing the lepton from the tau index and the third one the
 /// hadronic tau index.
 auto TripleSelectionAlgo(const float &mindeltaR_leptau,
-                         const float &mindeltaR_leplep, const std::string &ss_or_os) {
+                         const float &mindeltaR_leplep,
+                         const std::string &ss_or_os) {
     Logger::get("two_flavor::TripleSelectionAlgo")
         ->debug("Setting up algorithm");
-    return [mindeltaR_leptau,
-            mindeltaR_leplep, ss_or_os](const ROOT::RVec<float> &tau_pt,
-                              const ROOT::RVec<float> &tau_eta,
-                              const ROOT::RVec<float> &tau_phi,
-                              const ROOT::RVec<float> &tau_mass,
-                              const ROOT::RVec<float> &tau_iso,
-                              const ROOT::RVec<int> &tau_charge,
-                              const ROOT::RVec<float> &muon_pt,
-                              const ROOT::RVec<float> &muon_eta,
-                              const ROOT::RVec<float> &muon_phi,
-                              const ROOT::RVec<float> &muon_mass,
-                              const ROOT::RVec<float> &muon_iso,
-                              const ROOT::RVec<int> &muon_charge,
-                              const ROOT::RVec<int> &good_muon_mask,
-                              const ROOT::RVec<int> &base_muon_mask,
-                              const ROOT::RVec<int> &tau_mask) {
+    return [mindeltaR_leptau, mindeltaR_leplep,
+            ss_or_os](const ROOT::RVec<float> &tau_pt,
+                      const ROOT::RVec<float> &tau_eta,
+                      const ROOT::RVec<float> &tau_phi,
+                      const ROOT::RVec<float> &tau_mass,
+                      const ROOT::RVec<float> &tau_iso,
+                      const ROOT::RVec<int> &tau_charge,
+                      const ROOT::RVec<float> &muon_pt,
+                      const ROOT::RVec<float> &muon_eta,
+                      const ROOT::RVec<float> &muon_phi,
+                      const ROOT::RVec<float> &muon_mass,
+                      const ROOT::RVec<float> &muon_iso,
+                      const ROOT::RVec<int> &muon_charge,
+                      const ROOT::RVec<int> &good_muon_mask,
+                      const ROOT::RVec<int> &base_muon_mask,
+                      const ROOT::RVec<int> &tau_mask) {
         ROOT::RVec<int> selected_triple = {-1, -1, -1};
         const auto original_tau_indices = ROOT::VecOps::Nonzero(tau_mask);
         const auto ind_good_muons = ROOT::VecOps::Nonzero(good_muon_mask);
@@ -695,8 +697,6 @@ auto TripleSelectionAlgo(const float &mindeltaR_leptau,
         // muon are contained in the event, the most isolated muons from the
         // base muon selection are chosen first for the triple (for fake rate
         // estimation)
-        // selected_mu_indices.push_back(ind_good_muons.at(0));
-        // selected_mu_indices.push_back(ind_good_muons.at(1));
         if (ind_good_muons.size() == 2) {
             selected_mu_indices.push_back(ind_good_muons.at(0));
             selected_mu_indices.push_back(ind_good_muons.at(1));
@@ -743,7 +743,8 @@ auto TripleSelectionAlgo(const float &mindeltaR_leptau,
         //  &&
         // mu1_charge*tauh_charge < 0.0
         for (auto &candidate_tau : sorted_tau_idx) {
-            auto tauh_charge = tau_charge.at(original_tau_indices.at(candidate_tau));
+            auto tauh_charge =
+                tau_charge.at(original_tau_indices.at(candidate_tau));
             Logger::get("two_flavour::TripleSelectionAlgo")
                 ->debug("original_tau_indices.at(candidate_tau) {},  "
                         "sorted_tau_idx.at(candidate_tau) {}",
@@ -783,40 +784,48 @@ auto TripleSelectionAlgo(const float &mindeltaR_leptau,
                             mindeltaR_leptau &&
                         ROOT::Math::VectorUtil::DeltaR(muon_2, tau) >
                             mindeltaR_leptau &&
-                            ROOT::Math::VectorUtil::DeltaR(muon_1, muon_2) >
+                        ROOT::Math::VectorUtil::DeltaR(muon_1, muon_2) >
                             mindeltaR_leplep) {
-                        if (((ss_or_os == "os") && (mu1_charge*mu2_charge<0.0)) or ((ss_or_os == "ss") && (mu1_charge*mu2_charge>0.0 && ((mu1_charge*tauh_charge)<0.0)))) {
+                        if (((ss_or_os == "os") &&
+                             (mu1_charge * mu2_charge < 0.0)) or
+                            ((ss_or_os == "ss") &&
+                             (mu1_charge * mu2_charge > 0.0 &&
+                              ((mu1_charge * tauh_charge) < 0.0)))) {
                             Logger::get("two_flavour::TripleSelectionAlgo")
-                                ->debug("pt muon_1 {}, pt muon_2 {}", muon_1.Pt(),
-                                        muon_2.Pt());
+                                ->debug("pt muon_1 {}, pt muon_2 {}",
+                                        muon_1.Pt(), muon_2.Pt());
                             if (muon_1.Pt() > muon_2.Pt()) {
                                 Logger::get("two_flavour::TripleSelectionAlgo")
-                                    ->debug("Selected original triple indices: "
-                                            "mu_1 = {}, mu_2 = {} , tau = {}",
-                                            selected_mu_indices.at(i),
-                                            selected_mu_indices.at(j),
-                                            original_tau_indices.at(candidate_tau));
+                                    ->debug(
+                                        "Selected original triple indices: "
+                                        "mu_1 = {}, mu_2 = {} , tau = {}",
+                                        selected_mu_indices.at(i),
+                                        selected_mu_indices.at(j),
+                                        original_tau_indices.at(candidate_tau));
                                 selected_triple = {
                                     static_cast<int>(selected_mu_indices.at(i)),
                                     static_cast<int>(selected_mu_indices.at(j)),
-                                    static_cast<int>(
-                                        original_tau_indices.at(candidate_tau))};
+                                    static_cast<int>(original_tau_indices.at(
+                                        candidate_tau))};
                                 Logger::get("two_flavour::TripleSelectionAlgo")
-                                    ->debug("selected triple {}", selected_triple);
+                                    ->debug("selected triple {}",
+                                            selected_triple);
                             } else {
                                 Logger::get("two_flavour::TripleSelectionAlgo")
-                                    ->debug("Selected original triple indices: "
-                                            "mu_1 = {}, mu_2 = {} , tau = {}",
-                                            selected_mu_indices.at(j),
-                                            selected_mu_indices.at(i),
-                                            original_tau_indices.at(candidate_tau));
+                                    ->debug(
+                                        "Selected original triple indices: "
+                                        "mu_1 = {}, mu_2 = {} , tau = {}",
+                                        selected_mu_indices.at(j),
+                                        selected_mu_indices.at(i),
+                                        original_tau_indices.at(candidate_tau));
                                 selected_triple = {
                                     static_cast<int>(selected_mu_indices.at(j)),
                                     static_cast<int>(selected_mu_indices.at(i)),
-                                    static_cast<int>(
-                                        original_tau_indices.at(candidate_tau))};
+                                    static_cast<int>(original_tau_indices.at(
+                                        candidate_tau))};
                                 Logger::get("two_flavour::TripleSelectionAlgo")
-                                    ->debug("selected triple {}", selected_triple);
+                                    ->debug("selected triple {}",
+                                            selected_triple);
                             }
                             return selected_triple;
                         }
@@ -940,14 +949,14 @@ auto TripleSelectionAlgo(const float &mindeltaR_leptau,
         // deltaR and reject a pair if the candidates are too close
         for (auto &candidate : sorted_pairs) {
             auto tau_index_1 = original_tau_indices[candidate.first];
-            auto tauh_charge_1= tau_charge.at(tau_index_1);
+            auto tauh_charge_1 = tau_charge.at(tau_index_1);
             ROOT::Math::PtEtaPhiMVector tau_1 = ROOT::Math::PtEtaPhiMVector(
                 tau_pt.at(tau_index_1), tau_eta.at(tau_index_1),
                 tau_phi.at(tau_index_1), tau_mass.at(tau_index_1));
             Logger::get("lep_tautau::TripleSelectionAlgo")
                 ->debug("{} leadint tau vector: {}", tau_index_1, tau_1);
             auto tau_index_2 = original_tau_indices[candidate.second];
-            auto tauh_charge_2= tau_charge.at(tau_index_2);
+            auto tauh_charge_2 = tau_charge.at(tau_index_2);
             ROOT::Math::PtEtaPhiMVector tau_2 = ROOT::Math::PtEtaPhiMVector(
                 tau_pt.at(tau_index_2), tau_eta.at(tau_index_2),
                 tau_phi.at(tau_index_2), tau_mass.at(tau_index_2));
@@ -962,7 +971,7 @@ auto TripleSelectionAlgo(const float &mindeltaR_leptau,
                     mindeltaR_leptau &&
                 ROOT::Math::VectorUtil::DeltaR(tau_2, lepton) >
                     mindeltaR_leptau &&
-                    tauh_charge_1*tauh_charge_2<0.0) {
+                tauh_charge_1 * tauh_charge_2 < 0.0) {
                 Logger::get("lep_tautau::TripleSelectionAlgo")
                     ->debug("Selected original pair indices: tau_1 = {} , "
                             "tau_2 = {}",
@@ -1076,7 +1085,8 @@ auto TripleSelectionAlgo(const float &mindeltaR_lep1lep1,
                 lep1_phi.at(selected_lep1_indices.at(i)),
                 lep1_mass.at(selected_lep1_indices.at(i)));
             for (int j = i + 1; j < selected_lep1_indices.size(); j = j + 1) {
-                auto lep1_2_charge = lep1_charge.at(selected_lep1_indices.at(j));
+                auto lep1_2_charge =
+                    lep1_charge.at(selected_lep1_indices.at(j));
                 ROOT::Math::PtEtaPhiMVector lep1_2 =
                     ROOT::Math::PtEtaPhiMVector(
                         lep1_pt.at(selected_lep1_indices.at(j)),
@@ -1104,7 +1114,8 @@ auto TripleSelectionAlgo(const float &mindeltaR_lep1lep1,
                         ROOT::Math::VectorUtil::DeltaR(lep1_1, lep2) >
                             mindeltaR_lep1lep2 &&
                         ROOT::Math::VectorUtil::DeltaR(lep1_2, lep2) >
-                            mindeltaR_lep1lep2 && ((lep1_1_charge*lep1_2_charge)<0.0)) {
+                            mindeltaR_lep1lep2 &&
+                        ((lep1_1_charge * lep1_2_charge) < 0.0)) {
                         Logger::get("lep1lep1_lep2::TripleSelectionAlgo")
                             ->debug("lep1_1 Pt = {} , lep1_2 Pt = {} ",
                                     lep1_1.Pt(), lep1_2.Pt());
@@ -1318,10 +1329,11 @@ namespace mumutau {
     - tau_mask containing the flags whether the tau is a good tau or not
     - muon_mask containing the flags whether the muons are a good muons or not
  * @param triplename name of the new column containing the triple index
- * @param mindeltaR_leptau the seperation between each lepton and the tau 
+ * @param mindeltaR_leptau the seperation between each lepton and the tau
  * this value
  * @param mindeltaR_leplep the seperation between the leptons
- * @param ss_or_os requirement of ss or os for the two muons (ss for analysis, os for FF estimation)
+ * @param ss_or_os requirement of ss or os for the two muons (ss for analysis,
+ os for FF estimation)
  * @return a new dataframe with the triple index column added
  */
 ROOT::RDF::RNode TripleSelection(ROOT::RDF::RNode df,
