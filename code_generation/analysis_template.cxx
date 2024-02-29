@@ -25,6 +25,7 @@
 #include <TObjString.h>
 #include <TTree.h>
 #include <TVector.h>
+#include "onnxruntime_cxx_api.h"
 #include <regex>
 #include <string>
 // {INCLUDES}

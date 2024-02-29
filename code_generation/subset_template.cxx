@@ -20,6 +20,7 @@
 #include "include/fakefactors.hxx"
 #include "include/utility/Logger.hxx"
 #include <ROOT/RLogger.hxx>
+#include "onnxruntime_cxx_api.h"
 #include <TFile.h>
 #include <TTree.h>
 #include <regex>
