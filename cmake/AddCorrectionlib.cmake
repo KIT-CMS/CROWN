@@ -36,6 +36,7 @@ else()
   set(CORRECTION_LIB_PATH "${CORRECTIONLIBPATH}/../lib/libcorrectionlib.so")
 endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
-
+find_package(Threads)
+find_package(ZLIB)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 message(STATUS "Correctionlib library path: ${CORRECTION_LIB_PATH}")
