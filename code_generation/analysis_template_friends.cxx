@@ -133,6 +133,9 @@ int main(int argc, char *argv[]) {
     // file logging
     Logger::enableFileLogging("logs/main.txt");
 
+    // start an onnx session manager
+    OnnxSessionManager onnxSessionManager;
+
     // {MULTITHREADING}
 
     // build a tchain from input file with all friends
