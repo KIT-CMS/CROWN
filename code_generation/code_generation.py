@@ -107,7 +107,9 @@ class CodeSubset(object):
         log.debug("folder: {}, file_name: {}".format(self.folder, self.file_name))
         # write the header file if it does not exist or is different
         with open(self.headerfile + ".new", "w") as f:
-            f.write(f"ROOT::RDF::RNode {self.name}(ROOT::RDF::RNode df);")
+            f.write(
+                f"ROOT::RDF::RNode {self.name}(ROOT::RDF::RNode df, OnnxSessionManager &onnxSessionManager);"
+            )
         if os.path.isfile(self.headerfile):
             if filecmp.cmp(self.headerfile + ".new", self.headerfile):
                 log.debug("--> Identical header file, skipping")
@@ -144,7 +146,7 @@ class CodeSubset(object):
         Returns:
             str: the call to the code subset
         """
-        call = f"    auto {outputscope} = {self.name}({inputscope}); \n"
+        call = f"    auto {outputscope} = {self.name}({inputscope}, onnxSessionManager); \n"
         return call
 
     def include(self) -> str:

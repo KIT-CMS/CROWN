@@ -8,6 +8,8 @@
 #include "include/jets.hxx"
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"
+#include "include/ml.hxx"
+#include "include/utility/OnnxSessionManager.hxx"
 #include "include/metfilter.hxx"
 #include "include/pairselection.hxx"
 #include "include/tripleselection.hxx"
@@ -25,7 +27,7 @@
 #include <TTree.h>
 #include <regex>
 #include <string>
-ROOT::RDF::RNode {subsetname} (ROOT::RDF::RNode df0) {
+ROOT::RDF::RNode {subsetname} (ROOT::RDF::RNode df0, OnnxSessionManager &onnxSessionManager) {
 
     //    { commands }
 }
