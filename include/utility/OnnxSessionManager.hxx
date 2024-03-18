@@ -24,8 +24,6 @@ class OnnxSessionManager {
                 env, modelPath.c_str(), session_options);
             Logger::get("OnnxSessionManager")
                 ->info("Created session for model: {}", modelPath);
-            // std::unique_ptr<Ort::Session> session_ptr(session);
-            // sessions_map[modelPath] = std::move(session_ptr);
         } else {
             Logger::get("OnnxSessionManager")
                 ->info("Session already exists for model: {}", modelPath);
@@ -46,12 +44,13 @@ void prepare_model(Ort::Session *session,
                    std::vector<int64_t> &output_node_dims, int &num_input_nodes,
                    int &num_output_nodes);
 
-std::vector<float> run_interference(Ort::Session* session,
+std::vector<float> run_interference(Ort::Session *session,
                                     Ort::AllocatorWithDefaultOptions allocator,
                                     std::vector<float> &evt_input,
                                     std::vector<int64_t> input_node_dims,
                                     std::vector<int64_t> output_node_dims,
-                                    const int num_input_nodes, const int num_output_nodes);
+                                    const int num_input_nodes,
+                                    const int num_output_nodes);
 
 } // namespace onnxhelper
 
