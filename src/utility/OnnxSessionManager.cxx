@@ -4,6 +4,7 @@
 #include <onnxruntime_cxx_api.h>
 #include <string>
 #include <unordered_map>
+#include <numeric>
 
 namespace onnxhelper {
 
