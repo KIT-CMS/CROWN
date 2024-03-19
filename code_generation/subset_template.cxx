@@ -10,6 +10,7 @@
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"
 #include "include/metfilter.hxx"
+#include "include/ml.hxx"
 #include "include/pairselection.hxx"
 #include "include/tripleselection.hxx"
 #include "include/physicsobjects.hxx"
@@ -21,12 +22,13 @@
 #include "include/triggers.hxx"
 #include "include/fakefactors.hxx"
 #include "include/utility/Logger.hxx"
+#include "include/utility/OnnxSessionManager.hxx"
 #include <ROOT/RLogger.hxx>
 #include <TFile.h>
 #include <TTree.h>
 #include <regex>
 #include <string>
-ROOT::RDF::RNode {subsetname} (ROOT::RDF::RNode df0) {
+ROOT::RDF::RNode {subsetname} (ROOT::RDF::RNode df0, OnnxSessionManager &onnxSessionManager) {
 
     //    { commands }
 }

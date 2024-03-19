@@ -9,6 +9,7 @@
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"
 #include "include/metfilter.hxx"
+#include "include/ml.hxx"
 #include "include/pairselection.hxx"
 #include "include/tripleselection.hxx"
 #include "include/physicsobjects.hxx"
@@ -18,6 +19,7 @@
 #include "include/topreco.hxx"
 #include "include/triggers.hxx"
 #include "include/utility/Logger.hxx"
+#include "include/utility/OnnxSessionManager.hxx"
 #include <ROOT/RLogger.hxx>
 #include <TFile.h>
 #include <TMap.h>
@@ -103,6 +105,9 @@ int main(int argc, char *argv[]) {
     // file logging
     Logger::enableFileLogging("logs/main.txt");
 
+    // setup the OnnxSessionManager
+    OnnxSessionManager onnxSessionManager;
+
     // {MULTITHREADING}
 
     // initialize df
@@ -123,7 +128,7 @@ int main(int argc, char *argv[]) {
     }
     // Add meta-data
     // clang-format off
-    const std::map<std::string, std::vector<std::string>> output_quanties = {OUTPUT_QUANTITIES};
+    const std::map<std::string, std::vector<std::string>> output_quantities = {OUTPUT_QUANTITIES};
     const std::map<std::string, std::vector<std::string>> variations = {SYSTEMATIC_VARIATIONS};
     std::map<std::string, std::map<std::string, std::vector<std::string>>> shift_quantities_map = {SHIFT_QUANTITIES_MAP};
     std::map<std::string, std::map<std::string, std::vector<std::string>>> quantities_shift_map = {QUANTITIES_SHIFT_MAP};
@@ -137,7 +142,7 @@ int main(int argc, char *argv[]) {
     const std::string analysis_commit_hash = {ANALYSIS_COMMITHASH};
     bool analysis_setup_clean = {ANALYSIS_IS_CLEAN};
     int scope_counter = 0;
-    for (auto const &output : output_quanties) {
+    for (auto const &output : output_quantities) {
         // output.first is the output file name
         // output.second is the list of quantities
         TFile outputfile(output.first.c_str(), "UPDATE");
