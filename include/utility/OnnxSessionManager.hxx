@@ -38,17 +38,17 @@ class OnnxSessionManager {
 };
 
 namespace onnxhelper {
-void prepare_model(Ort::Session *session,
-                   std::vector<int64_t> &input_node_dims,
+void prepare_model(Ort::Session *session, std::vector<int64_t> &input_node_dims,
                    std::vector<int64_t> &output_node_dims, int &num_input_nodes,
                    int &num_output_nodes);
 
-std::vector<float> run_interference(Ort::Session* session,
+std::vector<float> run_interference(Ort::Session *session,
                                     Ort::AllocatorWithDefaultOptions allocator,
                                     std::vector<float> &evt_input,
                                     std::vector<int64_t> input_node_dims,
                                     std::vector<int64_t> output_node_dims,
-                                    const int num_input_nodes, const int num_output_nodes);
+                                    const int num_input_nodes,
+                                    const int num_output_nodes);
 
 } // namespace onnxhelper
 

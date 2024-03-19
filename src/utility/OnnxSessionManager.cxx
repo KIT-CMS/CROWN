@@ -1,10 +1,10 @@
 #include "../../include/utility/Logger.hxx"
 #include "../../include/utility/utility.hxx"
 #include <memory>
+#include <numeric>
 #include <onnxruntime_cxx_api.h>
 #include <string>
 #include <unordered_map>
-#include <numeric>
 
 namespace onnxhelper {
 
@@ -75,10 +75,10 @@ std::vector<float> run_interference(Ort::Session *session,
     Logger::get("OnnxEvaluate")->debug("Output name: {} ", output_name_str);
 
     session->Run(Ort::RunOptions{nullptr}, input_node_names_cstr.data(),
-                inputTensors.data(), input_node_names_cstr.size(),
-                output_node_names_cstr.data(), outputTensors.data(),
-                output_node_names_cstr.size());
-    
+                 inputTensors.data(), input_node_names_cstr.size(),
+                 output_node_names_cstr.data(), outputTensors.data(),
+                 output_node_names_cstr.size());
+
     const float *output_ptr = outputTensors[0].GetTensorMutableData<float>();
     std::vector<float> output;
     for (size_t i = 0; i < outputTensorSize; ++i) {
@@ -88,8 +88,7 @@ std::vector<float> run_interference(Ort::Session *session,
     return output;
 }
 
-void prepare_model(Ort::Session *session,
-                   std::vector<int64_t> &input_node_dims,
+void prepare_model(Ort::Session *session, std::vector<int64_t> &input_node_dims,
                    std::vector<int64_t> &output_node_dims, int &num_input_nodes,
                    int &num_output_nodes) {
 
