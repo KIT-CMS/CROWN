@@ -23,7 +23,7 @@ auto single_output(const int &idx) {
     };
 };
 /**
- * @brief Function to run a kinematic fit of a X -> YH di-Higgs system with a bb+tautau final state
+ * @brief Function to run a kinematic fit of a X -> YH di-Higgs system with a bb+tautau final state. Code for calculation based on https://github.com/janekbechtel/HHKinFit
  *
  * @param df the input dataframe
  * @param outputname_1 name of the output column for the convergence status of the fit
@@ -118,7 +118,8 @@ YHKinFit(ROOT::RDF::RNode df, const std::string &outputname_1, const std::string
             met_cov[1][1] = met_cov11;
 
             std::vector<int> hypo_mh = {125};
-            std::vector<int> hypo_mY = {5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,110,120,125,130,140,150,180,210,240,270,300,330,360,390,420,450,480,510,540,570,600,630,660,690,720,750,780,810,840,870,900,950,1000,1050,1100,1150,1200,1250,1300,1350,1400,1450,1500,1550,1600,1650,1700,1750,1800,1850,1900,1950,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000};
+            // std::vector<int> hypo_mY = {5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,110,120,125,130,140,150,180,210,240,270,300,330,360,390,420,450,480,510,540,570,600,630,660,690,720,750,780,810,840,870,900,950,1000,1050,1100,1150,1200,1250,1300,1350,1400,1450,1500,1550,1600,1650,1700,1750,1800,1850,1900,1950,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000};
+            std::vector<int> hypo_mY = {50,60,70,80,90,95,100,125,150,250,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1600,1800,2000,2200,2400,2500,2600,2800,3000,3500};
             bool YToTauTau = false;
             if (YDecay=="YToTauTau") {
                 YToTauTau = true;
