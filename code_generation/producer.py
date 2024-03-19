@@ -459,7 +459,7 @@ class ExtendedVectorProducer(Producer):
         name: str,
         call: str,
         input: Union[List[q.Quantity], Dict[str, List[q.Quantity]]],
-        output: str,
+        output: Union[List[str], str],
         scope: Union[List[str], str],
         vec_config: str,
     ):
@@ -474,7 +474,9 @@ class ExtendedVectorProducer(Producer):
             vec_configs (List[str]): The key of the vec config in the config dict
         """
         # we create a Quantity Group, which is updated during the writecalls() step
-        self.outputname = output
+        if not isinstance(output, list):
+            output = [output]
+        self.outputnames = output
         self.vec_config = vec_config
         if not isinstance(scope, list):
             scope = [scope]
@@ -519,6 +521,7 @@ class ExtendedVectorProducer(Producer):
             List[str]: Returns a list of C++ calls for all shifts of the ExtendedVectorProducer
         """
         n_versions = len(config["nominal"][self.vec_config])
+        n_outputs = len(self.outputnames)
         log.debug("Number of extended producers to be created {}".format(n_versions))
         if self.output is None:
             raise InvalidProducerConfigurationError(self.name)
@@ -526,21 +529,26 @@ class ExtendedVectorProducer(Producer):
             log.error("ExtendedVectorProducer expects a QuantityGroup as output!")
             raise Exception
         for i in range(n_versions):
-            self.output[0].add(config["nominal"][self.vec_config][i][self.outputname])
+            for outputname in self.outputnames:
+                self.output[0].add(config["nominal"][self.vec_config][i][outputname])
         basecall = self.call
         calls: List[str] = []
         shifts = ["nominal"]
         shifts.extend(self.output[0].get_shifts(scope))
         for shift in shifts:
+            output_counter = 0
             for i in range(n_versions):
                 # the information for the producer is directly read from the configuration
                 helper_dict = config[shift][self.vec_config][i]
                 helper_dict["output"] = (
-                    '"' + self.output[0].quantities[i].get_leaf(shift, scope) + '"'
+                    '"' + '","'.join([self.output[0].quantities[i+output_counter+j].get_leaf(shift, scope) for j in range(n_outputs)]) + '"'
+                    # '"' + self.output[0].quantities[i].get_leaf(shift, scope) + '"'
                 )
                 helper_dict["output_vec"] = (
-                    '{"' + self.output[0].quantities[i].get_leaf(shift, scope) + '"}'
+                    '{"' + '","'.join([self.output[0].quantities[i+output_counter+j].get_leaf(shift, scope) for j in range(n_outputs)]) + '"}'
+                    # '{"' + self.output[0].quantities[i].get_leaf(shift, scope) + '"}'
                 )
+                output_counter += (n_outputs-1)
                 self.call = basecall.format_map(SafeDict(helper_dict))
                 calls.append(self.writecall(config, scope, shift))
         self.call = basecall
