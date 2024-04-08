@@ -174,7 +174,7 @@ jobs:
         run: apt-get -y update
 
       - name: Install missing software
-        run: apt-get install -y git python3-pip && pip install black
+        run: apt-get install -y git python3-pip && pip install black==23.3.0
 
       - uses: actions/checkout@v2
 
