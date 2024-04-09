@@ -44,6 +44,11 @@ else()
     set(CMAKE_CXX_FLAGS_RELEASE
         "-O3 -DNDEBUG"
         CACHE STRING "Set default compiler flags for build type Release")
+    find_program(CCACHE_FOUND ccache)
+    if(CCACHE_FOUND)
+      message(STATUS "ccache found at ${CCACHE_FOUND}, using it for compilation")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_FOUND}")
+    endif()
   else()
     message(STATUS "Unoptimized mode")
     set(CMAKE_BUILD_TYPE
