@@ -349,6 +349,19 @@ inline auto FilterAbsMin(const float &cut) {
     };
 }
 
+/// Function to apply an exact filter requirement to an integer quantity.
+/// Returns true if the value is equal to the given value
+///
+/// \param cut The value of the filter
+///
+/// \returns a lambda function to be used in RDF Define
+inline auto FilterEqualInt(const int &cut) {
+    return [cut](const ROOT::RVec<int> &values) {
+        ROOT::RVec<int> mask = values == cut;
+        return mask;
+    };
+}
+
 /// Function to combine two RVec Masks by multiplying the two RVec elementwise
 ///
 /// \param mask_1 The first mask

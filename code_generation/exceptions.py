@@ -61,6 +61,23 @@ class SampleConfigurationError(ConfigurationError):
         super().__init__(self.message)
 
 
+class SampleRuleConfigurationError(ConfigurationError):
+    """
+    Exception raised when the sample type used for a Rule provided by the user is not valid.
+    """
+
+    def __init__(
+        self,
+        sample: str,
+        rule,
+        available_samples: Union[Set[str], List[str]],
+    ):
+        self.message = "Sampletype {} cannot be used in Rule {} since the type is not defined. Available samples types are {}".format(
+            sample, rule, available_samples
+        )
+        super().__init__(self.message)
+
+
 class EraConfigurationError(ConfigurationError):
     """
     Exception raised when the era configuration provided by the user is not valid.
