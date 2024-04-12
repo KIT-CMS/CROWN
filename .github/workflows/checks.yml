@@ -25,9 +25,9 @@ env:
 
 jobs:
   build_project:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container:
-      image: rootproject/root:6.28.10-ubuntu22.04
+      image: rootproject/root:6.30.04-ubuntu22.04
       options: --user 0 # run as root
 
     steps:
