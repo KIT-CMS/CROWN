@@ -40,8 +40,8 @@ jobs:
         run: python3 -m pip install GitPython && python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
       - name: Install up-to-date cmake version from kitware repo
         run: |
-          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-          echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
+          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+          echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
           apt-get update -y
           apt-get install -y cmake
 
@@ -49,7 +49,7 @@ jobs:
         run: |
           git clone --recursive https://github.com/microsoft/onnxruntime.git
           cd onnxruntime
-          ./build.sh --config Release --build_shared_lib --parallel --allow_running_as_root
+          ./build.sh --config Release --build --build_shared_lib --parallel --allow_running_as_root
           make install
 
       - name: Clone project
