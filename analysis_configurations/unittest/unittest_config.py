@@ -568,19 +568,19 @@ def build_config(
     #     "global",
     #     RemoveProducer(
     #         producers=[event.PUweights, event.npartons],
-    #         samples=["data", "emb", "emb_mc"],
+    #         samples=["data", "embedding", "embedding_mc"],
     #     ),
     # )
     configuration.add_modification_rule(
         scopes,
         AppendProducer(
             producers=[event.GGH_NNLO_Reweighting, event.GGH_WG1_Uncertainties],
-            samples="ggh",
+            samples="ggh_htautau",
         ),
     )
     configuration.add_modification_rule(
         scopes,
-        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="qqh"),
+        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="vbf_htautau"),
     )
     configuration.add_modification_rule(
         scopes,
@@ -588,24 +588,25 @@ def build_config(
     )
     configuration.add_modification_rule(
         scopes,
-        AppendProducer(producers=event.ZPtMassReweighting, samples="dy"),
+        AppendProducer(producers=event.ZPtMassReweighting, samples="dyjets"),
     )
     # changes needed for data
     # global scope
     configuration.add_modification_rule(
         "global",
         AppendProducer(
-            producers=jets.RenameJetsData, samples=["data", "emb", "emb_mc"]
+            producers=jets.RenameJetsData, samples=["data", "embedding", "embedding_mc"]
         ),
     )
     configuration.add_modification_rule(
         "global",
-        AppendProducer(producers=event.JSONFilter, samples=["data", "emb"]),
+        AppendProducer(producers=event.JSONFilter, samples=["data", "embedding"]),
     )
     configuration.add_modification_rule(
         "global",
         RemoveProducer(
-            producers=jets.JetEnergyCorrection, samples=["data", "emb", "emb_mc"]
+            producers=jets.JetEnergyCorrection,
+            samples=["data", "embedding", "embedding_mc"],
         ),
     )
     # scope specific
@@ -798,7 +799,7 @@ def build_config(
         ],
     )
     # not available in nanoAOD test sample
-    # if "data" not in sample and "emb" not in sample:
+    # if "data" not in sample and "embedding" not in sample:
     #     configuration.add_outputs(
     #         scopes,
     #         [
@@ -894,11 +895,7 @@ def build_config(
             },
             scopes=["global"],
         ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
+        exclude_samples=["data", "embedding", "embedding_mc"],
     )
     configuration.add_shift(
         SystematicShiftByQuantity(
@@ -909,11 +906,7 @@ def build_config(
             },
             scopes=["global"],
         ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
+        exclude_samples=["data", "embedding", "embedding_mc"],
     )
     #########################
     # Jet energy resolution
@@ -934,11 +927,7 @@ def build_config(
                 }
             },
         ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "embedding", "embedding_mc"]
-        ],
+        exclude_samples=["data", "embedding", "embedding_mc"],
     )
     configuration.add_shift(
         SystematicShift(
@@ -955,11 +944,7 @@ def build_config(
                 }
             },
         ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "embedding", "embedding_mc"]
-        ],
+        exclude_samples=["data", "embedding", "embedding_mc"],
     )
 
     #########################
