@@ -39,6 +39,13 @@ jobs:
       - name: install python packages
         run: python3 -m pip install GitPython && python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
 
+      - name: Install ONNX Runtime C++ API
+        run: |
+          git clone --recursive https://github.com/microsoft/onnxruntime.git
+          cd onnxruntime
+          ./build.sh --config Release --build_shared_lib --parallel
+          sudo make install
+
       - name: Clone project
         uses: actions/checkout@v3
         with:
