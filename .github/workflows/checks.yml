@@ -43,8 +43,8 @@ jobs:
         run: |
           git clone --recursive https://github.com/microsoft/onnxruntime.git
           cd onnxruntime
-          ./build.sh --config Release --build_shared_lib --parallel
-          sudo make install
+          ./build.sh --config Release --build_shared_lib --parallel --allow_running_as_root
+          make install
 
       - name: Clone project
         uses: actions/checkout@v3
