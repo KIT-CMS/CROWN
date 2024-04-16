@@ -7,10 +7,10 @@ name: Checks
 on:
   push:
     paths:
-      - .github/containers/unittest.Dockerfile
+      - docker/Dockerfile
   pull_request:
     paths:
-      - .github/containers/unittest.Dockerfile
+      - docker/Dockerfile
 env:
     REGISTRY: ghcr.io
     IMAGE_NAME: crown-unittest
