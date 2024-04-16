@@ -27,31 +27,10 @@ jobs:
   build_project:
     runs-on: ubuntu-22.04
     container:
-      image: rootproject/root:6.30.04-ubuntu22.04
+      image: ghcr.io/kit-cms/crown-crown-unittest:pr-260
       options: --user 0 # run as root
 
     steps:
-
-      - name: update ubuntu
-        run: apt-get -y update
-      - name: install packages
-        run: apt-get install -y ca-certificates gpg wget git make python3-pip openmpi-bin libopenmpi-dev libboost-all-dev openssh-client nlohmann-json3-dev
-      - name: install python packages
-        run: python3 -m pip install GitPython && python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
-      - name: Install up-to-date cmake version from kitware repo
-        run: |
-          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-          echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
-          apt-get update -y
-          apt-get install -y cmake
-
-      - name: Install ONNX Runtime C++ API
-        run: |
-          git clone --recursive https://github.com/microsoft/onnxruntime.git
-          cd onnxruntime
-          ./build.sh --config Release --build --build_shared_lib --parallel --allow_running_as_root
-          make install
-
       - name: Clone project
         uses: actions/checkout@v3
         with:
@@ -69,7 +48,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$SHIFTS -DOPTIMIZED=false
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$SHIFTS -DOPTIMIZED=false -DONNXRUNTIME_INCLUDE_DIR=/opt/onnxruntime/include/onnxruntime
 
       - name: Build
         shell: bash
