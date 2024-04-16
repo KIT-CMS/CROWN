@@ -205,14 +205,10 @@ def build_config(
                     "vsjet_tau_id_WPbit": bit,
                 }
                 for wp, bit in {
-                    "VVVLoose": 1,
-                    "VVLoose": 2,
-                    "VLoose": 3,
                     "Loose": 4,
                     "Medium": 5,
                     "Tight": 6,
                     "VTight": 7,
-                    "VVTight": 8,
                 }.items()
             ],
             "vsele_tau_id": [
@@ -275,6 +271,7 @@ def build_config(
             "tau_sf_vsjet_tau500to1000": "nom",
             "tau_sf_vsjet_tau1000toinf": "nom",
             "tau_vsjet_sf_dependence": "pt",  # or "dm", "eta"
+            "tau_vsjet_vseleWP": "VVLoose",
         },
     )
     # TT tau id sf variations
@@ -286,6 +283,7 @@ def build_config(
             "tau_sf_vsjet_tauDM10": "nom",
             "tau_sf_vsjet_tauDM11": "nom",
             "tau_vsjet_sf_dependence": "dm",  # or "dm", "eta"
+            "tau_vsjet_vseleWP": "VVLoose",
         },
     )
     # MT / ET tau selection
@@ -741,7 +739,7 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
-            q.gen_match_2,
+            q.tau_gen_match_2,
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
@@ -762,7 +760,7 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
-            q.gen_match_2,
+            q.tau_gen_match_2,
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
@@ -787,8 +785,8 @@ def build_config(
             q.taujet_pt_1,
             q.taujet_pt_2,
             q.decaymode_1,
-            q.gen_match_1,
-            q.gen_match_2,
+            q.tau_gen_match_1,
+            q.tau_gen_match_2,
         ],
     )
 
