@@ -48,7 +48,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$SHIFTS -DOPTIMIZED=false -DONNXRUNTIME_INCLUDE_DIR=/opt/onnxruntime/include/onnxruntime
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$SHIFTS -DOPTIMIZED=false -DONNXRUNTIME_INCLUDE_DIR=/opt/onnxruntime
 
       - name: Build
         shell: bash
@@ -59,18 +59,12 @@ jobs:
         run: cd ${{github.workspace}}/build && ctest -V --label-regex "ntuple.*."
 
   build_single_friend:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container:
-      image: rootproject/root:6.30.04-ubuntu22.04
+      image: ghcr.io/kit-cms/crown-crown-unittest:pr-260
       options: --user 0 # run as root
 
     steps:
-      - name: update ubuntu
-        run: apt-get -y update
-      - name: install packages
-        run: apt-get install -y git cmake make python3-pip openmpi-bin libopenmpi-dev libboost-all-dev openssh-client nlohmann-json3-dev
-      - name: install python packages
-        run: python3 -m pip install GitPython && python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
 
       - name: Clone project
         uses: actions/checkout@v3
@@ -89,7 +83,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$SINGLE_FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SINGLE_FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy"
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$SINGLE_FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SINGLE_FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy" -DONNXRUNTIME_INCLUDE_DIR=/opt/onnxruntime/include/onnxruntime
 
       - name: Build
         shell: bash
@@ -100,19 +94,12 @@ jobs:
         run: cd ${{github.workspace}}/build && ctest -V --label-regex "single_friend.*."
 
   build_two_friends:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container:
-      image: rootproject/root:6.30.04-ubuntu22.04
+      image: ghcr.io/kit-cms/crown-crown-unittest:pr-260
       options: --user 0 # run as root
 
     steps:
-      - name: update ubuntu
-        run: apt-get -y update
-      - name: install packages
-        run: apt-get install -y git cmake make python3-pip openmpi-bin libopenmpi-dev libboost-all-dev openssh-client nlohmann-json3-dev
-      - name: install python packages
-        run: python3 -m pip install GitPython && python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
-
       - name: Clone project
         uses: actions/checkout@v3
         with:
@@ -130,7 +117,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$TWO_FRIENDS_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$TWO_FRIENDS_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy"
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$TWO_FRIENDS_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$TWO_FRIENDS_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy" -DONNXRUNTIME_INCLUDE_DIR=/opt/onnxruntime/include/onnxruntime
 
       - name: Build
         shell: bash
@@ -142,9 +129,9 @@ jobs:
 
 
   python_format:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container:
-      image: rootproject/root:6.26.00-ubuntu20.04
+      image: ghcr.io/kit-cms/crown-crown-unittest:pr-260
       options: --user 0 # run as root
 
     steps:
@@ -161,9 +148,9 @@ jobs:
         run: cd $GITHUB_WORKSPACE && bash checks/python-formatting.sh
 
   cpp_format:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container:
-      image: rootproject/root:6.26.00-ubuntu20.04
+      image: ghcr.io/kit-cms/crown-crown-unittest:pr-260
       options: --user 0 # run as root
 
     steps:
@@ -180,9 +167,9 @@ jobs:
         run: cd $GITHUB_WORKSPACE && bash checks/cpp-formatting.sh
 
   docs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container:
-      image: rootproject/root:6.26.00-ubuntu20.04
+      image: ghcr.io/kit-cms/crown-crown-unittest:pr-260
       options: --user 0 # run as root
 
     steps:
