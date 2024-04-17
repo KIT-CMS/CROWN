@@ -205,14 +205,10 @@ def build_config(
                     "vsjet_tau_id_WPbit": bit,
                 }
                 for wp, bit in {
-                    "VVVLoose": 1,
-                    "VVLoose": 2,
-                    "VLoose": 3,
                     "Loose": 4,
                     "Medium": 5,
                     "Tight": 6,
                     "VTight": 7,
-                    "VVTight": 8,
                 }.items()
             ],
             "vsele_tau_id": [
@@ -275,6 +271,7 @@ def build_config(
             "tau_sf_vsjet_tau500to1000": "nom",
             "tau_sf_vsjet_tau1000toinf": "nom",
             "tau_vsjet_sf_dependence": "pt",  # or "dm", "eta"
+            "tau_vsjet_vseleWP": "VVLoose",
         },
     )
     # TT tau id sf variations
@@ -286,6 +283,7 @@ def build_config(
             "tau_sf_vsjet_tauDM10": "nom",
             "tau_sf_vsjet_tauDM11": "nom",
             "tau_vsjet_sf_dependence": "dm",  # or "dm", "eta"
+            "tau_vsjet_vseleWP": "VVLoose",
         },
     )
     # MT / ET tau selection
@@ -568,19 +566,19 @@ def build_config(
     #     "global",
     #     RemoveProducer(
     #         producers=[event.PUweights, event.npartons],
-    #         samples=["data", "emb", "emb_mc"],
+    #         samples=["data", "embedding", "embedding_mc"],
     #     ),
     # )
     configuration.add_modification_rule(
         scopes,
         AppendProducer(
             producers=[event.GGH_NNLO_Reweighting, event.GGH_WG1_Uncertainties],
-            samples="ggh",
+            samples="ggh_htautau",
         ),
     )
     configuration.add_modification_rule(
         scopes,
-        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="qqh"),
+        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="vbf_htautau"),
     )
     configuration.add_modification_rule(
         scopes,
@@ -588,24 +586,25 @@ def build_config(
     )
     configuration.add_modification_rule(
         scopes,
-        AppendProducer(producers=event.ZPtMassReweighting, samples="dy"),
+        AppendProducer(producers=event.ZPtMassReweighting, samples="dyjets"),
     )
     # changes needed for data
     # global scope
     configuration.add_modification_rule(
         "global",
         AppendProducer(
-            producers=jets.RenameJetsData, samples=["data", "emb", "emb_mc"]
+            producers=jets.RenameJetsData, samples=["data", "embedding", "embedding_mc"]
         ),
     )
     configuration.add_modification_rule(
         "global",
-        AppendProducer(producers=event.JSONFilter, samples=["data", "emb"]),
+        AppendProducer(producers=event.JSONFilter, samples=["data", "embedding"]),
     )
     configuration.add_modification_rule(
         "global",
         RemoveProducer(
-            producers=jets.JetEnergyCorrection, samples=["data", "emb", "emb_mc"]
+            producers=jets.JetEnergyCorrection,
+            samples=["data", "embedding", "embedding_mc"],
         ),
     )
     # scope specific
@@ -740,7 +739,7 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
-            q.gen_match_2,
+            q.tau_gen_match_2,
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
@@ -761,7 +760,7 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
-            q.gen_match_2,
+            q.tau_gen_match_2,
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
@@ -786,8 +785,8 @@ def build_config(
             q.taujet_pt_1,
             q.taujet_pt_2,
             q.decaymode_1,
-            q.gen_match_1,
-            q.gen_match_2,
+            q.tau_gen_match_1,
+            q.tau_gen_match_2,
         ],
     )
 
@@ -798,7 +797,7 @@ def build_config(
         ],
     )
     # not available in nanoAOD test sample
-    # if "data" not in sample and "emb" not in sample:
+    # if "data" not in sample and "embedding" not in sample:
     #     configuration.add_outputs(
     #         scopes,
     #         [
@@ -894,11 +893,7 @@ def build_config(
             },
             scopes=["global"],
         ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
+        exclude_samples=["data", "embedding", "embedding_mc"],
     )
     configuration.add_shift(
         SystematicShiftByQuantity(
@@ -909,11 +904,7 @@ def build_config(
             },
             scopes=["global"],
         ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
+        exclude_samples=["data", "embedding", "embedding_mc"],
     )
     #########################
     # Jet energy resolution
@@ -934,11 +925,7 @@ def build_config(
                 }
             },
         ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "embedding", "embedding_mc"]
-        ],
+        exclude_samples=["data", "embedding", "embedding_mc"],
     )
     configuration.add_shift(
         SystematicShift(
@@ -955,11 +942,7 @@ def build_config(
                 }
             },
         ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "embedding", "embedding_mc"]
-        ],
+        exclude_samples=["data", "embedding", "embedding_mc"],
     )
 
     #########################

@@ -50,7 +50,10 @@ set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # crownlib setup
 include(ConfigureCrownlib)
-
+if (BUILD_CROWNLIB_ONLY)
+  # exit if only crownlib is being built
+  return()
+endif()
 # run the code generation
 include(CodeGeneration)
 
