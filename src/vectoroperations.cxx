@@ -1,6 +1,7 @@
 #ifndef GUARD_VECS_H
 #define GUARD_VECS_H
 
+#include "../include/defaults.hxx"
 #include <Math/Vector4D.h>
 namespace vectoroperations {
 /**
@@ -20,8 +21,15 @@ namespace vectoroperations {
  */
 float calculateMT(ROOT::Math::PtEtaPhiMVector &particle,
                   ROOT::Math::PtEtaPhiMVector &met) {
-    return (float)sqrt(2 * particle.Pt() * met.Pt() *
-                       (1. - cos(particle.Phi() - met.Phi())));
+   float mT;
+   if (particle.Pt() > 0. && met.Pt() > 0.) {
+      mT = sqrt(2 * particle.Pt() * met.Pt() *
+                  (1. - cos(particle.Phi() - met.Phi())));
+   }
+   else {
+      mT = default_float;
+   } 
+    return mT;
 }
 } // end namespace vectoroperations
 #endif /* GUARD_VECS_H */

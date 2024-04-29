@@ -65,11 +65,15 @@ ROOT::RDF::RNode StandardTransformer(ROOT::RDF::RNode df,
                           inputname](const unsigned long long event_id,
                                      const int input_var) {
         float shifted = -10;
+        int var = input_var;
+        if (input_var!=input_var){
+            var = -10;
+        }
         if (int(event_id) % 2 == 0) {
-            shifted = (float(input_var) - float(odd_info[inputname]["mean"])) /
+            shifted = (float(var) - float(odd_info[inputname]["mean"])) /
                       float(odd_info[inputname]["std"]);
         } else if (int(event_id) % 2 == 1) {
-            shifted = (float(input_var) - float(even_info[inputname]["mean"])) /
+            shifted = (float(var) - float(even_info[inputname]["mean"])) /
                       float(even_info[inputname]["std"]);
         }
         Logger::get("StandardTransformer")
@@ -81,11 +85,15 @@ ROOT::RDF::RNode StandardTransformer(ROOT::RDF::RNode df,
                             inputname](const unsigned long long event_id,
                                        const float input_var) {
         float shifted = -10;
+        float var = input_var;
+        if (input_var!=input_var){
+            var = -10;
+        }
         if (int(event_id) % 2 == 0) {
-            shifted = (float(input_var) - float(odd_info[inputname]["mean"])) /
+            shifted = (float(var) - float(odd_info[inputname]["mean"])) /
                       float(odd_info[inputname]["std"]);
         } else if (int(event_id) % 2 == 1) {
-            shifted = (float(input_var) - float(even_info[inputname]["mean"])) /
+            shifted = (float(var) - float(even_info[inputname]["mean"])) /
                       float(even_info[inputname]["std"]);
         }
         Logger::get("StandardTransformer")
