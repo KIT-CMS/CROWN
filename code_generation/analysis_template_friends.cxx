@@ -27,6 +27,7 @@
 #include <TObjString.h>
 #include <TTree.h>
 #include <TVector.h>
+#include "onnxruntime_cxx_api.h"
 #include <filesystem>
 #include <regex>
 #include <string>
@@ -155,7 +156,7 @@ int main(int argc, char *argv[]) {
     }
     // initialize df
     ROOT::RDataFrame df0(dataset);
-    // ROOT::RDF::Experimental::AddProgressBar(df0);
+    // ROOT::RDF::Experimental::AddProgressBar(df0); ROOT 6.30 not available for CS8 on lcg
     // print all available branches to the log
     Logger::get("main")->debug("Available branches:");
     for (auto const &branch : df0.GetColumnNames()) {
