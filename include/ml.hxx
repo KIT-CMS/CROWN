@@ -2,8 +2,8 @@
 #define GUARD_ML_H
 
 #include "../include/utility/OnnxSessionManager.hxx"
-#include "TMVA/RModel.hxx"
-#include "TMVA/RModelParser_ONNX.hxx"
+// #include "TMVA/RModel.hxx"
+// #include "TMVA/RModelParser_ONNX.hxx"
 #include "utility/utility.hxx"
 #include <cstddef>
 
@@ -144,20 +144,20 @@ inline ROOT::RDF::RNode PNNEvaluate_ORT(
     return df4;
 }
 
-namespace sofie {
+// namespace sofie {
 
-void CompileModelForRDF(const std::string &headerModelFile,
-                        unsigned int ninputs, unsigned int nslots = 0);
+// void CompileModelForRDF(const std::string &headerModelFile,
+//                         unsigned int ninputs, unsigned int nslots = 0);
 
-std::string SOFIEGenerator(std::vector<std::string> input_vec,
-                           const std::string &model_file);
+// std::string SOFIEGenerator(std::vector<std::string> input_vec,
+//                            const std::string &model_file);
 
-ROOT::RDF::RNode NMSSMEvaluate_ONNX(
-    ROOT::RDF::RNode df, const std::vector<std::string> &input_vec,
-    const std::string &outputname_vector, const std::string &outputname_class,
-    const std::string &outputname_max_value, const std::string &model_file,
-    const std::string &massX_parameter, const std::string &massY_parameter);
+// ROOT::RDF::RNode NMSSMEvaluate_ONNX(
+//     ROOT::RDF::RNode df, const std::vector<std::string> &input_vec,
+//     const std::string &outputname_vector, const std::string &outputname_class,
+//     const std::string &outputname_max_value, const std::string &model_file,
+//     const std::string &massX_parameter, const std::string &massY_parameter);
 
-} // end namespace sofie
+// } // end namespace sofie
 } // end namespace ml
 #endif /* GUARD_ML_H */

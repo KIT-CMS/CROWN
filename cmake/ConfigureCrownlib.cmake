@@ -4,7 +4,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 file(GLOB SOURCES_1 ${CMAKE_SOURCE_DIR}/src/*.cxx)
 file(GLOB SOURCES_2 ${CMAKE_SOURCE_DIR}/src/utility/*.cxx
      ${CMAKE_SOURCE_DIR}/src/RecoilCorrections/*.cxx
-     ${CMAKE_SOURCE_DIR}/src/SVFit/*.cxx)
+     ${CMAKE_SOURCE_DIR}/src/SVFit/*.cxx
+     ${CMAKE_SOURCE_DIR}/src/HHKinFit/*.cxx)
 set(SOURCES ${SOURCES_1} ${SOURCES_2})
 
 if(BUILD_CROWNLIB_ONLY)
