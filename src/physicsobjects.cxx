@@ -1048,7 +1048,7 @@ PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
 /// \param[in] ES_sigma_down name of electron energy smearing value 1 sigma down shifted
 /// \param[in] era era of the electron measurement e.g. "2018"
 /// \param[in] variation name of the variation to be calculated (nominal correction is already applied)
-/// \param[in] ES_patch_file name of the json file with the energy scale uncertainties
+/// \param[in] ES_file name of the json file with the energy scale uncertainties
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
@@ -1056,9 +1056,9 @@ PtCorrectionMC(ROOT::RDF::RNode df, const std::string &corrected_pt,
                     const std::string &pt, const std::string &eta,
                     const std::string &gain, const std::string &ES_sigma_up,
                     const std::string &ES_sigma_down, const std::string &era,
-                    const std::string &variation, const std::string &ES_patch_file) {
+                    const std::string &variation, const std::string &ES_file) {
     auto evaluator =
-        correction::CorrectionSet::from_file(ES_patch_file)->at("UL-EGM_ScaleUnc");
+        correction::CorrectionSet::from_file(ES_file)->at("UL-EGM_ScaleUnc");
     auto electron_pt_correction_lambda =
         [evaluator, era, variation](const ROOT::RVec<float> &pt_values,
                                     const ROOT::RVec<float> &eta, const ROOT::RVec<UChar_t> &gain,
