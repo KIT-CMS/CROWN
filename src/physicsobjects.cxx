@@ -1032,6 +1032,81 @@ PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
     auto df1 = df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
     return df1;
 }
+/// Function to calculate uncertainties for electron pt correction. The electron energy correction 
+/// is already applied in nanoAOD and in general there are branches in nanoAOD with the energy shifts 
+/// for scale and resolution, but due to a bug the scale shifts are all 0 and have to be calculated from 
+/// a json file.
+/// Information taken from https://cms-talk.web.cern.ch/t/electron-scale-smear-variables-in-nanoaod/20210 
+/// and https://twiki.cern.ch/twiki/bin/view/CMS/EgammaSFJSON
+///
+/// \param[in] df the input dataframe
+/// \param[out] corrected_pt name of the corrected electron pt to be calculated
+/// \param[in] pt name of the electron pt
+/// \param[in] eta name of electron eta
+/// \param[in] gain name of electron seedGain
+/// \param[in] ES_sigma_up name of electron energy smearing value 1 sigma up shifted
+/// \param[in] ES_sigma_down name of electron energy smearing value 1 sigma down shifted
+/// \param[in] era era of the electron measurement e.g. "2018"
+/// \param[in] variation name of the variation to be calculated (nominal correction is already applied)
+/// \param[in] ES_patch_file name of the json file with the energy scale uncertainties
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode
+PtCorrectionMC(ROOT::RDF::RNode df, const std::string &corrected_pt,
+                    const std::string &pt, const std::string &eta,
+                    const std::string &gain, const std::string &ES_sigma_up,
+                    const std::string &ES_sigma_down, const std::string &era,
+                    const std::string &variation, const std::string &ES_patch_file) {
+    auto evaluator =
+        correction::CorrectionSet::from_file(ES_patch_file)->at("UL-EGM_ScaleUnc");
+    auto electron_pt_correction_lambda =
+        [evaluator, era, variation](const ROOT::RVec<float> &pt_values,
+                                    const ROOT::RVec<float> &eta, const ROOT::RVec<UChar_t> &gain,
+                                    const ROOT::RVec<float> &ES_sigma_up, const ROOT::RVec<float> &ES_sigma_down) {
+            ROOT::RVec<float> corrected_pt_values(pt_values.size());
+            for (int i = 0; i < pt_values.size(); i++) {
+                if (variation == "resolutionUp") {
+                    auto dpt = ES_sigma_down.at(i) / std::cosh(eta.at(i));
+                    corrected_pt_values[i] = pt_values.at(i) + dpt;
+                    Logger::get("eleEnergyCorrection")
+                    ->debug("ele pt before {}, ele pt after {}, dpt {}",
+                        pt_values.at(i), corrected_pt_values.at(i), dpt);
+                } else if (variation == "resolutionDown") {
+                    auto dpt = ES_sigma_down.at(i) / std::cosh(eta.at(i));
+                    corrected_pt_values[i] = pt_values.at(i) + dpt;
+                    Logger::get("eleEnergyCorrection")
+                    ->debug("ele pt before {}, ele pt after {}, dpt {}",
+                        pt_values.at(i), corrected_pt_values.at(i), dpt);
+                } else if (variation == "scaleUp") {
+                    Logger::get("eleEnergyCorrection")
+                    ->debug("inputs: era {}, eta {}, gain {}",
+                        era, eta.at(i), static_cast<int>(gain.at(i)));
+                    auto sf = evaluator->evaluate({era, "scaleup", eta.at(i), static_cast<int>(gain.at(i))});
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                    Logger::get("eleEnergyCorrection")
+                    ->debug("ele pt before {}, ele pt after {}, sf {}",
+                        pt_values.at(i), corrected_pt_values.at(i), sf);
+                } else if (variation == "scaleDown") {
+                    Logger::get("eleEnergyCorrection")
+                    ->debug("inputs: era {}, eta {}, gain {}",
+                        era, eta.at(i), static_cast<int>(gain.at(i)));
+                    auto sf = evaluator->evaluate({era, "scaledown", eta.at(i), static_cast<int>(gain.at(i))});
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                    Logger::get("eleEnergyCorrection")
+                    ->debug("ele pt before {}, ele pt after {}, sf {}",
+                        pt_values.at(i), corrected_pt_values.at(i), sf);
+                } else {
+                    corrected_pt_values[i] = pt_values.at(i);
+                    Logger::get("eleEnergyCorrection")
+                    ->debug("ele pt before {}, ele pt after {}",
+                        pt_values.at(i), corrected_pt_values.at(i));
+                }
+            }
+            return corrected_pt_values;
+        };
+    auto df1 = df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta, gain, ES_sigma_up, ES_sigma_down});
+    return df1;
+}
 /// Function to cut electrons based on the electron MVA ID
 ///
 /// \param[in] df the input dataframe
