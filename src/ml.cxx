@@ -119,32 +119,5 @@ ROOT::RDF::RNode StandardTransformer(ROOT::RDF::RNode df,
     }
 }
 
-ROOT::RDF::RNode DefineMassColumns(ROOT::RDF::RNode df,
-                                   const std::string &outputname,
-                                   const std::string &mass_paramfile,
-                                   const std::string &mass_parameter,
-                                   const std::string &boson) {
-    std::ifstream mass_file(mass_paramfile);
-    json mass_transform = json::parse(mass_file);
-
-    std::string mass_str;
-    if (boson == "X") {
-        mass_str = "massX";
-    } else if (boson == "Y") {
-        mass_str = "massY";
-    } else {
-        Logger::get("DefineMassColumns")->debug("boson {} not defined", boson);
-    }
-
-    auto get_mass = [mass_transform, mass_str, mass_parameter]() {
-        float mass = float(mass_transform[mass_str][mass_parameter]);
-        return mass;
-    };
-    Logger::get("DefineMassColumns")
-        ->debug("output column produced for {}", outputname);
-    auto df1 = df.Define(outputname, get_mass, {});
-    return df1;
-}
-
 } // end namespace ml
 #endif /* GUARD_ML_H */
