@@ -8,6 +8,8 @@
 #include "include/jets.hxx"
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"
+#include "include/ml.hxx"
+#include "include/utility/OnnxSessionManager.hxx"
 #include "include/metfilter.hxx"
 #include "include/pairselection.hxx"
 #include "include/physicsobjects.hxx"
@@ -130,6 +132,9 @@ int main(int argc, char *argv[]) {
 
     // file logging
     Logger::enableFileLogging("logs/main.txt");
+
+    // start an onnx session manager
+    OnnxSessionManager onnxSessionManager;
 
     // {MULTITHREADING}
 
