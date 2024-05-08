@@ -15,12 +15,6 @@ ROOT::RDF::RNode StandardTransformer(ROOT::RDF::RNode df,
                                      const std::string &paramfile,
                                      const std::string &var_type);
 
-ROOT::RDF::RNode DefineMassColumns(ROOT::RDF::RNode df,
-                                   const std::string &outputname,
-                                   const std::string &mass_paramfile,
-                                   const std::string &mass_parameter,
-                                   const std::string &boson);
-
 /// Generic Function to evaluate an ONNX model using the ONNX Runtime
 /// Due to unknowns reasons, this function must be implemented inline in the
 /// header file, otherwise the linker will complain about undefined references.
