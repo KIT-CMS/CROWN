@@ -1066,7 +1066,7 @@ PtCorrectionMC(ROOT::RDF::RNode df, const std::string &corrected_pt,
             ROOT::RVec<float> corrected_pt_values(pt_values.size());
             for (int i = 0; i < pt_values.size(); i++) {
                 if (variation == "resolutionUp") {
-                    auto dpt = ES_sigma_down.at(i) / std::cosh(eta.at(i));
+                    auto dpt = ES_sigma_up.at(i) / std::cosh(eta.at(i));
                     corrected_pt_values[i] = pt_values.at(i) + dpt;
                     Logger::get("eleEnergyCorrection")
                     ->debug("ele pt before {}, ele pt after {}, dpt {}",
