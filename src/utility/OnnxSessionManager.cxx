@@ -1,10 +1,10 @@
 #include "../../include/utility/Logger.hxx"
 #include "../../include/utility/utility.hxx"
 #include <memory>
-#include <numeric>
 #include <onnxruntime_cxx_api.h>
 #include <string>
 #include <unordered_map>
+#include <numeric>
 
 namespace onnxhelper {
 
@@ -30,18 +30,20 @@ std::vector<float> run_interference(Ort::Session *session,
     size_t outputTensorSize = vectorProduct(output_node_dims);
 
     for (auto i = 0; i < input_node_dims.size(); ++i) {
-        Logger::get("OnnxEvaluate")
+        Logger::get("OnnxInterference")
             ->debug("input_node_dims[{}]: {}", i, input_node_dims[i]);
     }
     for (auto i = 0; i < output_node_dims.size(); ++i) {
-        Logger::get("OnnxEvaluate")
+        Logger::get("OnnxInterference")
             ->debug("output_node_dims[{}]: {}", i, output_node_dims[i]);
     }
-    Logger::get("OnnxEvaluate")->debug("num_input_nodes: {}", num_input_nodes);
-    Logger::get("OnnxEvaluate")
+    Logger::get("OnnxInterference")
+        ->debug("num_input_nodes: {}", num_input_nodes);
+    Logger::get("OnnxInterference")
         ->debug("num_output_nodes: {}", num_output_nodes);
-    Logger::get("OnnxEvaluate")->debug("inputTensorSize: {}", inputTensorSize);
-    Logger::get("OnnxEvaluate")
+    Logger::get("OnnxInterference")
+        ->debug("inputTensorSize: {}", inputTensorSize);
+    Logger::get("OnnxInterference")
         ->debug("outputTensorSize: {}", outputTensorSize);
 
     std::vector<float> outputTensorValues(outputTensorSize);
@@ -54,10 +56,10 @@ std::vector<float> run_interference(Ort::Session *session,
         output_node_dims.data(), output_node_dims.size()));
     assert(inputTensors[0].IsTensor());
     // print content of inputTensors
-    Logger::get("OnnxEvaluate")->debug("Checking input tensors");
+    Logger::get("OnnxInterference")->debug("Checking input tensors");
     const float *input_ptr = inputTensors[0].GetTensorMutableData<float>();
     for (auto i = 0; i < evt_input.size(); ++i) {
-        Logger::get("OnnxEvaluate")->debug("input: {}", input_ptr[i]);
+        Logger::get("OnnxInterference")->debug("input: {}", input_ptr[i]);
     }
     // convert input_node_names and output_node_names to const char*
     std::vector<const char *> input_node_names_cstr;
@@ -71,8 +73,8 @@ std::vector<float> run_interference(Ort::Session *session,
     input_node_names_cstr.push_back(input_name_str.c_str());
     output_node_names_cstr.push_back(output_name_str.c_str());
 
-    Logger::get("OnnxEvaluate")->debug("Input name: {} ", input_name_str);
-    Logger::get("OnnxEvaluate")->debug("Output name: {} ", output_name_str);
+    Logger::get("OnnxInterference")->debug("Input name: {} ", input_name_str);
+    Logger::get("OnnxInterference")->debug("Output name: {} ", output_name_str);
 
     session->Run(Ort::RunOptions{nullptr}, input_node_names_cstr.data(),
                  inputTensors.data(), input_node_names_cstr.size(),
@@ -83,7 +85,7 @@ std::vector<float> run_interference(Ort::Session *session,
     std::vector<float> output;
     for (size_t i = 0; i < outputTensorSize; ++i) {
         output.push_back(output_ptr[i]);
-        Logger::get("OnnxEvaluate")->debug("output: {}", output[i]);
+        Logger::get("OnnxInterference")->debug("output: {}", output[i]);
     }
     return output;
 }
@@ -96,16 +98,16 @@ void prepare_model(Ort::Session *session, std::vector<int64_t> &input_node_dims,
     num_output_nodes = session->GetOutputCount();
 
     if (num_output_nodes != 1 or num_input_nodes != 1) {
-        Logger::get("OnnxEvaluate")
+        Logger::get("OnnxPrepareModel")
             ->error("Number of input and output nodes is not 1 Input: {} "
                     "Output: {}",
                     num_input_nodes, num_output_nodes);
         throw std::runtime_error("Number of nodes is not 1");
     }
 
-    Logger::get("OnnxEvaluate")
+    Logger::get("OnnxPrepareModel")
         ->debug("Number of input nodes: {}", num_input_nodes);
-    Logger::get("OnnxEvaluate")
+    Logger::get("OnnxPrepareModel")
         ->debug("Number of output nodes: {}", num_output_nodes);
 
     auto input_type_info = session->GetInputTypeInfo(0);
