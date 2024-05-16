@@ -1131,6 +1131,47 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
         {pt, eta});
     return df1;
 }
+/**
+ * @brief Function used to evaluate trigger scale factors from electrons with
+ * correctionlib. Configurations:
+ * @param df The input dataframe
+ * @param pt electron pt
+ * @param eta electron eta
+ * @param variation id for the variation of the scale factor "nominal" for nominal
+ * and "up"/"down" the up/down variation
+ * @param trigger_output name of the trigger scale factor column
+ * @param sf_file path to the file with the electron scale factors
+ * @param sf_name name of the electron trigger scale factor
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, const std::string &pt,
+                         const std::string &eta,
+                         const std::string &variation,
+                         const std::string &trigger_output,
+                         const std::string &sf_file,
+                         const std::string &sf_name) {
+
+    Logger::get("electronTriggerSF")
+        ->debug("Setting up functions for electron trigger sf");
+    Logger::get("electronTriggerSF")->debug("Trigger - Name {}", sf_name);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(sf_name);
+    auto df1 =
+        df.Define(trigger_output,
+                  [evaluator, variation,
+                   sf_name](const float &pt, const float &eta) {
+                      Logger::get("electronTriggerSF")
+                          ->debug("Trigger - pt {}, eta {}", pt, eta);
+                      double sf = 1.;
+                      if (pt > 0 && std::abs(eta)<=2.5) {
+                          sf = evaluator->evaluate(
+                              {std::abs(eta), pt, variation});
+                      }
+                      return sf;
+                  },
+                  {pt, eta});
+    return df1;
+}
 
 } // namespace electron
 namespace jet {
@@ -1246,6 +1287,43 @@ btagSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &eta,
     return df1;
 }
 } // namespace jet
+
+namespace fatjet {
+/**
+ * @brief Function used to evaluate particleNet X(bb) scale factors of fatjets with
+ * correctionlib
+ * @param df The input dataframe
+ * @param pt fatjet pt
+ * @param variation name of the variation of the scale factor. Available Values:
+ * nominal, down, up
+ * @param sf_output name of the scale factor column
+ * @param sf_file path to the file with the particleNet Xbb scale factors
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+pNetXbbSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &variation,
+       const std::string &sf_output, const std::string &sf_file) {
+    Logger::get("pNetXbbSF")->debug(
+        "Setting up functions for particleNet X(bb) sf with correctionlib");
+
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at("particleNet_Xbb_tagger_SF");
+
+    auto pNetXbbSF_lambda = [evaluator, variation](const float &pt_value) {
+        Logger::get("pNetXbbSF")->debug("Variation - Name {}", variation);
+        float sf = 1.;
+
+        if (pt_value >= 0.0) {
+            sf = evaluator->evaluate({pt_value, variation});
+        }
+
+        Logger::get("pNetXbbSF")->debug("Fatjet Scale Factor {} for pt {}", sf, pt_value);
+        return sf;
+    };
+    auto df1 = df.Define(sf_output, pNetXbbSF_lambda, {pt});
+    return df1;
+}
+} // namespace fatjet
 
 namespace embedding {
 /**

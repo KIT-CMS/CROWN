@@ -112,6 +112,12 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
                     const std::string &wp, const std::string &variation,
                     const std::string &id_output, const std::string &sf_file,
                     const std::string &idAlgorithm);
+ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, const std::string &pt,
+                         const std::string &eta,
+                         const std::string &variation,
+                         const std::string &trigger_output,
+                         const std::string &sf_file,
+                         const std::string &sf_name);
 } // namespace electron
 
 namespace jet {
@@ -124,6 +130,14 @@ btagSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &eta,
        const std::string &sf_output, const std::string &sf_file,
        const std::string &corr_algorithm);
 } // namespace jet
+
+namespace fatjet {
+
+ROOT::RDF::RNode
+pNetXbbSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &variation,
+       const std::string &sf_output, const std::string &sf_file);
+} // namespace fatjet
+
 namespace embedding {
 ROOT::RDF::RNode
 selection_trigger(ROOT::RDF::RNode df, const std::string &pt_1,
