@@ -75,7 +75,7 @@ inline ROOT::RDF::RNode GenericOnnxEvaluator(
 
     auto session = onnxSessionManager.getSession(model_file_path);
 
-    onnxhelper::prepare_model(session, allocator, input_node_dims,
+    onnxhelper::prepare_model(session, input_node_dims,
                               output_node_dims, num_input_nodes,
                               num_output_nodes);
 
