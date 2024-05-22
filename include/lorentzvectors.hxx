@@ -45,7 +45,8 @@ ROOT::RDF::RNode CombineP4s(ROOT::RDF::RNode df, const std::string &outputflag,
 }
 
 ROOT::RDF::RNode scaleP4(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::vector<std::string> &inputvector, const float &p4_miss_sf);   
+                         const std::vector<std::string> &inputvector,
+                         const float &p4_miss_sf);
 /// namespace used for mutau lorentzvectors
 namespace mutau {
 ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &pairname,
