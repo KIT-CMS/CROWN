@@ -2,6 +2,7 @@
 #define GUARD_REWEIGHTING_H
 
 #include "../include/basefunctions.hxx"
+#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/RooFunctorThreadsafe.hxx"
 #include "ROOT/RDataFrame.hxx"
@@ -54,7 +55,8 @@ ROOT::RDF::RNode puweights(ROOT::RDF::RNode df, const std::string &weightname,
 
 /**
  * @brief Function used to read out pileup weights from JSON files
- *
+ * WARNING: This function is deprecated. Please use the one with the
+ * CorrectionManager object instead.
  * @param df The input dataframe
  * @param weightname name of the derived weight
  * @param truePU name of the column containing the true PU of simulated
@@ -68,8 +70,38 @@ ROOT::RDF::RNode puweights(ROOT::RDF::RNode df, const std::string &weightname,
                            const std::string &filename,
                            const std::string &eraname,
                            const std::string &variation) {
+    Logger::get("puweights")
+        ->warn("You are using the deprecated puweights function. Please use "
+               "the one with the CorrectionManager object instead.");
     auto evaluator =
         correction::CorrectionSet::from_file(filename)->at(eraname);
+    auto df1 =
+        df.Define(weightname,
+                  [evaluator, variation](const float &pu) {
+                      double weight = evaluator->evaluate({pu, variation});
+                      return weight;
+                  },
+                  {truePU});
+    return df1;
+}
+/**
+ * @brief Function used to read out pileup weights from JSON files
+ *
+ * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
+ * @param weightname name of the derived weight
+ * @param truePU name of the column containing the true PU of simulated
+ * events
+ * @param filename path to the JSON file
+ * @param eraname name of the era specified in the JSON file
+ * @param variation systematic variations: nominal, up, down
+ */
+ROOT::RDF::RNode
+puweights(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+          const std::string &weightname, const std::string &truePU,
+          const std::string &filename, const std::string &eraname,
+          const std::string &variation) {
+    auto evaluator = correctionManager.loadCorrection(filename, eraname);
     auto df1 =
         df.Define(weightname,
                   [evaluator, variation](const float &pu) {
