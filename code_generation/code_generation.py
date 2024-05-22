@@ -108,7 +108,7 @@ class CodeSubset(object):
         # write the header file if it does not exist or is different
         with open(self.headerfile + ".new", "w") as f:
             f.write(
-                f"ROOT::RDF::RNode {self.name}(ROOT::RDF::RNode df, OnnxSessionManager &onnxSessionManager);"
+                f"ROOT::RDF::RNode {self.name}(ROOT::RDF::RNode df, OnnxSessionManager &onnxSessionManager, CorrectionManager &correctionManager);"
             )
         if os.path.isfile(self.headerfile):
             if filecmp.cmp(self.headerfile + ".new", self.headerfile):
@@ -146,7 +146,7 @@ class CodeSubset(object):
         Returns:
             str: the call to the code subset
         """
-        call = f"    auto {outputscope} = {self.name}({inputscope}, onnxSessionManager); \n"
+        call = f"    auto {outputscope} = {self.name}({inputscope}, onnxSessionManager, correctionManager); \n"
         return call
 
     def include(self) -> str:
@@ -195,6 +195,7 @@ class CodeGenerator(object):
         self.subset_template = self.load_template(sub_template_path)
         self.configuration = configuration
         self.scopes = self.configuration.scopes
+
         self.outputs = self.configuration.outputs
         self.global_scope = self.configuration.global_scope
         self.executable_name = executable_name
@@ -215,6 +216,10 @@ class CodeGenerator(object):
         self.main_counter: Dict[str, int] = {}
         self.number_of_defines = 0
         self.number_of_outputs = 0
+        # sort the scopes alphabetically, keeping the global scope at the beginning
+        self.scopes = [self.global_scope] + sorted(
+            scope for scope in self.scopes if scope != self.global_scope
+        )
         for scope in self.scopes:
             self.main_counter[scope] = 0
             self.subset_calls[scope] = []
@@ -650,6 +655,7 @@ class CodeGenerator(object):
         )
         printout += "       timer.Continue();\n"
         printout += '       Logger::get("main")->info("Starting Evaluation");\n'
+        printout += "       correctionManager.report();\n"
 
         return printout
 
