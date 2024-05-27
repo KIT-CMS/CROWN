@@ -1,5 +1,5 @@
-Namespace: Basefunctions
-========================
+Namespace: Ml
+=============
 .. doxygennamespace:: ml
    :members:
    :undoc-members:

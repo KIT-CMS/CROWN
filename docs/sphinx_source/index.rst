@@ -39,6 +39,7 @@ Documentation Content
    friend_trees.rst
    kingmaker.rst
    postprocessing.rst
+   correction_manager.rst
 
 Documentation
 **************
