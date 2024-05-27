@@ -36,10 +36,9 @@ Documentation Content
 
    introduction.rst
    changelog.rst
-   friend_trees.rst
    kingmaker.rst
    postprocessing.rst
-   correction_manager.rst
+   friend_trees.rst
 
 Documentation
 **************
@@ -50,6 +49,7 @@ Documentation
 
    contrib.rst
    py_configuration.rst
+   correction_manager.rst
 
 .. toctree::
    :maxdepth: 2
