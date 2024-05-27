@@ -97,7 +97,8 @@ ROOT::RDF::RNode iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
  * @param idAlgorithm name of the muon id scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode id(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+ROOT::RDF::RNode id(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
                     const std::string &pt, const std::string &eta,
                     const std::string &year_id, const std::string &variation,
                     const std::string &id_output, const std::string &sf_file,
@@ -199,7 +200,8 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
  * @param idAlgorithm name of the muon iso scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode iso(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+ROOT::RDF::RNode iso(ROOT::RDF::RNode df,
+                     correctionManager::CorrectionManager &correctionManager,
                      const std::string &pt, const std::string &eta,
                      const std::string &year_id, const std::string &variation,
                      const std::string &iso_output, const std::string &sf_file,
@@ -329,7 +331,8 @@ for nominal
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-id_vsJet_lt(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+id_vsJet_lt(ROOT::RDF::RNode df,
+            correctionManager::CorrectionManager &correctionManager,
             const std::string &pt, const std::string &decayMode,
             const std::string &genMatch, const std::vector<int> &selectedDMs,
             const std::string &wp, const std::string &sf_vsjet_tau30to35,
@@ -551,7 +554,8 @@ factor
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-id_vsJet_lt_embedding(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+id_vsJet_lt_embedding(ROOT::RDF::RNode df,
+                      correctionManager::CorrectionManager &correctionManager,
                       const std::string &pt, const std::string &wp,
                       const std::string &sf_vsjet_tau20to25,
                       const std::string &sf_vsjet_tau25to30,
@@ -705,7 +709,8 @@ factor
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode id_vsJet_tt_embedding(
-    ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
     const std::string &decaymode, const std::string &wp,
     const std::string &sf_vsjet_tauDM0, const std::string &sf_vsjet_tauDM1,
     const std::string &sf_vsjet_tauDM10, const std::string &sf_vsjet_tauDM11,
@@ -860,7 +865,8 @@ nominal
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode id_vsJet_tt(
-    ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
     const std::string &pt, const std::string &decayMode,
     const std::string &genMatch, const std::vector<int> &selectedDMs,
     const std::string &wp, const std::string &sf_vsjet_tauDM0,
@@ -1077,7 +1083,8 @@ nominal
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-id_vsEle(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+id_vsEle(ROOT::RDF::RNode df,
+         correctionManager::CorrectionManager &correctionManager,
          const std::string &eta, const std::string &decayMode,
          const std::string &genMatch, const std::vector<int> &selectedDMs,
          const std::string &wp, const std::string &sf_vsele_barrel,
@@ -1272,7 +1279,8 @@ nominal
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-id_vsMu(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+id_vsMu(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correctionManager,
         const std::string &eta, const std::string &decayMode,
         const std::string &genMatch, const std::vector<int> &selectedDMs,
         const std::string &wp, const std::string &sf_vsmu_wheel1,
@@ -1464,7 +1472,8 @@ id_vsMu(ROOT::RDF::RNode df, const std::string &eta,
  */
 
 ROOT::RDF::RNode
-tau_trigger_sf(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+tau_trigger_sf(ROOT::RDF::RNode df,
+               correctionManager::CorrectionManager &correctionManager,
                const std::string &decaymode, const std::string &pt,
                const std::string &wp, const std::string &type,
                const std::string &id_output, const std::string &sf_file,
@@ -1565,7 +1574,8 @@ namespace electron {
  * @param idAlgorithm name of the electron id scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode id(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+ROOT::RDF::RNode id(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
                     const std::string &pt, const std::string &eta,
                     const std::string &year_id, const std::string &wp,
                     const std::string &variation, const std::string &id_output,
@@ -1680,7 +1690,8 @@ namespace jet {
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-btagSF(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+btagSF(ROOT::RDF::RNode df,
+       correctionManager::CorrectionManager &correctionManager,
        const std::string &pt, const std::string &eta,
        const std::string &btag_discr, const std::string &flavor,
        const std::string &jet_mask, const std::string &bjet_mask,
@@ -1902,7 +1913,8 @@ namespace embedding {
  * @return ROOT::RDF::RNode
  */
 ROOT::RDF::RNode
-selection_trigger(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+selection_trigger(ROOT::RDF::RNode df,
+                  correctionManager::CorrectionManager &correctionManager,
                   const std::string &pt_1, const std::string &eta_1,
                   const std::string &pt_2, const std::string &eta_2,
                   const std::string &output, const std::string &sf_file,
@@ -1989,12 +2001,12 @@ selection_trigger(ROOT::RDF::RNode df, const std::string &pt_1,
  * file
  * @return ROOT::RDF::RNode
  */
-ROOT::RDF::RNode selection_id(ROOT::RDF::RNode df,
-                              CorrectionManager &correctionManager,
-                              const std::string &pt, const std::string &eta,
-                              const std::string &output,
-                              const std::string &sf_file,
-                              const std::string &idAlgorithm) {
+ROOT::RDF::RNode
+selection_id(ROOT::RDF::RNode df,
+             correctionManager::CorrectionManager &correctionManager,
+             const std::string &pt, const std::string &eta,
+             const std::string &output, const std::string &sf_file,
+             const std::string &idAlgorithm) {
     Logger::get("EmbeddingSelectionIDSF")
         ->debug("Correction - Name {}", idAlgorithm);
     auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
@@ -2069,13 +2081,13 @@ ROOT::RDF::RNode selection_id(ROOT::RDF::RNode df, const std::string &pt,
  * factor, defaults to 1.
  * @return ROOT::RDF::RNode
  */
-ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df,
-                         CorrectionManager &correctionManager,
-                         const std::string &pt, const std::string &eta,
-                         const std::string &output, const std::string &sf_file,
-                         const std::string correctiontype,
-                         const std::string &idAlgorithm,
-                         const float &extrapolation_factor = 1.0) {
+ROOT::RDF::RNode
+muon_sf(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correctionManager,
+        const std::string &pt, const std::string &eta,
+        const std::string &output, const std::string &sf_file,
+        const std::string correctiontype, const std::string &idAlgorithm,
+        const float &extrapolation_factor = 1.0) {
 
     Logger::get("EmbeddingMuonSF")->debug("Correction - Name {}", idAlgorithm);
     auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
@@ -2163,7 +2175,8 @@ ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
  * @return ROOT::RDF::RNode
  */
 ROOT::RDF::RNode
-electron_sf(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+electron_sf(ROOT::RDF::RNode df,
+            correctionManager::CorrectionManager &correctionManager,
             const std::string &pt, const std::string &eta,
             const std::string &output, const std::string &sf_file,
             const std::string correctiontype, const std::string &idAlgorithm,
@@ -2259,7 +2272,8 @@ ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
  */
 
 ROOT::RDF::RNode
-ditau_trigger_sf(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+ditau_trigger_sf(ROOT::RDF::RNode df,
+                 correctionManager::CorrectionManager &correctionManager,
                  const std::string &pt, const std::string &decaymode,
                  const std::string &output, const std::string &wp,
                  const std::string &sf_file, const std::string &type,

@@ -703,7 +703,8 @@ ROOT::RDF::RNode CutTauID(ROOT::RDF::RNode df, const std::string &maskname,
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
-PtCorrection_eleFake(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+PtCorrection_eleFake(ROOT::RDF::RNode df,
+                     correctionManager::CorrectionManager &correctionManager,
                      const std::string &corrected_pt, const std::string &pt,
                      const std::string &eta, const std::string &decayMode,
                      const std::string &genMatch, const std::string &sf_file,
@@ -884,7 +885,8 @@ PtCorrection_eleFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
-PtCorrection_muFake(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+PtCorrection_muFake(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
                     const std::string &corrected_pt, const std::string &pt,
                     const std::string &eta, const std::string &decayMode,
                     const std::string &genMatch, const std::string &sf_file,
@@ -1048,7 +1050,8 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
-PtCorrection_genTau(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+PtCorrection_genTau(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
                     const std::string &corrected_pt, const std::string &pt,
                     const std::string &eta, const std::string &decayMode,
                     const std::string &genMatch, const std::string &sf_file,
@@ -1243,7 +1246,8 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
-PtCorrection(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+PtCorrection(ROOT::RDF::RNode df,
+             correctionManager::CorrectionManager &correctionManager,
              const std::string &corrected_pt, const std::string &pt,
              const std::string &eta, const std::string &sf_barrel,
              const std::string &sf_endcap, const std::string &sf_file,
@@ -1348,7 +1352,8 @@ PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+PtCorrectionMC(ROOT::RDF::RNode df,
+               correctionManager::CorrectionManager &correctionManager,
                const std::string &corrected_pt, const std::string &pt,
                const std::string &eta, const std::string &gain,
                const std::string &ES_sigma_up, const std::string &ES_sigma_down,

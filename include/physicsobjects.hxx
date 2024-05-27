@@ -121,7 +121,8 @@ ROOT::RDF::RNode CutDecayModes(ROOT::RDF::RNode df, const std::string &maskname,
 ROOT::RDF::RNode CutTauID(ROOT::RDF::RNode df, const std::string &maskname,
                           const std::string &nameID, const int &idxID);
 ROOT::RDF::RNode
-PtCorrection_eleFake(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+PtCorrection_eleFake(ROOT::RDF::RNode df,
+                     correctionManager::CorrectionManager &correctionManager,
                      const std::string &corrected_pt, const std::string &pt,
                      const std::string &eta, const std::string &decayMode,
                      const std::string &genMatch, const std::string &sf_file,
@@ -139,7 +140,8 @@ PtCorrection_eleFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
                      const std::string &sf_dm0_b, const std::string &sf_dm1_b,
                      const std::string &sf_dm0_e, const std::string &sf_dm1_e);
 ROOT::RDF::RNode
-PtCorrection_muFake(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+PtCorrection_muFake(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
                     const std::string &corrected_pt, const std::string &pt,
                     const std::string &eta, const std::string &decayMode,
                     const std::string &genMatch, const std::string &sf_file,
@@ -158,7 +160,8 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
                      const float &sf_dm0, const float &sf_dm1,
                      const float &sf_dm10, const float &sf_dm11);
 ROOT::RDF::RNode
-PtCorrection_genTau(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+PtCorrection_genTau(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
                     const std::string &corrected_pt, const std::string &pt,
                     const std::string &eta, const std::string &decayMode,
                     const std::string &genMatch, const std::string &sf_file,
@@ -184,7 +187,8 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
                      const std::string &pt, const std::string &eta,
                      const float &sf_barrel, const float &sf_endcap);
 ROOT::RDF::RNode
-PtCorrection(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+PtCorrection(ROOT::RDF::RNode df,
+             correctionManager::CorrectionManager &correctionManager,
              const std::string &corrected_pt, const std::string &pt,
              const std::string &eta, const std::string &sf_barrel,
              const std::string &sf_endcap, const std::string &sf_file,
@@ -196,7 +200,8 @@ PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
              const std::string &sf_barrel, const std::string &sf_endcap,
              const std::string &sf_file, const std::string &jsonESname);
 ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+PtCorrectionMC(ROOT::RDF::RNode df,
+               correctionManager::CorrectionManager &correctionManager,
                const std::string &corrected_pt, const std::string &pt,
                const std::string &eta, const std::string &gain,
                const std::string &ES_sigma_up, const std::string &ES_sigma_down,

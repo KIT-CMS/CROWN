@@ -1,14 +1,15 @@
 #ifndef GUARD_CORRECTION_MANAGER
 #define GUARD_CORRECTION_MANAGER
 
-#include <memory>
 #include "correction.h"
+#include <memory>
 #include <unordered_map>
 
+namespace correctionManager {
 class CorrectionManager {
   public:
     CorrectionManager(){};
-    ~CorrectionManager(){
+    ~CorrectionManager() {
         correction_map.clear();
         correctionCompound_map.clear();
     }
@@ -19,7 +20,6 @@ class CorrectionManager {
                            const std::string &corrName);
 
     void report();
-
 
   private:
     std::unordered_map<
@@ -34,4 +34,5 @@ class CorrectionManager {
         correctionCompound_map;
     int n_corrections = 0;
 };
+} // namespace correctionManager
 #endif /* GUARD_CORRECTION_MANAGER */
