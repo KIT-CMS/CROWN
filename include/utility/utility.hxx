@@ -7,7 +7,15 @@
 #include <vector>
 /// Namespace used for common utility functions.
 namespace utility {
-inline bool ApproxEqual(auto value1, auto value2, double maxDelta = 1e-5) {
+/**
+ * @brief function to check if two double values are approximately equal
+ *
+ * @param value1 double value to compare
+ * @param value2 double value to compare
+ * @param maxDelta maximum difference between the two values
+ * @return true or false
+ */
+inline bool ApproxEqual(double value1, double value2, double maxDelta = 1e-5) {
     if (value1 == value2) {
         return true;
     } else {
@@ -18,10 +26,24 @@ inline bool ApproxEqual(auto value1, auto value2, double maxDelta = 1e-5) {
         return (delta < maxDelta);
     }
 }
+/**
+ * @brief Function to append a parameter pack to a vector
+ *
+ * @param v the vector to append to
+ * @param parameter string to append
+ */
 inline void appendParameterPackToVector(std::vector<std::string> &v,
                                         const std::string &parameter) {
     v.push_back(parameter);
 }
+/**
+ * @brief Function to append a parameter pack to a vector
+ *
+ * @tparam ParameterPack
+ * @param v the vector to append to
+ * @param parameter the string to append
+ * @param pack the parameter pack to append
+ */
 template <class... ParameterPack>
 inline void appendParameterPackToVector(std::vector<std::string> &v,
                                         const std::string &parameter,
@@ -29,8 +51,7 @@ inline void appendParameterPackToVector(std::vector<std::string> &v,
     v.push_back(parameter);
     appendParameterPackToVector(v, pack...);
 }
-
-/// !!!! Remove once we can switch to Root 6.25, where fix is included
+/// \cond
 template <typename I, typename T, typename F> class PassAsVecHelper;
 
 template <std::size_t... N, typename T, typename F>
@@ -50,5 +71,6 @@ auto PassAsVec(F &&f) -> PassAsVecHelper<std::make_index_sequence<N>, T, F> {
     return utility::PassAsVecHelper<std::make_index_sequence<N>, T, F>(
         std::forward<F>(f));
 }
+/// \endcond
 } // end namespace utility
 #endif /* GUARDUTILITY_H */

@@ -7,7 +7,8 @@ ROOT::RDF::RNode puweights(ROOT::RDF::RNode df, const std::string &weightname,
                            const std::string &filename,
                            const std::string &histogramname);
 ROOT::RDF::RNode
-puweights(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+puweights(ROOT::RDF::RNode df,
+          correctionManager::CorrectionManager &correctionManager,
           const std::string &weightname, const std::string &truePU,
           const std::string &filename, const std::string &eraname,
           const std::string &variation);

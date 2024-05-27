@@ -33,7 +33,8 @@ ROOT::RDF::RNode CutPUID(ROOT::RDF::RNode df, const std::string &maskname,
                          const std::string &nameID, const std::string &jet_pt,
                          const int &idxID, const float &jet_pt_cut);
 ROOT::RDF::RNode
-JetPtCorrection(ROOT::RDF::RNode df, CorrectionManager &correctionManager,
+JetPtCorrection(ROOT::RDF::RNode df,
+                correctionManager::CorrectionManager &correctionManager,
                 const std::string &corrected_jet_pt, const std::string &jet_pt,
                 const std::string &jet_eta, const std::string &jet_phi,
                 const std::string &jet_area, const std::string &jet_rawFactor,

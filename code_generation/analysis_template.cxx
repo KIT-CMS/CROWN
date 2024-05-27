@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
     // start an onnx session manager
     OnnxSessionManager onnxSessionManager;
     // start a correction manager
-    CorrectionManager correctionManager;
+    correctionManager::CorrectionManager correctionManager;
 
     // {MULTITHREADING}
 

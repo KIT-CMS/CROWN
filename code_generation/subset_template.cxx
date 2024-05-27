@@ -31,7 +31,7 @@
 #include "include/topreco.hxx"
 #include "include/triggers.hxx"
 #include "include/fakefactors.hxx"
-ROOT::RDF::RNode {subsetname} (ROOT::RDF::RNode df0, OnnxSessionManager &onnxSessionManager, CorrectionManager &correctionManager) {
+ROOT::RDF::RNode {subsetname} (ROOT::RDF::RNode df0, OnnxSessionManager &onnxSessionManager, correctionManager::CorrectionManager &correctionManager) {
 
     //    { commands }
 }
