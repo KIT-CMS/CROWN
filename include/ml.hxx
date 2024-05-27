@@ -1,6 +1,7 @@
 #ifndef GUARD_ML_H
 #define GUARD_ML_H
 
+#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/OnnxSessionManager.hxx"
 #include "TMVA/RModel.hxx"
 #include "TMVA/RModelParser_ONNX.hxx"
@@ -14,6 +15,12 @@ ROOT::RDF::RNode StandardTransformer(ROOT::RDF::RNode df,
                                      const std::string &outputname,
                                      const std::string &paramfile,
                                      const std::string &var_type);
+
+ROOT::RDF::RNode
+StandardTransformer(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
+                    const std::string &inputname, const std::string &outputname,
+                    const std::string &paramfile, const std::string &var_type);
 
 /// Generic Function to evaluate an ONNX model using the ONNX Runtime
 /// Due to unknowns reasons, this function must be implemented inline in the
