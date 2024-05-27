@@ -9,8 +9,9 @@ Supported Correction Files
 
 For now, the CorrectionManager supports the following correction files:
 
-- correctionlib files of type ``correction::Correction``
-- correctionlib files of type ``correction::CompoundCorrection```
+- correctionlib files of type ``correction::Correction`` using the :cpp:func:`correctionManager::CorrectionManager::loadCorrection` function
+- correctionlib files of type ``correction::CompoundCorrection`` using the :cpp:func:`correctionManager::CorrectionManager::loadCompoundCorrection` function
+- json files using the :cpp:func:`correctionManager::CorrectionManager::loadjson` function
 
 A Documentation of all CorrectionManager functions can be found in :ref:`Namespace: Correctionmanager`
 
