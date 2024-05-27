@@ -2,6 +2,9 @@
 #include "../../include/utility/Logger.hxx"
 #include <memory>
 #include <string>
+#include <unordered_map>
+#include <nlohmann/json.hpp>
+#include <fstream>
 /// namespace used for the CorrectionManager
 namespace correctionManager {
 /**
@@ -92,10 +95,29 @@ CorrectionManager::loadCompoundCorrection(const std::string &filePath,
     }
     return corrName_it->second.get();
 };
+const nlohmann::json *CorrectionManager::loadjson(const std::string &filePath){
+    auto json_it = json_map.find(filePath);
+    if (json_it == json_map.end()) {
+        Logger::get("CorrectionManager")
+            ->debug("Json file {} not loaded yet, adding it...", filePath);
+        std::ifstream json_file(filePath);
+        auto result = json_map.emplace(
+            filePath,
+            std::shared_ptr<nlohmann::json>(nlohmann::json::parse(json_file)));
+        json_it = result.first;
+    }
+    return json_it->second.get();
+}
+/**
+ * @brief Report the number of corrections managed by the CorrectionManager
+ */
 void CorrectionManager::report() {
     Logger::get("CorrectionManager")
         ->info("CorrectionManager manages {} different corrections for this "
                "production",
                n_corrections);
 };
+
+
+
 } // namespace correctionManager

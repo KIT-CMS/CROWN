@@ -62,6 +62,13 @@ ROOT::RDF::RNode GetPrescaleValues(ROOT::RDF::RNode df,
                                    const std::string &lumiblock_columnname,
                                    const std::string &prescale_json_file);
 
+ROOT::RDF::RNode GetPrescaleValues(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
+    const std::string &prescale_columnname, const std::string &hlt_columnname,
+    const std::string &run_columnname, const std::string &lumiblock_columnname,
+    const std::string &prescale_json_file);
+
 namespace tagandprobe {
 
 bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,

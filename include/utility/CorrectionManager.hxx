@@ -3,7 +3,7 @@
 
 #include "correction.h"
 #include <memory>
-#include <unordered_map>
+#include <nlohmann/json.hpp>
 
 namespace correctionManager {
 class CorrectionManager {
@@ -19,6 +19,8 @@ class CorrectionManager {
     loadCompoundCorrection(const std::string &filePath,
                            const std::string &corrName);
 
+    const nlohmann::json *loadjson(const std::string &filePath);
+
     void report();
 
   private:
@@ -32,6 +34,7 @@ class CorrectionManager {
         std::unordered_map<
             std::string, std::shared_ptr<const correction::CompoundCorrection>>>
         correctionCompound_map;
+    std::unordered_map<std::string, std::shared_ptr<const nlohmann::json>> json_map;
     int n_corrections = 0;
 };
 } // namespace correctionManager
