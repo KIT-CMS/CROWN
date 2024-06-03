@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Union, Tuple
 import os
 import filecmp
 import subprocess
-
 from code_generation.producer import SafeDict, Producer, ProducerGroup
 
 from code_generation.configuration import Configuration
@@ -217,9 +216,7 @@ class CodeGenerator(object):
         self.number_of_defines = 0
         self.number_of_outputs = 0
         # sort the scopes alphabetically, keeping the global scope at the beginning
-        self.scopes = [self.global_scope] + sorted(
-            scope for scope in self.scopes if scope != self.global_scope
-        )
+        self.sort_scopes()
         for scope in self.scopes:
             self.main_counter[scope] = 0
             self.subset_calls[scope] = []
@@ -231,6 +228,16 @@ class CodeGenerator(object):
         self.analysis_is_clean = "false"
         self.get_git_status()
         log.info("Code generator initialized")
+
+    def sort_scopes(self) -> None:
+        """
+        Sort the scopes alphabetically, keeping the global scope at the beginning
+        """
+        self.scopes = sorted(
+            scope for scope in self.scopes if scope != self.global_scope
+        )
+        if self.global_scope is not None:
+            self.scopes = [self.global_scope] + self.scopes
 
     def get_git_status(self) -> None:
         """
