@@ -73,6 +73,7 @@ CorrectionManager::loadCompoundCorrection(const std::string &filePath,
             std::unordered_map<
                 std::string,
                 std::shared_ptr<const correction::CompoundCorrection>>());
+        n_corrections++;
         filePath_it = result.first;
     }
 
@@ -103,11 +104,13 @@ const nlohmann::json *CorrectionManager::loadjson(const std::string &filePath){
         std::ifstream json_file(filePath);
         auto result = json_map.emplace(
             filePath,
-            std::shared_ptr<nlohmann::json>(nlohmann::json::parse(json_file)));
+            std::make_shared<nlohmann::json>(nlohmann::json::parse(json_file)));
+        n_corrections++;
         json_it = result.first;
     }
     return json_it->second.get();
 }
+
 /**
  * @brief Report the number of corrections managed by the CorrectionManager
  */
