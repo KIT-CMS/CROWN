@@ -284,6 +284,7 @@ p4_fastmtt(ROOT::RDF::RNode df, const std::string &outputname,
            const std::string &met_cov_xx, const std::string &met_cov_xy,
            const std::string &met_cov_yy, const std::string &decay_mode_1,
            const std::string &decay_mode_2, const std::string &finalstate) {
+    // initialize the FastMTT algorithm
     auto calculate_fast_mtt =
         [finalstate](const float &pt_1, const float &pt_2, const float &eta_1,
                      const float &eta_2, const float &phi_1, const float &phi_2,
@@ -332,12 +333,12 @@ p4_fastmtt(ROOT::RDF::RNode df, const std::string &outputname,
             measuredTauLeptons.push_back(fastmtt::MeasuredTauLepton(
                 decay_obj_2, pt_2, eta_2, phi_2, mass_2, dm_2));
             FastMTT FastMTTAlgo;
-            FastMTTAlgo.run(measuredTauLeptons, met.X(), met.Y(), covMET);
-            LorentzVector result = FastMTTAlgo.getBestP4();
+            ROOT::Math::PtEtaPhiMVector result =
+                FastMTTAlgo.run(measuredTauLeptons, met.X(), met.Y(), covMET);
             // ROOT::Math::PtEtaPhiMVector result(_result.Pt(), _result.Eta(),
             //                                    _result.Phi(), _result.M());
             Logger::get("FastMTT")->debug("FastMTT result: {}", result.M());
-            return (ROOT::Math::PtEtaPhiMVector)result;
+            return result;
         };
     return df.Define(outputname, calculate_fast_mtt,
                      {pt_1, pt_2, eta_1, eta_2, phi_1, phi_2, mass_1, mass_2,
@@ -492,6 +493,8 @@ ROOT::RDF::RNode deltaR(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &p_1_p4, const std::string &p_2_p4) {
     auto calculate_deltaR = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
                                ROOT::Math::PtEtaPhiMVector &p_2_p4) {
+        if (p_1_p4.pt() < 0.0 || p_2_p4.pt() < 0.0)
+            return default_float;
         return (float)ROOT::Math::VectorUtil::DeltaR(p_1_p4, p_2_p4);
     };
     return df.Define(outputname, calculate_deltaR, {p_1_p4, p_2_p4});
@@ -575,7 +578,7 @@ ROOT::RDF::RNode pt_ttjj(ROOT::RDF::RNode df, const std::string &outputname,
 
 /**
  * @brief function used to calculate the pt two leading jets
- If the number of jets is less than 2, the quantity is set to 10
+ If the number of jets is less than 2, the quantity is set to -10
  * instead.
  *
  * @param df name of the dataframe
