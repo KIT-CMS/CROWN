@@ -136,6 +136,10 @@ namespace fatjet {
 ROOT::RDF::RNode
 pNetXbbSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &variation,
        const std::string &sf_output, const std::string &sf_file);
+ROOT::RDF::RNode
+trigger(ROOT::RDF::RNode df, const std::string &pt, const std::string &msoftdrop,
+       const std::string &sf_output, const std::string &sf_file, const std::string &sf_name, 
+       const std::string &variation);
 } // namespace fatjet
 
 namespace embedding {

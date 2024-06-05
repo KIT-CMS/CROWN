@@ -1323,6 +1323,43 @@ pNetXbbSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &variati
     auto df1 = df.Define(sf_output, pNetXbbSF_lambda, {pt});
     return df1;
 }
+/**
+ * @brief Function used to evaluate trigger scale factors of fatjets with
+ * correctionlib
+ * @param df The input dataframe
+ * @param pt fatjet pt
+ * @param msoftdrop fatjet softdrop mass
+ * @param sf_output name of the scale factor column
+ * @param sf_file path to the file with the trigger scale factors
+ * @param sf_name name of the trigger scale factors
+ * @param variation name of the variation of the scale factor. Available Values:
+ * nominal, down, up
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+trigger(ROOT::RDF::RNode df, const std::string &pt, const std::string &msoftdrop, 
+       const std::string &sf_output, const std::string &sf_file, const std::string &sf_name, 
+       const std::string &variation) {
+    Logger::get("FatjetTriggerSF")->debug(
+        "Setting up functions for fatjet trigger sf with correctionlib");
+
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(sf_name);
+
+    auto FatjetTriggerSF_lambda = [evaluator, variation](const float &pt, const float &msoftdrop) {
+        Logger::get("FatjetTriggerSF")->debug("Variation - Name {}", variation);
+        float sf = 1.;
+
+        if (pt >= 0.0) {
+            sf = evaluator->evaluate({pt, msoftdrop, variation});
+        }
+
+        Logger::get("FatjetTriggerSF")->debug("Fatjet Scale Factor {} for pt {} and msoftdrop {}", sf, pt, msoftdrop);
+        return sf;
+    };
+    auto df1 = df.Define(sf_output, FatjetTriggerSF_lambda, {pt, msoftdrop});
+    return df1;
+}
 } // namespace fatjet
 
 namespace embedding {
