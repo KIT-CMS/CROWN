@@ -16,24 +16,16 @@
 #include "../../include/SVFit/MeasuredTauLepton.hxx"
 #include "../../include/utility/Logger.hxx"
 
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 Likelihood::Likelihood() {
-
     covMET.ResizeTo(2, 2);
-
     componentsBitWord.reset();
     enableComponent(fastMTT::MASS);
     enableComponent(fastMTT::MET);
-    // /// experimental components. Disabled by default.
-    // disableComponent(fastMTT::PX);
-    // disableComponent(fastMTT::PY);
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 Likelihood::~Likelihood() {}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 template <unsigned int max_order>
 std::array<double, max_order + 1> getPowTable(double x) {
     std::array<double, max_order + 1> powerTable{};
@@ -43,8 +35,7 @@ std::array<double, max_order + 1> getPowTable(double x) {
     }
     return powerTable;
 };
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 void Likelihood::setLeptonInputs(const LorentzVector &aLeg1P4,
                                  const LorentzVector &aLeg2P4,
                                  int aLeg1DecayType, int aLeg2DecayType,
@@ -90,37 +81,33 @@ void Likelihood::setLeptonInputs(const LorentzVector &aLeg1P4,
     leg1DecayMode = aLeg1DecayMode;
     leg2DecayMode = aLeg2DecayMode;
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
+
 void Likelihood::setMETInputs(const LorentzVector &aMET,
                               const TMatrixD &aCovMET) {
     recoMET = aMET;
     covMET = aCovMET;
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-void Likelihood::setParameters(const std::vector<double> &aPars) {
 
+
+void Likelihood::setParameters(const std::vector<double> &aPars) {
     parameters = aPars;
     if (parameters.size() < 2)
         parameters = std::vector<double>{6, 1.0 / 1.15};
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-void Likelihood::enableComponent(fastMTT::likelihoodComponent aCompIndex) {
 
+
+void Likelihood::enableComponent(fastMTT::likelihoodComponent aCompIndex) {
     componentsBitWord.set(aCompIndex);
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-void Likelihood::disableComponent(fastMTT::likelihoodComponent aCompIndex) {
 
+
+void Likelihood::disableComponent(fastMTT::likelihoodComponent aCompIndex) {
     componentsBitWord.reset(aCompIndex);
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-double Likelihood::massLikelihood(const double &m) const {
 
+
+double Likelihood::massLikelihood(const double &m) const {
     double coeff1 = parameters[0];
     double coeff2 = parameters[1];
     double mScaled = m * coeff2;
@@ -157,14 +144,12 @@ double Likelihood::massLikelihood(const double &m) const {
 
     return value;
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 double Likelihood::ptLikelihood(const double &pTTauTau, int type) const {
 
     /// Protection against numerical singularity in phase space volume.
     if (std::abs(pTTauTau) < 0.5)
         return 0.0;
-
     const auto pT1pow = allpTpows[0][type];
     const auto pT2pow = allpTpows[1][type];
     const auto pT1 = pT1pow[1];
@@ -266,14 +251,12 @@ double Likelihood::ptLikelihood(const double &pTTauTau, int type) const {
 
     return std::abs(value);
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 double Likelihood::metTF(const LorentzVector &metP4, const LorentzVector &nuP4,
                          const TMatrixD &covMET) const {
 
     const double aMETx = metP4.X();
     const double aMETy = metP4.Y();
-
     double invCovMETxx = covMET(1, 1);
     double invCovMETxy = -covMET(0, 1);
     double invCovMETyx = -covMET(1, 0);
@@ -296,8 +279,7 @@ double Likelihood::metTF(const LorentzVector &metP4, const LorentzVector &nuP4,
 
     return const_MET * TMath::Exp(-0.5 * pull2);
 }
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
+
 double Likelihood::value(const double *x) const {
 
     double x1Min = std::min(1.0, mVis1OverTauSquare);
@@ -316,14 +298,11 @@ double Likelihood::value(const double *x) const {
         value *= massLikelihood(testP4.M());
     return value;
 }
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
+
 FastMTT::FastMTT() {}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 FastMTT::~FastMTT() {}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 void FastMTT::initialize() {
 
     // Set the start parameters
@@ -335,14 +314,12 @@ void FastMTT::initialize() {
     minimumValue = 999.0;
     verbosity = 0;
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
+
 bool FastMTT::compareLeptons(
     const fastmtt::MeasuredTauLepton &measuredTauLepton1,
     const fastmtt::MeasuredTauLepton &measuredTauLepton2) {
-
     using namespace fastmtt;
-
     if ((measuredTauLepton1.type() == MeasuredTauLepton::kTauToElecDecay ||
          measuredTauLepton1.type() == MeasuredTauLepton::kTauToMuDecay) &&
         measuredTauLepton2.type() == MeasuredTauLepton::kTauToHadDecay)
@@ -353,8 +330,8 @@ bool FastMTT::compareLeptons(
         return false;
     return (measuredTauLepton1.pt() > measuredTauLepton2.pt());
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
+
 ROOT::Math::PtEtaPhiMVector
 FastMTT::run(const std::vector<fastmtt::MeasuredTauLepton> &measuredTauLeptons,
              const double &measuredMETx, const double &measuredMETy,
@@ -364,15 +341,12 @@ FastMTT::run(const std::vector<fastmtt::MeasuredTauLepton> &measuredTauLeptons,
     myLikelihood.setParameters(shapeParams);
     FastMTT::initialize();
     bestP4 = LorentzVector();
-    ////////////////////////////////////////////
-
     if (measuredTauLeptons.size() != 2) {
         std::cout << "Number of MeasuredTauLepton is "
                   << measuredTauLeptons.size()
                   << " a user shouls pass exactly two leptons." << std::endl;
         return ROOT::Math::PtEtaPhiMVector();
     }
-
     std::vector<fastmtt::MeasuredTauLepton> sortedMeasuredTauLeptons =
         measuredTauLeptons;
     std::sort(sortedMeasuredTauLeptons.begin(), sortedMeasuredTauLeptons.end(),
@@ -404,9 +378,7 @@ FastMTT::run(const std::vector<fastmtt::MeasuredTauLepton> &measuredTauLeptons,
 void FastMTT::scan(Likelihood &myLikelihood) {
     double lh = 0.0;
     double bestLH = 0.0;
-
     double x[2] = {0.5, 0.5};
-
     double theMinimum[2] = {0.75, 0.75};
     const int nGridPoints = 100;
     const double gridFactor = 1. / nGridPoints;
@@ -423,7 +395,6 @@ void FastMTT::scan(Likelihood &myLikelihood) {
                 theMinimum[1] = x[1];
             }
         }
-
         minimumPosition[0] = theMinimum[0];
         minimumPosition[1] = theMinimum[1];
         minimumValue = bestLH;
