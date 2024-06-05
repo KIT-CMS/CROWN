@@ -16,7 +16,10 @@ namespace fakefactors {
  * @param njets number of good jets in the event
  * @param lep_mt transverse mass of the leptonic tau in the tau pair
  * @param nbtags number of good b-tagged jets in the event
- * @param variation name of the uncertainty variation or nominal
+ * @param qcd_variation name of the QCD FF uncertainty variation or nominal
+ * @param wjets_variation name of the Wjets FF uncertainty variation or nominal
+ * @param ttbar_variation name of the ttbar FF uncertainty variation or nominal
+ * @param fraction_variation name of the process fraction uncertainty variation or nominal
  * @param ff_file correctionlib json file with the fake factors
  * @returns a dataframe with the fake factors
  */
@@ -24,12 +27,16 @@ ROOT::RDF::RNode
 raw_fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &tau_pt, const std::string &njets,
                         const std::string &lep_mt, const std::string &nbtags,
-                        const std::string &variation,
+                        const std::string &qcd_variation, const std::string &wjets_variation,
+                        const std::string &ttbar_variation, const std::string &fraction_variation,
                         const std::string &ff_file) {
     Logger::get("RawFakeFactor")
         ->debug("Setting up functions for raw fake factor (without "
                 "corrections) evaluation with correctionlib");
-    Logger::get("RawFakeFactor")->debug("Variation - Name {}", variation);
+    Logger::get("RawFakeFactor")->debug("QCD variation - Name {}", qcd_variation);
+    Logger::get("RawFakeFactor")->debug("Wjets variation - Name {}", wjets_variation);
+    Logger::get("RawFakeFactor")->debug("ttbar variation - Name {}", ttbar_variation);
+    Logger::get("RawFakeFactor")->debug("Fraction variation - Name {}", fraction_variation);
     auto qcd =
         correction::CorrectionSet::from_file(ff_file)->at("QCD_fake_factors");
     auto wjets =
@@ -38,33 +45,33 @@ raw_fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
         correction::CorrectionSet::from_file(ff_file)->at("ttbar_fake_factors");
     auto fractions =
         correction::CorrectionSet::from_file(ff_file)->at("process_fractions");
-    auto calc_fake_factor = [variation, qcd, wjets, ttbar,
-                             fractions](const float &pt_2, const int &njets,
+    auto calc_fake_factor = [qcd_variation, wjets_variation, ttbar_variation, fraction_variation, 
+                             qcd, wjets, ttbar, fractions](const float &pt_2, const int &njets,
                                         const float &mt_1, const int &nbtag) {
         float ff = -1.;
         if (pt_2 >= 0.) {
             Logger::get("RawFakeFactor")->debug("Tau pt - value {}", pt_2);
             Logger::get("RawFakeFactor")->debug("N jets - value {}", njets);
 
-            float qcd_ff = qcd->evaluate({pt_2, (float)njets, variation});
+            float qcd_ff = qcd->evaluate({pt_2, (float)njets, qcd_variation});
             Logger::get("RawFakeFactor")->debug("QCD - value {}", qcd_ff);
-            float wjets_ff = wjets->evaluate({pt_2, (float)njets, variation});
+            float wjets_ff = wjets->evaluate({pt_2, (float)njets, wjets_variation});
             Logger::get("RawFakeFactor")->debug("Wjets - value {}", wjets_ff);
-            float ttbar_ff = ttbar->evaluate({pt_2, (float)njets, variation});
+            float ttbar_ff = ttbar->evaluate({pt_2, (float)njets, ttbar_variation});
             Logger::get("RawFakeFactor")->debug("ttbar - value {}", ttbar_ff);
 
             Logger::get("RawFakeFactor")->debug("Lep mt - value {}", mt_1);
             Logger::get("RawFakeFactor")->debug("N b-jets - value {}", nbtag);
 
             float qcd_frac =
-                fractions->evaluate({"QCD", mt_1, (float)nbtag, variation});
+                fractions->evaluate({"QCD", mt_1, (float)nbtag, fraction_variation});
             Logger::get("RawFakeFactor")->debug("QCD - fraction {}", qcd_frac);
             float wjets_frac =
-                fractions->evaluate({"Wjets", mt_1, (float)nbtag, variation});
+                fractions->evaluate({"Wjets", mt_1, (float)nbtag, fraction_variation});
             Logger::get("RawFakeFactor")
                 ->debug("Wjets - fraction {}", wjets_frac);
             float ttbar_frac =
-                fractions->evaluate({"ttbar", mt_1, (float)nbtag, variation});
+                fractions->evaluate({"ttbar", mt_1, (float)nbtag, fraction_variation});
             Logger::get("RawFakeFactor")
                 ->debug("ttbar - fraction {}", ttbar_frac);
 
@@ -81,85 +88,6 @@ raw_fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
 }
 /**
  * @brief Function to calculate raw fake factors without corrections with
- * correctionlib for the NMSSM Di-Higgs boosted analysis for the semileptonic
- * channel
- *
- * @param df the dataframe to add the quantity to
- * @param outputname name of the output column for the fake factor
- * @param boosted_tau_pt pt of the hadronic tau in the boosted tau pair
- * @param njets number of good jets in the event
- * @param boosted_lep_mt transverse mass of the leptonic tau in the boosted tau
- * pair
- * @param nbtags number of good b-tagged jets in the event
- * @param variation name of the uncertainty variation or nominal
- * @param ff_file correctionlib json file with the fake factors
- * @returns a dataframe with the fake factors
- */
-ROOT::RDF::RNode raw_fakefactor_nmssm_boosted_lt(
-    ROOT::RDF::RNode df, const std::string &outputname,
-    const std::string &boosted_tau_pt, const std::string &njets,
-    const std::string &boosted_lep_mt, const std::string &nbtags,
-    const std::string &variation, const std::string &ff_file) {
-    Logger::get("RawFakeFactor")
-        ->debug("Setting up functions for raw fake factor (without "
-                "corrections) evaluation with correctionlib");
-    Logger::get("RawFakeFactor")->debug("Variation - Name {}", variation);
-    auto qcd =
-        correction::CorrectionSet::from_file(ff_file)->at("QCD_fake_factors");
-    auto wjets =
-        correction::CorrectionSet::from_file(ff_file)->at("Wjets_fake_factors");
-    auto ttbar =
-        correction::CorrectionSet::from_file(ff_file)->at("ttbar_fake_factors");
-    auto fractions =
-        correction::CorrectionSet::from_file(ff_file)->at("process_fractions");
-    auto calc_fake_factor = [variation, qcd, wjets, ttbar, fractions](
-                                const float &boosted_pt_2, const int &njets,
-                                const float &boosted_mt_1, const int &nbtag) {
-        float ff = -1.;
-        if (boosted_pt_2 >= 0.) {
-            Logger::get("RawFakeFactor")
-                ->debug("Tau pt - value {}", boosted_pt_2);
-            Logger::get("RawFakeFactor")->debug("N jets - value {}", njets);
-
-            float qcd_ff =
-                qcd->evaluate({boosted_pt_2, (float)njets, variation});
-            Logger::get("RawFakeFactor")->debug("QCD - value {}", qcd_ff);
-            float wjets_ff =
-                wjets->evaluate({boosted_pt_2, (float)njets, variation});
-            Logger::get("RawFakeFactor")->debug("Wjets - value {}", wjets_ff);
-            float ttbar_ff =
-                ttbar->evaluate({boosted_pt_2, (float)njets, variation});
-            Logger::get("RawFakeFactor")->debug("ttbar - value {}", ttbar_ff);
-
-            Logger::get("RawFakeFactor")
-                ->debug("Lep mt - value {}", boosted_mt_1);
-            Logger::get("RawFakeFactor")->debug("N b-jets - value {}", nbtag);
-
-            float qcd_frac = fractions->evaluate(
-                {"QCD", boosted_mt_1, (float)nbtag, variation});
-            Logger::get("RawFakeFactor")->debug("QCD - fraction {}", qcd_frac);
-            float wjets_frac = fractions->evaluate(
-                {"Wjets", boosted_mt_1, (float)nbtag, variation});
-            Logger::get("RawFakeFactor")
-                ->debug("Wjets - fraction {}", wjets_frac);
-            float ttbar_frac = fractions->evaluate(
-                {"ttbar", boosted_mt_1, (float)nbtag, variation});
-            Logger::get("RawFakeFactor")
-                ->debug("ttbar - fraction {}", ttbar_frac);
-
-            ff = qcd_frac * qcd_ff + wjets_frac * wjets_ff +
-                 ttbar_frac * ttbar_ff;
-        }
-
-        Logger::get("RawFakeFactor")->debug("Event Fake Factor {}", ff);
-        return ff;
-    };
-    auto df1 = df.Define(outputname, calc_fake_factor,
-                         {boosted_tau_pt, njets, boosted_lep_mt, nbtags});
-    return df1;
-}
-/**
- * @brief Function to calculate raw fake factors without corrections with
  * correctionlib for the NMSSM Di-Higgs analysis for the full hadronic channel
  *
  * @param df the dataframe to add the quantity to
@@ -168,7 +96,7 @@ ROOT::RDF::RNode raw_fakefactor_nmssm_boosted_lt(
  * @param tau_pt_1 pt of the leading hadronic tau in the tau pair
  * @param tau_pt_2 pt of the subleading hadronic tau in the tau pair
  * @param njets number of good jets in the event
- * @param variation name of the uncertainty variation or nominal
+ * @param variation name of the QCD FF uncertainty variation or nominal
  * @param ff_file correctionlib json file with the fake factors
  * @returns a dataframe with the fake factors
  */
@@ -241,7 +169,16 @@ raw_fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
  * @param lep_iso isolation of the leptonic tau in the tau pair
  * @param m_vis visible mass of the tau pair
  * @param dR_ditau distance in eta-phi plane of the tau pair
- * @param variation name of the uncertainty variation or nominal
+ * @param qcd_variation name of the QCD FF uncertainty variation or nominal
+ * @param wjets_variation name of the Wjets FF uncertainty variation or nominal
+ * @param ttbar_variation name of the ttbar FF uncertainty variation or nominal
+ * @param fraction_variation name of the process fraction uncertainty variation or nominal
+ * @param qcd_corr_leppt_variation name of the QCD lepton pt correction uncertainty variation or nominal
+ * @param qcd_corr_lepiso_variation name of the QCD lepton isolation correction uncertainty variation or nominal
+ * @param qcd_corr_drsr_variation name of the QCD DR to SR correction uncertainty variation or nominal
+ * @param wjets_corr_leppt_variation name of the Wjets lepton pt correction uncertainty variation or nominal
+ * @param wjets_corr_drsr_variation name of the Wjets DR to SR correction uncertainty variation or nominal
+ * @param ttbar_corr_leppt_variation name of the ttbar lepton pt correction uncertainty variation or nominal
  * @param ff_file correctionlib json file with the fake factors
  * @param ff_corr_file correctionlib json file with corrections for the fake
  * factors
@@ -253,13 +190,26 @@ fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &lep_mt, const std::string &nbtags,
                     const std::string &lep_pt, const std::string &lep_iso,
                     const std::string &m_vis, const std::string &dR_ditau,
-                    const std::string &variation, const std::string &ff_file,
-                    const std::string &ff_corr_file) {
+                    const std::string &qcd_variation, const std::string &wjets_variation,
+                    const std::string &ttbar_variation, const std::string &fraction_variation,
+                    const std::string &qcd_corr_leppt_variation, const std::string &qcd_corr_lepiso_variation,
+                    const std::string &qcd_corr_drsr_variation, const std::string &wjets_corr_leppt_variation,
+                    const std::string &wjets_corr_drsr_variation, const std::string &ttbar_corr_leppt_variation,
+                    const std::string &ff_file, const std::string &ff_corr_file) {
 
     Logger::get("FakeFactor")
         ->debug("Setting up functions for fake factor evaluation with "
                 "correctionlib");
-    Logger::get("FakeFactor")->debug("Variation - Name {}", variation);
+    Logger::get("FakeFactor")->debug("QCD variation - Name {}", qcd_variation);
+    Logger::get("FakeFactor")->debug("Wjets variation - Name {}", wjets_variation);
+    Logger::get("FakeFactor")->debug("ttbar variation - Name {}", ttbar_variation);
+    Logger::get("FakeFactor")->debug("Fraction variation - Name {}", fraction_variation);
+    Logger::get("FakeFactor")->debug("QCD lep pt corr variation - Name {}", qcd_corr_leppt_variation);
+    Logger::get("FakeFactor")->debug("QCD lep iso corr variation - Name {}", qcd_corr_lepiso_variation);
+    Logger::get("FakeFactor")->debug("QCD DRSR corr variation - Name {}", qcd_corr_drsr_variation);
+    Logger::get("FakeFactor")->debug("Wjets lep pt corr variation - Name {}", wjets_corr_leppt_variation);
+    Logger::get("FakeFactor")->debug("Wjets DRSR corr variation - Name {}", wjets_corr_drsr_variation);
+    Logger::get("FakeFactor")->debug("ttbar lep pt corr variation - Name {}", ttbar_corr_leppt_variation);
     auto qcd =
         correction::CorrectionSet::from_file(ff_file)->at("QCD_fake_factors");
     auto wjets =
@@ -285,10 +235,11 @@ fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
     auto ttbar_lep_pt_closure =
         correction::CorrectionSet::from_file(ff_corr_file)
             ->at("ttbar_non_closure_leading_lep_pt_correction");
-    auto calc_fake_factor = [variation, qcd, wjets, ttbar, fractions,
-                             qcd_lep_pt_closure, qcd_lep_iso_closure, qcd_DR_SR,
-                             wjets_lep_pt_closure, wjets_DR_SR,
-                             ttbar_lep_pt_closure](
+    auto calc_fake_factor = [qcd_variation, wjets_variation, ttbar_variation, fraction_variation, 
+                             qcd_corr_leppt_variation, qcd_corr_lepiso_variation, qcd_corr_drsr_variation, 
+                             wjets_corr_leppt_variation, wjets_corr_drsr_variation, ttbar_corr_leppt_variation, 
+                             qcd, wjets, ttbar, fractions, qcd_lep_pt_closure, qcd_lep_iso_closure, qcd_DR_SR,
+                             wjets_lep_pt_closure, wjets_DR_SR, ttbar_lep_pt_closure](
                                 const float &pt_2, const int &njets,
                                 const float &mt_1, const int &nbtag,
                                 const float &pt_1, const float &iso_1,
@@ -298,24 +249,24 @@ fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
             Logger::get("FakeFactor")->debug("Tau pt - value {}", pt_2);
             Logger::get("FakeFactor")->debug("N jets - value {}", njets);
 
-            float qcd_ff = qcd->evaluate({pt_2, (float)njets, variation});
+            float qcd_ff = qcd->evaluate({pt_2, (float)njets, qcd_variation});
             Logger::get("FakeFactor")->debug("QCD - value {}", qcd_ff);
-            float wjets_ff = wjets->evaluate({pt_2, (float)njets, variation});
+            float wjets_ff = wjets->evaluate({pt_2, (float)njets, wjets_variation});
             Logger::get("FakeFactor")->debug("Wjets - value {}", wjets_ff);
-            float ttbar_ff = ttbar->evaluate({pt_2, (float)njets, variation});
+            float ttbar_ff = ttbar->evaluate({pt_2, (float)njets, ttbar_variation});
             Logger::get("FakeFactor")->debug("ttbar - value {}", ttbar_ff);
 
             Logger::get("FakeFactor")->debug("Lep mt - value {}", mt_1);
             Logger::get("FakeFactor")->debug("N b-jets - value {}", nbtag);
 
             float qcd_frac =
-                fractions->evaluate({"QCD", mt_1, (float)nbtag, variation});
+                fractions->evaluate({"QCD", mt_1, (float)nbtag, fraction_variation});
             Logger::get("FakeFactor")->debug("QCD - fraction {}", qcd_frac);
             float wjets_frac =
-                fractions->evaluate({"Wjets", mt_1, (float)nbtag, variation});
+                fractions->evaluate({"Wjets", mt_1, (float)nbtag, fraction_variation});
             Logger::get("FakeFactor")->debug("Wjets - fraction {}", wjets_frac);
             float ttbar_frac =
-                fractions->evaluate({"ttbar", mt_1, (float)nbtag, variation});
+                fractions->evaluate({"ttbar", mt_1, (float)nbtag, fraction_variation});
             Logger::get("FakeFactor")->debug("ttbar - fraction {}", ttbar_frac);
 
             Logger::get("FakeFactor")->debug("Lep pt - value {}", pt_1);
@@ -323,25 +274,25 @@ fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
             Logger::get("FakeFactor")->debug("m_vis - value {}", m_vis);
 
             float qcd_lep_pt_corr =
-                qcd_lep_pt_closure->evaluate({pt_1, variation});
+                qcd_lep_pt_closure->evaluate({pt_1, qcd_corr_leppt_variation});
             Logger::get("FakeFactor")
                 ->debug("QCD - lep pt correction {}", qcd_lep_pt_corr);
             float qcd_lep_iso_corr =
-                qcd_lep_iso_closure->evaluate({iso_1, variation});
+                qcd_lep_iso_closure->evaluate({iso_1, qcd_corr_lepiso_variation});
             Logger::get("FakeFactor")
                 ->debug("QCD - lep iso correction {}", qcd_lep_iso_corr);
-            float qcd_DR_SR_corr = qcd_DR_SR->evaluate({dR_ditau, variation});
+            float qcd_DR_SR_corr = qcd_DR_SR->evaluate({dR_ditau, qcd_corr_drsr_variation});
             Logger::get("FakeFactor")
                 ->debug("QCD - DR to SR correction {}", qcd_DR_SR_corr);
             float wjets_lep_pt_corr =
-                wjets_lep_pt_closure->evaluate({pt_1, variation});
+                wjets_lep_pt_closure->evaluate({pt_1, wjets_corr_leppt_variation});
             Logger::get("FakeFactor")
                 ->debug("Wjets - lep pt correction {}", wjets_lep_pt_corr);
-            float wjets_DR_SR_corr = wjets_DR_SR->evaluate({m_vis, variation});
+            float wjets_DR_SR_corr = wjets_DR_SR->evaluate({m_vis, wjets_corr_drsr_variation});
             Logger::get("FakeFactor")
                 ->debug("Wjets - DR to SR correction {}", wjets_DR_SR_corr);
             float ttbar_lep_pt_corr =
-                ttbar_lep_pt_closure->evaluate({pt_1, variation});
+                ttbar_lep_pt_closure->evaluate({pt_1, ttbar_corr_leppt_variation});
             Logger::get("FakeFactor")
                 ->debug("ttbar - lep pt correction {}", ttbar_lep_pt_corr);
 
@@ -374,7 +325,16 @@ fakefactor_nmssm_lt(ROOT::RDF::RNode df, const std::string &outputname,
  * @param boosted_lep_pt pt of the leptonic tau in the boosted tau pair
  * @param boosted_m_vis visible mass of the boosted tau pair
  * @param boosted_dR_ditau distance in eta-phi plane of the boosted tau pair
- * @param variation name of the uncertainty variation or nominal
+ * @param qcd_variation name of the QCD FF uncertainty variation or nominal
+ * @param wjets_variation name of the Wjets FF uncertainty variation or nominal
+ * @param ttbar_variation name of the ttbar FF uncertainty variation or nominal
+ * @param fraction_variation name of the process fraction uncertainty variation or nominal
+ * @param qcd_corr_leppt_variation name of the QCD lepton pt correction uncertainty variation or nominal
+ * @param qcd_corr_lepmt_variation name of the QCD transverse mass (lepton+MET) correction uncertainty variation or nominal
+ * @param qcd_corr_drsr_variation name of the QCD DR to SR correction uncertainty variation or nominal
+ * @param wjets_corr_leppt_variation name of the Wjets lepton pt correction uncertainty variation or nominal
+ * @param wjets_corr_drsr_variation name of the Wjets DR to SR correction uncertainty variation or nominal
+ * @param ttbar_corr_leppt_variation name of the ttbar lepton pt correction uncertainty variation or nominal
  * @param ff_file correctionlib json file with the fake factors
  * @param ff_corr_file correctionlib json file with corrections for the fake
  * factors
@@ -385,13 +345,27 @@ ROOT::RDF::RNode fakefactor_nmssm_boosted_lt(
     const std::string &boosted_tau_pt, const std::string &njets,
     const std::string &boosted_lep_mt, const std::string &nbtags,
     const std::string &boosted_lep_pt, const std::string &boosted_m_vis,
-    const std::string &boosted_dR_ditau, const std::string &variation,
-    const std::string &ff_file, const std::string &ff_corr_file) {
+    const std::string &boosted_dR_ditau, const std::string &qcd_variation, 
+    const std::string &wjets_variation, const std::string &ttbar_variation,
+    const std::string &fraction_variation, const std::string &qcd_corr_leppt_variation, 
+    const std::string &qcd_corr_lepmt_variation, const std::string &qcd_corr_drsr_variation, 
+    const std::string &wjets_corr_leppt_variation, const std::string &wjets_corr_drsr_variation, 
+    const std::string &ttbar_corr_leppt_variation, const std::string &ff_file, 
+    const std::string &ff_corr_file) {
 
     Logger::get("FakeFactor")
         ->debug("Setting up functions for fake factor evaluation with "
                 "correctionlib");
-    Logger::get("FakeFactor")->debug("Variation - Name {}", variation);
+    Logger::get("FakeFactor")->debug("QCD variation - Name {}", qcd_variation);
+    Logger::get("FakeFactor")->debug("Wjets variation - Name {}", wjets_variation);
+    Logger::get("FakeFactor")->debug("ttbar variation - Name {}", ttbar_variation);
+    Logger::get("FakeFactor")->debug("Fraction variation - Name {}", fraction_variation);
+    Logger::get("FakeFactor")->debug("QCD lep pt corr variation - Name {}", qcd_corr_leppt_variation);
+    Logger::get("FakeFactor")->debug("QCD lep mt corr variation - Name {}", qcd_corr_lepmt_variation);
+    Logger::get("FakeFactor")->debug("QCD DRSR corr variation - Name {}", qcd_corr_drsr_variation);
+    Logger::get("FakeFactor")->debug("Wjets lep pt corr variation - Name {}", wjets_corr_leppt_variation);
+    Logger::get("FakeFactor")->debug("Wjets DRSR corr variation - Name {}", wjets_corr_drsr_variation);
+    Logger::get("FakeFactor")->debug("ttbar lep pt corr variation - Name {}", ttbar_corr_leppt_variation);
     auto qcd =
         correction::CorrectionSet::from_file(ff_file)->at("QCD_fake_factors");
     auto wjets =
@@ -416,13 +390,14 @@ ROOT::RDF::RNode fakefactor_nmssm_boosted_lt(
     auto ttbar_lep_pt_closure =
         correction::CorrectionSet::from_file(ff_corr_file)
             ->at("ttbar_non_closure_leading_lep_pt_correction");
-    auto ttbar_m_vis_closure =
-        correction::CorrectionSet::from_file(ff_corr_file)
-            ->at("ttbar_non_closure_m_vis_correction");
-    auto calc_fake_factor = [variation, qcd, wjets, ttbar, fractions,
-                             qcd_lep_pt_closure, qcd_lep_mt_closure, qcd_DR_SR,
-                             wjets_lep_pt_closure, wjets_DR_SR,
-                             ttbar_lep_pt_closure, ttbar_m_vis_closure](
+    // auto ttbar_m_vis_closure =
+    //     correction::CorrectionSet::from_file(ff_corr_file)
+    //         ->at("ttbar_non_closure_m_vis_correction");
+    auto calc_fake_factor = [qcd_variation, wjets_variation, ttbar_variation, fraction_variation, 
+                             qcd_corr_leppt_variation, qcd_corr_lepmt_variation, qcd_corr_drsr_variation, 
+                             wjets_corr_leppt_variation, wjets_corr_drsr_variation, ttbar_corr_leppt_variation, 
+                             qcd, wjets, ttbar, fractions, qcd_lep_pt_closure, qcd_lep_mt_closure, qcd_DR_SR,
+                             wjets_lep_pt_closure, wjets_DR_SR, ttbar_lep_pt_closure](
                                 const float &boosted_pt_2, const int &njets,
                                 const float &boosted_mt_1, const int &nbtag,
                                 const float &boosted_pt_1,
@@ -434,61 +409,61 @@ ROOT::RDF::RNode fakefactor_nmssm_boosted_lt(
             Logger::get("FakeFactor")->debug("N jets - value {}", njets);
 
             float qcd_ff =
-                qcd->evaluate({boosted_pt_2, (float)njets, variation});
+                qcd->evaluate({boosted_pt_2, (float)njets, qcd_variation});
             Logger::get("FakeFactor")->debug("QCD - value {}", qcd_ff);
             float wjets_ff =
-                wjets->evaluate({boosted_pt_2, (float)njets, variation});
+                wjets->evaluate({boosted_pt_2, (float)njets, wjets_variation});
             Logger::get("FakeFactor")->debug("Wjets - value {}", wjets_ff);
             float ttbar_ff =
-                ttbar->evaluate({boosted_pt_2, (float)njets, variation});
+                ttbar->evaluate({boosted_pt_2, (float)njets, ttbar_variation});
             Logger::get("FakeFactor")->debug("ttbar - value {}", ttbar_ff);
 
             Logger::get("FakeFactor")->debug("Lep mt - value {}", boosted_mt_1);
             Logger::get("FakeFactor")->debug("N b-jets - value {}", nbtag);
 
             float qcd_frac = fractions->evaluate(
-                {"QCD", boosted_mt_1, (float)nbtag, variation});
+                {"QCD", boosted_mt_1, (float)nbtag, fraction_variation});
             Logger::get("FakeFactor")->debug("QCD - fraction {}", qcd_frac);
             float wjets_frac = fractions->evaluate(
-                {"Wjets", boosted_mt_1, (float)nbtag, variation});
+                {"Wjets", boosted_mt_1, (float)nbtag, fraction_variation});
             Logger::get("FakeFactor")->debug("Wjets - fraction {}", wjets_frac);
             float ttbar_frac = fractions->evaluate(
-                {"ttbar", boosted_mt_1, (float)nbtag, variation});
+                {"ttbar", boosted_mt_1, (float)nbtag, fraction_variation});
             Logger::get("FakeFactor")->debug("ttbar - fraction {}", ttbar_frac);
 
             Logger::get("FakeFactor")->debug("Lep pt - value {}", boosted_pt_1);
             Logger::get("FakeFactor")->debug("m_vis - value {}", boosted_m_vis);
 
             float qcd_lep_pt_corr =
-                qcd_lep_pt_closure->evaluate({boosted_pt_1, variation});
+                qcd_lep_pt_closure->evaluate({boosted_pt_1, qcd_corr_leppt_variation});
             Logger::get("FakeFactor")
                 ->debug("QCD - lep pt correction {}", qcd_lep_pt_corr);
             float qcd_lep_mt_corr =
-                qcd_lep_mt_closure->evaluate({boosted_mt_1, variation});
+                qcd_lep_mt_closure->evaluate({boosted_mt_1, qcd_corr_lepmt_variation});
             Logger::get("FakeFactor")
                 ->debug("QCD - lep mt correction {}", qcd_lep_mt_corr);
             float qcd_DR_SR_corr =
-                qcd_DR_SR->evaluate({boosted_dR_ditau, variation});
+                qcd_DR_SR->evaluate({boosted_dR_ditau, qcd_corr_drsr_variation});
             Logger::get("FakeFactor")
                 ->debug("QCD - DR to SR correction {}", qcd_DR_SR_corr);
             float wjets_lep_pt_corr =
-                wjets_lep_pt_closure->evaluate({boosted_pt_1, variation});
+                wjets_lep_pt_closure->evaluate({boosted_pt_1, wjets_corr_leppt_variation});
             Logger::get("FakeFactor")
                 ->debug("Wjets - lep pt correction {}", wjets_lep_pt_corr);
             float wjets_DR_SR_corr =
-                wjets_DR_SR->evaluate({boosted_dR_ditau, variation});
+                wjets_DR_SR->evaluate({boosted_dR_ditau, wjets_corr_drsr_variation});
             Logger::get("FakeFactor")
                 ->debug("Wjets - DR to SR correction {}", wjets_DR_SR_corr);
             float ttbar_lep_pt_corr =
-                ttbar_lep_pt_closure->evaluate({boosted_pt_1, variation});
+                ttbar_lep_pt_closure->evaluate({boosted_pt_1, ttbar_corr_leppt_variation});
             Logger::get("FakeFactor")
                 ->debug("ttbar - lep pt correction {}", ttbar_lep_pt_corr);
-            float ttbar_m_vis_corr =
-                ttbar_m_vis_closure->evaluate({boosted_m_vis, variation});
-            Logger::get("FakeFactor")
-                ->debug("ttbar - m_vis correction {}", ttbar_m_vis_corr);
+            // float ttbar_m_vis_corr =
+            //     ttbar_m_vis_closure->evaluate({boosted_m_vis, variation});
+            // Logger::get("FakeFactor")
+            //     ->debug("ttbar - m_vis correction {}", ttbar_m_vis_corr);
 
-            ff = qcd_frac * qcd_ff * qcd_lep_pt_corr * qcd_DR_SR_corr +
+            ff = qcd_frac * qcd_ff * qcd_lep_pt_corr * qcd_lep_mt_corr * qcd_DR_SR_corr +
                  wjets_frac * wjets_ff * wjets_lep_pt_corr * wjets_DR_SR_corr +
                  ttbar_frac * ttbar_ff * ttbar_lep_pt_corr;
         }
@@ -511,7 +486,9 @@ ROOT::RDF::RNode fakefactor_nmssm_boosted_lt(
  * @param tau_pt_2 pt of the subleading hadronic tau in the tau pair
  * @param njets number of good jets in the event
  * @param m_vis visible mass of the tau pair
- * @param variation name of the uncertainty variation or nominal
+ * @param variation name of the QCD FF uncertainty variation or nominal
+ * @param corr_leppt_variation name of the QCD lepton pt correction uncertainty variation or nominal
+ * @param corr_drsr_variation name of the QCD DR to SR correction uncertainty variation or nominal
  * @param ff_file correctionlib json file with the fake factors
  * @param ff_corr_file correctionlib json file with corrections for the fake
  * factors
@@ -522,13 +499,15 @@ fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
                     const int &tau_idx, const std::string &tau_pt_1,
                     const std::string &tau_pt_2, const std::string &njets,
                     const std::string &m_vis, const std::string &variation,
-                    const std::string &ff_file,
-                    const std::string &ff_corr_file) {
+                    const std::string &corr_leppt_variation, const std::string &corr_drsr_variation,
+                    const std::string &ff_file, const std::string &ff_corr_file) {
 
     Logger::get("FakeFactor")
         ->debug("Setting up functions for fake factor evaluation with "
                 "correctionlib");
     Logger::get("FakeFactor")->debug("Variation - Name {}", variation);
+    Logger::get("FakeFactor")->debug("Lepton pt variation - Name {}", corr_leppt_variation);
+    Logger::get("FakeFactor")->debug("DRSR variation - Name {}", corr_drsr_variation);
 
     auto qcd =
         correction::CorrectionSet::from_file(ff_file)->at("QCD_fake_factors");
@@ -555,7 +534,8 @@ fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
         correction::CorrectionSet::from_file(ff_corr_file)
             ->at("QCD_subleading_DR_SR_correction");
 
-    auto calc_fake_factor = [tau_idx, variation, qcd, qcd_tau_pt_closure,
+    auto calc_fake_factor = [tau_idx, variation, corr_leppt_variation, corr_drsr_variation, 
+                             qcd, qcd_tau_pt_closure,
                              qcd_DR_SR, qcd_subleading,
                              qcd_tau_pt_closure_subleading,
                              qcd_DR_SR_subleading](
@@ -580,7 +560,7 @@ fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
                     qcd_ff = 0.;
                 }
                 qcd_tau_pt_corr =
-                    qcd_tau_pt_closure->evaluate({pt_2, variation});
+                    qcd_tau_pt_closure->evaluate({pt_2, corr_leppt_variation});
                 Logger::get("FakeFactor")
                     ->debug("QCD - lep pt correction {}", qcd_tau_pt_corr);
                 // qcd_m_vis_corr =
@@ -588,7 +568,7 @@ fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
                 // Logger::get("FakeFactor")
                 //     ->debug("QCD - visible mass correction {}",
                 //     qcd_m_vis_corr);
-                qcd_DR_SR_corr = qcd_DR_SR->evaluate({m_vis, variation});
+                qcd_DR_SR_corr = qcd_DR_SR->evaluate({m_vis, corr_drsr_variation});
                 Logger::get("FakeFactor")
                     ->debug("QCD - DR to SR correction {}", qcd_DR_SR_corr);
                 ff = qcd_ff * qcd_tau_pt_corr * qcd_DR_SR_corr;
@@ -601,7 +581,7 @@ fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
                     qcd_ff = 0.;
                 }
                 qcd_tau_pt_corr =
-                    qcd_tau_pt_closure_subleading->evaluate({pt_1, variation});
+                    qcd_tau_pt_closure_subleading->evaluate({pt_1, corr_leppt_variation});
                 Logger::get("FakeFactor")
                     ->debug("QCD(subleading) - lep pt correction {}",
                             qcd_tau_pt_corr);
@@ -612,7 +592,7 @@ fakefactor_nmssm_tt(ROOT::RDF::RNode df, const std::string &outputname,
                 //     ->debug("QCD(subleading) - visible mass correction {}",
                 //             qcd_m_vis_corr);
                 qcd_DR_SR_corr =
-                    qcd_DR_SR_subleading->evaluate({m_vis, variation});
+                    qcd_DR_SR_subleading->evaluate({m_vis, corr_drsr_variation});
                 Logger::get("FakeFactor")
                     ->debug("QCD(subleading) - DR to SR correction {}",
                             qcd_DR_SR_corr);

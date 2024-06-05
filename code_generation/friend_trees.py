@@ -87,7 +87,7 @@ class FriendTreeConfiguration(Configuration):
         self.input_quantities_mapping = self._readout_input_information(
             input_information_list
         )
-        # all requested shifts are stored in a seperate varaiable,
+        # all requested shifts are stored in a seperate variable,
         # they have to be added to all producers later
         self.requested_shifts = self._determine_requested_shifts(shifts)
 
