@@ -422,21 +422,6 @@ ROOT::RDF::RNode SelectInt(ROOT::RDF::RNode df, const std::string &maskname,
         df.Define(maskname, basefunctions::FilterEqualInt(IDvalue), {nameID});
     return df1;
 }
-/// Function to select objects based on matching a specific integer value
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe
-/// \param[in] nameID name of the ID column in the NanoAOD
-/// \param[in] IDvalue value that has to match
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode SelectInt(ROOT::RDF::RNode df, const std::string &maskname,
-                         const std::string &nameID, const int &IDvalue) {
-    auto df1 =
-        df.Define(maskname, basefunctions::FilterEqualInt(IDvalue), {nameID});
-    return df1;
-}
 
 /// Muon specific functions
 namespace muon {
@@ -1243,7 +1228,7 @@ template <int WP> const int bitset_all = bitset(WP, iseq_all);
 /// \param[out] maskname the name of the new mask to be added as column to
 /// the dataframe
 /// \param[in] nameID name of the ID column in the NanoAOD
-/// \param[in] IDvalue value of the WP for which bits are read out and 
+/// \param[in] IDvalue value of the WP for which bits are read out and
 /// modified such that rel iso bit is set to fail
 //  \param[in] bitmap name of the ID bitmap in the NanoAOD
 ///
@@ -1272,7 +1257,7 @@ ROOT::RDF::RNode CutCBIDBitmapNoIso(ROOT::RDF::RNode df,
   else if (IDvalue == loose) bits_tmp = bitset_all_but_pfiso<loose>;
   else if (IDvalue == veto) bits_tmp = bitset_all_but_pfiso<veto>;
   else bits_tmp = bitset_all_but_pfiso<fail>;
-  
+
   const int bits = bits_tmp;
 
   auto lambda = [IDvalue, ncut, bits](const ROOT::VecOps::RVec<int> bitmap) {
