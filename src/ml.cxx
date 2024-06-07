@@ -67,19 +67,27 @@ ROOT::RDF::RNode StandardTransformer(ROOT::RDF::RNode df,
     json odd_info = json::parse(odd_file);
     std::ifstream even_file(even_file_path);
     json even_info = json::parse(even_file);
-
+    std::string inputname_json;
+    size_t shift_found = inputname.find("__");
+    if (shift_found != std::string::npos) {
+            inputname_json = inputname.substr(0, shift_found);
+    }
+    else {
+            inputname_json = inputname;
+    }
+    
     // odd or even files mean that they are trained on odd or even events, so it
     // has to be applied on the opposite
     auto transform_int = [odd_info, even_info,
-                          inputname](const unsigned long long event_id,
+                          inputname, inputname_json](const unsigned long long event_id,
                                      const int input_var) {
         float shifted = -10;
         if (int(event_id) % 2 == 0) {
-            shifted = (float(input_var) - float(odd_info[inputname]["mean"])) /
-                      float(odd_info[inputname]["std"]);
+                shifted = (float(input_var) - float(odd_info[inputname_json]["mean"])) /
+                      float(odd_info[inputname_json]["std"]);
         } else if (int(event_id) % 2 == 1) {
-            shifted = (float(input_var) - float(even_info[inputname]["mean"])) /
-                      float(even_info[inputname]["std"]);
+            shifted = (float(input_var) - float(even_info[inputname_json]["mean"])) /
+                      float(even_info[inputname_json]["std"]);
         }
         Logger::get("StandardTransformer")
             ->debug("transforming var {} from {} to {}", inputname, input_var,
@@ -87,15 +95,15 @@ ROOT::RDF::RNode StandardTransformer(ROOT::RDF::RNode df,
         return shifted;
     };
     auto transform_float = [odd_info, even_info,
-                            inputname](const unsigned long long event_id,
+                            inputname, inputname_json](const unsigned long long event_id,
                                        const float input_var) {
         float shifted = -10;
         if (int(event_id) % 2 == 0) {
-            shifted = (float(input_var) - float(odd_info[inputname]["mean"])) /
-                      float(odd_info[inputname]["std"]);
+            shifted = (float(input_var) - float(odd_info[inputname_json]["mean"])) /
+                      float(odd_info[inputname_json]["std"]);
         } else if (int(event_id) % 2 == 1) {
-            shifted = (float(input_var) - float(even_info[inputname]["mean"])) /
-                      float(even_info[inputname]["std"]);
+            shifted = (float(input_var) - float(even_info[inputname_json]["mean"])) /
+                      float(even_info[inputname_json]["std"]);
         }
         Logger::get("StandardTransformer")
             ->debug("transforming var {} from {} to {}", inputname, input_var,

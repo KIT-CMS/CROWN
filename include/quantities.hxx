@@ -36,6 +36,8 @@ ROOT::RDF::RNode deltaPhi(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &p_1_p4, const std::string &p_2_p4);
 ROOT::RDF::RNode deltaPhi_WH(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &p_1_p4, const std::string &p_2_p4, const std::string &p_3_p4);
+ROOT::RDF::RNode eras(ROOT::RDF::RNode df, 
+                           const std::string &outputname_2016preVFP, const std::string &outputname_2016postVFP,const std::string &outputname_2017,const std::string &outputname_2018, const std::string &era_2016preVFP_value, const std::string &era_2016postVFP_value,const std::string &era_2017_value,const std::string &era_2018_value);
 ROOT::RDF::RNode
 p4_fastmtt(ROOT::RDF::RNode df, const std::string &outputname,
            const std::string &pt_1, const std::string &pt_2,

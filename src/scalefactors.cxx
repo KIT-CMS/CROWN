@@ -247,40 +247,45 @@ ROOT::RDF::RNode id_vsJet_lt(
         // values due to tau energy correction shifts below good tau pt
         // selection)
         double sf = 1.;
-        if (std::find(selectedDMs.begin(), selectedDMs.end(), decayMode) !=
-            selectedDMs.end()) {
-            Logger::get("TauIDvsJet_lt_SF")
-                ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, "
-                        "vsele_wp {}"
-                        "sf_vsjet_tau30to35 {}, sf_vsjet_tau35to40 {}, "
-                        "sf_vsjet_tau40to500{}, sf_vsjet_tau500to1000 {}, "
-                        "sf_vsjet_tau1000toinf {}, sf_dependence {}",
-                        idAlgorithm, pt, decayMode, genMatch, wp, vsele_wp,
-                        sf_vsjet_tau30to35, sf_vsjet_tau35to40,
-                        sf_vsjet_tau40to500, sf_vsjet_tau500to1000,
-                        sf_vsjet_tau1000toinf, sf_dependence);
-            if (pt >= 30.0 && pt < 35.0) {
-                sf = evaluator->evaluate(
-                    {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
-                     sf_vsjet_tau30to35, sf_dependence});
-            } else if (pt >= 35.0 && pt < 40.0) {
-                sf = evaluator->evaluate(
-                    {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
-                     sf_vsjet_tau35to40, sf_dependence});
-            } else if (pt >= 40.0 && pt < 500.0) {
-                sf = evaluator->evaluate(
-                    {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
-                     sf_vsjet_tau40to500, sf_dependence});
-            } else if (pt >= 500.0 && pt < 1000.0) {
-                sf = evaluator->evaluate(
-                    {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
-                     sf_vsjet_tau500to1000, sf_dependence});
-            } else if (pt >= 1000.0 && pt < 2000.0) {
-                sf = evaluator->evaluate(
-                    {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
-                     sf_vsjet_tau1000toinf, sf_dependence});
-            } else {
-                sf = 1.;
+        if (wp == "VVVLoose" || wp == "VVLoose" || wp == "VLoose" || wp == "VVTight") {
+            sf = 1.0; 
+        }
+        else {
+            if (std::find(selectedDMs.begin(), selectedDMs.end(), decayMode) !=
+                selectedDMs.end()) {
+                Logger::get("TauIDvsJet_lt_SF")
+                    ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, "
+                            "vsele_wp {}"
+                            "sf_vsjet_tau30to35 {}, sf_vsjet_tau35to40 {}, "
+                            "sf_vsjet_tau40to500{}, sf_vsjet_tau500to1000 {}, "
+                            "sf_vsjet_tau1000toinf {}, sf_dependence {}",
+                            idAlgorithm, pt, decayMode, genMatch, wp, vsele_wp,
+                            sf_vsjet_tau30to35, sf_vsjet_tau35to40,
+                            sf_vsjet_tau40to500, sf_vsjet_tau500to1000,
+                            sf_vsjet_tau1000toinf, sf_dependence);
+                if (pt >= 30.0 && pt < 35.0) {
+                    sf = evaluator->evaluate(
+                        {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
+                        sf_vsjet_tau30to35, sf_dependence});
+                } else if (pt >= 35.0 && pt < 40.0) {
+                    sf = evaluator->evaluate(
+                        {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
+                        sf_vsjet_tau35to40, sf_dependence});
+                } else if (pt >= 40.0 && pt < 500.0) {
+                    sf = evaluator->evaluate(
+                        {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
+                        sf_vsjet_tau40to500, sf_dependence});
+                } else if (pt >= 500.0 && pt < 1000.0) {
+                    sf = evaluator->evaluate(
+                        {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
+                        sf_vsjet_tau500to1000, sf_dependence});
+                } else if (pt >= 1000.0 && pt < 2000.0) {
+                    sf = evaluator->evaluate(
+                        {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
+                        sf_vsjet_tau1000toinf, sf_dependence});
+                } else {
+                    sf = 1.;
+                }
             }
         }
         Logger::get("TauIDvsJet_lt_SF")->debug("Scale Factor {}", sf);
@@ -499,35 +504,40 @@ ROOT::RDF::RNode id_vsJet_tt(
         // values due to tau energy correction shifts below good tau pt
         // selection)
         double sf = 1.;
-        if (std::find(selectedDMs.begin(), selectedDMs.end(), decayMode) !=
-            selectedDMs.end()) {
-            Logger::get("TauIDvsJet_tt_SF")
-                ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, "
-                        "vsele_wp {}, "
-                        "sf_vsjet_tauDM0 {}, sf_vsjet_tauDM1 {}, "
-                        "sf_vsjet_tauDM1 {}, sf_vsjet_tauDM10{}, "
-                        "sf_vsjet_tauDM11 {}, sf_dependence {}",
-                        idAlgorithm, pt, decayMode, genMatch, wp, vsele_wp,
-                        sf_vsjet_tauDM0, sf_vsjet_tauDM1, sf_vsjet_tauDM10,
-                        sf_vsjet_tauDM11, sf_dependence);
-            if (decayMode == 0) {
-                sf = evaluator->evaluate(
-                    {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
-                     sf_vsjet_tauDM0, sf_dependence});
-            } else if (decayMode == 1) {
-                sf = evaluator->evaluate(
-                    {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
-                     sf_vsjet_tauDM1, sf_dependence});
-            } else if (decayMode == 10) {
-                sf = evaluator->evaluate(
-                    {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
-                     sf_vsjet_tauDM10, sf_dependence});
-            } else if (decayMode == 11) {
-                sf = evaluator->evaluate(
-                    {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
-                     sf_vsjet_tauDM11, sf_dependence});
-            } else {
-                sf = 1.;
+        if (wp == "VVVLoose" || wp == "VVLoose" || wp == "VLoose" || wp == "VVTight") {
+            sf = 1.0; 
+        }
+        else {
+            if (std::find(selectedDMs.begin(), selectedDMs.end(), decayMode) !=
+                selectedDMs.end()) {
+                Logger::get("TauIDvsJet_tt_SF")
+                    ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, "
+                            "vsele_wp {}, "
+                            "sf_vsjet_tauDM0 {}, sf_vsjet_tauDM1 {}, "
+                            "sf_vsjet_tauDM1 {}, sf_vsjet_tauDM10{}, "
+                            "sf_vsjet_tauDM11 {}, sf_dependence {}",
+                            idAlgorithm, pt, decayMode, genMatch, wp, vsele_wp,
+                            sf_vsjet_tauDM0, sf_vsjet_tauDM1, sf_vsjet_tauDM10,
+                            sf_vsjet_tauDM11, sf_dependence);
+                if (decayMode == 0) {
+                    sf = evaluator->evaluate(
+                        {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
+                        sf_vsjet_tauDM0, sf_dependence});
+                } else if (decayMode == 1) {
+                    sf = evaluator->evaluate(
+                        {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
+                        sf_vsjet_tauDM1, sf_dependence});
+                } else if (decayMode == 10) {
+                    sf = evaluator->evaluate(
+                        {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
+                        sf_vsjet_tauDM10, sf_dependence});
+                } else if (decayMode == 11) {
+                    sf = evaluator->evaluate(
+                        {pt, decayMode, static_cast<int>(genMatch), wp, vsele_wp,
+                        sf_vsjet_tauDM11, sf_dependence});
+                } else {
+                    sf = 1.;
+                }
             }
         }
         Logger::get("TauIDvsJet_tt_SF")->debug("Scale Factor {}", sf);

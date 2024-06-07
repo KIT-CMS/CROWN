@@ -28,7 +28,6 @@ std::vector<float> run_interference(Ort::Session *session,
 
     size_t inputTensorSize = vectorProduct(input_node_dims);
     size_t outputTensorSize = vectorProduct(output_node_dims);
-
     for (auto i = 0; i < input_node_dims.size(); ++i) {
         Logger::get("OnnxInterference")
             ->debug("input_node_dims[{}]: {}", i, input_node_dims[i]);

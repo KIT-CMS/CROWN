@@ -717,6 +717,24 @@ ROOT::RDF::RNode NumberOfGoodLeptons(ROOT::RDF::RNode df,
                      },
                      {goodleptons});
 }
+/// Function to writeout the era as one hot encoded.  
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the era value
+/// \param era_2016preVFP 2016preVFP value
+///
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode eras(ROOT::RDF::RNode df, 
+                           const std::string &outputname_2016preVFP, const std::string &outputname_2016postVFP,const std::string &outputname_2017,const std::string &outputname_2018, const std::string &era_2016preVFP_value, const std::string &era_2016postVFP_value,const std::string &era_2017_value,const std::string &era_2018_value) {
+                            auto df1 =df;
+                            auto df2 = df1.Define(outputname_2016preVFP, era_2016preVFP_value);
+                            auto df3 = df2.Define(outputname_2016postVFP, era_2016postVFP_value);
+                            auto df4 = df3.Define(outputname_2017, era_2017_value);
+                            auto df5 = df4.Define(outputname_2018, era_2018_value);
+                            return df5;
+    
+}
 /// namespace for tau specific quantities
 namespace tau {
 /// Function to writeout the decaymode of a tau. The particle is identified
