@@ -1,18 +1,18 @@
 #include "../../include/utility/CorrectionManager.hxx"
 #include "../../include/utility/Logger.hxx"
+#include <fstream>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <unordered_map>
-#include <nlohmann/json.hpp>
-#include <fstream>
 /// namespace used for the CorrectionManager
 namespace correctionManager {
 /**
  * @brief Load a correctionlib correction from a file and return it. This
  * function works for most corrections found in correctionlib files (the default
- * type for corrections is correction::Correction) . If the requested Correction
- * is already loaded, it will return a pointer to the already loaded Correction.
- * If not, the Correction will be loaded and stored in the CorrectionManager.
+ * type for corrections is correction::Correction) . If the requested correction
+ * is already loaded, it will return a pointer to the already loaded correction.
+ * If not, the correction will be loaded and stored in the CorrectionManager.
  *
  * @param filePath The path to the correctionlib file
  * @param corrName The name of the correction to load
@@ -24,7 +24,9 @@ CorrectionManager::loadCorrection(const std::string &filePath,
     auto filePath_it = correction_map.find(filePath);
     if (filePath_it == correction_map.end()) {
         Logger::get("CorrectionManager")
-            ->debug("CorrectionFile {} not loaded yet, adding it...", filePath);
+            ->debug("CorrectionFile {} not loaded yet, adding it to the "
+                    "CorrectionManager...",
+                    filePath);
         auto result = correction_map.emplace(
             filePath,
             std::unordered_map<
@@ -67,7 +69,9 @@ CorrectionManager::loadCompoundCorrection(const std::string &filePath,
     auto filePath_it = correctionCompound_map.find(filePath);
     if (filePath_it == correctionCompound_map.end()) {
         Logger::get("CorrectionManager")
-            ->debug("CorrectionFile {} not loaded yet, adding it...", filePath);
+            ->debug("CorrectionFile {} not loaded yet, adding it to the "
+                    "CorrectionManager...",
+                    filePath);
         auto result = correctionCompound_map.emplace(
             filePath,
             std::unordered_map<
@@ -96,11 +100,23 @@ CorrectionManager::loadCompoundCorrection(const std::string &filePath,
     }
     return corrName_it->second.get();
 };
-const nlohmann::json *CorrectionManager::loadjson(const std::string &filePath){
+/**
+ * @brief Load a json file from a file and return it. This
+ * function works works for all json files. If the requested
+ * json file is already loaded, it will return a pointer to the already
+ * loaded json. If not, the json will be loaded and
+ * stored in the CorrectionManager.
+ *
+ * @param filePath The path to the json file
+ * @return const nlohmann::json
+ */
+const nlohmann::json *CorrectionManager::loadjson(const std::string &filePath) {
     auto json_it = json_map.find(filePath);
     if (json_it == json_map.end()) {
         Logger::get("CorrectionManager")
-            ->debug("Json file {} not loaded yet, adding it...", filePath);
+            ->debug("Json file {} not loaded yet, adding it to the "
+                    "CorrectionManager...",
+                    filePath);
         std::ifstream json_file(filePath);
         auto result = json_map.emplace(
             filePath,
@@ -120,7 +136,5 @@ void CorrectionManager::report() {
                "production",
                n_corrections);
 };
-
-
 
 } // namespace correctionManager
