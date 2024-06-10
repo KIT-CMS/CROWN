@@ -13,12 +13,12 @@ For now, the CorrectionManager supports the following correction files:
 - correctionlib files of type ``correction::CompoundCorrection`` using the :cpp:func:`correctionManager::CorrectionManager::loadCompoundCorrection` function
 - json files using the :cpp:func:`correctionManager::CorrectionManager::loadjson` function
 
-A Documentation of all CorrectionManager functions can be found in :ref:`Namespace: Correctionmanager`
+A Documentation of all Correction Manager functions can be found in :ref:`Namespace:Correctionmanager`
 
-Requrired Changes
+Required Changes
 ******************
 
-Using the CorrectionManager slightly changes the signature of CROWN functions. In the following, one simple example is shown, how to use the CorrectionManager in a CROWN executable.
+Using the Correction Manager slightly changes the signature of CROWN functions. In the following, one simple example is shown, how to use the Correction Manager in a CROWN executable.
 
 Python Producer Old
 

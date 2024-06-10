@@ -40,7 +40,7 @@ and source the current LCG stack (at the moment we use a nightly build)
 
    source init.sh
 
-after this, the framework should be installed, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the name of the analysis to your ``init.sh`` command. So e.g. to set the `tau` Analysis, you can do so by running
+After this, the framework should be installed, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the name of the analysis to your ``init.sh`` command. So e.g. to set up the `tau` Analysis, you can do so by running
 
 .. code-block:: console
 
