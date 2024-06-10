@@ -143,20 +143,20 @@ ROOT::RDF::RNode topptreweighting(ROOT::RDF::RNode df,
             std::cout << top_pts.size();
             Logger::get("topptreweighting")
                 ->error("TTbar reweighting applied to event with not exactly "
-                        "two top quarks. Probably due to wrong sample type.");
+                        "two top quarks. Probably due to wrong sample type. "
+                        "n_top: {}",
+                        top_pts.size());
             throw std::runtime_error("Bad number of top quarks.");
         }
-        if (top_pts[0] > 472.0)
-            top_pts[0] = 472.0;
-        if (top_pts[1] > 472.0)
-            top_pts[1] = 472.0;
-        const float parameter_a = 0.088;
-        const float parameter_b = -0.00087;
-        const float parameter_c = 0.00000092;
-        return sqrt(exp(parameter_a + parameter_b * top_pts[0] +
-                        parameter_c * top_pts[0] * top_pts[0]) *
-                    exp(parameter_a + parameter_b * top_pts[1] +
-                        parameter_c * top_pts[1] * top_pts[1]));
+
+        if (top_pts[0] > 500.0)
+            top_pts[0] = 500.0;
+        if (top_pts[1] > 500.0)
+            top_pts[1] = 500.0;
+        const float parameter_a = 0.0615;
+        const float parameter_b = -0.0005;
+        return sqrt(exp(parameter_a + parameter_b * top_pts[0]) *
+                    exp(parameter_a + parameter_b * top_pts[1]));
     };
     auto df1 = df.Define(weightname, ttbarreweightlambda,
                          {gen_pdgids, gen_status, gen_pt});

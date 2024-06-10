@@ -7,31 +7,25 @@
 #include "TMath.h"
 #include "TMatrixD.h"
 #include "TVector2.h"
+#include <Math/Vector4D.h>
 
 #include "Math/BasicMinimizer.h"
 #include "TF1.h"
 
 #include "../../include/SVFit/FastMTT.hxx"
 #include "../../include/SVFit/MeasuredTauLepton.hxx"
+#include "../../include/utility/Logger.hxx"
 
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 Likelihood::Likelihood() {
-
     covMET.ResizeTo(2, 2);
-
-    compnentsBitWord.reset();
+    componentsBitWord.reset();
     enableComponent(fastMTT::MASS);
     enableComponent(fastMTT::MET);
-    /// experimental components. Disabled by default.
-    disableComponent(fastMTT::PX);
-    disableComponent(fastMTT::PY);
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 Likelihood::~Likelihood() {}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 template <unsigned int max_order>
 std::array<double, max_order + 1> getPowTable(double x) {
     std::array<double, max_order + 1> powerTable{};
@@ -41,8 +35,7 @@ std::array<double, max_order + 1> getPowTable(double x) {
     }
     return powerTable;
 };
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 void Likelihood::setLeptonInputs(const LorentzVector &aLeg1P4,
                                  const LorentzVector &aLeg2P4,
                                  int aLeg1DecayType, int aLeg2DecayType,
@@ -88,37 +81,33 @@ void Likelihood::setLeptonInputs(const LorentzVector &aLeg1P4,
     leg1DecayMode = aLeg1DecayMode;
     leg2DecayMode = aLeg2DecayMode;
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
+
 void Likelihood::setMETInputs(const LorentzVector &aMET,
                               const TMatrixD &aCovMET) {
     recoMET = aMET;
     covMET = aCovMET;
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-void Likelihood::setParameters(const std::vector<double> &aPars) {
 
+
+void Likelihood::setParameters(const std::vector<double> &aPars) {
     parameters = aPars;
     if (parameters.size() < 2)
         parameters = std::vector<double>{6, 1.0 / 1.15};
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
+
 void Likelihood::enableComponent(fastMTT::likelihoodComponent aCompIndex) {
-
-    compnentsBitWord.set(aCompIndex);
+    componentsBitWord.set(aCompIndex);
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
+
 void Likelihood::disableComponent(fastMTT::likelihoodComponent aCompIndex) {
-
-    compnentsBitWord.reset(aCompIndex);
+    componentsBitWord.reset(aCompIndex);
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-double Likelihood::massLikelihood(const double &m) const {
 
+
+double Likelihood::massLikelihood(const double &m) const {
     double coeff1 = parameters[0];
     double coeff2 = parameters[1];
     double mScaled = m * coeff2;
@@ -155,14 +144,12 @@ double Likelihood::massLikelihood(const double &m) const {
 
     return value;
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 double Likelihood::ptLikelihood(const double &pTTauTau, int type) const {
 
     /// Protection against numerical singularity in phase space volume.
     if (std::abs(pTTauTau) < 0.5)
         return 0.0;
-
     const auto pT1pow = allpTpows[0][type];
     const auto pT2pow = allpTpows[1][type];
     const auto pT1 = pT1pow[1];
@@ -264,14 +251,12 @@ double Likelihood::ptLikelihood(const double &pTTauTau, int type) const {
 
     return std::abs(value);
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+
 double Likelihood::metTF(const LorentzVector &metP4, const LorentzVector &nuP4,
                          const TMatrixD &covMET) const {
 
     const double aMETx = metP4.X();
     const double aMETy = metP4.Y();
-
     double invCovMETxx = covMET(1, 1);
     double invCovMETxy = -covMET(0, 1);
     double invCovMETyx = -covMET(1, 0);
@@ -294,8 +279,7 @@ double Likelihood::metTF(const LorentzVector &metP4, const LorentzVector &nuP4,
 
     return const_MET * TMath::Exp(-0.5 * pull2);
 }
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
+
 double Likelihood::value(const double *x) const {
 
     double x1Min = std::min(1.0, mVis1OverTauSquare);
@@ -308,83 +292,34 @@ double Likelihood::value(const double *x) const {
     const auto testMET = testP4 - leg1P4 - leg2P4;
 
     double value = -1.0;
-    if (compnentsBitWord.test(fastMTT::MET))
+    if (componentsBitWord.test(fastMTT::MET))
         value *= metTF(recoMET, testMET, covMET);
-    if (compnentsBitWord.test(fastMTT::MASS))
+    if (componentsBitWord.test(fastMTT::MASS))
         value *= massLikelihood(testP4.M());
-    if (compnentsBitWord.test(fastMTT::PX))
-        value *= ptLikelihood(testP4.Px(), 0);
-    if (compnentsBitWord.test(fastMTT::PY))
-        value *= ptLikelihood(testP4.Py(), 1);
     return value;
 }
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-FastMTT::FastMTT() {
 
-    minimizerName = "Minuit2";
-    minimizerAlgorithm = "Migrad";
-    initialize();
-}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-FastMTT::~FastMTT() { delete minimizer; }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+FastMTT::FastMTT() {}
+
+FastMTT::~FastMTT() {}
+
 void FastMTT::initialize() {
 
-    minimizer =
-        ROOT::Math::Factory::CreateMinimizer(minimizerName, minimizerAlgorithm);
-    minimizer->SetMaxFunctionCalls(100000);
-    minimizer->SetMaxIterations(100000);
-    minimizer->SetTolerance(0.01);
-
+    // Set the start parameters
     std::vector<std::string> varNames = {"x1", "x2"};
     nVariables = varNames.size();
     std::vector<double> initialValues(nVariables, 0.5);
     std::vector<double> stepSizes(nVariables, 0.01);
     minimumPosition = initialValues;
     minimumValue = 999.0;
-
-    for (unsigned int iVar = 0; iVar < nVariables; ++iVar) {
-        minimizer->SetVariable(iVar, varNames[iVar].c_str(),
-                               initialValues[iVar], stepSizes[iVar]);
-    }
-
-    std::vector<double> shapeParams = {6, 1.0 / 1.15};
-    setLikelihoodParams(shapeParams);
-    likelihoodFunctor =
-        new ROOT::Math::Functor(&myLikelihood, &Likelihood::value, nVariables);
-    minimizer->SetFunction(*likelihoodFunctor);
-
     verbosity = 0;
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-void FastMTT::setLikelihoodParams(const std::vector<double> &aPars) {
 
-    myLikelihood.setParameters(aPars);
-}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-void FastMTT::enableComponent(fastMTT::likelihoodComponent aCompIndex) {
 
-    myLikelihood.enableComponent(aCompIndex);
-}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-void FastMTT::disableComponent(fastMTT::likelihoodComponent aCompIndex) {
-
-    myLikelihood.disableComponent(aCompIndex);
-}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
 bool FastMTT::compareLeptons(
     const fastmtt::MeasuredTauLepton &measuredTauLepton1,
     const fastmtt::MeasuredTauLepton &measuredTauLepton2) {
-
     using namespace fastmtt;
-
     if ((measuredTauLepton1.type() == MeasuredTauLepton::kTauToElecDecay ||
          measuredTauLepton1.type() == MeasuredTauLepton::kTauToMuDecay) &&
         measuredTauLepton2.type() == MeasuredTauLepton::kTauToHadDecay)
@@ -395,23 +330,23 @@ bool FastMTT::compareLeptons(
         return false;
     return (measuredTauLepton1.pt() > measuredTauLepton2.pt());
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-void FastMTT::run(
-    const std::vector<fastmtt::MeasuredTauLepton> &measuredTauLeptons,
-    const double &measuredMETx, const double &measuredMETy,
-    const TMatrixD &covMET) {
 
+
+ROOT::Math::PtEtaPhiMVector
+FastMTT::run(const std::vector<fastmtt::MeasuredTauLepton> &measuredTauLeptons,
+             const double &measuredMETx, const double &measuredMETy,
+             const TMatrixD &covMET) {
+    Likelihood myLikelihood;
+    std::vector<double> shapeParams = {6, 1.0 / 1.15};
+    myLikelihood.setParameters(shapeParams);
+    FastMTT::initialize();
     bestP4 = LorentzVector();
-    ////////////////////////////////////////////
-
     if (measuredTauLeptons.size() != 2) {
         std::cout << "Number of MeasuredTauLepton is "
                   << measuredTauLeptons.size()
                   << " a user shouls pass exactly two leptons." << std::endl;
-        return;
+        return ROOT::Math::PtEtaPhiMVector();
     }
-
     std::vector<fastmtt::MeasuredTauLepton> sortedMeasuredTauLeptons =
         measuredTauLeptons;
     std::sort(sortedMeasuredTauLeptons.begin(), sortedMeasuredTauLeptons.end(),
@@ -430,56 +365,20 @@ void FastMTT::run(
                                  aLepton2.decayMode());
     myLikelihood.setMETInputs(aMET, covMET);
 
-    scan();
-    // minimize();
+    scan(myLikelihood);
 
     tau1P4 = aLepton1.p4() * (1.0 / minimumPosition[0]);
     tau2P4 = aLepton2.p4() * (1.0 / minimumPosition[1]);
     bestP4 = tau1P4 + tau2P4;
+    // Logger::get("FastMTT::run")->warn("bestP4: {}", bestP4);
+    ROOT::Math::PtEtaPhiMVector result = (ROOT::Math::PtEtaPhiMVector)bestP4;
+    return result;
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-void FastMTT::minimize() {
 
-    clock.Reset();
-    clock.Start("minimize");
-
-    minimizer->SetVariableLimits(0, 0.01, 1.0);
-    minimizer->SetVariableLimits(1, 0.01, 1.0);
-
-    minimizer->SetVariable(0, "x1", 0.5, 0.1);
-    minimizer->SetVariable(1, "x2", 0.5, 0.1);
-
-    minimizer->Minimize();
-
-    const double *theMinimum = minimizer->X();
-    minimumPosition[0] = theMinimum[0];
-    minimumPosition[1] = theMinimum[1];
-    minimumValue = minimizer->MinValue();
-
-    if (true || minimizer->Status() != 0) {
-        std::cout << " minimizer "
-                  << " Status: " << minimizer->Status()
-                  << " nCalls: " << minimizer->NCalls()
-                  << " nIterations: " << minimizer->NIterations()
-                  << " x1Max: " << theMinimum[0] << " x2Max: " << theMinimum[1]
-                  << " max LLH: " << minimizer->MinValue()
-                  << " m: " << bestP4.M() << std::endl;
-    }
-    clock.Stop("minimize");
-}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-void FastMTT::scan() {
-
-    clock.Reset();
-    clock.Start("scan");
-
+void FastMTT::scan(Likelihood &myLikelihood) {
     double lh = 0.0;
     double bestLH = 0.0;
-
     double x[2] = {0.5, 0.5};
-
     double theMinimum[2] = {0.75, 0.75};
     const int nGridPoints = 100;
     const double gridFactor = 1. / nGridPoints;
@@ -496,39 +395,8 @@ void FastMTT::scan() {
                 theMinimum[1] = x[1];
             }
         }
-
         minimumPosition[0] = theMinimum[0];
         minimumPosition[1] = theMinimum[1];
         minimumValue = bestLH;
     }
-    clock.Stop("scan");
 }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-double FastMTT::getCpuTime(const std::string &method) {
-
-    return clock.GetCpuTime(method.c_str());
-}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-double FastMTT::getRealTime(const std::string &method) {
-
-    return clock.GetRealTime(method.c_str());
-}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-std::tuple<double, double> FastMTT::getBestX() const {
-
-    return std::make_tuple(minimumPosition[0], minimumPosition[1]);
-}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-double FastMTT::getBestLikelihood() const { return minimumValue; }
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-double FastMTT::getLikelihoodForX(double *x) const {
-
-    return myLikelihood.value(x);
-}
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
