@@ -151,7 +151,6 @@ def build_config(
         "global",
         [
             event.SampleFlags,
-            event.PUweights,
             event.Lumi,
             event.MetFilter,
             muons.BaseMuons,
@@ -184,7 +183,6 @@ def build_config(
             nanoAOD.run,
             q.lumi,
             nanoAOD.event,
-            q.puweight,
             q.pt_1,
             q.pt_2,
             q.eta_1,
@@ -210,13 +208,6 @@ def build_config(
         ],
     )
 
-    configuration.add_modification_rule(
-        "global",
-        RemoveProducer(
-            producers=[event.PUweights],
-            samples=["data"],
-        ),
-    )
     configuration.add_modification_rule(
         "mm",
         RemoveProducer(
