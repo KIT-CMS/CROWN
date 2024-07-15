@@ -336,6 +336,14 @@ VsJetTauIDFlag_2 = ExtendedVectorProducer(
     scope=["et", "mt", "tt"],
     vec_config="vsjet_tau_id",
 )
+VsJetTauID_PNet_Flag_2 = ExtendedVectorProducer(
+    name="VsJetTauID_PNet_Flag_2",
+    call="quantities::tau::TauIDFlag_PNet({df}, {output}, 1, {input}, {vsjet_tau_id_WPbit})",
+    input=[q.dileptonpair, nanoAOD.Tau_ID_vsJet_PNet],
+    output="tau_2_vsjet_pnet_id_outputname",
+    scope=["et", "mt", "tt"],
+    vec_config="vsjet_tau_id",
+)
 VsEleTauIDFlag_2 = ExtendedVectorProducer(
     name="VsEleTauIDFlag_2",
     call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsele_tau_id_WPbit})",
