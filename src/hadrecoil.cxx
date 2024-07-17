@@ -28,9 +28,9 @@ ROOT::RDF::RNode vectorial_mht(ROOT::RDF::RNode df, const std::string &outputnam
                                const std::string &jet_pt, const std::string &jet_eta, const std::string &jet_collection) {
     auto vectorial_mht_func = [](const ROOT::RVec<float> &jet_pt, const ROOT::RVec<float> &jet_eta, const ROOT::RVec<int> &jet_collection) {
         // add up the negative pt vectors of all selected jets 
-        auto mht = ROOT::Math::PtEtaPhiEVector(0., 0., 0., 0.);
+        auto mht = ROOT::Math::PtEtaPhiMVector(0., 0., 0., 0.);
         for (const int &jet_index : jet_collection) {
-            auto jet_pt_vec = ROOT::Math::PtEtaPhiEVector(jet_pt.at(jet_index), jet_eta.at(jet_index), 0., jet_pt.at(jet_index));
+            auto jet_pt_vec = dynamic_cast<ROOT::Math::PtEtaPhiMVector>(ROOT::Math::PtEtaPhiEVector(jet_pt.at(jet_index), jet_eta.at(jet_index), 0., jet_pt.at(jet_index)));
             mht -= jet_pt_vec;
         }
         return mht;
