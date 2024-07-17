@@ -12,7 +12,7 @@ namespace hadrecoil {
 
 ROOT::RDF::RNode scalar_ht(ROOT::RDF::RNode df, const std::string &outputname,
                            const std::string &jet_pt, const std::string &jet_collection) {
-    auto scalar_ht_func = [](const ROOT::RVec<int> &jet_pt, const ROOT::RVec<int> &jet_collection) {
+    auto scalar_ht_func = [](const ROOT::RVec<float> &jet_pt, const ROOT::RVec<int> &jet_collection) {
         // add up the magnitudes of the pt of all selected jets
         float ht = 0;
         for (const int &jet_index : jet_collection) {
@@ -26,7 +26,7 @@ ROOT::RDF::RNode scalar_ht(ROOT::RDF::RNode df, const std::string &outputname,
 
 ROOT::RDF::RNode vectorial_mht(ROOT::RDF::RNode df, const std::string &outputname,
                                const std::string &jet_pt, const std::string &jet_eta, const std::string &jet_collection) {
-    auto vectorial_mht_func = [](const ROOT::RVec<int> &jet_pt, const ROOT::RVec<int> &jet_eta, const ROOT::RVec<int> &jet_collection) {
+    auto vectorial_mht_func = [](const ROOT::RVec<float> &jet_pt, const ROOT::RVec<float> &jet_eta, const ROOT::RVec<int> &jet_collection) {
         // add up the negative pt vectors of all selected jets 
         auto mht = ROOT::Math::PtEtaPhiEVector(0., 0., 0., 0.);
         for (const int &jet_index : jet_collection) {
