@@ -4,6 +4,7 @@
 #include "TStopwatch.h"
 #include "include/fatjets.hxx"
 #include "include/genparticles.hxx"
+#include "include/hadrecoil.hxx"
 #include "include/htxs.hxx"
 #include "include/jets.hxx"
 #include "include/lorentzvectors.hxx"
