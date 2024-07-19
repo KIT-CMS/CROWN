@@ -12,6 +12,14 @@ ROOT::RDF::RNode FindXtmFatjet(
     ROOT::RDF::RNode df, const std::string &output_name,
     const std::string &good_fatjet_collection, const std::string &fatjet_pNet_XtmVsQCD);
 
+ROOT::RDF::RNode FindXteFatjet(
+    ROOT::RDF::RNode df, const std::string &output_name,
+    const std::string &good_fatjet_collection, const std::string &fatjet_pNet_XteVsQCD);
+
+ROOT::RDF::RNode FindXttFatjet(
+    ROOT::RDF::RNode df, const std::string &output_name,
+    const std::string &good_fatjet_collection, const std::string &fatjet_pNet_XttVsQCD);
+
 ROOT::RDF::RNode flagGoodFatjets(ROOT::RDF::RNode df, const std::string &flagname,
                                const std::string &fatjetname);
 } // namespace fatjet
@@ -25,6 +33,14 @@ ROOT::RDF::RNode msoftdrop(ROOT::RDF::RNode df, const std::string &outputname,
 ROOT::RDF::RNode
 particleNet_XtmVsQCD(ROOT::RDF::RNode df, const std::string &outputname,
                      const std::string &pNet_XtmVsQCD,
+                     const std::string &fatjetcollection, const int &position);
+ROOT::RDF::RNode
+particleNet_XteVsQCD(ROOT::RDF::RNode df, const std::string &outputname,
+                     const std::string &pNet_XteVsQCD,
+                     const std::string &fatjetcollection, const int &position);
+ROOT::RDF::RNode
+particleNet_XttVsQCD(ROOT::RDF::RNode df, const std::string &outputname,
+                     const std::string &pNet_XttVsQCD,
                      const std::string &fatjetcollection, const int &position);
 ROOT::RDF::RNode
 nsubjettiness_ratio(ROOT::RDF::RNode df, const std::string &outputname,

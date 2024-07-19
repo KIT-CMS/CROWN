@@ -115,6 +115,93 @@ auto FindXtmFatjet(ROOT::RDF::RNode df, const std::string &output_name,
         {good_fatjet_collection, fatjet_pNet_XtmVsQCD});
     return df1;
 }
+
+/// Function to find a fatjet with the highest particleNet X(te) vs QCD score 
+///
+/// \param[in] df the input dataframe
+/// \param[out] output_name the name of the selected fatjet (index)
+/// \param[in] good_fatjet_collection name of the collection with the indices of
+/// good fatjets \param[in] fatjet_pNet_Xte name of the variable with the Xte particleNet scores 
+/// \param[in] fatjet_pNet_QCD name of the variable with the QCD particleNet scores 
+///
+/// \return a dataframe containing the new mask
+auto FindXteFatjet(ROOT::RDF::RNode df, const std::string &output_name,
+                            const std::string &good_fatjet_collection,
+                            const std::string &fatjet_pNet_XteVsQCD) {
+    Logger::get("fatjet::FindXteFatjet")->debug("Setting up algorithm");
+    auto df1 = df.Define(
+        output_name,
+        [](const ROOT::RVec<int> &good_fatjet_collection,
+           const ROOT::RVec<float> &XetVsQCD_tagger) {
+            ROOT::RVec<int> selected_fatjet = {-1};
+            float highest_pNet_value = default_float;
+            if ((good_fatjet_collection.size() > 0)) {
+                Logger::get("fatjet::FindXteFatjet")
+                    ->debug("Running algorithm on at least one good fatjet");
+                // float Xtm = default_float;
+                // float QCD = default_float;
+                float Xte_vs_QCD = default_float;
+                for (auto &index : good_fatjet_collection) {
+                    // Xtm = Xtm_tagger.at(index);
+                    // QCD = QCD_tagger.at(index);
+                    Xte_vs_QCD = XetVsQCD_tagger.at(index);
+                    if (Xte_vs_QCD > highest_pNet_value) {
+                        highest_pNet_value = Xte_vs_QCD;
+                        selected_fatjet = {static_cast<int>(index)};
+                    }
+                }
+                Logger::get("fatjet::FindXteFatjet")
+                            ->debug("Final fatjet {}", selected_fatjet[0]);
+            }
+            return selected_fatjet;
+        },
+        {good_fatjet_collection, fatjet_pNet_XteVsQCD});
+    return df1;
+}
+
+/// Function to find a fatjet with the highest particleNet X(tm) vs QCD score 
+///
+/// \param[in] df the input dataframe
+/// \param[out] output_name the name of the selected fatjet (index)
+/// \param[in] good_fatjet_collection name of the collection with the indices of
+/// good fatjets \param[in] fatjet_pNet_Xtm name of the variable with the Xtm particleNet scores 
+/// \param[in] fatjet_pNet_QCD name of the variable with the QCD particleNet scores 
+///
+/// \return a dataframe containing the new mask
+auto FindXttFatjet(ROOT::RDF::RNode df, const std::string &output_name,
+                            const std::string &good_fatjet_collection,
+                            const std::string &fatjet_pNet_XttVsQCD) {
+    Logger::get("fatjet::FindXttFatjet")->debug("Setting up algorithm");
+    auto df1 = df.Define(
+        output_name,
+        [](const ROOT::RVec<int> &good_fatjet_collection,
+           const ROOT::RVec<float> &XttVsQCD_tagger) {
+            ROOT::RVec<int> selected_fatjet = {-1};
+            float highest_pNet_value = default_float;
+            if ((good_fatjet_collection.size() > 0)) {
+                Logger::get("fatjet::FindXttFatjet")
+                    ->debug("Running algorithm on at least one good fatjet");
+                // float Xtm = default_float;
+                // float QCD = default_float;
+                float Xtt_vs_QCD = default_float;
+                for (auto &index : good_fatjet_collection) {
+                    // Xtm = Xtm_tagger.at(index);
+                    // QCD = QCD_tagger.at(index);
+                    Xtt_vs_QCD = XttVsQCD_tagger.at(index);
+                    if (Xtt_vs_QCD > highest_pNet_value) {
+                        highest_pNet_value = Xtt_vs_QCD;
+                        selected_fatjet = {static_cast<int>(index)};
+                    }
+                }
+                Logger::get("fatjet::FindXttFatjet")
+                            ->debug("Final fatjet {}", selected_fatjet[0]);
+            }
+            return selected_fatjet;
+        },
+        {good_fatjet_collection, fatjet_pNet_XttVsQCD});
+    return df1;
+}
+
 // This function flags events, where a suitable particle pair is found.
 /// A pair is considered suitable, if a PairSelectionAlgo (like
 /// ditau_pairselection::mutau::PairSelectionAlgo) returns indices, that are
@@ -204,6 +291,72 @@ particleNet_XtmVsQCD(ROOT::RDF::RNode df, const std::string &outputname,
                      },
                      {pNet_XtmVsQCD, fatjetcollection});
 }
+/// Function to writeout the value of the particleNet Xte vs QCD tagger for a
+/// fatjet.
+///
+/// \param[in] df the input dataframe
+/// \param[out] outputname the name of the produced quantity
+/// \param[in] pNet_Xte name of the column that contains the particleNet raw
+/// value for X->te of the fatjets \param[in] pNet_QCD name of the column that
+/// contains the particleNet raw value for QCD of the fatjets \param[in]
+/// fatjetcollection name of the vector that contains fatjet indices of the
+/// fatjets belonging to the collection, its length constitutes the output
+/// quantity \param position The position in the fatjet collection vector, which
+/// is used to store the index of the particle in the particle quantity vectors.
+///
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode
+particleNet_XteVsQCD(ROOT::RDF::RNode df, const std::string &outputname,
+                     const std::string &pNet_XteVsQCD, 
+                     const std::string &fatjetcollection, const int &position) {
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<float> &XteVsQCD_tagger,
+                                const ROOT::RVec<int> &fatjetcollection) {
+                         float Xte_vs_QCD = default_float;
+                         try {
+                             const int index = fatjetcollection.at(position);
+                             Xte_vs_QCD = XteVsQCD_tagger.at(index);
+                         } catch (const std::out_of_range &e) {
+                         }
+                         return Xte_vs_QCD;
+                     },
+                     {pNet_XteVsQCD, fatjetcollection});
+}
+
+/// Function to writeout the value of the particleNet Xtt vs QCD tagger for a
+/// fatjet.
+///
+/// \param[in] df the input dataframe
+/// \param[out] outputname the name of the produced quantity
+/// \param[in] pNet_Xtt name of the column that contains the particleNet raw
+/// value for X->tt of the fatjets \param[in] pNet_QCD name of the column that
+/// contains the particleNet raw value for QCD of the fatjets \param[in]
+/// fatjetcollection name of the vector that contains fatjet indices of the
+/// fatjets belonging to the collection, its length constitutes the output
+/// quantity \param position The position in the fatjet collection vector, which
+/// is used to store the index of the particle in the particle quantity vectors.
+///
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode
+particleNet_XttVsQCD(ROOT::RDF::RNode df, const std::string &outputname,
+                     const std::string &pNet_XttVsQCD, 
+                     const std::string &fatjetcollection, const int &position) {
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<float> &XttVsQCD_tagger,
+                                const ROOT::RVec<int> &fatjetcollection) {
+                         float Xtt_vs_QCD = default_float;
+                         try {
+                             const int index = fatjetcollection.at(position);
+                             Xtt_vs_QCD = XttVsQCD_tagger.at(index);
+                         } catch (const std::out_of_range &e) {
+                         }
+                         return Xtt_vs_QCD;
+                     },
+                     {pNet_XttVsQCD, fatjetcollection});
+}
+
 /// Function to writeout the N- over N-1-prong n-subjettiness ratio for a
 /// fatjet. This variable is should discriminate between fatjets with N subjets
 /// and fatjets with N-1 subjets. Lower values mean the fatjet is more N-prong
