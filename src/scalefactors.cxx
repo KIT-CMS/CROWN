@@ -895,7 +895,7 @@ ROOT::RDF::RNode id_vsJet_tt(
                 ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, "
                         "vsele_wp {}, "
                         "sf_vsjet_tauDM0 {}, sf_vsjet_tauDM1 {}, "
-                        "sf_vsjet_tauDM1 {}, sf_vsjet_tauDM10{}, "
+                        "sf_vsjet_tauDM10{}, "
                         "sf_vsjet_tauDM11 {}, sf_dependence {}",
                         idAlgorithm, pt, decayMode, genMatch, wp, vsele_wp,
                         sf_vsjet_tauDM0, sf_vsjet_tauDM1, sf_vsjet_tauDM10,
@@ -1006,7 +1006,7 @@ ROOT::RDF::RNode id_vsJet_tt(
                 ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, "
                         "vsele_wp {}, "
                         "sf_vsjet_tauDM0 {}, sf_vsjet_tauDM1 {}, "
-                        "sf_vsjet_tauDM1 {}, sf_vsjet_tauDM10{}, "
+                        "sf_vsjet_tauDM10{}, "
                         "sf_vsjet_tauDM11 {}, sf_dependence {}",
                         idAlgorithm, pt, decayMode, genMatch, wp, vsele_wp,
                         sf_vsjet_tauDM0, sf_vsjet_tauDM1, sf_vsjet_tauDM10,

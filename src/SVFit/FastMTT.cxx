@@ -16,7 +16,6 @@
 #include "../../include/SVFit/MeasuredTauLepton.hxx"
 #include "../../include/utility/Logger.hxx"
 
-
 Likelihood::Likelihood() {
     covMET.ResizeTo(2, 2);
     componentsBitWord.reset();
@@ -82,13 +81,11 @@ void Likelihood::setLeptonInputs(const LorentzVector &aLeg1P4,
     leg2DecayMode = aLeg2DecayMode;
 }
 
-
 void Likelihood::setMETInputs(const LorentzVector &aMET,
                               const TMatrixD &aCovMET) {
     recoMET = aMET;
     covMET = aCovMET;
 }
-
 
 void Likelihood::setParameters(const std::vector<double> &aPars) {
     parameters = aPars;
@@ -96,16 +93,13 @@ void Likelihood::setParameters(const std::vector<double> &aPars) {
         parameters = std::vector<double>{6, 1.0 / 1.15};
 }
 
-
 void Likelihood::enableComponent(fastMTT::likelihoodComponent aCompIndex) {
     componentsBitWord.set(aCompIndex);
 }
 
-
 void Likelihood::disableComponent(fastMTT::likelihoodComponent aCompIndex) {
     componentsBitWord.reset(aCompIndex);
 }
-
 
 double Likelihood::massLikelihood(const double &m) const {
     double coeff1 = parameters[0];
@@ -315,7 +309,6 @@ void FastMTT::initialize() {
     verbosity = 0;
 }
 
-
 bool FastMTT::compareLeptons(
     const fastmtt::MeasuredTauLepton &measuredTauLepton1,
     const fastmtt::MeasuredTauLepton &measuredTauLepton2) {
@@ -330,7 +323,6 @@ bool FastMTT::compareLeptons(
         return false;
     return (measuredTauLepton1.pt() > measuredTauLepton2.pt());
 }
-
 
 ROOT::Math::PtEtaPhiMVector
 FastMTT::run(const std::vector<fastmtt::MeasuredTauLepton> &measuredTauLeptons,
