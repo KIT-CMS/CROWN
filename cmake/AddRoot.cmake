@@ -1,4 +1,4 @@
-find_package(ROOT 6.32 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit ROOTNTuple GenVector)
+find_package(ROOT 6.30 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit GenVector)
 
 message(STATUS "")
 message(STATUS "Found ROOT with following settings:")
