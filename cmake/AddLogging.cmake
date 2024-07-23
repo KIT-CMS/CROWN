@@ -6,7 +6,7 @@ ExternalProject_Add(
   PREFIX spdlog
   GIT_REPOSITORY https://github.com/gabime/spdlog.git
   GIT_SHALLOW 1
-  GIT_TAG v1.8.5
+  GIT_TAG v1.14.1
   CMAKE_ARGS -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
              -DCMAKE_BUILD_TYPE=Release
              -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} -DCMAKE_CXX_FLAGS=-fpic
