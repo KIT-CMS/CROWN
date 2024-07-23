@@ -201,7 +201,7 @@ jobs:
     needs: determine-tag
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/${{ github.repository }}-crown-unittest:${{ needs.determine-tag.outputs.tag }}
+      image: ghcr.io/kit-cms/crown-crown-unittest:${{ needs.determine-tag.outputs.tag }}
       options: --user 0 # run as root
 
     steps:
