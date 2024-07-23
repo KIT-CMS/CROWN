@@ -2,10 +2,6 @@
 #define GUARD_REWEIGHTING_H
 
 namespace reweighting {
-ROOT::RDF::RNode puweights(ROOT::RDF::RNode df, const std::string &weightname,
-                           const std::string &truePUMean,
-                           const std::string &filename,
-                           const std::string &histogramname);
 ROOT::RDF::RNode
 puweights(ROOT::RDF::RNode df,
           correctionManager::CorrectionManager &correctionManager,
