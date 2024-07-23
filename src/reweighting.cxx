@@ -36,13 +36,13 @@ ROOT::RDF::RNode puweights(ROOT::RDF::RNode df, const std::string &weightname,
                "the one with the CorrectionManager object instead.");
     auto evaluator =
         correction::CorrectionSet::from_file(filename)->at(eraname);
-    auto df1 =
-        df.Define(weightname,
-                  [evaluator, variation](const float &pu) {
-                      double weight = evaluator->evaluate({pu, variation});
-                      return weight;
-                  },
-                  {truePU});
+    auto df1 = df.Define(weightname,
+                         [evaluator, variation](const float &pu) {
+                             double weight =
+                                 evaluator->evaluate({pu, variation});
+                             return weight;
+                         },
+                         {truePU});
     return df1;
 }
 /**
@@ -64,13 +64,13 @@ puweights(ROOT::RDF::RNode df,
           const std::string &filename, const std::string &eraname,
           const std::string &variation) {
     auto evaluator = correctionManager.loadCorrection(filename, eraname);
-    auto df1 =
-        df.Define(weightname,
-                  [evaluator, variation](const float &pu) {
-                      double weight = evaluator->evaluate({pu, variation});
-                      return weight;
-                  },
-                  {truePU});
+    auto df1 = df.Define(weightname,
+                         [evaluator, variation](const float &pu) {
+                             double weight =
+                                 evaluator->evaluate({pu, variation});
+                             return weight;
+                         },
+                         {truePU});
     return df1;
 }
 
@@ -213,13 +213,13 @@ ROOT::RDF::RNode lhe_scale_weights(ROOT::RDF::RNode df,
     if (std::find(allowed_values.begin(), allowed_values.end(), muR) ==
         allowed_values.end()) {
         Logger::get("lhe_scale_weights")
-            ->error("Invalid value for muR: {}}", muR);
+            ->error("Invalid value for muR: {}", muR);
         throw std::runtime_error("Invalid value for muR");
     }
     if (std::find(allowed_values.begin(), allowed_values.end(), muF) ==
         allowed_values.end()) {
         Logger::get("lhe_scale_weights")
-            ->error("Invalid value for muF: {}}", muF);
+            ->error("Invalid value for muF: {}", muF);
         throw std::runtime_error("Invalid value for muF");
     }
     // now find the index

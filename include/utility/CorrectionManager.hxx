@@ -8,7 +8,7 @@
 namespace correctionManager {
 class CorrectionManager {
   public:
-    CorrectionManager(){};
+    CorrectionManager() {};
     ~CorrectionManager() {
         correction_map.clear();
         correctionCompound_map.clear();
@@ -34,7 +34,8 @@ class CorrectionManager {
         std::unordered_map<
             std::string, std::shared_ptr<const correction::CompoundCorrection>>>
         correctionCompound_map;
-    std::unordered_map<std::string, std::shared_ptr<const nlohmann::json>> json_map;
+    std::unordered_map<std::string, std::shared_ptr<const nlohmann::json>>
+        json_map;
     int n_corrections = 0;
 };
 } // namespace correctionManager
