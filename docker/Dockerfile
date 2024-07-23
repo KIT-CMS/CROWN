@@ -1,5 +1,5 @@
 # start from rootproject/root:6.30.04-ubuntu22.04
-FROM rootproject/root:6.30.04-ubuntu22.04
+FROM rootproject/root:6.32.02-ubuntu22.04
 
 # Install necessary packages
 RUN apt-get update -y
