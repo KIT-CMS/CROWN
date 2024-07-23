@@ -31,6 +31,13 @@ jobs:
     outputs:
       tag: ${{ steps.check-tag.outputs.tag }}
     steps:
+      - name: Clone project
+        uses: actions/checkout@v3
+        with:
+          ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
+          submodules: "recursive"
+          ssh-strict: "false"
+          ssh-known-hosts: "[gitlab.cern.ch]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubVS0czgKaPkC5cfB75CI3XjgWBv7pj2ILiZezVf8okkCAYr+bf4w6VrH2pyv3NRUW5Mm8U/3zoSNcrYIqhFFpz6R62/3xt8hMrPKJKstbt1lSIr8QhEyD24SJEKugMi560BWRPkTzXrrFgxz0X4vuKKytpvihRsccZ7F1JaX76UCWEJ3Xr2BFCEnnN6gj9nvFr4gvSMneunWVLGw2KcHwS1OJfnWBlp3fB0rYWSxZAoVjcjZjvv3hioEftaTapff2PkdQIX//N9Cc555FzdmMzixTvU5j/i+QvjxWVbEBNSKI6te6udC4fYUZMePs2QQnqw9mXUQtaQtw+HV7utuw=="
       - name: Check if PR-specific tag exists
         id: check-tag
         run: |
