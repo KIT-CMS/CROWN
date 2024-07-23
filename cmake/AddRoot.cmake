@@ -20,6 +20,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
   message(STATUS "Attach -fconcepts to the compiler flags to silence warnings.")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts")
 endif()
-# require the C++ standard 20 and don't want to fall back to lower
+# require the C++ standard 17 and don't want to fall back to lower
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
