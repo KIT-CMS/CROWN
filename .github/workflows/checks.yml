@@ -42,7 +42,7 @@ jobs:
         id: check-tag
         run: |
           TAG=$(gh pr view ${{ github.event.pull_request.number }} --json headRefName -q .headRefName)
-          EXISTS=$(docker pull ghcr.io/${{ github.repository }}-crown-unittest:$TAG > /dev/null 2>&1 && echo "yes" || echo "no")
+          EXISTS=$(docker pull ghcr.io/kit-cms/crown-crown-unittest:$TAG > /dev/null 2>&1 && echo "yes" || echo "no")
           if [ "$EXISTS" = "yes" ]; then
             echo "::set-output name=tag::$TAG"
           else
@@ -54,7 +54,7 @@ jobs:
     needs: determine-tag
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/${{ github.repository }}-crown-unittest:${{ needs.determine-tag.outputs.tag }}
+      image: ghcr.io/kit-cms/crown-crown-unittest:${{ needs.determine-tag.outputs.tag }}
       options: --user 0 # run as root
 
     steps:
@@ -89,7 +89,7 @@ jobs:
     needs: determine-tag
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/${{ github.repository }}-crown-unittest:${{ needs.determine-tag.outputs.tag }}
+      image: ghcr.io/kit-cms/crown-crown-unittest:${{ needs.determine-tag.outputs.tag }}
       options: --user 0 # run as root
 
     steps:
@@ -125,7 +125,7 @@ jobs:
     needs: determine-tag
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/${{ github.repository }}-crown-unittest:${{ needs.determine-tag.outputs.tag }}
+      image: ghcr.io/kit-cms/crown-crown-unittest:${{ needs.determine-tag.outputs.tag }}
       options: --user 0 # run as root
 
     steps:
@@ -161,7 +161,7 @@ jobs:
     needs: determine-tag
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/${{ github.repository }}-crown-unittest:${{ needs.determine-tag.outputs.tag }}
+      image: ghcr.io/kit-cms/crown-crown-unittest:${{ needs.determine-tag.outputs.tag }}
       options: --user 0 # run as root
 
     steps:
@@ -181,7 +181,7 @@ jobs:
     needs: determine-tag
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/${{ github.repository }}-crown-unittest:${{ needs.determine-tag.outputs.tag }}
+      image: ghcr.io/kit-cms/crown-crown-unittest:${{ needs.determine-tag.outputs.tag }}
       options: --user 0 # run as root
 
     steps:
