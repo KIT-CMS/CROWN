@@ -3,7 +3,7 @@ FROM rootproject/root:6.30.04-ubuntu22.04
 
 # Install necessary packages
 RUN apt-get update -y
-RUN apt-get install -y ca-certificates gpg wget git make python3-pip libfmt-dev  openmpi-bin libopenmpi-dev libboost-all-dev openssh-client nlohmann-json3-dev
+RUN apt-get install -y ca-certificates gpg wget git make python3-pip openmpi-bin libopenmpi-dev libboost-all-dev openssh-client nlohmann-json3-dev
 
 RUN python3 -m pip install GitPython && python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
 

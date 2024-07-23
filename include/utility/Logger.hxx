@@ -5,7 +5,7 @@
 #include <Math/Vector4D.h>
 #include <TObjString.h>
 #include <bitset>
-#include <fmt/core.h> // Include fmt library header
+#include <spdlog/fmt/bundled/core.h> // Include fmt library header
 #include <map>
 #include <mutex>
 #include <spdlog/sinks/basic_file_sink.h>
