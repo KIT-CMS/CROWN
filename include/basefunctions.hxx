@@ -176,12 +176,11 @@ inline ROOT::RDF::RNode BuildP4Collection(ROOT::RDF::RNode df,
                                   const ROOT::RVec<float> &phis,
                                   const ROOT::RVec<float> &masses,
                                   const ROOT::RVec<int> &collection_index) {
-        auto p4s = ROOT::RVec<ROOT::Math::PtEtaPhiMVector>();
-        for (int i = 0; i < collection_index.size(); ++i) {
-            auto p4 = ROOT::Math::PtEtaPhiMVector(pts.at(i), etas.at(i), phis.at(i), masses.at(i));
-            p4s.push_back(p4);
-        }
-        return p4s;
+        auto pts_ = ROOT::VecOps::Take(pts, collection_index);
+        auto etas_ = ROOT::VecOps::Take(etas, collection_index);
+        auto phis_ = ROOT::VecOps::Take(phis, collection_index);
+        auto masses_ = ROOT::VecOps::Take(masses, collection_index);
+        return ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(pts_, etas_, phis_, masses_);
     };
     return df.Define(outputname, build_collection_p4, {pts, etas, phis, masses, collection_index});
 }
@@ -213,12 +212,7 @@ inline ROOT::RDF::RNode BuildP4Collection(ROOT::RDF::RNode df,
                                   const ROOT::RVec<float> &etas,
                                   const ROOT::RVec<float> &phis,
                                   const ROOT::RVec<float> &masses) {
-        auto p4s = ROOT::RVec<ROOT::Math::PtEtaPhiMVector>();
-        for (int i = 0; i < pts.size(); ++i) {
-            auto p4 = ROOT::Math::PtEtaPhiMVector(pts.at(i), etas.at(i), phis.at(i), masses.at(i));
-            p4s.push_back(p4);
-        }
-        return p4s;
+        return ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(pts, etas, phis, masses);
     };
     return df.Define(outputname, build_collection_p4, {pts, etas, phis, masses});
 }
