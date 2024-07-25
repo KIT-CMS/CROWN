@@ -5,6 +5,7 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "utility/utility.hxx"
+#include "defaults.hxx"
 #include <Math/Vector4D.h>
 
 namespace lorentzvectors {
@@ -39,6 +40,12 @@ ROOT::RDF::RNode CombineP4s(ROOT::RDF::RNode df, const std::string &outputflag,
         outputflag,
         utility::PassAsVec<np4s, ROOT::Math::PtEtaPhiMVector>(
             [](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &p4s) {
+                for (int i = 0; i < p4s.size(); i++) {
+                    auto p4 = p4s.at(i);
+                    if (p4.pt() < 0.) {
+                        return default_lorentzvector;
+                    }
+                }
                 return Sum(p4s, ROOT::Math::PtEtaPhiMVector());
             }),
         P4List);
