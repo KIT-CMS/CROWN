@@ -26,35 +26,10 @@ env:
   FRIEND_SHIFTS: "nominal,jesUncTotalUp,jesUncTotalDown,tauMuFakeEsDown"
 
 jobs:
-  determine-tag:
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.check-tag.outputs.tag }}
-    steps:
-      - name: Clone project
-        uses: actions/checkout@v3
-        with:
-          ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
-          submodules: "recursive"
-          ssh-strict: "false"
-          ssh-known-hosts: "[gitlab.cern.ch]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubVS0czgKaPkC5cfB75CI3XjgWBv7pj2ILiZezVf8okkCAYr+bf4w6VrH2pyv3NRUW5Mm8U/3zoSNcrYIqhFFpz6R62/3xt8hMrPKJKstbt1lSIr8QhEyD24SJEKugMi560BWRPkTzXrrFgxz0X4vuKKytpvihRsccZ7F1JaX76UCWEJ3Xr2BFCEnnN6gj9nvFr4gvSMneunWVLGw2KcHwS1OJfnWBlp3fB0rYWSxZAoVjcjZjvv3hioEftaTapff2PkdQIX//N9Cc555FzdmMzixTvU5j/i+QvjxWVbEBNSKI6te6udC4fYUZMePs2QQnqw9mXUQtaQtw+HV7utuw=="
-      - name: Check if PR-specific tag exists
-        id: check-tag
-        run: |
-          TAG=$(gh pr view ${{ github.event.pull_request.number }} --json headRefName -q .headRefName)
-          EXISTS=$(docker pull ghcr.io/kit-cms/crown-crown-unittest:$TAG > /dev/null 2>&1 && echo "yes" || echo "no")
-          if [ "$EXISTS" = "yes" ]; then
-            echo "::set-output name=tag::$TAG"
-          else
-            echo "::set-output name=tag::latest"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build_project:
-    needs: determine-tag
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:${{ needs.determine-tag.outputs.tag }}
+      image: ghcr.io/kit-cms/crown-crown-unittest:latest
       options: --user 0 # run as root
 
     steps:
@@ -86,10 +61,9 @@ jobs:
         run: cd ${{github.workspace}}/build && ctest -V --label-regex "ntuple.*."
 
   build_single_friend:
-    needs: determine-tag
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:${{ needs.determine-tag.outputs.tag }}
+      image: ghcr.io/kit-cms/crown-crown-unittest:latest
       options: --user 0 # run as root
 
     steps:
@@ -122,10 +96,9 @@ jobs:
         run: cd ${{github.workspace}}/build && ctest -V --label-regex "single_friend.*."
 
   build_two_friends:
-    needs: determine-tag
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:${{ needs.determine-tag.outputs.tag }}
+      image: ghcr.io/kit-cms/crown-crown-unittest:latest
       options: --user 0 # run as root
 
     steps:
@@ -158,10 +131,9 @@ jobs:
 
 
   python_format:
-    needs: determine-tag
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:${{ needs.determine-tag.outputs.tag }}
+      image: ghcr.io/kit-cms/crown-crown-unittest:latest
       options: --user 0 # run as root
 
     steps:
@@ -178,10 +150,9 @@ jobs:
         run: cd $GITHUB_WORKSPACE && bash checks/python-formatting.sh
 
   cpp_format:
-    needs: determine-tag
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:${{ needs.determine-tag.outputs.tag }}
+      image: ghcr.io/kit-cms/crown-crown-unittest:latest
       options: --user 0 # run as root
 
     steps:
@@ -198,10 +169,9 @@ jobs:
         run: cd $GITHUB_WORKSPACE && bash checks/cpp-formatting.sh
 
   docs:
-    needs: determine-tag
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:${{ needs.determine-tag.outputs.tag }}
+      image: ghcr.io/kit-cms/crown-crown-unittest:latest
       options: --user 0 # run as root
 
     steps:
