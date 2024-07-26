@@ -214,6 +214,27 @@ inline ROOT::RDF::RNode SumPerEvent(ROOT::RDF::RNode df,
     return df.Define(outputname, sum_per_event, {quantity});
 }
 
+/// This function creates a new column `outputname` with the negatives of type of the values
+/// in the column `inputname`.
+///
+/// Note that this function is implemented as a template, so specify the type `T` of the objects
+/// in the input column when calling this function with `Negative<T>(...)`.
+///
+/// \param df Input dataframe
+/// \param outputname name of the output column
+/// \param inputname column name of the input column
+///
+/// \returns a dataframe with the new column
+template <typename T>
+inline ROOT::RDF::RNode Negative(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &inputname) {
+    auto negative = [](const T &input) {
+        return -input;
+    };
+    return df.Define(outputname, negative, {inputname});
+}
+
 /// This function filters events, where neither of the input flags is true.
 /// This is used to filter events which do not pass an underlying requirement in
 /// any systematic variation.
