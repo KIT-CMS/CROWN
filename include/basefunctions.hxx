@@ -170,8 +170,7 @@ inline ROOT::RDF::RNode SumPerEvent(ROOT::RDF::RNode df,
                                     const std::string &outputname,
                                     const std::string &quantity,
                                     const std::string &collection_index,
-                                    const T zero = T(0)
-                     ) {
+                                    const T zero = T(0)) {
     auto sum_per_event = [zero](const ROOT::RVec<T> &quantity, const ROOT::RVec<int> &collection_index) {
         Logger::get("SumPerEvent")->debug(
                     "sum values {} at indices {}", quantity, collection_index);
@@ -203,8 +202,7 @@ template <typename T>
 inline ROOT::RDF::RNode SumPerEvent(ROOT::RDF::RNode df,
                                     const std::string &outputname,
                                     const std::string &quantity,
-                                    const T zero = T(0)
-                     ) {
+                                    const T zero = T(0)) {
     auto sum_per_event = [zero](const ROOT::RVec<T> &quantity) {
         Logger::get("SumPerEvent")->debug(
                     "sum values {}", quantity);
