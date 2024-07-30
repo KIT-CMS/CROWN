@@ -51,6 +51,14 @@ subjet_1(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &subjetIDx1,
                     const std::string &fatjetcollection, const int &position);
 
+ROOT::RDF::RNode delta_R_gentau_fatjet(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &fatjet_p4,
+                                 const std::string &tau_pt,
+                                 const std::string &tau_eta,
+                                 const std::string &tau_phi,
+                                 const std::string &tau_mass);
+
 // ROOT::RDF::RNode trigger_mu_in_fatjet(ROOT::RDF::RNode df,
 //                                  const std::string &outputname,
 //                                  const std::string &fatjet_p4,

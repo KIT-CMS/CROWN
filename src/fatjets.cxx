@@ -416,46 +416,49 @@ subjet_1(ROOT::RDF::RNode df, const std::string &outputname,
                      {subjetIDx1, fatjetcollection});
 }
 
-// ROOT::RDF::RNode trigger_mu_in_fatjet(ROOT::RDF::RNode df,
-//                                  const std::string &outputname,
-//                                  const std::string &fatjet_p4,
-//                                  const std::string &muon_pt,
-//                                  const std::string &muon_eta,
-//                                  const std::string &muon_phi,
-//                                  const std::string &muon_mass) {
+// returns deltaR between fatjet and closes tau
+ROOT::RDF::RNode delta_R_gentau_fatjet(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &fatjet_p4,
+                                 const std::string &tau_pt,
+                                 const std::string &tau_eta,
+                                 const std::string &tau_phi,
+                                 const std::string &tau_mass) {
 
-//     auto match_muon_with_fatjet = [](const ROOT::RVec<float> &fatjet_p4,
-//                                     const ROOT::RVec<float> &muon_pts,
-//                                     const ROOT::RVec<float> &muon_etas,
-//                                     const ROOT::RVec<float> &muon_phis,
-//                                     const ROOT::RVec<float> &muon_masses) {
+        auto match_tau_with_fatjet = [](const ROOT::Math::PtEtaPhiMVector &fatjet_p4,
+                                    const ROOT::RVec<float> &tau_pts,
+                                    const ROOT::RVec<float> &tau_etas,
+                                    const ROOT::RVec<float> &tau_phis,
+                                    const ROOT::RVec<float> &tau_masses) {
 
-//          for (unsigned int i = 0; i < muon_pts.size(); i++) {
+        // Initialize the minimum deltaR with a large value
+        float min_deltaR = 15;
+         
+         for (unsigned int i = 0; i < tau_pts.size(); i++) {
 
-//             ROOT::Math::PtEtaPhiMVector muon_p4(muon_pts.at(i), muon_etas.at(i),
-//                     muon_phis.at(i), muon_masses.at(i));
+                ROOT::Math::PtEtaPhiMVector tau_p4(tau_pts.at(i), tau_etas.at(i),
+                    tau_phis.at(i), tau_masses.at(i));
+                
+               float delta_r =
+                    ROOT::Math::VectorUtil::DeltaR(tau_p4, fatjet_p4);
+                                    if (delta_r < min_deltaR) {
+                                            min_deltaR = delta_r;
+                                        }
+                 Logger::get("fatjet::delta_R_gentau_fatjet")
+                    ->debug("DeltaR between fatjet and tau {}, min_deltaR {}", delta_r, min_deltaR);
+         }
+        return min_deltaR;
+        };
 
-//             if (ROOT::Math::VectorUtil::DeltaR(fatjet_p4, muon_p4) < 0.8) {
-//                 Logger::get("fatjet::trigger_mu_in_fatjet")
-//                     ->debug("Muon found in fatjet with pt {} and eta {}",
-//                             muon_pts.at(i), muon_etas.at(i));
-//                 return 1;
-//             }
-//             else {
-//                 Logger::get("fatjet::trigger_mu_in_fatjet")
-//                 ->debug("Muon NOT found in fatjet with pt {} and eta {}",
-//                     muon_pts.at(i), muon_etas.at(i));
-//                 return 0;
-//             }
-//          }                                                    
-                                 
-// };
 
-//     auto df1 =
-//         df.Define(outputname, match_muon_with_fatjet,
-//                   {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass});
-//     return df1;
-//     }
+        auto df1 =
+            df.Define(outputname, match_tau_with_fatjet,
+                    {fatjet_p4, tau_pt, tau_eta, tau_phi, tau_mass});
+        return df1;
+}
+
+
+
 } // end namespace fatjet
 } // end namespace quantities
 #endif /* GUARDFATJETS_H */

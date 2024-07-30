@@ -455,6 +455,81 @@ ROOT::RDF::RNode fatjet_tau_had_genmatching(ROOT::RDF::RNode df, const std::stri
     return df1;
 }
 
+
+ROOT::RDF::RNode fatjet_tau_had_min_deltaR(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &hadronicGenTaus,
+                             const std::string &genparticles_pdgid,
+                             const std::string &genparticles_statusFlag,
+                             const std::string &genparticles_pt,
+                             const std::string &genparticles_eta,
+                             const std::string &genparticles_phi,
+                             const std::string &genparticles_mass,
+                             const std::string &lepton_p4) {
+    auto match_lepton = [](const std::vector<int> &hadronicGenTaus,
+                           const ROOT::RVec<int> &pdgids,
+                           const ROOT::RVec<unsigned short> &status_flags,
+                           const ROOT::RVec<float> &pts,
+                           const ROOT::RVec<float> &etas,
+                           const ROOT::RVec<float> &phis,
+                           const ROOT::RVec<float> &masses,
+                           const ROOT::Math::PtEtaPhiMVector &lepton_p4) {
+        // find closest lepton fulfilling the requirements
+        float min_delta_r = 9999;
+        int closest_genparticle_index = 0;
+
+        Logger::get("genmatching::tau::fatjet_genmatching")
+                        ->info("\n &&&& start genmatchine  {}");
+
+            int gen_value = -1;
+            float min_fat_jet_tau_h_deltaR = 10;
+
+
+            if (hadronicGenTaus.size() != 0) {
+
+                
+                Logger::get("genmatching::tau::fatjet_genmatching")
+                        ->info("\n Gentaus with non zero size  {}", hadronicGenTaus.size());
+
+                
+                for (auto hadronicGenTau : hadronicGenTaus) {
+
+                    Logger::get("genmatching::tau::fatjet_genmatching")
+                        ->info("Gentaus with non zero size index {}", hadronicGenTau);
+                    
+
+                         Logger::get("genmatching::tau::fatjet_genmatching")
+                            ->info("Gentaus with some quantities pt {}, eta {}, phi {}, mass {}", pts.at(hadronicGenTau), etas.at(hadronicGenTau), phis.at(hadronicGenTau), masses.at(hadronicGenTau));
+
+                        ROOT::Math::PtEtaPhiMVector hadronicGenTau_p4(
+                        pts.at(hadronicGenTau), etas.at(hadronicGenTau),
+                        phis.at(hadronicGenTau), masses.at(hadronicGenTau));
+                        float gentau_delta_r =
+                            ROOT::Math::VectorUtil::DeltaR(hadronicGenTau_p4, lepton_p4);
+
+                            if (gentau_delta_r < min_fat_jet_tau_h_deltaR){
+                                    min_fat_jet_tau_h_deltaR = gentau_delta_r;
+                            }
+
+                    
+                }
+
+                }
+
+            Logger::get("genmatching::tau::fatjet_tau_had_min_deltaR") ->info("min delta R beween fatjet and tau_h {}", min_fat_jet_tau_h_deltaR);
+
+            return min_fat_jet_tau_h_deltaR;
+
+    };
+
+    auto df1 =
+        df.Define(outputname, match_lepton,
+                  {hadronicGenTaus, genparticles_pdgid, genparticles_statusFlag,
+                   genparticles_pt, genparticles_eta, genparticles_phi,
+                   genparticles_mass, lepton_p4});
+
+    return df1;
+}
+
 /**
  * @brief implementation of the genmatching used in tau analyses, based
  * on
