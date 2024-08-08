@@ -61,6 +61,16 @@ ROOT::RDF::RNode fatjet_mu_tau_deltaR(ROOT::RDF::RNode df, const std::string &ou
                              const std::string &genparticles_phi,
                              const std::string &genparticles_mass,
                              const std::string &lepton_p4);
+
+ROOT::RDF::RNode gen_mu_tau_deltaR(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &genparticles_pdgid,
+                             const std::string &genparticles_motherId,
+                             const std::string &genparticles_statusFlag,
+                             const std::string &genparticles_pt,
+                             const std::string &genparticles_eta,
+                             const std::string &genparticles_phi,
+                             const std::string &genparticles_mass,
+                             const std::string &lepton_p4);
                              
 ROOT::RDF::RNode genmatching_wh(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &genTaus,
