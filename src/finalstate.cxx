@@ -44,7 +44,7 @@ ROOT::RDF::RNode n_taus(ROOT::RDF::RNode df,
                                                     const ROOT::RVec<unsigned char> &vs_ele,
                                                     const ROOT::RVec<unsigned char> &dm) {
                             int counts = 0;
-                            Logger::get("finalstate::n_taus")->info("Before starting counting we have {} counts", counts);
+                            Logger::get("finalstate::n_taus")->debug("Before starting counting we have {} counts", counts);
                             for (unsigned int i = 0; i < pt.size(); ++i) {
                                 if (pt[i] > TauPtThreshold &&
                                     fabs(eta[i]) < TauEtaThreshold &&
@@ -58,7 +58,7 @@ ROOT::RDF::RNode n_taus(ROOT::RDF::RNode df,
                             }
                             return counts;
 
-                        Logger::get("finalstate::n_taus")->info("After starting counting we have {} counts", counts);
+                        
                         };
                         
                         // Apply the lambda function and define a new column with the counts
@@ -72,6 +72,74 @@ ROOT::RDF::RNode n_taus(ROOT::RDF::RNode df,
                                  }
 
 
+ROOT::RDF::RNode n_muons(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &muon_pt,
+                                 const std::string &muon_eta,
+                                 const float &MuPtThreshold,
+                                 const float &MuEtaThreshold) {
+
+
+                        // Lambda function to count taus passing the cuts
+                        auto count_muons_lambda = [=](const ROOT::RVec<float> &pt,
+                                                    const ROOT::RVec<float> &eta) {
+                            int counts = 0;
+                            
+                            for (unsigned int i = 0; i < pt.size(); ++i) {
+                                if (pt[i] > MuPtThreshold &&
+                                    fabs(eta[i]) < MuEtaThreshold ) {
+                                    ++counts;
+                                }
+                            }
+                            return counts;
+
+                        
+                        };
+                        
+                        // Apply the lambda function and define a new column with the counts
+                        auto df1 =
+                         df.Define(outputname, count_muons_lambda,
+                          {muon_pt, muon_eta});
+
+
+                        return df1;
+
+                                 }
+
+
+ROOT::RDF::RNode n_eles(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &ele_pt,
+                                 const std::string &ele_eta,
+                                 const float &ElePtThreshold,
+                                 const float &EleEtaThreshold) {
+
+
+                        // Lambda function to count taus passing the cuts
+                        auto count_eles_lambda = [=](const ROOT::RVec<float> &pt,
+                                                    const ROOT::RVec<float> &eta) {
+                            int counts = 0;
+                            
+                            for (unsigned int i = 0; i < pt.size(); ++i) {
+                                if (pt[i] > EleEtaThreshold &&
+                                    fabs(eta[i]) < EleEtaThreshold ) {
+                                    ++counts;
+                                }
+                            }
+                            return counts;
+
+                        
+                        };
+                        
+                        // Apply the lambda function and define a new column with the counts
+                        auto df1 =
+                         df.Define(outputname, count_eles_lambda,
+                          {ele_pt, ele_eta});
+
+
+                        return df1;
+
+                                 }
 
     
 } // end namespace finalstate

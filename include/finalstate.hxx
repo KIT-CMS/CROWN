@@ -20,6 +20,20 @@ ROOT::RDF::RNode n_taus(ROOT::RDF::RNode df,
                                 const float &TauVsEleThreshold,
                                 const std::vector<int> &SelectedDecayModes);
 
+ROOT::RDF::RNode n_muons(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &muon_pt,
+                                 const std::string &muon_eta,
+                                 const float &MuPtThreshold,
+                                 const float &MuEtaThreshold);
+
+ROOT::RDF::RNode n_eles(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &ele_pt,
+                                 const std::string &ele_eta,
+                                 const float &ElePtThreshold,
+                                 const float &EleEtaThreshold);
+
 }
 
 #endif /* GUARDFINALSTATE_H */
