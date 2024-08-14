@@ -626,6 +626,106 @@ ROOT::RDF::RNode fatjet_mu_tau_deltaR(ROOT::RDF::RNode df, const std::string &ou
                 return df1;
         }
 
+ROOT::RDF::RNode fatjet_mu_tau_deltaPhi(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &genparticles_pdgid,
+                             const std::string &genparticles_motherId,
+                             const std::string &genparticles_statusFlag,
+                             const std::string &genparticles_pt,
+                             const std::string &genparticles_eta,
+                             const std::string &genparticles_phi,
+                             const std::string &genparticles_mass,
+                             const std::string &lepton_p4) {
+                             auto match_tau_types_with_fatjet = [](const ROOT::RVec<int> &pdgids, 
+                                      const ROOT::RVec<short>& motherIdx, 
+                                      const ROOT::RVec<unsigned short>& statusFlags, 
+                                      const ROOT::RVec<float>& pt, 
+                                      const ROOT::RVec<float>& eta, 
+                                      const ROOT::RVec<float>& phi, 
+                                      const ROOT::RVec<float>& mass, 
+                                      const ROOT::Math::PtEtaPhiMVector &fatjet_p4){
+
+
+                    float delta_Phi = 8;
+
+                    for (size_t i = 0; i < pdgids.size(); ++i) {
+                        if (abs(pdgids[i]) == 15 && (statusFlags[i] & (1 << 13))  ) { // Direct tau decay product
+                            bool isHadronicTau = true;
+                            ROOT::Math::PtEtaPhiMVector hadronicTau;
+
+                            // Check for hadronic tau (no electrons or muons among the decay products)
+                            for (size_t k = 0; k < pdgids.size(); ++k) {
+                                if (motherIdx[k] == i) {
+                                    if (abs(pdgids[k]) == 11 || abs(pdgids[k]) == 13) {
+                                        isHadronicTau = false;
+                                        break;
+                                    }
+                                    // Exclude neutrinos (pdgId 12, 14, 16)
+                                    if (abs(pdgids[k]) != 12 && abs(pdgids[k]) != 14 && abs(pdgids[k]) != 16) {
+                                        hadronicTau += ROOT::Math::PtEtaPhiMVector(pt[k], eta[k], phi[k], mass[k]);
+
+                                    Logger::get("fatjet_mu_tau_deltaPhi")
+                                            ->debug("We have hadronic tau products with pt {}, eta {}, phi {}, pdgID {}, k={}, i={}, pdgids.size()={}", pt[k],eta[k], phi[k],pdgids[k], k, i , pdgids.size());
+                                    }
+                                }
+                            }
+
+                            if (!isHadronicTau) continue;
+
+                            for (size_t j = 0; j < pdgids.size(); ++j) {
+                                if (j == i) continue;
+                                if (abs(pdgids[j]) == 15 && motherIdx[j] == motherIdx[i] && (statusFlags[j] & (1 << 13))  ) {
+                                    bool isMuonicTau = false;
+                                    ROOT::Math::PtEtaPhiMVector muonicTau;
+
+                                    for (size_t l = 0; l < pdgids.size(); ++l) {
+                                        if (motherIdx[l] == j) {
+                                            if (abs(pdgids[l]) == 13) { // Muon
+                                                isMuonicTau = true;
+                                                
+                                            
+                                            // Exclude neutrinos (pdgId 12, 14, 16)
+                                            if (abs(pdgids[l]) != 12 && abs(pdgids[l]) != 14 && abs(pdgids[l]) != 16) {
+                                                muonicTau += ROOT::Math::PtEtaPhiMVector(pt[l], eta[l], phi[l], mass[l]);
+
+                                        Logger::get("fatjet_mu_tau_deltaPhi")
+                                            ->debug("We have muonic tau products with pt {}, eta {}, phi {}, pdgID {}, l={}, i={}, pdgids.size()={}", pt[l],eta[l], phi[l], pdgids[l] , l, i, pdgids.size()  );
+                                            }
+                                            }
+                                        }
+                                    }
+
+                                    if (isMuonicTau) {
+                                        // Combine hadronic and muonic tau 4-vectors
+                                        auto tau_p4_sum = hadronicTau + muonicTau;
+
+
+                                        // Compute DeltaPhi between the fatjet and the combined tau 4-vector
+                                        if (fatjet_p4.Pt() !=-10 ){
+                                        
+                                        float delta_Phi_mt = tau_p4_sum.Phi() - fatjet_p4.Phi();
+                                        
+                                        if (delta_Phi_mt > M_PI) delta_Phi_mt -= 2 * M_PI;
+                                        if (delta_Phi_mt < -M_PI) delta_Phi_mt += 2 * M_PI;
+
+                                        delta_Phi = delta_Phi_mt;
+
+                                        Logger::get("fatjet_mu_tau_deltaPhi")
+                                            ->info("We have a mu tau_h pair delta Phi between fatjet and mu tau pair {}", delta_Phi);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+        return delta_Phi;
+    };
+
+                auto df1 = df.Define(outputname, match_tau_types_with_fatjet,
+                    {genparticles_pdgid, genparticles_motherId, genparticles_statusFlag, genparticles_pt, 
+                    genparticles_eta, genparticles_phi, genparticles_mass, lepton_p4});
+
+                return df1;
+        }
     
 ROOT::RDF::RNode gen_mu_tau_deltaR(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &genparticles_pdgid,
