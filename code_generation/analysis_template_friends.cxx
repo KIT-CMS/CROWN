@@ -59,9 +59,16 @@ int validate_rootfile(std::string file, std::string &basetree) {
         Logger::get("main")->info("CROWN input_file: {} - {} Events", file,
                                   t1->GetEntries());
         return nevents;
+    } else if (list->FindObject("quantities")) {
+        TTree *t1 = (TTree *)f1->Get("quantities");
+        nevents += t1->GetEntries();
+        basetree = "ntuple";
+        Logger::get("main")->critical("CROWN input_file: {} - {} Events", file,
+                                  t1->GetEntries());
+        return nevents;
     } else {
         Logger::get("main")->critical("File {} does not contain a tree "
-                                      "named 'Events' or 'ntuple'",
+                                      "named 'Events' or 'ntuple' or 'quantities'",
                                       file);
         return -1;
     }
@@ -161,9 +168,11 @@ int main(int argc, char *argv[]) {
     ROOT::RDataFrame df0(dataset);
     ROOT::RDF::Experimental::AddProgressBar(df0); // add progress bar
     // print all available branches to the log
-    Logger::get("main")->debug("Available branches:");
-    for (auto const &branch : df0.GetColumnNames()) {
-        Logger::get("main")->debug("{}", branch);
+    if (nevents != 0) {
+        Logger::get("main")->debug("Available branches:");
+        for (auto const &branch : df0.GetColumnNames()) {
+            Logger::get("main")->debug("{}", branch);
+        }
     }
     Logger::get("main")->info(
         "Starting Setup of Dataframe with {} events and {} friends", nevents,
