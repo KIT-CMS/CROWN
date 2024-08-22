@@ -710,7 +710,7 @@ ROOT::RDF::RNode fatjet_mu_tau_deltaPhi(ROOT::RDF::RNode df, const std::string &
                                         delta_Phi = delta_Phi_mt;
 
                                         Logger::get("fatjet_mu_tau_deltaPhi")
-                                            ->info("We have a mu tau_h pair delta Phi between fatjet and mu tau pair {}", delta_Phi);
+                                            ->debug("We have a mu tau_h pair delta Phi between fatjet and mu tau pair {}", delta_Phi);
                                         }
                                     }
                                 }
