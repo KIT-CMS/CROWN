@@ -166,9 +166,9 @@ int main(int argc, char *argv[]) {
     }
     // initialize df
     ROOT::RDataFrame df0(dataset);
-    ROOT::RDF::Experimental::AddProgressBar(df0); // add progress bar
     // print all available branches to the log
     if (nevents != 0) {
+        ROOT::RDF::Experimental::AddProgressBar(df0); // add progress bar
         Logger::get("main")->debug("Available branches:");
         for (auto const &branch : df0.GetColumnNames()) {
             Logger::get("main")->debug("{}", branch);
