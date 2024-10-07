@@ -260,6 +260,11 @@ ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, const std::string &pt,
                           ->debug("Trigger - pt {}, eta {}", pt, eta);
                       double sf = 1.;
                       float low_pt_threshold = 26.0; // for IsoMu24 trigger
+                      if (year_id == "2017_UL") {
+                          low_pt_threshold = 29.0; // for IsoMu27 trigger
+                      } else if (year_id == "2018_UL") {
+                          low_pt_threshold = 26.0; // for IsoMu24 trigger
+                      }
                       if (idAlgorithm.find("Mu50") != std::string::npos) {
                           low_pt_threshold = 52.0;
                       }
