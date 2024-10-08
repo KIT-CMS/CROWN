@@ -1073,6 +1073,7 @@ PtCorrectionMC(ROOT::RDF::RNode df, const std::string &corrected_pt,
                         pt_values.at(i), corrected_pt_values.at(i), dpt);
                 } else if (variation == "resolutionDown") {
                     auto dpt = ES_sigma_down.at(i) / std::cosh(eta.at(i));
+                    // sign is already incorporated in nanoAOD branch
                     corrected_pt_values[i] = pt_values.at(i) + dpt;
                     Logger::get("eleEnergyCorrection")
                     ->debug("ele pt before {}, ele pt after {}, dpt {}",

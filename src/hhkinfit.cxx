@@ -37,12 +37,6 @@ auto single_output(const int &idx) {
  * @param outputname_5 name of the output column for the ch2 value
  * @param outputname_6 name of the output column for the probability of chi2
  * value
- * @param outputname_7 name of the output column for the pull value of the chi2
- * part for the first b-jet
- * @param outputname_8 name of the output column for the pull value of the chi2
- * part for the second b-jet
- * @param outputname_9 name of the output column for the pull value of the chi2
- * part for the recoil
  * @param tau_pt_1 name of the column containing the pt of the first tau in the
  * tau pair
  * @param tau_eta_1 name of the column containing the eta of the first tau in
@@ -92,8 +86,7 @@ ROOT::RDF::RNode
 YHKinFit(ROOT::RDF::RNode df, const std::string &outputname_1,
          const std::string &outputname_2, const std::string &outputname_3,
          const std::string &outputname_4, const std::string &outputname_5,
-         const std::string &outputname_6, const std::string &outputname_7,
-         const std::string &outputname_8, const std::string &outputname_9,
+         const std::string &outputname_6,
          const std::string &tau_pt_1, const std::string &tau_eta_1,
          const std::string &tau_phi_1, const std::string &tau_mass_1,
          const std::string &tau_pt_2, const std::string &tau_eta_2,
@@ -127,24 +120,21 @@ YHKinFit(ROOT::RDF::RNode df, const std::string &outputname_1,
         auto kinfit_mh = -10.;
         auto kinfit_chi2 = 999.;
         auto kinfit_prob = 0.;
-        auto kinfit_pull1 = -10.;
-        auto kinfit_pull2 = -10.;
-        auto kinfit_pullBalance = -10.;
         auto kinfit_convergence = -1.;
 
         if ((tau_pt_1 > 0.) && (tau_pt_2 > 0.) && (b_pt_1 > 0.) &&
             (b_pt_2 > 0.)) {
-            ROOT::Math::PtEtaPhiMVector tau_1 = ROOT::Math::PtEtaPhiMVector(
+            ROOT::Math::PtEtaPhiEVector tau_1 = (ROOT::Math::PtEtaPhiEVector) ROOT::Math::PtEtaPhiMVector(
                 tau_pt_1, tau_eta_1, tau_phi_1, tau_mass_1);
-            ROOT::Math::PtEtaPhiMVector tau_2 = ROOT::Math::PtEtaPhiMVector(
+            ROOT::Math::PtEtaPhiEVector tau_2 = (ROOT::Math::PtEtaPhiEVector) ROOT::Math::PtEtaPhiMVector(
                 tau_pt_2, tau_eta_2, tau_phi_2, tau_mass_2);
-            ROOT::Math::PtEtaPhiMVector b_1 =
-                ROOT::Math::PtEtaPhiMVector(b_pt_1, b_eta_1, b_phi_1, b_mass_1);
-            ROOT::Math::PtEtaPhiMVector b_2 =
-                ROOT::Math::PtEtaPhiMVector(b_pt_2, b_eta_2, b_phi_2, b_mass_2);
+            ROOT::Math::PtEtaPhiEVector b_1 =
+                (ROOT::Math::PtEtaPhiEVector) ROOT::Math::PtEtaPhiMVector(b_pt_1, b_eta_1, b_phi_1, b_mass_1);
+            ROOT::Math::PtEtaPhiEVector b_2 =
+                (ROOT::Math::PtEtaPhiEVector) ROOT::Math::PtEtaPhiMVector(b_pt_2, b_eta_2, b_phi_2, b_mass_2);
 
-            ROOT::Math::PtEtaPhiMVector met_LV =
-                ROOT::Math::PtEtaPhiMVector(met, 0., met_phi, 0.);
+            ROOT::Math::PtEtaPhiEVector met_LV =
+                (ROOT::Math::PtEtaPhiEVector) ROOT::Math::PtEtaPhiMVector(met, 0., met_phi, 0.);
             TMatrixD met_cov(2, 2);
             met_cov[0][0] = met_cov00;
             met_cov[1][0] = met_cov10;
@@ -188,12 +178,6 @@ YHKinFit(ROOT::RDF::RNode df, const std::string &outputname_1,
                     kinFits.getMYFullFit();
                 std::map<std::pair<int, int>, double> fit_results_mh =
                     kinFits.getMhFullFit();
-                std::map<std::pair<int, int>, double> fit_results_pull_b1 =
-                    kinFits.getPullB1FullFit();
-                std::map<std::pair<int, int>, double> fit_results_pull_b2 =
-                    kinFits.getPullB2FullFit();
-                std::map<std::pair<int, int>, double> fit_results_pull_balance =
-                    kinFits.getPullBalanceFullFit();
                 std::map<std::pair<int, int>, int> fit_convergence =
                     kinFits.getConvergenceFullFit();
 
@@ -203,9 +187,6 @@ YHKinFit(ROOT::RDF::RNode df, const std::string &outputname_1,
                 kinfit_mh = fit_results_mh.at(bestHypo);
                 kinfit_chi2 = fit_results_chi2.at(bestHypo);
                 kinfit_prob = fit_results_fitprob.at(bestHypo);
-                kinfit_pull1 = fit_results_pull_b1.at(bestHypo);
-                kinfit_pull2 = fit_results_pull_b2.at(bestHypo);
-                kinfit_pullBalance = fit_results_pull_balance.at(bestHypo);
             }
             Logger::get("YHKinFit" + YDecay)
                 ->debug("kinfit_convergence: {}", kinfit_convergence);
@@ -216,26 +197,24 @@ YHKinFit(ROOT::RDF::RNode df, const std::string &outputname_1,
                 ->debug("kinfit_chi2: {}", kinfit_chi2);
             Logger::get("YHKinFit" + YDecay)
                 ->debug("kinfit_prob: {}", kinfit_prob);
-            Logger::get("YHKinFit" + YDecay)
-                ->debug("kinfit_pull1: {}", kinfit_pull1);
-            Logger::get("YHKinFit" + YDecay)
-                ->debug("kinfit_pull2: {}", kinfit_pull2);
-            Logger::get("YHKinFit" + YDecay)
-                ->debug("kinfit_pullBalance: {}", kinfit_pullBalance);
         }
 
         ROOT::RVec<float> result = {
             (float)kinfit_convergence, (float)kinfit_mX,
             (float)kinfit_mY,          (float)kinfit_mh,
-            (float)kinfit_chi2,        (float)kinfit_prob,
-            (float)kinfit_pull1,       (float)kinfit_pull2,
-            (float)kinfit_pullBalance};
+            (float)kinfit_chi2,        (float)kinfit_prob};
         return result;
     };
 
-    std::string result_vec_name = "HYKinFit_vector_" + YDecay + "_resolved";
+    std::string variation = "";
+    if (outputname_1.find("__") != std::string::npos) {
+        size_t pos = outputname_1.find("__");
+        variation = outputname_1.substr(pos);;
+    }
+    
+    std::string result_vec_name = "HYKinFit_vector_" + YDecay + "_resolved" + variation;
     if (outputname_1.find("boosted") != std::string::npos) {
-        result_vec_name = "HYKinFit_vector_" + YDecay + "_boosted";
+        result_vec_name = "HYKinFit_vector_" + YDecay + "_boosted" + variation;
     }
 
     auto df1 = df.Define(
@@ -257,14 +236,8 @@ YHKinFit(ROOT::RDF::RNode df, const std::string &outputname_1,
         df5.Define(outputname_5, hhkinfit::single_output(4), {result_vec_name});
     auto df7 =
         df6.Define(outputname_6, hhkinfit::single_output(5), {result_vec_name});
-    auto df8 =
-        df7.Define(outputname_7, hhkinfit::single_output(6), {result_vec_name});
-    auto df9 =
-        df8.Define(outputname_8, hhkinfit::single_output(7), {result_vec_name});
-    auto df10 =
-        df9.Define(outputname_9, hhkinfit::single_output(8), {result_vec_name});
 
-    return df10;
+    return df7;
 }
 /**
  * @brief Function to compare the chi2 results of kinematic fits for two
@@ -281,12 +254,6 @@ YHKinFit(ROOT::RDF::RNode df, const std::string &outputname_1,
  * @param outputname_5 name of the output column for the ch2 value
  * @param outputname_6 name of the output column for the probability of chi2
  * value
- * @param outputname_7 name of the output column for the pull value of the chi2
- * part for the first b-jet
- * @param outputname_8 name of the output column for the pull value of the chi2
- * part for the second b-jet
- * @param outputname_9 name of the output column for the pull value of the chi2
- * part for the recoil
  * @param kinfit_convergence_YToBB name of the column containing the convergence
  * status of the fit for X -> Y(bb)H(tautau)
  * @param kinfit_mX_YToBB name of the column containing the estimated mass of
@@ -299,12 +266,6 @@ YHKinFit(ROOT::RDF::RNode df, const std::string &outputname_1,
  * Y(bb)H(tautau)
  * @param kinfit_prob_YToBB name of the column containing the probability of
  * chi2 value for X -> Y(bb)H(tautau)
- * @param kinfit_pull1_YToBB name of the column containing the pull value of the
- * chi2 part for the first b-jet for X -> Y(bb)H(tautau)
- * @param kinfit_pull2_YToBB name of the column containing the pull value of the
- * chi2 part for the second b-jet for X -> Y(bb)H(tautau)
- * @param kinfit_pullBalance_YToBB name of the column containing the pull value
- * of the chi2 part for the recoil for X -> Y(bb)H(tautau)
  * @param kinfit_convergence_YToTauTau name of the column containing the
  * convergence status of the fit for X -> Y(tautau)H(bb)
  * @param kinfit_mX_YToTauTau name of the column containing the estimated mass
@@ -317,12 +278,6 @@ YHKinFit(ROOT::RDF::RNode df, const std::string &outputname_1,
  * X -> Y(tautau)H(bb)
  * @param kinfit_prob_YToTauTau name of the column containing the probability of
  * chi2 value for X -> Y(tautau)H(bb)
- * @param kinfit_pull1_YToTauTau name of the column containing the pull value of
- * the chi2 part for the first b-jet for X -> Y(tautau)H(bb)
- * @param kinfit_pull2_YToTauTau name of the column containing the pull value of
- * the chi2 part for the second b-jet for X -> Y(tautau)H(bb)
- * @param kinfit_pullBalance_YToTauTau name of the column containing the pull
- * value of the chi2 part for the recoil for X -> Y(tautau)H(bb)
  * @returns a dataframe with all outputs of the best kinematic fit between the
  * two considered decays
  */
@@ -330,23 +285,17 @@ ROOT::RDF::RNode BestYHKinFit(
     ROOT::RDF::RNode df, const std::string &outputname_1,
     const std::string &outputname_2, const std::string &outputname_3,
     const std::string &outputname_4, const std::string &outputname_5,
-    const std::string &outputname_6, const std::string &outputname_7,
-    const std::string &outputname_8, const std::string &outputname_9,
+    const std::string &outputname_6,
     const std::string &kinfit_convergence_YToBB,
     const std::string &kinfit_mX_YToBB, const std::string &kinfit_mY_YToBB,
     const std::string &kinfit_mh_YToBB, const std::string &kinfit_chi2_YToBB,
-    const std::string &kinfit_prob_YToBB, const std::string &kinfit_pull1_YToBB,
-    const std::string &kinfit_pull2_YToBB,
-    const std::string &kinfit_pullBalance_YToBB,
+    const std::string &kinfit_prob_YToBB,
     const std::string &kinfit_convergence_YToTauTau,
     const std::string &kinfit_mX_YToTauTau,
     const std::string &kinfit_mY_YToTauTau,
     const std::string &kinfit_mh_YToTauTau,
     const std::string &kinfit_chi2_YToTauTau,
-    const std::string &kinfit_prob_YToTauTau,
-    const std::string &kinfit_pull1_YToTauTau,
-    const std::string &kinfit_pull2_YToTauTau,
-    const std::string &kinfit_pullBalance_YToTauTau) {
+    const std::string &kinfit_prob_YToTauTau) {
     Logger::get("BestYHKinFit")
         ->debug("Decide on the best YHKinFit between the Y(tautau)H(bb) and "
                 "Y(bb)H(tautau) cases.");
@@ -355,23 +304,15 @@ ROOT::RDF::RNode BestYHKinFit(
         [](const float &kinfit_convergence_YToBB, const float &kinfit_mX_YToBB,
            const float &kinfit_mY_YToBB, const float &kinfit_mh_YToBB,
            const float &kinfit_chi2_YToBB, const float &kinfit_prob_YToBB,
-           const float &kinfit_pull1_YToBB, const float &kinfit_pull2_YToBB,
-           const float &kinfit_pullBalance_YToBB,
            const float &kinfit_convergence_YToTauTau,
            const float &kinfit_mX_YToTauTau, const float &kinfit_mY_YToTauTau,
            const float &kinfit_mh_YToTauTau, const float &kinfit_chi2_YToTauTau,
-           const float &kinfit_prob_YToTauTau,
-           const float &kinfit_pull1_YToTauTau,
-           const float &kinfit_pull2_YToTauTau,
-           const float &kinfit_pullBalance_YToTauTau) {
+           const float &kinfit_prob_YToTauTau) {
             auto kinfit_mX = -10.;
             auto kinfit_mY = -10.;
             auto kinfit_mh = -10.;
             auto kinfit_chi2 = 999.;
             auto kinfit_prob = 0.;
-            auto kinfit_pull1 = -10.;
-            auto kinfit_pull2 = -10.;
-            auto kinfit_pullBalance = -10.;
             auto kinfit_convergence = -1.;
 
             if ((kinfit_mX_YToBB > 0.) || (kinfit_mX_YToTauTau > 0.)) {
@@ -379,17 +320,13 @@ ROOT::RDF::RNode BestYHKinFit(
                     ROOT::RVec<float> result = {
                         kinfit_convergence_YToBB, kinfit_mX_YToBB,
                         kinfit_mY_YToBB,          kinfit_mh_YToBB,
-                        kinfit_chi2_YToBB,        kinfit_prob_YToBB,
-                        kinfit_pull1_YToBB,       kinfit_pull2_YToBB,
-                        kinfit_pullBalance_YToBB};
+                        kinfit_chi2_YToBB,        kinfit_prob_YToBB};
                     return result;
                 } else if (kinfit_chi2_YToBB >= kinfit_chi2_YToTauTau) {
                     ROOT::RVec<float> result = {
                         kinfit_convergence_YToTauTau, kinfit_mX_YToTauTau,
                         kinfit_mY_YToTauTau,          kinfit_mh_YToTauTau,
-                        kinfit_chi2_YToTauTau,        kinfit_prob_YToTauTau,
-                        kinfit_pull1_YToTauTau,       kinfit_pull2_YToTauTau,
-                        kinfit_pullBalance_YToTauTau};
+                        kinfit_chi2_YToTauTau,        kinfit_prob_YToTauTau};
                     return result;
                 }
             }
@@ -397,26 +334,27 @@ ROOT::RDF::RNode BestYHKinFit(
             ROOT::RVec<float> result = {
                 (float)kinfit_convergence, (float)kinfit_mX,
                 (float)kinfit_mY,          (float)kinfit_mh,
-                (float)kinfit_chi2,        (float)kinfit_prob,
-                (float)kinfit_pull1,       (float)kinfit_pull2,
-                (float)kinfit_pullBalance};
+                (float)kinfit_chi2,        (float)kinfit_prob};
             return result;
         };
 
-    std::string result_vec_name = "BestHYKinFit_vector_resolved";
+    std::string variation = "";
+    if (outputname_1.find("__") != std::string::npos) {
+        size_t pos = outputname_1.find("__");
+        variation = outputname_1.substr(pos);;
+    }
+    
+    std::string result_vec_name = "HYKinFit_vector_resolved" + variation;
     if (outputname_1.find("boosted") != std::string::npos) {
-        result_vec_name = "BestHYKinFit_vector_boosted";
+        result_vec_name = "HYKinFit_vector_boosted" + variation;
     }
 
     auto df1 = df.Define(
         result_vec_name, best_kin_fit,
         {kinfit_convergence_YToBB, kinfit_mX_YToBB, kinfit_mY_YToBB,
          kinfit_mh_YToBB, kinfit_chi2_YToBB, kinfit_prob_YToBB,
-         kinfit_pull1_YToBB, kinfit_pull2_YToBB, kinfit_pullBalance_YToBB,
          kinfit_convergence_YToTauTau, kinfit_mX_YToTauTau, kinfit_mY_YToTauTau,
-         kinfit_mh_YToTauTau, kinfit_chi2_YToTauTau, kinfit_prob_YToTauTau,
-         kinfit_pull1_YToTauTau, kinfit_pull2_YToTauTau,
-         kinfit_pullBalance_YToTauTau});
+         kinfit_mh_YToTauTau, kinfit_chi2_YToTauTau, kinfit_prob_YToTauTau});
 
     auto df2 =
         df1.Define(outputname_1, hhkinfit::single_output(0), {result_vec_name});
@@ -430,14 +368,8 @@ ROOT::RDF::RNode BestYHKinFit(
         df5.Define(outputname_5, hhkinfit::single_output(4), {result_vec_name});
     auto df7 =
         df6.Define(outputname_6, hhkinfit::single_output(5), {result_vec_name});
-    auto df8 =
-        df7.Define(outputname_7, hhkinfit::single_output(6), {result_vec_name});
-    auto df9 =
-        df8.Define(outputname_8, hhkinfit::single_output(7), {result_vec_name});
-    auto df10 =
-        df9.Define(outputname_9, hhkinfit::single_output(8), {result_vec_name});
 
-    return df10;
+    return df7;
 }
 
 } // namespace hhkinfit

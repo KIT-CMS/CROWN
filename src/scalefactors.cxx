@@ -303,7 +303,6 @@ VVTight                             |  128  | 8
  * @param selectedDMs list of allowed decay modes for which a scale factor
  * should be calculated
  * @param wp working point of the ID cut
- * @param vsEle_wp working point of the vs electron ID
  * @param sf_vsjet_tau30to35 id for the variation of the scale factor "sf" for
 nominal
  * and "systup"/"systdown" the up/down variation
@@ -1294,6 +1293,8 @@ namespace fatjet {
  * correctionlib
  * @param df The input dataframe
  * @param pt fatjet pt
+ * @param nBhadrons number of B hadrons in a fatjet
+ * @param nChadrons number of C hadrons in a fatjet
  * @param variation name of the variation of the scale factor. Available Values:
  * nominal, down, up
  * @param sf_output name of the scale factor column
@@ -1301,26 +1302,37 @@ namespace fatjet {
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-pNetXbbSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &variation,
-       const std::string &sf_output, const std::string &sf_file) {
+pNetXbbSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &nBhad, const std::string &nChad, 
+        const std::string &variation, const std::string &sf_output, const std::string &sf_file) {
     Logger::get("pNetXbbSF")->debug(
         "Setting up functions for particleNet X(bb) sf with correctionlib");
 
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at("particleNet_Xbb_tagger_SF");
 
-    auto pNetXbbSF_lambda = [evaluator, variation](const float &pt_value) {
+    auto pNetXbbSF_lambda = [evaluator, variation](const float &pt_value, const int &nBhad, const int &nChad) {
         Logger::get("pNetXbbSF")->debug("Variation - Name {}", variation);
         float sf = 1.;
 
-        if (pt_value >= 0.0) {
-            sf = evaluator->evaluate({pt_value, variation});
+        if (pt_value >= 200.0) {
+            if (nBhad>0) {
+                sf = evaluator->evaluate({pt_value, "B", variation});
+            }
+            else if (nBhad==0 && nChad>0) {
+                sf = evaluator->evaluate({pt_value, "C", variation});
+            }
+            else if (nBhad==0 && nChad==0) {
+                sf = evaluator->evaluate({pt_value, "L", variation});
+            }
+            else {
+                sf = 1.;
+            }
         }
 
-        Logger::get("pNetXbbSF")->debug("Fatjet Scale Factor {} for pt {}", sf, pt_value);
+        Logger::get("pNetXbbSF")->debug("Fatjet Scale Factor {} for pt {}, nBhadrons {}, nChadrons {}", sf, pt_value, nBhad, nChad);
         return sf;
     };
-    auto df1 = df.Define(sf_output, pNetXbbSF_lambda, {pt});
+    auto df1 = df.Define(sf_output, pNetXbbSF_lambda, {pt, nBhad, nChad});
     return df1;
 }
 /**

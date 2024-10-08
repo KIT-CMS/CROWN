@@ -10,11 +10,11 @@
 
 class YHKinFitMaster {
   public:
-    YHKinFitMaster(ROOT::Math::PtEtaPhiMVector bjet1, float bjet_reso_1,
-                   ROOT::Math::PtEtaPhiMVector bjet2, float bjet_reso_2,
-                   ROOT::Math::PtEtaPhiMVector tauvis1,
-                   ROOT::Math::PtEtaPhiMVector tauvis2,
-                   ROOT::Math::PtEtaPhiMVector met, TMatrixD met_cov,
+    YHKinFitMaster(ROOT::Math::PtEtaPhiEVector bjet1, float bjet_reso_1,
+                   ROOT::Math::PtEtaPhiEVector bjet2, float bjet_reso_2,
+                   ROOT::Math::PtEtaPhiEVector tauvis1,
+                   ROOT::Math::PtEtaPhiEVector tauvis2,
+                   ROOT::Math::PtEtaPhiEVector met, TMatrixD met_cov,
                    bool Ytautau);
 
     void doFullFit();
@@ -25,15 +25,15 @@ class YHKinFitMaster {
     void addMYHypothesis(std::vector<int> v);
 
     // Covariance matrix
-    TMatrixD CalcCov(ROOT::Math::PtEtaPhiMVector p4, double dE);
+    TMatrixD CalcCov(ROOT::Math::PtEtaPhiEVector p4, double dE);
 
     // Resolution
-    double CalcBjetResolution(ROOT::Math::PtEtaPhiMVector p4, double res);
-    double GetBjetResolution(double eta, double et);
+    double CalcBjetResolution(ROOT::Math::PtEtaPhiEVector p4, double res);
+    // double GetBjetResolution(double eta, double et);
 
-    double ConstrainEnergy(ROOT::Math::PtEtaPhiMVector p4_mother,
-                           ROOT::Math::PtEtaPhiMVector p4_1,
-                           ROOT::Math::PtEtaPhiMVector p4_2, int mHypo);
+    double ConstrainEnergy(ROOT::Math::PtEtaPhiEVector p4_mother,
+                           ROOT::Math::PtEtaPhiEVector p4_1,
+                           ROOT::Math::PtEtaPhiEVector p4_2, int mHypo);
 
     double Chi2_V4(ROOT::Math::PtEtaPhiEVector p4_reco,
                    ROOT::Math::PtEtaPhiEVector p4_fit, double res);
@@ -67,15 +67,6 @@ class YHKinFitMaster {
     std::map<std::pair<int, int>, double> getMhFullFit() {
         return m_fullFitResultMh;
     }
-    std::map<std::pair<int, int>, double> getPullB1FullFit() {
-        return m_fullFitPullB1;
-    }
-    std::map<std::pair<int, int>, double> getPullB2FullFit() {
-        return m_fullFitPullB2;
-    }
-    std::map<std::pair<int, int>, double> getPullBalanceFullFit() {
-        return m_fullFitPullBalance;
-    }
     std::map<std::pair<int, int>, double> getPullBalanceFullFitX() {
         return m_fullFitPullBalanceX;
     }
@@ -92,17 +83,18 @@ class YHKinFitMaster {
 
   private:
     // input vectors
-    ROOT::Math::PtEtaPhiMVector m_bjet1;
-    ROOT::Math::PtEtaPhiMVector m_bjet2;
+    ROOT::Math::PtEtaPhiEVector m_bjet1;
+    ROOT::Math::PtEtaPhiEVector m_bjet2;
     float m_bjet_reso1;
     float m_bjet_reso2;
-    ROOT::Math::PtEtaPhiMVector m_tauvis1;
-    ROOT::Math::PtEtaPhiMVector m_tauvis2;
+    ROOT::Math::PtEtaPhiEVector m_tauvis1;
+    ROOT::Math::PtEtaPhiEVector m_tauvis2;
     bool m_Ytautau;
 
-    ROOT::Math::PtEtaPhiMVector m_MET;
+    ROOT::Math::PtEtaPhiEVector m_MET;
     TMatrixD m_MET_COV;
     TMatrixD m_covRecoil;
+    TMatrixD m_V_inv;
 
     // hypotheses
     std::vector<int> m_mh;
@@ -133,9 +125,6 @@ class YHKinFitMaster {
     std::map<std::pair<int, int>, double> m_fullFitResultMX;
     std::map<std::pair<int, int>, double> m_fullFitResultMY;
     std::map<std::pair<int, int>, double> m_fullFitResultMh;
-    std::map<std::pair<int, int>, double> m_fullFitPullB1;
-    std::map<std::pair<int, int>, double> m_fullFitPullB2;
-    std::map<std::pair<int, int>, double> m_fullFitPullBalance;
     std::map<std::pair<int, int>, double> m_fullFitPullBalanceX;
     std::map<std::pair<int, int>, double> m_fullFitPullBalanceY;
     std::map<std::pair<int, int>, int> m_fullFitConvergence;

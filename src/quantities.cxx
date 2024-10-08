@@ -284,6 +284,7 @@ p4_fastmtt(ROOT::RDF::RNode df, const std::string &outputname,
            const std::string &met_cov_xx, const std::string &met_cov_xy,
            const std::string &met_cov_yy, const std::string &decay_mode_1,
            const std::string &decay_mode_2, const std::string &finalstate) {
+    // initialize the FastMTT algorithm
     auto calculate_fast_mtt =
         [finalstate](const float &pt_1, const float &pt_2, const float &eta_1,
                      const float &eta_2, const float &phi_1, const float &phi_2,
@@ -292,52 +293,52 @@ p4_fastmtt(ROOT::RDF::RNode df, const std::string &outputname,
                      const float &met_cov_xx, const float &met_cov_xy,
                      const float &met_cov_yy, const int &decay_mode_1,
                      const int &decay_mode_2) {
-            std::vector<fastmtt::MeasuredTauLepton> measuredTauLeptons;
-            TMatrixD covMET(2, 2);
-            covMET[0][0] = met_cov_xx;
-            covMET[1][0] = met_cov_xy;
-            covMET[0][1] = met_cov_xy;
-            covMET[1][1] = met_cov_yy;
-            // build the met lorentz vector
-            ROOT::Math::PtEtaPhiMVector met(met_pt, 0.0, met_phi, 0.0);
-            // set the decay modes according to the final state
-            auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
-            auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
-            int dm_1, dm_2;
-            if (finalstate == "mt") {
-                dm_1 = -1;
-                dm_2 = decay_mode_2;
-                auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToMuDecay;
+            ROOT::Math::PtEtaPhiMVector result = default_lorentzvector;
+            if (pt_1 > 0 && pt_2 > 0) {
+                std::vector<fastmtt::MeasuredTauLepton> measuredTauLeptons;
+                TMatrixD covMET(2, 2);
+                covMET[0][0] = met_cov_xx;
+                covMET[1][0] = met_cov_xy;
+                covMET[0][1] = met_cov_xy;
+                covMET[1][1] = met_cov_yy;
+                // build the met lorentz vector
+                ROOT::Math::PtEtaPhiMVector met(met_pt, 0.0, met_phi, 0.0);
+                // set the decay modes according to the final state
+                auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
                 auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
-            } else if (finalstate == "et") {
-                dm_1 = -1;
-                dm_2 = decay_mode_2;
-                auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToElecDecay;
-                auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
-            } else if (finalstate == "tt") {
-                dm_1 = decay_mode_1;
-                dm_2 = decay_mode_2;
-            } else if (finalstate == "em") {
-                dm_1 = -1;
-                dm_2 = -1;
-                auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToElecDecay;
-                auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToMuDecay;
-            } else {
-                Logger::get("FastMTT")->error(
-                    "Final state {} not supported by FastMTT", finalstate);
-                return (ROOT::Math::PtEtaPhiMVector)LorentzVector();
+                int dm_1, dm_2;
+                if (finalstate == "mt") {
+                    dm_1 = -1;
+                    dm_2 = decay_mode_2;
+                    auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToMuDecay;
+                    auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
+                } else if (finalstate == "et") {
+                    dm_1 = -1;
+                    dm_2 = decay_mode_2;
+                    auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToElecDecay;
+                    auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
+                } else if (finalstate == "tt") {
+                    dm_1 = decay_mode_1;
+                    dm_2 = decay_mode_2;
+                } else if (finalstate == "em") {
+                    dm_1 = -1;
+                    dm_2 = -1;
+                    auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToElecDecay;
+                    auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToMuDecay;
+                } else {
+                    Logger::get("FastMTT")->error(
+                        "Final state {} not supported by FastMTT", finalstate);
+                    return (ROOT::Math::PtEtaPhiMVector)LorentzVector();
+                }
+                measuredTauLeptons.push_back(fastmtt::MeasuredTauLepton(
+                    decay_obj_1, pt_1, eta_1, phi_1, mass_1, dm_1));
+                measuredTauLeptons.push_back(fastmtt::MeasuredTauLepton(
+                    decay_obj_2, pt_2, eta_2, phi_2, mass_2, dm_2));
+                FastMTT FastMTTAlgo;
+                result = FastMTTAlgo.run(measuredTauLeptons, met.X(), met.Y(), covMET);
             }
-            measuredTauLeptons.push_back(fastmtt::MeasuredTauLepton(
-                decay_obj_1, pt_1, eta_1, phi_1, mass_1, dm_1));
-            measuredTauLeptons.push_back(fastmtt::MeasuredTauLepton(
-                decay_obj_2, pt_2, eta_2, phi_2, mass_2, dm_2));
-            FastMTT FastMTTAlgo;
-            FastMTTAlgo.run(measuredTauLeptons, met.X(), met.Y(), covMET);
-            LorentzVector result = FastMTTAlgo.getBestP4();
-            // ROOT::Math::PtEtaPhiMVector result(_result.Pt(), _result.Eta(),
-            //                                    _result.Phi(), _result.M());
             Logger::get("FastMTT")->debug("FastMTT result: {}", result.M());
-            return (ROOT::Math::PtEtaPhiMVector)result;
+            return result;
         };
     return df.Define(outputname, calculate_fast_mtt,
                      {pt_1, pt_2, eta_1, eta_2, phi_1, phi_2, mass_1, mass_2,

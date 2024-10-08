@@ -9,15 +9,15 @@
 #include <Math/VectorUtil.h>
 
 YHKinFitMaster::YHKinFitMaster(
-    ROOT::Math::PtEtaPhiMVector bjet1, float bjet_reso_1,
-    ROOT::Math::PtEtaPhiMVector bjet2, float bjet_reso_2,
-    ROOT::Math::PtEtaPhiMVector tauvis1, ROOT::Math::PtEtaPhiMVector tauvis2,
-    ROOT::Math::PtEtaPhiMVector met, TMatrixD met_cov, bool Ytautau)
+    ROOT::Math::PtEtaPhiEVector bjet1, float bjet_reso_1,
+    ROOT::Math::PtEtaPhiEVector bjet2, float bjet_reso_2,
+    ROOT::Math::PtEtaPhiEVector tauvis1, ROOT::Math::PtEtaPhiEVector tauvis2,
+    ROOT::Math::PtEtaPhiEVector met, TMatrixD met_cov, bool Ytautau)
     : m_bjet1(bjet1), m_bjet2(bjet2), m_bjet_reso1(bjet_reso_1),
       m_bjet_reso2(bjet_reso_2), m_tauvis1(tauvis1), m_tauvis2(tauvis2),
       m_Ytautau(Ytautau), m_MET(met), m_MET_COV(met_cov),
 
-      m_covRecoil(2, 2), m_mh(std::vector<int>()), m_mY(std::vector<int>()),
+      m_covRecoil(2, 2), m_V_inv(2, 2), m_mh(std::vector<int>()), m_mY(std::vector<int>()),
       mHttHypo(-10.), mHbbHypo(-10.),
       p4_X_fit(ROOT::Math::PtEtaPhiEVector(-10, -10, -10, -10)),
       p4_Y_fit(ROOT::Math::PtEtaPhiEVector(-10, -10, -10, -10)),
@@ -55,12 +55,6 @@ void YHKinFitMaster::doFullFit() {
                                                                  m_fitted_mY);
             std::pair<std::pair<int, int>, double> entry_mh_full(hypo_full,
                                                                  m_fitted_mh);
-            std::pair<std::pair<int, int>, double> entry_pullb1_full(
-                hypo_full, sqrt(m_chi2_b1));
-            std::pair<std::pair<int, int>, double> entry_pullb2_full(
-                hypo_full, sqrt(m_chi2_b2));
-            std::pair<std::pair<int, int>, double> entry_pullbalance_full(
-                hypo_full, sqrt(m_chi2_balance));
             std::pair<std::pair<int, int>, double> entry_pullbalance_fullX(
                 hypo_full, GetPullBalanceX(p4_X_fit));
             std::pair<std::pair<int, int>, double> entry_pullbalance_fullY(
@@ -76,9 +70,6 @@ void YHKinFitMaster::doFullFit() {
             m_fullFitResultMX.insert(entry_mX_full);
             m_fullFitResultMY.insert(entry_mY_full);
             m_fullFitResultMh.insert(entry_mh_full);
-            m_fullFitPullB1.insert(entry_pullb1_full);
-            m_fullFitPullB2.insert(entry_pullb2_full);
-            m_fullFitPullBalance.insert(entry_pullbalance_full);
             m_fullFitPullBalanceX.insert(entry_pullbalance_fullX);
             m_fullFitPullBalanceY.insert(entry_pullbalance_fullY);
             m_fullFitConvergence.insert(entry_convergence_full);
@@ -159,15 +150,34 @@ void YHKinFitMaster::Fit(int mh, int mY) {
         m_covRecoil[0][1] = 0.;
     }
 
+    double Vxx = m_covRecoil[0][0];
+    double Vyy = m_covRecoil[1][1];
+    double Vxy = m_covRecoil[0][1];
+
+    double det, Vxx_inv, Vyy_inv, Vxy_inv;
+    det = Vxx * Vyy - Vxy * Vxy;
+    Vxx_inv = Vyy / det;
+    Vyy_inv = Vxx / det;
+    Vxy_inv = -Vxy / det;
+
+    m_V_inv[0][0] = Vxx_inv;
+    m_V_inv[1][0] = Vxy_inv;
+    m_V_inv[0][1] = Vxy_inv;
+    m_V_inv[1][1] = Vyy_inv;
+
     if (m_tauvis1.E() < mtau) {
-        m_tauvis1.SetM(mtau);
+        ROOT::Math::PtEtaPhiMVector tmp_tau1 = (ROOT::Math::PtEtaPhiMVector) m_tauvis1;
+        tmp_tau1.SetM(mtau);
+        m_tauvis1 = (ROOT::Math::PtEtaPhiEVector) tmp_tau1;
     }
     if (m_tauvis2.E() < mtau) {
-        m_tauvis2.SetM(mtau);
+        ROOT::Math::PtEtaPhiMVector tmp_tau2 = (ROOT::Math::PtEtaPhiMVector) m_tauvis2;
+        tmp_tau2.SetM(mtau);
+        m_tauvis2 = (ROOT::Math::PtEtaPhiEVector) tmp_tau2;
     }
 
-    ROOT::Math::PtEtaPhiMVector Htt_vis = m_tauvis1 + m_tauvis2;
-    ROOT::Math::PtEtaPhiMVector Hbb = m_bjet1 + m_bjet2;
+    ROOT::Math::PtEtaPhiEVector Htt_vis = m_tauvis1 + m_tauvis2;
+    ROOT::Math::PtEtaPhiEVector Hbb = m_bjet1 + m_bjet2;
 
     // Compute upper limit of E(tau1) by having set E(tau2)=E(tau2)_min and
     // compute E(tau1)
@@ -224,34 +234,26 @@ void YHKinFitMaster::Fit(int mh, int mY) {
     a_limit[0][1] = bjet1UpperLimit;
 
     // adjusting lower and upper energy limits for bjet 1
-    ROOT::Math::PtEtaPhiEVector tmp_bjet_2 = ROOT::Math::PtEtaPhiEVector(
-        m_bjet2.Pt(), m_bjet2.Eta(), m_bjet2.Phi(), m_bjet2.E());
+    ROOT::Math::PtEtaPhiEVector tmp_bjet_2 = m_bjet2;
     tmp_bjet_2.SetPxPyPzE(tmp_bjet_2.Px() * bjet2LowerLimit / tmp_bjet_2.E(),
                           tmp_bjet_2.Py() * bjet2LowerLimit / tmp_bjet_2.E(),
                           tmp_bjet_2.Pz() * bjet2LowerLimit / tmp_bjet_2.E(),
                           bjet2LowerLimit); // Set b2 to lower b2 limit
 
-    double max_E_b1 = ConstrainEnergy(
-        Hbb,
-        ROOT::Math::PtEtaPhiMVector(tmp_bjet_2.Pt(), tmp_bjet_2.Eta(),
-                                    tmp_bjet_2.Phi(), tmp_bjet_2.M()),
-        m_bjet1, mHbbHypo); // Calculate b1 with b2 fixed
+    double max_E_b1 = ConstrainEnergy(Hbb, tmp_bjet_2, m_bjet1, mHbbHypo); // Calculate b1 with b2 fixed
+    
     if (a_limit[0][1] > max_E_b1) {
         a_limit[0][1] = max_E_b1; // Modify b1 limit if b2 limit is tighter
     }
 
-    tmp_bjet_2 = ROOT::Math::PtEtaPhiEVector(m_bjet2.Pt(), m_bjet2.Eta(),
-                                             m_bjet2.Phi(), m_bjet2.E());
+    tmp_bjet_2 = m_bjet2;
     tmp_bjet_2.SetPxPyPzE(tmp_bjet_2.Px() * bjet2UpperLimit / tmp_bjet_2.E(),
                           tmp_bjet_2.Py() * bjet2UpperLimit / tmp_bjet_2.E(),
                           tmp_bjet_2.Pz() * bjet2UpperLimit / tmp_bjet_2.E(),
                           bjet2UpperLimit); // Set b2 to lower b2 limit
 
-    double min_E_b1 = ConstrainEnergy(
-        Hbb,
-        ROOT::Math::PtEtaPhiMVector(tmp_bjet_2.Pt(), tmp_bjet_2.Eta(),
-                                    tmp_bjet_2.Phi(), tmp_bjet_2.M()),
-        m_bjet1, mHbbHypo); // Calculate b1 with b2 fixed
+    double min_E_b1 = ConstrainEnergy(Hbb, tmp_bjet_2, m_bjet1, mHbbHypo); // Calculate b1 with b2 fixed
+    
     if (a_limit[0][0] < min_E_b1) {
         a_limit[0][0] = min_E_b1; // Modify b1 limit if b2 limit is tighter
     }
@@ -290,16 +292,12 @@ void YHKinFitMaster::Fit(int mh, int mY) {
         a_Memory[ip][4] = -980.0;
     }
 
-    static const int nloopmax = 1000;
+    static const int nloopmax = 300;
 
-    ROOT::Math::PtEtaPhiEVector bjet_1_fit = ROOT::Math::PtEtaPhiEVector(
-        m_bjet1.Pt(), m_bjet1.Eta(), m_bjet1.Phi(), m_bjet1.E());
-    ROOT::Math::PtEtaPhiEVector bjet_2_fit = ROOT::Math::PtEtaPhiEVector(
-        m_bjet2.Pt(), m_bjet2.Eta(), m_bjet2.Phi(), m_bjet2.E());
-    ROOT::Math::PtEtaPhiEVector tau_1_fit = ROOT::Math::PtEtaPhiEVector(
-        m_tauvis1.Pt(), m_tauvis1.Eta(), m_tauvis1.Phi(), m_tauvis1.E());
-    ROOT::Math::PtEtaPhiEVector tau_2_fit = ROOT::Math::PtEtaPhiEVector(
-        m_tauvis2.Pt(), m_tauvis2.Eta(), m_tauvis2.Phi(), m_tauvis2.E());
+    ROOT::Math::PtEtaPhiEVector bjet_1_fit = m_bjet1;
+    ROOT::Math::PtEtaPhiEVector bjet_2_fit = m_bjet2;
+    ROOT::Math::PtEtaPhiEVector tau_1_fit = m_tauvis1;
+    ROOT::Math::PtEtaPhiEVector tau_2_fit = m_tauvis2;
     p4_X_fit = bjet_1_fit + bjet_2_fit + tau_1_fit + tau_2_fit;
     double new_E_b2, new_E_tau2;
 
@@ -314,21 +312,15 @@ void YHKinFitMaster::Fit(int mh, int mY) {
                              tau_1_fit.Py() * a[1] / tau_1_fit.E(),
                              tau_1_fit.Pz() * a[1] / tau_1_fit.E(), a[1]);
 
-        new_E_b2 = ConstrainEnergy(
-            Hbb,
-            ROOT::Math::PtEtaPhiMVector(bjet_1_fit.Pt(), bjet_1_fit.Eta(),
-                                        bjet_1_fit.Phi(), bjet_1_fit.M()),
-            m_bjet2, mHbbHypo);
+        new_E_b2 = ConstrainEnergy(Hbb, bjet_1_fit, m_bjet2, mHbbHypo);
+        
         bjet_2_fit.SetPxPyPzE(bjet_2_fit.Px() * new_E_b2 / bjet_2_fit.E(),
                               bjet_2_fit.Py() * new_E_b2 / bjet_2_fit.E(),
                               bjet_2_fit.Pz() * new_E_b2 / bjet_2_fit.E(),
                               new_E_b2);
 
-        new_E_tau2 = ConstrainEnergy(
-            Htt_vis,
-            ROOT::Math::PtEtaPhiMVector(tau_1_fit.Pt(), tau_1_fit.Eta(),
-                                        tau_1_fit.Phi(), tau_1_fit.M()),
-            m_tauvis2, mHttHypo);
+        new_E_tau2 = ConstrainEnergy(Htt_vis, tau_1_fit, m_tauvis2, mHttHypo);
+        
         if (new_E_tau2 > tau2UpperLimit) {
             new_E_tau2 = tau2UpperLimit;
         }
@@ -337,14 +329,8 @@ void YHKinFitMaster::Fit(int mh, int mY) {
                              tau_2_fit.Pz() * new_E_tau2 / tau_2_fit.E(),
                              new_E_tau2);
 
-        m_chi2_b1 =
-            Chi2_V4(ROOT::Math::PtEtaPhiEVector(m_bjet1.Pt(), m_bjet1.Eta(),
-                                                m_bjet1.Phi(), m_bjet1.E()),
-                    bjet_1_fit, m_bjet_reso1);
-        m_chi2_b2 =
-            Chi2_V4(ROOT::Math::PtEtaPhiEVector(m_bjet2.Pt(), m_bjet2.Eta(),
-                                                m_bjet2.Phi(), m_bjet2.E()),
-                    bjet_2_fit, m_bjet_reso2);
+        m_chi2_b1 = Chi2_V4(m_bjet1, bjet_1_fit, m_bjet_reso1);
+        m_chi2_b2 = Chi2_V4(m_bjet2, bjet_2_fit, m_bjet_reso2);
 
         if (m_Ytautau) {
             p4_Y_fit = tau_1_fit + tau_2_fit;
@@ -402,7 +388,7 @@ void YHKinFitMaster::addMhHypothesis(std::vector<int> v) { m_mh = v; }
 
 void YHKinFitMaster::addMYHypothesis(std::vector<int> v) { m_mY = v; }
 
-TMatrixD YHKinFitMaster::CalcCov(ROOT::Math::PtEtaPhiMVector p4, double dE) {
+TMatrixD YHKinFitMaster::CalcCov(ROOT::Math::PtEtaPhiEVector p4, double dE) {
     // NOTE: only dE is used for Cov calculation!
     double dp = p4.E() / p4.P() * dE; // error propagation p=sqrt(e^2-m^2)
     double dpt = sin(p4.Theta()) * dp;
@@ -416,212 +402,209 @@ TMatrixD YHKinFitMaster::CalcCov(ROOT::Math::PtEtaPhiMVector p4, double dE) {
     return cov;
 }
 
-double YHKinFitMaster::CalcBjetResolution(ROOT::Math::PtEtaPhiMVector p4,
+double YHKinFitMaster::CalcBjetResolution(ROOT::Math::PtEtaPhiEVector p4,
                                           double res) {
     double pt_res = p4.Pt() * res;
     double dE = pt_res * p4.P() / sin(p4.Theta()) / p4.E();
     return dE;
 }
 
-double YHKinFitMaster::GetBjetResolution(double eta, double et) {
-    double det = 0;
-    double de = 10;
+// double YHKinFitMaster::GetBjetResolution(double eta, double et) {
+//     double det = 0;
+//     double de = 10;
 
-    if (0.000 <= abs(eta) && abs(eta) < 0.087) {
-        det =
-            et * (sqrt(0.0686 * 0.0686 + (1.03 / sqrt(et)) * (1.03 / sqrt(et)) +
-                       (1.68 / et) * (1.68 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(0.000 + 0.087) / 2))) * det;
-    }
+//     if (0.000 <= abs(eta) && abs(eta) < 0.087) {
+//         det =
+//             et * (sqrt(0.0686 * 0.0686 + (1.03 / sqrt(et)) * (1.03 / sqrt(et)) +
+//                        (1.68 / et) * (1.68 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(0.000 + 0.087) / 2))) * det;
+//     }
 
-    if (0.087 <= abs(eta) && abs(eta) < 0.174) {
-        det =
-            et * (sqrt(0.0737 * 0.0737 + (1.01 / sqrt(et)) * (1.01 / sqrt(et)) +
-                       (1.74 / et) * (1.74 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(0.087 + 0.174) / 2))) * det;
-    }
+//     if (0.087 <= abs(eta) && abs(eta) < 0.174) {
+//         det =
+//             et * (sqrt(0.0737 * 0.0737 + (1.01 / sqrt(et)) * (1.01 / sqrt(et)) +
+//                        (1.74 / et) * (1.74 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(0.087 + 0.174) / 2))) * det;
+//     }
 
-    if (0.174 <= abs(eta) && abs(eta) < 0.261) {
-        det =
-            et * (sqrt(0.0657 * 0.0657 + (1.07 / sqrt(et)) * (1.07 / sqrt(et)) +
-                       (5.16e-06 / et) * (5.16e-06 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(0.174 + 0.261) / 2))) * det;
-    }
+//     if (0.174 <= abs(eta) && abs(eta) < 0.261) {
+//         det =
+//             et * (sqrt(0.0657 * 0.0657 + (1.07 / sqrt(et)) * (1.07 / sqrt(et)) +
+//                        (5.16e-06 / et) * (5.16e-06 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(0.174 + 0.261) / 2))) * det;
+//     }
 
-    if (0.261 <= abs(eta) && abs(eta) < 0.348) {
-        det = et * (sqrt(0.062 * 0.062 + (1.07 / sqrt(et)) * (1.07 / sqrt(et)) +
-                         (0.000134 / et) * (0.000134 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(0.261 + 0.348) / 2))) * det;
-    }
+//     if (0.261 <= abs(eta) && abs(eta) < 0.348) {
+//         det = et * (sqrt(0.062 * 0.062 + (1.07 / sqrt(et)) * (1.07 / sqrt(et)) +
+//                          (0.000134 / et) * (0.000134 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(0.261 + 0.348) / 2))) * det;
+//     }
 
-    if (0.348 <= abs(eta) && abs(eta) < 0.435) {
-        det =
-            et * (sqrt(0.0605 * 0.0605 + (1.07 / sqrt(et)) * (1.07 / sqrt(et)) +
-                       (1.84e-07 / et) * (1.84e-07 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(0.348 + 0.435) / 2))) * det;
-    }
+//     if (0.348 <= abs(eta) && abs(eta) < 0.435) {
+//         det =
+//             et * (sqrt(0.0605 * 0.0605 + (1.07 / sqrt(et)) * (1.07 / sqrt(et)) +
+//                        (1.84e-07 / et) * (1.84e-07 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(0.348 + 0.435) / 2))) * det;
+//     }
 
-    if (0.435 <= abs(eta) && abs(eta) < 0.522) {
-        det = et * (sqrt(0.059 * 0.059 + (1.08 / sqrt(et)) * (1.08 / sqrt(et)) +
-                         (9.06e-09 / et) * (9.06e-09 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(0.435 + 0.522) / 2))) * det;
-    }
+//     if (0.435 <= abs(eta) && abs(eta) < 0.522) {
+//         det = et * (sqrt(0.059 * 0.059 + (1.08 / sqrt(et)) * (1.08 / sqrt(et)) +
+//                          (9.06e-09 / et) * (9.06e-09 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(0.435 + 0.522) / 2))) * det;
+//     }
 
-    if (0.522 <= abs(eta) && abs(eta) < 0.609) {
-        det =
-            et * (sqrt(0.0577 * 0.0577 + (1.08 / sqrt(et)) * (1.08 / sqrt(et)) +
-                       (5.46e-06 / et) * (5.46e-06 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(0.522 + 0.609) / 2))) * det;
-    }
+//     if (0.522 <= abs(eta) && abs(eta) < 0.609) {
+//         det =
+//             et * (sqrt(0.0577 * 0.0577 + (1.08 / sqrt(et)) * (1.08 / sqrt(et)) +
+//                        (5.46e-06 / et) * (5.46e-06 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(0.522 + 0.609) / 2))) * det;
+//     }
 
-    if (0.609 <= abs(eta) && abs(eta) < 0.696) {
-        det =
-            et * (sqrt(0.0525 * 0.0525 + (1.09 / sqrt(et)) * (1.09 / sqrt(et)) +
-                       (4.05e-05 / et) * (4.05e-05 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(0.609 + 0.696) / 2))) * det;
-    }
+//     if (0.609 <= abs(eta) && abs(eta) < 0.696) {
+//         det =
+//             et * (sqrt(0.0525 * 0.0525 + (1.09 / sqrt(et)) * (1.09 / sqrt(et)) +
+//                        (4.05e-05 / et) * (4.05e-05 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(0.609 + 0.696) / 2))) * det;
+//     }
 
-    if (0.696 <= abs(eta) && abs(eta) < 0.783) {
-        det =
-            et * (sqrt(0.0582 * 0.0582 + (1.09 / sqrt(et)) * (1.09 / sqrt(et)) +
-                       (1.17e-05 / et) * (1.17e-05 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(0.696 + 0.783) / 2))) * det;
-    }
+//     if (0.696 <= abs(eta) && abs(eta) < 0.783) {
+//         det =
+//             et * (sqrt(0.0582 * 0.0582 + (1.09 / sqrt(et)) * (1.09 / sqrt(et)) +
+//                        (1.17e-05 / et) * (1.17e-05 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(0.696 + 0.783) / 2))) * det;
+//     }
 
-    if (0.783 <= abs(eta) && abs(eta) < 0.870) {
-        det =
-            et * (sqrt(0.0649 * 0.0649 + (1.08 / sqrt(et)) * (1.08 / sqrt(et)) +
-                       (7.85e-06 / et) * (7.85e-06 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(0.783 + 0.870) / 2))) * det;
-    }
+//     if (0.783 <= abs(eta) && abs(eta) < 0.870) {
+//         det =
+//             et * (sqrt(0.0649 * 0.0649 + (1.08 / sqrt(et)) * (1.08 / sqrt(et)) +
+//                        (7.85e-06 / et) * (7.85e-06 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(0.783 + 0.870) / 2))) * det;
+//     }
 
-    if (0.870 <= abs(eta) && abs(eta) < 0.957) {
-        det = et * (sqrt(0.0654 * 0.0654 + (1.1 / sqrt(et)) * (1.1 / sqrt(et)) +
-                         (1.09e-07 / et) * (1.09e-07 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(0.870 + 0.957) / 2))) * det;
-    }
+//     if (0.870 <= abs(eta) && abs(eta) < 0.957) {
+//         det = et * (sqrt(0.0654 * 0.0654 + (1.1 / sqrt(et)) * (1.1 / sqrt(et)) +
+//                          (1.09e-07 / et) * (1.09e-07 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(0.870 + 0.957) / 2))) * det;
+//     }
 
-    if (0.957 <= abs(eta) && abs(eta) < 1.044) {
-        det =
-            et * (sqrt(0.0669 * 0.0669 + (1.11 / sqrt(et)) * (1.11 / sqrt(et)) +
-                       (1.87e-06 / et) * (1.87e-06 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(0.957 + 1.044) / 2))) * det;
-    }
+//     if (0.957 <= abs(eta) && abs(eta) < 1.044) {
+//         det =
+//             et * (sqrt(0.0669 * 0.0669 + (1.11 / sqrt(et)) * (1.11 / sqrt(et)) +
+//                        (1.87e-06 / et) * (1.87e-06 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(0.957 + 1.044) / 2))) * det;
+//     }
 
-    if (1.044 <= abs(eta) && abs(eta) < 1.131) {
-        det =
-            et * (sqrt(0.0643 * 0.0643 + (1.15 / sqrt(et)) * (1.15 / sqrt(et)) +
-                       (2.76e-05 / et) * (2.76e-05 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(1.044 + 1.131) / 2))) * det;
-    }
+//     if (1.044 <= abs(eta) && abs(eta) < 1.131) {
+//         det =
+//             et * (sqrt(0.0643 * 0.0643 + (1.15 / sqrt(et)) * (1.15 / sqrt(et)) +
+//                        (2.76e-05 / et) * (2.76e-05 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(1.044 + 1.131) / 2))) * det;
+//     }
 
-    if (1.131 <= abs(eta) && abs(eta) < 1.218) {
-        det =
-            et * (sqrt(0.0645 * 0.0645 + (1.16 / sqrt(et)) * (1.16 / sqrt(et)) +
-                       (1.04e-06 / et) * (1.04e-06 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(1.131 + 1.218) / 2))) * det;
-    }
+//     if (1.131 <= abs(eta) && abs(eta) < 1.218) {
+//         det =
+//             et * (sqrt(0.0645 * 0.0645 + (1.16 / sqrt(et)) * (1.16 / sqrt(et)) +
+//                        (1.04e-06 / et) * (1.04e-06 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(1.131 + 1.218) / 2))) * det;
+//     }
 
-    if (1.218 <= abs(eta) && abs(eta) < 1.305) {
-        det =
-            et * (sqrt(0.0637 * 0.0637 + (1.19 / sqrt(et)) * (1.19 / sqrt(et)) +
-                       (1.08e-07 / et) * (1.08e-07 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(1.218 + 1.305) / 2))) * det;
-    }
+//     if (1.218 <= abs(eta) && abs(eta) < 1.305) {
+//         det =
+//             et * (sqrt(0.0637 * 0.0637 + (1.19 / sqrt(et)) * (1.19 / sqrt(et)) +
+//                        (1.08e-07 / et) * (1.08e-07 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(1.218 + 1.305) / 2))) * det;
+//     }
 
-    if (1.305 <= abs(eta) && abs(eta) < 1.392) {
-        det =
-            et * (sqrt(0.0695 * 0.0695 + (1.21 / sqrt(et)) * (1.21 / sqrt(et)) +
-                       (5.75e-06 / et) * (5.75e-06 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(1.305 + 1.392) / 2))) * det;
-    }
+//     if (1.305 <= abs(eta) && abs(eta) < 1.392) {
+//         det =
+//             et * (sqrt(0.0695 * 0.0695 + (1.21 / sqrt(et)) * (1.21 / sqrt(et)) +
+//                        (5.75e-06 / et) * (5.75e-06 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(1.305 + 1.392) / 2))) * det;
+//     }
 
-    if (1.392 <= abs(eta) && abs(eta) < 1.479) {
-        det = et * (sqrt(0.0748 * 0.0748 + (1.2 / sqrt(et)) * (1.2 / sqrt(et)) +
-                         (5.15e-08 / et) * (5.15e-08 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(1.392 + 1.479) / 2))) * det;
-    }
+//     if (1.392 <= abs(eta) && abs(eta) < 1.479) {
+//         det = et * (sqrt(0.0748 * 0.0748 + (1.2 / sqrt(et)) * (1.2 / sqrt(et)) +
+//                          (5.15e-08 / et) * (5.15e-08 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(1.392 + 1.479) / 2))) * det;
+//     }
 
-    if (1.479 <= abs(eta) && abs(eta) < 1.566) {
-        det =
-            et * (sqrt(0.0624 * 0.0624 + (1.23 / sqrt(et)) * (1.23 / sqrt(et)) +
-                       (2.28e-05 / et) * (2.28e-05 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(1.479 + 1.566) / 2))) * det;
-    }
+//     if (1.479 <= abs(eta) && abs(eta) < 1.566) {
+//         det =
+//             et * (sqrt(0.0624 * 0.0624 + (1.23 / sqrt(et)) * (1.23 / sqrt(et)) +
+//                        (2.28e-05 / et) * (2.28e-05 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(1.479 + 1.566) / 2))) * det;
+//     }
 
-    if (1.566 <= abs(eta) && abs(eta) < 1.653) {
-        det =
-            et * (sqrt(0.0283 * 0.0283 + (1.25 / sqrt(et)) * (1.25 / sqrt(et)) +
-                       (4.79e-07 / et) * (4.79e-07 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(1.566 + 1.653) / 2))) * det;
-    }
+//     if (1.566 <= abs(eta) && abs(eta) < 1.653) {
+//         det =
+//             et * (sqrt(0.0283 * 0.0283 + (1.25 / sqrt(et)) * (1.25 / sqrt(et)) +
+//                        (4.79e-07 / et) * (4.79e-07 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(1.566 + 1.653) / 2))) * det;
+//     }
 
-    if (1.653 <= abs(eta) && abs(eta) < 1.740) {
-        det =
-            et * (sqrt(0.0316 * 0.0316 + (1.21 / sqrt(et)) * (1.21 / sqrt(et)) +
-                       (5e-05 / et) * (5e-05 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(1.653 + 1.740) / 2))) * det;
-    }
+//     if (1.653 <= abs(eta) && abs(eta) < 1.740) {
+//         det =
+//             et * (sqrt(0.0316 * 0.0316 + (1.21 / sqrt(et)) * (1.21 / sqrt(et)) +
+//                        (5e-05 / et) * (5e-05 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(1.653 + 1.740) / 2))) * det;
+//     }
 
-    if (1.740 <= abs(eta) && abs(eta) < 1.830) {
-        det = et *
-              (sqrt(2.29e-07 * 2.29e-07 + (1.2 / sqrt(et)) * (1.2 / sqrt(et)) +
-                    (1.71e-05 / et) * (1.71e-05 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(1.740 + 1.830) / 2))) * det;
-    }
+//     if (1.740 <= abs(eta) && abs(eta) < 1.830) {
+//         det = et *
+//               (sqrt(2.29e-07 * 2.29e-07 + (1.2 / sqrt(et)) * (1.2 / sqrt(et)) +
+//                     (1.71e-05 / et) * (1.71e-05 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(1.740 + 1.830) / 2))) * det;
+//     }
 
-    if (1.830 <= abs(eta) && abs(eta) < 1.930) {
-        det = et * (sqrt(5.18e-09 * 5.18e-09 +
-                         (1.14 / sqrt(et)) * (1.14 / sqrt(et)) +
-                         (1.7 / et) * (1.7 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(1.830 + 1.930) / 2))) * det;
-    }
+//     if (1.830 <= abs(eta) && abs(eta) < 1.930) {
+//         det = et * (sqrt(5.18e-09 * 5.18e-09 +
+//                          (1.14 / sqrt(et)) * (1.14 / sqrt(et)) +
+//                          (1.7 / et) * (1.7 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(1.830 + 1.930) / 2))) * det;
+//     }
 
-    if (1.930 <= abs(eta) && abs(eta) < 2.043) {
-        det = et * (sqrt(2.17e-07 * 2.17e-07 +
-                         (1.09 / sqrt(et)) * (1.09 / sqrt(et)) +
-                         (2.08 / et) * (2.08 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(1.930 + 2.043) / 2))) * det;
-    }
+//     if (1.930 <= abs(eta) && abs(eta) < 2.043) {
+//         det = et * (sqrt(2.17e-07 * 2.17e-07 +
+//                          (1.09 / sqrt(et)) * (1.09 / sqrt(et)) +
+//                          (2.08 / et) * (2.08 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(1.930 + 2.043) / 2))) * det;
+//     }
 
-    if (2.043 <= abs(eta) && abs(eta) < 2.172) {
-        det = et * (sqrt(3.65e-07 * 3.65e-07 +
-                         (1.09 / sqrt(et)) * (1.09 / sqrt(et)) +
-                         (1.63 / et) * (1.63 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(2.043 + 2.172) / 2))) * det;
-    }
+//     if (2.043 <= abs(eta) && abs(eta) < 2.172) {
+//         det = et * (sqrt(3.65e-07 * 3.65e-07 +
+//                          (1.09 / sqrt(et)) * (1.09 / sqrt(et)) +
+//                          (1.63 / et) * (1.63 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(2.043 + 2.172) / 2))) * det;
+//     }
 
-    if (2.172 <= abs(eta) && abs(eta) < 2.322) {
-        det = et * (sqrt(2.02e-07 * 2.02e-07 +
-                         (1.09 / sqrt(et)) * (1.09 / sqrt(et)) +
-                         (1.68 / et) * (1.68 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(2.172 + 2.322) / 2))) * det;
-    }
+//     if (2.172 <= abs(eta) && abs(eta) < 2.322) {
+//         det = et * (sqrt(2.02e-07 * 2.02e-07 +
+//                          (1.09 / sqrt(et)) * (1.09 / sqrt(et)) +
+//                          (1.68 / et) * (1.68 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(2.172 + 2.322) / 2))) * det;
+//     }
 
-    if (2.322 <= abs(eta) && abs(eta) < 2.500) {
-        det = et * (sqrt(5.27e-07 * 5.27e-07 +
-                         (1.12 / sqrt(et)) * (1.12 / sqrt(et)) +
-                         (1.78 / et) * (1.78 / et)));
-        de = 1.0 / sin(2 * atan(exp(-(2.322 + 2.500) / 2))) * det;
-    }
+//     if (2.322 <= abs(eta) && abs(eta) < 2.500) {
+//         det = et * (sqrt(5.27e-07 * 5.27e-07 +
+//                          (1.12 / sqrt(et)) * (1.12 / sqrt(et)) +
+//                          (1.78 / et) * (1.78 / et)));
+//         de = 1.0 / sin(2 * atan(exp(-(2.322 + 2.500) / 2))) * det;
+//     }
 
-    return de;
-}
+//     return de;
+// }
 
-double YHKinFitMaster::ConstrainEnergy(ROOT::Math::PtEtaPhiMVector p4_mother,
-                                       ROOT::Math::PtEtaPhiMVector p4_1,
-                                       ROOT::Math::PtEtaPhiMVector p4_2,
+double YHKinFitMaster::ConstrainEnergy(ROOT::Math::PtEtaPhiEVector p4_mother,
+                                       ROOT::Math::PtEtaPhiEVector p4_1,
+                                       ROOT::Math::PtEtaPhiEVector p4_2,
                                        int mHypo) {
-    ROOT::Math::PtEtaPhiEVector new_p4_1 = ROOT::Math::PtEtaPhiEVector(
-        p4_1.Pt(), p4_1.Eta(), p4_1.Phi(), p4_1.E());
-    ROOT::Math::PtEtaPhiEVector new_p4_2 = ROOT::Math::PtEtaPhiEVector(
-        p4_2.Pt(), p4_2.Eta(), p4_2.Phi(), p4_2.E());
-    ROOT::Math::PtEtaPhiEVector new_p4_mother = ROOT::Math::PtEtaPhiEVector(
-        p4_mother.Pt(), p4_mother.Eta(), p4_mother.Phi(), p4_mother.E());
+    // ROOT::Math::PtEtaPhiEVector new_p4_1 = p4_1;
+    ROOT::Math::PtEtaPhiEVector new_p4_2 = p4_2;
+    ROOT::Math::PtEtaPhiEVector new_p4_mother = p4_mother;
     double M_truth = mHypo;
     double M_reco = new_p4_mother.M();
-    double E_1 = new_p4_1.E();
-    double M_1 = new_p4_1.M();
+    double E_1 = p4_1.E();
+    double M_1 = p4_1.M();
     double E_2 = new_p4_2.E();
     double M_2 = new_p4_2.M();
 
@@ -637,7 +620,7 @@ double YHKinFitMaster::ConstrainEnergy(ROOT::Math::PtEtaPhiMVector p4_mother,
     while (abs(M_reco - M_truth) > 0.0001) {
         loopCount++;
 
-        if (loopCount >= 10) {
+        if (loopCount >= 100) {
             m_convergence = -3;
             m_chi2 = 9999;
             m_chi2_b1 = 9999;
@@ -668,7 +651,7 @@ double YHKinFitMaster::ConstrainEnergy(ROOT::Math::PtEtaPhiMVector p4_mother,
                             new_p4_2.Py() * new_E_2 / E_2,
                             new_p4_2.Pz() * new_E_2 / E_2, new_E_2);
 
-        new_p4_mother = new_p4_2 + new_p4_1;
+        new_p4_mother = new_p4_2 + p4_1;
 
         M_reco = new_p4_mother.M();
         E_2 = new_p4_2.E();
@@ -682,10 +665,7 @@ double YHKinFitMaster::Chi2_V4(ROOT::Math::PtEtaPhiEVector p4_reco,
                                ROOT::Math::PtEtaPhiEVector p4_fit, double res) {
     double chi2_E = 0;
     // double dE_fit = GetBjetResolution(p4_fit.Eta(), p4_fit.Et());
-    double dE_fit = CalcBjetResolution(
-        ROOT::Math::PtEtaPhiMVector(p4_fit.Pt(), p4_fit.Eta(), p4_fit.Phi(),
-                                    p4_fit.M()),
-        res);
+    double dE_fit = CalcBjetResolution(p4_fit, res);
 
     if (dE_fit > 0.) {
         chi2_E = ((p4_reco.E() - p4_fit.E()) / dE_fit) *
@@ -697,39 +677,39 @@ double YHKinFitMaster::Chi2_V4(ROOT::Math::PtEtaPhiEVector p4_reco,
 
 double YHKinFitMaster::Chi2_Balance(ROOT::Math::PtEtaPhiEVector p4_X_fit) {
     // reco objects
-    ROOT::Math::PtEtaPhiMVector p4_X_reco =
+    ROOT::Math::PtEtaPhiEVector p4_X_reco =
         m_MET + m_tauvis1 + m_tauvis2 + m_bjet1 + m_bjet2;
 
     double res_px, res_py;
     res_px = p4_X_fit.Px() - p4_X_reco.Px(); // residuum in Pt_H
     res_py = p4_X_fit.Py() - p4_X_reco.Py(); // residuum in Pt_H
 
-    double Vxx = m_covRecoil[0][0];
-    double Vyy = m_covRecoil[1][1];
-    double Vxy = m_covRecoil[0][1];
+    // double Vxx = m_covRecoil[0][0];
+    // double Vyy = m_covRecoil[1][1];
+    // double Vxy = m_covRecoil[0][1];
 
-    double det, Vxx_inv, Vyy_inv, Vxy_inv;
-    det = Vxx * Vyy - Vxy * Vxy;
-    Vxx_inv = Vyy / det;
-    Vyy_inv = Vxx / det;
-    Vxy_inv = -Vxy / det;
+    // double det, Vxx_inv, Vyy_inv, Vxy_inv;
+    // det = Vxx * Vyy - Vxy * Vxy;
+    // Vxx_inv = Vyy / det;
+    // Vyy_inv = Vxx / det;
+    // Vxy_inv = -Vxy / det;
 
-    TMatrixD V_inv(2, 2);
-    V_inv[0][0] = Vxx_inv;
-    V_inv[1][0] = Vxy_inv;
-    V_inv[0][1] = Vxy_inv;
-    V_inv[1][1] = Vyy_inv;
+    // TMatrixD V_inv(2, 2);
+    // V_inv[0][0] = Vxx_inv;
+    // V_inv[1][0] = Vxy_inv;
+    // V_inv[0][1] = Vxy_inv;
+    // V_inv[1][1] = Vyy_inv;
 
     double chi2 =
-        res_px * (V_inv[0][0] * res_px + V_inv[0][1] * res_py) +
-        res_py * (V_inv[1][0] * res_px +
-                  V_inv[1][1] * res_py); // chi2 = res_transponiert * Vinv * res
+        res_px * (m_V_inv[0][0] * res_px + m_V_inv[0][1] * res_py) +
+        res_py * (m_V_inv[1][0] * res_px +
+                  m_V_inv[1][1] * res_py); // chi2 = res_transponiert * Vinv * res
 
     return chi2;
 }
 
 double YHKinFitMaster::GetPullBalanceX(ROOT::Math::PtEtaPhiEVector p4_X_fit) {
-    ROOT::Math::PtEtaPhiMVector p4_X_reco =
+    ROOT::Math::PtEtaPhiEVector p4_X_reco =
         m_MET + m_tauvis1 + m_tauvis2 + m_bjet1 + m_bjet2;
     double dE_fit = sqrt(m_covRecoil[0][0]);
     double pull = (p4_X_fit.Px() - p4_X_reco.Px()) / dE_fit;
@@ -737,7 +717,7 @@ double YHKinFitMaster::GetPullBalanceX(ROOT::Math::PtEtaPhiEVector p4_X_fit) {
 }
 
 double YHKinFitMaster::GetPullBalanceY(ROOT::Math::PtEtaPhiEVector p4_X_fit) {
-    ROOT::Math::PtEtaPhiMVector p4_X_reco =
+    ROOT::Math::PtEtaPhiEVector p4_X_reco =
         m_MET + m_tauvis1 + m_tauvis2 + m_bjet1 + m_bjet2;
     double dE_fit = sqrt(m_covRecoil[1][1]);
     double pull = (p4_X_fit.Py() - p4_X_reco.Py()) / dE_fit;

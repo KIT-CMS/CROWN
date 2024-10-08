@@ -113,10 +113,10 @@ ROOT::RDF::RNode topptreweighting(ROOT::RDF::RNode df,
                         "two top quarks. Probably due to wrong sample type.");
             throw std::runtime_error("Bad number of top quarks.");
         }
-        if (top_pts[0] > 472.0)
-            top_pts[0] = 472.0;
-        if (top_pts[1] > 472.0)
-            top_pts[1] = 472.0;
+        if (top_pts[0] > 500.0)
+            top_pts[0] = 500.0;
+        if (top_pts[1] > 500.0)
+            top_pts[1] = 500.0;
         // const float parameter_a = 0.088;
         // const float parameter_b = -0.00087;
         // const float parameter_c = 0.00000092;
