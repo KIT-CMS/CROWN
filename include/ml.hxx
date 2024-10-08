@@ -123,8 +123,17 @@ inline ROOT::RDF::RNode PNNEvaluate_ORT(
         InputList.push_back(std::string(input_vec[i]));
     }
 
-    InputList.push_back(std::string("massX_") + massX_parameter);
-    InputList.push_back(std::string("massY_") + massY_parameter);
+    if (outputname_vector.find("boosted") != std::string::npos) {
+        InputList.push_back(std::string("massX_") + massX_parameter + std::string("_boosted"));
+        InputList.push_back(std::string("massY_") + massY_parameter + std::string("_boosted"));
+    } else {
+        InputList.push_back(std::string("massX_") + massX_parameter);
+        InputList.push_back(std::string("massY_") + massY_parameter);
+    }
+
+    // InputList.push_back(std::string("massX_") + massX_parameter);
+    // InputList.push_back(std::string("massY_") + massY_parameter);
+    
     // print content of InputList
     for (auto i = 0; i < InputList.size(); ++i) {
         Logger::get("OnnxEvaluate")

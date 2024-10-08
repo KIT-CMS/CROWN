@@ -68,10 +68,15 @@ ROOT::RDF::RNode StandardTransformer(ROOT::RDF::RNode df,
     std::ifstream even_file(even_file_path);
     json even_info = json::parse(even_file);
 
+    std::string variable_name = inputname;
+    if (inputname.find(std::string("__")) != std::string::npos) {
+        variable_name = inputname.substr(0, inputname.find(std::string("__")));
+    }
+
     // odd or even files mean that they are trained on odd or even events, so it
     // has to be applied on the opposite
     auto transform_int = [odd_info, even_info,
-                          inputname](const unsigned long long event_id,
+                          variable_name](const unsigned long long event_id,
                                      const int input_var) {
         float shifted = -10;
         int var = input_var;
@@ -79,19 +84,19 @@ ROOT::RDF::RNode StandardTransformer(ROOT::RDF::RNode df,
             var = -10;
         }
         if (int(event_id) % 2 == 0) {
-            shifted = (float(var) - float(odd_info[inputname]["mean"])) /
-                      float(odd_info[inputname]["std"]);
+            shifted = (float(var) - float(odd_info[variable_name]["mean"])) /
+                      float(odd_info[variable_name]["std"]);
         } else if (int(event_id) % 2 == 1) {
-            shifted = (float(var) - float(even_info[inputname]["mean"])) /
-                      float(even_info[inputname]["std"]);
+            shifted = (float(var) - float(even_info[variable_name]["mean"])) /
+                      float(even_info[variable_name]["std"]);
         }
         Logger::get("StandardTransformer")
-            ->debug("transforming var {} from {} to {}", inputname, input_var,
+            ->debug("transforming var {} from {} to {}", variable_name, input_var,
                     shifted);
         return shifted;
     };
     auto transform_float = [odd_info, even_info,
-                            inputname](const unsigned long long event_id,
+                            variable_name](const unsigned long long event_id,
                                        const float input_var) {
         float shifted = -10;
         float var = input_var;
@@ -99,14 +104,14 @@ ROOT::RDF::RNode StandardTransformer(ROOT::RDF::RNode df,
             var = -10;
         }
         if (int(event_id) % 2 == 0) {
-            shifted = (float(var) - float(odd_info[inputname]["mean"])) /
-                      float(odd_info[inputname]["std"]);
+            shifted = (float(var) - float(odd_info[variable_name]["mean"])) /
+                      float(odd_info[variable_name]["std"]);
         } else if (int(event_id) % 2 == 1) {
-            shifted = (float(var) - float(even_info[inputname]["mean"])) /
-                      float(even_info[inputname]["std"]);
+            shifted = (float(var) - float(even_info[variable_name]["mean"])) /
+                      float(even_info[variable_name]["std"]);
         }
         Logger::get("StandardTransformer")
-            ->debug("transforming var {} from {} to {}", inputname, input_var,
+            ->debug("transforming var {} from {} to {}", variable_name, input_var,
                     shifted);
         return shifted;
     };
@@ -144,8 +149,25 @@ ROOT::RDF::RNode DefineMassColumns(ROOT::RDF::RNode df,
                                    const std::string &mass_paramfile,
                                    const std::string &mass_parameter,
                                    const std::string &boson) {
-    std::ifstream mass_file(mass_paramfile);
-    json mass_transform = json::parse(mass_file);
+    // read params from file
+    Logger::get("DefineMassColumns")->debug("reading file {}", mass_paramfile);
+    std::string replace_str = std::string("EVTID");
+    std::string odd_file_path =
+        std::string(mass_paramfile)
+            .replace(mass_paramfile.find(replace_str), replace_str.length(),
+                     std::string("odd"));
+    std::string even_file_path =
+        std::string(mass_paramfile)
+            .replace(mass_paramfile.find(replace_str), replace_str.length(),
+                     std::string("even"));
+
+    std::ifstream odd_file(odd_file_path);
+    json odd_info = json::parse(odd_file);
+    std::ifstream even_file(even_file_path);
+    json even_info = json::parse(even_file);
+    
+    // std::ifstream mass_file(mass_paramfile);
+    // json mass_transform = json::parse(mass_file);
 
     std::string mass_str;
     if (boson == "X") {
@@ -156,13 +178,33 @@ ROOT::RDF::RNode DefineMassColumns(ROOT::RDF::RNode df,
         Logger::get("DefineMassColumns")->debug("boson {} not defined", boson);
     }
 
-    auto get_mass = [mass_transform, mass_str, mass_parameter]() {
-        float mass = float(mass_transform[mass_str][mass_parameter]);
-        return mass;
+    auto get_mass = [odd_info, even_info, mass_str, 
+                     mass_parameter](const unsigned long long event_id) {
+        float shifted = -10;
+        float var = std::stof(mass_parameter);
+
+        if (int(event_id) % 2 == 0) {
+            shifted = (float(var) - float(odd_info[mass_str]["mean"])) /
+                      float(odd_info[mass_str]["std"]);
+        } else if (int(event_id) % 2 == 1) {
+            shifted = (float(var) - float(even_info[mass_str]["mean"])) /
+                      float(even_info[mass_str]["std"]);
+        }
+        Logger::get("DefineMassColumns")
+            ->debug("transforming var {} from {} to {}", mass_str, var,
+                    shifted);
+        return shifted;
     };
+
+    // auto get_mass = [mass_transform, mass_str, mass_parameter]() {
+    //     float mass = float(mass_transform[mass_str][mass_parameter]);
+    //     return mass;
+    // };
+
+    const std::string event_id = std::string("event");
     Logger::get("DefineMassColumns")
         ->debug("output column produced for {}", outputname);
-    auto df1 = df.Define(outputname, get_mass, {});
+    auto df1 = df.Define(outputname, get_mass, {event_id});
     return df1;
 }
 
