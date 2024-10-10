@@ -904,6 +904,18 @@ ROOT::RDF::RNode TauIDFlag(ROOT::RDF::RNode df, const std::string &outputname,
         },
         {pairname, nameID});
 }
+
+ROOT::RDF::RNode TauIDFlag_PNet(ROOT::RDF::RNode df, const std::string &outputname,
+                           const int &position, const std::string &pairname,
+                           const std::string &pnetcolumn) {
+        return df.Define(
+        outputname,
+        [position](const ROOT::RVec<int> &pair, const ROOT::RVec<float> &pnet_score) {
+            const int index = pair.at(position);
+            return pnet_score.at(index, default_float);
+        },
+        {pairname, pnetcolumn});
+                           }
 } // end namespace tau
 /// namespace for muon specific quantities
 namespace muon {

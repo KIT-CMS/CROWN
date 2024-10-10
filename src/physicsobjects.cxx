@@ -665,14 +665,14 @@ ROOT::RDF::RNode CutDecayModes(ROOT::RDF::RNode df, const std::string &maskname,
                  // printing one by one element
                  // separated with space
                  Logger::get("CutDecayModes")
-                     ->info("\n**** SelectedDecayModes {}", elem);
+                     ->debug("\n**** SelectedDecayModes {}", elem);
              });
 
             if (decaymodes.size() > 0){
         
                 for (int i=0; i<decaymodes.size(); ++i)
                 Logger::get("CutDecayModes")
-                    ->info("\n**** decaymodes {}, type of decaymodes elements {}", decaymodes[i], typeid(decaymodes[i]).name() );
+                    ->debug("\n**** decaymodes {}, type of decaymodes elements {}", decaymodes[i], typeid(decaymodes[i]).name() );
 
             }
             for (auto n : decaymodes) {
