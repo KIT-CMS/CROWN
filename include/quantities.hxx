@@ -128,5 +128,10 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &outputname,
                     const int &position, const std::string &pairname,
                     const std::string &idcolumn);
 } // end namespace electron
+namespace fatjet{
+ROOT::RDF::RNode fatjet_met_deltaPhi(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &fatjet_p4,
+                             const std::string &met_fatjet_phi);
+} // end namespace fatjet
 } // end namespace quantities
 #endif /* GUARD_QUANTITIES_H */

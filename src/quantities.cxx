@@ -1009,5 +1009,37 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &outputname,
         {pairname, idcolumn});
 }
 } // end namespace electron
+namespace fatjet{
+
+ROOT::RDF::RNode fatjet_met_deltaPhi(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &fatjet_p4,
+                             const std::string &met_fatjet_phi) {
+                             auto fj_met_deltaPhi = [](const ROOT::Math::PtEtaPhiMVector &fj_p4,
+                                                                  const float& met_fj_phi){
+    float delta_Phi = 8;
+
+    if (fj_p4.Pt() !=-10 ){
+
+        float delta_Phi_fj_met = fj_p4.Phi() - met_fj_phi;
+
+        if (delta_Phi_fj_met > M_PI) delta_Phi_fj_met -= 2 * M_PI;
+        if (delta_Phi_fj_met < -M_PI) delta_Phi_fj_met += 2 * M_PI;
+
+        delta_Phi = delta_Phi_fj_met;
+    }
+
+    Logger::get("fatjet_met_deltaPhi")
+    ->debug("Delta Phi between fatjet and MET {}", delta_Phi);
+    
+    
+    return delta_Phi; 
+    };
+
+        auto df1 = df.Define(outputname, fj_met_deltaPhi, 
+        {fatjet_p4, met_fatjet_phi});
+
+        return df1;
+    }
+} // endf namespace fatjet
 } // end namespace quantities
 #endif /* GUARD_QUANTITIES_H */
