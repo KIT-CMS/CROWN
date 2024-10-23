@@ -142,68 +142,6 @@ ROOT::RDF::RNode n_eles(ROOT::RDF::RNode df,
                                  }
 namespace mutau{
 
-// ROOT::RDF::RNode single_mu_in_fatjet_mutau(ROOT::RDF::RNode df,
-//                                              const std::string &outputname,
-//                                              const std::string &fatjet_p4,
-//                                              const std::string &muon_pt,
-//                                              const std::string &muon_eta,
-//                                              const std::string &muon_phi,
-//                                              const std::string &muon_mass,
-//                                              const float &pt_threshold,
-//                                              const float &eta_threshold) {
-
-//     auto single_muon_in_fatjet = [=]
-//                                  (const ROOT::Math::PtEtaPhiMVector &fatjet_p4,
-//                                   const ROOT::RVec<float> &muon_pts,
-//                                   const ROOT::RVec<float> &muon_etas,
-//                                   const ROOT::RVec<float> &muon_phis,
-//                                   const ROOT::RVec<float> &muon_masses) {
-//         // Check if there is exactly one muon in the event
-
-//         float mutau_flag = 0;
-
-//         if (muon_pts.size() != 1) {
-//             Logger::get("fatjet::trigger_single_mu_in_fatjet")
-//                 ->info("Muon count not equal to 1: found {} muons", muon_pts.size());
-//             // return 0;
-//         }
-
-//         // Access the single muon's properties
-//         float muon_pt = muon_pts[0];
-//         float muon_eta = muon_etas[0];
-
-//         // Apply pt, eta, and isolation cuts
-//         if (muon_pt < pt_threshold || std::abs(muon_eta) > eta_threshold ) {
-//             Logger::get("fatjet::trigger_single_mu_in_fatjet")
-//                 ->info("Single muon does not pass thresholds. pt: {}, eta: {}", 
-//                         muon_pt, muon_eta);
-//             // return 0;
-//         }else{
-
-//         // Construct the muon 4-vector
-//         ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt, muon_eta, muon_phis[0], muon_masses[0]);
-
-//         // Calculate deltaR between the single muon and the fatjet
-//         float delta_r = ROOT::Math::VectorUtil::DeltaR(muon_p4, fatjet_p4);
-
-//         if (delta_r < 0.8) {
-//             Logger::get("fatjet::trigger_single_mu_in_fatjet")
-//                 ->info("Single muon found in fatjet with pt {} and eta {}", muon_pt, muon_eta);
-//             // return 1;
-//             mutau_flag = 1;
-//         } else {
-//             Logger::get("fatjet::trigger_single_mu_in_fatjet")
-//                 ->info("Single muon NOT in fatjet. Muon pt: {}, eta: {}", muon_pt, muon_eta);
-//             // return 0;
-//         }
-//             }
-//         return mutau_flag;
-//     };
-
-//     auto df1 = df.Define(outputname, single_muon_in_fatjet,
-//                          {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass});
-//     return df1;
-// }
 
 ROOT::RDF::RNode single_mu_in_fatjet_mutau(ROOT::RDF::RNode df,
                                              const std::string &outputname,
