@@ -31,6 +31,7 @@ ROOT::RDF::RNode n_eles(ROOT::RDF::RNode df,
                                  const std::string &outputname,
                                  const std::string &ele_pt,
                                  const std::string &ele_eta,
+                                 const std::string &ele_id,
                                  const float &ElePtThreshold,
                                  const float &EleEtaThreshold);
 
@@ -43,6 +44,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau(ROOT::RDF::RNode df,
                                             const std::string &muon_eta,
                                             const std::string &muon_phi,
                                             const std::string &muon_mass,
+                                            const std::string &muon_looseId,
                                             const float &pt_threshold,
                                             const float &eta_threshold);
 
@@ -53,6 +55,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_deltaR(ROOT::RDF::RNode df,
                                              const std::string &muon_eta,
                                              const std::string &muon_phi,
                                              const std::string &muon_mass,
+                                             const std::string &muon_looseId,
                                              const float &pt_threshold,
                                              const float &eta_threshold);
 
@@ -63,6 +66,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_pT(ROOT::RDF::RNode df,
                                              const std::string &muon_eta,
                                              const std::string &muon_phi,
                                              const std::string &muon_mass,
+                                             const std::string &muon_looseId,
                                              const float &pt_threshold,
                                              const float &eta_threshold);
 
@@ -73,6 +77,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_eta(ROOT::RDF::RNode df,
                                              const std::string &muon_eta,
                                              const std::string &muon_phi,
                                              const std::string &muon_mass,
+                                             const std::string &muon_looseId,
                                              const float &pt_threshold,
                                              const float &eta_threshold);
 
@@ -84,6 +89,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_iso(ROOT::RDF::RNode df,
                                              const std::string &muon_phi,
                                              const std::string &muon_mass,
                                              const std::string &muon_iso,
+                                             const std::string &muon_looseId,
                                              const float &pt_threshold,
                                              const float &eta_threshold);                                             
 }
