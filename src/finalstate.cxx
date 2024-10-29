@@ -124,7 +124,7 @@ ROOT::RDF::RNode n_eles(ROOT::RDF::RNode df,
                             
                             for (unsigned int i = 0; i < pt.size(); ++i) {
                                 if (pt[i] > EleEtaThreshold &&
-                                    fabs(eta[i]) < EleEtaThreshold && id == 1 ) {
+                                    fabs(eta[i]) < EleEtaThreshold && id[i] == 1 ) {
                                     ++counts;
                                 }
                             }
