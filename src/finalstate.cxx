@@ -13,7 +13,7 @@
 #include <Math/VectorUtil.h>
 #include <cmath>
 #include <typeinfo>
-
+#include <vector>
 
 namespace finalstate{
 
@@ -187,7 +187,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau(ROOT::RDF::RNode df,
         if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1){
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
-                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, looseID", muon_pt1, muon_eta1, muon_id1);
+                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, looseID: {}", muon_pt1, muon_eta1, muon_id1);
 
             // Construct the muon 4-vector
             ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt1, muon_eta1, muon_phis[0], muon_masses[0]);
@@ -200,11 +200,11 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau(ROOT::RDF::RNode df,
             }
 
             Logger::get("fatjet::trigger_single_mu_in_fatjet")
-                ->debug("Delta R {} between fatjet and muon with pt: {}, eta: {}", delta_r, muon_pt1, muon_eta1);
+                ->debug("Delta R {} between fatjet and muon with pt: {}, eta: {}, looseID: {}", delta_r, muon_pt1, muon_eta1, muon_id1);
 
         }else{
             Logger::get("fatjet::trigger_single_mu_in_fatjet")
-                ->debug("Muon didn't pass pT-eta threshold  pt: {}, eta: {}", muon_pt1, muon_eta1);
+                ->debug("Muon didn't pass pT-eta threshold  pt: {}, eta: {}, looseID: {}", muon_pt1, muon_eta1, muon_id1);
         }
 
         }
