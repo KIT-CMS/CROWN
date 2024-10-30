@@ -221,6 +221,28 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau(ROOT::RDF::RNode df,
 }
 
 
+ROOT::RDF::RNode compute_muon_lorentz_vector(ROOT::RDF::RNode df,
+                                             const std::string &outputname,
+                                             const std::string &flag,
+                                             const std::string &muon_pt,
+                                             const std::string &muon_eta,
+                                             const std::string &muon_phi,
+                                             const std::string &muon_mass) {
+
+    auto muon_lorentz_vector = [=](float flag, const ROOT::RVec<float> &pts,
+                                   const ROOT::RVec<float> &etas, const ROOT::RVec<float> &phis,
+                                   const ROOT::RVec<float> &masses) {
+        if (flag == 1 && pts.size() == 1) {
+            return ROOT::Math::PtEtaPhiMVector(pts[0], etas[0], phis[0], masses[0]);
+        }
+        // Return default vector if no unique muon is found or flag is 0
+        return ROOT::Math::PtEtaPhiMVector(100, 100, 100, 100);
+    };
+
+    auto df1 = df.Define(outputname, muon_lorentz_vector, {flag, muon_pt, muon_eta, muon_phi, muon_mass});
+    return df1;
+}
+
 ROOT::RDF::RNode single_mu_in_fatjet_mutau_deltaR(ROOT::RDF::RNode df,
                                              const std::string &outputname,
                                              const std::string &fatjet_p4,

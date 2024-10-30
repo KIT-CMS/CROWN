@@ -48,6 +48,14 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau(ROOT::RDF::RNode df,
                                             const float &pt_threshold,
                                             const float &eta_threshold);
 
+ROOT::RDF::RNode compute_muon_lorentz_vector(ROOT::RDF::RNode df,
+                                             const std::string &outputname,
+                                             const std::string &flag,
+                                             const std::string &muon_pt,
+                                             const std::string &muon_eta,
+                                             const std::string &muon_phi,
+                                             const std::string &muon_mass);
+
 ROOT::RDF::RNode single_mu_in_fatjet_mutau_deltaR(ROOT::RDF::RNode df,
                                              const std::string &outputname,
                                              const std::string &fatjet_p4,
