@@ -389,7 +389,7 @@ nsubjettiness_ratio(ROOT::RDF::RNode df, const std::string &outputname,
                              const int index = fatjetcollection.at(position);
                              nsubjet_N = nsubjettiness_N.at(index);
                              nsubjet_Nm1 = nsubjettiness_Nm1.at(index);
-                             ratio = nsubjet_Nm1 / nsubjet_N;
+                             ratio = nsubjet_N / nsubjet_Nm1; 
                          } catch (const std::out_of_range &e) {
                          }
                          return ratio;
