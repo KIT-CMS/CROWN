@@ -31,6 +31,7 @@
 #include "include/topreco.hxx"
 #include "include/triggers.hxx"
 #include "include/fakefactors.hxx"
+#include "include/example.hxx"
 
 // {INCLUDES}
 
