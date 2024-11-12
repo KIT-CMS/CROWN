@@ -6,6 +6,7 @@
 #include "include/htxs.hxx"
 #include "include/jets.hxx"
 #include "include/fatjets.hxx"
+#include "include/finalstate.hxx"
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"
 #include "include/metfilter.hxx"
