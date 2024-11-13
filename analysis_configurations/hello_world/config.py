@@ -30,7 +30,7 @@ def build_config(
 
     # muon base selection:
     configuration.add_config_parameters(
-        "leptonic",
+        "mm",
         {
             "n_muon_req": 2,
             "C_muon_req": -1,
@@ -38,7 +38,7 @@ def build_config(
     )
 
     configuration.add_producers(
-        "leptonic",
+        "mm",
         [
             p.NumMuonCut,
             p.CMuonCut,
@@ -47,7 +47,7 @@ def build_config(
     )
     
     configuration.add_outputs(
-        "leptonic",
+        "mm",
         [
             q.Muon_InvMass,
             # nanoAOD.nMuon,

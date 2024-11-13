@@ -8,9 +8,10 @@ def run(args):
     analysis_name = "hello_world"
     available_samples = [
         "data",
+        "dyjets",
     ]
-    available_eras = ["2012"]
-    available_scopes = ["leptonic"]
+    available_eras = ["2012","2018","2022"]
+    available_scopes = ["mm"]
     ######################################################
 
     ## setup variables

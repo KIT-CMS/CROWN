@@ -11,7 +11,7 @@ NumMuonCut = Producer(
     call="example::CutNMuon({df}, {input}, {n_muon_req})",
     input=[nanoAOD.nMuon],
     output=[],
-    scopes=["leptonic"],
+    scopes=["mm"],
 )
 
 CMuonCut = Producer(
@@ -19,7 +19,7 @@ CMuonCut = Producer(
     call="example::CutCMuons({df}, {input}, {C_muon_req})",
     input=[nanoAOD.Muon_charge],
     output=[],
-    scopes=["leptonic"],
+    scopes=["mm"],
 )
 
 MuonInvMass = Producer(
@@ -27,5 +27,5 @@ MuonInvMass = Producer(
     call="example::GetInvariantMass({df}, {output}, {input})",
     input=[nanoAOD.Muon_pt, nanoAOD.Muon_eta, nanoAOD.Muon_phi, nanoAOD.Muon_mass],
     output=[q.Muon_InvMass],
-    scopes=["leptonic"],
+    scopes=["mm"],
 )
