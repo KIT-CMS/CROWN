@@ -1,18 +1,18 @@
 Writing a new producer
 =======================
 
-Writing a new producer requires two main parts, adding the :ref:`C++ function<Writing a new C++ function>` and the required :ref:`python part<Defining a new python Producer>`.
+Writing a new producer involves two main parts, adding the :ref:`C++ function<Writing a new C++ function>` and the required :ref:`python component<Defining a new python Producer>`.
 
-If the C++ function is written generally enough, it can be used in multiple producers and multiple purposes in the end.
+If the C++ function is written generically enough, it can be used in multiple producers and multiple purposes in the end.
 For example, the producer generating the pt_1 quantity can be used regardless of what particle is being considered.
 
-In the following, an introduction on how to add a new producer is given. As an example, we will add a new producer, which can be used to calculate the Lorentz vectors of particles, in our case electrons. For simplicity, we only want to calculate one single Lorentz vector for a given index. First, we will do the C++ implementation of the function followed by the Python definition. Keep in mind, that those two parts are connected.
+In the following, an introduction to adding a new producer is given. As an example, we will add a new producer, which can be used to calculate the Lorentz vectors of particles, in our case electrons. For simplicity, we only want to calculate one single Lorentz vector for a given index. First, we will do the C++ implementation of the function followed by the Python definition. Keep in mind, that those two parts are connected.
 
 Writing a new C++ function
 ============================
 
-For a new C++ function, a definition in the header file, and the implementation in the source file are required. As good practice, we will add the function to a namespace called ``lorentzvector``, and call the function ``build``.
-The return type of any function in CROWN should always be ``ROOT::RDF::RNode`` and the first argument of the function should always be the RDataframe, where we want to Define our new quantity. This means the basic definition of the function should look like this:
+For a new C++ function, a definition in the header file, both a definition in the header file and the implementation in the source file are required. As good practice, we will add the function to a namespace called ``lorentzvector``, and call the function ``build``.
+The return type of any function in CROWN should always be ``ROOT::RDF::RNode``, and the first argument of the function should always be the RDataframe, where we want to Define our new quantity. This means the basic definition of the function should look like this:
 
 .. code-block:: cpp
 
