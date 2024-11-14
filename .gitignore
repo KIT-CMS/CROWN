@@ -9,6 +9,7 @@ analysis_configurations/*
 !analysis_configurations/hello_world
 !analysis_configurations/unittest
 !analysis_configurations/template_analysis
+!analysis_configurations/boilerplate_templates
 # Doxygen Documentation
 docs/doxygen
 
