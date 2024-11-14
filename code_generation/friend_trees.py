@@ -44,6 +44,7 @@ class FriendTreeConfiguration(Configuration):
         available_eras: Union[str, List[str]],
         available_scopes: Union[str, List[str]],
         input_information: Union[str, List[str]],
+        global_scope: str = "global",
     ):
         """Generate a configuration for a FriendTree production.
 
@@ -67,6 +68,7 @@ class FriendTreeConfiguration(Configuration):
             available_sample_types,
             available_eras,
             available_scopes,
+            global_scope=global_scope,
         )
         self.run_nominal = False
         # in the main constructor, the global scope is added to the scopes list.

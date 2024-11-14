@@ -19,8 +19,7 @@
 
 namespace example {
 
-/// Function to select objects with number of Muons, using
-/// basefunctions::FilterEqualInt
+/// Function to select objects with number of Muons
 ///
 /// \param[in] df the input dataframe
 /// \param[in] nMuons name of the number of Muons column in the NanoAOD dataframe
@@ -36,8 +35,7 @@ ROOT::RDF::RNode CutNMuon(ROOT::RDF::RNode df, const std::string &nMuons, const 
     return df1;
 }
 
-/// Function to select objects with number of Muons, using
-/// basefunctions::FilterEqualInt
+/// Function to select objects with number of Muons
 ///
 /// \param[in] df the input dataframe
 /// \param[in] CMuons name of the charge of Muons column in the NanoAOD dataframe
@@ -57,7 +55,7 @@ ROOT::RDF::RNode CutCMuons(ROOT::RDF::RNode df, const std::string &CMuons, const
 /// ROOT::VecOps::InvariantMass
 ///
 /// \param[in] df the input dataframe
-/// \param[in] new_column name of the new column in the NanoAOD dataframe
+/// \param[in] new_column name of the new column in the ntuple
 /// \param[in] particle_pts name of the pt column in the NanoAOD dataframe
 /// \param[in] particle_etas name of the eta column in the NanoAOD dataframe
 /// \param[in] particle_phis name of the phi column in the NanoAOD dataframe
@@ -85,6 +83,21 @@ ROOT::RDF::RNode GetInvariantMass(
         InvariantMassLambda, 
         {particle_pts, particle_etas, particle_phis, particle_masses}
     );
+    return df1;
+}
+
+/// Function to select objects with number of Muons
+///
+/// \param[in] df the input dataframe
+/// \param[in] new_column name of the new column in the ntuple
+/// \param[in] CMuons name of the charge of Muons column in the NanoAOD dataframe
+///
+/// \return a dataframe filtered by the cut
+ROOT::RDF::RNode MuonCSum(ROOT::RDF::RNode df, const std::string &new_column, const std::string &CMuons) {
+    auto CSum = [](const ROOT::RVec<int> &charges) {
+        return charges[0] + charges[1];
+    };
+    auto df1 = df.Define(new_column, CSum, {CMuons});
     return df1;
 }
 

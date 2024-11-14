@@ -15,5 +15,7 @@ ROOT::RDF::RNode GetInvariantMass(
     const std::string &particle_masses
 );
 
+ROOT::RDF::RNode MuonCSum(ROOT::RDF::RNode df, const std::string &new_column, const std::string &CMuons);
+
 } // namespace example
 #endif /* GUARD_EXAMPLE_H */

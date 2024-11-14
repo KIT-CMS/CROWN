@@ -1,4 +1,4 @@
-from code_generation.producer import Producer, ProducerGroup
+from code_generation.producer import Producer
 from ..quantities import output as q
 from ..quantities import nanoAOD as nanoAOD
 
@@ -27,5 +27,13 @@ MuonInvMass = Producer(
     call="example::GetInvariantMass({df}, {output}, {input})",
     input=[nanoAOD.Muon_pt, nanoAOD.Muon_eta, nanoAOD.Muon_phi, nanoAOD.Muon_mass],
     output=[q.Muon_InvMass],
+    scopes=["mm"],
+)
+
+MuonCSum = Producer(
+    name="MuonCSum",
+    call="example::MuonCSum({df}, {output}, {input})",
+    input=[nanoAOD.Muon_charge],
+    output=[q.MuonCSum],
     scopes=["mm"],
 )
