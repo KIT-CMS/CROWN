@@ -23,7 +23,7 @@ def build_config(
             available_sample_types,
             available_eras,
             available_scopes,
-            global_scope="",
+            # global_scope=None, # Uncomment if you have no global scope (e.g. "mm" as the only scope)
         )
     #########################
     # setup the configuration

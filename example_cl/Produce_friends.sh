@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Command to run friend generation of hello_world with open data example file
+# Command to run friend generation of solution with open data example file
 # Run this from the CROWN dir
-ANALYSIS=hello_world
+ANALYSIS=solution
 CONFIG=config_friends
 SAMPLES=dyjets
 ERAS=2012

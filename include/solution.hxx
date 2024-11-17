@@ -1,7 +1,7 @@
-#ifndef GUARD_EXAMPLE_H
-#define GUARD_EXAMPLE_H
+#ifndef GUARD_SOLUTION_H
+#define GUARD_SOLUTION_H
 
-namespace example {
+namespace solution {
 ROOT::RDF::RNode CutNMuon(ROOT::RDF::RNode df, const std::string &nMuons, const unsigned int &nMuons_req);
 
 ROOT::RDF::RNode CutCMuons(ROOT::RDF::RNode df, const std::string &CMuons, const int &CMuons_req);
@@ -17,5 +17,5 @@ ROOT::RDF::RNode GetInvariantMass(
 
 ROOT::RDF::RNode MuonCSum(ROOT::RDF::RNode df, const std::string &new_column, const std::string &CMuons);
 
-} // namespace example
-#endif /* GUARD_EXAMPLE_H */
+} // namespace solution
+#endif /* GUARD_SOLUTION_H */

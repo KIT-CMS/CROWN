@@ -5,7 +5,7 @@ from code_generation.code_generation import CodeGenerator
 
 def run(args):
     ### SET these variables according to your analysis ###
-    analysis_name = "hello_world"
+    analysis_name = "solution"
     available_samples = [
         "ggh_htautau",
         "ggh_hbb",

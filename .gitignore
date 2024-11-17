@@ -7,6 +7,7 @@ generation_logs/
 # ignore all analysis in the config folder apart from the unittest and the template
 analysis_configurations/*
 !analysis_configurations/hello_world
+!analysis_configurations/solution
 !analysis_configurations/unittest
 !analysis_configurations/template_analysis
 !analysis_configurations/boilerplate_templates

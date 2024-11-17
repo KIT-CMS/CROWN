@@ -8,7 +8,7 @@ from ..quantities import nanoAOD as nanoAOD
 
 NumMuonCut = Producer(
     name="NumMuonCut",
-    call="example::CutNMuon({df}, {input}, {n_muon_req})",
+    call="solution::CutNMuon({df}, {input}, {n_muon_req})",
     input=[nanoAOD.nMuon],
     output=[],
     scopes=["mm"],
@@ -16,7 +16,7 @@ NumMuonCut = Producer(
 
 CMuonCut = Producer(
     name="CMuonCut",
-    call="example::CutCMuons({df}, {input}, {C_muon_req})",
+    call="solution::CutCMuons({df}, {input}, {C_muon_req})",
     input=[nanoAOD.Muon_charge],
     output=[],
     scopes=["mm"],
@@ -24,7 +24,7 @@ CMuonCut = Producer(
 
 MuonInvMass = Producer(
     name="MuonInvMass",
-    call="example::GetInvariantMass({df}, {output}, {input})",
+    call="solution::GetInvariantMass({df}, {output}, {input})",
     input=[nanoAOD.Muon_pt, nanoAOD.Muon_eta, nanoAOD.Muon_phi, nanoAOD.Muon_mass],
     output=[q.Muon_InvMass],
     scopes=["mm"],
@@ -32,7 +32,7 @@ MuonInvMass = Producer(
 
 MuonCSum = Producer(
     name="MuonCSum",
-    call="example::MuonCSum({df}, {output}, {input})",
+    call="solution::MuonCSum({df}, {output}, {input})",
     input=[nanoAOD.Muon_charge],
     output=[q.MuonCSum],
     scopes=["mm"],

@@ -1,5 +1,5 @@
-#ifndef GUARD_EXAMPLE_H
-#define GUARD_EXAMPLE_H
+#ifndef GUARD_SOLUTION_H
+#define GUARD_SOLUTION_H
 
 // #include "../include/defaults.hxx"
 #include "../include/basefunctions.hxx"
@@ -17,7 +17,7 @@
 #include "utility/utility.hxx"
 #include <nlohmann/json.hpp>
 
-namespace example {
+namespace solution {
 
 /// Function to select objects with number of Muons
 ///
@@ -101,5 +101,5 @@ ROOT::RDF::RNode MuonCSum(ROOT::RDF::RNode df, const std::string &new_column, co
     return df1;
 }
 
-} // namespace example
-#endif /* GUARD_EXAMPLE_H */
+} // namespace solution
+#endif /* GUARD_SOLUTION_H */
