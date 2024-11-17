@@ -9,6 +9,8 @@ ERAS=2012
 SCOPE=mm
 QUANTITIESMAP=${PWD}/build/bin/out_${SCOPE}.root
 
+source init.sh
+mkdir build -p
 cd build
 # Run cmake to generate c++ code
 cmake .. -DANALYSIS=${ANALYSIS} -DCONFIG=${CONFIG} -DSAMPLES=${SAMPLES} -DERAS=${ERAS} -DSCOPES=${SCOPE} -DQUANTITIESMAP=${QUANTITIESMAP}
