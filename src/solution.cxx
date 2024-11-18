@@ -1,12 +1,6 @@
 #ifndef GUARD_SOLUTION_H
 #define GUARD_SOLUTION_H
 
-// #include "../include/defaults.hxx"
-#include "../include/basefunctions.hxx"
-// #include "ROOT/RDFHelpers.hxx"
-// #include "ROOT/RDataFrame.hxx"
-// #include "ROOT/RVec.hxx"
-
 #include "../include/defaults.hxx"
 #include "../include/utility/CorrectionManager.hxx"
 #include "ROOT/RDFHelpers.hxx"
@@ -15,7 +9,6 @@
 #include "utility/Logger.hxx"
 #include "utility/RooFunctorThreadsafe.hxx"
 #include "utility/utility.hxx"
-#include <nlohmann/json.hpp>
 
 namespace solution {
 
