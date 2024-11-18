@@ -33,6 +33,7 @@
 #include "include/triggers.hxx"
 #include "include/tripleselection.hxx"
 #include "include/solution.hxx"
+#include "include/example.hxx"
 // {INCLUDES}
 
 int validate_rootfile(std::string file, std::string &basetree) {

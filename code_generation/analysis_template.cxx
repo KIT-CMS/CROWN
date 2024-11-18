@@ -32,6 +32,7 @@
 #include "include/triggers.hxx"
 #include "include/fakefactors.hxx"
 #include "include/solution.hxx"
+#include "include/example.hxx"
 
 // {INCLUDES}
 

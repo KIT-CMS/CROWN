@@ -32,6 +32,7 @@
 #include "include/triggers.hxx"
 #include "include/fakefactors.hxx"
 #include "include/solution.hxx"
+#include "include/example.hxx"
 ROOT::RDF::RNode {subsetname} (ROOT::RDF::RNode df0, OnnxSessionManager &onnxSessionManager, correctionManager::CorrectionManager &correctionManager) {
 
     //    { commands }
