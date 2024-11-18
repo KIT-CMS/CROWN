@@ -31,6 +31,24 @@ def build_config(
     # setup the configuration
     #########################
 
+    configuration.add_config_parameters(
+        "<scope>",
+        {
+            "<constant>": "<constant value>",
+        },
+    )
+    
+    configuration.add_producers(
+        "<scope>",
+        [
+            "<producer>",
+        ],
+    )
+
+    configuration.add_outputs(
+        "<scope>",
+        ["<output quantities>"],
+    )
 
 
     #########################

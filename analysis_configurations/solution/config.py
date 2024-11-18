@@ -23,7 +23,8 @@ def build_config(
             available_sample_types,
             available_eras,
             available_scopes,
-            global_scope="",
+            # Set name of global scope here if you have one 
+            global_scope=None,
         )
     #########################
     # setup the configuration

@@ -1,7 +1,7 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 from typing import List, Union
 from code_generation.configuration import Configuration
-from .producers import all_producers as p
+from .producers import producers as p
 from .quantities import output as q
 from .quantities import nanoAOD as nanoAOD
 
@@ -23,13 +23,30 @@ def build_config(
             available_sample_types,
             available_eras,
             available_scopes,
-            # global_scope=None, # Uncomment if you have no global scope (e.g. "mm" as the only scope)
+            # Set name of global scope here if you have one 
+            global_scope=None, 
         )
     #########################
     # setup the configuration
     #########################
+    configuration.add_config_parameters(
+        "<scope>",
+        {
+            "<constant>": "<constant value>",
+        },
+    )
+    
+    configuration.add_producers(
+        "<scope>",
+        [
+            "<producer>",
+        ],
+    )
 
-
+    configuration.add_outputs(
+        "<scope>",
+        ["<output quantities>"],
+    )
 
     #########################
     # Finalize and validate the configuration
