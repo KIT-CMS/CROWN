@@ -458,6 +458,36 @@ ROOT::RDF::RNode delta_R_gentau_fatjet(ROOT::RDF::RNode df,
 }
 
 
+ROOT::RDF::RNode m_inv_ditau(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &fatjet_pt,
+                                 const std::string &met_fatjet_pt,
+                                 const std::string &fatjet_mass) {
+
+        auto m_inv = [](const float& fatjet_pts,
+                        const float& met_fatjet_pts,
+                        const float& fatjet_masses){
+                                float m_ditau = -30;
+
+                                // for (unsigned int i = 0; i < met_fatjet_pts.size(); i++) {
+
+                                    if (fatjet_pts !=0 && met_fatjet_pts != 0){
+
+                                        float m = fatjet_masses * (fatjet_pts + met_fatjet_pts) / sqrt( fatjet_pts * met_fatjet_pts );
+                                        m_ditau = m;
+
+                                    }
+
+                                // }
+                            return m_ditau; 
+                            };
+
+        auto df1 =
+            df.Define(outputname, m_inv,
+                    {fatjet_pt, met_fatjet_pt,fatjet_mass });
+        return df1;
+}
+
 
 } // end namespace fatjet
 } // end namespace quantities

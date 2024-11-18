@@ -59,13 +59,11 @@ ROOT::RDF::RNode delta_R_gentau_fatjet(ROOT::RDF::RNode df,
                                  const std::string &tau_phi,
                                  const std::string &tau_mass);
 
-// ROOT::RDF::RNode trigger_mu_in_fatjet(ROOT::RDF::RNode df,
-//                                  const std::string &outputname,
-//                                  const std::string &fatjet_p4,
-//                                  const std::string &muon_pt,
-//                                  const std::string &muon_eta,
-//                                  const std::string &muon_phi,
-//                                  const std::string &muon_mass);
+ROOT::RDF::RNode m_inv_ditau(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &fatjet_pt,
+                                 const std::string &met_fatjet_pt,
+                                 const std::string &fatjet_mass); 
 } // end namespace fatjet
 } // end namespace quantities
 #endif /* GUARDFATJETS_H */
