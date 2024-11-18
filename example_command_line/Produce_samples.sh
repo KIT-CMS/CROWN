@@ -4,7 +4,7 @@
 # Run this from the CROWN dir
 ANALYSIS=solution
 CONFIG=config
-SAMPLES=dyjets
+SAMPLES=data
 ERAS=2012
 SCOPE=mm
 EXAMPLE_FILE="root://eospublic.cern.ch//eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/Run2012BC_DoubleMuParked_Muons.root"

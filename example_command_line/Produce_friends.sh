@@ -4,7 +4,7 @@
 # Run this from the CROWN dir
 ANALYSIS=solution
 CONFIG=config_friends
-SAMPLES=dyjets
+SAMPLES=data
 ERAS=2012
 SCOPE=mm
 QUANTITIESMAP=${PWD}/build/bin/out_${SCOPE}.root

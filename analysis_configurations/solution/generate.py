@@ -6,25 +6,9 @@ from code_generation.code_generation import CodeGenerator
 def run(args):
     ### SET these variables according to your analysis ###
     analysis_name = "solution"
-    available_samples = [
-        "ggh_htautau",
-        "ggh_hbb",
-        "vbf_htautau",
-        "vbf_hbb",
-        "rem_htautau",
-        "rem_hbb",
-        "embedding",
-        "embedding_mc",
-        "singletop",
-        "ttbar",
-        "diboson",
-        "dyjets",
-        "wjets",
-        "data",
-        "electroweak_boson",
-    ]
-    available_eras = ["2016preVFP", "2016postVFP", "2017", "2018","2012"]
-    available_scopes = ["et", "mt", "tt", "em", "ee", "mm"]
+    available_samples = ["data"]
+    available_eras = ["2012"]
+    available_scopes = ["mm"]
     ######################################################
 
     ## setup variables

@@ -1,7 +1,7 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 from typing import List, Union
 from code_generation.configuration import Configuration
-from .producers import all_producers as p
+from .producers import producers as p
 from .quantities import output as q
 from .quantities import nanoAOD as nanoAOD
 
