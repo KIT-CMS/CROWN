@@ -116,7 +116,7 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
                    ROOT::RVec<float> &triggerobject_etas,
                    ROOT::RVec<float> &triggerobject_phis,
                    ROOT::RVec<int> &triggerobject_bits,
-                   ROOT::RVec<int> &triggerobject_ids, const float &matchDeltaR,
+                   ROOT::RVec<UShort_t> &triggerobject_ids, const float &matchDeltaR,
                    const float &pt_cut, const float &eta_cut,
                    const int &trigger_particle_id_cut,
                    const int &triggerbit_cut) {
@@ -224,7 +224,7 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
          triggerbit_cut, hltpath](bool hltpath_match,
                          const ROOT::Math::PtEtaPhiMVector &particle_p4,
                          ROOT::RVec<int> triggerobject_bits,
-                         ROOT::RVec<int> triggerobject_ids,
+                         ROOT::RVec<UShort_t> triggerobject_ids,
                          ROOT::RVec<float> triggerobject_pts,
                          ROOT::RVec<float> triggerobject_etas,
                          ROOT::RVec<float> triggerobject_phis) {
@@ -359,7 +359,7 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
                             const ROOT::Math::PtEtaPhiMVector &particle1_p4,
                             const ROOT::Math::PtEtaPhiMVector &particle2_p4,
                             ROOT::RVec<int> triggerobject_bits,
-                            ROOT::RVec<int> triggerobject_ids,
+                            ROOT::RVec<UShort_t> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
@@ -499,7 +499,7 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
          p2_triggerbit_cut](const ROOT::Math::PtEtaPhiMVector &particle1_p4,
                             const ROOT::Math::PtEtaPhiMVector &particle2_p4,
                             ROOT::RVec<int> triggerobject_bits,
-                            ROOT::RVec<int> triggerobject_ids,
+                            ROOT::RVec<UShort_t> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
@@ -575,7 +575,7 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
                          trigger_particle_id_cut, triggerbit_cut](
                             const ROOT::Math::PtEtaPhiMVector &particle_p4,
                             ROOT::RVec<int> triggerobject_bits,
-                            ROOT::RVec<int> triggerobject_ids,
+                            ROOT::RVec<UShort_t> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
@@ -636,7 +636,7 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
                    ROOT::RVec<float> &triggerobject_etas,
                    ROOT::RVec<float> &triggerobject_phis,
                    ROOT::RVec<int> &triggerobject_bits,
-                   ROOT::RVec<int> &triggerobject_ids, const float &matchDeltaR,
+                   ROOT::RVec<UShort_t> &triggerobject_ids, const float &matchDeltaR,
                    const float &pt_cut, const float &eta_cut,
                    const int &trigger_particle_id_cut,
                    const int &triggerbit_cut,
@@ -746,7 +746,7 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
                          trigger_particle_id_cut, triggerbit_cut, trigger_particle_pt_cut](
                             const ROOT::Math::PtEtaPhiMVector &particle_p4,
                             ROOT::RVec<int> triggerobject_bits,
-                            ROOT::RVec<int> triggerobject_ids,
+                            ROOT::RVec<UShort_t> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
@@ -815,7 +815,7 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
          triggerbit_cut, trigger_particle_pt_cut, hltpath](
             bool hltpath_match, const ROOT::Math::PtEtaPhiMVector &particle_p4,
             ROOT::RVec<int> triggerobject_bits,
-            ROOT::RVec<int> triggerobject_ids,
+            ROOT::RVec<UShort_t> triggerobject_ids,
             ROOT::RVec<float> triggerobject_pts,
             ROOT::RVec<float> triggerobject_etas,
             ROOT::RVec<float> triggerobject_phis) {
@@ -956,7 +956,7 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
                             const ROOT::Math::PtEtaPhiMVector &particle1_p4,
                             const ROOT::Math::PtEtaPhiMVector &particle2_p4,
                             ROOT::RVec<int> triggerobject_bits,
-                            ROOT::RVec<int> triggerobject_ids,
+                            ROOT::RVec<UShort_t> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {

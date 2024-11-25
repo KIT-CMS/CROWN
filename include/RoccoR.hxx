@@ -206,6 +206,11 @@ class RoccoR {
                                 double gt, double w) const;
     double kScaleAndSmearMCerror(int Q, double pt, double eta, double phi,
                                  int n, double u, double w) const;
+
+    double correctMC(int Q, double pt, double eta, double phi,
+                                 int n, std::string file1, std::string file2, std::string file3, std::string file4) const;
+    double correctDATA(int Q, double pt, double eta, double phi,
+                                 int n, std::string file1, std::string file3) const;
 };
 
 #endif

@@ -56,7 +56,7 @@ ROOT::RDF::RNode GenLepton(ROOT::RDF::RNode df,
     auto lambda_idx_1 = [](
         const ROOT::RVec<int> &rvec_pdgId,
         const ROOT::RVec<int> &rvec_status,
-        const ROOT::RVec<int> &rvec_status_flag) {
+        const ROOT::RVec<UShort_t> &rvec_status_flag) {
         int idx = -99;
         for (unsigned int i = 0; i < rvec_pdgId.size(); i++) {
             int pdgid = rvec_pdgId.at(i);
@@ -79,7 +79,7 @@ ROOT::RDF::RNode GenLepton(ROOT::RDF::RNode df,
     auto lambda_idx_2 = [](
         const ROOT::RVec<int> &rvec_pdgId,
         const ROOT::RVec<int> &rvec_status,
-        const ROOT::RVec<int> &rvec_status_flag) {
+        const ROOT::RVec<UShort_t> &rvec_status_flag) {
         int idx = -99;
         for (unsigned int i = 0; i < rvec_pdgId.size(); i++) {
             int pdgid = rvec_pdgId.at(i);
@@ -149,7 +149,7 @@ ROOT::RDF::RNode GenLeptonPreFSR(ROOT::RDF::RNode df,
     auto lambda_idx_1 = [](
         const ROOT::RVec<int> &rvec_pdgId,
         const ROOT::RVec<int> &rvec_status,
-        const ROOT::RVec<int> &rvec_status_flag) {
+        const ROOT::RVec<UShort_t> &rvec_status_flag) {
         int idx = -99;
         for (unsigned int i = 0; i < rvec_pdgId.size(); i++) {
             int pdgid = rvec_pdgId.at(i);
@@ -172,7 +172,7 @@ ROOT::RDF::RNode GenLeptonPreFSR(ROOT::RDF::RNode df,
     auto lambda_idx_2 = [](
         const ROOT::RVec<int> &rvec_pdgId,
         const ROOT::RVec<int> &rvec_status,
-        const ROOT::RVec<int> &rvec_status_flag) {
+        const ROOT::RVec<UShort_t> &rvec_status_flag) {
         int idx = -99;
         for (unsigned int i = 0; i < rvec_pdgId.size(); i++) {
             int pdgid = rvec_pdgId.at(i);
@@ -363,7 +363,7 @@ ROOT::RDF::RNode DYGenFlag(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &genparticles_pdgid,
                              const std::string &genparticles_statusFlag,
                              const int &pdgId) {
-    auto lambda = [pdgId](const ROOT::RVec<int> &pdgids, const ROOT::RVec<int> &status_flags) {
+    auto lambda = [pdgId](const ROOT::RVec<int> &pdgids, const ROOT::RVec<UShort_t> &status_flags) {
         bool found_0 = false;
         bool found_1 = false;
         for (unsigned int i = 0; i < pdgids.size(); i++) {
@@ -388,7 +388,7 @@ ROOT::RDF::RNode WGenFlag(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &genparticles_pdgid,
                              const std::string &genparticles_statusFlag,
                              const int &pdgId) {
-    auto lambda = [pdgId](const ROOT::RVec<int> &pdgids, const ROOT::RVec<int> &status_flags) {
+    auto lambda = [pdgId](const ROOT::RVec<int> &pdgids, const ROOT::RVec<UShort_t> &status_flags) {
         bool found_0 = false;
         bool found_1 = false;
         for (unsigned int i = 0; i < pdgids.size(); i++) {
@@ -463,7 +463,7 @@ ROOT::RDF::RNode genmatching(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &lepton_p4) {
     auto match_lepton = [](const std::vector<int> &hadronicGenTaus,
                            const ROOT::RVec<int> &pdgids,
-                           const ROOT::RVec<int> &status_flags,
+                           const ROOT::RVec<UShort_t> &status_flags,
                            const ROOT::RVec<float> &pts,
                            const ROOT::RVec<float> &etas,
                            const ROOT::RVec<float> &phis,
@@ -623,7 +623,7 @@ ROOT::RDF::RNode genmatching_wh(
     auto match_lepton = [](const std::vector<int> &hadronicGenTaus,
                            const ROOT::RVec<int> &pdgids,
                            const ROOT::RVec<int> &mother_idx,
-                           const ROOT::RVec<int> &status_flags,
+                           const ROOT::RVec<UShort_t> &status_flags,
                            const ROOT::RVec<int> &status,
                            const ROOT::RVec<float> &pts,
                            const ROOT::RVec<float> &etas,
@@ -796,7 +796,7 @@ ROOT::RDF::RNode hadronicGenTaus(ROOT::RDF::RNode df,
                                  const std::string &genparticles_motherid) {
 
     auto gentaus = [](const ROOT::RVec<int> &pdgids,
-                      const ROOT::RVec<int> &status_flags,
+                      const ROOT::RVec<UShort_t> &status_flags,
                       const ROOT::RVec<int> &mother_index) {
         // set default values for the output
         std::vector<int> hadronicGenTaus;

@@ -613,7 +613,97 @@ applyRoccoRMC(ROOT::RDF::RNode df, const std::string &outputname,
                       phiColumn, genPtColumn, nTrackerLayersColumn,
                       rndmColumn});
 }
+
+
+// new implementation of rochester
+ROOT::RDF::RNode
+applyRoccoRMCnew(ROOT::RDF::RNode df, const std::string &outputname,
+              const std::string &filename1, const std::string &filename2,
+              const std::string &filename3, const std::string &filename4,
+              const int &position,
+              const std::string &objCollection, const std::string &chargColumn,
+              const std::string &ptColumn, const std::string &etaColumn,
+              const std::string &phiColumn, const std::string &nTrackerLayersColumn) {
+
+    auto lambda = [
+        position, filename1, filename2, filename3, filename4
+    ](
+        const ROOT::RVec<int> &objects,
+        const ROOT::RVec<int> &chargCol,
+        const ROOT::RVec<float> &ptCol,
+        const ROOT::RVec<float> &etaCol,
+        const ROOT::RVec<float> &phiCol,
+        const ROOT::RVec<UChar_t> &nTrackerLayersCol
+    ) {
+        const int index = objects.at(position);
+        double pt = ptCol.at(index);
+        double eta = etaCol.at(index);
+        double phi = phiCol.at(index);
+        double Q = chargCol.at(index);
+        double n = nTrackerLayersCol.at(index);
+
+        TFile *tf1 = TFile::Open(filename1.c_str());
+        TH2D* M_SIG1 = (TH2D*) tf1->Get("M_SIG");
+        TH2D* A_SIG1 = (TH2D*) tf1->Get("A_SIG");
+        double m1 = M_SIG1->GetBinContent(M_SIG1->FindBin(eta, phi));
+        double a1 = A_SIG1->GetBinContent(A_SIG1->FindBin(eta, phi));
+
+        double pt1 = 1./ ( m1 / pt + Q * a1);
+        tf1->Close();
+
+        TFile *tf3 = TFile::Open(filename3.c_str());
+        TH2D* M_SIG3 = (TH2D*) tf3->Get("M_SIG");
+        TH2D* A_SIG3 = (TH2D*) tf3->Get("A_SIG");
+        double m3 = M_SIG3->GetBinContent(M_SIG3->FindBin(eta, phi));
+        double a3 = A_SIG3->GetBinContent(A_SIG3->FindBin(eta, phi));
+
+        double pt3 = 1./ ( m3 / pt1 + Q * a3);
+        tf3->Close();
+
+        TFile *tf2 = TFile::Open(filename2.c_str());
+        TH3D* cb = (TH3D*) tf2->Get("h_results_cb");
+        TH3D* poly = (TH3D*) tf2->Get("h_results_poly");
+
+        // exclude case where not in bin
+        int etabin = cb->GetXaxis()->FindBin(abs(eta));
+        int nlbin = cb->GetYaxis()->FindBin(abs(n));
+        double mean_cb = cb->GetBinContent(etabin, nlbin, 1);
+        double sig_cb = cb->GetBinContent(etabin, nlbin, 2);
+        double n_cb = cb->GetBinContent(etabin, nlbin, 3);
+        double alpha_cb = cb->GetBinContent(etabin, nlbin, 4);
+        double sig_poly_a = poly->GetBinContent(etabin, nlbin, 1);
+        double sig_poly_b = poly->GetBinContent(etabin, nlbin, 2);
+        double sig_poly_c = poly->GetBinContent(etabin, nlbin, 3);
+        double sig_poly = sig_poly_a + sig_poly_b * pt + sig_poly_c * pt*pt;
+        if (sig_poly < 0) sig_poly = 0;
+        
+        TFile *tf4 = TFile::Open(filename4.c_str());
+        TH1D* k_hist_data = (TH1D*) tf4->Get("h_k_DATA");
+        TH1D* k_hist_mc = (TH1D*) tf4->Get("h_k_SIG");
+        double k_dt = k_hist_data->GetBinContent(k_hist_data->FindBin(abs(eta)));
+        double k_mc = k_hist_mc->GetBinContent(k_hist_mc->FindBin(abs(eta)));
+
+        double pt4 = 1. / (1./pt3 * ( 1 + sqrt(k_dt*k_dt - k_mc*k_mc) * sig_poly * sig_cb * gRandom->Gaus(0,1)));
+        
+        Logger::get("Rochester correction")
+        ->debug("kappa in data {}, in mc {}, sig_poly {}, sig_cb {}",
+            k_dt, k_mc, sig_poly, sig_cb);
+
+        Logger::get("Rochester correction")
+        ->debug("Momentum {}, step1 {}, step3 {}, step4 {} corrected momentum",
+            pt, pt1, pt3, pt4);
+
+        return pt4;
+    };
+
+    return df.Define(outputname, lambda,
+                     {objCollection, chargColumn, ptColumn, etaColumn,
+                      phiColumn, nTrackerLayersColumn});
+}
 } // end namespace muon
+
+
+
 /// Tau specific functions
 namespace tau {
 /// Function to cut on taus based on the tau decay mode
@@ -1100,6 +1190,7 @@ ROOT::RDF::RNode CutGap(ROOT::RDF::RNode df, const std::string &eta,
 }
 
 } // end namespace electron
+} // end namespace physicsobject
 
-} // namespace physicsobject
+
 #endif /* GUARD_PHYSICSOBJECTS_H */

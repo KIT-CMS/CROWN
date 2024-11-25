@@ -69,7 +69,7 @@ ROOT::RDF::RNode calculateGenBosonVector(
            const ROOT::RVec<float> &genparticle_mass,
            const ROOT::RVec<int> &genparticle_id,
            const ROOT::RVec<int> &genparticle_status,
-           const ROOT::RVec<int> &genparticle_statusflag) {
+           const ROOT::RVec<UShort_t> &genparticle_statusflag) {
             ROOT::Math::PtEtaPhiMVector genBoson;
             ROOT::Math::PtEtaPhiMVector visgenBoson;
             ROOT::Math::PtEtaPhiMVector genparticle;

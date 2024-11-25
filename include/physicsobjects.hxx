@@ -108,6 +108,20 @@ applyRoccoRMC(ROOT::RDF::RNode df, const std::string &outputname,
               const std::string &phiColumn, const std::string &genPtColumn,
               const std::string &nTrackerLayersColumn,
               const std::string &rndmColumn, int error_set, int error_member);
+// applyRocData(ROOT::RDF::RNode df, const std::string &outputname,
+//                 const std::string &filename, const int &position,
+//                 const std::string &objCollection,
+//                 const std::string &chargColumn, const std::string &ptColumn,
+//                 const std::string &etaColumn, const std::string &phiColumn,
+//                 int error_set, int error_member);
+ROOT::RDF::RNode
+applyRoccoRMCnew(ROOT::RDF::RNode df, const std::string &outputname,
+              const std::string &filename1, const std::string &filename2,
+              const std::string &filename3, const std::string &filename4,
+              const int &position,
+              const std::string &objCollection, const std::string &chargColumn,
+              const std::string &ptColumn, const std::string &etaColumn,
+              const std::string &phiColumn, const std::string &nTrackerLayersColumn);
 } // namespace muon
 namespace tau {
 ROOT::RDF::RNode CutDecayModes(ROOT::RDF::RNode df, const std::string &maskname,

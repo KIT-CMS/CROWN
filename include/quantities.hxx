@@ -85,6 +85,9 @@ ROOT::RDF::RNode isolation(ROOT::RDF::RNode df, const std::string &outputname,
 ROOT::RDF::RNode pdgid(ROOT::RDF::RNode df, const std::string &outputname,
                        const int &position, const std::string &pairname,
                        const std::string &pdgidcolumn);
+ROOT::RDF::RNode genpdgid(ROOT::RDF::RNode df, const std::string &outputname,
+                       const int &position, const std::string &pairname,
+                       const std::string &pdgidcolumn);
 ROOT::RDF::RNode NumberOfGoodLeptons(ROOT::RDF::RNode df,
                                      const std::string &outputname,
                                      const std::string &goodleptons);

@@ -700,6 +700,28 @@ ROOT::RDF::RNode pdgid(ROOT::RDF::RNode df, const std::string &outputname,
         },
         {pairname, pdgidcolumn});
 }
+/// Function to writeout the PDGID from a genparticle. The particle
+/// is identified via the index stored in the pair vector
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the PDGID
+/// \param position index of the position in the pair vector
+/// \param pairname name of the column containing the pair vector
+/// \param pdgidcolumn name of the column containing the pdgID
+///
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode genpdgid(ROOT::RDF::RNode df, const std::string &outputname,
+                       const int &position, const std::string &pairname,
+                       const std::string &pdgidcolumn) {
+    return df.Define(
+        outputname,
+        [position](const ROOT::RVec<short> &pair, const ROOT::RVec<int> &pdgid) {
+            const int index = pair.at(position);
+            return pdgid.at(index, default_pdgid);
+        },
+        {pairname, pdgidcolumn});
+}
 /// Function to determine number of good leptons
 ///
 /// \param[in] df the input dataframe

@@ -7,8 +7,18 @@ pathadd() {
 }
 # get the directory of the script
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &>/dev/null && pwd 2>/dev/null)"
-distro=$(lsb_release -i | cut -f2)
-os_version=$(lsb_release -r | cut -f2)
+if ! command -v lsb_release &> /dev/null
+then
+    source /etc/os-release
+    distro=$NAME
+    os_version=$VERSION_ID
+else
+    distro=$(lsb_release -i | cut -f2)
+    os_version=$(lsb_release -r | cut -f2)
+fi
+distro=${distro//[[:space:]]/}
+distro="${distro//Linux/}"
+distro="${distro//linux/}"
 echo "Setting up CROWN for $distro Version $os_version"
 # check if the distro is centos
 if [[ "$distro" == "CentOS" ]]; then
@@ -17,24 +27,27 @@ if [[ "$distro" == "CentOS" ]]; then
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-gcc11-opt/setup.sh
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-clang12-opt/setup.sh
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-gcc11-dbg/setup.sh
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-centos7-gcc11-opt/setup.sh
+        echo "CentOS 7 is EOL, running on LCG 105, support will be dropped soon"
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-centos7-gcc11-opt/setup.sh
     else
         echo "Unsupported CentOS version, exiting..."
         return 0
     fi
-elif [[ "$distro" == "RedHatEnterprise" ]]; then
+elif [[ "$distro" == "RedHatEnterprise" || "$distro" == "Alma" || "$distro" == "Rocky" ]]; then
     if [[ ${os_version:0:1} == "8" ]]; then # elif uname -a | grep -E 'el8' -q
-        # no lcg 103 available for centOS 8
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos8-gcc11-opt/setup.sh
+        echo "Unsupported CentOS version, exiting..."
+        return 0
+    elif [[ ${os_version:0:1} == "9" ]]; then # elif uname -a | grep -E 'el8' -q
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-el9-gcc13-dbg/setup.sh
     else
         echo "Unsupported CentOS version, exiting..."
         return 0
     fi
 elif [[ "$distro" == "Ubuntu" ]]; then
     if [[ ${os_version:0:2} == "20" ]]; then
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-ubuntu2004-gcc9-opt/setup.sh
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-ubuntu2004-gcc9-opt/setup.sh
     elif [[ ${os_version:0:2} == "22" ]]; then
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-ubuntu2204-gcc11-opt/setup.sh
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-ubuntu2204-gcc11-opt/setup.sh
     else
         echo "Unsupported Ubuntu version, exiting..."
         return 0
