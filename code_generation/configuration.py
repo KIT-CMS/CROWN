@@ -86,7 +86,7 @@ class Configuration(object):
         self.available_sample_types = set(available_sample_types)
         self.available_eras = set(available_eras)
         self.available_scopes = set(available_scopes)
-        self.available_outputs: QuantitiesStore = {}
+        self.available_outputs: Dict[str, QuantitiesStore] = {}
         self.available_shifts: Dict[str, Set[str]] = {}
         self.global_scope = "global"
 
@@ -184,7 +184,9 @@ class Configuration(object):
             self.unpacked_producers[scope] = {}
             self.outputs[scope] = set()
             self.shifts[scope] = {}
-            self.available_outputs[scope] = set()
+            self.available_outputs[scope] = {}
+            for sampletype in self.available_sample_types:
+                self.available_outputs[scope][sampletype] = set()
             self.config_parameters[scope] = {}
             self.available_shifts[scope] = set()
         self._set_sample_parameters()
@@ -229,9 +231,10 @@ class Configuration(object):
             producers = [producers]
         for scope in scopes:
             self.producers[scope].extend(producers)
-            self.available_outputs[scope].update(
-                CollectProducersOutput(producers, scope)
-            )
+            for sampletype in self.available_sample_types:
+                self.available_outputs[scope][sampletype].update(
+                    CollectProducersOutput(producers, scope)
+                )
             self.unpack_producergroups(scope, producers)
 
     def unpack_producergroups(
@@ -316,6 +319,7 @@ class Configuration(object):
         self,
         shift: Union[SystematicShift, SystematicShiftByQuantity],
         samples: Union[str, List[str], None] = None,
+        exclude_samples: Union[str, List[str], None] = None,
     ) -> None:
         """
         Function used to add a systematics shift to the configuration. During this step, the shift is validated and applied.
@@ -324,10 +328,32 @@ class Configuration(object):
             shift: The shift to be added. This must be a SystematicShift object.
             samples: The samples to which the shift should be applied. This can be a list of samples or a single sample.
                 If ths option is not set, the shift is applied, regardless of the sample type.
+            exclude_samples: The samples to which the shift should not be applied. This can be a list of samples or a single sample. if exclude_samples is set, samples cannot be used.
 
         Returns:
             None
         """
+        if exclude_samples is not None and samples is not None:
+            raise ConfigurationError(
+                f"You cannot use samples and exclude_samples at the same time -> Shift {shift}, samples {samples}, exclude_samples {exclude_samples}"
+            )
+        if samples is not None:
+            if isinstance(samples, str):
+                samples = [samples]
+            for sample in samples:
+                if sample not in self.available_sample_types:
+                    raise ConfigurationError(
+                        f"Sampletype {sample} is not available -> Shift {shift}, available_sample_types {self.available_sample_types}, sample_types {samples}"
+                    )
+        if exclude_samples is not None:
+            if isinstance(exclude_samples, str):
+                exclude_samples = [exclude_samples]
+            for excluded_sample in exclude_samples:
+                if excluded_sample not in self.available_sample_types:
+                    raise ConfigurationError(
+                        f"Sampletype {excluded_sample} is not available for exclusion -> Shift {shift}, available_sample_types {self.available_sample_types}, excluded_sample_types {exclude_samples}"
+                    )
+            samples = list(self.available_sample_types - set(exclude_samples))
         if self._is_valid_shift(shift):
             log.debug("Shift {} is valid".format(shift.shiftname))
             if not isinstance(shift, SystematicShift):
@@ -386,7 +412,6 @@ class Configuration(object):
                         shift.shiftname, scope, self.available_scopes
                     )
                 )
-                return False
         if len(self.selected_shifts) == 1 and "all" in self.selected_shifts:
             return True
         elif len(self.selected_shifts) == 1 and "none" in self.selected_shifts:
@@ -429,6 +454,7 @@ class Configuration(object):
             raise TypeError("Rule must be of type ProducerRule")
         if not isinstance(scopes, list):
             scopes = [scopes]
+        rule.set_available_sampletypes(self.available_sample_types)
         rule.set_scopes(scopes)
         rule.set_global_scope(self.global_scope)
         self.rules.add(rule)
@@ -496,7 +522,8 @@ class Configuration(object):
                 del self.outputs[scope]
                 del self.shifts[scope]
                 del self.config_parameters[scope]
-                del self.available_outputs[scope]
+                for sampletype in self.available_sample_types:
+                    del self.available_outputs[scope][sampletype]
 
     def _apply_rules(self) -> None:
         """
@@ -508,16 +535,17 @@ class Configuration(object):
             rule.apply(
                 self.sample, self.producers, self.unpacked_producers, self.outputs
             )
-            # also update the set of available outputs
-            for scope in rule.affected_scopes():
-                if isinstance(rule, RemoveProducer):
-                    self.available_outputs[scope] - CollectProducersOutput(
-                        rule.affected_producers(), scope
-                    )
-                else:
-                    self.available_outputs[scope].update(
-                        CollectProducersOutput(rule.affected_producers(), scope)
-                    )
+            # also update the set of available outputs if the affected sample is the current sample
+            if self.sample in rule.samples:
+                for scope in rule.affected_scopes():
+                    if isinstance(rule, RemoveProducer):
+                        self.available_outputs[scope][
+                            self.sample
+                        ] -= CollectProducersOutput(rule.affected_producers(), scope)
+                    else:
+                        self.available_outputs[scope][self.sample].update(
+                            CollectProducersOutput(rule.affected_producers(), scope)
+                        )
 
     def optimize(self) -> None:
         """
@@ -564,8 +592,8 @@ class Configuration(object):
             )
             # merge the two sets of outputs
             provided_outputs = (
-                self.available_outputs[scope]
-                | self.available_outputs[self.global_scope]
+                self.available_outputs[scope][self.sample]
+                | self.available_outputs[self.global_scope][self.sample]
             )
             missing_outputs = required_outputs - provided_outputs
             if len(missing_outputs) > 0:
@@ -669,9 +697,21 @@ class Configuration(object):
 
         required_parameters = {}
         for scope in self.scopes:
+            log.debug("  Collecting required parameters for scope {}".format(scope))
             required_parameters[scope] = set()
             for producer in self.producers[scope]:
-                required_parameters[scope] |= producer.parameters[scope]
+                log.debug("    Collecting parameters for producer {}".format(producer))
+                try:
+                    required_parameters[scope] |= producer.parameters[scope]
+                except KeyError:
+                    log.error(
+                        f"Producer {producer} is not correctly setup for scope {scope}"
+                    )
+                    raise ConfigurationError(
+                        "Producer {} is not correctly setup for scope {}".format(
+                            producer, scope
+                        )
+                    )
         # now check, which parameters are set in the configuration, but not used by any producer
         for scope in self.scopes:
             log.info("------------------------------------")

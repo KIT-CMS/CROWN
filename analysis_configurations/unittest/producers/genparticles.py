@@ -197,7 +197,7 @@ gen_match_2 = Producer(
     name="gen_match_2",
     call="quantities::tau::genmatch({df}, {output}, 1, {input})",
     input=[q.dileptonpair, nanoAOD.Tau_genMatch],
-    output=[q.gen_match_2],
+    output=[q.tau_gen_match_2],
     scopes=["mt", "et", "tt"],
 )
 gen_taujet_pt_1 = Producer(

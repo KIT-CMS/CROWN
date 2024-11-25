@@ -19,6 +19,8 @@ Crown
 
 The C++-based ROot Workflow for N-tuples (CROWN)  framework is a fast way, of converting CMS NanoAOD samples into analysis N-tuples.
 
+<img src="docs/images/framework_workflow_2024.png"><br>
+
 
 Getting Started
 ----------------

@@ -1,6 +1,7 @@
 #ifndef GUARD_TRIGGERS_H
 #define GUARD_TRIGGERS_H
 
+#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
@@ -145,25 +146,34 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
         bool pt = particle.pt() > pt_cut;
         bool eta = abs(particle.eta()) < eta_cut;
         Logger::get("CheckTriggerMatch")
-            ->debug("Partice Lorentz Vector: {}, {}, {}, {}", particle.pt(), particle.eta(), particle.phi(), particle.mass());
+            ->debug("Partice Lorentz Vector: {}, {}, {}, {}", particle.pt(),
+                    particle.eta(), particle.phi(), particle.mass());
         Logger::get("CheckTriggerMatch")
             ->debug("-------------------------------------------------------");
-        Logger::get("CheckTriggerMatch")->debug("deltaR/matchDeltaR Check: {}/{}", deltaR, matchDeltaR);
+        Logger::get("CheckTriggerMatch")
+            ->debug("deltaR/matchDeltaR Check: {}/{}", deltaR, matchDeltaR);
         Logger::get("CheckTriggerMatch")
             ->debug("deltaR Value: {}",
                     ROOT::Math::VectorUtil::DeltaR(triggerobject, particle));
-        Logger::get("CheckTriggerMatch")->debug("id/trigger_particle_id_cut Check: {}/{}", id, trigger_particle_id_cut);
+        Logger::get("CheckTriggerMatch")
+            ->debug("id/trigger_particle_id_cut Check: {}/{}", id,
+                    trigger_particle_id_cut);
         Logger::get("CheckTriggerMatch")
             ->debug("id Value: {}", triggerobject_ids[idx]);
-        Logger::get("CheckTriggerMatch")->debug("bit/triggerbit_cut Check: {}/{}", bit, triggerbit_cut);
+        Logger::get("CheckTriggerMatch")
+            ->debug("bit/triggerbit_cut Check: {}/{}", bit, triggerbit_cut);
         Logger::get("CheckTriggerMatch")
             ->debug("bit Value: {}", IntBits(triggerobject_bits[idx]));
-        Logger::get("CheckTriggerMatch")->debug("pt/pt_cut Check: {}/{}", pt, pt_cut);
         Logger::get("CheckTriggerMatch")
-            ->debug("pt Value (trg): {}, pt Value (reco): {}", triggerobject_pts[idx], particle.pt());
-        Logger::get("CheckTriggerMatch")->debug("eta/eta_cut Check: {}/{}", eta, eta_cut);
+            ->debug("pt/pt_cut Check: {}/{}", pt, pt_cut);
         Logger::get("CheckTriggerMatch")
-            ->debug("eta (trg) Value: {}, eta (reco) Value: {}", triggerobject_etas[idx], abs(particle.eta()));
+            ->debug("pt Value (trg): {}, pt Value (reco): {}",
+                    triggerobject_pts[idx], particle.pt());
+        Logger::get("CheckTriggerMatch")
+            ->debug("eta/eta_cut Check: {}/{}", eta, eta_cut);
+        Logger::get("CheckTriggerMatch")
+            ->debug("eta (trg) Value: {}, eta (reco) Value: {}",
+                    triggerobject_etas[idx], abs(particle.eta()));
         Logger::get("CheckTriggerMatch")
             ->debug("-------------------------------------------------------");
         if (deltaR && bit && id && pt && eta) {
@@ -219,38 +229,38 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
     const int &trigger_particle_id_cut, const int &triggerbit_cut,
     const float &DeltaR_threshold) {
 
-    auto triggermatch =
-        [DeltaR_threshold, pt_cut, eta_cut, trigger_particle_id_cut,
-         triggerbit_cut, hltpath](bool hltpath_match,
-                         const ROOT::Math::PtEtaPhiMVector &particle_p4,
-                         ROOT::RVec<int> triggerobject_bits,
-                         ROOT::RVec<UShort_t> triggerobject_ids,
-                         ROOT::RVec<float> triggerobject_pts,
-                         ROOT::RVec<float> triggerobject_etas,
-                         ROOT::RVec<float> triggerobject_phis) {
-            Logger::get("GenerateSingleTriggerFlag")->debug("Checking Trigger");
+    auto triggermatch = [DeltaR_threshold, pt_cut, eta_cut,
+                         trigger_particle_id_cut, triggerbit_cut, hltpath](
+                            bool hltpath_match,
+                            const ROOT::Math::PtEtaPhiMVector &particle_p4,
+                            ROOT::RVec<int> triggerobject_bits,
+                            ROOT::RVec<Ushort_t> triggerobject_ids,
+                            ROOT::RVec<float> triggerobject_pts,
+                            ROOT::RVec<float> triggerobject_etas,
+                            ROOT::RVec<float> triggerobject_phis) {
+        Logger::get("GenerateSingleTriggerFlag")->debug("Checking Trigger");
+        Logger::get("CheckTriggerMatch")
+            ->debug("Selected trigger: {}", hltpath);
+        bool result = false;
+        bool match_result = false;
+        if (hltpath_match) {
             Logger::get("CheckTriggerMatch")
-                    ->debug("Selected trigger: {}", hltpath);
-            bool result = false;
-            bool match_result = false;
-            if (hltpath_match) {
-                Logger::get("CheckTriggerMatch")
-                    ->debug("Checking Triggerobject match with particles ....");
-                match_result = matchParticle(
-                    particle_p4, triggerobject_pts, triggerobject_etas,
-                    triggerobject_phis, triggerobject_bits, triggerobject_ids,
-                    DeltaR_threshold, pt_cut, eta_cut, trigger_particle_id_cut,
-                    triggerbit_cut);
-            }
-            result = hltpath_match & match_result;
-            Logger::get("GenerateSingleTriggerFlag")
-                ->debug("---> HLT Match: {}", hltpath_match);
-            Logger::get("GenerateSingleTriggerFlag")
-                ->debug("---> Total Match: {}", match_result);
-            Logger::get("GenerateSingleTriggerFlag")
-                ->debug("--->>>> result: {}", result);
-            return result;
-        };
+                ->debug("Checking Triggerobject match with particles ....");
+            match_result = matchParticle(
+                particle_p4, triggerobject_pts, triggerobject_etas,
+                triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                DeltaR_threshold, pt_cut, eta_cut, trigger_particle_id_cut,
+                triggerbit_cut);
+        }
+        result = hltpath_match & match_result;
+        Logger::get("GenerateSingleTriggerFlag")
+            ->debug("---> HLT Match: {}", hltpath_match);
+        Logger::get("GenerateSingleTriggerFlag")
+            ->debug("---> Total Match: {}", match_result);
+        Logger::get("GenerateSingleTriggerFlag")
+            ->debug("--->>>> result: {}", result);
+        return result;
+    };
     auto available_trigger = df.GetColumnNames();
     std::vector<std::string> matched_trigger_names;
     std::regex hltpath_regex = std::regex(hltpath);
@@ -365,7 +375,7 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
                             ROOT::RVec<float> triggerobject_phis) {
         Logger::get("GenerateDoubleTriggerFlag")->debug("Checking Trigger");
         Logger::get("CheckTriggerMatch")
-                    ->debug("Selected trigger: {}", hltpath);
+            ->debug("Selected trigger: {}", hltpath);
         bool result = false;
         bool match_result_p1 = false;
         bool match_result_p2 = false;
@@ -669,25 +679,34 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
             (trigger_particle_pt_cut < 0.) ||
             (triggerobject_pts[idx] > trigger_particle_pt_cut);
         Logger::get("CheckTriggerMatch")
-            ->debug("Partice Lorentz Vector: {}, {}, {}, {}", particle.pt(), particle.eta(), particle.phi(), particle.mass());
+            ->debug("Partice Lorentz Vector: {}, {}, {}, {}", particle.pt(),
+                    particle.eta(), particle.phi(), particle.mass());
         Logger::get("CheckTriggerMatch")
             ->debug("-------------------------------------------------------");
-        Logger::get("CheckTriggerMatch")->debug("deltaR/matchDeltaR Check: {}/{}", deltaR, matchDeltaR);
+        Logger::get("CheckTriggerMatch")
+            ->debug("deltaR/matchDeltaR Check: {}/{}", deltaR, matchDeltaR);
         Logger::get("CheckTriggerMatch")
             ->debug("deltaR Value: {}",
                     ROOT::Math::VectorUtil::DeltaR(triggerobject, particle));
-        Logger::get("CheckTriggerMatch")->debug("id/trigger_particle_id_cut Check: {}/{}", id, trigger_particle_id_cut);
+        Logger::get("CheckTriggerMatch")
+            ->debug("id/trigger_particle_id_cut Check: {}/{}", id,
+                    trigger_particle_id_cut);
         Logger::get("CheckTriggerMatch")
             ->debug("id Value: {}", triggerobject_ids[idx]);
-        Logger::get("CheckTriggerMatch")->debug("bit/triggerbit_cut Check: {}/{}", bit, triggerbit_cut);
+        Logger::get("CheckTriggerMatch")
+            ->debug("bit/triggerbit_cut Check: {}/{}", bit, triggerbit_cut);
         Logger::get("CheckTriggerMatch")
             ->debug("bit Value: {}", IntBits(triggerobject_bits[idx]));
-        Logger::get("CheckTriggerMatch")->debug("pt/pt_cut Check: {}/{}", pt, pt_cut);
         Logger::get("CheckTriggerMatch")
-            ->debug("pt Value (trg): {}, pt Value (reco): {}", triggerobject_pts[idx], particle.pt());
-        Logger::get("CheckTriggerMatch")->debug("eta/eta_cut Check: {}/{}", eta, eta_cut);
+            ->debug("pt/pt_cut Check: {}/{}", pt, pt_cut);
         Logger::get("CheckTriggerMatch")
-            ->debug("eta (trg) Value: {}, eta (reco) Value: {}", triggerobject_etas[idx], abs(particle.eta()));
+            ->debug("pt Value (trg): {}, pt Value (reco): {}",
+                    triggerobject_pts[idx], particle.pt());
+        Logger::get("CheckTriggerMatch")
+            ->debug("eta/eta_cut Check: {}/{}", eta, eta_cut);
+        Logger::get("CheckTriggerMatch")
+            ->debug("eta (trg) Value: {}, eta (reco) Value: {}",
+                    triggerobject_etas[idx], abs(particle.eta()));
         Logger::get("CheckTriggerMatch")
             ->debug("-------------------------------------------------------");
         if (deltaR && bit && id && pt && eta && trigger_particle_pt) {
@@ -743,7 +762,8 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
     const float &DeltaR_threshold, const float &trigger_particle_pt_cut) {
 
     auto triggermatch = [DeltaR_threshold, pt_cut, eta_cut,
-                         trigger_particle_id_cut, triggerbit_cut, trigger_particle_pt_cut](
+                         trigger_particle_id_cut, triggerbit_cut,
+                         trigger_particle_pt_cut](
                             const ROOT::Math::PtEtaPhiMVector &particle_p4,
                             ROOT::RVec<int> triggerobject_bits,
                             ROOT::RVec<UShort_t> triggerobject_ids,
@@ -753,11 +773,11 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
         Logger::get("MatchSingleTriggerObject")->debug("Checking Trigger");
         Logger::get("MatchSingleTriggerObject")
             ->debug("Checking Triggerobject match with particles ....");
-        bool match_result =
-            matchParticle(particle_p4, triggerobject_pts, triggerobject_etas,
-                          triggerobject_phis, triggerobject_bits,
-                          triggerobject_ids, DeltaR_threshold, pt_cut, eta_cut,
-                          trigger_particle_id_cut, triggerbit_cut, trigger_particle_pt_cut);
+        bool match_result = matchParticle(
+            particle_p4, triggerobject_pts, triggerobject_etas,
+            triggerobject_phis, triggerobject_bits, triggerobject_ids,
+            DeltaR_threshold, pt_cut, eta_cut, trigger_particle_id_cut,
+            triggerbit_cut, trigger_particle_pt_cut);
         Logger::get("MatchSingleTriggerObject")
             ->debug("--->>>> match_result: {}", match_result);
         return match_result;
@@ -821,7 +841,7 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
             ROOT::RVec<float> triggerobject_phis) {
             Logger::get("GenerateSingleTriggerFlag")->debug("Checking Trigger");
             Logger::get("CheckTriggerMatch")
-                    ->debug("Selected trigger: {}", hltpath);
+                ->debug("Selected trigger: {}", hltpath);
             bool result = false;
             bool match_result = false;
             if (hltpath_match) {
@@ -1053,7 +1073,10 @@ ROOT::RDF::RNode GetPrescaleValues(ROOT::RDF::RNode df,
                                    const std::string &run_columnname,
                                    const std::string &lumiblock_columnname,
                                    const std::string &prescale_json_file) {
-
+    Logger::get("prescale")
+        ->warn("Not using CorrectionManager is deprecated, this function will "
+               "be removed in a future release, switch to the new function "
+               "using CorrectionManager");
     Logger::get("prescale")->debug("reading json from {}", prescale_json_file);
     std::ifstream i(prescale_json_file);
     nlohmann::json prescale_json = nlohmann::json::parse(i);
@@ -1082,7 +1105,83 @@ ROOT::RDF::RNode GetPrescaleValues(ROOT::RDF::RNode df,
                 Logger::get("prescale")
                     ->debug("... checking lumi {}, prescale {} ...",
                             std::stoi(i_key), int(i_value));
-                if (lumiblock > std::stoi(i_key)) {
+                if (lumiblock >= std::stoi(i_key)) {
+                    if (std::stoi(i_key) >= highest_lumi) {
+                        highest_lumi = std::stoi(i_key);
+                        prescale = i_value;
+                        Logger::get("prescale")
+                            ->debug("... assigning prescale value: {}",
+                                    prescale);
+                    }
+                }
+            }
+
+        } else {
+            prescale = -3;
+            Logger::get("prescale")
+                ->debug(
+                    "could not find run and lumi in JSON, prescale value: {}",
+                    prescale);
+        }
+
+        return prescale;
+    };
+
+    auto df1 =
+        df.Define(prescale_columnname, get_prescale,
+                  {hlt_columnname, run_columnname, lumiblock_columnname});
+
+    return df1;
+}
+/**
+ * @brief Function to generate a new column containing the prescale value for a
+ * trigger given run and lumiblock, read from an external JSON file
+ *
+ * @param df The input dataframe
+ * @param prescale_columnname name of the output column for the prescale value
+ * @param hlt_columnname name of the column for the HLT path
+ * @param run_columnname name of the column for the run number
+ * @param lumiblock_columnname name of the column for the lumiblock
+ * @param prescale_json_file relative path to the JSON containing the values
+ * @return a new dataframe containing the prescale column
+ */
+
+ROOT::RDF::RNode GetPrescaleValues(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
+    const std::string &prescale_columnname, const std::string &hlt_columnname,
+    const std::string &run_columnname, const std::string &lumiblock_columnname,
+    const std::string &prescale_json_file) {
+
+    Logger::get("prescale")->debug("reading json from {}", prescale_json_file);
+    const nlohmann::json prescale_json =
+        *correctionManager.loadjson(prescale_json_file);
+
+    auto get_prescale = [prescale_json](const Bool_t hlt, const UInt_t run,
+                                        const UInt_t lumiblock) {
+        int prescale = -1;
+
+        // Logger::get("prescale")->debug("run, lumi: {},{}", run, lumiblock);
+
+        if (hlt == false) {
+            prescale = -2;
+            // Logger::get("prescale")->debug("no HLT hit,  prescale value:
+            // {}",prescale);
+            return prescale;
+        }
+
+        const std::string s_run = std::to_string(run);
+
+        if (prescale_json.find(s_run) != prescale_json.end()) {
+
+            Logger::get("prescale")->debug("found run in JSON ...");
+            unsigned highest_lumi = 1;
+
+            for (auto &[i_key, i_value] : prescale_json[s_run].items()) {
+                Logger::get("prescale")
+                    ->debug("... checking lumi {}, prescale {} ...",
+                            std::stoi(i_key), int(i_value));
+                if (lumiblock >= std::stoi(i_key)) {
                     if (std::stoi(i_key) >= highest_lumi) {
                         highest_lumi = std::stoi(i_key);
                         prescale = i_value;

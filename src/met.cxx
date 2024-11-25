@@ -811,7 +811,8 @@ ROOT::RDF::RNode applyRecoilCorrections(
             if (sysType != MetSystematic::SysType::None &&
                 shiftType != MetSystematic::SysShift::Nominal) {
                 Logger::get("RecoilCorrections")
-                    ->debug(" apply systematics {} {}", sysType, shiftType);
+                    ->debug(" apply systematics {} {}", (int)sysType,
+                            (int)shiftType);
                 systematics->ApplyMetSystematic(
                     correctedMetX, correctedMetY, genPx, genPy, visPx, visPy,
                     nJets30, sysType, shiftType, correctedMetX, correctedMetY);

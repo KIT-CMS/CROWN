@@ -1,13 +1,28 @@
-#include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
+#include "ROOT/RDFHelpers.hxx"
 #include "RooTrace.h"
 #include "TStopwatch.h"
+#include <ROOT/RLogger.hxx>
+#include "include/utility/Logger.hxx"
+#include <TFile.h>
+#include <TMap.h>
+#include <filesystem>
+#include <TObjString.h>
+#include <TTree.h>
+#include <TVector.h>
+#include "onnxruntime_cxx_api.h"
+#include <regex>
+#include <string>
+#include "include/utility/OnnxSessionManager.hxx"
+#include "include/utility/CorrectionManager.hxx"
+
 #include "include/fakefactors.hxx"
 #include "include/genparticles.hxx"
 #include "include/htxs.hxx"
 #include "include/jets.hxx"
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"
+#include "include/ml.hxx"
 #include "include/metfilter.hxx"
 #include "include/pairselection.hxx"
 #include "include/physicsobjects.hxx"
@@ -17,16 +32,6 @@
 #include "include/topreco.hxx"
 #include "include/triggers.hxx"
 #include "include/tripleselection.hxx"
-#include "include/utility/Logger.hxx"
-#include <ROOT/RLogger.hxx>
-#include <TFile.h>
-#include <TMap.h>
-#include <TObjString.h>
-#include <TTree.h>
-#include <TVector.h>
-#include <filesystem>
-#include <regex>
-#include <string>
 // {INCLUDES}
 
 int validate_rootfile(std::string file, std::string &basetree) {
@@ -54,9 +59,16 @@ int validate_rootfile(std::string file, std::string &basetree) {
         Logger::get("main")->info("CROWN input_file: {} - {} Events", file,
                                   t1->GetEntries());
         return nevents;
+    } else if (list->FindObject("quantities")) {
+        TTree *t1 = (TTree *)f1->Get("quantities");
+        nevents += t1->GetEntries();
+        basetree = "ntuple";
+        Logger::get("main")->critical("CROWN input_file: {} - {} Events", file,
+                                  t1->GetEntries());
+        return nevents;
     } else {
         Logger::get("main")->critical("File {} does not contain a tree "
-                                      "named 'Events' or 'ntuple'",
+                                      "named 'Events' or 'ntuple' or 'quantities'",
                                       file);
         return -1;
     }
@@ -130,6 +142,11 @@ int main(int argc, char *argv[]) {
     // file logging
     Logger::enableFileLogging("logs/main.txt");
 
+    // start an onnx session manager
+    OnnxSessionManager onnxSessionManager;
+    // start a correction manager
+    correctionManager::CorrectionManager correctionManager;
+
     // {MULTITHREADING}
 
     // build a tchain from input file with all friends
@@ -150,9 +167,12 @@ int main(int argc, char *argv[]) {
     // initialize df
     ROOT::RDataFrame df0(dataset);
     // print all available branches to the log
-    Logger::get("main")->debug("Available branches:");
-    for (auto const &branch : df0.GetColumnNames()) {
-        Logger::get("main")->debug("{}", branch);
+    if (nevents != 0) {
+        ROOT::RDF::Experimental::AddProgressBar(df0); // add progress bar
+        Logger::get("main")->debug("Available branches:");
+        for (auto const &branch : df0.GetColumnNames()) {
+            Logger::get("main")->debug("{}", branch);
+        }
     }
     Logger::get("main")->info(
         "Starting Setup of Dataframe with {} events and {} friends", nevents,

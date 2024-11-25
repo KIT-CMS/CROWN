@@ -38,13 +38,6 @@ def build_config(
     configuration.add_config_parameters(
         "global",
         {
-            "PU_reweighting_file": EraModifier(
-                {
-                    "2016": "data/pileup/Data_Pileup_2016_271036-284044_13TeVMoriond17_23Sep2016ReReco_69p2mbMinBiasXS.root",
-                    "2017": "data/pileup/Data_Pileup_2017_294927-306462_13TeVSummer17_PromptReco_69p2mbMinBiasXS.root",
-                    "2018": "data/pileup/Data_Pileup_2018_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18.root",
-                }
-            ),
             "golden_json_file": EraModifier(
                 {
                     "2016": "data/golden_json/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt",
@@ -52,7 +45,6 @@ def build_config(
                     "2018": "data/golden_json/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt",
                 }
             ),
-            "PU_reweighting_hist": "pileup",
             "met_filters": EraModifier(
                 {
                     "2016": [
@@ -151,7 +143,6 @@ def build_config(
         "global",
         [
             event.SampleFlags,
-            event.PUweights,
             event.Lumi,
             event.MetFilter,
             muons.BaseMuons,
@@ -184,7 +175,6 @@ def build_config(
             nanoAOD.run,
             q.lumi,
             nanoAOD.event,
-            q.puweight,
             q.pt_1,
             q.pt_2,
             q.eta_1,
@@ -210,13 +200,6 @@ def build_config(
         ],
     )
 
-    configuration.add_modification_rule(
-        "global",
-        RemoveProducer(
-            producers=[event.PUweights],
-            samples=["data"],
-        ),
-    )
     configuration.add_modification_rule(
         "mm",
         RemoveProducer(

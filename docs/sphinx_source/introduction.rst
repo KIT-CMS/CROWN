@@ -9,11 +9,13 @@ Design Idea
 
 The framework consists of two main parts, a python configuration and a set of C++ functions. The python configuration is used to automatically generate a C++ script, which is then compiled to an executable using :code:`cmake` and all available compiler optimizations. This has the main advantage that the compiled executable is very fast and efficient in calculating the output `TTree`. In the following sketch, the overall workflow of CROWN is illustrated.
 
-.. image:: ../images/framework_workflow.svg
+.. image:: ../images/framework_workflow_2024.png
   :width: 900
   :align: center
   :alt: CROWN Workflow sketch
 
+
+A more detailed presentation that presents the basics of the framework can be found in the following presentation: https://indico.cern.ch/event/1416180/
 
 Getting started
 ****************
@@ -38,20 +40,7 @@ and source the current LCG stack (at the moment we use a nightly build)
 
    source init.sh
 
-after this, the framework should be installed, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the name of the analysis to your ``init.sh`` command. Currently, supported analyses are:
-
-.. list-table:: Available Analyses
-   :widths: 25 150
-   :header-rows: 1
-
-   * - Analysis name
-     - Repository
-   * - ``tau``
-     - https://github.com/KIT-CMS/TauAnalysis-CROWN
-   * - ``earlyrun3``
-     - https://github.com/khaosmos93/CROWN-config-earlyRun3
-
-So to set the `tau` Analysis, you can do so by running
+After this, the framework should be installed, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the name of the analysis to your ``init.sh`` command. So e.g. to set up the `tau` Analysis, you can do so by running
 
 .. code-block:: console
 
