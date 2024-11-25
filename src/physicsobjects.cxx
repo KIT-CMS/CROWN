@@ -89,7 +89,7 @@ ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
     return df1;
 }
 /// Function to select objects with eta dependent upper and lower thesholds
-/// for a given variable
+/// for a given float variable
 ///
 /// \param[in] df the input dataframe
 /// \param[out] maskname the name of the mask to be added as column to the
@@ -114,6 +114,44 @@ ROOT::RDF::RNode CutVariableBarrelEndcap(
                    lowerThresholdEndcap,
                    upperThresholdEndcap](const ROOT::RVec<float> &eta,
                                          const ROOT::RVec<float> &variable) {
+        ROOT::RVec<int> mask =
+            (((abs(eta) < etaBoundary) && (variable >= lowerThresholdBarrel) &&
+              (variable < upperThresholdBarrel)) ||
+             ((abs(eta) >= etaBoundary) && (variable >= lowerThresholdEndcap) &&
+              (variable < upperThresholdEndcap)));
+        return mask;
+    };
+
+    auto df1 = df.Define(maskname, lambda, {etaColumnName, cutVarColumnName});
+    return df1;
+}
+
+/// Function to select objects with eta dependent upper and lower thesholds
+/// for a given integer variable
+///
+/// \param[in] df the input dataframe
+/// \param[out] maskname the name of the mask to be added as column to the
+/// \param[in] etaColumnName name of the eta column in the NanoAOD dataframe
+/// \param[in] cutVarColumnName name of the variable column to apply the
+/// selection in the NanoAOD dataframe \param[in] etaBoundary boundary of
+/// absolute eta for the barrel and endcap regions of the detector \param[in]
+/// lowerThresholdBarrel lower threshold for the barrel \param[in]
+/// upperThresholdBarrel upper threshold for the barrel \param[in]
+/// lowerThresholdEndcap lower threshold for the endcap \param[in]
+/// upperThresholdEndcap upper threshold for the barrel
+///
+/// \return a dataframe containing the new mask
+
+ROOT::RDF::RNode CutIntVariableBarrelEndcap(
+    ROOT::RDF::RNode df, const std::string &maskname,
+    const std::string &etaColumnName, const std::string &cutVarColumnName,
+    const float &etaBoundary, const int &lowerThresholdBarrel,
+    const int &upperThresholdBarrel, const int &lowerThresholdEndcap,
+    const int &upperThresholdEndcap) {
+    auto lambda = [etaBoundary, lowerThresholdBarrel, upperThresholdBarrel,
+                   lowerThresholdEndcap,
+                   upperThresholdEndcap](const ROOT::RVec<float> &eta,
+                                         const ROOT::RVec<int> &variable) {
         ROOT::RVec<int> mask =
             (((abs(eta) < etaBoundary) && (variable >= lowerThresholdBarrel) &&
               (variable < upperThresholdBarrel)) ||
@@ -1643,6 +1681,37 @@ ROOT::RDF::RNode AntiCutCBID(ROOT::RDF::RNode df, const std::string &maskname,
                              const std::string &nameID, const int &IDvalue) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterMaxInt(IDvalue), {nameID});
+
+ROOT::RDF::RNode CutCBIDNoIso(ROOT::RDF::RNode df, const std::string &maskname,
+                              const std::string &nameID, const int &IDvalue) {
+    
+    // decision for each cut represented by 3 bits (0:fail, 1:veto, 2:loose, 3:medium, 4:tight)
+    // Electron_vidNestedWPBitmap
+    //0 - MinPtCut
+    //1 - GsfEleSCEtaMultiRangeCut
+    //2 - GsfEleDEtaInSeedCut
+    //3 - GsfEleDPhiInCut
+    //4 - GsfEleFull5x5SigmaIEtaIEtaCut
+    //5 - GsfEleHadronicOverEMEnergyScaledCut
+    //6 - GsfEleEInverseMinusPInverseCut
+    //7 - GsfEleRelPFIsoScaledCut
+    //8 - GsfEleConversionVetoCut
+    //9 - GsfEleMissingHitsCut
+
+    auto lambda = [IDvalue](const ROOT::RVec<int> &IDBits) {
+        ROOT::RVec<int> mask = (IDBits > -1);  // all true
+        for (unsigned idx = 0; idx < IDBits.size(); ++idx) {
+            int pass = 1;
+            for (int i(0); i<10; i++) {
+                if (i==7) continue;
+                if ( ((IDBits.at(idx) >> i*3) & 0x7) < IDvalue) pass = 0;
+            }
+            mask.at(idx) = pass;
+        }
+        return mask;
+    };
+
+    auto df1 = df.Define(maskname, lambda, {nameID});
     return df1;
 }
 
@@ -1729,6 +1798,72 @@ ROOT::RDF::RNode CutGap(ROOT::RDF::RNode df, const std::string &eta,
 
     auto df1 = df.Define(maskname, lambda, {eta, detasc});
     return df1;
+}
+
+ROOT::RDF::RNode CutIsolationBarrelEndcap(ROOT::RDF::RNode df, const std::string &maskname,
+                              const std::string &etaColumnName,
+                              const std::string &ptColumnName,
+                              const std::string &isolationName,
+                              const float &etaBoundary,
+                              const float &threshold0Barrel,
+                              const float &threshold1Barrel,
+                              const float &threshold0Endcap,
+                              const float &threshold1Endcap) {
+    auto lambda = [etaBoundary, threshold0Barrel, threshold1Barrel, threshold0Endcap, threshold1Endcap](
+        const ROOT::RVec<float> &eta,
+        const ROOT::RVec<float> &pt,
+        const ROOT::RVec<float> &iso) {
+        ROOT::RVec<int> mask =
+            (((abs(eta) < etaBoundary)  && (iso < threshold0Barrel + threshold1Barrel/pt)) ||
+             ((abs(eta) >= etaBoundary) && (iso < threshold0Endcap + threshold1Endcap/pt)));
+        return mask;
+    };
+
+    auto df1 = df.Define(maskname, lambda, {etaColumnName, ptColumnName, isolationName});
+    return df1;
+}
+
+ROOT::RDF::RNode CutHoeBarrelEndcap(ROOT::RDF::RNode df, const std::string &maskname,
+                              const std::string &etaColumnName,
+                              const std::string &scEColumnName,
+                              const std::string &rhoColumnName,
+                              const std::string &hoeName,
+                              const float &etaBoundary,
+                              const float &threshold0Barrel,
+                              const float &threshold1Barrel,
+                              const float &threshold2Barrel,
+                              const float &threshold0Endcap,
+                              const float &threshold1Endcap,
+                              const float &threshold2Endcap) {
+    auto lambda = [etaBoundary, threshold0Barrel, threshold1Barrel, threshold2Barrel, threshold0Endcap, threshold1Endcap, threshold2Endcap](
+        const ROOT::RVec<float> &eta,
+        const ROOT::RVec<float> &scE,
+        const float &rho,
+        const ROOT::RVec<float> &hoe) {
+        ROOT::RVec<int> mask =
+            (((abs(eta) < etaBoundary)  && (hoe < threshold0Barrel + threshold1Barrel/scE + threshold2Barrel*rho/scE)) ||
+             ((abs(eta) >= etaBoundary) && (hoe < threshold0Endcap + threshold1Endcap/scE + threshold2Endcap*rho/scE)));
+        return mask;
+    };
+
+    auto df1 = df.Define(maskname, lambda, {etaColumnName, scEColumnName, rhoColumnName, hoeName});
+    return df1;
+}
+
+ROOT::RDF::RNode superClusterEnergy(ROOT::RDF::RNode df,
+                            const std::string &ptColumnName,
+                            const std::string &scEtOverPtColumnName,
+                            const std::string &scEtaColumnName,
+                            const std::string &outputname) {
+    return df.Define(outputname, [](
+        const ROOT::RVec<float> &pt,
+        const ROOT::RVec<float> &scEtOverPt,
+        const ROOT::RVec<float> &scEta
+        ) {
+            return (scEtOverPt+1)*pt*cosh(scEta);
+        },
+        {ptColumnName, scEtOverPtColumnName, scEtaColumnName}
+    );
 }
 
 } // end namespace electron

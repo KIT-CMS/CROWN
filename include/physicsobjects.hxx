@@ -16,6 +16,12 @@ ROOT::RDF::RNode CutVariableBarrelEndcap(
     const float &etaBoundary, const float &lowerThresholdBarrel,
     const float &upperThresholdBarrel, const float &lowerThresholdEndcap,
     const float &upperThresholdEndcap);
+ROOT::RDF::RNode CutIntVariableBarrelEndcap(
+    ROOT::RDF::RNode df, const std::string &maskname,
+    const std::string &etaColumnName, const std::string &cutVarColumnName,
+    const float &etaBoundary, const int &lowerThresholdBarrel,
+    const int &upperThresholdBarrel, const int &lowerThresholdEndcap,
+    const int &upperThresholdEndcap);
 
 /// Function to combine a list of masks into a single mask. This is done be
 /// multiplying all input masks
@@ -243,10 +249,32 @@ ROOT::RDF::RNode CutIP(ROOT::RDF::RNode df, const std::string &eta,
                        const float &abseta_eb_ee, const float &max_dxy_eb,
                        const float &max_dz_eb, const float &max_dxy_ee,
                        const float &max_dz_ee);
-
 ROOT::RDF::RNode CutGap(ROOT::RDF::RNode df, const std::string &eta,
                         const std::string &detasc, const std::string &maskname,
                         const float &end_eb, const float &start_ee);
+ROOT::RDF::RNode CutCBIDNoIso(ROOT::RDF::RNode df, const std::string &maskname,
+                              const std::string &nameID, const int &IDvalue);
+ROOT::RDF::RNode CutIsolationBarrelEndcap(ROOT::RDF::RNode df, const std::string &maskname,
+                              const std::string &etaColumnName,
+                              const std::string &ptColumnName,
+                              const std::string &isolationName,
+                              const float &etaBoundary,
+                              const float &threshold0Barrel,
+                              const float &threshold1Barrel,
+                              const float &threshold0Endcap,
+                              const float &threshold1Endcap);
+ROOT::RDF::RNode CutHoeBarrelEndcap(ROOT::RDF::RNode df, const std::string &maskname,
+                              const std::string &etaColumnName,
+                              const std::string &scEColumnName,
+                              const std::string &rhoColumnName,
+                              const std::string &hoeName,
+                              const float &etaBoundary,
+                              const float &threshold0Barrel,
+                              const float &threshold1Barrel,
+                              const float &threshold2Barrel,
+                              const float &threshold0Endcap,
+                              const float &threshold1Endcap,
+                              const float &threshold2Endcap);
 ROOT::RDF::RNode superClusterEnergy(ROOT::RDF::RNode df,
                             const std::string &ptColumnName,
                             const std::string &scEtOverPtColumnName,

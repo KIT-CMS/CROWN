@@ -211,7 +211,6 @@ ROOT::RDF::RNode getvar(ROOT::RDF::RNode df, const std::string &outputname,
                      {position, column});
 }
 
-
 /// Function to writeout a variable from a RVec index to a NanoAOD column.
 ///
 /// \param df the dataframe to add the quantity to
@@ -231,7 +230,6 @@ ROOT::RDF::RNode getgenvar(ROOT::RDF::RNode df, const std::string &outputname,
                      },
                      {position, column});
 }
-
 
 template <typename T>
 ROOT::RDF::RNode getvarsFromArray(ROOT::RDF::RNode df, const std::string &outputname_prefix,
