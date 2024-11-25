@@ -458,89 +458,100 @@ ROOT::RDF::RNode delta_R_gentau_fatjet(ROOT::RDF::RNode df,
 }
 
 
-// ROOT::RDF::RNode m_inv_ditau(ROOT::RDF::RNode df,
-//                                  const std::string &outputname,
-//                                  const std::string &fatjet_pt,
-//                                  const std::string &met_fatjet_pt,
-//                                  const std::string &fatjet_mass) {
-
-//         auto m_inv = [](const float& fatjet_pts,
-//                         const float& met_fatjet_pts,
-//                         const float& fatjet_masses){
-//                                 float m_ditau = -30;
-
-//                                 // for (unsigned int i = 0; i < met_fatjet_pts.size(); i++) {
-
-//                                     if (fatjet_pts !=0 && met_fatjet_pts != 0){
-
-//                                         float m = fatjet_masses * (fatjet_pts) / sqrt( fatjet_pts * met_fatjet_pts );
-//                                         m_ditau = m;
-
-//                                     }
-
-//                                 // }
-//                             return m_ditau; 
-//                             };
-
-//         auto df1 =
-//             df.Define(outputname, m_inv,
-//                     {fatjet_pt, met_fatjet_pt,fatjet_mass });
-//         return df1;
-// }
-
-ROOT::RDF::RNode m_inv_ditau(ROOT::RDF::RNode df,
+ROOT::RDF::RNode pT_miss_tau1(ROOT::RDF::RNode df,
                                  const std::string &outputname,
                                  const std::string &met_fatjet_pt,
                                  const std::string &met_fatjet_phi,
-                                 const std::string &fatjet_mass,
-                                 const std::string &subjet_1_pt,
                                  const std::string &subjet_1_eta,
                                  const std::string &subjet_1_phi,
-                                 const std::string &subjet_2_pt,
                                  const std::string &subjet_2_eta,
                                  const std::string &subjet_2_phi) {
 
-        auto m_inv = [](const float& met_fatjet_pts,
-                        const float& met_fatjet_phis,
-                        const float& fatjet_masses,
+        auto comp_pT_miss_tau1 = [](const float& ETmiss,
+                                    const float& phi_ETmiss,
+                                    const float& subjet_1_etas,
+                                    const float& subjet_1_phis,
+                                    const float& subjet_2_etas,
+                                    const float& subjet_2_phis){
+
+                float theta_vis2 = 2 * std::atan(std::exp(-subjet_2_etas));
+                float theta_vis1 = 2 * std::atan(std::exp(-subjet_1_etas));
+
+                float pmiss_tau1 = (-ETmiss * std::cos(phi_ETmiss) * std::sin(theta_vis2) 
+                                    + ETmiss * std::sin(phi_ETmiss) * std::cos(subjet_2_phis)) 
+                                    / (std::sin(theta_vis1) * std::sin(subjet_1_phis - subjet_2_phis));
+
+
+                            return pmiss_tau1; 
+                            };
+
+        auto df1 =
+            df.Define(outputname, comp_pT_miss_tau1,
+                    {met_fatjet_pt,met_fatjet_phi, subjet_1_eta, subjet_1_phi, subjet_2_eta, subjet_2_phi});
+        return df1;
+}
+
+ROOT::RDF::RNode pT_miss_tau2(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &met_fatjet_pt,
+                                 const std::string &met_fatjet_phi,
+                                 const std::string &subjet_1_eta,
+                                 const std::string &subjet_1_phi,
+                                 const std::string &subjet_2_eta,
+                                 const std::string &subjet_2_phi) {
+
+        auto comp_pT_miss_tau2 = [](const float& ETmiss,
+                                    const float& phi_ETmiss,
+                                    const float& subjet_1_etas,
+                                    const float& subjet_1_phis,
+                                    const float& subjet_2_etas,
+                                    const float& subjet_2_phis){
+
+                float theta_vis2 = 2 * std::atan(std::exp(-subjet_2_etas));
+                float theta_vis1 = 2 * std::atan(std::exp(-subjet_1_etas));
+
+                float pmiss_tau2 = (ETmiss * std::cos(phi_ETmiss) * std::sin(theta_vis1) 
+                    - ETmiss * std::sin(phi_ETmiss) * std::cos(subjet_1_phis)) 
+                    / (std::sin(theta_vis2) * std::sin(subjet_1_phis - subjet_2_phis));
+
+
+                    return pmiss_tau2;
+
+                            };
+
+        auto df1 =
+            df.Define(outputname, comp_pT_miss_tau2,
+                    {met_fatjet_pt,met_fatjet_phi, subjet_1_eta, subjet_1_phi, subjet_2_eta, subjet_2_phi});
+        return df1;
+}
+
+ROOT::RDF::RNode m_inv_ditau(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const std::string &fatjet_mass,
+                                 const std::string &subjet_1_pt,
+                                 const std::string &subjet_1_pt_miss,
+                                 const std::string &subjet_2_pt,
+                                 const std::string &subjet_2_pt_miss) {
+
+        auto m_inv = [](const float& fatjet_masses,
                         const float& subjet_1_pts,
-                        const float& subjet_1_etas,
-                        const float& subjet_1_phis,
+                        const float& subjet_1_pts_miss,
                         const float& subjet_2_pts,
-                        const float& subjet_2_etas,
-                        const float& subjet_2_phis){
+                        const float& subjet_2_pts_miss){
 
 
-                        // float m_ditau = -30;
+                        float x1 = subjet_1_pts / ( subjet_1_pts + subjet_1_pts_miss );
+                        float x2 = subjet_2_pts / ( subjet_2_pts + subjet_2_pts_miss );
 
-                        float sin_phi12 = std::sin(subjet_1_phis - subjet_2_phis);
-                        float sin_phi2MET = std::sin(subjet_2_phis - met_fatjet_phis);
-                        float exp_eta1 = std::exp(subjet_1_etas);
-                        float exp_2eta1 = std::exp(2 * subjet_1_etas);
+                        float m_ditau = fatjet_masses / sqrt(x1 * x2);
 
-                        float sin_phi1MET = std::sin(subjet_1_phis - met_fatjet_phis);
-                        float exp_eta2 = std::exp(subjet_2_etas);
-                        float exp_2eta2 = std::exp(2 * subjet_2_etas);
-
-                        float numerator1 = 2 * subjet_1_pts * exp_eta1 * sin_phi12;
-                        float denominator1 = -met_fatjet_pts * (exp_2eta1 + 1) * sin_phi2MET + numerator1;
-
-                        float x1 = numerator1 / denominator1;
-
-                        float numerator2 = 2 * subjet_2_pts * exp_eta2 * sin_phi12;
-                        float denominator2 = met_fatjet_pts * (exp_2eta2 + 1) * sin_phi1MET + numerator2;
-
-                        float x2 = numerator2 / denominator2;
-
-                        float m_ditau = fatjet_masses / sqrt(x1*x2);
 
                             return m_ditau; 
                             };
 
         auto df1 =
             df.Define(outputname, m_inv,
-                    {met_fatjet_pt,met_fatjet_phi, fatjet_mass,subjet_1_pt, subjet_1_eta, subjet_1_phi,
-                        subjet_2_pt, subjet_2_eta, subjet_2_phi});
+                    {fatjet_mass,subjet_1_pt,subjet_1_pt_miss, subjet_2_pt, subjet_2_pt_miss});
         return df1;
 }
 
