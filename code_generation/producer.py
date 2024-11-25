@@ -1,6 +1,7 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 
 import logging
+import re
 from typing import Any, Dict, List, Set, Union
 
 from code_generation.exceptions import (
@@ -27,7 +28,17 @@ class Producer:
         output: Union[List[q.Quantity], None],
         scopes: List[str],
     ):
-        """Docstrings to be added ...."""
+        """
+        A Producer is a class that holds all information about a producer. Input quantities are
+
+        Args:
+            name: Name of the producer
+            call: The call of the producer. This is the C++ function call of the producer
+            input: A list of input quantities or a dict with scope specific input quantities
+            output: A list of output quantities
+            scopes: A list of scopes in which the producer is used
+
+        """
         log.debug("Setting up a new producer {}".format(name))
 
         # sanity checks
@@ -45,6 +56,7 @@ class Producer:
         self.call: str = call
         self.output: Union[List[q.Quantity], None] = output
         self.scopes = scopes
+        self.parameters: Dict[str, Set[str]] = self.extract_parameters()
         # if input not given as dict and therfore not scope specific transform into dict with all scopes
         if not isinstance(input, dict):
             inputdict = {}
@@ -84,15 +96,66 @@ class Producer:
     def __repr__(self) -> str:
         return "Producer: {}".format(self.name)
 
+    def extract_parameters(self) -> Dict[str, Set[str]]:
+        """
+        Function used to extract all parameters from a producer call. Parameters are enclosed in curly brackets.
+        Reserved parameters are:
+        - {output} : will be replaced by the output quantities
+        - {input} : will be replaced by the input quantities
+        - {output_vec} : will be replaced by the output quantities in vector form
+        - {input_vec} : will be replaced by the input quantities in vector form
+        - {df} : will be replaced by the dataframe name
+        - {vec_open} : will be replaced by the opening bracket of the vector
+        - {vec_close} : will be replaced by the closing bracket of the vector
+        """
+        regex = "\{([A-Za-z0-9_]+)\}"
+        reserved_parameters = [
+            "output",
+            "input",
+            "output_vec",
+            "input_vec",
+            "df",
+            "vec_open",
+            "vec_close",
+        ]
+        parameters = {}
+        for scope in self.scopes:
+            parameters[scope] = set(
+                [
+                    x
+                    for x in re.findall(regex, self.call)
+                    if x not in reserved_parameters
+                ]
+            )
+        return parameters
+
     # Check if a output_quantity is already used as an output by
     # another producer within the same scope.
     # If this occurs, a Exception is thrown, since this is not possible with dataframes
     def reserve_output(self, scope: str) -> None:
+        """
+        Check if a output_quantity is already used as an output by another producer within the same scope.
+        This is an internal function and should not be called by the user.
+
+        Args:
+            scope: The scope in which the output is reserved
+
+        """
+
         if self.output is not None:
             for output_quantity in self.output:
                 output_quantity.reserve_scope(scope)
 
     def shift(self, name: str, scope: str = "global") -> None:
+        """Add a shift to the producer. This is an internal function and should not be called by the user.
+
+        Args:
+            name (str): Name of the shift
+            scope (str, optional): Name of the scope where the shift is to be applied. Defaults to "global".
+
+        Raises:
+            Exception: If the producer does not have any output, or if the producer does not exist in the given scope, an exception is thrown
+        """
         if scope not in self.scopes:
             log.error(
                 "Trying to add shift %s to producer %s in scope %s, but producer does not exist in given scope!"
@@ -108,7 +171,35 @@ class Producer:
         for entry in self.output:
             entry.shift(name, scope)
 
+    def shift_inputs(self, name: str, scope: str, inputs_to_shift: List[str]) -> None:
+        """
+        Shift all inputs of a producer. This is an internal function and should not be called by the user.
+
+        Args:
+            name: Name of the shift
+            scope: Name of the scope where the shift is to be applied
+        """
+        if scope not in self.scopes:
+            log.error(
+                "Trying to add shift %s to producer %s in scope %s, but producer does not exist in given scope!"
+                % (name, self.name, scope)
+            )
+            raise Exception
+        for entry in self.input[scope]:
+            if entry in inputs_to_shift:
+                log.debug(f"Shifting {entry.name}")
+                entry.shift(name, scope)
+
     def ignore_shift(self, name: str, scope: str = "global") -> None:
+        """Ingore a given shift for a producer. This in an internal function and should not be called by the user.
+
+        Args:
+            name (str): Name of the shift
+            scope (str, optional): Name of the scope where the shift is to be ignored. Defaults to "global".
+
+        Raises:
+            Exception: If the producer does not have any output, or if the producer does not exist in the given scope, an exception is thrown
+        """
         if scope not in self.scopes:
             log.error(
                 "Trying to add shift %s to producer %s in scope %s, but producer does not exist in given scope!"
@@ -124,7 +215,22 @@ class Producer:
         for entry in self.output:
             entry.ignore_shift(name, scope)
 
-    def writecall(self, config, scope: str, shift: str = "nominal") -> str:
+    def writecall(
+        self, config: Dict[str, Dict[str, Any]], scope: str, shift: str = "nominal"
+    ) -> str:
+        """Function to generate the nessessary C++ calls for the code generation
+
+        Args:
+            config (Dict[str, Dict[str, Any]]): Configuration dict containing the parameter and input / output information for the producer
+            scope (str): The scope in which the producer is to be called
+            shift (str, optional): The shift, for which the function call should be generated. Defaults to "nominal".
+
+        Raises:
+            Exception: Raises an expection, the the requested shift is not available in the configuration
+
+        Returns:
+            str: The generated C++ call
+        """
         if self.output is None:
             config[shift]["output"] = ""
             config[shift]["output_vec"] = ""
@@ -184,6 +290,18 @@ class Producer:
     def writecalls(
         self, config: Dict[str, Dict[str, Dict[str, str]]], scope: str
     ) -> List[str]:
+        """Function to generate calls for all shifts of a producer, wraping the writecall function
+
+        Args:
+            Configuration dict containing the parameter and input / output information for the producer
+            scope (str): The scope in which the producer is to be called
+
+        Raises:
+            Exception: Raises an Exception, of the requested scope is not valid for the producer
+
+        Returns:
+            List[str]: Returns a list of C++ calls for all shifts of the producer
+        """
         if scope not in self.scopes:
             log.error(
                 "Exception ({}): Tried to use producer in scope {}, which the producer is not forseen for!".format(
@@ -201,6 +319,17 @@ class Producer:
         return calls
 
     def get_inputs(self, scope: str) -> List[q.Quantity]:
+        """Get a list of all inputs of the producer in a given scope
+
+        Args:
+            scope (str): The scope in which the inputs are requested
+
+        Raises:
+            Exception: Raises an Exception, of the requested scope is not valid for the producer
+
+        Returns:
+            List[str]: Returns a list of Quantity objects, which are the inputs of the producer
+        """
         if scope not in self.scopes:
             log.error(
                 "Exception ({}): Tried to get producer inputs in scope {}, which the producer is not forseen for!".format(
@@ -211,6 +340,17 @@ class Producer:
         return self.input[scope]
 
     def get_outputs(self, scope: str) -> List[Union[q.QuantityGroup, q.Quantity]]:
+        """Get a list of all outputs of the producer in a given scope
+
+        Args:
+            scope (str): The scope in which the outputs are requested
+
+        Raises:
+            Exception: Raises an Exception, of the requested scope is not valid for the producer
+
+        Returns:
+            List[Union[q.QuantityGroup, q.Quantity]]: Returns a list of Quantity objects, which are the outputs of the producer
+        """
         if scope not in self.scopes:
             log.error(
                 "Exception ({}): Tried to get producer outputs in scope {}, which the producer is not forseen for!".format(
@@ -234,6 +374,16 @@ class VectorProducer(Producer):
         scopes: List[str],
         vec_configs: List[str],
     ):
+        """A Vector Producer is a Producer which can be configured to produce multiple calls and outputs at once, deprecated in favor of the ExtendedVectorProducer
+
+        Args:
+            name (str): Name of the producer
+            call (str): The call to be made in C++, with placeholders for the parameters
+            input (Union[List[q.Quantity], Dict[str, List[q.Quantity]]]): The inputs of the producer, either a list of Quantity objects, or a dict with the scope as key and a list of Quantity objects as value
+            output (Union[List[q.Quantity], None]): The outputs of the producer, either a list of Quantity objects, or None if the producer does not produce any output
+            scopes (List[str]): The scopes in which the producer is to be called
+            vec_configs (List[str]): A list of strings, which are the names of the parameters to be varied in the vectorized call
+        """
         self.name = name
         super().__init__(name, call, input, output, scopes)
         self.vec_configs = vec_configs
@@ -247,6 +397,18 @@ class VectorProducer(Producer):
     def writecalls(
         self, config: Dict[str, Dict[str, Dict[str, str]]], scope: str
     ) -> List[str]:
+        """Function to generate calls for all shifts of a producer, wraping the writecall function
+
+        Args:
+            Configuration dict containing the parameter and input / output information for the producer
+            scope (str): The scope in which the producer is to be called
+
+        Raises:
+            Exception: Raises an Exception, of the requested scope is not valid for the producer
+
+        Returns:
+            List[str]: Returns a list of C++ calls for all shifts of the producer
+        """
         basecall = self.call
         calls: List[str] = []
         shifts = ["nominal"]
@@ -301,6 +463,16 @@ class ExtendedVectorProducer(Producer):
         scope: Union[List[str], str],
         vec_config: str,
     ):
+        """A ExtendedVectorProducer is a Producer which can be configured to produce multiple calls and outputs at once
+
+        Args:
+            name (str): Name of the producer
+            call (str): The call to be made in C++, with placeholders for the parameters
+            input (Union[List[q.Quantity], Dict[str, List[q.Quantity]]]): The inputs of the producer, either a list of Quantity objects, or a dict with the scope as key and a list of Quantity objects as value
+            output (Union[List[q.Quantity], None]): The outputs of the producer, either a list of Quantity objects, or None if the producer does not produce any output
+            scopes (List[str]): The scopes in which the producer is to be called
+            vec_configs (List[str]): The key of the vec config in the config dict
+        """
         # we create a Quantity Group, which is updated during the writecalls() step
         self.outputname = output
         self.vec_config = vec_config
@@ -312,6 +484,9 @@ class ExtendedVectorProducer(Producer):
         super().__init__(name, call, input, [quantity_group], scope)
         if self.output is None:
             raise InvalidProducerConfigurationError(self.name)
+        # add the vec config to the parameters of the producer
+        for scope in self.scopes:
+            self.parameters[scope].add(self.vec_config)
 
     def __str__(self) -> str:
         return "ExtendedVectorProducer: {}".format(self.name)
@@ -331,6 +506,18 @@ class ExtendedVectorProducer(Producer):
     def writecalls(
         self, config: Dict[str, Dict[str, Dict[str, Any]]], scope: str
     ) -> List[str]:
+        """Function to generate all calls for all shifts of the ExtendedVectorProducer, wraping the writecall function
+
+        Args:
+            Configuration dict containing the parameter and input / output information for the ExtendedVectorProducer
+            scope (str): The scope in which the ExtendedVectorProducer is to be called
+
+        Raises:
+            Exception: Raises an Exception, of the requested scope is not valid for the ExtendedVectorProducer
+
+        Returns:
+            List[str]: Returns a list of C++ calls for all shifts of the ExtendedVectorProducer
+        """
         n_versions = len(config["nominal"][self.vec_config])
         log.debug("Number of extended producers to be created {}".format(n_versions))
         if self.output is None:
@@ -368,6 +555,16 @@ class BaseFilter(Producer):
         input: Union[List[q.Quantity], Dict[str, List[q.Quantity]]],
         scopes: List[str],
     ):
+        """A BaseFilter is a Producer which does not produce any output, but is used to filter events.
+        This class should not be used by the user, use the Filter class instead.
+
+        Args:
+            name (str): name of the filter
+            call (str): The call to be made in C++, with placeholders for the parameters
+            input (Union[List[q.Quantity], Dict[str, List[q.Quantity]]]): The inputs of the filter,
+            either a list of Quantity objects, or a dict with the scope as key and a list of Quantity objects as value
+            scopes (List[str]): The scopes in which the filter is to be called
+        """
         super().__init__(name, call, input, None, scopes)
 
     def __str__(self) -> str:
@@ -379,12 +576,28 @@ class BaseFilter(Producer):
     def writecall(
         self, config: Dict[str, Dict[str, Dict[str, str]]], scope: str, shift: str = ""
     ) -> str:
+        """
+        Do not use, filters do not support method writecall!
+        """
         log.critical("{}: Filters do not support method writecall!".format(self.name))
         raise Exception
 
     def writecalls(
         self, config: Dict[str, Dict[str, Dict[str, str]]], scope: str
     ) -> List[str]:
+        """The writecalls function of a BaseFilter is used to generate the C++ calls for the filter
+
+        Args:
+            config (Dict[str, Dict[str, Dict[str, str]]]): The configuration dict containing the
+            parameters and input / output information for the filter
+            scope (str): The scope in which the filter is to be called
+
+        Raises:
+            Exception: Raises an Exception, if the requested scope is not valid for the filter
+
+        Returns:
+            List[str]: Returns a list of C++ calls for the filter
+        """
         inputs: List[str] = []
         for quantity in self.input[scope]:
             inputs.extend(quantity.get_leaves_of_scope(scope))
@@ -420,6 +633,16 @@ class ProducerGroup:
             Dict[str, List[Producer | ProducerGroup]],
         ],
     ):
+        """A ProducerGroup can be used to group multiple producers. This is useful to keep the configuration simpler and to ensure that the producers are called in the correct order. ProducerGroups can be nested.
+
+        Args:
+            name (str): Name of the ProducerGroup
+            call (Union[str, None]): Typically, this is None
+            input (Union[List[q.Quantity], Dict[str, List[q.Quantity]], None]): The inputs of the ProducerGroup
+            output (Union[List[q.Quantity], None]): Output quantities of the Producer Group
+            scopes (List[str]): The scopes in which the ProducerGroup is to be called
+            subproducers (Union[ List[Producer  |  ProducerGroup], Dict[str, List[Producer  |  ProducerGroup]], ]): The subproducers of the ProducerGroup, either a list of Producer or ProducerGroup objects, or a dict with the scope as key and a list of Producer or ProducerGroup objects as value
+        """
         self.name = name
         self.call = call
         self.output = output
@@ -507,6 +730,8 @@ class ProducerGroup:
             )
 
         log.debug("-----------------------------------------")
+        # in the end, determine all parameters used by the producer group
+        self.parameters = self.extract_parameters()
 
     def __str__(self) -> str:
         return "ProducerGroup: {}".format(self.name)
@@ -514,7 +739,27 @@ class ProducerGroup:
     def __repr__(self) -> str:
         return "ProducerGroup: {}".format(self.name)
 
+    def extract_parameters(self) -> Dict[str, Set[str]]:
+        parameters = {}
+        for scope in self.scopes:
+            parameters[scope] = set()
+            for producer in self.producers[scope]:
+                if scope in producer.parameters.keys():
+                    parameters[scope] = parameters[scope].union(
+                        producer.parameters[scope]
+                    )
+                else:
+                    log.warn(
+                        f"ProducerGroup {self} is setup for scope {scope}, but producer {producer} is not configured for this scope."
+                    )
+        return parameters
+
     def check_producer_scopes(self) -> None:
+        """Function to validate the scopes of the subproducers. Internal function.
+
+        Raises:
+            Exception: If a scope is not found in the subproducer configuration, an exception is raised
+        """
         for scope in self.scopes:
             if scope not in self.producers.keys():
                 raise Exception(
@@ -524,6 +769,9 @@ class ProducerGroup:
                 )
 
     def setup_own_producer(self) -> None:
+        """
+        Function to setup a new producer within the ProducerGroup. Internal function.
+        """
         producer = Producer(self.name, self.call, self.input, self.output, self.scopes)
         for scope in self.scopes:
             self.producers[scope].append(producer)
@@ -531,14 +779,31 @@ class ProducerGroup:
     # for a producer group, step iteratively
     # through the subproducers and reserve the output there
     def reserve_output(self, scope: str) -> None:
+        """Function used to reserve the output for every producer in the group. Internal function.
+
+        Args:
+            scope (str): Scope for which the output is reserved
+        """
         for subproducer in self.producers[scope]:
             subproducer.reserve_output(scope)
 
     def shift(self, name: str, scope: str = "global") -> None:
+        """Function used to add a shift for every producer in the group. Wraps the shift function of a producer. Internal function.
+
+        Args:
+            name (str): name of the shift
+            scope (str, optional): name of the scope. Defaults to "global".
+        """
         for producer in self.producers[scope]:
             producer.shift(name, scope)
 
     def ignore_shift(self, name: str, scope: str = "global") -> None:
+        """Function used to ignore a shift for every producer in the group. Wraps the ignore_shift function of a producer. Internal function.
+
+        Args:
+            name (str): name of the shift to be ingored
+            scope (str, optional): name of the scope. Defaults to "global".
+        """
         for producer in self.producers[scope]:
             producer.ignore_shift(name, scope)
 
@@ -550,6 +815,18 @@ class ProducerGroup:
     def writecalls(
         self, config: Dict[str, Dict[str, Dict[str, str]]], scope: str
     ) -> List[str]:
+        """Function to generate all calls for all shifts and all producer in the group, wraping the writecall function
+
+        Args:
+            Configuration dict containing the parameter and input / output information for the ProducerGroup
+            scope (str): The scope in which the ProducerGroup is to be called
+
+        Raises:
+            Exception: Raises an Exception, of the requested scope is not valid for the ProducerGroup
+
+        Returns:
+            List[str]: Returns a list of C++ calls for all shifts of the ProducerGroup
+        """
         calls: List[str] = []
         for producer in self.producers[scope]:
             # duplicate outputs of vector subproducers if they were generated automatically
@@ -572,6 +849,18 @@ class ProducerGroup:
         return calls
 
     def get_inputs(self, scope: str) -> List[q.Quantity]:
+        """Get a list of all inputs of the ProducerGroup in a given scope
+
+        Args:
+            scope (str): The scope in which the inputs are requested
+
+        Raises:
+            Exception: Raises an Exception, of the requested scope is not valid for the ProducerGroup
+
+        Returns:
+            List[str]: Returns a list of Quantity objects, which are the inputs of the ProducerGroup
+        """
+
         inputs: List[q.Quantity] = []
         log.debug("Getting inputs for {}".format(self.name))
         for subproducer in self.producers[scope]:
@@ -580,6 +869,17 @@ class ProducerGroup:
         return inputs
 
     def get_outputs(self, scope: str) -> List[q.Quantity]:
+        """Get a list of all outputs of the ProducerGroup in a given scope
+
+        Args:
+            scope (str): The scope in which the outputs are requested
+
+        Raises:
+            Exception: Raises an Exception, of the requested scope is not valid for the ProducerGroup
+
+        Returns:
+            List[Union[q.QuantityGroup, q.Quantity]]: Returns a list of Quantity objects, which are the outputs of the ProducerGroup
+        """
         outputs: List[q.Quantity] = []
         log.debug("Getting outputs for {}".format(self.name))
         for subproducer in self.producers[scope]:
@@ -600,6 +900,15 @@ class Filter(ProducerGroup):
             Dict[str, List[Producer | ProducerGroup]],
         ],
     ):
+        """A Filter is used to filter events. Wraps the BaseFilter class, and is a ProducerGroup.
+
+        Args:
+            name (str): name of the filter
+            call (str): the C++ function call to be used for the filter
+            input (Union[List[q.Quantity], Dict[str, List[q.Quantity]]]): The input quantities for the filter
+            scopes (List[str]): The scopes in which the filter is to be called
+            subproducers (Union[ List[Producer  |  ProducerGroup], Dict[str, List[Producer  |  ProducerGroup]], ]): The subproducers of the filter
+        """
         self.__class__.PG_count = ProducerGroup.PG_count
         super().__init__(name, call, input, None, scopes, subproducers)
         ProducerGroup.PG_count = self.__class__.PG_count

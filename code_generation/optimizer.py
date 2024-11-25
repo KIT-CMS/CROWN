@@ -91,7 +91,7 @@ class ProducerOrdering:
 
     def MoveFiltersUp(self) -> None:
         """
-        Function used to relocate all filters to the top of the ordering
+        Function used to relocate all filters to the top of the ordering, preserving the order of the filters given in the config file.
 
         Args:
             None
@@ -100,9 +100,11 @@ class ProducerOrdering:
             None
         """
         new_ordering: List[Producer | ProducerGroup] = []
+        nfilters = 0
         for producer in self.ordering:
             if isinstance(producer, Filter) or isinstance(producer, BaseFilter):
-                new_ordering.insert(0, producer)
+                new_ordering.insert(nfilters, producer)
+                nfilters += 1
             else:
                 new_ordering.append(producer)
         for i, prod in enumerate(self.ordering):
@@ -167,11 +169,11 @@ class ProducerOrdering:
                         self.get_position(wrongProducer),
                     )
         self.optimized_ordering = self.ordering
+        log.info("------------------------------------")
         log.info(
-            "Optimization for scope {} done after {} steps: {}".format(
-                self.scope, counter, self.optimized_ordering
-            )
+            "Optimization for scope {} done after {} steps.".format(self.scope, counter)
         )
+        log.info("------------------------------------")
 
     def check_ordering(
         self,

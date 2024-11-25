@@ -1,6 +1,8 @@
 #ifndef GUARD_QUANTITIES_H
 #define GUARD_QUANTITIES_H
 
+#include "../include/SVFit/FastMTT.hxx"
+#include "../include/SVFit/MeasuredTauLepton.hxx"
 #include "../include/basefunctions.hxx"
 #include "../include/defaults.hxx"
 #include "../include/utility/Logger.hxx"
@@ -151,6 +153,71 @@ ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
         },
         {pairname, chargecolumn});
 }
+/// Function to calculate the scalar sum of pts for given lorentz vectors and
+/// add it to the dataframe
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the pt value
+/// \param pt_1 name of the column containing the first lorentz vector
+/// \param pt_2 name of the column containing the second lorentz vector
+/// \param pt_3 name of the column containing the third lorentz vector
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode scalarPtSum(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &pt_1, const std::string &pt_2,
+                             const std::string &pt_3) {
+    // build scalar sum of pts of 3 objects
+    return df.Define(
+        outputname,
+        [](const float &pt_1, const float &pt_2, const float &pt_3) {
+            if (pt_1 < 0.0 || pt_2 < 0.0 || pt_3 < 0.0)
+                return default_float;
+            auto const triple_lepton_pt = pt_1 + pt_2 + pt_3;
+            return (float)triple_lepton_pt;
+        },
+        {pt_1, pt_2, pt_3});
+}
+/**
+ * @brief function used to calculate the deltaPhi between two lorentz vectors.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the deltaR value
+ * @param p_1_p4 first lorentz vector
+ * @param p_2_p4 second lorentz vector of
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode deltaPhi(ROOT::RDF::RNode df, const std::string &outputname,
+                          const std::string &p_1_p4,
+                          const std::string &p_2_p4) {
+    auto calculate_deltaPhi = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
+                                 ROOT::Math::PtEtaPhiMVector &p_2_p4) {
+        return ROOT::Math::VectorUtil::DeltaPhi(p_1_p4, p_2_p4);
+    };
+    return df.Define(outputname, calculate_deltaPhi, {p_1_p4, p_2_p4});
+}
+/**
+ * @brief function used to calculate the deltaPhi between the lepton from a W
+ * and the visible Higgs decay products.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the deltaR value
+ * @param p_1_p4 first lorentz vector
+ * @param p_2_p4 second lorentz vector
+ * @param p_3_p4 second lorentz vector
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode deltaPhi_WH(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &p_1_p4,
+                             const std::string &p_2_p4,
+                             const std::string &p_3_p4) {
+    auto calculate_deltaPhi = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
+                                 ROOT::Math::PtEtaPhiMVector &p_2_p4,
+                                 ROOT::Math::PtEtaPhiMVector &p_3_p4) {
+        auto const dileptonsystem = p_2_p4 + p_3_p4;
+        return ROOT::Math::VectorUtil::DeltaPhi(p_1_p4, dileptonsystem);
+    };
+    return df.Define(outputname, calculate_deltaPhi, {p_1_p4, p_2_p4, p_3_p4});
+}
 /// Function to calculate the visible mass from a pair of lorentz vectors and
 /// add it to the dataframe. The visible mass is calculated as the mass of the
 /// lorentz vector of the dilepton system.
@@ -175,6 +242,108 @@ ROOT::RDF::RNode m_vis(ROOT::RDF::RNode df, const std::string &outputname,
             return (float)dileptonsystem.mass();
         },
         inputvectors);
+}
+
+/**
+ * @brief Function used to calculate the FastMTT p4 from the given inputs. The
+ * implementation is based on
+ * https://github.com/SVfit/ClassicSVfit/tree/fastMTT_19_02_2019
+ *
+ * @param df The dataframe to add the quantity to
+ * @param outputname name of the new column containing the lorentz vector value
+ * @param pt_1 the name of the column containing the pt of the first particle
+ * @param pt_2 the name of the column containing the pt of the second particle
+ * @param eta_1  the name of the column containing the eta of the first particle
+ * @param eta_2 the name of the column containing the eta of the second particle
+ * @param phi_1 the name of the column containing the phi of the first particle
+ * @param phi_2 the name of the column containing the phi of the second particle
+ * @param mass_1 the name of the column containing the mass of the first
+ * particle
+ * @param mass_2 the name of the column containing the mass of the second
+ * particle
+ * @param met_pt the name of the column containing the met pt
+ * @param met_phi the name of the column containing the met phi
+ * @param met_cov_xx the name of the column containing the met covariance xx
+ * @param met_cov_xy the name of the column containing the met covariance xy
+ * @param met_cov_yy the name of the column containing the met covariance yy
+ * @param decay_mode_1 the name of the column containing the decay mode of the
+ * first particle
+ * @param decay_mode_2 the name of the column containing the decay mode of the
+ * second particle
+ * @param finalstate the final state of the ditaudecay. Supported are "mt",
+ * "et", "tt", "em"
+ * @return ROOT::RDF::RNode
+ */
+ROOT::RDF::RNode
+p4_fastmtt(ROOT::RDF::RNode df, const std::string &outputname,
+           const std::string &pt_1, const std::string &pt_2,
+           const std::string &eta_1, const std::string &eta_2,
+           const std::string &phi_1, const std::string &phi_2,
+           const std::string &mass_1, const std::string &mass_2,
+           const std::string &met_pt, const std::string &met_phi,
+           const std::string &met_cov_xx, const std::string &met_cov_xy,
+           const std::string &met_cov_yy, const std::string &decay_mode_1,
+           const std::string &decay_mode_2, const std::string &finalstate) {
+    // initialize the FastMTT algorithm
+    auto calculate_fast_mtt =
+        [finalstate](const float &pt_1, const float &pt_2, const float &eta_1,
+                     const float &eta_2, const float &phi_1, const float &phi_2,
+                     const float &mass_1, const float &mass_2,
+                     const float &met_pt, const float &met_phi,
+                     const float &met_cov_xx, const float &met_cov_xy,
+                     const float &met_cov_yy, const int &decay_mode_1,
+                     const int &decay_mode_2) {
+            std::vector<fastmtt::MeasuredTauLepton> measuredTauLeptons;
+            TMatrixD covMET(2, 2);
+            covMET[0][0] = met_cov_xx;
+            covMET[1][0] = met_cov_xy;
+            covMET[0][1] = met_cov_xy;
+            covMET[1][1] = met_cov_yy;
+            // build the met lorentz vector
+            ROOT::Math::PtEtaPhiMVector met(met_pt, 0.0, met_phi, 0.0);
+            // set the decay modes according to the final state
+            auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
+            auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
+            int dm_1, dm_2;
+            if (finalstate == "mt") {
+                dm_1 = -1;
+                dm_2 = decay_mode_2;
+                auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToMuDecay;
+                auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
+            } else if (finalstate == "et") {
+                dm_1 = -1;
+                dm_2 = decay_mode_2;
+                auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToElecDecay;
+                auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
+            } else if (finalstate == "tt") {
+                dm_1 = decay_mode_1;
+                dm_2 = decay_mode_2;
+            } else if (finalstate == "em") {
+                dm_1 = -1;
+                dm_2 = -1;
+                auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToElecDecay;
+                auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToMuDecay;
+            } else {
+                Logger::get("FastMTT")->error(
+                    "Final state {} not supported by FastMTT", finalstate);
+                return (ROOT::Math::PtEtaPhiMVector)LorentzVector();
+            }
+            measuredTauLeptons.push_back(fastmtt::MeasuredTauLepton(
+                decay_obj_1, pt_1, eta_1, phi_1, mass_1, dm_1));
+            measuredTauLeptons.push_back(fastmtt::MeasuredTauLepton(
+                decay_obj_2, pt_2, eta_2, phi_2, mass_2, dm_2));
+            FastMTT FastMTTAlgo;
+            ROOT::Math::PtEtaPhiMVector result =
+                FastMTTAlgo.run(measuredTauLeptons, met.X(), met.Y(), covMET);
+            // ROOT::Math::PtEtaPhiMVector result(_result.Pt(), _result.Eta(),
+            //                                    _result.Phi(), _result.M());
+            Logger::get("FastMTT")->debug("FastMTT result: {}", result.M());
+            return result;
+        };
+    return df.Define(outputname, calculate_fast_mtt,
+                     {pt_1, pt_2, eta_1, eta_2, phi_1, phi_2, mass_1, mass_2,
+                      met_pt, met_phi, met_cov_xx, met_cov_xy, met_cov_yy,
+                      decay_mode_1, decay_mode_2});
 }
 /// Function to calculate the visible pt from a pair of lorentz vectors and
 /// add it to the dataframe. The visible pt is calculated as the pt of the
@@ -201,7 +370,32 @@ ROOT::RDF::RNode pt_vis(ROOT::RDF::RNode df, const std::string &outputname,
         },
         inputvectors);
 }
+/// Function to calculate the pt of the W from a the visible lepton fourvector,
+/// the met four vector and the neutrino four vector from the Higgs system and
+/// add it to the dataframe.
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the pt value
+/// \param inputvectors a vector of the two names of the columns containing the
+/// required lorentz vectors
+///
+/// \returns a dataframe with the new column
 
+ROOT::RDF::RNode pt_W(ROOT::RDF::RNode df, const std::string &outputname,
+                      const std::vector<std::string> &inputvectors) {
+    // build visible pt from the two particles
+    return df.Define(
+        outputname,
+        [](const ROOT::Math::PtEtaPhiMVector &p4_1,
+           const ROOT::Math::PtEtaPhiMVector &p4_2,
+           const ROOT::Math::PtEtaPhiMVector &p4_3) {
+            if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0 || p4_3.pt() < 0.0)
+                return default_float;
+            auto const w_p4 = p4_1 + p4_2 - p4_3;
+            return (float)w_p4.Pt();
+        },
+        inputvectors);
+}
 /**
  * @brief Function to calculate the quantity `pZetaMissVis` from the two leptons
  in the event + the met vector. The variable is defined as
@@ -284,8 +478,9 @@ ROOT::RDF::RNode mTdileptonMET(ROOT::RDF::RNode df,
 
 /**
  * @brief function used to calculate the deltaR between two lorentz vectors. It
- is defined as \f[ \Delta R = \sqrt{(\eta_1 - \eta_2)^2 + (\phi_1 - \phi_2)^2}
- \f$ where $\eta_1$ and $\phi_1$ are from the first lorentz vector and $\eta_2$
+ is defined as
+ $\f[ \Delta R = \sqrt{(\eta_1 - \eta_2)^2 + (\phi_1 - \phi_2)^2} \f$
+ where $\eta_1$ and $\phi_1$ are from the first lorentz vector and $\eta_2$
  and $\phi_2$ are from the second lorentz vector.
  *
  * @param df name of the dataframe
@@ -298,7 +493,9 @@ ROOT::RDF::RNode deltaR(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &p_1_p4, const std::string &p_2_p4) {
     auto calculate_deltaR = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
                                ROOT::Math::PtEtaPhiMVector &p_2_p4) {
-        return ROOT::Math::VectorUtil::DeltaR(p_1_p4, p_2_p4);
+        if (p_1_p4.pt() < 0.0 || p_2_p4.pt() < 0.0)
+            return default_float;
+        return (float)ROOT::Math::VectorUtil::DeltaR(p_1_p4, p_2_p4);
     };
     return df.Define(outputname, calculate_deltaR, {p_1_p4, p_2_p4});
 }
@@ -380,6 +577,58 @@ ROOT::RDF::RNode pt_ttjj(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
+ * @brief function used to calculate the pt two leading jets
+ If the number of jets is less than 2, the quantity is set to -10
+ * instead.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the pt_dijet value
+ * @param jet_1_p4 lorentz vector of the first jet
+ * @param jet_2_p4 lorentz vector of the second jet
+ * @return a new dataframe with the new column
+ */
+
+ROOT::RDF::RNode pt_dijet(ROOT::RDF::RNode df, const std::string &outputname,
+                          const std::string &jet_1_p4,
+                          const std::string &jet_2_p4) {
+    auto calculate_pt_dijet = [](ROOT::Math::PtEtaPhiMVector &jet_1_p4,
+                                 ROOT::Math::PtEtaPhiMVector &jet_2_p4) {
+        if (jet_1_p4.pt() < 0.0 || jet_2_p4.pt() < 0.0)
+            return default_float;
+        auto dijetsystem = jet_1_p4 + jet_2_p4;
+        return (float)dijetsystem.Pt();
+    };
+    return df.Define(outputname, calculate_pt_dijet, {jet_1_p4, jet_2_p4});
+}
+
+/**
+ * @brief function used to check the hemisphere of the two leading jets, if both
+ jets are in the same hemisphere, the quantity is set to 1, otherwise it is set
+ to 0. If the number of jets is less than 2, the quantity is set to 10
+ * instead.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the jet hemisphere value
+ * @param jet_1_p4 lorentz vector of the first jet
+ * @param jet_2_p4 lorentz vector of the second jet
+ * @return a new dataframe with the new column
+ */
+
+ROOT::RDF::RNode jet_hemisphere(ROOT::RDF::RNode df,
+                                const std::string &outputname,
+                                const std::string &jet_1_p4,
+                                const std::string &jet_2_p4) {
+    auto calculate_jet_hemisphere = [](ROOT::Math::PtEtaPhiMVector &jet_1_p4,
+                                       ROOT::Math::PtEtaPhiMVector &jet_2_p4) {
+        if (jet_1_p4.pt() < 0.0 || jet_2_p4.pt() < 0.0)
+            return default_int;
+        return (int)(jet_1_p4.Eta() * jet_2_p4.Eta() > 0);
+    };
+    return df.Define(outputname, calculate_jet_hemisphere,
+                     {jet_1_p4, jet_2_p4});
+}
+
+/**
  * @brief function used to calculate `mt_tot`. It is defined as
  \f[
     m_{T}^{tot} = \sqrt{m_{T}^2(p_{1},E_{T}^{miss}) +
@@ -449,6 +698,28 @@ ROOT::RDF::RNode pdgid(ROOT::RDF::RNode df, const std::string &outputname,
     return df.Define(
         outputname,
         [position](const ROOT::RVec<int> &pair, const ROOT::RVec<int> &pdgid) {
+            const int index = pair.at(position);
+            return pdgid.at(index, default_pdgid);
+        },
+        {pairname, pdgidcolumn});
+}
+/// Function to writeout the PDGID from a genparticle. The particle
+/// is identified via the index stored in the pair vector
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the PDGID
+/// \param position index of the position in the pair vector
+/// \param pairname name of the column containing the pair vector
+/// \param pdgidcolumn name of the column containing the pdgID
+///
+/// \returns a dataframe with the new column
+
+ROOT::RDF::RNode genpdgid(ROOT::RDF::RNode df, const std::string &outputname,
+                       const int &position, const std::string &pairname,
+                       const std::string &pdgidcolumn) {
+    return df.Define(
+        outputname,
+        [position](const ROOT::RVec<short> &pair, const ROOT::RVec<int> &pdgid) {
             const int index = pair.at(position);
             return pdgid.at(index, default_pdgid);
         },
@@ -662,6 +933,53 @@ ROOT::RDF::RNode is_global(ROOT::RDF::RNode df, const std::string &outputname,
                      },
                      {pairname, globalflagcolumn});
 }
+/**
+ * @brief Function to writeout the is tracker flag of a muon.
+ *
+ * @param df the dataframe to add the quantity to
+ * @param outputname the name of the new quantity
+ * @param position position of the muon in the pair vector
+ * @param pairname name of the column containing the pair vector
+ * @param trackerflagcolumn name of the column containing the muon is global
+ * flag
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode is_tracker(ROOT::RDF::RNode df, const std::string &outputname,
+                            const int &position, const std::string &pairname,
+                            const std::string &trackerflagcolumn) {
+    Logger::get("muonIsTrackerflag")->debug("is tracker pos {}", position);
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<int> &pair,
+                                const ROOT::RVec<bool> &trackerflag) {
+                         const int index = pair.at(position, -1);
+                         return trackerflag.at(index, false);
+                     },
+                     {pairname, trackerflagcolumn});
+}
 } // end namespace muon
+namespace electron {
+/**
+ * @brief Function to writeout the id of a electron.
+ *
+ * @param df the dataframe to add the quantity to
+ * @param outputname the name of the new quantity
+ * @param position position of the muon in the pair vector
+ * @param pairname name of the column containing the pair vector
+ * @param idcolumn name of the column containing the muon id values
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &outputname,
+                    const int &position, const std::string &pairname,
+                    const std::string &idcolumn) {
+    Logger::get("electronIDflag")->debug("ele ID position {}", position);
+    return df.Define(
+        outputname,
+        [position](const ROOT::RVec<int> &pair, const ROOT::RVec<bool> &id) {
+            const int index = pair.at(position, -1);
+            return id.at(index, false);
+        },
+        {pairname, idcolumn});
+}
+} // end namespace electron
 } // end namespace quantities
 #endif /* GUARD_QUANTITIES_H */

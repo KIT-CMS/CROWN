@@ -4,8 +4,7 @@ import logging
 from typing import Any, Dict, List, Union, Tuple
 import os
 import filecmp
-from git import Repo, InvalidGitRepositoryError, NoSuchPathError
-
+import subprocess
 from code_generation.producer import SafeDict, Producer, ProducerGroup
 
 from code_generation.configuration import Configuration
@@ -14,7 +13,6 @@ log = logging.getLogger(__name__)
 
 
 class CodeSubset(object):
-
     """
     Class used to generate code for a smaller subset. For each subset, a new object must be created.
 
@@ -25,6 +23,7 @@ class CodeSubset(object):
         scope: The scope of the code generation.
         folder: The folder in which the code will be generated.
         parameters: The parameters to be used for the generation.
+        name: The name of the code subset.
 
     Returns:
         None
@@ -38,12 +37,13 @@ class CodeSubset(object):
         scope: str,
         folder: str,
         configuration_parameters: Dict[str, Any],
+        name: str,
     ):
         self.file_name = file_name
         self.template = template
         self.producer = producer
         self.scope = scope
-        self.name = producer.name + "_" + scope
+        self.name = name
         self.configuration_parameters = configuration_parameters
         self.count = 0
         self.folder = folder
@@ -105,7 +105,9 @@ class CodeSubset(object):
         log.debug("folder: {}, file_name: {}".format(self.folder, self.file_name))
         # write the header file if it does not exist or is different
         with open(self.headerfile + ".new", "w") as f:
-            f.write(f"ROOT::RDF::RNode {self.name}(ROOT::RDF::RNode df);")
+            f.write(
+                f"ROOT::RDF::RNode {self.name}(ROOT::RDF::RNode df, OnnxSessionManager &onnxSessionManager, correctionManager::CorrectionManager &correctionManager);"
+            )
         if os.path.isfile(self.headerfile):
             if filecmp.cmp(self.headerfile + ".new", self.headerfile):
                 log.debug("--> Identical header file, skipping")
@@ -142,7 +144,7 @@ class CodeSubset(object):
         Returns:
             str: the call to the code subset
         """
-        call = f"    auto {outputscope} = {self.name}({inputscope}); \n"
+        call = f"    auto {outputscope} = {self.name}({inputscope}, onnxSessionManager, correctionManager); \n"
         return call
 
     def include(self) -> str:
@@ -182,6 +184,7 @@ class CodeGenerator(object):
         sub_template_path: str,
         configuration: Configuration,
         analysis_name: str,
+        config_name: str,
         executable_name: str,
         output_folder: str,
         threads: int = 1,
@@ -190,10 +193,12 @@ class CodeGenerator(object):
         self.subset_template = self.load_template(sub_template_path)
         self.configuration = configuration
         self.scopes = self.configuration.scopes
+
         self.outputs = self.configuration.outputs
         self.global_scope = self.configuration.global_scope
         self.executable_name = executable_name
         self.analysis_name = analysis_name
+        self.config_name = config_name
         self.output_folder = output_folder
         self.executable = os.path.join(
             output_folder,
@@ -209,29 +214,76 @@ class CodeGenerator(object):
         self.main_counter: Dict[str, int] = {}
         self.number_of_defines = 0
         self.number_of_outputs = 0
+        # sort the scopes alphabetically, keeping the global scope at the beginning
+        self.sort_scopes()
         for scope in self.scopes:
             self.main_counter[scope] = 0
             self.subset_calls[scope] = []
             self.output_commands[scope] = []
-        # get git status of the main repo
-        try:
-            main_repo_path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)), "../../CROWN"
-            )
-            log.info("Getting git status of {}".format(main_repo_path))
-            main_repo = Repo(main_repo_path)
-            self.commit_hash = main_repo.head.commit
-            self.setup_is_clean = "false" if main_repo.is_dirty() else "true"
-        except (ValueError, InvalidGitRepositoryError, NoSuchPathError):
-            self.commit_hash = "undefined"
-            self.setup_is_clean = "false"
+        # set git status default values
+        self.commit_hash = "undefined"
+        self.analysis_commit_hash = "undefined"
+        self.crown_is_clean = "false"
+        self.analysis_is_clean = "false"
+        self.get_git_status()
         log.info("Code generator initialized")
+
+    def sort_scopes(self) -> None:
+        """
+        Sort the scopes alphabetically, keeping the global scope at the beginning
+        """
+        self.scopes = sorted(
+            scope for scope in self.scopes if scope != self.global_scope
+        )
+        if self.global_scope is not None:
+            self.scopes = [self.global_scope] + self.scopes
+
+    def get_git_status(self) -> None:
+        """
+        Get the git status of the main repo. The status is determined via the checks/git-status.sh script.
+        """
+        script_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "../checks/git-status.sh"
+        )
+        # run the script and get the output
+        # the scipt needs to args: the absolute path to the main repo and the name of the analysis
+        log.info(
+            f"Running { [script_path, os.path.dirname(os.path.dirname(os.path.realpath(__file__))), self.analysis_name]}"
+        )
+        try:
+            output = subprocess.check_output(
+                [
+                    script_path,
+                    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+                    self.analysis_name,
+                ],
+                stderr=subprocess.STDOUT,
+            )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(
+                "command '{}' return with error (code {}): {}".format(
+                    e.cmd, e.returncode, e.output
+                )
+            )
+        output = output.decode("utf-8")
+        # split the output into lines
+        for line in output.splitlines():
+            # split the line into key and value
+            if not "=" in line:
+                print(line)
+                continue
+            key, value = line.split("=")
+            # set the value to the corresponding attribute
+            setattr(self, key, value)
 
     def generate_code(self) -> None:
         """
-        Generate the code from the configuration and create the subsets. Run through the whole configuration and create a subset for each producer within the configuration.
+        Generate the code from the configuration and create the subsets.
+        Run through the whole configuration and create a subset for each
+        producer within the configuration.
 
-        Start with the global scope and then all other scopes. All generated code is stored in the folder self.output_folder.
+        Start with the global scope and then all other scopes.
+        All generated code is stored in the folder self.output_folder.
 
         Args:
             None
@@ -243,22 +295,14 @@ class CodeGenerator(object):
 
         for subfolder in ["src", "include"]:
             for scope in self.scopes:
-                if not os.path.exists(
-                    os.path.join(
-                        self.output_folder,
-                        self.executable_name + "_generated_code",
-                        subfolder,
-                        scope,
-                    )
-                ):
-                    os.makedirs(
-                        os.path.join(
-                            self.output_folder,
-                            self.executable_name + "_generated_code",
-                            subfolder,
-                            scope,
-                        )
-                    )
+                folders = os.path.join(
+                    self.output_folder,
+                    self.executable_name + "_generated_code",
+                    subfolder,
+                    scope,
+                )
+                if not os.path.exists(folders):
+                    os.makedirs(folders)
         # self.generate_subsets(self.global_scope)
         for scope in self.scopes:
             self.generate_subsets(scope)
@@ -299,9 +343,15 @@ class CodeGenerator(object):
             threadcall = ""
         with open(self.executable, "w") as f:
             f.write(
-                self.main_template.replace("    // {CODE_GENERATION}", calls)
+                self.main_template.replace(
+                    "    // {OUTPUT_PATHS}", self.set_output_paths()
+                )
+                .replace(
+                    "        // {ZERO_EVENTS_FALLBACK}", self.zero_events_fallback()
+                )
+                .replace("        // {CODE_GENERATION}", calls)
                 .replace("// {INCLUDES}", includes)
-                .replace("    // {RUN_COMMANDS}", run_commands)
+                .replace("        // {RUN_COMMANDS}", run_commands)
                 .replace("// {MULTITHREADING}", threadcall)
                 .replace("// {DEBUGLEVEL}", self.set_debug_flag())
                 .replace("{ERATAG}", '"Era={}"'.format(self.configuration.era))
@@ -309,11 +359,17 @@ class CodeGenerator(object):
                     "{SAMPLETAG}", '"Samplegroup={}"'.format(self.configuration.sample)
                 )
                 .replace("{ANALYSISTAG}", '"Analysis={}"'.format(self.analysis_name))
-                .replace("{PROGRESS_CALLBACK}", self.set_process_tracking())
+                .replace("{CONFIGTAG}", '"Config={}"'.format(self.config_name))
                 .replace("{OUTPUT_QUANTITIES}", self.set_output_quantities())
+                .replace("{SHIFT_QUANTITIES_MAP}", self.set_shift_quantities_map())
+                .replace("{QUANTITIES_SHIFT_MAP}", self.set_quantities_shift_map())
                 .replace("{SYSTEMATIC_VARIATIONS}", self.set_shifts())
                 .replace("{COMMITHASH}", '"{}"'.format(self.commit_hash))
-                .replace("{SETUP_IS_CLEAN}", self.setup_is_clean)
+                .replace("{CROWN_IS_CLEAN}", self.crown_is_clean)
+                .replace(
+                    "{ANALYSIS_COMMITHASH}", '"{}"'.format(self.analysis_commit_hash)
+                )
+                .replace("{ANALYSIS_IS_CLEAN}", self.analysis_is_clean)
             )
         log.info("Code written to {}".format(self.executable))
         log.info("------------------------------------")
@@ -331,7 +387,8 @@ class CodeGenerator(object):
 
     def generate_main_code(self) -> Tuple[str, str]:
         """
-        Generate the call commands for all the subsets. Additionally, generate all include statements for the main executable.
+        Generate the call commands for all the subsets. Additionally,
+        generate all include statements for the main executable.
         Args:
             None
         Returns:
@@ -339,8 +396,8 @@ class CodeGenerator(object):
         """
         main_calls = ""
         for scope in self.scopes:
-            main_calls += "    // {}\n".format(scope)
-            main_calls += "".join(self.subset_calls[scope])
+            main_calls += "        // {}\n    ".format(scope)
+            main_calls += "    ".join(self.subset_calls[scope])
         main_includes = "".join(self.subset_includes)
         return main_calls, main_includes
 
@@ -376,9 +433,23 @@ class CodeGenerator(object):
         # in order to map the dfs correctly, we have to count the number of subset calls
         is_first = True
         counter = 0
+        generated_producers = []
         for producer in self.configuration.producers[scope]:
+            producer_name = producer.name
+            # check if the producer name is unique, if not, add an index to make it unique
+            if producer_name in generated_producers:
+                log.warn(
+                    "Producer {} is used twice in scope {}".format(producer_name, scope)
+                )
+                producer_name += "_"
+                index = 1
+                # add an additional index to the producer name till it is unique
+                while producer_name + str(index) in generated_producers:
+                    index += 1
+                producer_name += str(index)
+                log.warn("Using {} as a substitute name instead".format(producer_name))
             subset = CodeSubset(
-                file_name=producer.name,
+                file_name=producer_name,
                 template=self.subset_template,
                 producer=producer,
                 scope=scope,
@@ -386,36 +457,59 @@ class CodeGenerator(object):
                     self.output_folder, self.executable_name + "_generated_code"
                 ),
                 configuration_parameters=self.configuration.config_parameters[scope],
+                name=producer_name + "_" + scope,
             )
             subset.create()
             subset.write()
             self.number_of_defines += subset.count
+            generated_producers.append(producer_name)
             log.debug(
                 "Adding {} defines for {} in scope {}".format(
-                    subset.count, producer.name, scope
+                    subset.count, producer_name, scope
                 )
             )
-            # two special cases:
-            # 1. global scope: there we have to use df0 as the input df
-            # 2. first call of all other scopes: we have to use the last global df as the input df
-            if scope == self.global_scope and is_first:
-                self.subset_calls[scope].append(
-                    subset.call(inputscope="df0", outputscope=f"df{counter+1}_{scope}")
-                )
-            elif is_first:
-                self.subset_calls[scope].append(
-                    subset.call(
-                        inputscope=f"df{self.main_counter[self.global_scope]}_{self.global_scope}",
-                        outputscope=f"df{counter+1}_{scope}",
+            # two  cases:
+            # 1. no global scope exists: we have to use df0 as the input df
+            # 2. there is a global scope, jump down
+            if self.global_scope is None:
+                if is_first:
+                    self.subset_calls[scope].append(
+                        subset.call(
+                            inputscope="df0", outputscope=f"df{counter+1}_{scope}"
+                        )
                     )
-                )
+                else:
+                    self.subset_calls[scope].append(
+                        subset.call(
+                            inputscope=f"df{counter}_{scope}",
+                            outputscope=f"df{counter+1}_{scope}",
+                        )
+                    )
             else:
-                self.subset_calls[scope].append(
-                    subset.call(
-                        inputscope=f"df{counter}_{scope}",
-                        outputscope=f"df{counter+1}_{scope}",
+                # two special cases:
+                # 1. global scope: there we have to use df0 as the input df
+                # 2. first call of all other scopes: we have to use the
+                # last global df as the input df
+                if scope == self.global_scope and is_first:
+                    self.subset_calls[scope].append(
+                        subset.call(
+                            inputscope="df0", outputscope=f"df{counter+1}_{scope}"
+                        )
                     )
-                )
+                elif is_first:
+                    self.subset_calls[scope].append(
+                        subset.call(
+                            inputscope=f"df{self.main_counter[self.global_scope]}_{self.global_scope}",
+                            outputscope=f"df{counter+1}_{scope}",
+                        )
+                    )
+                else:
+                    self.subset_calls[scope].append(
+                        subset.call(
+                            inputscope=f"df{counter}_{scope}",
+                            outputscope=f"df{counter+1}_{scope}",
+                        )
+                    )
             self.subset_includes.append(subset.include())
             self.main_counter[scope] += 1
             counter += 1
@@ -423,7 +517,9 @@ class CodeGenerator(object):
 
     def generate_run_commands(self) -> str:
         """
-        generate the dataframe snapshot commands for the main executable. A seperate output file is generated for each scope, that contains at least one output quantity.
+        generate the dataframe snapshot commands for the main executable.
+        A seperate output file is generated for each scope,
+        that contains at least one output quantity.
         The process tracking is also generated here.
 
         Args:
@@ -444,39 +540,35 @@ class CodeGenerator(object):
                     scope=scope
                 )
                 # convert output lists to a set to remove duplicates
-                outputset = list(
-                    set(
-                        self.output_commands[scope]
-                        + self.output_commands[self.global_scope]
-                    )
-                )
+
+                if self.global_scope is not None:
+                    global_commands = self.output_commands[self.global_scope]
+                else:
+                    global_commands = []
+                outputset = list(set(self.output_commands[scope] + global_commands))
                 # sort the output list to get alphabetical order of the output names
                 outputset.sort()
                 outputstring = '", "'.join(outputset)
 
                 self.number_of_outputs += len(self.output_commands[scope])
-                runcommands += "    auto {scope}_cutReport = df{counter}_{scope}.Report();\n".format(
+                runcommands += "        auto {scope}_cutReport = df{counter}_{scope}.Report();\n".format(
                     scope=scope, counter=self.main_counter[scope]
                 )
-                runcommands += '    std::string {outputname} = std::regex_replace(std::string(output_path), std::regex("\\\\.root"), "_{scope}.root");\n'.format(
-                    scope=scope, outputname=self._outputfiles_generated[scope]
-                )
-                runcommands += '    auto {scope}_result = df{counter}_{scope}.Snapshot("ntuple", {outputname}, {{"{outputstring}"}}, dfconfig);\n'.format(
+                runcommands += '        auto {scope}_result = df{counter}_{scope}.Snapshot("ntuple", {outputname}, {{"{outputstring}"}}, dfconfig);\n'.format(
                     scope=scope,
                     counter=self.main_counter[scope],
                     outputname=self._outputfiles_generated[scope],
                     outputstring=outputstring,
                 )
-        # add code for tracking the progress
-        runcommands += self.set_process_tracking()
         # add code for the time taken for the dataframe setup
         runcommands += self.set_setup_printout()
         # add trigger of dataframe execution, for nonempty scopes
         for scope in self.scopes:
             if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
-                runcommands += f"    {scope}_result.GetValue();\n"
-                runcommands += f'    Logger::get("main")->info("{scope}:");\n'
-                runcommands += f"    {scope}_cutReport->Print();\n"
+                runcommands += f"       {scope}_result.GetValue();\n"
+                runcommands += f'       Logger::get("main")->info("{scope}:");\n'
+                runcommands += f"       {scope}_cutReport->Print();\n"
+                runcommands += f"       cutReports.push_back({scope}_cutReport);\n"
         log.info(
             "Output files generated for scopes: {}".format(
                 self._outputfiles_generated.keys()
@@ -526,12 +618,11 @@ class CodeGenerator(object):
         output_quantities = "{"
         for scope in self._outputfiles_generated.keys():
             # get the outputset for the scope
-            outputset = list(
-                set(
-                    self.output_commands[scope]
-                    + self.output_commands[self.global_scope]
-                )
-            )
+            if self.global_scope is not None:
+                global_commands = self.output_commands[self.global_scope]
+            else:
+                global_commands = []
+            outputset = list(set(self.output_commands[scope] + global_commands))
             # now split by __ and get a set of all the shifts
             quantityset = list(set([x.split("__")[0] for x in outputset]))
             quantityset.sort()
@@ -560,41 +651,150 @@ class CodeGenerator(object):
         adds the code for the timing information on the dataframe setup to the run commands.
         """
         printout = ""
-        printout += '   Logger::get("main")->info("Finished Setup");\n'
-        printout += '   Logger::get("main")->info("Runtime for setup (real time: {0:.2f}, CPU time: {1:.2f})",\n'
-        printout += "                           timer.RealTime(), timer.CpuTime());\n"
-        printout += "   timer.Continue();\n"
-        printout += '   Logger::get("main")->info("Starting Evaluation");\n'
+        printout += '       Logger::get("main")->info("Finished Setup");\n'
+        printout += '       Logger::get("main")->info("Runtime for setup (real time: {0:.2f}, CPU time: {1:.2f})",\n'
+        printout += (
+            "                               timer.RealTime(), timer.CpuTime());\n"
+        )
+        printout += "       timer.Continue();\n"
+        printout += '       Logger::get("main")->info("Starting Evaluation");\n'
+        printout += "       correctionManager.report();\n"
 
         return printout
 
-    def set_process_tracking(self) -> str:
-        """This function replaces the template placeholder for the process tracking with the correct process tracking.
-
-        Returns:
-            The code to be added to the template
+    def set_output_paths(self) -> str:
         """
-        tracking = ""
-        scope = self.scopes[-1]
-        tracking += "    ULong64_t {scope}_processed = 0;\n".format(scope=scope)
-        tracking += "    std::mutex {scope}_bar_mutex;\n".format(scope=scope)
-        tracking += "    auto c_{scope} = df{counter}_{scope}.Count();\n".format(
-            counter=self.main_counter[scope], scope=scope
-        )
-        tracking += "    c_{scope}.OnPartialResultSlot(quantile, [&{scope}_bar_mutex, &{scope}_processed, &quantile, &nevents](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
-            scope=scope
-        )
-        tracking += (
-            "\n        std::lock_guard<std::mutex> lg({scope}_bar_mutex);\n".format(
+        adds the code for the output paths to the run commands.
+        """
+        printout = ""
+        for scope in self._outputfiles_generated.keys():
+            printout += '    std::string {outputname} = std::regex_replace(std::string(output_path), std::regex("\\\\.root"), "_{scope}.root");\n'.format(
+                scope=scope, outputname=self._outputfiles_generated[scope]
+            )
+        return printout
+
+    def zero_events_fallback(self) -> str:
+        """
+        In case of an empty input file, this function creates a fallback code that creates an empty output file.
+        """
+        printout = '        Logger::get("main")->warn("No events found in input file, will create an empty output file");\n'
+        # now setup outfiles for all scopes
+        for scope in self._outputfiles_generated.keys():
+            printout += '        TFile empty_outputfile_{scope}({outputname}.c_str(), "RECREATE");\n'.format(
+                scope=scope, outputname=self._outputfiles_generated[scope]
+            )
+            printout += (
+                '        TTree ntuple_{scope} = TTree("ntuple", "ntuple");\n'.format(
+                    scope=scope
+                )
+            )
+            printout += "        ntuple_{scope}.Write();\n".format(scope=scope)
+            printout += "        empty_outputfile_{scope}.Close();\n".format(
                 scope=scope
             )
-        )
-        tracking += "        {scope}_processed += quantile;\n".format(scope=scope)
-        tracking += "        float percentage = 100 * (float){scope}_processed / (float)nevents;\n".format(
-            scope=scope
-        )
-        tracking += '        Logger::get("main")->info("{{0:d}} / {{1:d}} ({{2:.2f}} %) Events processed ...", {scope}_processed, nevents, percentage);\n'.format(
-            scope=scope
-        )
-        tracking += "    });\n"
-        return tracking
+
+        return printout
+
+    def set_shift_quantities_map(self) -> str:
+        """
+        This function is used to generate a mapping of all quantities and the shifts,
+        the quantities are used in to be stored in the output file.
+        The ordering is based on the shifts:
+
+        Example::
+
+            {
+                "shift_1" : ["quantity_1", "quantity_2", "quantity_3"],
+                "shift_2" : ["quantity_1", "quantity_3"],
+                "shift_3" : ["quantity_1"]
+            }
+
+        This information will be stored in the root file as
+        shift_quantities_map and can be accessed to get the correct mapping
+        """
+        ctring = "{"
+        for scope in self.scopes:
+            outputset: List[str] = []
+            output_map: Dict[str, List[str]] = {}
+            for output in sorted(self.outputs[scope]):
+                self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
+            if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
+                # convert output lists to a set to remove duplicates
+                if self.global_scope is not None:
+                    global_commands = self.output_commands[self.global_scope]
+                else:
+                    global_commands = []
+                outputset = list(set(self.output_commands[scope] + global_commands))
+                # now split by __ and get a set of all the shifts per variable
+                for i, output in enumerate(outputset):
+                    try:
+                        quantity, shift = output.split("__")
+                    except ValueError:
+                        quantity = output
+                        shift = ""
+                    if shift not in output_map.keys():
+                        output_map[shift] = []
+                    output_map[shift].append(quantity)
+                # now do some string magic to get the correct format, dont ask about the details..
+                output_map_str = "{ "
+                for shift in output_map.keys():
+                    output_map_str += f'"{shift}"' + ' , { "'
+                    output_map_str += '", "'.join(output_map[shift])
+                    output_map_str += '" }},{'
+                output_map_str = output_map_str[:-4] + "}}"
+                ctring += "{" + self._outputfiles_generated[scope] + " , {"
+                ctring += f"{output_map_str}" + "}},"
+        ctring = ctring[:-2] + " }}"
+        return ctring
+
+    def set_quantities_shift_map(self) -> str:
+        """
+        This function is used to generate a mapping of all quantities and the shifts,
+        the quantities are used in to be stored in the output file.
+        The ordering is based on the quantities:
+
+        Example::
+
+            {
+                "quantity_1" : ["shift_1", "shift_2", "shift_3"],
+                "quantity_2" : ["shift_1"],
+                "quantity_3" : ["shift_1", "shift_2"],
+            }
+
+        This information will be stored in the root file as quantities_shift_map
+        and can be accessed to get the correct mapping
+        """
+        ctring = "{"
+        for scope in self.scopes:
+            outputset: List[str] = []
+            output_map: Dict[str, List[str]] = {}
+            for output in sorted(self.outputs[scope]):
+                self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
+            if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
+                # convert output lists to a set to remove duplicates
+                if self.global_scope is not None:
+                    global_commands = self.output_commands[self.global_scope]
+                else:
+                    global_commands = []
+                outputset = list(set(self.output_commands[scope] + global_commands))
+                # now split by __ and get a set of all the shifts per variable
+                for output in outputset:
+                    try:
+                        quantity, shift = output.split("__")
+                    except ValueError:
+                        quantity = output
+                        shift = ""
+                    if quantity not in output_map.keys():
+                        output_map[quantity] = []
+                    output_map[quantity].append(shift)
+                # now do some string magic to get the correct format, dont ask about the details..
+                output_map_str = "{ "
+                for quantity in output_map.keys():
+                    output_map_str += f'"{quantity}"' + ' , { "'
+                    output_map_str += '", "'.join(output_map[quantity])
+                    output_map_str += '" }},{'
+                output_map_str = output_map_str[:-4] + "}}"
+                ctring += "{" + self._outputfiles_generated[scope] + " , {"
+                ctring += f"{output_map_str}" + "}},"
+        ctring = ctring[:-2] + " }}"
+        return ctring

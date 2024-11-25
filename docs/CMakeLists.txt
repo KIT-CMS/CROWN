@@ -35,19 +35,21 @@ function(find_python_package PYPINAME NAME MIN_VERSION)
     message(STATUS "Found Python package ${PYPINAME} (require ${MIN_VERSION}, found ${PACKAGE_VERSION})")
 endfunction()
 
-find_python_package(breathe breathe 4.31)
-find_python_package(sphinx_rtd_theme sphinx_rtd_theme 0.5)
+find_python_package(breathe breathe 4.35)
+find_python_package(sphinx_rtd_theme sphinx_rtd_theme 1.2)
 
 # adapted from https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/
 
 # Find all headers
 file(GLOB_RECURSE HEADERS
-    ${PROJECT_SOURCE_DIR}/../*.hxx
-    ${PROJECT_SOURCE_DIR}/../utility/*.hxx)
+    ${PROJECT_SOURCE_DIR}/../include/*.hxx
+    ${PROJECT_SOURCE_DIR}/../include/utility/*.hxx
+    ${PROJECT_SOURCE_DIR}/../include/*/*.hxx)
 
 # Write doxyfile
 # Replace variables inside @@ with the current values
-set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/../src) # set in Doxyfile.in
+set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/../src ${PROJECT_SOURCE_DIR}/../include ${PROJECT_SOURCE_DIR}/../src/utility ${PROJECT_SOURCE_DIR}/../include/utility ) # set in Doxyfile.in
+list(JOIN DOXYGEN_INPUT_DIR "\" \"" DOXYGEN_INPUT_DIR)
 set(DOXYGEN_OUTPUT_DIR ${PROJECT_BINARY_DIR}/docs/) # set in Doxyfile.in
 set(DOXYFILE_IN ${PROJECT_SOURCE_DIR}/Doxyfile.in)
 set(DOXYFILE_OUT ${PROJECT_BINARY_DIR}/Doxyfile)
@@ -61,6 +63,13 @@ add_custom_target(Doxygen ALL
                    COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
                    COMMENT "Generate doxygen index")
 
+# now run the update_namespace_docs.py script to add any missing namespace docs
+add_custom_command(TARGET Doxygen POST_BUILD
+                    COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/update_namespace_docs.py --input ${PROJECT_BINARY_DIR} --output ${PROJECT_SOURCE_DIR}/sphinx_source/c_namespaces/
+                   COMMENT "Updating namespace docs")
+if(ret EQUAL "1")
+    message( FATAL_ERROR "Namespace documentation update failed.")
+endif()
 # Generate sphinx docs from doxygen xml
 set(SPHINX_SOURCE ${PROJECT_SOURCE_DIR}/sphinx_source/)
 set(SPHINX_OUTPUT_DIR ${PROJECT_BINARY_DIR}/docs)

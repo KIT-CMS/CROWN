@@ -25,6 +25,18 @@ class InvalidOutputError(ConfigurationError):
         super().__init__(self.message)
 
 
+class InvalidInputError(ConfigurationError):
+    """
+    Exception raised when the list of avialable inputs does not cover all quantities required.
+    """
+
+    def __init__(self, scope: str, outputs: Union[Set[str], List[str]]):
+        self.message = "The required inputs {} for the scope '{}' are not provided by any inputfile or producer \n Please check the error message above to find all misconfigured producers".format(
+            outputs, scope
+        )
+        super().__init__(self.message)
+
+
 class ScopeConfigurationError(ConfigurationError):
     """
     Exception raised when the scope configuration provided by the user is not valid.
@@ -45,6 +57,23 @@ class SampleConfigurationError(ConfigurationError):
     def __init__(self, sample: str, available_samples: Union[Set[str], List[str]]):
         self.message = "Sampletype {} cannot be used in the configuration since it is not setup properly. Available samples types are {}".format(
             sample, available_samples
+        )
+        super().__init__(self.message)
+
+
+class SampleRuleConfigurationError(ConfigurationError):
+    """
+    Exception raised when the sample type used for a Rule provided by the user is not valid.
+    """
+
+    def __init__(
+        self,
+        sample: str,
+        rule,
+        available_samples: Union[Set[str], List[str]],
+    ):
+        self.message = "Sampletype {} cannot be used in Rule {} since the type is not defined. Available samples types are {}".format(
+            sample, rule, available_samples
         )
         super().__init__(self.message)
 
@@ -87,4 +116,17 @@ class InvalidShiftError(ConfigurationError):
             self.message = "Shift {} is not setup for scope {} or not available for sampletype {}".format(
                 shift, scope, sample
             )
+        super().__init__(self.message)
+
+
+class InsufficientShiftInformationError(ConfigurationError):
+    """
+    Exception raised if "all" is used for the shift settings for a FriendTree
+    """
+
+    def __init__(self, shift: Union[str, List[str]], available_shifts: List[str]):
+        self.message = "Shift(s) {} cannot be used for the FriendTreeConfiguration, it is not found in the provided ntuples \n".format(
+            shift
+        )
+        self.message += "Available shifts are: {}".format(available_shifts)
         super().__init__(self.message)

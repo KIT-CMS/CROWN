@@ -47,11 +47,11 @@ if read_the_docs_build:
 # -- Project information -----------------------------------------------------
 
 project = "CROWN"
-copyright = "2021, Sebastian Brommer, Maximilian Burkart, Artur Gottmann, Sebastian Wozniewski, Stefan Wunsch"
+copyright = "2023, Sebastian Brommer, Maximilian Burkart, Artur Gottmann, Sebastian Wozniewski, Stefan Wunsch"
 author = "Sebastian Brommer, Maximilian Burkart, Artur Gottmann, Sebastian Wozniewski, Stefan Wunsch"
 
 # The full version, including alpha/beta/rc tags
-release = "0.1"
+release = "0.3"
 
 
 # -- General configuration ---------------------------------------------------
@@ -77,7 +77,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 #
 html_theme = "sphinx_rtd_theme"
 html_logo = "../logos/crown_logo_bw.svg"
-html_static_path = ["../_static"]
+# html_static_path = ["../_static"]
 html_theme_options = {
     "logo_only": True,
     "display_version": False,

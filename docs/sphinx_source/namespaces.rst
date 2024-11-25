@@ -1,69 +1,13 @@
-Documentation of Namespaces from C++
-=====================================
+Documentation of available C++ functions
+==========================================
 
-Pairquantities
-***************
-.. doxygennamespace:: quantities
-   :members:
+In the following, we list all available C++ functions in CROWN. The functions are grouped by namespace.
 
-Genparticles
-***************
-.. doxygennamespace:: genmatching
-   :members:
+.. toctree::
+    :caption: List of available CROWN functions (sorted by namespace)
+    :glob:
 
-Metfilter
-***********
-.. doxygennamespace:: metfilter
-   :members:
+    c_namespaces/*
 
-Basefunctions
-*************
-.. doxygennamespace:: basefunctions
-   :members:
-.. doxygennamespace:: vectoroperations
-   :members:
 
-Pairselection
-*************
-.. doxygennamespace:: pairselection
-   :members:
-
-Physicsobjects
-***************
-.. doxygennamespace:: physicsobject
-   :members:
-
-Scalefactors
-***************
-.. doxygennamespace:: scalefactor
-   :members:
-
-Jets
-***************
-.. doxygennamespace:: jet
-   :members:
-
-Trigger
-***************
-.. doxygennamespace:: trigger
-   :members:
-
-Lorentzvectors
-***************
-.. doxygennamespace:: lorentzvectors
-   :members:
-
-HTXS
-***************
-.. doxygennamespace:: htxs
-   :members:
-
-Reweighting
-***************
-.. doxygennamespace:: reweighting
-   :members:
    
-MET
-***************
-.. doxygennamespace:: met
-   :members:

@@ -48,7 +48,9 @@ auto PairSelectionAlgo(const float &mindeltaR);
 namespace leptonic {
 auto ElMuPairSelectionAlgo(const float &mindeltaR);
 auto PairSelectionAlgo(const float &mindeltaR);
+auto PairSelectionAlgoOSPreferred(const float &mindeltaR);
 auto ZBosonPairSelectionAlgo(const float &mindeltaR);
+auto ZBosonPairSelectionAlgoOSPreferred(const float &mindeltaR);
 } // namespace leptonic
 namespace mutau {
 
@@ -91,9 +93,19 @@ ROOT::RDF::RNode PairSelection(ROOT::RDF::RNode df,
                                const float &mindeltaR);
 
 ROOT::RDF::RNode
+PairSelectionOSPreferred(ROOT::RDF::RNode df,
+                         const std::vector<std::string> &input_vector,
+                         const std::string &pairname, const float &mindeltaR);
+
+ROOT::RDF::RNode
 ZBosonPairSelection(ROOT::RDF::RNode df,
                     const std::vector<std::string> &input_vector,
                     const std::string &pairname, const float &mindeltaR);
+
+ROOT::RDF::RNode ZBosonPairSelectionOSPreferred(
+    ROOT::RDF::RNode df, const std::vector<std::string> &input_vector,
+    const std::string &pairname, const float &mindeltaR);
+
 } // end namespace mumu
 namespace elel {
 

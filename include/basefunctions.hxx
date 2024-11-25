@@ -2,6 +2,7 @@
 #define GUARDBASEFUCTIONS_H
 
 #include "../include/defaults.hxx"
+#include "../include/utility/CorrectionManager.hxx"
 #include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
@@ -9,7 +10,7 @@
 #include "utility/RooFunctorThreadsafe.hxx"
 #include "utility/utility.hxx"
 #include <nlohmann/json.hpp>
-#include <string> 
+#include <string>
 
 enum Channel { MT = 0, ET = 1, TT = 2, EM = 3 };
 
@@ -18,6 +19,8 @@ namespace basefunctions {
 /**
  * @brief Function to filter events based on their run and luminosity block
  * values
+ * WARNING: This function without the CorrectionManager is deprecated and will
+ be removed in the future.
  *
  * @param df the dataframe to filter
  * @param json_path the path to the golden json file containing all valid
@@ -36,6 +39,54 @@ inline ROOT::RDF::RNode JSONFilter(ROOT::RDF::RNode df,
     std::ifstream i(json_path);
     nlohmann::json golden_json;
     i >> golden_json;
+    Logger::get("JSONFilter")
+        ->warn("Deprecated function used, the function without the "
+               "CorrectionManager is deprecated and will be removed in the "
+               "future");
+    auto jsonFilterlambda = [golden_json](UInt_t run, UInt_t luminosity) {
+        bool matched = false;
+        // check if the run exists
+        if (golden_json.find(std::to_string(run)) != golden_json.end()) {
+            // now loop over all luminosity blocks and check if the event is
+            // valid
+            for (auto &luminosityrange : golden_json[std::to_string(run)]) {
+                if (luminosity >= luminosityrange[0] &&
+                    luminosity <= luminosityrange[1]) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                Logger::get("JSONFilter")
+                    ->debug("Run {} / luminosity {} not in json file", run,
+                            luminosity);
+            }
+        }
+        return matched;
+    };
+    return df.Filter(jsonFilterlambda, {run, luminosity}, filtername);
+}
+
+/**
+ * @brief Function to filter events based on their run and luminosity block
+ * values
+ *
+ * @param df the dataframe to filter
+ * @param correctionManager the correction manager to be used
+ * @param json_path the path to the golden json file containing all valid
+ runs
+ * ans luminosity blocks
+ * @param run th column containing the run value
+ * @param luminosity the column containing the luminosity block value
+ * @param filtername the name of the filter
+ * @return a filtered dataframe
+ */
+inline ROOT::RDF::RNode
+JSONFilter(ROOT::RDF::RNode df,
+           correctionManager::CorrectionManager &correctionManager,
+           const std::string &json_path, const std::string &run,
+           const std::string &luminosity, const std::string &filtername) {
+    nlohmann::json golden_json = *correctionManager.loadjson(json_path);
     auto jsonFilterlambda = [golden_json](UInt_t run, UInt_t luminosity) {
         bool matched = false;
         // check if the run exists
@@ -155,6 +206,26 @@ ROOT::RDF::RNode getvar(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &column) {
     return df.Define(outputname,
                      [](const int &pos, const ROOT::RVec<T> &col) {
+                         return col.at(pos, default_value<T>());
+                     },
+                     {position, column});
+}
+
+/// Function to writeout a variable from a RVec index to a NanoAOD column.
+///
+/// \param df the dataframe to add the quantity to
+/// \param outputname name of the new column containing the variable value
+/// \param position index of the position in the input vector
+/// \param column name of the column containing the variable values
+///
+/// \returns a dataframe with the new column
+
+template <typename T>
+ROOT::RDF::RNode getgenvar(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &position,
+                        const std::string &column) {
+    return df.Define(outputname,
+                     [](const short &pos, const ROOT::RVec<T> &col) {
                          return col.at(pos, default_value<T>());
                      },
                      {position, column});
@@ -334,6 +405,19 @@ inline auto FilterMax(const float &cut) {
     };
 }
 
+/// Function to apply a maximal filter requirement to an integer quantity.
+/// Returns true if the value is smaller than the given cut value
+///
+/// \param cut The cut value of the filter
+///
+/// \returns a lambda function to be used in RDF Define
+inline auto FilterMaxInt(const int &cut) {
+    return [cut](const ROOT::RVec<int> &values) {
+        ROOT::RVec<int> mask = values < cut;
+        return mask;
+    };
+}
+
 /// Function to apply a maximal filter requirement to a quantity.
 /// Returns true if the absolute value is smaller than the given cut value
 ///
@@ -384,6 +468,19 @@ inline auto FilterMinInt(const int &cut) {
 inline auto FilterAbsMin(const float &cut) {
     return [cut](const ROOT::RVec<float> &values) {
         ROOT::RVec<int> mask = abs(values) >= cut;
+        return mask;
+    };
+}
+
+/// Function to apply an exact filter requirement to an integer quantity.
+/// Returns true if the value is equal to the given value
+///
+/// \param cut The value of the filter
+///
+/// \returns a lambda function to be used in RDF Define
+inline auto FilterEqualInt(const int &cut) {
+    return [cut](const ROOT::RVec<int> &values) {
+        ROOT::RVec<int> mask = values == cut;
         return mask;
     };
 }

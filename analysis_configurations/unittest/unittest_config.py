@@ -34,7 +34,6 @@ def build_config(
     available_eras: List[str],
     available_scopes: List[str],
 ):
-
     configuration = Configuration(
         era,
         sample,
@@ -48,24 +47,23 @@ def build_config(
     configuration.add_config_parameters(
         "global",
         {
-            "RunLumiEventFilter_Quantities": ["event"],
-            "RunLumiEventFilter_Quantity_Types": ["ULong64_t"],
-            "RunLumiEventFilter_Selections": ["271361"],
             "PU_reweighting_file": EraModifier(
                 {
-                    "2016": "data/pileup/Data_Pileup_2016_271036-284044_13TeVMoriond17_23Sep2016ReReco_69p2mbMinBiasXS.root",
-                    "2017": "data/pileup/Data_Pileup_2017_294927-306462_13TeVSummer17_PromptReco_69p2mbMinBiasXS.root",
-                    "2018": "data/pileup/Data_Pileup_2018_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18.root",
+                    "2016preVFP": "data/jsonpog-integration/POG/LUM/2016preVFP_UL/puWeights.json.gz",
+                    "2016postVFP": "data/jsonpog-integration/POG/LUM/2016postVFP_UL/puWeights.json.gz",
+                    "2017": "data/jsonpog-integration/POG/LUM/2017_UL/puWeights.json.gz",
+                    "2018": "data/jsonpog-integration/POG/LUM/2018_UL/puWeights.json.gz",
                 }
             ),
-            "golden_json_file": EraModifier(
+            "PU_reweighting_era": EraModifier(
                 {
-                    "2016": "data/golden_json/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt",
-                    "2017": "data/golden_json/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt",
-                    "2018": "data/golden_json/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt",
+                    "2016preVFP": "Collisions16_UltraLegacy_goldenJSON",
+                    "2016postVFP": "Collisions16_UltraLegacy_goldenJSON",
+                    "2017": "Collisions17_UltraLegacy_goldenJSON",
+                    "2018": "Collisions18_UltraLegacy_goldenJSON",
                 }
             ),
-            "PU_reweighting_hist": "pileup",
+            "PU_reweighting_variation": "nominal",
             "met_filters": ["Flag_goodVertices", "Flag_METFilters"],
         },
     )
@@ -206,14 +204,10 @@ def build_config(
                     "vsjet_tau_id_WPbit": bit,
                 }
                 for wp, bit in {
-                    "VVVLoose": 1,
-                    "VVLoose": 2,
-                    "VLoose": 3,
                     "Loose": 4,
                     "Medium": 5,
                     "Tight": 6,
                     "VTight": 7,
-                    "VVTight": 8,
                 }.items()
             ],
             "vsele_tau_id": [
@@ -276,6 +270,7 @@ def build_config(
             "tau_sf_vsjet_tau500to1000": "nom",
             "tau_sf_vsjet_tau1000toinf": "nom",
             "tau_vsjet_sf_dependence": "pt",  # or "dm", "eta"
+            "tau_vsjet_vseleWP": "VVLoose",
         },
     )
     # TT tau id sf variations
@@ -287,6 +282,7 @@ def build_config(
             "tau_sf_vsjet_tauDM10": "nom",
             "tau_sf_vsjet_tauDM11": "nom",
             "tau_vsjet_sf_dependence": "dm",  # or "dm", "eta"
+            "tau_vsjet_vseleWP": "VVLoose",
         },
     )
     # MT / ET tau selection
@@ -322,11 +318,6 @@ def build_config(
             "min_muon_pt": 23.0,
             "max_muon_eta": 2.1,
             "muon_iso_cut": 0.15,
-            "muon_sf_workspace": "data/muon_corrections/htt_scalefactors_legacy_2018_muons.root",
-            "muon_sf_id_name": "m_id_kit_ratio",
-            "muon_sf_id_args": "m_pt,m_eta",
-            "muon_sf_iso_name": "m_iso_binned_kit_ratio",
-            "muon_sf_iso_args": "m_pt,m_eta,m_iso",
             "muon_sf_file": EraModifier(
                 {
                     "2016": "data/jsonpog-integration/POG/MUO/2016postVFP_UL/muon_Z.json.gz",
@@ -416,8 +407,6 @@ def build_config(
     configuration.add_config_parameters(
         scopes,
         {
-            "ggHNNLOweightsRootfile": "data/htxs/NNLOPS_reweight.root",
-            "ggH_generator": "powheg",
             "zptmass_file": EraModifier(
                 {
                     "2016": "data/zpt/htt_scalefactors_legacy_2016.root",
@@ -569,19 +558,19 @@ def build_config(
     #     "global",
     #     RemoveProducer(
     #         producers=[event.PUweights, event.npartons],
-    #         samples=["data", "emb", "emb_mc"],
+    #         samples=["data", "embedding", "embedding_mc"],
     #     ),
     # )
     configuration.add_modification_rule(
         scopes,
         AppendProducer(
             producers=[event.GGH_NNLO_Reweighting, event.GGH_WG1_Uncertainties],
-            samples="ggh",
+            samples="ggh_htautau",
         ),
     )
     configuration.add_modification_rule(
         scopes,
-        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="qqh"),
+        AppendProducer(producers=event.QQH_WG1_Uncertainties, samples="vbf_htautau"),
     )
     configuration.add_modification_rule(
         scopes,
@@ -589,24 +578,25 @@ def build_config(
     )
     configuration.add_modification_rule(
         scopes,
-        AppendProducer(producers=event.ZPtMassReweighting, samples="dy"),
+        AppendProducer(producers=event.ZPtMassReweighting, samples="dyjets"),
     )
     # changes needed for data
     # global scope
     configuration.add_modification_rule(
         "global",
         AppendProducer(
-            producers=jets.RenameJetsData, samples=["data", "emb", "emb_mc"]
+            producers=jets.RenameJetsData, samples=["data", "embedding", "embedding_mc"]
         ),
     )
     configuration.add_modification_rule(
         "global",
-        AppendProducer(producers=event.JSONFilter, samples=["data", "emb"]),
+        AppendProducer(producers=event.JSONFilter, samples=["data", "embedding"]),
     )
     configuration.add_modification_rule(
         "global",
         RemoveProducer(
-            producers=jets.JetEnergyCorrection, samples=["data", "emb", "emb_mc"]
+            producers=jets.JetEnergyCorrection,
+            samples=["data", "embedding", "embedding_mc"],
         ),
     )
     # scope specific
@@ -724,6 +714,8 @@ def build_config(
             q.pt_ttjj,
             q.mt_tot,
             q.genbosonmass,
+            q.tau_decaymode_1,
+            q.tau_decaymode_2,
         ],
     )
     configuration.add_outputs(
@@ -739,8 +731,7 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
-            q.decaymode_2,
-            q.gen_match_2,
+            q.tau_gen_match_2,
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
@@ -761,8 +752,7 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
-            q.decaymode_2,
-            q.gen_match_2,
+            q.tau_gen_match_2,
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
@@ -787,9 +777,8 @@ def build_config(
             q.taujet_pt_1,
             q.taujet_pt_2,
             q.decaymode_1,
-            q.decaymode_2,
-            q.gen_match_1,
-            q.gen_match_2,
+            q.tau_gen_match_1,
+            q.tau_gen_match_2,
         ],
     )
 
@@ -800,7 +789,7 @@ def build_config(
         ],
     )
     # not available in nanoAOD test sample
-    # if "data" not in sample and "emb" not in sample:
+    # if "data" not in sample and "embedding" not in sample:
     #     configuration.add_outputs(
     #         scopes,
     #         [
@@ -896,11 +885,7 @@ def build_config(
             },
             scopes=["global"],
         ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
+        exclude_samples=["data", "embedding", "embedding_mc"],
     )
     configuration.add_shift(
         SystematicShiftByQuantity(
@@ -911,11 +896,7 @@ def build_config(
             },
             scopes=["global"],
         ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "emb", "emb_mc"]
-        ],
+        exclude_samples=["data", "embedding", "embedding_mc"],
     )
     #########################
     # Jet energy resolution
@@ -936,11 +917,7 @@ def build_config(
                 }
             },
         ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "embedding", "embedding_mc"]
-        ],
+        exclude_samples=["data", "embedding", "embedding_mc"],
     )
     configuration.add_shift(
         SystematicShift(
@@ -957,11 +934,7 @@ def build_config(
                 }
             },
         ),
-        samples=[
-            sample
-            for sample in available_sample_types
-            if sample not in ["data", "embedding", "embedding_mc"]
-        ],
+        exclude_samples=["data", "embedding", "embedding_mc"],
     )
 
     #########################
