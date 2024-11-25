@@ -234,7 +234,7 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
                             bool hltpath_match,
                             const ROOT::Math::PtEtaPhiMVector &particle_p4,
                             ROOT::RVec<int> triggerobject_bits,
-                            ROOT::RVec<Ushort_t> triggerobject_ids,
+                            ROOT::RVec<UShort_t> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
