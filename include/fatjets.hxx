@@ -85,6 +85,13 @@ ROOT::RDF::RNode m_inv_ditau(ROOT::RDF::RNode df,
                                  const std::string &subjet_2_pt,
                                  const std::string &subjet_2_pt_miss);
 
+ROOT::RDF::RNode m_eff(ROOT::RDF::RNode df,
+                       const std::string &outputname,
+                       const std::string &subjet_1_p4,
+                       const std::string &subjet_2_p4,
+                       const std::string &met_fatjet_pt,
+                       const std::string &met_fatjet_phi);
+
 } // end namespace fatjet
 } // end namespace quantities
 #endif /* GUARDFATJETS_H */

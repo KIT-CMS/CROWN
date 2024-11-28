@@ -556,6 +556,35 @@ ROOT::RDF::RNode m_inv_ditau(ROOT::RDF::RNode df,
 }
 
 
+ROOT::RDF::RNode m_eff(ROOT::RDF::RNode df,
+                       const std::string &outputname,
+                       const std::string &subjet_1_p4,
+                       const std::string &subjet_2_p4,
+                       const std::string &met_fatjet_pt,
+                       const std::string &met_fatjet_phi) {
+
+    auto meff = [](const ROOT::Math::PtEtaPhiMVector &subjet_1_p4,
+                   const ROOT::Math::PtEtaPhiMVector &subjet_2_p4,
+                   const float &met_fatjet_pts,  // Fix: Use float instead of std::string
+                   const float &met_fatjet_phis) {  // Fix: Use float instead of std::string
+
+        // Create a four-momentum vector for MET (missing transverse energy)
+        ROOT::Math::PtEtaPhiMVector met_p4(met_fatjet_pts, 0.0, met_fatjet_phis, 0.0);
+
+        // Add the two four-momentum vectors to compute the total system
+        auto const dileptonsystem = subjet_1_p4 + subjet_2_p4 + met_p4;
+
+        // Return the invariant mass of the system
+        return static_cast<float>(dileptonsystem.mass());
+    };
+
+    // Define the new column in the DataFrame
+    auto df1 = df.Define(outputname, meff, {subjet_1_p4 , subjet_2_p4, met_fatjet_pt, met_fatjet_phi});
+    return df1;  // Ensure the modified DataFrame is returned
+}
+
+
+
 } // end namespace fatjet
 } // end namespace quantities
 #endif /* GUARDFATJETS_H */
