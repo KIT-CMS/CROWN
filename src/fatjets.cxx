@@ -590,27 +590,24 @@ ROOT::RDF::RNode muon_subjet(ROOT::RDF::RNode df,
                        const std::string &outputname,
                        const std::string &subjet_1_p4,
                        const std::string &subjet_2_p4,
-                       const std::string &fatjet_muon_pt,
-                       const std::string &fatjet_muon_eta,
-                       const std::string &fatjet_muon_phi,
-                       const std::string &fatjet_muon_mass) {
+                       const std::string &muon_in_fatjet_p4) {
 
         auto get_subjet_index = [](const ROOT::Math::PtEtaPhiMVector &subjet_1_p4,
                                    const ROOT::Math::PtEtaPhiMVector &subjet_2_p4,
-                                   const float &muon_pt,
-                                   const float &muon_eta,
-                                   const float &muon_phi,
-                                   const float &muon_mass){
+                                   const ROOT::Math::PtEtaPhiMVector &muon_in_fatjet_4v){
 
                                 float ind = 0.0;
 
 
-                                if ( muon_pt != -10.0 ){
+                                if ( muon_in_fatjet_4v.eta() != 100.0 && muon_in_fatjet_4v.phi() != 100.0 ){
 
-                                    ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt, muon_eta, muon_phi, muon_mass);
+                                Logger::get("fatjet::muon_subjet")
+                                    ->info("Muon in fat jet doesn't have unphysical value and equal to {}", muon_in_fatjet_4v.Pt() );
 
-                                    float deltaR1 = ROOT::Math::VectorUtil::DeltaR(subjet_1_p4, muon_p4);
-                                    float deltaR2 = ROOT::Math::VectorUtil::DeltaR(subjet_2_p4, muon_p4);
+                                    // ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt, muon_eta, muon_phi, muon_mass);
+
+                                    float deltaR1 = ROOT::Math::VectorUtil::DeltaR(subjet_1_p4, muon_in_fatjet_4v);
+                                    float deltaR2 = ROOT::Math::VectorUtil::DeltaR(subjet_2_p4, muon_in_fatjet_4v);
 
                                     if (deltaR1 < deltaR2){
                                         ind = 1.0;
@@ -621,7 +618,7 @@ ROOT::RDF::RNode muon_subjet(ROOT::RDF::RNode df,
                                 }
                             return ind;
                         };
-                    auto df1 = df.Define(outputname, get_subjet_index, {subjet_1_p4 , subjet_2_p4, fatjet_muon_pt, fatjet_muon_eta, fatjet_muon_phi, fatjet_muon_mass });
+                    auto df1 = df.Define(outputname, get_subjet_index, {subjet_1_p4 , subjet_2_p4, muon_in_fatjet_p4 });
                     return df1;  // Ensure the modified DataFrame is returned
 
                        }
