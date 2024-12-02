@@ -89,6 +89,17 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_eta(ROOT::RDF::RNode df,
                                              const float &pt_threshold,
                                              const float &eta_threshold);
 
+ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_phi(ROOT::RDF::RNode df,
+                                             const std::string &outputname,
+                                             const std::string &fatjet_p4,
+                                             const std::string &muon_pt,
+                                             const std::string &muon_eta,
+                                             const std::string &muon_phi,
+                                             const std::string &muon_mass,
+                                             const std::string &muon_looseId,
+                                             const float &pt_threshold,
+                                             const float &eta_threshold);
+
 ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_iso(ROOT::RDF::RNode df,
                                              const std::string &outputname,
                                              const std::string &fatjet_p4,
@@ -99,9 +110,22 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_iso(ROOT::RDF::RNode df,
                                              const std::string &muon_iso,
                                              const std::string &muon_looseId,
                                              const float &pt_threshold,
-                                             const float &eta_threshold);                                             
-}
+                                             const float &eta_threshold);
 
-}
+ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_mass(ROOT::RDF::RNode df,
+                                             const std::string &outputname,
+                                             const std::string &fatjet_p4,
+                                             const std::string &muon_pt,
+                                             const std::string &muon_eta,
+                                             const std::string &muon_phi,
+                                             const std::string &muon_mass,
+                                             const std::string &muon_looseId,
+                                             const float &pt_threshold,
+                                             const float &eta_threshold);
+
+
+} // end namespace mutau
+
+} // end namespace finalstate
 
 #endif /* GUARDFINALSTATE_H */
