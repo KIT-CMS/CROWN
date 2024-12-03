@@ -622,7 +622,85 @@ ROOT::RDF::RNode muon_subjet(ROOT::RDF::RNode df,
                     return df1;  // Ensure the modified DataFrame is returned
 
                        }
+// this function return pT of the subjet that is clother to the muon
 
+ROOT::RDF::RNode get_closet_subjet_pt(ROOT::RDF::RNode df,
+                       const std::string &outputname,
+                       const std::string &subjet_1_p4,
+                       const std::string &subjet_2_p4,
+                       const std::string &clother_subjet_ind) {
+
+        auto get_subjet_index = [](const ROOT::Math::PtEtaPhiMVector &subjet_1_p4,
+                                    const ROOT::Math::PtEtaPhiMVector &subjet_2_p4,
+                                    const float &subj_ind){
+
+                        float subjet_pt = -10; 
+                        if ( subj_ind == 1.0 ){
+                            subjet_pt = subjet_1_p4.Pt();
+                        }
+                        if ( subj_ind == 2.0 ){
+                            subjet_pt = subjet_2_p4.Pt();
+                        }
+
+                        return subjet_pt;
+                       }; 
+
+                    auto df1 = df.Define(outputname, get_subjet_index, {subjet_1_p4 , subjet_2_p4, clother_subjet_ind });
+                    return df1;  // Ensure the modified DataFrame is returned
+                    }
+
+// this function return eta of the subjet that is clother to the muon
+
+ROOT::RDF::RNode get_closet_subjet_eta(ROOT::RDF::RNode df,
+                       const std::string &outputname,
+                       const std::string &subjet_1_p4,
+                       const std::string &subjet_2_p4,
+                       const std::string &clother_subjet_ind) {
+
+        auto get_subjet_index = [](const ROOT::Math::PtEtaPhiMVector &subjet_1_p4,
+                                    const ROOT::Math::PtEtaPhiMVector &subjet_2_p4,
+                                    const float &subj_ind){
+
+                        float subjet_eta = -10; 
+                        if ( subj_ind == 1.0 ){
+                            subjet_eta = subjet_1_p4.eta();
+                        }
+                        if ( subj_ind == 2.0 ){
+                            subjet_eta = subjet_2_p4.eta();
+                        }
+
+                        return subjet_eta;
+                       }; 
+
+                    auto df1 = df.Define(outputname, get_subjet_index, {subjet_1_p4 , subjet_2_p4, clother_subjet_ind });
+                    return df1;  // Ensure the modified DataFrame is returned
+                    }
+
+
+ROOT::RDF::RNode get_closet_subjet_phi(ROOT::RDF::RNode df,
+                       const std::string &outputname,
+                       const std::string &subjet_1_p4,
+                       const std::string &subjet_2_p4,
+                       const std::string &clother_subjet_ind) {
+
+        auto get_subjet_index = [](const ROOT::Math::PtEtaPhiMVector &subjet_1_p4,
+                                    const ROOT::Math::PtEtaPhiMVector &subjet_2_p4,
+                                    const float &subj_ind){
+
+                        float subjet_phi = -10; 
+                        if ( subj_ind == 1.0 ){
+                            subjet_phi = subjet_1_p4.phi();
+                        }
+                        if ( subj_ind == 2.0 ){
+                            subjet_phi = subjet_2_p4.phi();
+                        }
+
+                        return subjet_phi;
+                       }; 
+
+                    auto df1 = df.Define(outputname, get_subjet_index, {subjet_1_p4 , subjet_2_p4, clother_subjet_ind });
+                    return df1;  // Ensure the modified DataFrame is returned
+                    }
 
 } // end namespace fatjet
 } // end namespace quantities
