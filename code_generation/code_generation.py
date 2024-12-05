@@ -235,7 +235,7 @@ class CodeGenerator(object):
         self.scopes = sorted(
             scope for scope in self.scopes if scope != self.global_scope
         )
-        if self.global_scope is not None:
+        if self.global_scope:
             self.scopes = [self.global_scope] + self.scopes
 
     def get_git_status(self) -> None:
@@ -471,7 +471,7 @@ class CodeGenerator(object):
             # two  cases:
             # 1. no global scope exists: we have to use df0 as the input df
             # 2. there is a global scope, jump down
-            if self.global_scope is None:
+            if not self.global_scope:
                 if is_first:
                     self.subset_calls[scope].append(
                         subset.call(
@@ -490,6 +490,7 @@ class CodeGenerator(object):
                 # 1. global scope: there we have to use df0 as the input df
                 # 2. first call of all other scopes: we have to use the
                 # last global df as the input df
+                # if scope == self.global_scope and is_first:
                 if scope == self.global_scope and is_first:
                     self.subset_calls[scope].append(
                         subset.call(
@@ -541,7 +542,7 @@ class CodeGenerator(object):
                 )
                 # convert output lists to a set to remove duplicates
 
-                if self.global_scope is not None:
+                if self.global_scope:
                     global_commands = self.output_commands[self.global_scope]
                 else:
                     global_commands = []
@@ -618,7 +619,7 @@ class CodeGenerator(object):
         output_quantities = "{"
         for scope in self._outputfiles_generated.keys():
             # get the outputset for the scope
-            if self.global_scope is not None:
+            if self.global_scope:
                 global_commands = self.output_commands[self.global_scope]
             else:
                 global_commands = []
@@ -720,7 +721,7 @@ class CodeGenerator(object):
                 self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
             if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
                 # convert output lists to a set to remove duplicates
-                if self.global_scope is not None:
+                if self.global_scope:
                     global_commands = self.output_commands[self.global_scope]
                 else:
                     global_commands = []
@@ -772,7 +773,7 @@ class CodeGenerator(object):
                 self.output_commands[scope].extend(output.get_leaves_of_scope(scope))
             if len(self.output_commands[scope]) > 0 and scope != self.global_scope:
                 # convert output lists to a set to remove duplicates
-                if self.global_scope is not None:
+                if self.global_scope:
                     global_commands = self.output_commands[self.global_scope]
                 else:
                     global_commands = []

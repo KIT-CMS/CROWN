@@ -47,7 +47,7 @@ class Producer:
                 "Exception (%s): Argument 'input' must be a list or a dict!" % name
             )
             raise Exception
-        if not isinstance(output, list) and output is not None:
+        if not isinstance(output, list) and output:
             log.error(
                 "Exception (%s): Argument 'output' must be a list or None!" % name
             )
@@ -66,7 +66,7 @@ class Producer:
             inputdict = input
         self.input: Dict[str, List[q.Quantity]] = inputdict
         # keep track of variable dependencies
-        if self.output is not None:
+        if self.output:
             for scope in self.scopes:
                 for input_quantity in self.input[scope]:
                     for output_quantity in self.output:
@@ -142,7 +142,7 @@ class Producer:
 
         """
 
-        if self.output is not None:
+        if self.output:
             for output_quantity in self.output:
                 output_quantity.reserve_scope(scope)
 
@@ -310,7 +310,7 @@ class Producer:
             )
             raise Exception
         calls = [self.writecall(config, scope)]
-        if self.output is not None:
+        if self.output:
             list_of_shifts = self.output[0].get_shifts(
                 scope
             )  # all entries must have same shifts
@@ -412,7 +412,7 @@ class VectorProducer(Producer):
         basecall = self.call
         calls: List[str] = []
         shifts = ["nominal"]
-        if self.output is not None:
+        if self.output:
             shifts.extend(self.output[0].get_shifts(scope))
         for shift in shifts:
             # check that all config lists (and output if applicable) have same length
@@ -427,7 +427,7 @@ class VectorProducer(Producer):
                         % (self.vec_configs[0], key)
                     )
                     raise Exception
-            if self.output is not None and len(self.output) != n_versions:
+            if self.output and len(self.output) != n_versions:
                 log.error(
                     "{} expects either no output or same amount as entries in config lists !".format(
                         self
@@ -440,7 +440,7 @@ class VectorProducer(Producer):
                 helper_dict: Dict[Any, Any] = {}
                 for key in self.vec_configs:
                     helper_dict[key] = config[shift][key][i]
-                if self.output is not None:
+                if self.output:
                     helper_dict["output"] = (
                         '"' + self.output[i].get_leaf(shift, scope) + '"'
                     )
@@ -666,7 +666,7 @@ class ProducerGroup:
         else:
             self.input = dict(input)
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
-        if self.call is not None:
+        if self.call:
             log.debug("Constructing {}".format(self.name))
             log.debug(" --> Scopes: {}".format(self.scopes))
             for scope in self.scopes:
@@ -831,9 +831,9 @@ class ProducerGroup:
         for producer in self.producers[scope]:
             # duplicate outputs of vector subproducers if they were generated automatically
             if (
-                self.call is not None
+                self.call
                 and isinstance(producer, VectorProducer)
-                and producer.output is not None
+                and producer.output
             ):
                 for i in range(len(config["nominal"][producer.vec_configs[0]]) - 1):
                     producer.output.append(
@@ -932,7 +932,7 @@ def CollectProducersOutput(
 ) -> Set[q.Quantity]:
     output: Set[q.Quantity] = set()
     for producer in producers:
-        if producer.output is not None:
+        if producer.output:
             output |= set(producer.output)
         if isinstance(producer, ProducerGroup):
             try:
@@ -951,7 +951,7 @@ def CollectProducerOutput(
     producer: Union[ProducerGroup, Producer], scope: str
 ) -> Set[q.Quantity]:
     output: Set[q.Quantity] = set()
-    if producer.output is not None:
+    if producer.output:
         output |= set(producer.output)
     if isinstance(producer, ProducerGroup):
         try:

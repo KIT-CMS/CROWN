@@ -62,6 +62,7 @@ class Configuration(object):
         available_sample_types: Union[str, List[str]],
         available_eras: Union[str, List[str]],
         available_scopes: Union[str, List[str]],
+        global_scope: str = "global",
     ):
         """
 
@@ -88,7 +89,7 @@ class Configuration(object):
         self.available_scopes = set(available_scopes)
         self.available_outputs: Dict[str, QuantitiesStore] = {}
         self.available_shifts: Dict[str, Set[str]] = {}
-        self.global_scope = "global"
+        self.global_scope = global_scope
 
         self.producers: TProducerStore = {}
         self.unpacked_producers: TProducerStore = {}
@@ -513,9 +514,7 @@ class Configuration(object):
         # we have to use a seperate list, because we cannot modify the list while iterating over it without breaking stuff
         scopes_to_test = [scope for scope in self.scopes]
         for scope in scopes_to_test:
-            if (len(self.producers[scope]) == 0) or (
-                scope not in self.selected_scopes and scope is not self.global_scope
-            ):
+            if (len(self.producers[scope]) == 0 or scope not in self.selected_scopes) and scope is not self.global_scope:
                 log.warning("Removing unrequested / empty scope {}".format(scope))
                 self.scopes.remove(scope)
                 del self.producers[scope]
