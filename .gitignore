@@ -1,6 +1,5 @@
 # folders
-build/
-build*/
+build/*
 log/
 logs/
 generation_logs/
