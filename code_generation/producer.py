@@ -830,11 +830,7 @@ class ProducerGroup:
         calls: List[str] = []
         for producer in self.producers[scope]:
             # duplicate outputs of vector subproducers if they were generated automatically
-            if (
-                self.call
-                and isinstance(producer, VectorProducer)
-                and producer.output
-            ):
+            if self.call and isinstance(producer, VectorProducer) and producer.output:
                 for i in range(len(config["nominal"][producer.vec_configs[0]]) - 1):
                     producer.output.append(
                         producer.output[0].copy(

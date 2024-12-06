@@ -372,16 +372,16 @@ class Configuration(object):
                         if scope in shift.get_scopes():
                             self._add_available_shift(shift, scope)
                             shift.apply(scope)
-                            self.shifts[scope][
-                                shift.shiftname
-                            ] = self.resolve_modifiers(shift.get_shift_config(scope))
+                            self.shifts[scope][shift.shiftname] = (
+                                self.resolve_modifiers(shift.get_shift_config(scope))
+                            )
                         else:
                             self._add_available_shift(shift, scope)
                             shift.apply(self.global_scope)
-                            self.shifts[scope][
-                                shift.shiftname
-                            ] = self.resolve_modifiers(
-                                shift.get_shift_config(self.global_scope)
+                            self.shifts[scope][shift.shiftname] = (
+                                self.resolve_modifiers(
+                                    shift.get_shift_config(self.global_scope)
+                                )
                             )
                 else:
                     for scope in scopes_to_shift:
@@ -514,7 +514,9 @@ class Configuration(object):
         # we have to use a seperate list, because we cannot modify the list while iterating over it without breaking stuff
         scopes_to_test = [scope for scope in self.scopes]
         for scope in scopes_to_test:
-            if (len(self.producers[scope]) == 0 or scope not in self.selected_scopes) and scope is not self.global_scope:
+            if (
+                len(self.producers[scope]) == 0 or scope not in self.selected_scopes
+            ) and scope is not self.global_scope:
                 log.warning("Removing unrequested / empty scope {}".format(scope))
                 self.scopes.remove(scope)
                 del self.producers[scope]
@@ -766,9 +768,11 @@ class Configuration(object):
         total_quantities = [
             sum(
                 [
-                    len(self.config_parameters[scope][output.vec_config])
-                    if isinstance(output, QuantityGroup)
-                    else 1
+                    (
+                        len(self.config_parameters[scope][output.vec_config])
+                        if isinstance(output, QuantityGroup)
+                        else 1
+                    )
                     for output in self.outputs[scope]
                 ]
             )
