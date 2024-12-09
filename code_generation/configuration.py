@@ -28,6 +28,7 @@ from code_generation.quantity import (
 )
 from code_generation.rules import ProducerRule, RemoveProducer
 from code_generation.systematics import SystematicShift, SystematicShiftByQuantity
+from code_generation.helpers import is_empty
 
 log = logging.getLogger(__name__)
 # type aliases
@@ -62,7 +63,7 @@ class Configuration(object):
         available_sample_types: Union[str, List[str]],
         available_eras: Union[str, List[str]],
         available_scopes: Union[str, List[str]],
-        global_scope: str = "global",
+        global_scope: str = True,
     ):
         """
 
@@ -89,7 +90,10 @@ class Configuration(object):
         self.available_scopes = set(available_scopes)
         self.available_outputs: Dict[str, QuantitiesStore] = {}
         self.available_shifts: Dict[str, Set[str]] = {}
-        self.global_scope = global_scope
+        if global_scope:
+            self.global_scope = "global"
+        else:
+            self.global_scope = None
 
         self.producers: TProducerStore = {}
         self.unpacked_producers: TProducerStore = {}
@@ -258,12 +262,12 @@ class Configuration(object):
         """
 
         if isinstance(producers, list):
-            # we always want to know the toplevel producergroup, so if the parent is None, we set it to the first producer.
+            # we always want to know the toplevel producergroup, so if the parent evaluates to false, we set it to the first producer.
             # If a prent is given, we set it to the parent, since this means we are in a producergroup. This is important if we
             # have nested producergroups, this way every producer is assigned to the outermost producergroup, which is important for the
             # potential removal of a single producer.
             for producer in producers:
-                if parent is None:
+                if is_empty(parent):
                     parent_producer = producer
                 else:
                     parent_producer = parent
@@ -277,7 +281,7 @@ class Configuration(object):
             if isinstance(producers, ProducerGroup):
                 log.debug("{} Unpacking ".format("    " * depth))
                 for sub_producer in producers.producers[scope]:
-                    if parent is None:
+                    if is_empty(parent):
                         parent_producer = producers
                     else:
                         parent_producer = parent
@@ -288,7 +292,7 @@ class Configuration(object):
                             depth=depth + 1,
                         )
             else:
-                if parent is None:
+                if is_empty(parent):
                     log.debug("{} {}".format("    " * depth, producers))
                     self.unpacked_producers[scope][producers] = producers
                 else:
@@ -334,11 +338,11 @@ class Configuration(object):
         Returns:
             None
         """
-        if exclude_samples is not None and samples is not None:
+        if not is_empty(exclude_samples) and not is_empty(samples):
             raise ConfigurationError(
                 f"You cannot use samples and exclude_samples at the same time -> Shift {shift}, samples {samples}, exclude_samples {exclude_samples}"
             )
-        if samples is not None:
+        if not is_empty(samples):
             if isinstance(samples, str):
                 samples = [samples]
             for sample in samples:
@@ -346,7 +350,7 @@ class Configuration(object):
                     raise ConfigurationError(
                         f"Sampletype {sample} is not available -> Shift {shift}, available_sample_types {self.available_sample_types}, sample_types {samples}"
                     )
-        if exclude_samples is not None:
+        if not is_empty(exclude_samples):
             if isinstance(exclude_samples, str):
                 exclude_samples = [exclude_samples]
             for excluded_sample in exclude_samples:
@@ -361,7 +365,7 @@ class Configuration(object):
                 raise TypeError("shift must be of type SystematicShift")
             if isinstance(samples, str):
                 samples = [samples]
-            if samples is None or self.sample in samples:
+            if is_empty(samples) or self.sample in samples:
                 scopes_to_shift = [
                     scope for scope in shift.get_scopes() if scope in self.scopes
                 ]
@@ -614,7 +618,7 @@ class Configuration(object):
             Returns:
                 None
         """
-        for key in config:
+        for key in list(config):
             if isinstance(config[key], dict):
                 self._remove_empty_configkeys(config[key])
             # special case for extended vector producers, here we can have a list, that contains empty dicts
@@ -632,12 +636,7 @@ class Configuration(object):
                     if isinstance(value, dict):
                         self._remove_empty_configkeys(value)
 
-            elif (
-                config[key] is None
-                or config[key] == ""
-                or config[key] == []
-                or config[key] == {}
-            ):
+            elif is_empty(config[key]):
                 log.info(
                     "Removing {} since it is an empty configuration parameter".format(
                         key
