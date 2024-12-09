@@ -1,5 +1,6 @@
 # folders
 build/*
+build*/
 !build/.gitkeep
 log/
 logs/
