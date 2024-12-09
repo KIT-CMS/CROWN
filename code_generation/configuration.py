@@ -62,7 +62,7 @@ class Configuration(object):
         available_sample_types: Union[str, List[str]],
         available_eras: Union[str, List[str]],
         available_scopes: Union[str, List[str]],
-        global_scope: str = "global",
+        global_scope: bool = True,
     ):
         """
 
@@ -89,7 +89,10 @@ class Configuration(object):
         self.available_scopes = set(available_scopes)
         self.available_outputs: Dict[str, QuantitiesStore] = {}
         self.available_shifts: Dict[str, Set[str]] = {}
-        self.global_scope = global_scope
+        if global_scope:
+            self.global_scope = "global"
+        else:
+            self.global_scope = None
 
         self.producers: TProducerStore = {}
         self.unpacked_producers: TProducerStore = {}
@@ -372,9 +375,9 @@ class Configuration(object):
                         if scope in shift.get_scopes():
                             self._add_available_shift(shift, scope)
                             shift.apply(scope)
-                            self.shifts[scope][
-                                shift.shiftname
-                            ] = self.resolve_modifiers(shift.get_shift_config(scope))
+                            self.shifts[scope][shift.shiftname] = (
+                                self.resolve_modifiers(shift.get_shift_config(scope))
+                            )
                         else:
                             self._add_available_shift(shift, scope)
                             shift.apply(self.global_scope)
@@ -387,10 +390,8 @@ class Configuration(object):
                     for scope in scopes_to_shift:
                         self._add_available_shift(shift, scope)
                         shift.apply(scope)
-                        self.shifts[scope][
-                            shift.shiftname
-                        ] = self.resolve_modifiers(
-                            shift.get_shift_config(self.global_scope)
+                        self.shifts[scope][shift.shiftname] = self.resolve_modifiers(
+                            shift.get_shift_config(scope)
                         )
 
     def _is_valid_shift(
