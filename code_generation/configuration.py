@@ -376,16 +376,16 @@ class Configuration(object):
                         if scope in shift.get_scopes():
                             self._add_available_shift(shift, scope)
                             shift.apply(scope)
-                            self.shifts[scope][shift.shiftname] = (
-                                self.resolve_modifiers(shift.get_shift_config(scope))
-                            )
+                            self.shifts[scope][
+                                shift.shiftname
+                            ] = self.resolve_modifiers(shift.get_shift_config(scope))
                         else:
                             self._add_available_shift(shift, scope)
                             shift.apply(self.global_scope)
-                            self.shifts[scope][shift.shiftname] = (
-                                self.resolve_modifiers(
-                                    shift.get_shift_config(self.global_scope)
-                                )
+                            self.shifts[scope][
+                                shift.shiftname
+                            ] = self.resolve_modifiers(
+                                shift.get_shift_config(self.global_scope)
                             )
                 else:
                     for scope in scopes_to_shift:

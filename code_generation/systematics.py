@@ -83,9 +83,9 @@ class SystematicShift(object):
         ] = self.expand_producer_dict_keys(ignore_producers)
         self.producers: TProducerStore = {}
         self.ignore_producers: TProducerStore = {}
-        self.shift_config: Dict[str, TConfiguration] = (
-            self.expand_configuration_dict_keys(shift_config)
-        )
+        self.shift_config: Dict[
+            str, TConfiguration
+        ] = self.expand_configuration_dict_keys(shift_config)
         self.scopes: Set[str] = self.determine_scopes(scopes)
         self.validate()
 
@@ -404,9 +404,9 @@ class SystematicShiftByQuantity(SystematicShift):
             scopes: List of scopes that are affected by the systematic shift.
         """
         super().__init__(name, {}, {}, scopes, {})
-        self.quantity_change: Dict[NanoAODQuantity, Union[str, NanoAODQuantity]] = (
-            quantity_change
-        )
+        self.quantity_change: Dict[
+            NanoAODQuantity, Union[str, NanoAODQuantity]
+        ] = quantity_change
         self.quantities: Set[NanoAODQuantity] = set(quantity_change.keys())
 
     def apply(self, scope: str) -> None:
