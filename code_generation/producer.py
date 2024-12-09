@@ -8,7 +8,6 @@ from code_generation.exceptions import (
     InvalidProducerConfigurationError,
     ConfigurationError,
 )
-from code_generation.helpers import is_empty
 
 import code_generation.quantity as q
 
@@ -48,7 +47,7 @@ class Producer:
                 "Exception (%s): Argument 'input' must be a list or a dict!" % name
             )
             raise Exception
-        if not isinstance(output, list) and output is not None:
+        if not isinstance(output, list) and output:
             log.error(
                 "Exception (%s): Argument 'output' must be a list or None!" % name
             )
@@ -67,7 +66,7 @@ class Producer:
             inputdict = input
         self.input: Dict[str, List[q.Quantity]] = inputdict
         # keep track of variable dependencies
-        if not is_empty(self.output):
+        if self.output:
             for scope in self.scopes:
                 for input_quantity in self.input[scope]:
                     for output_quantity in self.output:
@@ -76,7 +75,7 @@ class Producer:
         log.debug("| Producer: {}".format(self.name))
         log.debug("| Call: {}".format(self.call))
         for scope in self.scopes:
-            if is_empty(self.input[scope]):
+            if self.input[scope] is None:
                 log.debug("| Inputs ({}): None".format(scope))
             else:
                 log.debug(
@@ -84,7 +83,7 @@ class Producer:
                         scope, [input.name for input in self.input[scope]]
                     )
                 )
-        if is_empty(self.output):
+        if self.output is None:
             log.debug("| Output: None")
         else:
             log.debug("| Outputs: {}".format([output.name for output in self.output]))
@@ -143,7 +142,7 @@ class Producer:
 
         """
 
-        if not is_empty(self.output):
+        if self.output:
             for output_quantity in self.output:
                 output_quantity.reserve_scope(scope)
 
@@ -163,10 +162,10 @@ class Producer:
                 % (name, self.name, scope)
             )
             raise Exception
-        if is_empty(self.output):
+        if self.output is None:
             log.error(
-                "Exception (%s): output %s cannot be shifted ! How did you end up here ?"
-                % (name, self.output)
+                "Exception (%s): output None cannot be shifted ! How did you end up here ?"
+                % name
             )
             raise Exception
         for entry in self.output:
@@ -207,10 +206,10 @@ class Producer:
                 % (name, self.name, scope)
             )
             raise Exception
-        if is_empty(self.output):
+        if self.output is None:
             log.error(
-                "Exception (%s): output %s cannot be shifted ! How did you end up here ?"
-                % (name, self.output)
+                "Exception (%s): output None cannot be shifted ! How did you end up here ?"
+                % name
             )
             raise Exception
         for entry in self.output:
@@ -232,7 +231,7 @@ class Producer:
         Returns:
             str: The generated C++ call
         """
-        if is_empty(self.output):
+        if self.output is None:
             config[shift]["output"] = ""
             config[shift]["output_vec"] = ""
         else:
@@ -311,7 +310,7 @@ class Producer:
             )
             raise Exception
         calls = [self.writecall(config, scope)]
-        if not is_empty(self.output):
+        if self.output:
             list_of_shifts = self.output[0].get_shifts(
                 scope
             )  # all entries must have same shifts
@@ -359,7 +358,7 @@ class Producer:
                 )
             )
             raise Exception
-        if is_empty(self.output):
+        if self.output is None:
             return []
         else:
             return self.output
@@ -428,7 +427,7 @@ class VectorProducer(Producer):
                         % (self.vec_configs[0], key)
                     )
                     raise Exception
-            if not is_empty(self.output) and len(self.output) != n_versions:
+            if self.output and len(self.output) != n_versions:
                 log.error(
                     "{} expects either no output or same amount as entries in config lists !".format(
                         self
@@ -441,7 +440,7 @@ class VectorProducer(Producer):
                 helper_dict: Dict[Any, Any] = {}
                 for key in self.vec_configs:
                     helper_dict[key] = config[shift][key][i]
-                if not is_empty(self.output):
+                if self.output:
                     helper_dict["output"] = (
                         '"' + self.output[i].get_leaf(shift, scope) + '"'
                     )
@@ -483,7 +482,7 @@ class ExtendedVectorProducer(Producer):
         # set the vec config key of the quantity group
         quantity_group.set_vec_config(vec_config)
         super().__init__(name, call, input, [quantity_group], scope)
-        if is_empty(self.output):
+        if self.output is None:
             raise InvalidProducerConfigurationError(self.name)
         # add the vec config to the parameters of the producer
         for scope in self.scopes:
@@ -497,7 +496,7 @@ class ExtendedVectorProducer(Producer):
 
     @property
     def output_group(self) -> q.QuantityGroup:
-        if is_empty(self.output):
+        if self.output is None:
             raise Exception("ExtendedVectorProducer has no output!")
         if not isinstance(self.output[0], q.QuantityGroup):
             log.error("ExtendedVectorProducer expects a QuantityGroup as output!")
@@ -521,7 +520,7 @@ class ExtendedVectorProducer(Producer):
         """
         n_versions = len(config["nominal"][self.vec_config])
         log.debug("Number of extended producers to be created {}".format(n_versions))
-        if is_empty(self.output):
+        if self.output is None:
             raise InvalidProducerConfigurationError(self.name)
         if not isinstance(self.output[0], q.QuantityGroup):
             log.error("ExtendedVectorProducer expects a QuantityGroup as output!")
@@ -667,7 +666,7 @@ class ProducerGroup:
         else:
             self.input = dict(input)
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
-        if not is_empty(self.call):
+        if self.call:
             log.debug("Constructing {}".format(self.name))
             log.debug(" --> Scopes: {}".format(self.scopes))
             for scope in self.scopes:
@@ -710,7 +709,7 @@ class ProducerGroup:
         log.debug("| ProducerGroup: {}".format(self.name))
         log.debug("| Call: {}".format(self.call))
         for scope in self.scopes:
-            if is_empty(self.input[scope]):
+            if self.input[scope] is None:
                 log.debug("| Inputs ({}): None".format(scope))
             else:
                 log.debug(
@@ -718,7 +717,7 @@ class ProducerGroup:
                         scope, [input.name for input in self.input[scope]]
                     )
                 )
-        if is_empty(self.output):
+        if self.output is None:
             log.debug("| Output: None")
         else:
             log.debug("| Outputs: {}".format([output.name for output in self.output]))
@@ -831,11 +830,7 @@ class ProducerGroup:
         calls: List[str] = []
         for producer in self.producers[scope]:
             # duplicate outputs of vector subproducers if they were generated automatically
-            if (
-                not is_empty(self.call)
-                and isinstance(producer, VectorProducer)
-                and not is_empty(producer.output)
-            ):
+            if self.call and isinstance(producer, VectorProducer) and producer.output:
                 for i in range(len(config["nominal"][producer.vec_configs[0]]) - 1):
                     producer.output.append(
                         producer.output[0].copy(
@@ -933,7 +928,7 @@ def CollectProducersOutput(
 ) -> Set[q.Quantity]:
     output: Set[q.Quantity] = set()
     for producer in producers:
-        if not is_empty(producer.output):
+        if producer.output:
             output |= set(producer.output)
         if isinstance(producer, ProducerGroup):
             try:
