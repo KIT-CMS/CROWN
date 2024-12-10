@@ -16,7 +16,7 @@ Sept. 2023 - Version 0.3.0
 Feb. 2023
 
 * Added support for the generation of friend trees. For more details, check :ref:`FriendTree Generation`.
-* Added documentation on Ntuple and friend production via KingMaker. For more details, check :ref:`KingMaker`.
+* Added documentation on Ntuple and friend production via KingMaker. For more details, check :ref:`Workflow Management`.
 
 Jan. 2023
 

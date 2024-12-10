@@ -13,7 +13,7 @@ For now, the CorrectionManager supports the following correction files:
 - correctionlib files of type ``correction::CompoundCorrection`` using the :cpp:func:`correctionManager::CorrectionManager::loadCompoundCorrection` function
 - json files using the :cpp:func:`correctionManager::CorrectionManager::loadjson` function
 
-A Documentation of all Correction Manager functions can be found in :ref:`Namespace:Correctionmanager`
+A Documentation of all Correction Manager functions can be found in :ref:`Namespace: Correctionmanager`
 
 Required Changes
 ******************
