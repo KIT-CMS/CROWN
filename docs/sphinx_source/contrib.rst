@@ -11,7 +11,7 @@ In the following, an introduction to adding a new producer is given. As an examp
 Writing a new C++ function
 ============================
 
-For a new C++ function, a definition in the header file, both a definition in the header file and the implementation in the source file are required. As good practice, we will add the function to a namespace called ``lorentzvector``, and call the function ``build``.
+For a new C++ function, both a definition in the header file and the implementation in the source file are required. As good practice, we will add the function to a namespace called ``lorentzvector``, and call the function ``build``.
 The return type of any function in CROWN should always be ``ROOT::RDF::RNode``, and the first argument of the function should always be the RDataframe, where we want to Define our new quantity. This means the basic definition of the function should look like this:
 
 .. code-block:: cpp
