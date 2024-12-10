@@ -234,6 +234,15 @@ ROOT::RDF::RNode compute_muon_lorentz_vector(ROOT::RDF::RNode df,
                                    const ROOT::RVec<float> &masses) {
         if (flag == 1 && pts.size() == 1) {
             return ROOT::Math::PtEtaPhiMVector(pts[0], etas[0], phis[0], masses[0]);
+
+        Logger::get("finalstate::compute_muon_lorentz_vector")
+            ->info("Muon in fat jet doesn't have unphysical value and equal to {}", pts[0] );
+
+        Logger::get("finalstate::compute_muon_lorentz_vector")
+            ->info("Muon in fat jet doesn't have unphysical eta value and equal to {}", etas[0] );
+
+        Logger::get("finalstate::compute_muon_lorentz_vector")
+            ->info("Muon in fat jet doesn't have unphysical phi value and equal to {}", phis[0] );
         }
         // Return default vector if no unique muon is found or flag is 0
         return ROOT::Math::PtEtaPhiMVector(100, 100, 100, 100);
@@ -341,6 +350,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_pT(ROOT::RDF::RNode df,
         // Access the single muon's properties
         float muon_pt1 = muon_pts[0];
         float muon_eta1 = muon_etas[0];
+        float muon_phi1 = muon_phis[0];
         bool muon_id1 = loose_muon_ids[0];
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
@@ -362,10 +372,12 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_pT(ROOT::RDF::RNode df,
 
             if (delta_r < 0.8){
                 mu_pt_flag = muon_pt1;
-            }
 
             Logger::get("fatjet::trigger_single_mu_in_fatjet")
-                ->debug("Delta R {} between fatjet and muon with pt: {}, eta: {}, ID: {}", delta_r, muon_pt1, muon_eta1, muon_id1);
+                ->debug("Delta R {} between fatjet and muon with pt: {}, eta: {}, phi: {}, ID: {}", delta_r, muon_pt1, muon_eta1, muon_phi1, muon_id1);
+            }
+
+
 
         }else{
             Logger::get("fatjet::trigger_single_mu_in_fatjet")

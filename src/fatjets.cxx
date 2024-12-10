@@ -604,6 +604,12 @@ ROOT::RDF::RNode muon_subjet(ROOT::RDF::RNode df,
                                 Logger::get("fatjet::muon_subjet")
                                     ->debug("Muon in fat jet doesn't have unphysical value and equal to {}", muon_in_fatjet_4v.Pt() );
 
+                                Logger::get("fatjet::muon_subjet")
+                                    ->debug("Muon in fat jet doesn't have unphysical eta value and equal to {}", muon_in_fatjet_4v.eta() );
+
+                                Logger::get("fatjet::muon_subjet")
+                                    ->debug("Muon in fat jet doesn't have unphysical phi value and equal to {}", muon_in_fatjet_4v.phi() );
+
                                     // ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt, muon_eta, muon_phi, muon_mass);
 
                                     float deltaR1 = ROOT::Math::VectorUtil::DeltaR(subjet_1_p4, muon_in_fatjet_4v);
