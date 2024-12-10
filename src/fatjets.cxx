@@ -602,7 +602,7 @@ ROOT::RDF::RNode muon_subjet(ROOT::RDF::RNode df,
                                 if ( muon_in_fatjet_4v.eta() != 100.0 && muon_in_fatjet_4v.phi() != 100.0 ){
 
                                 Logger::get("fatjet::muon_subjet")
-                                    ->info("Muon in fat jet doesn't have unphysical value and equal to {}", muon_in_fatjet_4v.Pt() );
+                                    ->debug("Muon in fat jet doesn't have unphysical value and equal to {}", muon_in_fatjet_4v.Pt() );
 
                                     // ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt, muon_eta, muon_phi, muon_mass);
 
