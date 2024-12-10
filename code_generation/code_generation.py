@@ -324,6 +324,16 @@ class CodeGenerator(object):
             template = template_file.read()
         return template
 
+    def addon_includes(self):
+        path = f"analysis_configurations/{self.analysis_name}/cpp_addons/include"
+        if os.path.exists(path) and os.path.isdir(path) and os.listdir(path):
+            log.info(f"Adding addons from {path}: {' '.join(os.listdir(path))}")
+            paths = "\n".join(f'#include "{os.path.join(path, item)}"' for item in os.listdir(path))
+            return paths
+        else:
+            log.info(f"No addons found in {path}")
+            return ""
+
     def write_code(self, calls: str, includes: str, run_commands: str) -> None:
         """
         Write the code of the main executable to the output folder
@@ -350,6 +360,7 @@ class CodeGenerator(object):
                     "        // {ZERO_EVENTS_FALLBACK}", self.zero_events_fallback()
                 )
                 .replace("        // {CODE_GENERATION}", calls)
+                .replace("// {INCLUDE_ANALYSISADDONS}", self.addon_includes())
                 .replace("// {INCLUDES}", includes)
                 .replace("        // {RUN_COMMANDS}", run_commands)
                 .replace("// {MULTITHREADING}", threadcall)
