@@ -8,7 +8,7 @@ import inspect
 def run(args):
     ### SET these variables according to your analysis ###
     analysis_name = "solution"
-    available_samples = ["data"]
+    available_samples = ["data", "dyjets"]
     available_eras = ["2012"]
     available_scopes = ["mm"]
     ######################################################
