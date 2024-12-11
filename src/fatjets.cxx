@@ -628,6 +628,59 @@ ROOT::RDF::RNode muon_subjet(ROOT::RDF::RNode df,
                     return df1;  // Ensure the modified DataFrame is returned
 
                        }
+
+ROOT::RDF::RNode muon_subjet_deltaR(ROOT::RDF::RNode df,
+                       const std::string &outputname,
+                       const std::string &subjet_1_p4,
+                       const std::string &subjet_2_p4,
+                       const std::string &muon_in_fatjet_p4) {
+
+        auto get_subjet_index = [](const ROOT::Math::PtEtaPhiMVector &subjet_1_p4,
+                                   const ROOT::Math::PtEtaPhiMVector &subjet_2_p4,
+                                   const ROOT::Math::PtEtaPhiMVector &muon_in_fatjet_4v){
+
+
+                                float deltaR_subj = -10.0;
+
+
+                                if ( muon_in_fatjet_4v.eta() != 100.0 && muon_in_fatjet_4v.phi() != 100.0 ){
+
+                                Logger::get("fatjet::muon_subjet")
+                                    ->debug("Muon in fat jet doesn't have unphysical value and equal to {}", muon_in_fatjet_4v.Pt() );
+
+                                Logger::get("fatjet::muon_subjet")
+                                    ->debug("Muon in fat jet doesn't have unphysical eta value and equal to {}", muon_in_fatjet_4v.eta() );
+
+                                Logger::get("fatjet::muon_subjet")
+                                    ->debug("Muon in fat jet doesn't have unphysical phi value and equal to {}", muon_in_fatjet_4v.phi() );
+
+                                    // ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt, muon_eta, muon_phi, muon_mass);
+
+                                    float deltaR1 = ROOT::Math::VectorUtil::DeltaR(subjet_1_p4, muon_in_fatjet_4v);
+                                    float deltaR2 = ROOT::Math::VectorUtil::DeltaR(subjet_2_p4, muon_in_fatjet_4v);
+
+                                    if (deltaR1 < deltaR2){
+                                        
+
+                                        deltaR_subj = deltaR1;
+
+                                Logger::get("fatjet::muon_subjet")
+                                    ->debug("Delta R with the subjet 1 {}", deltaR1 );
+                                    }else{
+
+                                        deltaR_subj = deltaR2;
+
+                            Logger::get("fatjet::muon_subjet")
+                                    ->debug("Delta R with the subjet 2 {}", deltaR2 );
+                                    }
+
+                                }
+                            return deltaR_subj;
+                        };
+                    auto df1 = df.Define(outputname, get_subjet_index, {subjet_1_p4 , subjet_2_p4, muon_in_fatjet_p4 });
+                    return df1;  // Ensure the modified DataFrame is returned
+
+                       }
 // this function return pT of the subjet that is clother to the muon
 
 ROOT::RDF::RNode get_closet_subjet_pt(ROOT::RDF::RNode df,
@@ -652,6 +705,29 @@ ROOT::RDF::RNode get_closet_subjet_pt(ROOT::RDF::RNode df,
                        }; 
 
                     auto df1 = df.Define(outputname, get_subjet_index, {subjet_1_p4 , subjet_2_p4, clother_subjet_ind });
+                    return df1;  // Ensure the modified DataFrame is returned
+                    }
+
+ROOT::RDF::RNode get_delta_pt_subjet_muon(ROOT::RDF::RNode df,
+                       const std::string &outputname,
+                       const std::string &subjet_pt,
+                       const std::string &fatjet_muon_p4) {
+
+        auto get_delta_pt = [](const float &subj_pt,
+                                    const ROOT::Math::PtEtaPhiMVector &fj_muon_p4){
+
+                        float delta_pt = -10; 
+                        if ( subj_pt != -10 && fj_muon_p4.Pt() != -10){
+                            delta_pt = abs(subj_pt - fj_muon_p4.Pt() );
+
+                        Logger::get("fatjet::get_delta_pt_subjet_muon")
+                                    ->debug("Fatjet pT: {}, muon pT: {}, deltapT: {}", subj_pt, fj_muon_p4.Pt(), delta_pt );
+                        }
+
+                        return delta_pt;
+                       }; 
+
+                    auto df1 = df.Define(outputname, get_delta_pt, { subjet_pt, fatjet_muon_p4 });
                     return df1;  // Ensure the modified DataFrame is returned
                     }
 

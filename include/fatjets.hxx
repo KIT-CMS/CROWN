@@ -98,11 +98,22 @@ ROOT::RDF::RNode muon_subjet(ROOT::RDF::RNode df,
                        const std::string &subjet_2_p4,
                        const std::string &muon_in_fatjet_p4);
 
+ROOT::RDF::RNode muon_subjet_deltaR(ROOT::RDF::RNode df,
+                       const std::string &outputname,
+                       const std::string &subjet_1_p4,
+                       const std::string &subjet_2_p4,
+                       const std::string &muon_in_fatjet_p4);
+
 ROOT::RDF::RNode get_closet_subjet_pt(ROOT::RDF::RNode df,
                        const std::string &outputname,
                        const std::string &subjet_1_p4,
                        const std::string &subjet_2_p4,
                        const std::string &clother_subjet_ind);
+
+ROOT::RDF::RNode get_delta_pt_subjet_muon(ROOT::RDF::RNode df,
+                       const std::string &outputname,
+                       const std::string &subjet_pt,
+                       const std::string &fatjet_muon_p4);
 
 ROOT::RDF::RNode get_closet_subjet_eta(ROOT::RDF::RNode df,
                        const std::string &outputname,
