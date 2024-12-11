@@ -1,13 +1,13 @@
 Ntuples in Postprocessing
 ===========================
 
-The CROWN Ntuples can be used by any Postprocessing framework. There are a few things to keep in mind to ensure easy processing.
-The most important difference is that only quantities affected by a shift are recalculated. This means the postprocessing framework must be able to use a mixture of the original and shifted quantities, when applying shifts. In order to make this step a bit easier, the information which quantities are affected by a shift, is stored in the Ntuple.
+The CROWN Ntuples can be used by any Postprocessing framework. Some things have to be kept in mind, in order to ensure an easy processing.
+Most important difference is, that only quantities affected by a shift are recalculated. This means the prostprocessing framework must be able to use a mixture of the original and the shifted quantities, when applying shifts. In order to make this step a bit easier, the information, which quantities are affected by a shift, is stored in the Ntuple.
 
 Quantity mapping
 *****************
 
-To read the mapping from an Ntuple, the python function listed below may be used. Two types of mapping are available, depending on the actual use case. In the first, the mapping is sorted by shift; in the second the mapping is sorted by quantity.
+To read the mapping from a NTuple, the python function listed below may be used. Two types of mapping are available, depending on the actual usecase. In the first, the mapping is sorted by shift; in the second the mapping is sorted by quantity.
 
 .. code-block:: python
 
