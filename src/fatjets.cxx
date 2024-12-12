@@ -664,15 +664,26 @@ ROOT::RDF::RNode muon_subjet_deltaR(ROOT::RDF::RNode df,
 
                                         deltaR_subj = deltaR1;
 
+                                        Logger::get("fatjet::muon_subjet") -> debug("Subjet 1 is clother to muon");
+
                                 Logger::get("fatjet::muon_subjet")
-                                    ->debug("Delta R with the subjet 1 {}", deltaR1 );
+                                    ->debug("Subjet 1 pT: {}", subjet_1_p4.Pt() );
                                     }else{
 
                                         deltaR_subj = deltaR2;
 
-                            Logger::get("fatjet::muon_subjet")
-                                    ->debug("Delta R with the subjet 2 {}", deltaR2 );
+                                Logger::get("fatjet::muon_subjet")
+                                    ->debug("Subjet 2 pT: {}", subjet_2_p4.Pt() );
+
+                                Logger::get("fatjet::muon_subjet") -> debug("Subjet 2 is clother to muon");
+
                                     }
+
+                        Logger::get("fatjet::muon_subjet")
+                                    ->debug("Delta R with the subjet 1 {}", deltaR1 );
+
+                        Logger::get("fatjet::muon_subjet")
+                                    ->debug("Delta R with the subjet 2 {}", deltaR2 );
 
                                 }
                             return deltaR_subj;
@@ -708,6 +719,8 @@ ROOT::RDF::RNode get_closet_subjet_pt(ROOT::RDF::RNode df,
                     return df1;  // Ensure the modified DataFrame is returned
                     }
 
+// this function returns delta pT between subjet and muon pT
+
 ROOT::RDF::RNode get_delta_pt_subjet_muon(ROOT::RDF::RNode df,
                        const std::string &outputname,
                        const std::string &subjet_pt,
@@ -721,7 +734,7 @@ ROOT::RDF::RNode get_delta_pt_subjet_muon(ROOT::RDF::RNode df,
                             delta_pt = abs(subj_pt - fj_muon_p4.Pt() );
 
                         Logger::get("fatjet::get_delta_pt_subjet_muon")
-                                    ->debug("Fatjet pT: {}, muon pT: {}, deltapT: {}", subj_pt, fj_muon_p4.Pt(), delta_pt );
+                                    ->debug("Clothest Subjet pT: {}, muon pT: {}, deltapT: {}", subj_pt, fj_muon_p4.Pt(), delta_pt );
                         }
 
                         return delta_pt;
@@ -757,7 +770,7 @@ ROOT::RDF::RNode get_closet_subjet_eta(ROOT::RDF::RNode df,
                     auto df1 = df.Define(outputname, get_subjet_index, {subjet_1_p4 , subjet_2_p4, clother_subjet_ind });
                     return df1;  // Ensure the modified DataFrame is returned
                     }
-
+// this function return phi of the subjet that is clother to the muon
 
 ROOT::RDF::RNode get_closet_subjet_phi(ROOT::RDF::RNode df,
                        const std::string &outputname,
