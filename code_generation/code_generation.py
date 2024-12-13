@@ -324,11 +324,19 @@ class CodeGenerator(object):
             template = template_file.read()
         return template
 
-    def addon_includes(self):
+    def addon_includes(self) -> str:
+        """
+        Add the includes all .hxx files from analysis configuration folder:
+        analysis_configurations/{analysis_name}/cpp_addons/include
+        Args:
+            None
+        Returns:
+            str - the include statements for the cpp addons
+        """
         path = f"analysis_configurations/{self.analysis_name}/cpp_addons/include"
         if os.path.exists(path) and os.path.isdir(path) and os.listdir(path):
             log.info(f"Adding addons from {path}: {' '.join(os.listdir(path))}")
-            paths = "\n".join(f'#include "{os.path.join(path, item)}"' for item in os.listdir(path))
+            paths = "\n".join(f'#include "{os.path.join(path, item)}"' for item in os.listdir(path) if item.endswith(".hxx"))
             return paths
         else:
             log.info(f"No addons found in {path}")
