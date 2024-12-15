@@ -18,6 +18,7 @@ def addon_includes(analysis_name: str, file_name: str) -> str:
     analysis_configurations/{analysis_name}/cpp_addons/include
     Args:
         analysis_name: the name of the analysis
+        file_name: Name of file that is templated
     Returns:
         str - the include statements for the cpp addons
     """
