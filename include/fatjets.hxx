@@ -127,6 +127,12 @@ ROOT::RDF::RNode get_closet_subjet_phi(ROOT::RDF::RNode df,
                        const std::string &subjet_2_p4,
                        const std::string &clother_subjet_ind);
 
+ROOT::RDF::RNode get_subj_tau_pt_mt(ROOT::RDF::RNode df,
+                       const std::string &outputname,
+                       const std::string &subjet_1_p4,
+                       const std::string &subjet_2_p4,
+                       const std::string &clother_mu_subjet_ind);
+
 } // end namespace fatjet
 } // end namespace quantities
 #endif /* GUARDFATJETS_H */
