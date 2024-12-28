@@ -50,6 +50,7 @@ Documentation
    contrib.rst
    py_configuration.rst
    correction_manager.rst
+   cpp_addons.rst
 
 .. toctree::
    :maxdepth: 2
