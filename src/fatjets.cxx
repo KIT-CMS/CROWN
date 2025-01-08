@@ -477,8 +477,12 @@ ROOT::RDF::RNode pT_miss_tau1(ROOT::RDF::RNode df,
                 float theta_vis2 = 2 * std::atan(std::exp(-subjet_2_etas));
                 float theta_vis1 = 2 * std::atan(std::exp(-subjet_1_etas));
 
-                float pmiss_tau1 = (-ETmiss * std::cos(phi_ETmiss) * std::sin(theta_vis2) 
-                                    + ETmiss * std::sin(phi_ETmiss) * std::cos(subjet_2_phis)) 
+                float et_miss_x = ETmiss * std::cos(phi_ETmiss);
+                float et_miss_y = ETmiss * std::sin(phi_ETmiss);
+
+
+                float pmiss_tau1 = ( et_miss_x  * std::sin(subjet_2_phis) 
+                                    - et_miss_y * std::cos(subjet_2_phis)) 
                                     / (std::sin(theta_vis1) * std::sin(subjet_1_phis - subjet_2_phis));
 
 
@@ -510,8 +514,11 @@ ROOT::RDF::RNode pT_miss_tau2(ROOT::RDF::RNode df,
                 float theta_vis2 = 2 * std::atan(std::exp(-subjet_2_etas));
                 float theta_vis1 = 2 * std::atan(std::exp(-subjet_1_etas));
 
-                float pmiss_tau2 = (ETmiss * std::cos(phi_ETmiss) * std::sin(theta_vis1) 
-                    - ETmiss * std::sin(phi_ETmiss) * std::cos(subjet_1_phis)) 
+                float et_miss_x = ETmiss * std::cos(phi_ETmiss);
+                float et_miss_y = ETmiss * std::sin(phi_ETmiss);
+
+                float pmiss_tau2 = (- et_miss_x * std::sin(subjet_1_phis) 
+                    + et_miss_y * std::cos(subjet_1_phis)) 
                     / (std::sin(theta_vis2) * std::sin(subjet_1_phis - subjet_2_phis));
 
 
