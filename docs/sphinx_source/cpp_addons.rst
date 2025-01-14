@@ -52,4 +52,11 @@ For the ``hxx`` files, the same unique guard should be used as in the ``cxx`` fi
 Function definitions and namespaces
 -----------------------------------
 
-All function and namespace definitions follow the standard C++ practices. If cpp addons uses one or multiple namespaces, that are also present in the core codebase of CROWN the function definitions must differ in at least their signature or name to avoid naming conflicts during compilation that will abort the compilation.
+All function and namespace definitions follow the standard C++ practices. If cpp addons uses one or multiple namespaces, that are also present in the core codebase of CROWN the function definitions must differ in at least their signature or name to avoid naming conflicts during compilation that will abort the compilation.  A possible correpsonding error might be:
+
+.. code-block:: console
+
+    .../bin/ld: CMakeFiles/CROWNLIB.dir/analysis_configurations/<analysis>/cpp_addons/src/<file>.cxx.o: in function 
+    `<namespace>::<function_name>(<function_signature>)':
+    <file>.cxx:(.text+<hash1>): multiple definition of `<namespace>::<function_name>(<function_signature>)'; 
+    CMakeFiles/CROWNLIB.dir/src/<core_codebase_file>.cxx.o:<core_codebase_file>.cxx:(.text+<hash2>): first defined here
