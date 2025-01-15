@@ -1,12 +1,12 @@
 C++ Addons
 ==========
 
-In some cases, the core codebase of CROWN may not include all the features required for an analysis. To address this, users can add custom C++ code in their analysis configurations. These addons are automatically included in the generated C++ code during the code generation process.
+In some cases, the core codebase of CROWN (CROWNLIB) may not include all the features required for an analysis. To address this, users can add custom C++ code within their analysis configurations. These addons are automatically integrated to the C++ code during the code generation process.
 
 Location and directory structure
 --------------------------------
 
-The expected structure within the analysis configuration:
+The expected structure within the analysis configuration is as follows:
 
 .. code-block:: console
 
@@ -14,32 +14,43 @@ The expected structure within the analysis configuration:
     └── <analysis>
         └── cpp_addons
             ├── include
-            │   └── <file1>.hxx
-            |   └── <file2>.hxx
-            |   └── ...
+            │   ├── <file1>.hxx
+            │   ├── <file2>.hxx
+            │   └── ...
             └── src
-                └── <file1>.cxx
-                └── <file2>.cxx
+                ├── <file1>.cxx
+                ├── <file2>.cxx
                 └── ...
 
 
-If an analysis does not require any additional C++ code and can rely solely on the core codebase, the ``cpp_addons`` folder can be omitted entirely from the analysis configuration.
+If an analysis does not require any additional C++ code and can rely solely on CROWNLIB, the ``cpp_addons`` folder can be omitted entirely from the analysis configuration.
 
-``cxx`` and ``hxx`` structure
------------------------------
+``.cxx`` and ``.hxx`` File structure
+------------------------------------
 
-To avoid redefinition conflicts, each file should use a unique guard, especially if the addon file names are not unique w.r.t. the core codebase of CROWN. Functionalities from the core codebase can be imported using the corresponding relative path to the header files as shown in the example below.
+This functionality considers files in ``analysis_configuration/<analysis>/cpp_addons/src`` and ``analysis_configuration/<analysis>/cpp_addons/include`` during compilation. The following points should be followed when adding and using custom C++ code:
+
+* Use unique guards for each ``.cxx`` file you introduce, especially concerning CROWNLIB. For the correpsonding ``.hxx`` file(s), the same unique guard(s) should be applied.
+* Use a unique function name or function signature if the custom function needs to reside in a namespace that allready exists in CROWNLIB
+* Use ``../../../../include/<filename>.hxx`` if you explicetly want to import functionality from CROWNLIB. Importing CROWNLIB files using different relative paths can lead to unexpected behaviour. 
+
+A example ``.cxx`` file could have the following structure:
 
 
 .. code-block:: cpp
 
-    #ifndef UNIQUE_GUARD_NAME_H  // should be unique for each file
+    #ifndef UNIQUE_GUARD_NAME_H  // unique w.r.t. CROWNLIB and other files in cpp_addons
     #define UNIQUE_GUARD_NAME_H 
     
-    #include "../../../../include/utility/CorrectionManager.hxx"  // from the core codebase
-    #include "../../../../include/utility/Logger.hxx"  // from the core codebase
+    // Include CROWNLIB funtionalities
+    #include "../../../../include/utility/CorrectionManager.hxx"
+    #include "../../../../include/utility/Logger.hxx"
     
-    #include "ROOT/RDataFrame.hxx"  // from the ROOT framework
+    // Feature.hxx file defined in cpp_addons
+    #include "../Feature.hxx"
+    
+    // Globally present i.e. from the ROOT framework
+    #include "ROOT/RDataFrame.hxx"
     #include "correction.h"
 
     /* Your code here */
@@ -47,16 +58,3 @@ To avoid redefinition conflicts, each file should use a unique guard, especially
     // End of the file
     #endif // UNIQUE_GUARD_NAME_H
 
-For the ``hxx`` files, the same unique guard should be used as in the ``cxx`` file.
-
-Function definitions and namespaces
------------------------------------
-
-All function and namespace definitions follow the standard C++ practices. If cpp addons uses one or multiple namespaces, that are also present in the core codebase of CROWN the function definitions must differ in at least their signature or name to avoid naming conflicts during compilation that will abort the compilation.  A possible correpsonding error might be:
-
-.. code-block:: console
-
-    .../bin/ld: CMakeFiles/CROWNLIB.dir/analysis_configurations/<analysis>/cpp_addons/src/<file>.cxx.o: in function 
-    `<namespace>::<function_name>(<function_signature>)':
-    <file>.cxx:(.text+<hash1>): multiple definition of `<namespace>::<function_name>(<function_signature>)'; 
-    CMakeFiles/CROWNLIB.dir/src/<core_codebase_file>.cxx.o:<core_codebase_file>.cxx:(.text+<hash2>): first defined here
