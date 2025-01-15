@@ -72,9 +72,9 @@ else
     if [[ "$1" == "tau" && ! -d "${SCRIPT_DIR}/analysis_configurations/tau" ]]; then
         echo "Cloning analysis tau into ${SCRIPT_DIR}/analysis_configurations/tau"
         git clone git@github.com:KIT-CMS/TauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/tau"
-    elif [[ "$1" == "Run3Analysis" && ! -d "${SCRIPT_DIR}/analysis_configurations/Run3Analysis" ]]; then
-        echo "Cloning analysis Run3Analysis into ${SCRIPT_DIR}/analysis_configurations/Run3Analysis"
-        git clone https://github.com/KIT-CMS/Run3Analysis-CROWN "${SCRIPT_DIR}/analysis_configurations/Run3Analysis"
+    elif [[ "$1" == "run3analysis" && ! -d "${SCRIPT_DIR}/analysis_configurations/run3analysis" ]]; then
+        echo "Cloning analysis run3analysis into ${SCRIPT_DIR}/analysis_configurations/run3analysis"
+        git clone https://github.com/KIT-CMS/Run3Analysis-CROWN "${SCRIPT_DIR}/analysis_configurations/run3analysis"
     elif [[ "$1" == "whtautau" && ! -d "${SCRIPT_DIR}/analysis_configurations/whtautau" ]]; then
         echo "Cloning analysis whtautau into ${SCRIPT_DIR}/analysis_configurations/whtautau"
         git clone git@github.com:KIT-CMS/WHTauTauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/whtautau"
