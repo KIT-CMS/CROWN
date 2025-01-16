@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Update known_hosts
-        run: ssh-keyscan -p 7999 gitlab.cern.ch >> $GITHUB_WORKSPACE/known_hosts
+        run: ssh-keyscan -p 7999 gitlab.cern.ch >> $GITHUB_WORKSPACE/known_hosts && ssh-keygen -R gitlab.cern.ch
       
       - name: Clone project
         uses: actions/checkout@v3
