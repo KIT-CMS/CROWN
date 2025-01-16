@@ -17,7 +17,7 @@ env:
   CONFIG: unittest_config
   SAMPLES: dyjets
   ERAS: 2018
-  SCOPES: "mm,mt,et"
+  SCOPES: "mt,mm,et"
   SHIFTS: "all"
   SINGLE_FRIEND_SCOPES: "mt,mm"
   SINGLE_FRIEND_CONFIG: unittest_friends
@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Update known_hosts
-        run: ssh-keyscan -p 7999 gitlab.cern.ch >> $HOME/.ssh/known_hosts
+        run: ssh-keyscan -p 7999 gitlab.cern.ch >> $GITHUB_WORKSPACE/known_hosts
       
       - name: Clone project
         uses: actions/checkout@v3
