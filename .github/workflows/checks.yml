@@ -17,7 +17,7 @@ env:
   CONFIG: unittest_config
   SAMPLES: dyjets
   ERAS: 2018
-  SCOPES: "mt,mm,et"
+  SCOPES: "mm,mt,et"
   SHIFTS: "all"
   SINGLE_FRIEND_SCOPES: "mt,mm"
   SINGLE_FRIEND_CONFIG: unittest_friends
