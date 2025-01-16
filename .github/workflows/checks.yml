@@ -33,16 +33,13 @@ jobs:
       options: --user 0 # run as root
 
     steps:
-      - name: Update known_hosts
-        run: ssh-keyscan -p 7999 gitlab.cern.ch >> $GITHUB_WORKSPACE/known_hosts && ssh-keygen -f "$GITHUB_WORKSPACE/known_hosts" -R "[gitlab.cern.ch]:7999"
-      
       - name: Clone project
         uses: actions/checkout@v3
         with:
           ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY_TEST }}
           submodules: "recursive"
           ssh-strict: "false"
-          ssh-known-hosts: "[gitlab.cern.ch]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCydIxlwR9l2zOkZXwpSc/Si1dhoi9E8YU06/KH0wYqA1W2c1DS5cYOANddFhfrcON3FS88ZSxyFbS1msKK0LTlR6tweihufYIuQnax5ymrTaUtSBZMgCMKW03TcW74rqR8WSDZ2Ob3TpgVpgjWi6oLHuwIEonf49WDtaDbn/0+5YEG/KQjvrjNIknYu8Iofvkh1JzNexaHAFQDnANno534jhB295xHIPmC053I4Aj1aBWGa5CbmsX2GAl5xUXSn0IItAGj4T4aElXobzxCMx2D6pF5kKygeQArlUj/XB920MD8zG1n39Wup+z0x88mGSVprcGT8qQZfhKG2/LdX2cdyTQmfkMxsNYZsgkH9gL/EWG0g8w6M4qsy+Td4U0MQqPh3AvWQFjHrNhGmB0tYWTvriKymtJxkA+rdJBMwGemJLxbqZhvJIhSGrlQM3h9Mr4K7GBo/fIvjUpZyESe2CuzmLdeU4thP9GQdrR1scsetqJ3YxQbGsZC9XT/CsRJJRbtmvgOGMogYdNQDtvlpiuY4/hHgG8PPbqpIWkdFZjc1uGtpLzambl8fOuxLqc4srwAHbnm3GEHPxLY1Ia9+RgxiiNO9/rOpAhtyBPjrB2KSp4FLregNLJirKbA1/u919xTHFwH0UfVsHRaYeB8gNMx+lMOQGCqwcdUXlSeAln2hQ== nikita.shadskiy@kit.edu"
+          ssh-known-hosts: "[gitlab.cern.ch]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubVS0czgKaPkC5cfB75CI3XjgWBv7pj2ILiZezVf8okkCAYr+bf4w6VrH2pyv3NRUW5Mm8U/3zoSNcrYIqhFFpz6R62/3xt8hMrPKJKstbt1lSIr8QhEyD24SJEKugMi560BWRPkTzXrrFgxz0X4vuKKytpvihRsccZ7F1JaX76UCWEJ3Xr2BFCEnnN6gj9nvFr4gvSMneunWVLGw2KcHwS1OJfnWBlp3fB0rYWSxZAoVjcjZjvv3hioEftaTapff2PkdQIX//N9Cc555FzdmMzixTvU5j/i+QvjxWVbEBNSKI6te6udC4fYUZMePs2QQnqw9mXUQtaQtw+HV7utuw=="
 
       - name: Create Build Environment
         shell: bash
