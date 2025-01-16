@@ -33,6 +33,9 @@ jobs:
       options: --user 0 # run as root
 
     steps:
+      - name: Update known_hosts
+        run: ssh-keyscan -p 7999 gitlab.cern.ch >> /__w/_temp/49907c68-5a58-4529-af09-6c30b5f7fe89_known_hosts
+      
       - name: Clone project
         uses: actions/checkout@v3
         with:
