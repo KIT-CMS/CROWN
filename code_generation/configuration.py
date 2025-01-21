@@ -63,7 +63,6 @@ class Configuration(object):
         available_sample_types: Union[str, List[str]],
         available_eras: Union[str, List[str]],
         available_scopes: Union[str, List[str]],
-        global_scope: bool = True,
     ):
         """
 
@@ -90,10 +89,7 @@ class Configuration(object):
         self.available_scopes = set(available_scopes)
         self.available_outputs: Dict[str, QuantitiesStore] = {}
         self.available_shifts: Dict[str, Set[str]] = {}
-        if global_scope:
-            self.global_scope = "global"
-        else:
-            self.global_scope = None
+        self.global_scope = "global"
 
         self.producers: TProducerStore = {}
         self.unpacked_producers: TProducerStore = {}
