@@ -618,7 +618,7 @@ class Configuration(object):
             Returns:
                 None
         """
-        for key in list(config):
+        for key in config:
             if isinstance(config[key], dict):
                 self._remove_empty_configkeys(config[key])
             # special case for extended vector producers, here we can have a list, that contains empty dicts
