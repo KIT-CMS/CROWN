@@ -170,6 +170,66 @@ ROOT::RDF::RNode iso(ROOT::RDF::RNode df, const std::string &pt,
         {pt, eta});
     return df1;
 }
+
+/**
+ * @brief Function used to evaluate trigger scale factors from muons with
+ * correctionlib. Configurations:
+ * - [UL2018 Muon
+ * Iso](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2018_UL.html)
+ * - [UL2017 Muon
+ * Iso](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2017_UL.html)
+ * - [UL2016preVFP Muon
+ * Iso](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2016preVFP_UL.html)
+ * - [UL2016postVFP Muon
+ * Iso](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2016postVFP_UL.html)
+ *
+ * @param df The input dataframe
+ * @param pt muon pt
+ * @param eta muon eta
+ * @param year_id id for the year of data taking and mc compaign
+ * @param variation id for the variation of the scale factor "sf" for nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param trigger_output name of the trigger scale factor column
+ * @param sf_file path to the file with the muon scale factors
+ * @param idAlgorithm name of the muon trigger scale factor
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, const std::string &pt,
+                         const std::string &eta, const std::string &year_id,
+                         const std::string &variation,
+                         const std::string &trigger_output,
+                         const std::string &sf_file,
+                         const std::string &idAlgorithm) {
+
+    Logger::get("muonTriggerSF")
+        ->debug("Setting up functions for muon trigger sf");
+    Logger::get("muonTriggerSF")->debug("Trigger - Name {}", idAlgorithm);
+    auto evaluator =
+        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto df1 =
+        df.Define(trigger_output,
+                  [evaluator, year_id, variation,
+                   idAlgorithm](const float &pt, const float &eta) {
+                      Logger::get("muonTriggerSF")
+                          ->debug("Trigger - pt {}, eta {}", pt, eta);
+                      double sf = 1.;
+                      float low_pt_threshold = 26.0; // for IsoMu24 trigger
+                      if (idAlgorithm.find("Mu50") != std::string::npos) {
+                          low_pt_threshold = 52.0;
+                      }
+                      // preventing muons for which scale factor is not defined
+                      // for
+                      if (pt > low_pt_threshold && std::abs(eta) >= 0.0 &&
+                          std::abs(eta) < 2.4) {
+                          sf = evaluator->evaluate(
+                              {year_id, std::abs(eta), pt, variation});
+                      }
+                      return sf;
+                  },
+                  {pt, eta});
+    return df1;
+}
+
 } // namespace muon
 namespace tau {
 /**
