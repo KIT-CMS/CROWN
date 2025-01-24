@@ -33,7 +33,7 @@ This starts a CLI, which can be used to add more samples to the database, update
 Information on CMS datasets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To search for CMS datasets, we need first a bit of information, how these datasets can look like. We refer to the CMS dataset names as ``DAS nicks``, since we will search for the using the
+To search for CMS datasets, we need first a bit of information, how these datasets can look like. We refer to the CMS dataset names as ``DAS nicks``, since we will search for them using the
 Data Aggregation Service (DAS) of CMS. The datasets can be searched for at https://cmsweb.cern.ch/das/, or alternatively via ``dasgoclient`` (https://github.com/dmwm/dasgoclient) in a CMSSW
 command-line environment. Our ``sample_manager`` integrates the corresponding software components and puts them into a questionnaire logic.
 
