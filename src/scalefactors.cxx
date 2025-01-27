@@ -214,15 +214,17 @@ ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, const std::string &pt,
                           ->debug("Trigger - pt {}, eta {}", pt, eta);
                       double sf = 1.;
                       float low_pt_threshold = 26.0; // for IsoMu24 trigger
-                      if (idAlgorithm.find("Mu50") != std::string::npos) {
-                          low_pt_threshold = 52.0;
+                      if (idAlgorithm.find("TrkHighPtLooseRelIsoProbes") != std::string::npos) {
+                          low_pt_threshold = 50.0;
                       }
                       // preventing muons for which scale factor is not defined
                       // for
                       if (pt > low_pt_threshold && std::abs(eta) >= 0.0 &&
                           std::abs(eta) < 2.4) {
                           sf = evaluator->evaluate(
-                              {year_id, std::abs(eta), pt, variation});
+                              { std::abs(eta), pt, variation});
+                        Logger::get("muonTriggerSF")
+                          ->debug("****** Triggered - pt {}, eta {}, variation {}, sf {}", pt, eta, variation, sf);
                       }
                       return sf;
                   },
