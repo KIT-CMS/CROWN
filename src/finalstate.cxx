@@ -153,8 +153,12 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau(ROOT::RDF::RNode df,
                                              const std::string &muon_phi,
                                              const std::string &muon_mass,
                                              const std::string &muon_looseId,
+                                             const std::string &muon_dxy,
+                                             const std::string &muon_dz,
                                              const float &pt_threshold,
-                                             const float &eta_threshold) {
+                                             const float &eta_threshold,
+                                             const float &dxy_threshold,
+                                             const float &dz_threshold) {
 
     auto single_muon_in_fatjet = [=]
                                  (const ROOT::Math::PtEtaPhiMVector &fatjet_p4,
@@ -162,7 +166,9 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau(ROOT::RDF::RNode df,
                                   const ROOT::RVec<float> &muon_etas,
                                   const ROOT::RVec<float> &muon_phis,
                                   const ROOT::RVec<float> &muon_masses,
-                                  const ROOT::RVec<bool> &loose_muon_ids) {
+                                  const ROOT::RVec<bool> &loose_muon_ids,
+                                  const ROOT::RVec<float> &muon_dxy,
+                                  const ROOT::RVec<float> &muon_dz) {
 
         float mutau_flag = 0;
         // Check if there is exactly one muon in the event
@@ -178,16 +184,19 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau(ROOT::RDF::RNode df,
         float muon_eta1 = muon_etas[0];
         bool muon_id1 = loose_muon_ids[0];
 
+        float muon_dxy1 = muon_dxy[0];
+        float muon_dz1 = muon_dz[0];
+
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
             ->debug("Muon count equal to 1: found {} muons", muon_pts.size());
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
                 ->debug("Muon count equal to 1  pt: {}, eta: {}", muon_pt1, muon_eta1);
 
-        if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1){
+        if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1 && muon_dxy1 < dxy_threshold && muon_dz1 < dz_threshold ){
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
-                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, looseID: {}", muon_pt1, muon_eta1, muon_id1);
+                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, looseID: {}, dxy: {}, dz: {}", muon_pt1, muon_eta1, muon_id1, muon_dxy1, muon_dz1 );
 
             // Construct the muon 4-vector
             ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt1, muon_eta1, muon_phis[0], muon_masses[0]);
@@ -216,7 +225,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau(ROOT::RDF::RNode df,
     };
 
     auto df1 = df.Define(outputname, single_muon_in_fatjet,
-                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_looseId});
+                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_looseId, muon_dxy, muon_dz});
     return df1;
 }
 
@@ -260,8 +269,12 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_deltaR(ROOT::RDF::RNode df,
                                              const std::string &muon_phi,
                                              const std::string &muon_mass,
                                              const std::string &muon_looseId,
+                                             const std::string &muon_dxy,
+                                             const std::string &muon_dz,
                                              const float &pt_threshold,
-                                             const float &eta_threshold) {
+                                             const float &eta_threshold,
+                                             const float &dxy_threshold,
+                                             const float &dz_threshold) {
 
     auto single_muon_in_fatjet_deltaR = [=]
                                  (const ROOT::Math::PtEtaPhiMVector &fatjet_p4,
@@ -269,7 +282,9 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_deltaR(ROOT::RDF::RNode df,
                                   const ROOT::RVec<float> &muon_etas,
                                   const ROOT::RVec<float> &muon_phis,
                                   const ROOT::RVec<float> &muon_masses,
-                                  const ROOT::RVec<bool> &loose_muon_ids) {
+                                  const ROOT::RVec<bool> &loose_muon_ids,
+                                  const ROOT::RVec<float> &muon_dxy,
+                                  const ROOT::RVec<float> &muon_dz) {
 
         float mutau_deltaR = 27.0;
         // Check if there is exactly one muon in the event
@@ -285,16 +300,19 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_deltaR(ROOT::RDF::RNode df,
         float muon_eta1 = muon_etas[0];
         bool muon_id1 = loose_muon_ids[0];
 
+        float muon_dxy1 = muon_dxy[0];
+        float muon_dz1 = muon_dz[0];
+
         Logger::get("fatjet::single_mu_in_fatjet_mutau_deltaR")
             ->debug("Muon count equal to 1: found {} muons", muon_pts.size());
 
         Logger::get("fatjet::single_mu_in_fatjet_mutau_deltaR")
                 ->debug("Muon count equal to 1  pt: {}, eta: {}", muon_pt1, muon_eta1);
 
-        if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 ==1){
+        if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1 && muon_dxy1 < dxy_threshold && muon_dz1 < dz_threshold ){
 
         Logger::get("fatjet::single_mu_in_fatjet_mutau_deltaR")
-                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, ID: {}", muon_pt1, muon_eta1, muon_id1);
+                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, looseID: {}, dxy: {}, dz: {}", muon_pt1, muon_eta1, muon_id1, muon_dxy1, muon_dz1 );
 
             // Construct the muon 4-vector
             ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt1, muon_eta1, muon_phis[0], muon_masses[0]);
@@ -314,7 +332,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_deltaR(ROOT::RDF::RNode df,
     };
 
     auto df1 = df.Define(outputname, single_muon_in_fatjet_deltaR,
-                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_looseId});
+                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_looseId, muon_dxy, muon_dz});
     return df1;
 
 }
@@ -327,8 +345,12 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_pT(ROOT::RDF::RNode df,
                                              const std::string &muon_phi,
                                              const std::string &muon_mass,
                                              const std::string &muon_looseId,
+                                             const std::string &muon_dxy,
+                                             const std::string &muon_dz,
                                              const float &pt_threshold,
-                                             const float &eta_threshold) {
+                                             const float &eta_threshold,
+                                             const float &dxy_threshold,
+                                             const float &dz_threshold) {
 
     auto single_muon_in_fatjet = [=]
                                  (const ROOT::Math::PtEtaPhiMVector &fatjet_p4,
@@ -336,7 +358,9 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_pT(ROOT::RDF::RNode df,
                                   const ROOT::RVec<float> &muon_etas,
                                   const ROOT::RVec<float> &muon_phis,
                                   const ROOT::RVec<float> &muon_masses,
-                                  const ROOT::RVec<bool> &loose_muon_ids) {
+                                  const ROOT::RVec<bool> &loose_muon_ids,
+                                  const ROOT::RVec<float> &muon_dxy,
+                                  const ROOT::RVec<float> &muon_dz) {
 
         float mu_pt_flag = -10;
         // Check if there is exactly one muon in the event
@@ -353,16 +377,19 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_pT(ROOT::RDF::RNode df,
         float muon_phi1 = muon_phis[0];
         bool muon_id1 = loose_muon_ids[0];
 
+        float muon_dxy1 = muon_dxy[0];
+        float muon_dz1 = muon_dz[0];
+
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
             ->debug("Muon count equal to 1: found {} muons", muon_pts.size());
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
                 ->debug("Muon count equal to 1  pt: {}, eta: {}", muon_pt1, muon_eta1);
 
-        if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1){
+        if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1 && muon_dxy1 < dxy_threshold && muon_dz1 < dz_threshold ){
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
-                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}", muon_pt1, muon_eta1);
+                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, looseID: {}, dxy: {}, dz: {}", muon_pt1, muon_eta1, muon_id1, muon_dxy1, muon_dz1 );
 
             // Construct the muon 4-vector
             ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt1, muon_eta1, muon_phis[0], muon_masses[0]);
@@ -393,7 +420,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_pT(ROOT::RDF::RNode df,
     };
 
     auto df1 = df.Define(outputname, single_muon_in_fatjet,
-                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_looseId});
+                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_looseId, muon_dxy, muon_dz});
     return df1;
 }
 
@@ -406,8 +433,12 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_eta(ROOT::RDF::RNode df,
                                              const std::string &muon_phi,
                                              const std::string &muon_mass,
                                              const std::string &muon_looseId,
+                                             const std::string &muon_dxy,
+                                             const std::string &muon_dz,
                                              const float &pt_threshold,
-                                             const float &eta_threshold) {
+                                             const float &eta_threshold,
+                                             const float &dxy_threshold,
+                                             const float &dz_threshold) {
 
     auto single_muon_in_fatjet = [=]
                                  (const ROOT::Math::PtEtaPhiMVector &fatjet_p4,
@@ -415,7 +446,9 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_eta(ROOT::RDF::RNode df,
                                   const ROOT::RVec<float> &muon_etas,
                                   const ROOT::RVec<float> &muon_phis,
                                   const ROOT::RVec<float> &muon_masses,
-                                  const ROOT::RVec<bool> &loose_muon_ids) {
+                                  const ROOT::RVec<bool> &loose_muon_ids,
+                                  const ROOT::RVec<float> &muon_dxy,
+                                  const ROOT::RVec<float> &muon_dz) {
 
         float mu_eta_flag = -10;
         // Check if there is exactly one muon in the event
@@ -431,16 +464,19 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_eta(ROOT::RDF::RNode df,
         float muon_eta1 = muon_etas[0];
         bool muon_id1 = loose_muon_ids[0];
 
+        float muon_dxy1 = muon_dxy[0];
+        float muon_dz1 = muon_dz[0];
+
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
             ->debug("Muon count equal to 1: found {} muons", muon_pts.size());
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
                 ->debug("Muon count equal to 1  pt: {}, eta: {}", muon_pt1, muon_eta1);
 
-        if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1){
+        if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1 && muon_dxy1 < dxy_threshold && muon_dz1 < dz_threshold ){
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
-                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, ID {}", muon_pt1, muon_eta1, muon_id1);
+                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, looseID: {}, dxy: {}, dz: {}", muon_pt1, muon_eta1, muon_id1, muon_dxy1, muon_dz1 );
 
             // Construct the muon 4-vector
             ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt1, muon_eta1, muon_phis[0], muon_masses[0]);
@@ -469,7 +505,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_eta(ROOT::RDF::RNode df,
     };
 
     auto df1 = df.Define(outputname, single_muon_in_fatjet,
-                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_looseId});
+                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_looseId, muon_dxy, muon_dz});
     return df1;
 }
 
@@ -481,8 +517,12 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_phi(ROOT::RDF::RNode df,
                                              const std::string &muon_phi,
                                              const std::string &muon_mass,
                                              const std::string &muon_looseId,
+                                             const std::string &muon_dxy,
+                                             const std::string &muon_dz,
                                              const float &pt_threshold,
-                                             const float &eta_threshold) {
+                                             const float &eta_threshold,
+                                             const float &dxy_threshold,
+                                             const float &dz_threshold) {
 
     auto single_muon_in_fatjet = [=]
                                  (const ROOT::Math::PtEtaPhiMVector &fatjet_p4,
@@ -490,7 +530,9 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_phi(ROOT::RDF::RNode df,
                                   const ROOT::RVec<float> &muon_etas,
                                   const ROOT::RVec<float> &muon_phis,
                                   const ROOT::RVec<float> &muon_masses,
-                                  const ROOT::RVec<bool> &loose_muon_ids) {
+                                  const ROOT::RVec<bool> &loose_muon_ids,
+                                  const ROOT::RVec<float> &muon_dxy,
+                                  const ROOT::RVec<float> &muon_dz) {
 
         float mu_phi_flag = -10;
         // Check if there is exactly one muon in the event
@@ -506,16 +548,19 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_phi(ROOT::RDF::RNode df,
         float muon_eta1 = muon_etas[0];
         bool muon_id1 = loose_muon_ids[0];
 
+        float muon_dxy1 = muon_dxy[0];
+        float muon_dz1 = muon_dz[0];
+
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
             ->debug("Muon count equal to 1: found {} muons", muon_pts.size());
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
                 ->debug("Muon count equal to 1  pt: {}, eta: {}", muon_pt1, muon_eta1);
 
-        if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1){
+        if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1 && muon_dxy1 < dxy_threshold && muon_dz1 < dz_threshold ){
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
-                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, ID {}", muon_pt1, muon_eta1, muon_id1);
+                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, looseID: {}, dxy: {}, dz: {}", muon_pt1, muon_eta1, muon_id1, muon_dxy1, muon_dz1 );
 
             // Construct the muon 4-vector
             ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt1, muon_eta1, muon_phis[0], muon_masses[0]);
@@ -544,7 +589,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_phi(ROOT::RDF::RNode df,
     };
 
     auto df1 = df.Define(outputname, single_muon_in_fatjet,
-                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_looseId});
+                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_looseId, muon_dxy, muon_dz});
     return df1;
 }
 
@@ -556,8 +601,12 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_mass(ROOT::RDF::RNode df,
                                              const std::string &muon_phi,
                                              const std::string &muon_mass,
                                              const std::string &muon_looseId,
+                                             const std::string &muon_dxy,
+                                             const std::string &muon_dz,
                                              const float &pt_threshold,
-                                             const float &eta_threshold) {
+                                             const float &eta_threshold,
+                                             const float &dxy_threshold,
+                                             const float &dz_threshold) {
 
     auto single_muon_in_fatjet = [=]
                                  (const ROOT::Math::PtEtaPhiMVector &fatjet_p4,
@@ -565,7 +614,9 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_mass(ROOT::RDF::RNode df,
                                   const ROOT::RVec<float> &muon_etas,
                                   const ROOT::RVec<float> &muon_phis,
                                   const ROOT::RVec<float> &muon_masses,
-                                  const ROOT::RVec<bool> &loose_muon_ids) {
+                                  const ROOT::RVec<bool> &loose_muon_ids,
+                                  const ROOT::RVec<float> &muon_dxy,
+                                  const ROOT::RVec<float> &muon_dz) {
 
         float mu_mass_flag = -10;
         // Check if there is exactly one muon in the event
@@ -581,16 +632,19 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_mass(ROOT::RDF::RNode df,
         float muon_eta1 = muon_etas[0];
         bool muon_id1 = loose_muon_ids[0];
 
+        float muon_dxy1 = muon_dxy[0];
+        float muon_dz1 = muon_dz[0];
+
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
             ->debug("Muon count equal to 1: found {} muons", muon_pts.size());
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
                 ->debug("Muon count equal to 1  pt: {}, eta: {}", muon_pt1, muon_eta1);
 
-        if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1){
+       if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1 && muon_dxy1 < dxy_threshold && muon_dz1 < dz_threshold ){
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
-                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, ID {}", muon_pt1, muon_eta1, muon_id1);
+                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, looseID: {}, dxy: {}, dz: {}", muon_pt1, muon_eta1, muon_id1, muon_dxy1, muon_dz1 );
 
             // Construct the muon 4-vector
             ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt1, muon_eta1, muon_phis[0], muon_masses[0]);
@@ -619,7 +673,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_mass(ROOT::RDF::RNode df,
     };
 
     auto df1 = df.Define(outputname, single_muon_in_fatjet,
-                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_looseId});
+                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_looseId, muon_dxy, muon_dz});
     return df1;
 }
 
@@ -632,8 +686,12 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_iso(ROOT::RDF::RNode df,
                                              const std::string &muon_mass,
                                              const std::string &muon_iso,
                                              const std::string &muon_looseId,
+                                             const std::string &muon_dxy,
+                                             const std::string &muon_dz,
                                              const float &pt_threshold,
-                                             const float &eta_threshold) {
+                                             const float &eta_threshold,
+                                             const float &dxy_threshold,
+                                             const float &dz_threshold) {
 
     auto single_muon_in_fatjet = [=]
                                  (const ROOT::Math::PtEtaPhiMVector &fatjet_p4,
@@ -642,7 +700,9 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_iso(ROOT::RDF::RNode df,
                                   const ROOT::RVec<float> &muon_phis,
                                   const ROOT::RVec<float> &muon_masses,
                                   const ROOT::RVec<float> &muon_isos,
-                                  const ROOT::RVec<bool> &loose_muon_ids) {
+                                  const ROOT::RVec<bool> &loose_muon_ids,
+                                  const ROOT::RVec<float> &muon_dxy,
+                                  const ROOT::RVec<float> &muon_dz) {
 
         float mu_iso_flag = -10;
         // Check if there is exactly one muon in the event
@@ -659,16 +719,19 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_iso(ROOT::RDF::RNode df,
         float muon_iso1 = muon_isos[0];
         bool muon_id1 = loose_muon_ids[0];
 
+        float muon_dxy1 = muon_dxy[0];
+        float muon_dz1 = muon_dz[0];
+
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
             ->debug("Muon count equal to 1: found {} muons", muon_pts.size());
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
                 ->debug("Muon count equal to 1  pt: {}, eta: {}", muon_pt1, muon_eta1);
 
-        if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1 ){
+       if (muon_pt1 > pt_threshold && std::abs(muon_eta1) < eta_threshold && muon_id1 == 1 && muon_dxy1 < dxy_threshold && muon_dz1 < dz_threshold ){
 
         Logger::get("fatjet::trigger_single_mu_in_fatjet")
-                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, ID: {}", muon_pt1, muon_eta1, muon_id1);
+                ->debug("Muon passed pT-eta threshold  pt: {}, eta: {}, looseID: {}, dxy: {}, dz: {}", muon_pt1, muon_eta1, muon_id1, muon_dxy1, muon_dz1 );
 
             // Construct the muon 4-vector
             ROOT::Math::PtEtaPhiMVector muon_p4(muon_pt1, muon_eta1, muon_phis[0], muon_masses[0]);
@@ -697,7 +760,7 @@ ROOT::RDF::RNode single_mu_in_fatjet_mutau_mu_iso(ROOT::RDF::RNode df,
     };
 
     auto df1 = df.Define(outputname, single_muon_in_fatjet,
-                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_iso, muon_looseId});
+                         {fatjet_p4, muon_pt, muon_eta, muon_phi, muon_mass, muon_iso, muon_looseId, muon_dxy, muon_dz});
     return df1;
 }
 
