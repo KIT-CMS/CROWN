@@ -13,7 +13,7 @@ Setup
 
 .. code-block:: bash
 
-    git clone --recursive git@github.com:KIT-CMS/KingMaker.git
+    git clone git@github.com:KIT-CMS/KingMaker.git
     cd KingMaker
     source setup.sh KingMaker
 
