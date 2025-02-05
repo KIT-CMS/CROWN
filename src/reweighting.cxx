@@ -2,6 +2,7 @@
 #define GUARD_REWEIGHTING_H
 
 #include "../include/basefunctions.hxx"
+#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/RooFunctorThreadsafe.hxx"
 #include "ROOT/RDataFrame.hxx"
@@ -14,48 +15,10 @@
 /// namespace used for reweighting related functions
 namespace reweighting {
 /**
- * @brief Function used to read out pileup weights
- *
- * @param df The input dataframe
- * @param weightname name of the derived weight
- * @param truePUMean name of the column containing the true PU mean of simulated
- * events
- * @param filename path to the rootfile
- * @param histogramname name of the histogram stored in the rootfile
- * @return a new dataframe containing the new column
- */
-ROOT::RDF::RNode puweights(ROOT::RDF::RNode df, const std::string &weightname,
-                           const std::string &truePUMean,
-                           const std::string &filename,
-                           const std::string &histogramname) {
-
-    float bin_density = 1.0;
-    std::vector<float> puweights;
-    Logger::get("puweights")
-        ->debug("Loading pile-up weights from {}", filename);
-    {
-        TFile inputfile(filename.c_str(), "READ");
-        TH1D *puhist = (TH1D *)inputfile.Get(histogramname.c_str());
-        for (int i = 0; i <= puhist->GetNbinsX(); ++i) {
-            puweights.push_back(puhist->GetBinContent(i));
-        }
-        bin_density = 1.0 / puhist->GetBinWidth(1);
-        delete puhist;
-        inputfile.Close();
-    }
-
-    auto puweightlambda = [bin_density, puweights](const float pu) {
-        size_t puBin = static_cast<size_t>(pu * bin_density);
-        return puBin < puweights.size() ? puweights[puBin] : 1.0;
-    };
-    auto df1 = df.Define(weightname, puweightlambda, {truePUMean});
-    return df1;
-}
-
-/**
  * @brief Function used to read out pileup weights from JSON files
  *
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param weightname name of the derived weight
  * @param truePU name of the column containing the true PU of simulated
  * events
@@ -63,25 +26,25 @@ ROOT::RDF::RNode puweights(ROOT::RDF::RNode df, const std::string &weightname,
  * @param eraname name of the era specified in the JSON file
  * @param variation systematic variations: nominal, up, down
  */
-ROOT::RDF::RNode puweights(ROOT::RDF::RNode df, const std::string &weightname,
-                           const std::string &truePU,
-                           const std::string &filename,
-                           const std::string &eraname,
-                           const std::string &variation) {
-    auto evaluator =
-        correction::CorrectionSet::from_file(filename)->at(eraname);
-    auto df1 =
-        df.Define(weightname,
-                  [evaluator, variation](const float &pu) {
-                      double weight = evaluator->evaluate({pu, variation});
-                      return weight;
-                  },
-                  {truePU});
+ROOT::RDF::RNode
+puweights(ROOT::RDF::RNode df,
+          correctionManager::CorrectionManager &correctionManager,
+          const std::string &weightname, const std::string &truePU,
+          const std::string &filename, const std::string &eraname,
+          const std::string &variation) {
+    auto evaluator = correctionManager.loadCorrection(filename, eraname);
+    auto df1 = df.Define(weightname,
+                         [evaluator, variation](const float &pu) {
+                             double weight =
+                                 evaluator->evaluate({pu, variation});
+                             return weight;
+                         },
+                         {truePU});
     return df1;
 }
 
 /**
- * @brief Function used to calculate top pt reweighting
+ * @brief Function used to calculate top pt reweighting based on https://twiki.cern.ch/twiki/bin/view/CMS/TopPtReweighting
  *
  * @param df The input dataframe
  * @param weightname name of the derived weight
@@ -110,21 +73,16 @@ ROOT::RDF::RNode topptreweighting(ROOT::RDF::RNode df,
             std::cout << top_pts.size();
             Logger::get("topptreweighting")
                 ->error("TTbar reweighting applied to event with not exactly "
-                        "two top quarks. Probably due to wrong sample type.");
+                        "two top quarks. Probably due to wrong sample type. "
+                        "n_top: {}",
+                        top_pts.size());
             throw std::runtime_error("Bad number of top quarks.");
         }
         if (top_pts[0] > 500.0)
             top_pts[0] = 500.0;
         if (top_pts[1] > 500.0)
             top_pts[1] = 500.0;
-        // const float parameter_a = 0.088;
-        // const float parameter_b = -0.00087;
-        // const float parameter_c = 0.00000092;
-        // return sqrt(exp(parameter_a + parameter_b * top_pts[0] +
-        //                 parameter_c * top_pts[0] * top_pts[0]) *
-        //             exp(parameter_a + parameter_b * top_pts[1] +
-        //                 parameter_c * top_pts[1] * top_pts[1]));
-        const float parameter_a = 0.0615; // based on https://twiki.cern.ch/twiki/bin/view/CMS/TopPtReweighting
+        const float parameter_a = 0.0615;
         const float parameter_b = -0.0005;
         return sqrt(exp(parameter_a + parameter_b * top_pts[0]) *
                     exp(parameter_a + parameter_b * top_pts[1]));
@@ -223,13 +181,13 @@ ROOT::RDF::RNode lhe_scale_weights(ROOT::RDF::RNode df,
     if (std::find(allowed_values.begin(), allowed_values.end(), muR) ==
         allowed_values.end()) {
         Logger::get("lhe_scale_weights")
-            ->error("Invalid value for muR: {}}", muR);
+            ->error("Invalid value for muR: {}", muR);
         throw std::runtime_error("Invalid value for muR");
     }
     if (std::find(allowed_values.begin(), allowed_values.end(), muF) ==
         allowed_values.end()) {
         Logger::get("lhe_scale_weights")
-            ->error("Invalid value for muF: {}}", muF);
+            ->error("Invalid value for muF: {}", muF);
         throw std::runtime_error("Invalid value for muF");
     }
     // now find the index
@@ -285,13 +243,13 @@ ROOT::RDF::RNode nmssm_lhe_scale_weights(ROOT::RDF::RNode df,
     if (std::find(allowed_values.begin(), allowed_values.end(), muR) ==
         allowed_values.end()) {
         Logger::get("lhe_scale_weights")
-            ->error("Invalid value for muR: {}}", muR);
+            ->error("Invalid value for muR: {}", muR);
         throw std::runtime_error("Invalid value for muR");
     }
     if (std::find(allowed_values.begin(), allowed_values.end(), muF) ==
         allowed_values.end()) {
         Logger::get("lhe_scale_weights")
-            ->error("Invalid value for muF: {}}", muF);
+            ->error("Invalid value for muF: {}", muF);
         throw std::runtime_error("Invalid value for muF");
     }
     // now find the index

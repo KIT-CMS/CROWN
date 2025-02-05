@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Union, Tuple
 import os
 import filecmp
 import subprocess
-
 from code_generation.producer import SafeDict, Producer, ProducerGroup
 
 from code_generation.configuration import Configuration
@@ -13,8 +12,33 @@ from code_generation.configuration import Configuration
 log = logging.getLogger(__name__)
 
 
-class CodeSubset(object):
+def addon_includes(analysis_name: str, file_name: str) -> str:
+    """
+    Add the includes all .hxx files from analysis configuration folder:
+    analysis_configurations/{analysis_name}/cpp_addons/include
+    Args:
+        analysis_name: the name of the analysis
+        file_name: Name of file that is templated
+    Returns:
+        str - the include statements for the cpp addons
+    """
+    path = f"analysis_configurations/{analysis_name}/cpp_addons/include"
+    if os.path.exists(path) and os.path.isdir(path) and os.listdir(path):
+        log.debug(
+            f"Adding addons from {path} to {file_name}: {' '.join(os.listdir(path))}"
+        )
+        paths = "\n".join(
+            f'#include "{os.path.abspath(os.path.join(path, item))}"'
+            for item in os.listdir(path)
+            if item.endswith(".hxx")
+        )
+        return paths
+    else:
+        log.debug(f"No addons found in {path}")
+        return ""
 
+
+class CodeSubset(object):
     """
     Class used to generate code for a smaller subset. For each subset, a new object must be created.
 
@@ -26,6 +50,7 @@ class CodeSubset(object):
         folder: The folder in which the code will be generated.
         parameters: The parameters to be used for the generation.
         name: The name of the code subset.
+        analysis_name: Name of the analysis configuration.
 
     Returns:
         None
@@ -40,6 +65,7 @@ class CodeSubset(object):
         folder: str,
         configuration_parameters: Dict[str, Any],
         name: str,
+        analysis_name: str,
     ):
         self.file_name = file_name
         self.template = template
@@ -50,6 +76,7 @@ class CodeSubset(object):
         self.count = 0
         self.folder = folder
         self.commands: List[str] = []
+        self.analysis_name = analysis_name
         self.headerfile = os.path.join(
             self.folder, "include", self.scope, "{}.hxx".format(self.file_name)
         )
@@ -108,7 +135,7 @@ class CodeSubset(object):
         # write the header file if it does not exist or is different
         with open(self.headerfile + ".new", "w") as f:
             f.write(
-                f"ROOT::RDF::RNode {self.name}(ROOT::RDF::RNode df, OnnxSessionManager &onnxSessionManager);"
+                f"ROOT::RDF::RNode {self.name}(ROOT::RDF::RNode df, OnnxSessionManager &onnxSessionManager, correctionManager::CorrectionManager &correctionManager);"
             )
         if os.path.isfile(self.headerfile):
             if filecmp.cmp(self.headerfile + ".new", self.headerfile):
@@ -122,8 +149,11 @@ class CodeSubset(object):
         with open(self.sourcefile + ".new", "w") as f:
             commandstring = "".join(self.commands)
             f.write(
-                self.template.replace("//    { commands }", commandstring).replace(
-                    "{subsetname}", self.name
+                self.template.replace("//    { commands }", commandstring)
+                .replace("{subsetname}", self.name)
+                .replace(
+                    "// {INCLUDE_ANALYSISADDONS}",
+                    addon_includes(self.analysis_name, self.file_name),
                 )
             )
         if os.path.isfile(self.sourcefile):
@@ -146,7 +176,7 @@ class CodeSubset(object):
         Returns:
             str: the call to the code subset
         """
-        call = f"    auto {outputscope} = {self.name}({inputscope}, onnxSessionManager); \n"
+        call = f"    auto {outputscope} = {self.name}({inputscope}, onnxSessionManager, correctionManager); \n"
         return call
 
     def include(self) -> str:
@@ -195,6 +225,7 @@ class CodeGenerator(object):
         self.subset_template = self.load_template(sub_template_path)
         self.configuration = configuration
         self.scopes = self.configuration.scopes
+
         self.outputs = self.configuration.outputs
         self.global_scope = self.configuration.global_scope
         self.executable_name = executable_name
@@ -215,6 +246,8 @@ class CodeGenerator(object):
         self.main_counter: Dict[str, int] = {}
         self.number_of_defines = 0
         self.number_of_outputs = 0
+        # sort the scopes alphabetically, keeping the global scope at the beginning
+        self.sort_scopes()
         for scope in self.scopes:
             self.main_counter[scope] = 0
             self.subset_calls[scope] = []
@@ -226,6 +259,16 @@ class CodeGenerator(object):
         self.analysis_is_clean = "false"
         self.get_git_status()
         log.info("Code generator initialized")
+
+    def sort_scopes(self) -> None:
+        """
+        Sort the scopes alphabetically, keeping the global scope at the beginning
+        """
+        self.scopes = sorted(
+            scope for scope in self.scopes if scope != self.global_scope
+        )
+        if self.global_scope is not None:
+            self.scopes = [self.global_scope] + self.scopes
 
     def get_git_status(self) -> None:
         """
@@ -339,6 +382,10 @@ class CodeGenerator(object):
                     "        // {ZERO_EVENTS_FALLBACK}", self.zero_events_fallback()
                 )
                 .replace("        // {CODE_GENERATION}", calls)
+                .replace(
+                    "// {INCLUDE_ANALYSISADDONS}",
+                    addon_includes(self.analysis_name, self.executable_name + ".cxx"),
+                )
                 .replace("// {INCLUDES}", includes)
                 .replace("        // {RUN_COMMANDS}", run_commands)
                 .replace("// {MULTITHREADING}", threadcall)
@@ -349,7 +396,6 @@ class CodeGenerator(object):
                 )
                 .replace("{ANALYSISTAG}", '"Analysis={}"'.format(self.analysis_name))
                 .replace("{CONFIGTAG}", '"Config={}"'.format(self.config_name))
-                .replace("{PROGRESS_CALLBACK}", self.set_process_tracking())
                 .replace("{OUTPUT_QUANTITIES}", self.set_output_quantities())
                 .replace("{SHIFT_QUANTITIES_MAP}", self.set_shift_quantities_map())
                 .replace("{QUANTITIES_SHIFT_MAP}", self.set_quantities_shift_map())
@@ -448,6 +494,7 @@ class CodeGenerator(object):
                 ),
                 configuration_parameters=self.configuration.config_parameters[scope],
                 name=producer_name + "_" + scope,
+                analysis_name=self.analysis_name,
             )
             subset.create()
             subset.write()
@@ -550,8 +597,6 @@ class CodeGenerator(object):
                     outputname=self._outputfiles_generated[scope],
                     outputstring=outputstring,
                 )
-        # add code for tracking the progress
-        runcommands += self.set_process_tracking()
         # add code for the time taken for the dataframe setup
         runcommands += self.set_setup_printout()
         # add trigger of dataframe execution, for nonempty scopes
@@ -650,6 +695,7 @@ class CodeGenerator(object):
         )
         printout += "       timer.Continue();\n"
         printout += '       Logger::get("main")->info("Starting Evaluation");\n'
+        printout += "       correctionManager.report();\n"
 
         return printout
 
@@ -685,37 +731,6 @@ class CodeGenerator(object):
             )
 
         return printout
-
-    def set_process_tracking(self) -> str:
-        """This function replaces the template placeholder for the process tracking with the correct process tracking.
-
-        Returns:
-            The code to be added to the template
-        """
-        tracking = ""
-        scope = self.scopes[-1]
-        tracking += "        ULong64_t {scope}_processed = 0;\n".format(scope=scope)
-        tracking += "        std::mutex {scope}_bar_mutex;\n".format(scope=scope)
-        tracking += "        auto c_{scope} = df{counter}_{scope}.Count();\n".format(
-            counter=self.main_counter[scope], scope=scope
-        )
-        tracking += "        c_{scope}.OnPartialResultSlot(quantile, [&{scope}_bar_mutex, &{scope}_processed, &quantile, &nevents](unsigned int /*slot*/, ULong64_t /*_c*/) {{".format(
-            scope=scope
-        )
-        tracking += (
-            "\n            std::lock_guard<std::mutex> lg({scope}_bar_mutex);\n".format(
-                scope=scope
-            )
-        )
-        tracking += "            {scope}_processed += quantile;\n".format(scope=scope)
-        tracking += "            float percentage = 100 * (float){scope}_processed / (float)nevents;\n".format(
-            scope=scope
-        )
-        tracking += '            Logger::get("main")->info("{{0:d}} / {{1:d}} ({{2:.2f}} %) Events processed ...", {scope}_processed, nevents, percentage);\n'.format(
-            scope=scope
-        )
-        tracking += "        });\n"
-        return tracking
 
     def set_shift_quantities_map(self) -> str:
         """

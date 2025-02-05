@@ -27,6 +27,7 @@ if [[ "$distro" == "CentOS" ]]; then
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-gcc11-opt/setup.sh
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-clang12-opt/setup.sh
         # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-gcc11-dbg/setup.sh
+        echo "CentOS 7 is EOL, running on LCG 105, support will be dropped soon"
         source /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-centos7-gcc11-opt/setup.sh
     else
         echo "Unsupported CentOS version, exiting..."
@@ -34,20 +35,19 @@ if [[ "$distro" == "CentOS" ]]; then
     fi
 elif [[ "$distro" == "RedHatEnterprise" || "$distro" == "Alma" || "$distro" == "Rocky" ]]; then
     if [[ ${os_version:0:1} == "8" ]]; then # elif uname -a | grep -E 'el8' -q
-        # no lcg 103 available for centOS 8
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos8-gcc11-opt/setup.sh
+        echo "Unsupported CentOS version, exiting..."
+        return 0
     elif [[ ${os_version:0:1} == "9" ]]; then # elif uname -a | grep -E 'el8' -q
-        # no lcg 103 available for centOS 8
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-el9-gcc11-opt/setup.sh
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-el9-gcc13-dbg/setup.sh
     else
         echo "Unsupported CentOS version, exiting..."
         return 0
     fi
 elif [[ "$distro" == "Ubuntu" ]]; then
     if [[ ${os_version:0:2} == "20" ]]; then
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-ubuntu2004-gcc9-opt/setup.sh
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-ubuntu2004-gcc9-opt/setup.sh
     elif [[ ${os_version:0:2} == "22" ]]; then
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-ubuntu2204-gcc11-opt/setup.sh
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-ubuntu2204-gcc11-opt/setup.sh
     else
         echo "Unsupported Ubuntu version, exiting..."
         return 0
@@ -78,6 +78,9 @@ else
     elif [[ "$1" == "whtautau" && ! -d "${SCRIPT_DIR}/analysis_configurations/whtautau" ]]; then
         echo "Cloning analysis whtautau into ${SCRIPT_DIR}/analysis_configurations/whtautau"
         git clone git@github.com:KIT-CMS/WHTauTauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/whtautau"
+    elif [[ "$1" == "boosted_h_tautau" && ! -d "${SCRIPT_DIR}/analysis_configurations/boosted_h_tautau" ]]; then
+        echo "Cloning analysis boosted_h_tautau into ${SCRIPT_DIR}/analysis_configurations/boosted_h_tautau"
+        git clone git@github.com:KIT-CMS/BoostedHiggsTauTauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/boosted_h_tautau"
     elif [[ "$1" == "s" && ! -d "${SCRIPT_DIR}/analysis_configurations/s" ]]; then
         echo "Cloning analysis s-channel into ${SCRIPT_DIR}/analysis_configurations/s"
         git clone git@github.com:nfaltermann/CROWNs.git "${SCRIPT_DIR}/analysis_configurations/s"

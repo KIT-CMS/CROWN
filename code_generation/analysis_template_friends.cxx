@@ -1,7 +1,21 @@
-#include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
+#include "ROOT/RDFHelpers.hxx"
 #include "RooTrace.h"
 #include "TStopwatch.h"
+#include <ROOT/RLogger.hxx>
+#include "include/utility/Logger.hxx"
+#include <TFile.h>
+#include <TMap.h>
+#include <filesystem>
+#include <TObjString.h>
+#include <TTree.h>
+#include <TVector.h>
+#include "onnxruntime_cxx_api.h"
+#include <regex>
+#include <string>
+#include "include/utility/OnnxSessionManager.hxx"
+#include "include/utility/CorrectionManager.hxx"
+
 #include "include/fakefactors.hxx"
 #include "include/hhkinfit.hxx"
 #include "include/genparticles.hxx"
@@ -10,7 +24,6 @@
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"
 #include "include/ml.hxx"
-#include "include/utility/OnnxSessionManager.hxx"
 #include "include/metfilter.hxx"
 #include "include/ml.hxx"
 #include "include/pairselection.hxx"
@@ -21,18 +34,9 @@
 #include "include/topreco.hxx"
 #include "include/triggers.hxx"
 #include "include/tripleselection.hxx"
-#include "include/utility/Logger.hxx"
-#include "include/utility/OnnxSessionManager.hxx"
-#include <ROOT/RLogger.hxx>
-#include <TFile.h>
-#include <TMap.h>
-#include <TObjString.h>
-#include <TTree.h>
-#include <TVector.h>
-#include "onnxruntime_cxx_api.h"
-#include <filesystem>
-#include <regex>
-#include <string>
+
+// {INCLUDE_ANALYSISADDONS}
+
 // {INCLUDES}
 
 int validate_rootfile(std::string file, std::string &basetree) {
@@ -145,6 +149,8 @@ int main(int argc, char *argv[]) {
 
     // start an onnx session manager
     OnnxSessionManager onnxSessionManager;
+    // start a correction manager
+    correctionManager::CorrectionManager correctionManager;
 
     // {MULTITHREADING}
 
@@ -165,9 +171,12 @@ int main(int argc, char *argv[]) {
     }
     // initialize df
     ROOT::RDataFrame df0(dataset);
-    // ROOT::RDF::Experimental::AddProgressBar(df0); ROOT 6.30 not available for CS8 on lcg
     // print all available branches to the log
     if (nevents != 0) {
+<<<<<<< HEAD
+=======
+        ROOT::RDF::Experimental::AddProgressBar(df0); // add progress bar
+>>>>>>> main
         Logger::get("main")->debug("Available branches:");
         for (auto const &branch : df0.GetColumnNames()) {
             Logger::get("main")->debug("{}", branch);

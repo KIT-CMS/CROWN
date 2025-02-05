@@ -1,6 +1,7 @@
 #ifndef GUARD_TRIGGERS_H
 #define GUARD_TRIGGERS_H
 
+#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
@@ -1139,10 +1140,89 @@ ROOT::RDF::RNode GetPrescaleValues(ROOT::RDF::RNode df,
                                    const std::string &run_columnname,
                                    const std::string &lumiblock_columnname,
                                    const std::string &prescale_json_file) {
-
+    Logger::get("prescale")
+        ->warn("Not using CorrectionManager is deprecated, this function will "
+               "be removed in a future release, switch to the new function "
+               "using CorrectionManager");
     Logger::get("prescale")->debug("reading json from {}", prescale_json_file);
     std::ifstream i(prescale_json_file);
     nlohmann::json prescale_json = nlohmann::json::parse(i);
+
+    auto get_prescale = [prescale_json](const Bool_t hlt, const UInt_t run,
+                                        const UInt_t lumiblock) {
+        int prescale = -1;
+
+        // Logger::get("prescale")->debug("run, lumi: {},{}", run, lumiblock);
+
+        if (hlt == false) {
+            prescale = -2;
+            // Logger::get("prescale")->debug("no HLT hit,  prescale value:
+            // {}",prescale);
+            return prescale;
+        }
+
+        const std::string s_run = std::to_string(run);
+
+        if (prescale_json.find(s_run) != prescale_json.end()) {
+
+            Logger::get("prescale")->debug("found run in JSON ...");
+            unsigned highest_lumi = 1;
+
+            for (auto &[i_key, i_value] : prescale_json[s_run].items()) {
+                Logger::get("prescale")
+                    ->debug("... checking lumi {}, prescale {} ...",
+                            std::stoi(i_key), int(i_value));
+                if (lumiblock >= std::stoi(i_key)) {
+                    if (std::stoi(i_key) >= highest_lumi) {
+                        highest_lumi = std::stoi(i_key);
+                        prescale = i_value;
+                        Logger::get("prescale")
+                            ->debug("... assigning prescale value: {}",
+                                    prescale);
+                    }
+                }
+            }
+
+        } else {
+            prescale = -3;
+            Logger::get("prescale")
+                ->debug(
+                    "could not find run and lumi in JSON, prescale value: {}",
+                    prescale);
+        }
+
+        return prescale;
+    };
+
+    auto df1 =
+        df.Define(prescale_columnname, get_prescale,
+                  {hlt_columnname, run_columnname, lumiblock_columnname});
+
+    return df1;
+}
+/**
+ * @brief Function to generate a new column containing the prescale value for a
+ * trigger given run and lumiblock, read from an external JSON file
+ *
+ * @param df The input dataframe
+ * @param prescale_columnname name of the output column for the prescale value
+ * @param hlt_columnname name of the column for the HLT path
+ * @param run_columnname name of the column for the run number
+ * @param lumiblock_columnname name of the column for the lumiblock
+ * @param prescale_json_file relative path to the JSON containing the values
+ * @return a new dataframe containing the prescale column
+ */
+
+ROOT::RDF::RNode GetPrescaleValues(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
+    const std::string &prescale_columnname, const std::string &hlt_columnname,
+    const std::string &run_columnname, const std::string &lumiblock_columnname,
+    const std::string &prescale_json_file) {
+
+    Logger::get("prescale")->debug("reading json from {}", prescale_json_file);
+    const nlohmann::json prescale_json =
+        *correctionManager.loadjson(prescale_json_file);
 
     auto get_prescale = [prescale_json](const Bool_t hlt, const UInt_t run,
                                         const UInt_t lumiblock) {

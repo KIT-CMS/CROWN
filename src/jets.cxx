@@ -3,6 +3,7 @@
 
 #include "../include/basefunctions.hxx"
 #include "../include/defaults.hxx"
+#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
@@ -243,6 +244,7 @@ ROOT::RDF::RNode CutPUID(ROOT::RDF::RNode df, const std::string &maskname,
 /// Function to shift and smear jet pt for MC
 ///
 /// \param[in] df the input dataframe
+/// \param[in] correctionManager the correction manager
 /// \param[out] corrected_jet_pt the name of the shifted and smeared jet pts
 /// \param[in] jet_pt name of the input jet pts
 /// \param[in] jet_eta name of the jet etas
@@ -264,17 +266,18 @@ ROOT::RDF::RNode CutPUID(ROOT::RDF::RNode df, const std::string &maskname,
 /// \param[in] jec_file path to the file with JES/JER information
 /// \param[in] jer_tag era dependent tag for JER
 /// \param[in] jes_tag era dependent tag for JES
-/// \param[in] jec_algo algorithm used for jets e.g. AK4PFchs, AK8PFPuppi
+/// \param[in] jec_algo algorithm used for jets e.g. AK4PFchs
 ///
 /// \return a dataframe containing the modified jet pts
 ROOT::RDF::RNode
-JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
-                const std::string &jet_pt, const std::string &jet_eta,
-                const std::string &jet_phi, const std::string &jet_area,
-                const std::string &jet_rawFactor, const std::string &jet_ID,
-                const std::string &gen_jet_pt, const std::string &gen_jet_eta,
-                const std::string &gen_jet_phi, const std::string &rho,
-                bool reapplyJES,
+JetPtCorrection(ROOT::RDF::RNode df,
+                correctionManager::CorrectionManager &correctionManager,
+                const std::string &corrected_jet_pt, const std::string &jet_pt,
+                const std::string &jet_eta, const std::string &jet_phi,
+                const std::string &jet_area, const std::string &jet_rawFactor,
+                const std::string &jet_ID, const std::string &gen_jet_pt,
+                const std::string &gen_jet_eta, const std::string &gen_jet_phi,
+                const std::string &rho, bool reapplyJES,
                 const std::vector<std::string> &jes_shift_sources,
                 const int &jes_shift, const std::string &jer_shift,
                 const std::string &jec_file, const std::string &jer_tag,
@@ -285,37 +288,34 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
         jet_dR = 0.8;
     }
     // loading JES variations
-    std::vector<std::shared_ptr<const correction::Correction>>
-        JetEnergyScaleShifts;
+    std::vector<correction::Correction *> JetEnergyScaleShifts;
     for (const auto &source : jes_shift_sources) {
         // check if any JES shift is chosen
         if (source != "" && source != "HEMIssue") {
-            auto JES_source_evaluator =
-                correction::CorrectionSet::from_file(jec_file)->at(
-                    jes_tag + "_" + source + "_" + jec_algo);
+            auto JES_source_evaluator = const_cast<correction::Correction *>(
+                correctionManager.loadCorrection(
+                    jec_file, jes_tag + "_" + source + "_" + jec_algo));
             JetEnergyScaleShifts.push_back(JES_source_evaluator);
         }
     };
     // loading jet energy correction scale factor evaluation function
-    auto JES_evaluator =
-        correction::CorrectionSet::from_file(jec_file)->compound().at(
-            jes_tag + "_L1L2L3Res_" + jec_algo);
+    auto JES_evaluator = correctionManager.loadCompoundCorrection(
+        jec_file, jes_tag + "_L1L2L3Res_" + jec_algo);
     auto JetEnergyScaleSF = [JES_evaluator](const float area, const float eta,
                                             const float pt, const float rho) {
         return JES_evaluator->evaluate({area, eta, pt, rho});
     };
     // loading relative pT resolution evaluation function
-    auto JER_resolution_evaluator =
-        correction::CorrectionSet::from_file(jec_file)->at(
-            jer_tag + "_PtResolution_" + jec_algo);
+    auto JER_resolution_evaluator = correctionManager.loadCorrection(
+        jec_file, jer_tag + "_PtResolution_" + jec_algo);
     auto JetEnergyResolution = [JER_resolution_evaluator](const float eta,
                                                           const float pt,
                                                           const float rho) {
         return JER_resolution_evaluator->evaluate({eta, pt, rho});
     };
     // loading JER scale factor evaluation function
-    auto JER_SF_evaluator = correction::CorrectionSet::from_file(jec_file)->at(
-        jer_tag + "_ScaleFactor_" + jec_algo);
+    auto JER_SF_evaluator = correctionManager.loadCorrection(
+        jec_file, jer_tag + "_ScaleFactor_" + jec_algo);
     auto JetEnergyResolutionSF =
         [JER_SF_evaluator](const float eta, const std::string jer_shift) {
             return JER_SF_evaluator->evaluate({eta, jer_shift});
@@ -417,8 +417,7 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
             if (jes_shift != 0.0) {
                 if (jes_shift_sources.at(0) != "HEMIssue") {
                     // Differentiate between single source and combined source
-                    // for regrouped scheme -> deprecated, regrouped scheme now
-                    // included in jsonpog corrections
+                    // for reduced scheme
                     if (JetEnergyScaleShifts.size() == 1) {
                         pt_scale_sf =
                             1. +
@@ -450,7 +449,7 @@ JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
                 else if (jes_shift_sources.at(0) == "HEMIssue") {
                     if (jes_shift == (-1.) && pt_values_corrected.at(i) > 15. &&
                         phi_values.at(i) > (-1.57) &&
-                        phi_values.at(i) < (-0.87) && ID_values.at(i) >= 2) {
+                        phi_values.at(i) < (-0.87) && ID_values.at(i) == 2) {
                         if (eta_values.at(i) > (-2.5) &&
                             eta_values.at(i) < (-1.3))
                             pt_scale_sf = 0.8;

@@ -1,6 +1,8 @@
 name: Checks
 
 on:
+  workflow_run:
+    workflows: ["build_unittest_container"]
   push:
     branches:
       - main
@@ -27,7 +29,7 @@ jobs:
   build_project:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:pr-260
+      image: ghcr.io/kit-cms/crown-crown-unittest:latest
       options: --user 0 # run as root
 
     steps:
@@ -61,7 +63,7 @@ jobs:
   build_single_friend:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:pr-260
+      image: ghcr.io/kit-cms/crown-crown-unittest:latest
       options: --user 0 # run as root
 
     steps:
@@ -96,7 +98,7 @@ jobs:
   build_two_friends:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:pr-260
+      image: ghcr.io/kit-cms/crown-crown-unittest:latest
       options: --user 0 # run as root
 
     steps:
@@ -131,7 +133,7 @@ jobs:
   python_format:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:pr-260
+      image: ghcr.io/kit-cms/crown-crown-unittest:latest
       options: --user 0 # run as root
 
     steps:
@@ -150,7 +152,7 @@ jobs:
   cpp_format:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:pr-260
+      image: ghcr.io/kit-cms/crown-crown-unittest:latest
       options: --user 0 # run as root
 
     steps:
@@ -169,7 +171,7 @@ jobs:
   docs:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:pr-260
+      image: ghcr.io/kit-cms/crown-crown-unittest:latest
       options: --user 0 # run as root
 
     steps:

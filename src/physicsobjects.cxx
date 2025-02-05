@@ -3,6 +3,7 @@
 
 #include "../include/RoccoR.hxx"
 #include "../include/basefunctions.hxx"
+#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/utility.hxx"
 #include "ROOT/RDFHelpers.hxx"
@@ -416,7 +417,7 @@ ROOT::RDF::RNode CheckForDiLeptonPairs(
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode SelectInt(ROOT::RDF::RNode df, const std::string &maskname,
-                         const std::string &nameID, const int &IDvalue) {
+                           const std::string &nameID, const int &IDvalue) {
     auto df1 =
         df.Define(maskname, basefunctions::FilterEqualInt(IDvalue), {nameID});
     return df1;
@@ -675,12 +676,104 @@ ROOT::RDF::RNode CutTauID(ROOT::RDF::RNode df, const std::string &maskname,
 ///
 /// \param[out] corrected_pt name of the corrected tau pt to be calculated
 /// \param[in] df the input dataframe
+/// \param[in] correctionManager the correction manager instance
 /// \param[in] pt name of the raw tau pt
 /// \param[in] eta name of raw tau eta
 /// \param[in] decayMode decay mode of the tau
 /// \param[in] genMatch column with genmatch values (from prompt e, prompt mu,
 /// tau->e, tau->mu, had. tau)
 /// \param[in] sf_file:
+///     2018:
+///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2018_UL.html
+///     2017:
+///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2017_UL.html
+///     2016:
+///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016preVFP_UL.html
+///           https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016postVFP_UL.html
+/// \param[in] jsonESname name of the tau energy correction in the json file
+/// \param[in] idAlgorithm name of the used tau id algorithm
+/// \param[in] sf_dm0_b scale factor to be applied to taus with decay mode 0 and
+/// eta region barrel
+/// \param[in] sf_dm1_b scale factor to be applied to taus
+/// with decay mode 1 and eta region barrel
+/// \param[in] sf_dm0_e scale factor to
+/// be applied to taus with decay mode 0 and eta region endcap
+/// \param[in] sf_dm1_e scale factor to be applied to taus with decay mode 1 and
+/// eta region endcap name of the tau decay mode quantity
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode
+PtCorrection_eleFake(ROOT::RDF::RNode df,
+                     correctionManager::CorrectionManager &correctionManager,
+                     const std::string &corrected_pt, const std::string &pt,
+                     const std::string &eta, const std::string &decayMode,
+                     const std::string &genMatch, const std::string &sf_file,
+                     const std::string &jsonESname,
+                     const std::string &idAlgorithm,
+                     const std::string &sf_dm0_b, const std::string &sf_dm1_b,
+                     const std::string &sf_dm0_e, const std::string &sf_dm1_e) {
+    auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
+    auto tau_pt_correction_lambda = [evaluator, idAlgorithm, sf_dm0_b, sf_dm1_b,
+                                     sf_dm0_e, sf_dm1_e](
+                                        const ROOT::RVec<float> &pt_values,
+                                        const ROOT::RVec<float> &eta_values,
+                                        const ROOT::RVec<int> &decay_modes,
+                                        const ROOT::RVec<UChar_t> &genmatch) {
+        ROOT::RVec<float> corrected_pt_values(pt_values.size());
+        for (int i = 0; i < pt_values.size(); i++) {
+            if (genmatch.at(i) == 1 || genmatch.at(i) == 3) {
+                // only considering wanted tau decay modes
+                if (decay_modes.at(i) == 0 &&
+                    std::abs(eta_values.at(i)) <= 1.5) {
+                    auto sf = evaluator->evaluate(
+                        {pt_values.at(i), std::abs(eta_values.at(i)),
+                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
+                         idAlgorithm, sf_dm0_b});
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                } else if (decay_modes.at(i) == 0 &&
+                           std::abs(eta_values.at(i)) > 1.5 &&
+                           std::abs(eta_values.at(i)) <= 2.5) {
+                    auto sf = evaluator->evaluate(
+                        {pt_values.at(i), std::abs(eta_values.at(i)),
+                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
+                         idAlgorithm, sf_dm0_e});
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                } else if (decay_modes.at(i) == 1 &&
+                           std::abs(eta_values.at(i)) <= 1.5) {
+                    auto sf = evaluator->evaluate(
+                        {pt_values.at(i), std::abs(eta_values.at(i)),
+                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
+                         idAlgorithm, sf_dm1_b});
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                } else if (decay_modes.at(i) == 1 &&
+                           std::abs(eta_values.at(i)) > 1.5 &&
+                           std::abs(eta_values.at(i)) <= 2.5) {
+                    auto sf = evaluator->evaluate(
+                        {pt_values.at(i), std::abs(eta_values.at(i)),
+                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
+                         idAlgorithm, sf_dm1_e});
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                }
+            } else {
+                corrected_pt_values[i] = pt_values.at(i);
+            }
+            Logger::get("ptcorrection ele fake")
+                ->debug("tau pt before {}, tau pt after {}", pt_values.at(i),
+                        corrected_pt_values.at(i));
+        }
+        return corrected_pt_values;
+    };
+    auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda,
+                         {pt, eta, decayMode, genMatch});
+    return df1;
+}
+/// Function to correct e to tau fake pt
+/// WARNING: The function without the CorrectionManager is deprecated and will
+/// be removed in the future \param[out] corrected_pt name of the corrected tau
+/// pt to be calculated \param[in] df the input dataframe \param[in] pt name of
+/// the raw tau pt \param[in] eta name of raw tau eta \param[in] decayMode decay
+/// mode of the tau \param[in] genMatch column with genmatch values (from prompt
+/// e, prompt mu, tau->e, tau->mu, had. tau) \param[in] sf_file:
 ///     2018:
 ///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2018_UL.html
 ///     2017:
@@ -708,6 +801,10 @@ PtCorrection_eleFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
                      const std::string &idAlgorithm,
                      const std::string &sf_dm0_b, const std::string &sf_dm1_b,
                      const std::string &sf_dm0_e, const std::string &sf_dm1_e) {
+    Logger::get("ptcorrection ele fake")
+        ->warn("The function  without CorrectionManager is deprecated and will "
+               "be removed in the future. Please use the function with "
+               "CorrectionManager instead.");
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
     auto tau_pt_correction_lambda = [evaluator, idAlgorithm, sf_dm0_b, sf_dm1_b,
@@ -767,6 +864,7 @@ PtCorrection_eleFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
 /// Function to correct mu to tau fake pt
 ///
 /// \param[out] corrected_pt name of the corrected tau pt to be calculated
+/// \param[in] correctionManager the correction manager instance
 /// \param[in] df the input dataframe
 /// \param[in] pt name of the raw tau pt
 /// \param[in] eta name of raw tau eta
@@ -787,11 +885,73 @@ PtCorrection_eleFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
+PtCorrection_muFake(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
+                    const std::string &corrected_pt, const std::string &pt,
+                    const std::string &eta, const std::string &decayMode,
+                    const std::string &genMatch, const std::string &sf_file,
+                    const std::string &jsonESname,
+                    const std::string &idAlgorithm, const std::string &sf_es) {
+    auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
+    auto tau_pt_correction_lambda =
+        [evaluator, idAlgorithm, sf_es](const ROOT::RVec<float> &pt_values,
+                                        const ROOT::RVec<float> &eta_values,
+                                        const ROOT::RVec<int> &decay_modes,
+                                        const ROOT::RVec<UChar_t> &genmatch) {
+            ROOT::RVec<float> corrected_pt_values(pt_values.size());
+            for (int i = 0; i < pt_values.size(); i++) {
+                if (genmatch.at(i) == 2 || genmatch.at(i) == 4) {
+                    // only considering wanted tau decay modes
+                    auto sf = evaluator->evaluate(
+                        {pt_values.at(i), std::abs(eta_values.at(i)),
+                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
+                         idAlgorithm, sf_es});
+                    corrected_pt_values[i] = pt_values.at(i) * sf;
+                } else {
+                    corrected_pt_values[i] = pt_values.at(i);
+                }
+                if (genmatch.at(i) == 2 || genmatch.at(i) == 4) {
+                    Logger::get("mu fake")->debug(
+                        "tau pt before {}, tau pt after {}", pt_values.at(i),
+                        corrected_pt_values.at(i));
+                }
+            }
+            return corrected_pt_values;
+        };
+    auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda,
+                         {pt, eta, decayMode, genMatch});
+    return df1;
+}
+/// Function to correct mu to tau fake pt
+/// WARNING: The function without the CorrectionManager is deprecated and will
+/// be removed in the future \param[out] corrected_pt name of the corrected tau
+/// pt to be calculated \param[in] df the input dataframe \param[in] pt name of
+/// the raw tau pt \param[in] eta name of raw tau eta \param[in] decayMode decay
+/// mode of the tau \param[in] genMatch column with genmatch values (from prompt
+/// e, prompt mu, tau->e, tau->mu, had. tau) \param[in] sf_file:
+///     2018:
+///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2018_UL.html
+///     2017:
+///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2017_UL.html
+///     2016:
+///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016preVFP_UL.html
+///           https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016postVFP_UL.html
+/// \param[in] jsonESname name of the tau energy correction in the json file
+/// \param[in] idAlgorithm name of the used tau id algorithm
+/// \param[in] sf_es scale factor to be applied to taus faked by muons
+/// name of the tau decay mode quantity
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode
 PtCorrection_muFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
                     const std::string &pt, const std::string &eta,
                     const std::string &decayMode, const std::string &genMatch,
                     const std::string &sf_file, const std::string &jsonESname,
                     const std::string &idAlgorithm, const std::string &sf_es) {
+    Logger::get("ptcorrection mu fake")
+        ->warn("The function without CorrectionManager is deprecated and will "
+               "be removed in the future. Please use the function with "
+               "CorrectionManager instead.");
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
     auto tau_pt_correction_lambda =
@@ -866,6 +1026,7 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
 /// Function to correct tau pt with correctionlib
 ///
 /// \param[in] df the input dataframe
+/// \param[in] correctionManager the correction manager instance
 /// \param[out] corrected_pt name of the corrected tau pt to be calculated
 /// \param[in] pt name of the raw tau pt
 /// \param[in] eta name of raw tau eta
@@ -889,15 +1050,16 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
-PtCorrection_genTau(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                    const std::string &pt, const std::string &eta,
-                    const std::string &decayMode, const std::string &genMatch,
-                    const std::string &sf_file, const std::string &jsonESname,
+PtCorrection_genTau(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
+                    const std::string &corrected_pt, const std::string &pt,
+                    const std::string &eta, const std::string &decayMode,
+                    const std::string &genMatch, const std::string &sf_file,
+                    const std::string &jsonESname,
                     const std::string &idAlgorithm, const std::string &DM0,
                     const std::string &DM1, const std::string &DM10,
                     const std::string &DM11) {
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
+    auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
     auto tau_pt_correction_lambda = [evaluator, idAlgorithm, DM0, DM1, DM10,
                                      DM11](
                                         const ROOT::RVec<float> &pt_values,
@@ -986,6 +1148,7 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
 /// Function to correct electron pt, based on correctionlib file
 ///
 /// \param[in] df the input dataframe
+/// \param[in] correctionManager the correction manager instance
 /// \param[out] corrected_pt name of the corrected tau pt to be calculated
 /// \param[in] pt name of the raw tau pt
 /// \param[in] eta name of raw tau eta
@@ -996,116 +1159,269 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
+PtCorrection(ROOT::RDF::RNode df,
+             correctionManager::CorrectionManager &correctionManager,
+             const std::string &corrected_pt, const std::string &pt,
+             const std::string &eta, const std::string &sf_barrel,
+             const std::string &sf_endcap, const std::string &sf_file,
+             const std::string &jsonESname) {
+    auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
+    auto electron_pt_correction_lambda = [evaluator, sf_barrel, sf_endcap](
+                                             const ROOT::RVec<float> &pt_values,
+                                             const ROOT::RVec<float> &eta) {
+        ROOT::RVec<float> corrected_pt_values(pt_values.size());
+        for (int i = 0; i < pt_values.size(); i++) {
+            if (abs(eta.at(i)) <= 1.479) {
+                auto sf = evaluator->evaluate({"barrel", sf_barrel});
+                corrected_pt_values[i] = pt_values.at(i) * sf;
+                Logger::get("eleEnergyCorrection")
+                    ->debug("barrel: ele pt before {}, ele pt after {}, sf {}",
+                            pt_values.at(i), corrected_pt_values.at(i), sf);
+            } else if (abs(eta.at(i)) > 1.479) {
+                auto sf = evaluator->evaluate({"endcap", sf_endcap});
+                corrected_pt_values[i] = pt_values.at(i) * sf;
+                Logger::get("eleEnergyCorrection")
+                    ->debug("endcap: ele pt before {}, ele pt after {}, sf {}",
+                            pt_values.at(i), corrected_pt_values.at(i), sf);
+            } else {
+                corrected_pt_values[i] = pt_values.at(i);
+            }
+        }
+        return corrected_pt_values;
+    };
+    auto df1 =
+        df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
+    return df1;
+}
+/// Function to correct electron pt, based on correctionlib file
+/// WARNING: The function without the CorrectionManager is deprecated and will
+/// be removed in the future \param[in] df the input dataframe \param[out]
+/// corrected_pt name of the corrected tau pt to be calculated \param[in] pt
+/// name of the raw tau pt \param[in] eta name of raw tau eta \param[in]
+/// sf_barrel scale factor to be applied to electrons in the barrel \param[in]
+/// sf_endcap scale factor to be applied to electrons in the endcap \param[in]
+/// sf_file: \param[in] jsonESname name of the tau energy correction in the json
+/// file
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode
 PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                    const std::string &pt, const std::string &eta,
-                    const std::string &sf_barrel, const std::string &sf_endcap,
-                    const std::string &sf_file, const std::string &jsonESname) {
+             const std::string &pt, const std::string &eta,
+             const std::string &sf_barrel, const std::string &sf_endcap,
+             const std::string &sf_file, const std::string &jsonESname) {
+    Logger::get("eleEnergyCorrection")
+        ->warn("The function without CorrectionManager is deprecated and will "
+               "be removed in the future. Please use the function with "
+               "CorrectionManager instead.");
     auto evaluator =
         correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
+    auto electron_pt_correction_lambda = [evaluator, sf_barrel, sf_endcap](
+                                             const ROOT::RVec<float> &pt_values,
+                                             const ROOT::RVec<float> &eta) {
+        ROOT::RVec<float> corrected_pt_values(pt_values.size());
+        for (int i = 0; i < pt_values.size(); i++) {
+            if (abs(eta.at(i)) <= 1.479) {
+                auto sf = evaluator->evaluate({"barrel", sf_barrel});
+                corrected_pt_values[i] = pt_values.at(i) * sf;
+                Logger::get("eleEnergyCorrection")
+                    ->debug("barrel: ele pt before {}, ele pt after {}, sf {}",
+                            pt_values.at(i), corrected_pt_values.at(i), sf);
+            } else if (abs(eta.at(i)) > 1.479) {
+                auto sf = evaluator->evaluate({"endcap", sf_endcap});
+                corrected_pt_values[i] = pt_values.at(i) * sf;
+                Logger::get("eleEnergyCorrection")
+                    ->debug("endcap: ele pt before {}, ele pt after {}, sf {}",
+                            pt_values.at(i), corrected_pt_values.at(i), sf);
+            } else {
+                corrected_pt_values[i] = pt_values.at(i);
+            }
+        }
+        return corrected_pt_values;
+    };
+    auto df1 =
+        df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
+    return df1;
+}
+/// Function to calculate uncertainties for electron pt correction. The electron
+/// energy correction is already applied in nanoAOD and in general there are
+/// branches in nanoAOD with the energy shifts for scale and resolution, but due
+/// to a bug the scale shifts are all 0 and have to be calculated from a json
+/// file. Information taken from
+/// https://cms-talk.web.cern.ch/t/electron-scale-smear-variables-in-nanoaod/20210
+/// and https://twiki.cern.ch/twiki/bin/view/CMS/EgammaSFJSON
+///
+/// \param[in] df the input dataframe
+/// \param[in] correctionManager the correction manager instance
+/// \param[out] corrected_pt name of the corrected electron pt to be calculated
+/// \param[in] pt name of the electron pt
+/// \param[in] eta name of electron eta
+/// \param[in] gain name of electron seedGain
+/// \param[in] ES_sigma_up name of electron energy smearing value 1 sigma up
+/// shifted \param[in] ES_sigma_down name of electron energy smearing value 1
+/// sigma down shifted \param[in] era era of the electron measurement e.g.
+/// "2018" \param[in] variation name of the variation to be calculated (nominal
+/// correction is already applied) \param[in] ES_file name of the json file with
+/// the energy scale uncertainties
+///
+/// \return a dataframe containing the new mask
+ROOT::RDF::RNode
+PtCorrectionMC(ROOT::RDF::RNode df,
+               correctionManager::CorrectionManager &correctionManager,
+               const std::string &corrected_pt, const std::string &pt,
+               const std::string &eta, const std::string &gain,
+               const std::string &ES_sigma_up, const std::string &ES_sigma_down,
+               const std::string &era, const std::string &variation,
+               const std::string &ES_file) {
+    auto evaluator =
+        correctionManager.loadCorrection(ES_file, "UL-EGM_ScaleUnc");
     auto electron_pt_correction_lambda =
-        [evaluator, sf_barrel, sf_endcap](const ROOT::RVec<float> &pt_values,
-                                        const ROOT::RVec<float> &eta) {
+        [evaluator, era, variation](const ROOT::RVec<float> &pt_values,
+                                    const ROOT::RVec<float> &eta,
+                                    const ROOT::RVec<UChar_t> &gain,
+                                    const ROOT::RVec<float> &ES_sigma_up,
+                                    const ROOT::RVec<float> &ES_sigma_down) {
             ROOT::RVec<float> corrected_pt_values(pt_values.size());
             for (int i = 0; i < pt_values.size(); i++) {
-                if (abs(eta.at(i)) <= 1.479) {
-                    auto sf = evaluator->evaluate(
-                        {"barrel", sf_barrel});
+                if (variation == "resolutionUp") {
+                    auto dpt = ES_sigma_up.at(i) / std::cosh(eta.at(i));
+                    corrected_pt_values[i] = pt_values.at(i) + dpt;
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("ele pt before {}, ele pt after {}, dpt {}",
+                                pt_values.at(i), corrected_pt_values.at(i),
+                                dpt);
+                } else if (variation == "resolutionDown") {
+                    auto dpt = ES_sigma_down.at(i) / std::cosh(eta.at(i));
+                    corrected_pt_values[i] = pt_values.at(i) + dpt;
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("ele pt before {}, ele pt after {}, dpt {}",
+                                pt_values.at(i), corrected_pt_values.at(i),
+                                dpt);
+                } else if (variation == "scaleUp") {
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("inputs: era {}, eta {}, gain {}", era,
+                                eta.at(i), static_cast<int>(gain.at(i)));
+                    auto sf =
+                        evaluator->evaluate({era, "scaleup", eta.at(i),
+                                             static_cast<int>(gain.at(i))});
                     corrected_pt_values[i] = pt_values.at(i) * sf;
-                    Logger::get("eleEnergyCorrection")
-                ->debug("barrel: ele pt before {}, ele pt after {}, sf {}",
-                        pt_values.at(i), corrected_pt_values.at(i),
-                        sf);
-                } else if (abs(eta.at(i)) > 1.479) {
-                    auto sf = evaluator->evaluate(
-                        {"endcap", sf_endcap});
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("ele pt before {}, ele pt after {}, sf {}",
+                                pt_values.at(i), corrected_pt_values.at(i), sf);
+                } else if (variation == "scaleDown") {
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("inputs: era {}, eta {}, gain {}", era,
+                                eta.at(i), static_cast<int>(gain.at(i)));
+                    auto sf =
+                        evaluator->evaluate({era, "scaledown", eta.at(i),
+                                             static_cast<int>(gain.at(i))});
                     corrected_pt_values[i] = pt_values.at(i) * sf;
-                    Logger::get("eleEnergyCorrection")
-                ->debug("endcap: ele pt before {}, ele pt after {}, sf {}",
-                        pt_values.at(i), corrected_pt_values.at(i),
-                        sf);
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("ele pt before {}, ele pt after {}, sf {}",
+                                pt_values.at(i), corrected_pt_values.at(i), sf);
                 } else {
                     corrected_pt_values[i] = pt_values.at(i);
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("ele pt before {}, ele pt after {}",
+                                pt_values.at(i), corrected_pt_values.at(i));
                 }
             }
             return corrected_pt_values;
         };
-    auto df1 = df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
+    auto df1 = df.Define(corrected_pt, electron_pt_correction_lambda,
+                         {pt, eta, gain, ES_sigma_up, ES_sigma_down});
     return df1;
 }
-/// Function to calculate uncertainties for electron pt correction. The electron energy correction 
-/// is already applied in nanoAOD and in general there are branches in nanoAOD with the energy shifts 
-/// for scale and resolution, but due to a bug the scale shifts are all 0 and have to be calculated from 
-/// a json file.
-/// Information taken from https://cms-talk.web.cern.ch/t/electron-scale-smear-variables-in-nanoaod/20210 
+/// Function to calculate uncertainties for electron pt correction. The electron
+/// energy correction is already applied in nanoAOD and in general there are
+/// branches in nanoAOD with the energy shifts for scale and resolution, but due
+/// to a bug the scale shifts are all 0 and have to be calculated from a json
+/// file. Information taken from
+/// https://cms-talk.web.cern.ch/t/electron-scale-smear-variables-in-nanoaod/20210
 /// and https://twiki.cern.ch/twiki/bin/view/CMS/EgammaSFJSON
+/// WARNING: The function without the CorrectionManager is deprecated and will
+/// be removed in the future
 ///
 /// \param[in] df the input dataframe
 /// \param[out] corrected_pt name of the corrected electron pt to be calculated
 /// \param[in] pt name of the electron pt
 /// \param[in] eta name of electron eta
 /// \param[in] gain name of electron seedGain
-/// \param[in] ES_sigma_up name of electron energy smearing value 1 sigma up shifted
-/// \param[in] ES_sigma_down name of electron energy smearing value 1 sigma down shifted
-/// \param[in] era era of the electron measurement e.g. "2018"
-/// \param[in] variation name of the variation to be calculated (nominal correction is already applied)
-/// \param[in] ES_file name of the json file with the energy scale uncertainties
+/// \param[in] ES_sigma_up name of electron energy smearing value 1 sigma up
+/// shifted \param[in] ES_sigma_down name of electron energy smearing value 1
+/// sigma down shifted \param[in] era era of the electron measurement e.g.
+/// "2018" \param[in] variation name of the variation to be calculated (nominal
+/// correction is already applied) \param[in] ES_file name of the json file with
+/// the energy scale uncertainties
 ///
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                    const std::string &pt, const std::string &eta,
-                    const std::string &gain, const std::string &ES_sigma_up,
-                    const std::string &ES_sigma_down, const std::string &era,
-                    const std::string &variation, const std::string &ES_file) {
+               const std::string &pt, const std::string &eta,
+               const std::string &gain, const std::string &ES_sigma_up,
+               const std::string &ES_sigma_down, const std::string &era,
+               const std::string &variation, const std::string &ES_file) {
+    Logger::get("ElectronPtCorrectionMC")
+        ->warn("The function without CorrectionManager is deprecated and will "
+               "be removed in the future. Please use the function with "
+               "CorrectionManager instead.");
     auto evaluator =
         correction::CorrectionSet::from_file(ES_file)->at("UL-EGM_ScaleUnc");
     auto electron_pt_correction_lambda =
         [evaluator, era, variation](const ROOT::RVec<float> &pt_values,
-                                    const ROOT::RVec<float> &eta, const ROOT::RVec<UChar_t> &gain,
-                                    const ROOT::RVec<float> &ES_sigma_up, const ROOT::RVec<float> &ES_sigma_down) {
+                                    const ROOT::RVec<float> &eta,
+                                    const ROOT::RVec<UChar_t> &gain,
+                                    const ROOT::RVec<float> &ES_sigma_up,
+                                    const ROOT::RVec<float> &ES_sigma_down) {
             ROOT::RVec<float> corrected_pt_values(pt_values.size());
             for (int i = 0; i < pt_values.size(); i++) {
                 if (variation == "resolutionUp") {
                     auto dpt = ES_sigma_up.at(i) / std::cosh(eta.at(i));
                     corrected_pt_values[i] = pt_values.at(i) + dpt;
-                    Logger::get("eleEnergyCorrection")
-                    ->debug("ele pt before {}, ele pt after {}, dpt {}",
-                        pt_values.at(i), corrected_pt_values.at(i), dpt);
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("ele pt before {}, ele pt after {}, dpt {}",
+                                pt_values.at(i), corrected_pt_values.at(i),
+                                dpt);
                 } else if (variation == "resolutionDown") {
                     auto dpt = ES_sigma_down.at(i) / std::cosh(eta.at(i));
                     // sign is already incorporated in nanoAOD branch
                     corrected_pt_values[i] = pt_values.at(i) + dpt;
-                    Logger::get("eleEnergyCorrection")
-                    ->debug("ele pt before {}, ele pt after {}, dpt {}",
-                        pt_values.at(i), corrected_pt_values.at(i), dpt);
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("ele pt before {}, ele pt after {}, dpt {}",
+                                pt_values.at(i), corrected_pt_values.at(i),
+                                dpt);
                 } else if (variation == "scaleUp") {
-                    Logger::get("eleEnergyCorrection")
-                    ->debug("inputs: era {}, eta {}, gain {}",
-                        era, eta.at(i), static_cast<int>(gain.at(i)));
-                    auto sf = evaluator->evaluate({era, "scaleup", eta.at(i), static_cast<int>(gain.at(i))});
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("inputs: era {}, eta {}, gain {}", era,
+                                eta.at(i), static_cast<int>(gain.at(i)));
+                    auto sf =
+                        evaluator->evaluate({era, "scaleup", eta.at(i),
+                                             static_cast<int>(gain.at(i))});
                     corrected_pt_values[i] = pt_values.at(i) * sf;
-                    Logger::get("eleEnergyCorrection")
-                    ->debug("ele pt before {}, ele pt after {}, sf {}",
-                        pt_values.at(i), corrected_pt_values.at(i), sf);
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("ele pt before {}, ele pt after {}, sf {}",
+                                pt_values.at(i), corrected_pt_values.at(i), sf);
                 } else if (variation == "scaleDown") {
-                    Logger::get("eleEnergyCorrection")
-                    ->debug("inputs: era {}, eta {}, gain {}",
-                        era, eta.at(i), static_cast<int>(gain.at(i)));
-                    auto sf = evaluator->evaluate({era, "scaledown", eta.at(i), static_cast<int>(gain.at(i))});
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("inputs: era {}, eta {}, gain {}", era,
+                                eta.at(i), static_cast<int>(gain.at(i)));
+                    auto sf =
+                        evaluator->evaluate({era, "scaledown", eta.at(i),
+                                             static_cast<int>(gain.at(i))});
                     corrected_pt_values[i] = pt_values.at(i) * sf;
-                    Logger::get("eleEnergyCorrection")
-                    ->debug("ele pt before {}, ele pt after {}, sf {}",
-                        pt_values.at(i), corrected_pt_values.at(i), sf);
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("ele pt before {}, ele pt after {}, sf {}",
+                                pt_values.at(i), corrected_pt_values.at(i), sf);
                 } else {
                     corrected_pt_values[i] = pt_values.at(i);
-                    Logger::get("eleEnergyCorrection")
-                    ->debug("ele pt before {}, ele pt after {}",
-                        pt_values.at(i), corrected_pt_values.at(i));
+                    Logger::get("ElectronPtCorrectionMC")
+                        ->debug("ele pt before {}, ele pt after {}",
+                                pt_values.at(i), corrected_pt_values.at(i));
                 }
             }
             return corrected_pt_values;
         };
-    auto df1 = df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta, gain, ES_sigma_up, ES_sigma_down});
+    auto df1 = df.Define(corrected_pt, electron_pt_correction_lambda,
+                         {pt, eta, gain, ES_sigma_up, ES_sigma_down});
     return df1;
 }
 /// Function to cut electrons based on the electron MVA ID

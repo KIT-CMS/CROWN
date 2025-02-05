@@ -941,7 +941,8 @@ auto PairSelectionAlgoOSPreferred(const float &mindeltaR) {
             if (deltaR > mindeltaR) {
                 if (lepton_1.Pt() >= selected_pts[0] &&
                     lepton_2.Pt() >= selected_pts[1]) {
-                    if (os && (total_et > largest_total_et) || largest_total_et < 0) {
+                    if (os && (total_et > largest_total_et) ||
+                        largest_total_et < 0) {
                         os_pair_found = true;
                         largest_total_et = total_et;
                         selected_pts[0] = lepton_1.Pt();
@@ -955,7 +956,7 @@ auto PairSelectionAlgoOSPreferred(const float &mindeltaR) {
             }
         }
         if (!os_pair_found) {
-            
+
             Logger::get("PairSelectionAlgoOSPreferred")
                 ->debug("No suitable OS pair found, trying SS pairs");
 
@@ -970,7 +971,8 @@ auto PairSelectionAlgoOSPreferred(const float &mindeltaR) {
                 if (deltaR > mindeltaR) {
                     if (lepton_1.Pt() >= selected_pts[0] &&
                         lepton_2.Pt() >= selected_pts[1]) {
-                        if (total_et > largest_total_et || largest_total_et < 0) {
+                        if (total_et > largest_total_et ||
+                            largest_total_et < 0) {
                             largest_total_et = total_et;
                             selected_pts[0] = lepton_1.Pt();
                             selected_pts[1] = lepton_2.Pt();

@@ -1,6 +1,7 @@
 #ifndef GUARD_ML_H
 #define GUARD_ML_H
 
+#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/OnnxSessionManager.hxx"
 // #include "TMVA/RModel.hxx"
 // #include "TMVA/RModelParser_ONNX.hxx"

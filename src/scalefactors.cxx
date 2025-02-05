@@ -2,6 +2,7 @@
 #define GUARD_SCALEFACTORS_H
 
 #include "../include/basefunctions.hxx"
+#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/RooFunctorThreadsafe.hxx"
 #include "ROOT/RDataFrame.hxx"
@@ -12,66 +13,6 @@
 /// namespace used for scale factor related functions
 namespace scalefactor {
 namespace muon {
-/**
- * @brief Function used to evaluate id scale factors from muons
- *
- * @param df The input dataframe
- * @param pt muon pt
- * @param eta muon eta
- * @param id_output name of the id scale factor column
- * @param workspace_name path to the Rooworkspace
- * @param id_functor_name name of the function from the workspace
- * @param id_arguments arguments of the function
- * @return a new dataframe containing the new column
- */
-ROOT::RDF::RNode id_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
-                                 const std::string &eta,
-                                 const std::string &id_output,
-                                 const std::string &workspace_name,
-                                 const std::string &id_functor_name,
-                                 const std::string &id_arguments) {
-
-    Logger::get("muonsf")->debug("Setting up functions for muon sf");
-    Logger::get("muonsf")->debug("ID - Function {} // argset {}",
-                                 id_functor_name, id_arguments);
-
-    const std::shared_ptr<RooFunctorThreadsafe> id_function =
-        loadFunctor(workspace_name, id_functor_name, id_arguments);
-    auto df1 = basefunctions::evaluateWorkspaceFunction(df, id_output,
-                                                        id_function, pt, eta);
-    return df1;
-}
-/**
- * @brief Function used to evaluate iso scale factors from muons
- *
- * @param df The input dataframe
- * @param pt muon pt
- * @param eta muon eta
- * @param iso muon iso
- * @param iso_output name of the iso scale factor column
- * @param workspace_name path to the Rooworkspace
- * @param iso_functor_name name of the function from the workspace
- * @param iso_arguments arguments of the function
- * @return a new dataframe containing the new column
- */
-ROOT::RDF::RNode iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
-                                  const std::string &eta,
-                                  const std::string &iso,
-                                  const std::string &iso_output,
-                                  const std::string &workspace_name,
-                                  const std::string &iso_functor_name,
-                                  const std::string &iso_arguments) {
-
-    Logger::get("muonsf")->debug("Setting up functions for muon sf");
-    Logger::get("muonsf")->debug("Iso - Function {} // argset {}",
-                                 iso_functor_name, iso_arguments);
-
-    const std::shared_ptr<RooFunctorThreadsafe> iso_function =
-        loadFunctor(workspace_name, iso_functor_name, iso_arguments);
-    auto df1 = basefunctions::evaluateWorkspaceFunction(
-        df, iso_output, iso_function, pt, eta, iso);
-    return df1;
-}
 /**
  * @brief Function used to evaluate reco scale factors from muons with
  * correctionlib. Configuration:
@@ -85,6 +26,7 @@ ROOT::RDF::RNode iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
  * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2016postVFP_UL.html)
  *
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt muon pt
  * @param eta muon eta
  * @param variation id for the variation of the scale factor "sf" for nominal
@@ -94,7 +36,8 @@ ROOT::RDF::RNode iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
  * @param idAlgorithm name of the muon reco scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode reco(ROOT::RDF::RNode df, const std::string &pt,
+ROOT::RDF::RNode reco(ROOT::RDF::RNode df, correctionManager::CorrectionManager &correctionManager, 
+                      const std::string &pt,
                       const std::string &eta, const std::string &variation,
                       const std::string &reco_output,
                       const std::string &sf_file,
@@ -102,8 +45,7 @@ ROOT::RDF::RNode reco(ROOT::RDF::RNode df, const std::string &pt,
 
     Logger::get("muonRecoSF")->debug("Setting up functions for muon reco sf");
     Logger::get("muonRecoSF")->debug("Reco - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto df1 = df.Define(
         reco_output,
         [evaluator, variation](const float &pt, const float &eta) {
@@ -132,6 +74,7 @@ ROOT::RDF::RNode reco(ROOT::RDF::RNode df, const std::string &pt,
  * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2016postVFP_UL.html)
  *
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt muon pt
  * @param eta muon eta
  * @param year_id id for the year of data taking and mc compaign
@@ -142,16 +85,16 @@ ROOT::RDF::RNode reco(ROOT::RDF::RNode df, const std::string &pt,
  * @param idAlgorithm name of the muon id scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
-                    const std::string &eta, const std::string &year_id,
-                    const std::string &variation, const std::string &id_output,
-                    const std::string &sf_file,
+ROOT::RDF::RNode id(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
+                    const std::string &pt, const std::string &eta,
+                    const std::string &year_id, const std::string &variation,
+                    const std::string &id_output, const std::string &sf_file,
                     const std::string &idAlgorithm) {
 
     Logger::get("muonIdSF")->debug("Setting up functions for muon id sf");
     Logger::get("muonIdSF")->debug("ID - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto df1 = df.Define(
         id_output,
         [evaluator, year_id, variation](const float &pt, const float &eta) {
@@ -159,7 +102,7 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
             double sf = 1.;
             // preventing muons with default values due to tau energy correction
             // shifts below good tau pt selection
-            if (pt >= 15.0 && std::abs(eta) >= 0.0 && std::abs(eta) < 2.4) {
+            if (pt >= 0.0 && std::abs(eta) >= 0.0) {
                 sf = evaluator->evaluate(
                     {year_id, std::abs(eta), pt, variation});
             }
@@ -181,6 +124,7 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
  * Iso](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2016postVFP_UL.html)
  *
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt muon pt
  * @param eta muon eta
  * @param year_id id for the year of data taking and mc compaign
@@ -191,16 +135,16 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
  * @param idAlgorithm name of the muon iso scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode iso(ROOT::RDF::RNode df, const std::string &pt,
-                     const std::string &eta, const std::string &year_id,
-                     const std::string &variation,
+ROOT::RDF::RNode iso(ROOT::RDF::RNode df,
+                     correctionManager::CorrectionManager &correctionManager,
+                     const std::string &pt, const std::string &eta,
+                     const std::string &year_id, const std::string &variation,
                      const std::string &iso_output, const std::string &sf_file,
                      const std::string &idAlgorithm) {
 
     Logger::get("muonIsoSF")->debug("Setting up functions for muon iso sf");
     Logger::get("muonIsoSF")->debug("ISO - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto df1 = df.Define(
         iso_output,
         [evaluator, year_id, variation](const float &pt, const float &eta) {
@@ -208,7 +152,7 @@ ROOT::RDF::RNode iso(ROOT::RDF::RNode df, const std::string &pt,
             double sf = 1.;
             // preventing muons with default values due to tau energy correction
             // shifts below good tau pt selection
-            if (pt >= 15.0 && std::abs(eta) >= 0.0 && std::abs(eta) < 2.4) {
+            if (pt >= 0.0 && std::abs(eta) >= 0.0) {
                 sf = evaluator->evaluate(
                     {year_id, std::abs(eta), pt, variation});
             }
@@ -230,6 +174,7 @@ ROOT::RDF::RNode iso(ROOT::RDF::RNode df, const std::string &pt,
  * Iso](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/MUO_muon_Z_Run2_UL/MUO_muon_Z_2016postVFP_UL.html)
  *
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt muon pt
  * @param eta muon eta
  * @param year_id id for the year of data taking and mc compaign
@@ -240,7 +185,8 @@ ROOT::RDF::RNode iso(ROOT::RDF::RNode df, const std::string &pt,
  * @param idAlgorithm name of the muon trigger scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, const std::string &pt,
+ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, correctionManager::CorrectionManager &correctionManager, 
+                         const std::string &pt,
                          const std::string &eta, const std::string &year_id,
                          const std::string &variation,
                          const std::string &trigger_output,
@@ -250,8 +196,7 @@ ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, const std::string &pt,
     Logger::get("muonTriggerSF")
         ->debug("Setting up functions for muon trigger sf");
     Logger::get("muonTriggerSF")->debug("Trigger - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto df1 =
         df.Define(trigger_output,
                   [evaluator, year_id, variation,
@@ -295,6 +240,8 @@ Medium                              |  16   | 5
 Tight                               |  32   | 6
 VTight                              |  64   | 7
 VVTight                             |  128  | 8
+    * WARNING: This function is deprecated, please use the new function with
+CorrectionManager
  * @param df The input dataframe
  * @param pt tau pt
  * @param decayMode decay mode of the tau
@@ -326,7 +273,8 @@ for nominal
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode id_vsJet_lt(
-    ROOT::RDF::RNode df, const std::string &pt, const std::string &decayMode,
+    ROOT::RDF::RNode df, correctionManager::CorrectionManager &correctionManager,
+    const std::string &pt, const std::string &decayMode,
     const std::string &genMatch, const std::vector<int> &selectedDMs,
     const std::string &wp, const std::string &sf_vsjet_tau30to35,
     const std::string &sf_vsjet_tau35to40,
@@ -335,12 +283,10 @@ ROOT::RDF::RNode id_vsJet_lt(
     const std::string &sf_vsjet_tau1000toinf, const std::string &sf_dependence,
     const std::string &vsele_wp, const std::string &id_output,
     const std::string &sf_file, const std::string &idAlgorithm) {
-
     Logger::get("TauIDvsJet_lt_SF")
         ->debug("Setting up function for tau id vsJet sf");
     Logger::get("TauIDvsJet_lt_SF")->debug("ID - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto idSF_calculator = [evaluator, wp, vsele_wp, sf_vsjet_tau30to35,
                             sf_vsjet_tau35to40, sf_vsjet_tau40to500,
                             sf_vsjet_tau500to1000, sf_vsjet_tau1000toinf,
@@ -437,6 +383,7 @@ ROOT::RDF::RNode id_vsJet_lt(
  * @brief Function used to evaluate vsJets tau id scale factors in the lt
 channel with the correctionlib for tauembedded samples
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt tau pt
  * @param decayMode decay mode of the tau
  * @param genMatch column with genmatch values (from prompt e, prompt mu,
@@ -467,7 +414,8 @@ for nominal
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode id_vsJet_lt_embedding(
-    ROOT::RDF::RNode df, const std::string &pt, const std::string &decayMode,
+    ROOT::RDF::RNode df, correctionManager::CorrectionManager &correctionManager,
+    const std::string &pt, const std::string &decayMode,
     const std::string &genMatch, const std::vector<int> &selectedDMs,
     const std::string &wp, const std::string &vsele_wp,
     const std::string &sf_vsjet_tau20to25,
@@ -482,8 +430,7 @@ ROOT::RDF::RNode id_vsJet_lt_embedding(
         ->debug("Setting up function for tau id vsJet sf");
     Logger::get("TauIDvsJet_lt_SF_embedding")
         ->debug("ID - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto idSF_calculator = [evaluator, wp, vsele_wp, sf_vsjet_tau20to25,
                             sf_vsjet_tau25to30, sf_vsjet_tau30to35,
                             sf_vsjet_tau35to40, sf_vsjet_tau40toInf,
@@ -538,150 +485,73 @@ ROOT::RDF::RNode id_vsJet_lt_embedding(
     auto df1 = df.Define(id_output, idSF_calculator, {pt, decayMode, genMatch});
     return df1;
 }
-// /**
-//  * @brief Function used to evaluate vsJets tau id scale factors in the lt
-// channel with the correctionlib for tauembedded samples
-//  * @param df The input dataframe
-//  * @param pt tau pt
-//  * @param wp working point of the ID cut
-//  * @param sf_vsjet_tau20to25 id for the variation of the scale factor "sf"
-//  for
-// nominal
-//  * and "systup"/"systdown" the up/down variation
-//  * @param sf_vsjet_tau25to30 id for the variation of the scale factor "sf"
-//  for
-// nominal
-//  * and "systup"/"systdown" the up/down variation
-//  * @param sf_vsjet_tau30to35 id for the variation of the scale factor "sf"
-//  for
-// nominal
-//  * and "systup"/"systdown" the up/down variation
-//  * @param sf_vsjet_tau35to40 id for the variation of the scale factor "sf"
-// for nominal
-//  * and "systup"/"systdown" the up/down variation
-//  * @param sf_vsjet_tau40toInf id for the variation of the scale factor "sf"
-// for nominal
-//  * and "systup"/"systdown" the up/down variation
-//  * @param id_output name of the id scale factor column
-//  * @param sf_file path to the file with the tau scale factors
-//  * @param correctionset name of the correction set containing the tau id
-//  scale
-// factor
-//  * @return a new dataframe containing the new column
-//  */
-// ROOT::RDF::RNode id_vsJet_lt_embedding(
-//     ROOT::RDF::RNode df, const std::string &pt, const std::string &wp,
-//     const std::string &sf_vsjet_tau20to25,
-//     const std::string &sf_vsjet_tau25to30,
-//     const std::string &sf_vsjet_tau30to35,
-//     const std::string &sf_vsjet_tau35to40,
-//     const std::string &sf_vsjet_tau40toInf, const std::string &id_output,
-//     const std::string &sf_file, const std::string &correctionset) {
+/**
+ * @brief Function used to evaluate vsJets tau id scale factors in the tt
+channel with the correctionlib for tauembedded samples
 
-//     Logger::get("TauIDvsJet_lt_SF_embedding")
-//         ->debug("Setting up function for tau id vsJet sf");
-//     Logger::get("TauIDvsJet_lt_SF_embedding")
-//         ->debug("ID - Name {}", correctionset);
-//     auto evaluator =
-//         correction::CorrectionSet::from_file(sf_file)->at(correctionset);
-//     auto idSF_calculator = [evaluator, wp, sf_vsjet_tau20to25,
-//                             sf_vsjet_tau25to30, sf_vsjet_tau30to35,
-//                             sf_vsjet_tau35to40, sf_vsjet_tau40toInf,
-//                             correctionset](const float &pt) {
-//         double sf = 1.;
-//         Logger::get("TauIDvsJet_lt_SF_embedding")
-//             ->debug("ID {} - pt {}, wp {} "
-//                     "sf_vsjet_tau20to25 {}, sf_vsjet_tau25to30 {}, "
-//                     "sf_vsjet_tau30to35{}, sf_vsjet_tau35to40 {}, "
-//                     "sf_vsjet_tau40toInf {},",
-//                     correctionset, pt, wp, sf_vsjet_tau20to25,
-//                     sf_vsjet_tau25to30, sf_vsjet_tau30to35,
-//                     sf_vsjet_tau35to40, sf_vsjet_tau40toInf);
-//         if (pt >= 20.0 && pt < 25.0) {
-//             sf = evaluator->evaluate({pt, sf_vsjet_tau20to25, wp});
-//         } else if (pt >= 25.0 && pt < 30.0) {
-//             sf = evaluator->evaluate({pt, sf_vsjet_tau25to30, wp});
-//         } else if (pt >= 30.0 && pt < 35.0) {
-//             sf = evaluator->evaluate({pt, sf_vsjet_tau30to35, wp});
-//         } else if (pt >= 35.0 && pt < 40.0) {
-//             sf = evaluator->evaluate({pt, sf_vsjet_tau35to40, wp});
-//         } else if (pt >= 40.0 && pt < 10000.0) {
-//             sf = evaluator->evaluate({pt, sf_vsjet_tau40toInf, wp});
-//         } else {
-//             sf = 1.;
-//         }
-//         Logger::get("TauIDvsJet_lt_SF_embedding")->debug("Scale Factor {}",
-//         sf); return sf;
-//     };
-//     auto df1 = df.Define(id_output, idSF_calculator, {pt});
-//     return df1;
-// }
-// /**
-//  * @brief Function used to evaluate vsJets tau id scale factors in the tt
-// channel with the correctionlib for tauembedded samples
+ * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
+ * @param decaymode decay mode of the tau
+ * @param wp working point of the ID cut
+ * @param sf_vsjet_tauDM0 id for the variation of the scale factor "sf" for
+nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param sf_vsjet_tauDM1 id for the variation of the scale factor "sf" for
+nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param sf_vsjet_tauDM10 id for the variation of the scale factor "sf" for
+nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param sf_vsjet_tauDM11 id for the variation of the scale factor "sf"
+for nominal
+ * and "systup"/"systdown" the up/down variation
+ * @param id_output name of the id scale factor column
+ * @param sf_file path to the file with the tau scale factors
+ * @param correctionset name of the correction set containing the tau id scale
+factor
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode id_vsJet_tt_embedding(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
+    const std::string &decaymode, const std::string &wp,
+    const std::string &sf_vsjet_tauDM0, const std::string &sf_vsjet_tauDM1,
+    const std::string &sf_vsjet_tauDM10, const std::string &sf_vsjet_tauDM11,
+    const std::string &id_output, const std::string &sf_file,
+    const std::string &correctionset) {
 
-//  * @param df The input dataframe
-//  * @param decaymode decay mode of the tau
-//  * @param wp working point of the ID cut
-//  * @param sf_vsjet_tauDM0 id for the variation of the scale factor "sf" for
-// nominal
-//  * and "systup"/"systdown" the up/down variation
-//  * @param sf_vsjet_tauDM1 id for the variation of the scale factor "sf" for
-// nominal
-//  * and "systup"/"systdown" the up/down variation
-//  * @param sf_vsjet_tauDM10 id for the variation of the scale factor "sf" for
-// nominal
-//  * and "systup"/"systdown" the up/down variation
-//  * @param sf_vsjet_tauDM11 id for the variation of the scale factor "sf"
-// for nominal
-//  * and "systup"/"systdown" the up/down variation
-//  * @param id_output name of the id scale factor column
-//  * @param sf_file path to the file with the tau scale factors
-//  * @param correctionset name of the correction set containing the tau id
-//  scale
-// factor
-//  * @return a new dataframe containing the new column
-//  */
-// ROOT::RDF::RNode id_vsJet_tt_embedding(
-//     ROOT::RDF::RNode df, const std::string &decaymode, const std::string &wp,
-//     const std::string &sf_vsjet_tauDM0, const std::string &sf_vsjet_tauDM1,
-//     const std::string &sf_vsjet_tauDM10, const std::string &sf_vsjet_tauDM11,
-//     const std::string &id_output, const std::string &sf_file,
-//     const std::string &correctionset) {
-
-//     Logger::get("TauIDvsJet_tt_SF_embedding")
-//         ->debug("Setting up function for tau id vsJet sf");
-//     Logger::get("TauIDvsJet_tt_SF_embedding")
-//         ->debug("ID - Name {}", correctionset);
-//     auto evaluator =
-//         correction::CorrectionSet::from_file(sf_file)->at(correctionset);
-//     auto idSF_calculator = [evaluator, wp, sf_vsjet_tauDM0, sf_vsjet_tauDM1,
-//                             sf_vsjet_tauDM10, sf_vsjet_tauDM11,
-//                             correctionset](const int &decaymode) {
-//         double sf = 1.;
-//         Logger::get("TauIDvsJet_tt_SF_embedding")
-//             ->debug("ID {} - decaymode {}, wp {} "
-//                     "sf_vsjet_tauDM0 {}, sf_vsjet_tauDM1 {}, "
-//                     "sf_vsjet_tauDM10{}, sf_vsjet_tauDM11 {}, ",
-//                     correctionset, decaymode, wp, sf_vsjet_tauDM0,
-//                     sf_vsjet_tauDM1, sf_vsjet_tauDM10, sf_vsjet_tauDM11);
-//         if (decaymode == 0) {
-//             sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM0, wp});
-//         } else if (decaymode == 1) {
-//             sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM1, wp});
-//         } else if (decaymode == 10) {
-//             sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM10, wp});
-//         } else if (decaymode == 11) {
-//             sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM11, wp});
-//         } else {
-//             sf = 1.;
-//         }
-//         Logger::get("TauIDvsJet_tt_SF_embedding")->debug("Scale Factor {}",
-//         sf); return sf;
-//     };
-//     auto df1 = df.Define(id_output, idSF_calculator, {decaymode});
-//     return df1;
-// }
+    Logger::get("TauIDvsJet_tt_SF_embedding")
+        ->debug("Setting up function for tau id vsJet sf");
+    Logger::get("TauIDvsJet_tt_SF_embedding")
+        ->debug("ID - Name {}", correctionset);
+    auto evaluator = correctionManager.loadCorrection(sf_file, correctionset);
+    auto idSF_calculator = [evaluator, wp, sf_vsjet_tauDM0, sf_vsjet_tauDM1,
+                            sf_vsjet_tauDM10, sf_vsjet_tauDM11,
+                            correctionset](const int &decaymode) {
+        double sf = 1.;
+        Logger::get("TauIDvsJet_tt_SF_embedding")
+            ->debug("ID {} - decaymode {}, wp {} "
+                    "sf_vsjet_tauDM0 {}, sf_vsjet_tauDM1 {}, "
+                    "sf_vsjet_tauDM10{}, sf_vsjet_tauDM11 {}, ",
+                    correctionset, decaymode, wp, sf_vsjet_tauDM0,
+                    sf_vsjet_tauDM1, sf_vsjet_tauDM10, sf_vsjet_tauDM11);
+        if (decaymode == 0) {
+            sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM0, wp});
+        } else if (decaymode == 1) {
+            sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM1, wp});
+        } else if (decaymode == 10) {
+            sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM10, wp});
+        } else if (decaymode == 11) {
+            sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM11, wp});
+        } else {
+            sf = 1.;
+        }
+        Logger::get("TauIDvsJet_tt_SF_embedding")->debug("Scale Factor {}", sf);
+        return sf;
+    };
+    auto df1 = df.Define(id_output, idSF_calculator, {decaymode});
+    return df1;
+}
 /**
  * @brief Function used to evaluate vsJets tau id scale factors in the tt
 channel with
@@ -700,6 +570,8 @@ Medium                              |  16   | 5
 Tight                               |  32   | 6
 VTight                              |  64   | 7
 VVTight                             |  128  | 8
+ * WARNING: This function is deprecated, please use the new function with
+CorrectionManager
  * @param df The input dataframe
  * @param pt tau pt
  * @param decayMode decay mode of the tau
@@ -708,7 +580,6 @@ VVTight                             |  128  | 8
  * @param selectedDMs list of allowed decay modes for which a scale factor
  * should be calculated
  * @param wp working point of the ID cut
- * @param vsEle_wp working point of the vs electron ID
  * @param sf_vsjet_tauDM0 id for the variation of the scale factor "sf" for
 nominal
  * and "systup"/"systdown" the up/down variation
@@ -729,19 +600,18 @@ nominal
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode id_vsJet_tt(
-    ROOT::RDF::RNode df, const std::string &pt, const std::string &decayMode,
+    ROOT::RDF::RNode df, correctionManager::CorrectionManager &correctionManager,
+    const std::string &pt, const std::string &decayMode,
     const std::string &genMatch, const std::vector<int> &selectedDMs,
     const std::string &wp, const std::string &sf_vsjet_tauDM0,
     const std::string &sf_vsjet_tauDM1, const std::string &sf_vsjet_tauDM10,
     const std::string &sf_vsjet_tauDM11, const std::string &sf_dependence,
     const std::string &vsele_wp, const std::string &id_output,
     const std::string &sf_file, const std::string &idAlgorithm) {
-
     Logger::get("TauIDvsJet_tt_SF")
         ->debug("Setting up function for tau id vsJet sf");
     Logger::get("TauIDvsJet_tt_SF")->debug("ID - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto idSF_calculator = [evaluator, wp, vsele_wp, sf_vsjet_tauDM0,
                             sf_vsjet_tauDM1, sf_vsjet_tauDM10, sf_vsjet_tauDM11,
                             sf_dependence, selectedDMs,
@@ -757,8 +627,8 @@ ROOT::RDF::RNode id_vsJet_tt(
                 selectedDMs.end()) {
                 Logger::get("TauIDvsJet_tt_SF")
                     ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, "
-                            "sf_vsjet_tauDM0 {}, sf_vsjet_tauDM1 {}, "
-                            "sf_vsjet_tauDM1 {}, sf_vsjet_tauDM10{}, "
+                            "sf_vsjet_tauDM0 {}, "
+                            "sf_vsjet_tauDM1 {}, sf_vsjet_tauDM10 {}, "
                             "sf_vsjet_tauDM11 {}, sf_dependence {}",
                             idAlgorithm, pt, decayMode, genMatch, wp,
                             sf_vsjet_tauDM0, sf_vsjet_tauDM1, sf_vsjet_tauDM10,
@@ -789,8 +659,8 @@ ROOT::RDF::RNode id_vsJet_tt(
                 Logger::get("TauIDvsJet_tt_SF")
                     ->debug("ID {} - pt {}, decayMode {}, genMatch {}, wp {}, "
                             "vsele_wp {}, "
-                            "sf_vsjet_tauDM0 {}, sf_vsjet_tauDM1 {}, "
-                            "sf_vsjet_tauDM1 {}, sf_vsjet_tauDM10{}, "
+                            "sf_vsjet_tauDM0 {}, "
+                            "sf_vsjet_tauDM1 {}, sf_vsjet_tauDM10 {}, "
                             "sf_vsjet_tauDM11 {}, sf_dependence {}",
                             idAlgorithm, pt, decayMode, genMatch, wp, vsele_wp,
                             sf_vsjet_tauDM0, sf_vsjet_tauDM1, sf_vsjet_tauDM10,
@@ -848,6 +718,7 @@ Loose                               |  2    | 2
 Medium                              |  4    | 3
 Tight                               |  8    | 4
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param eta tau eta
  * @param decayMode decay mode of the tau
  * @param genMatch column with genmatch values (from prompt e, prompt mu,
@@ -867,18 +738,18 @@ nominal
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-id_vsEle(ROOT::RDF::RNode df, const std::string &eta,
-         const std::string &decayMode, const std::string &genMatch,
-         const std::vector<int> &selectedDMs, const std::string &wp,
-         const std::string &sf_vsele_barrel, const std::string &sf_vsele_endcap,
-         const std::string &id_output, const std::string &sf_file,
-         const std::string &idAlgorithm) {
+id_vsEle(ROOT::RDF::RNode df,
+         correctionManager::CorrectionManager &correctionManager,
+         const std::string &eta, const std::string &decayMode,
+         const std::string &genMatch, const std::vector<int> &selectedDMs,
+         const std::string &wp, const std::string &sf_vsele_barrel,
+         const std::string &sf_vsele_endcap, const std::string &id_output,
+         const std::string &sf_file, const std::string &idAlgorithm) {
 
     Logger::get("TauIDvsEleSF")
         ->debug("Setting up function for tau id vsEle sf");
     Logger::get("TauIDvsEleSF")->debug("ID - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto idSF_calculator = [evaluator, wp, sf_vsele_barrel, sf_vsele_endcap,
                             selectedDMs,
                             idAlgorithm](const float &eta, const int &decayMode,
@@ -938,6 +809,7 @@ Loose                               |  2    | 2
 Medium                              |  4    | 3
 Tight                               |  8    | 4
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param eta tau eta
  * @param decayMode decay mode of the tau
  * @param genMatch column with genmatch values (from prompt e, prompt mu,
@@ -966,18 +838,19 @@ nominal
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-id_vsMu(ROOT::RDF::RNode df, const std::string &eta,
-        const std::string &decayMode, const std::string &genMatch,
-        const std::vector<int> &selectedDMs, const std::string &wp,
-        const std::string &sf_vsmu_wheel1, const std::string &sf_vsmu_wheel2,
-        const std::string &sf_vsmu_wheel3, const std::string &sf_vsmu_wheel4,
-        const std::string &sf_vsmu_wheel5, const std::string &id_output,
-        const std::string &sf_file, const std::string &idAlgorithm) {
+id_vsMu(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correctionManager,
+        const std::string &eta, const std::string &decayMode,
+        const std::string &genMatch, const std::vector<int> &selectedDMs,
+        const std::string &wp, const std::string &sf_vsmu_wheel1,
+        const std::string &sf_vsmu_wheel2, const std::string &sf_vsmu_wheel3,
+        const std::string &sf_vsmu_wheel4, const std::string &sf_vsmu_wheel5,
+        const std::string &id_output, const std::string &sf_file,
+        const std::string &idAlgorithm) {
 
     Logger::get("TauIDvsMuSF")->debug("Setting up function for tau id vsMu sf");
     Logger::get("TauIDvsMuSF")->debug("ID - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto idSF_calculator = [evaluator, wp, sf_vsmu_wheel1, sf_vsmu_wheel2,
                             sf_vsmu_wheel3, sf_vsmu_wheel4, sf_vsmu_wheel5,
                             selectedDMs,
@@ -1023,17 +896,17 @@ id_vsMu(ROOT::RDF::RNode df, const std::string &eta,
         df.Define(id_output, idSF_calculator, {eta, decayMode, genMatch});
     return df1;
 }
-
 /**
  * @brief Function to evaluate the tau trigger scale factor from a xpog file
  *
  * @param df the input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param decaymode the name of the column containing the tau decay mode
  * variable
+ * @param pt the name of the column containing the tau pt variable
  * @param wp the name of the the tau id working point
  * @param type the type of the tau trigger scale factor, available are emb and
  * mc
- * @param pt the name of the column containing the tau pt variable
  * @param id_output name of the id scale factor column
  * @param sf_file path to the file with the tau scale factors
  * @param correctionset name of the tau trigger scale factor
@@ -1041,39 +914,33 @@ id_vsMu(ROOT::RDF::RNode df, const std::string &eta,
  */
 
 ROOT::RDF::RNode
-tau_trigger_sf(ROOT::RDF::RNode df, const std::string &pt,
-               const std::string &decaymode, const std::string &output,
-               const std::string &wp, const std::string &sf_file,
-               const std::string &type, const std::string &corrtype,
-               const std::string &syst) {
+tau_trigger_sf(ROOT::RDF::RNode df,
+               correctionManager::CorrectionManager &correctionManager,
+               const std::string &pt, const std::string &decaymode, 
+               const std::string &type, const std::string &wp, 
+               const std::string &id_output, const std::string &sf_file,
+               const std::string &corrtype, const std::string &syst,
+               const std::string &correctionset) {
 
     Logger::get("tau_trigger_sf")
-        ->debug("Setting up function for tau trigger sf");
+        ->info("Setting up function for tau trigger sf");
     Logger::get("tau_trigger_sf")
-        ->debug("ID - corrtype {}, file {}", corrtype, sf_file);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at("tauTriggerSF");
-    Logger::get("tau_trigger_sf")->debug("WP {} - type {}", wp, type);
-    auto trigger_sf_calculator = [evaluator, wp, type, corrtype,
-                                  syst](const float &pt, const int &decaymode) {
+        ->info("ID - Name {}, file {}", correctionset, sf_file);
+    auto evaluator = correctionManager.loadCorrection(sf_file, correctionset);
+    Logger::get("tau_trigger_sf")->info("WP {} - type {}", wp, type);
+    auto trigger_sf_calculator = [evaluator, wp, type, corrtype, syst, correctionset](
+                                     const float &pt, const int &decaymode) {
         float sf = 1.;
         Logger::get("tau_trigger_sf")
-            ->debug("ID {} - decaymode {}, wp {} "
-                    "pt {}, type {}, ",
-                    corrtype, decaymode, wp, pt, type);
-        if (pt > 0) {
-            if (decaymode == 0 || decaymode == 1 || decaymode == 10 ||
-                decaymode == 11) {
-                sf = evaluator->evaluate(
+            ->info("ID {} - decaymode {}, wp {} "
+                   "pt {}, type {}, ",
+                   correctionset, decaymode, wp, pt, type);
+        sf = evaluator->evaluate(
                     {pt, decaymode, type, wp, corrtype, syst});
-            } else {
-                sf = evaluator->evaluate({pt, -1, type, wp, corrtype, syst});
-            }
-        }
-        Logger::get("tau_trigger_sf")->debug("Scale Factor {}", sf);
+        Logger::get("tau_trigger_sf")->info("Scale Factor {}", sf);
         return sf;
     };
-    auto df1 = df.Define(output, trigger_sf_calculator, {pt, decaymode});
+    auto df1 = df.Define(id_output, trigger_sf_calculator, {pt, decaymode});
     return df1;
 }
 } // namespace tau
@@ -1091,6 +958,7 @@ namespace electron {
  * - [UL2016postVFP Electron
  * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/EGM_electron_Run2_UL/EGM_electron_2016postVFP_UL.html)
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt electron pt
  * @param eta electron eta
  * @param year_id id for the year of data taking and mc compaign
@@ -1102,17 +970,18 @@ namespace electron {
  * @param idAlgorithm name of the electron id scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
-                    const std::string &eta, const std::string &year_id,
-                    const std::string &wp, const std::string &variation,
-                    const std::string &id_output, const std::string &sf_file,
+ROOT::RDF::RNode id(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
+                    const std::string &pt, const std::string &eta,
+                    const std::string &year_id, const std::string &wp,
+                    const std::string &variation, const std::string &id_output,
+                    const std::string &sf_file,
                     const std::string &idAlgorithm) {
 
     Logger::get("electronIDSF")
         ->debug("Setting up functions for electron id sf with correctionlib");
     Logger::get("electronIDSF")->debug("ID - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto df1 = df.Define(
         id_output,
         [evaluator, year_id, idAlgorithm, wp, variation](const float &pt,
@@ -1134,6 +1003,7 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
  * @brief Function used to evaluate trigger scale factors from electrons with
  * correctionlib. Configurations:
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt electron pt
  * @param eta electron eta
  * @param variation id for the variation of the scale factor "nominal" for nominal
@@ -1143,7 +1013,9 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
  * @param sf_name name of the electron trigger scale factor
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, const std::string &pt,
+ROOT::RDF::RNode trigger(ROOT::RDF::RNode df,
+                         correctionManager::CorrectionManager &correctionManager, 
+                         const std::string &pt,
                          const std::string &eta,
                          const std::string &variation,
                          const std::string &trigger_output,
@@ -1153,8 +1025,7 @@ ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, const std::string &pt,
     Logger::get("electronTriggerSF")
         ->debug("Setting up functions for electron trigger sf");
     Logger::get("electronTriggerSF")->debug("Trigger - Name {}", sf_name);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(sf_name);
+    auto evaluator = correctionManager.loadCorrection(sf_file, sf_name);
     auto df1 =
         df.Define(trigger_output,
                   [evaluator, variation,
@@ -1171,8 +1042,8 @@ ROOT::RDF::RNode trigger(ROOT::RDF::RNode df, const std::string &pt,
                   {pt, eta});
     return df1;
 }
-
 } // namespace electron
+
 namespace jet {
 /**
  * @brief Function used to evaluate b-tagging scale factors of jets with
@@ -1186,6 +1057,7 @@ namespace jet {
  * - [UL2016postVFP b-tagging
  * ID](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/BTV_btagging_Run2_UL/BTV_btagging_2016postVFP_UL.html)
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt jet pt
  * @param eta jet eta
  * @param btag_discr btag value of a jet based on a b-jet tagger (e.g. DeepJet)
@@ -1201,7 +1073,9 @@ namespace jet {
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-btagSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &eta,
+btagSF(ROOT::RDF::RNode df,
+       correctionManager::CorrectionManager &correctionManager,
+       const std::string &pt, const std::string &eta,
        const std::string &btag_discr, const std::string &flavor,
        const std::string &jet_mask, const std::string &bjet_mask,
        const std::string &jet_veto_mask, const std::string &variation,
@@ -1211,9 +1085,7 @@ btagSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &eta,
         "Setting up functions for b-tag sf with correctionlib");
     Logger::get("btagSF")->debug("Correction algorithm - Name {}",
                                  corr_algorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(corr_algorithm);
-
+    auto evaluator = correctionManager.loadCorrection(sf_file, corr_algorithm);
     auto btagSF_lambda = [evaluator,
                           variation](const ROOT::RVec<float> &pt_values,
                                      const ROOT::RVec<float> &eta_values,
@@ -1222,7 +1094,7 @@ btagSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &eta,
                                      const ROOT::RVec<int> &jet_mask,
                                      const ROOT::RVec<int> &bjet_mask,
                                      const ROOT::RVec<int> &jet_veto_mask) {
-        Logger::get("btagSF")->debug("Variation - Name {}", variation);
+        Logger::get("btagSF")->debug("Vatiation - Name {}", variation);
         float sf = 1.;
         for (int i = 0; i < pt_values.size(); i++) {
             Logger::get("btagSF")->debug(
@@ -1292,6 +1164,7 @@ namespace fatjet {
  * @brief Function used to evaluate particleNet X(bb) scale factors of fatjets with
  * correctionlib
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt fatjet pt
  * @param nBhadrons number of B hadrons in a fatjet
  * @param nChadrons number of C hadrons in a fatjet
@@ -1302,13 +1175,13 @@ namespace fatjet {
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-pNetXbbSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &nBhad, const std::string &nChad, 
+pNetXbbSF(ROOT::RDF::RNode df, correctionManager::CorrectionManager &correctionManager,
+        const std::string &pt, const std::string &nBhad, const std::string &nChad, 
         const std::string &variation, const std::string &sf_output, const std::string &sf_file) {
     Logger::get("pNetXbbSF")->debug(
         "Setting up functions for particleNet X(bb) sf with correctionlib");
 
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at("particleNet_Xbb_tagger_SF");
+    auto evaluator = correctionManager.loadCorrection(sf_file, "particleNet_Xbb_tagger_SF");
 
     auto pNetXbbSF_lambda = [evaluator, variation](const float &pt_value, const int &nBhad, const int &nChad) {
         Logger::get("pNetXbbSF")->debug("Variation - Name {}", variation);
@@ -1339,6 +1212,7 @@ pNetXbbSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &nBhad, 
  * @brief Function used to evaluate trigger scale factors of fatjets with
  * correctionlib
  * @param df The input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt fatjet pt
  * @param msoftdrop fatjet softdrop mass
  * @param sf_output name of the scale factor column
@@ -1349,14 +1223,14 @@ pNetXbbSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &nBhad, 
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
-trigger(ROOT::RDF::RNode df, const std::string &pt, const std::string &msoftdrop, 
+trigger(ROOT::RDF::RNode df, correctionManager::CorrectionManager &correctionManager,
+       const std::string &pt, const std::string &msoftdrop, 
        const std::string &sf_output, const std::string &sf_file, const std::string &sf_name, 
        const std::string &variation) {
     Logger::get("FatjetTriggerSF")->debug(
         "Setting up functions for fatjet trigger sf with correctionlib");
 
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(sf_name);
+    auto evaluator = correctionManager.loadCorrection(sf_file, sf_name);
 
     auto FatjetTriggerSF_lambda = [evaluator, variation](const float &pt, const float &msoftdrop) {
         Logger::get("FatjetTriggerSF")->debug("Variation - Name {}", variation);
@@ -1379,6 +1253,7 @@ namespace embedding {
  * @brief Function used to readout the embedding selection trigger scalefactors
  *
  * @param df the input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt_1 the pt of the leading generator particle in the event. This
  * corresponds to the leading muon selected by the embedding selection
  * @param eta_1 the eta of the leading generator particle in the event. This
@@ -1393,15 +1268,16 @@ namespace embedding {
  * @return ROOT::RDF::RNode
  */
 ROOT::RDF::RNode
-selection_trigger(ROOT::RDF::RNode df, const std::string &pt_1,
-                  const std::string &eta_1, const std::string &pt_2,
-                  const std::string &eta_2, const std::string &output,
-                  const std::string &sf_file, const std::string &idAlgorithm) {
+selection_trigger(ROOT::RDF::RNode df,
+                  correctionManager::CorrectionManager &correctionManager,
+                  const std::string &pt_1, const std::string &eta_1,
+                  const std::string &pt_2, const std::string &eta_2,
+                  const std::string &output, const std::string &sf_file,
+                  const std::string &idAlgorithm) {
 
     Logger::get("EmbeddingSelectionTriggerSF")
         ->debug("Correction - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto df1 = df.Define(
         output,
         [evaluator](const float &pt_1, const float &eta_1, const float &pt_2,
@@ -1422,6 +1298,7 @@ selection_trigger(ROOT::RDF::RNode df, const std::string &pt_1,
  * @brief Function used to readout the embedding selection trigger scalefactors.
  *
  * @param df the input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt the pt of the generator particle in the event. This corresponds to
  * one of the muons selected by the embedding selection
  * @param eta the eta of the generator particle in the event. This corresponds
@@ -1432,15 +1309,15 @@ selection_trigger(ROOT::RDF::RNode df, const std::string &pt_1,
  * file
  * @return ROOT::RDF::RNode
  */
-ROOT::RDF::RNode selection_id(ROOT::RDF::RNode df, const std::string &pt,
-                              const std::string &eta, const std::string &output,
-                              const std::string &sf_file,
-                              const std::string &idAlgorithm) {
-
+ROOT::RDF::RNode
+selection_id(ROOT::RDF::RNode df,
+             correctionManager::CorrectionManager &correctionManager,
+             const std::string &pt, const std::string &eta,
+             const std::string &output, const std::string &sf_file,
+             const std::string &idAlgorithm) {
     Logger::get("EmbeddingSelectionIDSF")
         ->debug("Correction - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto df1 =
         df.Define(output,
                   [evaluator](const float &pt, const float &eta) {
@@ -1458,6 +1335,7 @@ ROOT::RDF::RNode selection_id(ROOT::RDF::RNode df, const std::string &pt,
  * @brief Function used to readout SFs from the muon scale factor measurements
  *
  * @param df the input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt the pt of the muon
  * @param eta the eta of the muon
  * @param output the name of the output column
@@ -1470,16 +1348,16 @@ ROOT::RDF::RNode selection_id(ROOT::RDF::RNode df, const std::string &pt,
  * factor, defaults to 1.
  * @return ROOT::RDF::RNode
  */
-ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
-                         const std::string &eta, const std::string &output,
-                         const std::string &sf_file,
-                         const std::string correctiontype,
-                         const std::string &idAlgorithm,
-                         const float &extrapolation_factor = 1.0) {
+ROOT::RDF::RNode
+muon_sf(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correctionManager,
+        const std::string &pt, const std::string &eta,
+        const std::string &output, const std::string &sf_file,
+        const std::string correctiontype, const std::string &idAlgorithm,
+        const float &extrapolation_factor = 1.0) {
 
     Logger::get("EmbeddingMuonSF")->debug("Correction - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto df1 = df.Define(
         output,
         [evaluator, correctiontype, extrapolation_factor](const float &pt,
@@ -1502,6 +1380,7 @@ ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
  * measurements
  *
  * @param df the input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt the pt of the electron
  * @param eta the eta of the electron
  * @param output the name of the output column
@@ -1514,17 +1393,17 @@ ROOT::RDF::RNode muon_sf(ROOT::RDF::RNode df, const std::string &pt,
  * factor, defaults to 1.
  * @return ROOT::RDF::RNode
  */
-ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
-                             const std::string &eta, const std::string &output,
-                             const std::string &sf_file,
-                             const std::string correctiontype,
-                             const std::string &idAlgorithm,
-                             const float &extrapolation_factor = 1.0) {
+ROOT::RDF::RNode
+electron_sf(ROOT::RDF::RNode df,
+            correctionManager::CorrectionManager &correctionManager,
+            const std::string &pt, const std::string &eta,
+            const std::string &output, const std::string &sf_file,
+            const std::string correctiontype, const std::string &idAlgorithm,
+            const float &extrapolation_factor = 1.0) {
 
     Logger::get("EmbeddingElectronSF")
         ->debug("Correction - Name {}", idAlgorithm);
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(idAlgorithm);
+    auto evaluator = correctionManager.loadCorrection(sf_file, idAlgorithm);
     auto df1 = df.Define(
         output,
         [evaluator, correctiontype, extrapolation_factor](const float &pt,
@@ -1545,8 +1424,10 @@ ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
 /**
  * @brief Function to evaluate the di-tau trigger or etau/mutau cross trigger
  * scale factor for embedded events from a xpog file
- *
+ * WARNING: This function is deprecated, please use the new function with
+ * CorrectionManager
  * @param df the input dataframe
+ * @param correctionManager The CorrectionManager object
  * @param pt the name of the column containing the tau pt variable
  * @param decaymode the name of the column containing the tau decay mode
  * variable
@@ -1563,7 +1444,8 @@ ROOT::RDF::RNode electron_sf(ROOT::RDF::RNode df, const std::string &pt,
  */
 
 ROOT::RDF::RNode
-ditau_trigger_sf(ROOT::RDF::RNode df, const std::string &pt,
+ditau_trigger_sf(ROOT::RDF::RNode df, correctionManager::CorrectionManager &correctionManager,
+                 const std::string &pt,
                  const std::string &decaymode, const std::string &output,
                  const std::string &wp, const std::string &sf_file,
                  const std::string &corr_name, const std::string &type,
@@ -1574,10 +1456,8 @@ ditau_trigger_sf(ROOT::RDF::RNode df, const std::string &pt,
     Logger::get("ditau_trigger")
         ->debug("correction type {}, name {}, file {}", corr_type, corr_name,
                 sf_file);
-    // tauTriggerSF is the only correction set in the file for now, might change
-    // with official sf release -> change into additional input parameter
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(corr_name);
+    auto evaluator = correctionManager.loadCorrection(sf_file, corr_name);
+
     Logger::get("ditau_trigger")->debug("WP {} - trigger type {}", wp, type);
     auto trigger_sf_calculator = [evaluator, wp, type, corr_type,
                                   syst](const float &pt, const int &decaymode) {
