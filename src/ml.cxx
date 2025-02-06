@@ -4,270 +4,208 @@
 #include "../include/ml.hxx"
 #include "../include/basefunctions.hxx"
 #include "../include/defaults.hxx"
+#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
+#include "../include/utility/OnnxSessionManager.hxx"
+#include "../include/utility/utility.hxx"
 #include "../include/vectoroperations.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 
-#include "TMVA/RModel.hxx"
-#include "TMVA/RModelParser_Keras.h"
-#include "TMVA/RModelParser_PyTorch.h"
-// #include "TMVA/RModelParser_ONNX.hxx"
-#include "TMVA/SOFIEHelpers.hxx"
 #include "TInterpreter.h"
+#include "TMVA/RModel.hxx"
+#include "TMVA/RModelParser_ONNX.hxx"
 #include "TSystem.h"
-
-
-#include <iostream>
+#include <assert.h>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <nlohmann/json.hpp>
+#include <onnxruntime_cxx_api.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
 
-
-std::vector<std::vector<double>> readCSV(const std::string& filename) {
-
-  std::vector<std::vector<double>> data;
-
-  // Open the CSV file
-  std::ifstream file(filename);
-
-  // Check if the file is open
-    if (!file.is_open()) {
-      std::cerr << "Error opening file: " << filename << std::endl;
-      return data; // Return an empty vector
-    }
-
-    std::string line;
-
-    // Read the file line by line
-    while (std::getline(file, line)) {
-      std::vector<double> row;
-      std::stringstream lineStream(line);
-      std::string cell;
-
-      // skip header row
-      if (line.find("mean") != std::string::npos)
-	continue;
-
-      // Split the line into cells using a comma as a delimiter
-      while (std::getline(lineStream, cell, ',')) {
-	row.push_back(std::stod(cell.c_str()));
-      }
-
-      // Add the row to the 2D vector
-      data.push_back(row);
-    }
-
-    // Close the file
-    file.close();
-
-    return data;
-}
-
-
+using json = nlohmann::json;
 
 namespace ml {
+/**
+ * @brief Function to perform a standard transformation of input variables for
+ * NN evaluation.
+ *
+ * @param df The input dataframe
+ * @param inputname name of the variable which should be transformed
+ * @param outputname name of the output column
+ * @param param_file path to a json file with a dictionary of mean and std
+ * values
+ * @param var_type variable data type for correct processing e.g. "i" for
+ * integer or "f" for float
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode StandardTransformer(ROOT::RDF::RNode df,
+                                     const std::string &inputname,
+                                     const std::string &outputname,
+                                     const std::string &param_file,
+                                     const std::string &var_type) {
+    // read params from file
+    Logger::get("StandardTransformer")->debug("reading file {}", param_file);
+    Logger::get("StandardTransformer")
+        ->warn("Not using CorrectionManager is deprecated, this function will "
+               "be removed in a future release, switch to the new function "
+               "using CorrectionManager");
+    std::string replace_str = std::string("EVTID");
+    std::string odd_file_path =
+        std::string(param_file)
+            .replace(param_file.find(replace_str), replace_str.length(),
+                     std::string("odd"));
+    std::string even_file_path =
+        std::string(param_file)
+            .replace(param_file.find(replace_str), replace_str.length(),
+                     std::string("even"));
 
+    std::ifstream odd_file(odd_file_path);
+    json odd_info = json::parse(odd_file);
+    std::ifstream even_file(even_file_path);
+    json even_info = json::parse(even_file);
 
-ROOT::RDF::RNode GaussianTransform(ROOT::RDF::RNode df,
-				   const std::string &inputname,
-				   const std::string &outputname,
-				   const std::string &paramfile,
-				   const unsigned position,
-				   const std::string &vartype) {
-  // read params from file
-  Logger::get("GaussianTransform")
-    ->debug("reading file {}...", paramfile);
-  std::vector<std::vector<double>> params = readCSV(paramfile);
+    // odd or even files mean that they are trained on odd or even events, so it
+    // has to be applied on the opposite
+    auto transform_int = [odd_info, even_info,
+                          inputname](const unsigned long long event_id,
+                                     const int input_var) {
+        float shifted = -10;
+        if (int(event_id) % 2 == 0) {
+            shifted = (float(input_var) - float(odd_info[inputname]["mean"])) /
+                      float(odd_info[inputname]["std"]);
+        } else if (int(event_id) % 2 == 1) {
+            shifted = (float(input_var) - float(even_info[inputname]["mean"])) /
+                      float(even_info[inputname]["std"]);
+        }
+        Logger::get("StandardTransformer")
+            ->debug("transforming var {} from {} to {}", inputname, input_var,
+                    shifted);
+        return shifted;
+    };
+    auto transform_float = [odd_info, even_info,
+                            inputname](const unsigned long long event_id,
+                                       const float input_var) {
+        float shifted = -10;
+        if (int(event_id) % 2 == 0) {
+            shifted = (float(input_var) - float(odd_info[inputname]["mean"])) /
+                      float(odd_info[inputname]["std"]);
+        } else if (int(event_id) % 2 == 1) {
+            shifted = (float(input_var) - float(even_info[inputname]["mean"])) /
+                      float(even_info[inputname]["std"]);
+        }
+        Logger::get("StandardTransformer")
+            ->debug("transforming var {} from {} to {}", inputname, input_var,
+                    shifted);
+        return shifted;
+    };
 
-  // shifting to index counting
-  unsigned var_idx = position - 1;
-
-  auto transform_int = [params, var_idx](const int input){
-    double shifted = -10;
-    shifted = (input - params[var_idx][1]) / params[var_idx][2];
-    Logger::get("GaussianTransform")
-    ->debug("transforming var {} with mean {} and std {} from {} to {}", var_idx + 1, params[var_idx][1], params[var_idx][2], input, shifted);
-    return shifted;
-  };
-
-  auto transform_float = [params, var_idx](const float input){
-    double shifted = -10;
-    shifted = (input - params[var_idx][1]) / params[var_idx][2];
-    Logger::get("GaussianTransform")
-    ->debug("transforming var {} with mean {} and std {} from {} to {}", var_idx + 1, params[var_idx][1], params[var_idx][2], input, shifted);
-    return shifted;
-  };
-
-  auto transform_double = [params, var_idx](const double input){
-    double shifted = -10;
-    shifted = (input - params[var_idx][1]) / params[var_idx][2];
-    Logger::get("GaussianTransform")
-    ->debug("transforming var {} with mean {} and std {} from {} to {}", var_idx + 1, params[var_idx][1], params[var_idx][2], input, shifted);
-    return shifted;
-  };
-
-
-
-  if (vartype.rfind("i", 0) == 0) {
-    auto df2 = df.Define(outputname, transform_int, {inputname});
-    return df2;
-  }
-  else if (vartype.rfind("d", 0) == 0) {
-    auto df2 = df.Define(outputname, transform_double, {inputname});
-    return df2;
-  }
-  else {
-    auto df2 = df.Define(outputname, transform_float, {inputname});
-    return df2;
-  }
-
-
-}
-
-
-namespace sofie {
-
-  void CompileModelForRDF(const std::string & headerModelFile, unsigned int ninputs, unsigned int nslots=0) {
-
-    std::string modelName = headerModelFile.substr(0,headerModelFile.find(".hxx"));
-    std::string cmd = std::string("#include \"") + headerModelFile + std::string("\"");
-    auto ret = gInterpreter->Declare(cmd.c_str());
-    if (!ret)
-      throw std::runtime_error("Error compiling : " + cmd);
-    std::cout << "compiled : " << cmd << std::endl;
-
-    cmd = "auto sofie_functor_" + modelName + " = TMVA::Experimental::SofieFunctor<" + std::to_string(ninputs) + ",TMVA_SOFIE_" + modelName + "::Session>(" + std::to_string(nslots) + ");";
-    ret = gInterpreter->Declare(cmd.c_str());
-    if (!ret)
-      throw std::runtime_error("Error compiling : " + cmd);
-    std::cout << "compiled : " << cmd << std::endl;
-    std::cout << "Model is ready to be evaluated" << std::endl;
-    return;
-  }
-
-  std::string SOFIEGenerator(const std::vector<std::string> &input_vec,
-                               TMVA::Experimental::SOFIE::RModel &model,
-                               const std::string &modelFilePath) {
-
-    std::string modelFileName = std::filesystem::path(modelFilePath).filename();
-    std::string::size_type const p(modelFileName.find_last_of('.'));
-    std::string modelName = modelFileName.substr(0, p);
-
-    std::string modelHeaderFile = modelName + std::string(".hxx");
-
-    if (!std::filesystem::exists(modelHeaderFile)) {
-  Logger::get("SOFIEGenerator")
-    ->debug("generating model code...");
-  model.Generate();
-  Logger::get("SOFIEGenerator")
-    ->debug("dumping model code... {}", modelHeaderFile);
-  model.OutputGenerated(modelHeaderFile);
-  // Logger::get("SOFIEGenerator")
-  //   ->debug("printing model code...");
-  // model.PrintGenerated();
-
-  std::string modelWeightFile = modelName + std::string(".dat");
-
-  Logger::get("SOFIEGenerator")
-    ->debug("compiling model code...");
-  CompileModelForRDF(modelHeaderFile, input_vec.size());
+    const std::string event_id = std::string("event");
+    if (var_type.rfind("i", 0) == 0) {
+        auto df1 = df.Define(outputname, transform_int, {event_id, inputname});
+        return df1;
+    } else if (var_type.rfind("f", 0) == 0) {
+        auto df1 =
+            df.Define(outputname, transform_float, {event_id, inputname});
+        return df1;
+    } else {
+        Logger::get("StandardTransformer")
+            ->debug("transformation failed due to wrong variable type: {}",
+                    var_type);
+        return df;
     }
-    else {
-      Logger::get("SOFIEGenerator")
-	->debug("model already compiled, skipping");
+}
+/**
+ * @brief Function to perform a standard transformation of input variables for
+ * NN evaluation.
+ *
+ * @param df The input dataframe
+ * @param inputname name of the variable which should be transformed
+ * @param outputname name of the output column
+ * @param param_file path to a json file with a dictionary of mean and std
+ * values
+ * @param var_type variable data type for correct processing e.g. "i" for
+ * integer or "f" for float
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+StandardTransformer(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
+                    const std::string &inputname, const std::string &outputname,
+                    const std::string &param_file,
+                    const std::string &var_type) {
+    // read params from file
+    Logger::get("StandardTransformer")->debug("reading file {}", param_file);
+    std::string replace_str = std::string("EVTID");
+    std::string odd_file_path =
+        std::string(param_file)
+            .replace(param_file.find(replace_str), replace_str.length(),
+                     std::string("odd"));
+    std::string even_file_path =
+        std::string(param_file)
+            .replace(param_file.find(replace_str), replace_str.length(),
+                     std::string("even"));
+
+    json odd_info = *correctionManager.loadjson(odd_file_path);
+    json even_info = *correctionManager.loadjson(even_file_path);
+
+    // odd or even files mean that they are trained on odd or even events, so it
+    // has to be applied on the opposite
+    auto transform_int = [odd_info, even_info,
+                          inputname](const unsigned long long event_id,
+                                     const int input_var) {
+        float shifted = -10;
+        if (int(event_id) % 2 == 0) {
+            shifted = (float(input_var) - float(odd_info[inputname]["mean"])) /
+                      float(odd_info[inputname]["std"]);
+        } else if (int(event_id) % 2 == 1) {
+            shifted = (float(input_var) - float(even_info[inputname]["mean"])) /
+                      float(even_info[inputname]["std"]);
+        }
+        Logger::get("StandardTransformer")
+            ->debug("transforming var {} from {} to {}", inputname, input_var,
+                    shifted);
+        return shifted;
+    };
+    auto transform_float = [odd_info, even_info,
+                            inputname](const unsigned long long event_id,
+                                       const float input_var) {
+        float shifted = -10;
+        if (int(event_id) % 2 == 0) {
+            shifted = (float(input_var) - float(odd_info[inputname]["mean"])) /
+                      float(odd_info[inputname]["std"]);
+        } else if (int(event_id) % 2 == 1) {
+            shifted = (float(input_var) - float(even_info[inputname]["mean"])) /
+                      float(even_info[inputname]["std"]);
+        }
+        Logger::get("StandardTransformer")
+            ->debug("transforming var {} from {} to {}", inputname, input_var,
+                    shifted);
+        return shifted;
+    };
+
+    const std::string event_id = std::string("event");
+    if (var_type.rfind("i", 0) == 0) {
+        auto df1 = df.Define(outputname, transform_int, {event_id, inputname});
+        return df1;
+    } else if (var_type.rfind("f", 0) == 0) {
+        auto df1 =
+            df.Define(outputname, transform_float, {event_id, inputname});
+        return df1;
+    } else {
+        Logger::get("StandardTransformer")
+            ->debug("transformation failed due to wrong variable type: {}",
+                    var_type);
+        return df;
     }
-
-  std::string sofie_func_str = "sofie_functor_" + modelName + "(rdfslot_, ";
-  sofie_func_str += input_vec[0];
-  for (unsigned i = 1; i < input_vec.size(); i++) {
-    sofie_func_str += ", " + input_vec[i];
-  }
-  sofie_func_str += ")";
-
-  return sofie_func_str;
-
 }
 
-
-ROOT::RDF::RNode KerasEvaluate(ROOT::RDF::RNode df,
-                               const std::vector<std::string> &input_vec,
-                               const std::string &outputname,
-                               const std::string &modelFilePath) {
-
-
-  Logger::get("KerasEvaluate")
-    ->debug("loading model file {} ...", modelFilePath);
-  TMVA::Experimental::SOFIE::RModel model = TMVA::Experimental::SOFIE::PyKeras::Parse(modelFilePath);
-  Logger::get("KerasEvaluate")
-    ->debug("finished loading model");
-
-  auto eval_func = SOFIEGenerator(input_vec, model, modelFilePath);
-  Logger::get("KerasEvaluate")
-    ->debug("evaluating model code...");
-
-  auto df2 = df.Define(outputname, eval_func);
-
-  return df2;
-
-}
-
-
-ROOT::RDF::RNode PyTorchEvaluate(ROOT::RDF::RNode df,
-                               const std::vector<std::string> &input_vec,
-                               const std::string &outputname,
-                               const std::string &modelFilePath) {
-
-
-  Logger::get("PyTorchEvaluate")
-    ->debug("deriving input shapes...");
-  std::vector<size_t> inputTensorShapeSequential{1,input_vec.size()};
-  std::vector<std::vector<size_t>> inputShapesSequential{inputTensorShapeSequential};
-
-  Logger::get("PyTorchEvaluate")
-    ->debug("loading model file {} ...", modelFilePath);
-  TMVA::Experimental::SOFIE::RModel model = TMVA::Experimental::SOFIE::PyTorch::Parse(modelFilePath, inputShapesSequential);
-  Logger::get("PyTorchEvaluate")
-    ->debug("finished loading model");
-
-  auto eval_func = SOFIEGenerator(input_vec, model, modelFilePath);
-  Logger::get("PyTorchEvaluate")
-    ->debug("evaluating model code...");
-
-  auto df2 = df.Define(outputname, eval_func);
-
-  return df2;
-
-}
-
-
-// ROOT::RDF::RNode ONNXEvaluate(ROOT::RDF::RNode df,
-//                                const std::vector<std::string> &input_vec,
-//                                const std::string &outputname,
-//                                const std::string &modelFilePath) {
-
-
-//   bool verboseParser = false;
-
-//   Logger::get("ONNXEvaluate")
-//     ->debug("loading model file {} ...", modelFilePath);
-//   TMVA::Experimental::SOFIE::RModelParser_ONNX  parser;
-//   TMVA::Experimental::SOFIE::RModel model = parser.Parse(modelFilePath, verboseParser);
-//   Logger::get("ONNXEvaluate")
-//     ->debug("finished loading model");
-
-//   auto eval_func = SOFIEGenerator(input_vec, model, modelFilePath);
-//   Logger::get("ONNXEvaluate")
-//     ->debug("evaluating model code...");
-
-//   auto df2 = df.Define(outputname, eval_func);
-
-//   return df2;
-
-// }
-
-
-
-} // end namespace sofie
 } // end namespace ml
 #endif /* GUARD_ML_H */

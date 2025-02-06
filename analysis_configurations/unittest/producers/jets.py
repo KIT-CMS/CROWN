@@ -7,7 +7,7 @@ from code_generation.producer import Producer, ProducerGroup
 ####################
 JetPtCorrection = Producer(
     name="JetPtCorrection",
-    call="physicsobject::jet::JetPtCorrection({df}, {output}, {input}, {jet_reapplyJES}, {jet_jes_sources}, {jet_jes_shift}, {jet_jer_shift}, {jet_jec_file}, {jet_jer_tag}, {jet_jes_tag}, {jet_jec_algo})",
+    call="physicsobject::jet::JetPtCorrection({df}, correctionManager, {output}, {input}, {jet_reapplyJES}, {jet_jes_sources}, {jet_jes_shift}, {jet_jer_shift}, {jet_jec_file}, {jet_jer_tag}, {jet_jes_tag}, {jet_jec_algo})",
     input=[
         nanoAOD.Jet_pt,
         nanoAOD.Jet_eta,

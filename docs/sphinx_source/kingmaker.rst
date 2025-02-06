@@ -1,7 +1,12 @@
-KingMaker
-===========
+Workflow Management
+====================
 
-KingMaker is a workflow management for producing ntuples with the CROWN framework. The workflow management is based on law (https://github.com/riga/law), which uses luigi (https://github.com/spotify/luigi) as the backend.
+KingMaker is a workflow management for producing ntuples with the CROWN framework. The workflow management is based on law (https://github.com/riga/law), which uses luigi (https://github.com/spotify/luigi) as the backend. Kingmaker is used to orchestrate the production of ntuples and friend trees for the CROWN framework. The workflow is designed to be flexible and can be adapted to different analyses. Kingmaker takes care of building all required CROWN executables, submitting jobs to a batch system and writing the output to a remote storage. On top of that, Kingmaker can be used to generate FriendTrees, which can be used to store additional information in the ntuples. A sample manager is provided to manage the samples and keep track of the individual input files that have to be processed.
+
+.. image:: ../images/kingmaker_sketch.png
+  :width: 900
+  :align: center
+  :alt: Kingmaker Workflow sketch
 
 Setup
 -----

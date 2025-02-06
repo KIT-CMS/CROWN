@@ -14,7 +14,7 @@ class MetSystematic {
 
   public:
     MetSystematic(std::string filepath);
-    ~MetSystematic(){};
+    ~MetSystematic() {};
 
     void ApplyMetSystematic(float metPx, float metPy, float genVPx,
                             float genVPy, float visVPx, float visVPy, int njets,

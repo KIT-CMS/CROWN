@@ -25,17 +25,20 @@ ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
                         const int &position, const std::string &pairname,
                         const std::string &chargecolumn);
 ROOT::RDF::RNode scalarPtSum(ROOT::RDF::RNode df, const std::string &outputname,
-                       const std::string &pt_1, const std::string &pt_2, const std::string &pt_3);
+                             const std::string &pt_1, const std::string &pt_2,
+                             const std::string &pt_3);
 ROOT::RDF::RNode m_vis(ROOT::RDF::RNode df, const std::string &outputname,
                        const std::vector<std::string> &inputvectors);
 ROOT::RDF::RNode pt_W(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::vector<std::string> &inputvectors);
+                      const std::vector<std::string> &inputvectors);
 ROOT::RDF::RNode pt_vis(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::vector<std::string> &inputvectors);
 ROOT::RDF::RNode deltaPhi(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::string &p_1_p4, const std::string &p_2_p4);
+                          const std::string &p_1_p4, const std::string &p_2_p4);
 ROOT::RDF::RNode deltaPhi_WH(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::string &p_1_p4, const std::string &p_2_p4, const std::string &p_3_p4);
+                             const std::string &p_1_p4,
+                             const std::string &p_2_p4,
+                             const std::string &p_3_p4);
 ROOT::RDF::RNode
 p4_fastmtt(ROOT::RDF::RNode df, const std::string &outputname,
            const std::string &pt_1, const std::string &pt_2,

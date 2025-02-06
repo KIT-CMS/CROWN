@@ -697,9 +697,21 @@ class Configuration(object):
 
         required_parameters = {}
         for scope in self.scopes:
+            log.debug("  Collecting required parameters for scope {}".format(scope))
             required_parameters[scope] = set()
             for producer in self.producers[scope]:
-                required_parameters[scope] |= producer.parameters[scope]
+                log.debug("    Collecting parameters for producer {}".format(producer))
+                try:
+                    required_parameters[scope] |= producer.parameters[scope]
+                except KeyError:
+                    log.error(
+                        f"Producer {producer} is not correctly setup for scope {scope}"
+                    )
+                    raise ConfigurationError(
+                        "Producer {} is not correctly setup for scope {}".format(
+                            producer, scope
+                        )
+                    )
         # now check, which parameters are set in the configuration, but not used by any producer
         for scope in self.scopes:
             log.info("------------------------------------")
