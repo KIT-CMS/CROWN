@@ -13,7 +13,7 @@ Setup
 
 .. code-block:: bash
 
-    git clone --recursive git@github.com:KIT-CMS/KingMaker.git
+    git clone git@github.com:KIT-CMS/KingMaker.git
     cd KingMaker
     source setup.sh KingMaker
 
@@ -30,6 +30,34 @@ Samples can be managed manually or using the ``sample_manager``, which can be st
 
 This starts a CLI, which can be used to add more samples to the database, update samples or quickly generate a sample list for producing ntuples.
 
+Information on CMS datasets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To search for CMS datasets, we need first a bit of information, how these datasets can look like. We refer to the CMS dataset names as ``DAS nicks``, since we will search for them using the
+Data Aggregation Service (DAS) of CMS. The datasets can be searched for at https://cmsweb.cern.ch/das/, or alternatively via ``dasgoclient`` (https://github.com/dmwm/dasgoclient) in a CMSSW
+command-line environment. Our ``sample_manager`` integrates the corresponding software components and puts them into a questionnaire logic.
+
+The naming convention of CMS datasets is according to https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookLocatingDataSamples as follows:
+
+.. code-block:: bash
+
+    # Convention:
+    /PrimaryDataset/ProcessedDataset/DataTier
+    # Examples:
+    ## MC Simulation:
+    /DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM
+    ## Data:
+    /Tau/Run2016B-ver2_HIPM_UL2016_MiniAODv2-v1/MINIAOD
+    ## User-produced Dataset:
+    /Tau/aakhmets-data_2016ULpreVFP_tau_Tau_Run2016B-ver2_HIPM_1736940678-00000000000000000000000000000000/USER
+
+- ``PrimaryDataset`` usually represents the superset of data recorded by the experiment in case of Data, and the simulated process in case of MC simulation. In general, for User-produced Datasets this can be anything, however, users are responsible for having meaningful names.
+- ``ProcessedDataset`` provides details on the actual production or processing campaigns of the dataset, including conditions (so-called ``GlobalTag``), version, etc. Again, user Datasets can have there anything, but users are encouraged to have there something meaningful.
+- ``DataTier`` represents the dataformat of the dataset. A list of some more popular formats is given here: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookDataFormats#EvenT. We are mostly interested in NANOAOD(SIM) and MINIAOD(SIM) tailored for analyses. The ``USER`` datatier represents anything that a user can produce.
+
+All centrally produced datasets from CMS are stored under the ``prod/global`` DAS instance, while there is a dedicated DAS instance for user datasets, ``prod/phys03``.
+See https://cmsweb.cern.ch/das/services for more details.
+
 Addition of new Samples
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -43,6 +71,7 @@ When adding a new sample, follow the instructions of the ``sample_manager``. In 
     Database loaded
     The database contains 581 samples, split over 4 era(s) and 22 sampletype(s)
     ? What do you want to do? Add a new sample
+    ? Select the DAS instance for the search prod/global
     ? Enter a DAS nick to add /DYJetsToLL_M-50_*/RunIISummer20UL16NanoAOD*v9-106X*/NANOAODSIM
     Multiple results found
     ? Which dataset do you want to add ? (Use arrow keys to move, <space> to select, <a> to toggle, <i> to invert)

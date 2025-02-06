@@ -33,6 +33,8 @@
 #include "include/triggers.hxx"
 #include "include/fakefactors.hxx"
 
+// {INCLUDE_ANALYSISADDONS}
+
 // {INCLUDES}
 
 int main(int argc, char *argv[]) {
