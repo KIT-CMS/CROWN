@@ -1,7 +1,6 @@
 #ifndef GUARDMET_H
 #define GUARDMET_H
 
-#include "../include/MetXYCorrections/XYMETCorrection_withUL17andUL18andUL16.h"
 #include "../include/RecoilCorrections/MetSystematics.hxx"
 #include "../include/RecoilCorrections/RecoilCorrector.hxx"
 #include "../include/basefunctions.hxx"
@@ -836,23 +835,48 @@ ROOT::RDF::RNode applyRecoilCorrections(
     }
 }
 
+/**
+ * @brief function used to apply MetXY corrections as provided by JME
+ *
+ * @param df the input dataframe
+ * @param input_p4 the input met p4
+ * @param npv the column containing the data for npv
+ * @param run the column containing the data for run
+ * @param output_p4 the final output met p4
+ * @param corr_file path to the file containing the correction
+ * @param isMC flag that determines if running over simulation or data
+ * @return a new dataframe containing the new corrected met p4 column
+ */
 ROOT::RDF::RNode
 applyMetXYCorrections(ROOT::RDF::RNode df, const std::string &input_p4,
                       const std::string &npv, const std::string &run,
-                      const std::string &output_p4, bool isPUPPI, bool isUL,
-                      bool isMC, const std::string &era) {
+                      const std::string &output_p4,
+                      const std::string &corr_file, bool isMC) {
 
-    auto xycorr = [isPUPPI, isUL, isMC,
-                   era](const ROOT::Math::PtEtaPhiMVector &met_p4,
-                        const int npv, const UInt_t run) {
+    std::string corr_name = "";
+    if (isMC)
+        corr_name = "metphicorr_pfmet_mc";
+    else
+        corr_name = "metphicorr_pfmet_data";
+
+    auto evaluator_metxy_pt =
+        correction::CorrectionSet::from_file(corr_file)->at("pt_" + corr_name);
+    auto evaluator_metxy_phi =
+        correction::CorrectionSet::from_file(corr_file)->at("phi_" + corr_name);
+
+    auto xycorr = [evaluator_metxy_pt, evaluator_metxy_phi](
+                      const ROOT::Math::PtEtaPhiMVector &met_p4, const int npv,
+                      const UInt_t run) {
         Logger::get("applyMetXYCorrections")
             ->debug("before: pt {} phi {}", met_p4.Pt(), met_p4.Phi());
 
-        std::pair<double, double> corr_met_pair = METXYCorr_Met_MetPhi(
-            met_p4.Pt(), met_p4.Phi(), run, era, isMC, npv, isUL, isPUPPI);
+        double corr_met_pt = evaluator_metxy_pt->evaluate(
+            {met_p4.Pt(), met_p4.Phi(), float(npv), float(run)});
+        double corr_met_phi = evaluator_metxy_phi->evaluate(
+            {met_p4.Pt(), met_p4.Phi(), float(npv), float(run)});
 
-        float corr_met_X = corr_met_pair.first * cos(corr_met_pair.second);
-        float corr_met_Y = corr_met_pair.first * sin(corr_met_pair.second);
+        double corr_met_X = corr_met_pt * cos(corr_met_phi);
+        double corr_met_Y = corr_met_pt * sin(corr_met_phi);
         ROOT::Math::PtEtaPhiMVector corr_met_p4;
         corr_met_p4.SetPxPyPzE(
             corr_met_X, corr_met_Y, 0,
