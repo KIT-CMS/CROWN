@@ -1,6 +1,7 @@
 #ifndef GUARDMET_H
 #define GUARDMET_H
 
+#include "../include/MetXYCorrections/XYMETCorrection_withUL17andUL18andUL16.h"
 #include "../include/RecoilCorrections/MetSystematics.hxx"
 #include "../include/RecoilCorrections/RecoilCorrector.hxx"
 #include "../include/basefunctions.hxx"
@@ -834,5 +835,37 @@ ROOT::RDF::RNode applyRecoilCorrections(
                                                                   outputname);
     }
 }
+
+ROOT::RDF::RNode
+applyMetXYCorrections(ROOT::RDF::RNode df, const std::string &input_p4,
+                      const std::string &npv, const std::string &run,
+                      const std::string &output_p4, bool isPUPPI, bool isUL,
+                      bool isMC, const std::string &era) {
+
+    auto xycorr = [isPUPPI, isUL, isMC,
+                   era](const ROOT::Math::PtEtaPhiMVector &met_p4,
+                        const int npv, const UInt_t run) {
+        Logger::get("applyMetXYCorrections")
+            ->debug("before: pt {} phi {}", met_p4.Pt(), met_p4.Phi());
+
+        std::pair<double, double> corr_met_pair = METXYCorr_Met_MetPhi(
+            met_p4.Pt(), met_p4.Phi(), run, era, isMC, npv, isUL, isPUPPI);
+
+        float corr_met_X = corr_met_pair.first * cos(corr_met_pair.second);
+        float corr_met_Y = corr_met_pair.first * sin(corr_met_pair.second);
+        ROOT::Math::PtEtaPhiMVector corr_met_p4;
+        corr_met_p4.SetPxPyPzE(
+            corr_met_X, corr_met_Y, 0,
+            std::sqrt(corr_met_X * corr_met_X + corr_met_Y * corr_met_Y));
+
+        Logger::get("applyMetXYCorrections")
+            ->debug("after: pt {} phi {}", corr_met_p4.Pt(), corr_met_p4.Phi());
+
+        return corr_met_p4;
+    };
+
+    return df.Define(output_p4, xycorr, {input_p4, npv, run});
+}
+
 } // end namespace met
 #endif /* GUARDMET_H */

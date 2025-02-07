@@ -64,5 +64,10 @@ ROOT::RDF::RNode applyRecoilCorrections(
     const std::string &recoilfile, const std::string &systematicsfile,
     bool applyRecoilCorrections, bool resolution, bool response, bool shiftUp,
     bool shiftDown, bool isWjets);
+ROOT::RDF::RNode
+applyMetXYCorrections(ROOT::RDF::RNode df, const std::string &input_p4,
+                      const std::string &npv, const std::string &run,
+                      const std::string &output_p4, bool isPUPPI, bool isUL,
+                      bool isMC, const std::string &era);
 } // end namespace met
 #endif /* GUARDMET_H */
