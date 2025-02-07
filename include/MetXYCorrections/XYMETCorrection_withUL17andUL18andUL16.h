@@ -1,6 +1,11 @@
 #ifndef XYMETCorrection_H
 #define XYMETCorrection_H
 
+#include <utility>
+#include <cmath>
+#include "TString.h"
+#include "TMath.h"
+
 enum TheRunEra {
     y2016B,
     y2016C,
