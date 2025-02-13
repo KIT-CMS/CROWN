@@ -34,22 +34,41 @@ First, clone the Repository
 
    git clone --recurse-submodules git@github.com:KIT-CMS/CROWN.git
 
-and source the current LCG stack (at the moment we use a nightly build)
+and source the current LCG stack
 
 .. code-block:: console
 
    source init.sh
 
-After this, the framework should be installed, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the name of the analysis to your ``init.sh`` command. So e.g. to set up the `tau` Analysis, you can do so by running
+After this, the framework is installed, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the name of the analysis to your ``init.sh`` command. So e.g. to set up the `tau` Analysis, you can do so by running
 
 .. code-block:: console
 
    source init.sh tau
 
+The following list shows all currently available analyses that can be set up. If you want to include your own analysis, it needs to be added to the ``init.sh`` script. 
+
+.. list-table:: Available Analyses Configurations for CROWN
+   :widths: 25 150
+   :header-rows: 1
+
+   * - Analysis tag
+     - Repository
+   * - ``tau``
+     - https://github.com/KIT-CMS/TauAnalysis-CROWN
+   * - ``earlyrun3``
+     - https://github.com/KIT-CMS/earlyRun3Analysis-CROWN
+   * - ``whtautau``
+     - https://github.com/KIT-CMS/WHTauTauAnalysis-CROWN
+   * - ``boosted_h_tautau``
+     - https://github.com/KIT-CMS/BoostedHiggsTauTauAnalysis-CROWN
+   * - ``s``
+     - https://github.com/nfaltermann/CROWNs
+
 Running the framework
 **********************
 
-To create a new executable, first create a build directory
+To create a new analysis executable, first create a build directory
 
 .. code-block:: console
 
