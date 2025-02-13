@@ -12,7 +12,7 @@ The **C** ++-based **RO** OT **W** orkflow for **N** -tuples (CROWN) is a fast n
 
 Available Analyses
 *******************
-   The following analysis configurations are currently available in CROWN. If you want to add your analysis configuration, contact the developers.
+The following analysis configurations are currently available in CROWN. If you want to add your analysis configuration, contact the developers.
 
 .. list-table:: Available Analyses Configurations for CROWN
    :widths: 25 150
@@ -20,12 +20,18 @@ Available Analyses
 
    * - Analysis name
      - Repository
-   * - ``HTauTau``
+   * - H to TauTau
      - https://github.com/KIT-CMS/TauAnalysis-CROWN
-   * - ``earlyrun3``
-     - https://github.com/khaosmos93/CROWN-config-earlyRun3
-   * - ``WHTauTau``
+   * - BSM di-Higgs to TauTauBB
+     - https://github.com/KIT-CMS/TauAnalysis-CROWN/tree/nmssm_devs
+   * - W/Z early Run3
+     - https://github.com/KIT-CMS/earlyRun3Analysis-CROWN
+   * - W + H to TauTau
      - https://github.com/KIT-CMS/WHTauTauAnalysis-CROWN
+   * - Boosted H to TauTau
+     - https://github.com/KIT-CMS/BoostedHiggsTauTauAnalysis-CROWN
+   * - Single top
+     - https://github.com/nfaltermann/CROWNs
 
 
 Documentation Content
@@ -40,9 +46,6 @@ Documentation Content
    postprocessing.rst
    friend_trees.rst
 
-Documentation
-**************
-
 .. toctree::
    :maxdepth: 2
    :caption: Setup your own Configuration
@@ -51,6 +54,7 @@ Documentation
    py_configuration.rst
    correction_manager.rst
    cpp_addons.rst
+   nanoAODversions.rst
 
 .. toctree::
    :maxdepth: 2
