@@ -425,22 +425,21 @@ inline auto MultiplyTwoMasks() {
 }
 
 /// Function to filter the Tau ID in NanoAOD. The disciminator output is stored
-/// as a bitmask. In order to filter based on a given WP, a bitwise comparison
-/// between the given ID and the filtered index is performed. Return true if the
-/// working point is passed by a tau.
+/// as a bitmask. Return true if the working point is passed by a tau.
 ///
-/// \param index The bitmask index to be used for comparison
+/// \param index The int index is used for comparison
 ///
 /// \returns a lambda function to be used in RDF Define
 inline auto FilterID(const int &index) {
     return [index](const ROOT::RVec<UChar_t> &IDs) {
         ROOT::RVec<int> mask;
         for (auto const ID : IDs) {
-            if (index > 0)
-                mask.push_back(std::min(1, int(ID & 1 << (index - 1))));
-            else
+            if (index <= ID)
                 mask.push_back(int(1));
+            else
+                mask.push_back(int(0));
         }
+
         return mask;
     };
 }
