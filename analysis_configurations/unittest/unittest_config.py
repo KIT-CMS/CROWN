@@ -327,14 +327,14 @@ def build_config(
             ),
             "muon_id_sf_name": "NUM_MediumID_DEN_TrackerMuons",
             "muon_iso_sf_name": "NUM_TightRelIso_DEN_MediumID",
-            "muon_sf_year_id": EraModifier(
-                {
-                    "2016": "2016postVFP_UL",
-                    "2017": "2017_UL",
-                    "2018": "2018_UL",
-                }
-            ),
-            "muon_sf_varation": "sf",
+            # "muon_sf_year_id": EraModifier(
+            #     {
+            #         "2016": "2016postVFP_UL",
+            #         "2017": "2017_UL",
+            #         "2018": "2018_UL",
+            #     }
+            # ),
+            "muon_sf_varation": "nominal",
         },
     )
     # ET/EM scope electron selection
