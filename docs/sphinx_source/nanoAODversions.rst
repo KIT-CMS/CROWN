@@ -1,7 +1,10 @@
 NanoAOD versions
 =================
 
-CMS has different versions of the nanoAOD format. Usually in each data taking run an new version is introduced that can have new features or bug fixes compared to the previous version. The UL version of Run-2 data was fully processed in nanoAODv9, for Run-3 each year a new version is used starting with nanoAODv12. A preliminary final version for both Run-2 and Run-3 will be nanoAODv15. The changes between version also affect the types of the branches in the nanoAOD which can lead to problems in the C++ code of CROWN because the types need to be specified. In the following a list of known changes between nanoAOD v9 and v12 is given.
+CMS has different versions of the nanoAOD format, with each data-taking run typically introducing a new version that includes updates, bug fixes, or new features. 
+For Run-2, the UL datasets were fully reprocessed using nanoAODv9. In Run-3, a new nanoAOD version is introduced each year, starting with nanoAODv12. The expected "final" version for both Run-2 and Run-3 will be nanoAODv15. 
+However, these version updates also bring changes to branch data types in the nanoAODs. Since C++ code in CROWN requires explicit type definitions, these changes can cause compatibility issues. 
+Below is a list of known differences between nanoAODv9 and nanoAODv12.
 
 .. list-table:: Changes from nanoAOD v9 to v12
    :widths: 75 100
