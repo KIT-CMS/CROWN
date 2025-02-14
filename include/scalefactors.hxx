@@ -16,12 +16,16 @@ ROOT::RDF::RNode iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
                                   const std::string &workspace_name,
                                   const std::string &iso_functor_name,
                                   const std::string &iso_arguments);
+ROOT::RDF::RNode reco(ROOT::RDF::RNode df, 
+                      correctionManager::CorrectionManager &correctionManager, 
+                      const std::string &pt, const std::string &eta, 
+                      const std::string &variation, const std::string &reco_output,
+                      const std::string &sf_file, const std::string &idAlgorithm);
 ROOT::RDF::RNode id(ROOT::RDF::RNode df,
                     correctionManager::CorrectionManager &correctionManager,
                     const std::string &pt, const std::string &eta,
-                    const std::string &year_id, const std::string &variation,
-                    const std::string &id_output, const std::string &sf_file,
-                    const std::string &idAlgorithm);
+                    const std::string &variation, const std::string &id_output, 
+                    const std::string &sf_file, const std::string &idAlgorithm);
 // Deprecated function without CorrectionManager
 ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
                     const std::string &eta, const std::string &year_id,
@@ -30,9 +34,8 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
 ROOT::RDF::RNode iso(ROOT::RDF::RNode df,
                      correctionManager::CorrectionManager &correctionManager,
                      const std::string &pt, const std::string &eta,
-                     const std::string &year_id, const std::string &variation,
-                     const std::string &iso_output, const std::string &sf_file,
-                     const std::string &idAlgorithm);
+                     const std::string &variation, const std::string &iso_output, 
+                     const std::string &sf_file, const std::string &idAlgorithm);
 // Deprecated function without CorrectionManager
 ROOT::RDF::RNode iso(ROOT::RDF::RNode df, const std::string &pt,
                      const std::string &eta, const std::string &year_id,
