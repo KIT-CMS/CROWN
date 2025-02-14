@@ -74,38 +74,40 @@ To create a new analysis executable, first create a build directory
 
    mkdir build && cd build
 
-and then run `cmake` to set up the Makefiles. A python configuration is needed to specify the code, that should be generated. Configurations are located in the :code:`analysis_configuations` directory. Within this folder, a subfolder for each type of analysis is created. Within the analysis folder, multiple Configurations belonging to the same analysis can be located. For example in the `tau` analysis, a main configuration `config.py` as well as several smaller Configurations exist.
+and then run `cmake` to set up the Makefiles. A python configuration is needed to specify the code, that should be generated. Configurations are located in the :code:`analysis_configuations` directory. Within this folder, a subfolder for each installed type of analysis is present. Within the analysis folder, multiple Configurations belonging to the same analysis can be located. For example in the `tau` analysis, a main configuration `config.py` as well as several smaller Configurations exist.
 
 .. Note::
-   You have to provide both
+
+   To be able to execute CROWN, you yourself have to provide the files and code for both \
+
    1. the analysis that you want to run e.g. `-DANALYSIS=template_analysis`
-   2.  the configuration that should be used `-DCONFIG=min_config`.
+   2. the configuration that should be used `-DCONFIG=min_config`
 
 For the cmake command, a minimal set of options has to be provided, in this case, we use the template analysis with the minimal example
 
 .. code-block:: console
 
-   cmake .. -DANALYSIS=template_analysis -DCONFIG=min_config -DSAMPLES=data -DERAS=2018 -DSCOPES=mm
+   cmake .. -DANALYSIS=template_analysis -DCONFIG=template_config -DSAMPLES=dyjets -DERAS=2018 -DSCOPES=mm
 
 The options that are currently available are:
 
    * :code:`-DANALYSIS=template_analysis`: The analysis to be used. This is the name of the folder in the :code:`analysis_configurations` directory.
-   * :code:`-DCONFIG=min_config`: The configuration to be used. This is the name of the python configuration file. The file has to be located in the directory of the analysis and the path is provided in the Python import syntax e.g. :code:`subfolder.myspecialconfig`
-   * :code:`-DSAMPLES=emb`: The samples to be used. This is a single sample or a comma-separated list of sample names.
+   * :code:`-DCONFIG=template_config`: The configuration to be used. This is the name of the python configuration file. The file has to be located in the directory of the analysis and the path is provided in the Python import syntax e.g. :code:`subfolder.myspecialconfig`
+   * :code:`-DSAMPLES=data`: The samples to be used. This is a single sample or a comma-separated list of sample names.
    * :code:`-DERAS=2018`: The era to be used. This is a single era or a comma-separated list of era names.
-   * :code:`-DSCOPES=et`: The scopes to be run. This is a single scope or a comma-separated list of scopes. The global scope is always run.
-   * :code:`-DTHREADS=20`: The number of threads to be used. Defaults to single threading.
-   * :code:`-DSHIFTS=all`: The shifts to be used. Defaults to all shifts. If set to :code:`all`, all shifts are used, if set to :code:`none`, no shifts are used, so only nominal is produced. If set to a comma-separated list of shifts, only those shifts are used. If set to only a substring matching multiple shifts, all shifts matching that string will be produced e.g. :code:`-DSHIFTS=tauES` will produce all shifts containing :code:`tauES` in the name.
-   * :code:`-DDEBUG=true`: If set to true, the code generation will run with debug information and the executable will be compiled with debug flags
-   * :code:`-DOPTIMIZED=true`: If set to true, the compiler will run with :code:`-O3`, resulting in slower build times but faster runtimes. Should be used for developments, but not in production.
+   * :code:`-DSCOPES=mt`: The scopes to be run. This is a single scope or a comma-separated list of scopes. The `global` scope is always run.
+   * :code:`-DTHREADS=20`: The number of threads to be used. Default: :code:`1` (single threading).
+   * :code:`-DSHIFTS=all`: The shifts to be used. If set to :code:`all`, all shifts are used, if set to :code:`none`, no shifts are used, so only nominal is produced. If set to a comma-separated list of shifts, only those shifts are used. If set to only a substring matching multiple shifts, all shifts matching that string will be produced e.g. :code:`-DSHIFTS=tauES` will produce all shifts containing :code:`tauES` in the name. Default: :code:`all`
+   * :code:`-DDEBUG=true`: If set to true, the code generation will run with debug information and the executable will be compiled with debug flags. Default: :code:`false`
+   * :code:`-DOPTIMIZED=true`: If set to true, the compiler will run with :code:`-O3`, resulting in slower build times but faster runtimes. Should be used for developments, but not in production. Default: :code:`true`
 
 Compile the executable using
 
 .. code-block:: console
 
-   make install -j 20
+   make install -j 8
 
-The recommended build system is using regular UNIX build files, however, as an additional option, the ninja build system (https://ninja-build.org/) can be used for CROWN. To use ninja, set :code:`export CMAKE_GENERATOR="Ninja"` in the :code:`init.sh` as env variable, and then use the :code:`ninja install -j 20` command to compile the executable. Since CROWN profits from the parallelization of the build process, the number of threads can and should be set using the :code:`-j` option.
+The recommended build system is using regular UNIX build files, however, as an additional option, the ninja build system (https://ninja-build.org/) can be used for CROWN. To use ninja, set :code:`export CMAKE_GENERATOR="Ninja"` in the :code:`init.sh` as env variable, and then use the :code:`ninja install -j 8` command to compile the executable. Since CROWN profits from the parallelization of the build process, the number of threads can and should be set using the :code:`-j` option.
 
 
 After the compilation, the CROWN executable can be found in the :code:`build/bin` folder. The executable can be used via a single output file followed by an arbitrary number of input files.

@@ -53,6 +53,8 @@ if(NOT CROWNLIB_FOUND OR REBUILD_CROWN_LIB)
     nlohmann_json::nlohmann_json
     ${ONNX_RUNTIME_LIB_PATH})
   install(TARGETS CROWNLIB DESTINATION ${INSTALLDIR}/lib)
+  # needed if compiling with ninja
+  set(CMAKE_BUILD_RPATH ${INSTALLDIR}/lib)
 else()
   message(STATUS "Found CROWNLIB in ${CROWNLIB_FOUND}")
   install(FILES ${CROWNLIB_FOUND} DESTINATION ${INSTALLDIR}/lib)

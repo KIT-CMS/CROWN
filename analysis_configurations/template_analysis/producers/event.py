@@ -6,31 +6,10 @@ from code_generation.producer import BaseFilter, Producer, ProducerGroup, Vector
 # Set of general producers for event quantities
 ####################
 
-RunLumiEventFilter = VectorProducer(
-    name="RunLumiEventFilter",
-    call='basefunctions::FilterIntSelection<{RunLumiEventFilter_Quantity_Types}>({df}, "{RunLumiEventFilter_Quantities}", {vec_open}{RunLumiEventFilter_Selections}{vec_close}, "RunLumiEventFilter")',
-    input=[],
-    output=None,
-    scopes=["global"],
-    vec_configs=[
-        "RunLumiEventFilter_Quantities",
-        "RunLumiEventFilter_Quantity_Types",
-        "RunLumiEventFilter_Selections",
-    ],
-)
-
 JSONFilter = BaseFilter(
     name="JSONFilter",
-    call='basefunctions::JSONFilter({df}, "{golden_json_file}", {input}, "GoldenJSONFilter")',
+    call='basefunctions::JSONFilter({df}, correctionManager, "{golden_json_file}", {input}, "GoldenJSONFilter")',
     input=[nanoAOD.run, nanoAOD.luminosityBlock],
-    scopes=["global"],
-)
-
-PrefireWeight = Producer(
-    name="PrefireWeight",
-    call="basefunctions::rename<Float_t>({df}, {input}, {output})",
-    input=[nanoAOD.prefireWeight],
-    output=[q.prefireweight],
     scopes=["global"],
 )
 
@@ -41,7 +20,6 @@ is_data = Producer(
     output=[q.is_data],
     scopes=["global"],
 )
-
 is_embedding = Producer(
     name="is_embedding",
     call="basefunctions::DefineQuantity({df}, {output}, {is_embedding})",
