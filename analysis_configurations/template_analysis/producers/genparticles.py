@@ -122,13 +122,7 @@ UnrollGenMuLV1 = ProducerGroup(
     input=None,
     output=None,
     scopes=["mm"],
-    subproducers=[
-        gen_pt_1, 
-        gen_eta_1, 
-        gen_phi_1, 
-        gen_mass_1, 
-        gen_pdgid_1
-    ],
+    subproducers=[gen_pt_1, gen_eta_1, gen_phi_1, gen_mass_1, gen_pdgid_1],
 )
 UnrollGenMuLV2 = ProducerGroup(
     name="UnrollGenMuLV2",
@@ -136,13 +130,7 @@ UnrollGenMuLV2 = ProducerGroup(
     input=None,
     output=None,
     scopes=["mm"],
-    subproducers=[
-        gen_pt_2, 
-        gen_eta_2, 
-        gen_phi_2, 
-        gen_mass_2, 
-        gen_pdgid_2
-    ],
+    subproducers=[gen_pt_2, gen_eta_2, gen_phi_2, gen_mass_2, gen_pdgid_2],
 )
 
 gen_mm_pair_mass = Producer(

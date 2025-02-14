@@ -131,9 +131,5 @@ MMDiTauPairQuantities = ProducerGroup(
     input=None,
     output=None,
     scopes=["mm"],
-    subproducers=[
-        UnrollMuLV1, 
-        UnrollMuLV2, 
-        mm_pair_mass, 
-        mm_pair_pt],
+    subproducers=[UnrollMuLV1, UnrollMuLV2, mm_pair_mass, mm_pair_pt],
 )
