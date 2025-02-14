@@ -226,13 +226,10 @@ def build_config(
             samples=["data"],
         ),
     )
-    
+
     configuration.add_modification_rule(
         "global",
-        AppendProducer(
-            producers=event.JSONFilter, 
-            samples=["data", "embedding"]
-        ),
+        AppendProducer(producers=event.JSONFilter, samples=["data", "embedding"]),
     )
 
     configuration.add_shift(
