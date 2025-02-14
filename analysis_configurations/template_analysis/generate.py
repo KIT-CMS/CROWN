@@ -1,4 +1,4 @@
-from os import path, makedirs
+from os import path
 import importlib
 from code_generation.code_generation import CodeGenerator
 
@@ -13,7 +13,7 @@ def run(args):
         "wjets",
         "diboson",
     ]
-    available_eras = ["2018"]
+    available_eras = ["2016preVFP", "2016postVFP", "2017", "2018"]
     available_scopes = ["mm"]
 
     ## setup variables
@@ -21,11 +21,13 @@ def run(args):
     sample_group = args.sample
     era = args.era
     scopes = list(set([scope.lower() for scope in args.scopes]))
+    
     ## load config
     configname = args.config
     config = importlib.import_module(
         f"analysis_configurations.{analysis_name}.{configname}"
     )
+    
     ## Setting up executable
     executable = f"{configname}_{sample_group}_{era}.cxx"
     args.logger.info(f"Generating code for {sample_group}...")

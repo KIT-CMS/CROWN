@@ -12,7 +12,7 @@ from .quantities import nanoAOD as nanoAOD
 from .quantities import output as q
 from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier
-from code_generation.rules import RemoveProducer
+from code_generation.rules import RemoveProducer, AppendProducer
 from code_generation.systematics import SystematicShift
 
 
@@ -40,21 +40,32 @@ def build_config(
         {
             "golden_json_file": EraModifier(
                 {
-                    "2016": "data/golden_json/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt",
+                    "2016preVFP": "data/golden_json/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt",
+                    "2016postVFP": "data/golden_json/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt",
                     "2017": "data/golden_json/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt",
                     "2018": "data/golden_json/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt",
                 }
             ),
             "met_filters": EraModifier(
                 {
-                    "2016": [
+                    "2016preVFP": [
                         "Flag_goodVertices",
                         "Flag_globalSuperTightHalo2016Filter",
                         "Flag_HBHENoiseFilter",
                         "Flag_HBHENoiseIsoFilter",
                         "Flag_EcalDeadCellTriggerPrimitiveFilter",
                         "Flag_BadPFMuonFilter",
-                        # "Flag_BadPFMuonDzFilter", # only since nanoAODv9 available
+                        "Flag_BadPFMuonDzFilter",
+                        "Flag_eeBadScFilter",
+                    ],
+                    "2016postVFP": [
+                        "Flag_goodVertices",
+                        "Flag_globalSuperTightHalo2016Filter",
+                        "Flag_HBHENoiseFilter",
+                        "Flag_HBHENoiseIsoFilter",
+                        "Flag_EcalDeadCellTriggerPrimitiveFilter",
+                        "Flag_BadPFMuonFilter",
+                        "Flag_BadPFMuonDzFilter",
                         "Flag_eeBadScFilter",
                     ],
                     "2017": [
@@ -64,7 +75,7 @@ def build_config(
                         "Flag_HBHENoiseIsoFilter",
                         "Flag_EcalDeadCellTriggerPrimitiveFilter",
                         "Flag_BadPFMuonFilter",
-                        # "Flag_BadPFMuonDzFilter", # only since nanoAODv9 available
+                        "Flag_BadPFMuonDzFilter",
                         "Flag_eeBadScFilter",
                         "Flag_ecalBadCalibFilter",
                     ],
@@ -75,7 +86,7 @@ def build_config(
                         "Flag_HBHENoiseIsoFilter",
                         "Flag_EcalDeadCellTriggerPrimitiveFilter",
                         "Flag_BadPFMuonFilter",
-                        # "Flag_BadPFMuonDzFilter", # only since nanoAODv9 available
+                        "Flag_BadPFMuonDzFilter",
                         "Flag_eeBadScFilter",
                         "Flag_ecalBadCalibFilter",
                     ],
@@ -83,59 +94,56 @@ def build_config(
             ),
         },
     )
-    # muon base selection:
+    # muon base selection applied before given to a specific scope
     configuration.add_config_parameters(
         "global",
         {
-            "min_muon_pt": 10.0,
-            "max_muon_eta": 2.4,
-            "max_muon_dxy": 0.045,
-            "max_muon_dz": 0.2,
+            "muon_min_pt": 10.0,
+            "muon_max_eta": 2.4,
+            "muon_max_dxy": 0.045,
+            "muon_max_dz": 0.2,
             "muon_id": "Muon_mediumId",
-            "muon_iso_cut": 0.3,
+            "muon_max_iso": 0.3,
         },
     )
-    # MM scope Muon selection
+    # MM scope Muon selection: additional cut on top of base selection in "global" scope
     configuration.add_config_parameters(
         ["mm"],
         {
-            "muon_index_in_pair": 0,
-            "second_muon_index_in_pair": 1,
-            "min_muon_pt": 23.0,
-            "max_muon_eta": 2.1,
-            "muon_iso_cut": 0.15,
+            # "muon_index_in_pair": 0,
+            # "second_muon_index_in_pair": 1,
+            "muon_first_index_in_pair": 0,
+            "muon_second_index_in_pair": 1,
+            "muon_min_pt": 25.0,
+            "muon_max_eta": 2.1,
+            "muon_max_iso": 0.15,
         },
     )
-    # Muon scale factors configuration
+    # Muon scale factors configuration based on jsonpog correctionlib files
     configuration.add_config_parameters(
         ["mm"],
         {
             "muon_sf_file": EraModifier(
                 {
-                    "2016": "data/jsonpog-integration/POG/MUO/2016postVFP_UL/muon_Z.json.gz",
+                    "2016preVFP": "data/jsonpog-integration/POG/MUO/2016preVFP_UL/muon_Z.json.gz",
+                    "2016postVFP": "data/jsonpog-integration/POG/MUO/2016postVFP_UL/muon_Z.json.gz",
                     "2017": "data/jsonpog-integration/POG/MUO/2017_UL/muon_Z.json.gz",
                     "2018": "data/jsonpog-integration/POG/MUO/2018_UL/muon_Z.json.gz",
                 }
             ),
+            # relevant inputs for scale factor evaluation
+            "muon_reco_sf_name": "NUM_TrackerMuons_DEN_genTracks",
             "muon_id_sf_name": "NUM_MediumID_DEN_TrackerMuons",
-            "muon_iso_sf_name": "NUM_TightRelIso_DEN_MediumID",
-            "muon_sf_year_id": EraModifier(
-                {
-                    "2016": "2016postVFP_UL",
-                    "2017": "2017_UL",
-                    "2018": "2018_UL",
-                }
-            ),
-            "muon_sf_varation": "sf",  # "sf" is nominal, "systup"/"systdown" are up/down variations
+            "muon_iso_sf_name": "NUM_LooseRelIso_DEN_MediumID",
+            "muon_sf_varation": "nominal",  # "systup"/"systdown" are up/down variations
         },
     )
-
-    ## all scopes misc settings
+    ## all scopes settings: applied in all chosen final scopes the same way
     configuration.add_config_parameters(
         scopes,
         {
-            "deltaR_jet_veto": 0.5,
-            "pairselection_min_dR": 0.5,
+            # "jet_veto_min_deltaR": 0.5,
+            "mm_pair_min_deltaR": 0.5,
         },
     )
 
@@ -159,7 +167,7 @@ def build_config(
             pairselection.LVMu2,
             pairquantities.MMDiTauPairQuantities,
             genparticles.MMGenDiTauPairQuantities,
-            scalefactors.MuonIDIso_SF,
+            scalefactors.Muon_SFs,
         ],
     )
 
@@ -175,13 +183,19 @@ def build_config(
             nanoAOD.run,
             q.lumi,
             nanoAOD.event,
+            q.nmuons,
             q.pt_1,
             q.pt_2,
             q.eta_1,
             q.eta_2,
             q.phi_1,
             q.phi_2,
-            q.m_vis,
+            q.mass_1,
+            q.mass_2,
+            q.q_1,
+            q.q_2,
+            q.mm_pair_mass,
+            q.mm_pair_pt,
             q.gen_pt_1,
             q.gen_eta_1,
             q.gen_phi_1,
@@ -192,7 +206,9 @@ def build_config(
             q.gen_phi_2,
             q.gen_mass_2,
             q.gen_pdgid_2,
-            q.gen_m_vis,
+            q.gen_mm_pair_mass,
+            q.reco_wgt_mu_1,
+            q.reco_wgt_mu_2,
             q.id_wgt_mu_1,
             q.id_wgt_mu_2,
             q.iso_wgt_mu_1,
@@ -205,9 +221,17 @@ def build_config(
         RemoveProducer(
             producers=[
                 genparticles.MMGenDiTauPairQuantities,
-                scalefactors.MuonIDIso_SF,
+                scalefactors.Muon_SFs,
             ],
             samples=["data"],
+        ),
+    )
+    
+    configuration.add_modification_rule(
+        "global",
+        AppendProducer(
+            producers=event.JSONFilter, 
+            samples=["data", "embedding"]
         ),
     )
 
