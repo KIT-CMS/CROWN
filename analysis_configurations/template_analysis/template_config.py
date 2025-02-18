@@ -110,7 +110,6 @@ def build_config(
     configuration.add_config_parameters(
         ["mm"],
         {
-            
             "muon_first_index_in_pair": 0,
             "muon_second_index_in_pair": 1,
             "muon_min_pt": 25.0,
