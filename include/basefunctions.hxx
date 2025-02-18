@@ -387,6 +387,14 @@ inline auto FilterMinInt(const int &cut) {
     };
 }
 
+inline auto FilterMinUChar(const int &cut) {
+    // As in ROOT, for min we use >=
+    return [cut](const ROOT::RVec<unsigned char> &values) {
+        ROOT::RVec<int> mask = values >= cut;
+        return mask;
+    };
+}
+
 /// Function to apply a minimal filter requirement to a quantity.
 /// Returns true if the absolute value is larger than the given cut value
 ///
@@ -451,7 +459,7 @@ inline auto FilterID(const int &index) {
 ///
 /// \returns a lambda function to be used in RDF Define
 inline auto FilterJetID(const int &index) {
-    return [index](const ROOT::RVec<Int_t> &IDs) {
+    return [index](const ROOT::RVec<UChar_t> &IDs) {
         ROOT::RVec<int> mask = IDs >= index;
         Logger::get("FilterJetID")->debug("IDs: {}", IDs);
         Logger::get("FilterJetID")->debug("Filtered mask: {}", mask);
@@ -468,7 +476,7 @@ inline auto FilterJetID(const int &index) {
 ///
 /// \returns a lambda function to be used in RDF Define
 inline auto FilterJetPUID(const int &PUindex, const float &PUptcut) {
-    return [PUindex, PUptcut](const ROOT::RVec<Int_t> &PUIDs,
+    return [PUindex, PUptcut](const ROOT::RVec<UChar_t> &PUIDs,
                               const ROOT::RVec<float> &jet_pts) {
         ROOT::RVec<int> tmp_mask1 = PUIDs >= PUindex;
         ROOT::RVec<int> tmp_mask2 = jet_pts >= PUptcut;

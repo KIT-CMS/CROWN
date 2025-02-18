@@ -647,12 +647,12 @@ ROOT::RDF::RNode CutDecayModes(ROOT::RDF::RNode df, const std::string &maskname,
                                const std::vector<int> &SelectedDecayModes) {
     auto df1 = df.Define(
         maskname,
-        [SelectedDecayModes](const ROOT::RVec<Int_t> &decaymodes) {
+        [SelectedDecayModes](const ROOT::RVec<UChar_t> &decaymodes) {
             ROOT::RVec<int> mask;
             for (auto n : decaymodes) {
                 mask.push_back(int(std::find(SelectedDecayModes.begin(),
                                              SelectedDecayModes.end(),
-                                             n) != SelectedDecayModes.end()));
+                                             static_cast<int>(n)) != SelectedDecayModes.end()));
             }
             return mask;
         },
@@ -717,7 +717,7 @@ PtCorrection_eleFake(ROOT::RDF::RNode df,
                                      sf_dm0_e, sf_dm1_e](
                                         const ROOT::RVec<float> &pt_values,
                                         const ROOT::RVec<float> &eta_values,
-                                        const ROOT::RVec<int> &decay_modes,
+                                        const ROOT::RVec<UChar_t> &decay_modes,
                                         const ROOT::RVec<UChar_t> &genmatch) {
         ROOT::RVec<float> corrected_pt_values(pt_values.size());
         for (int i = 0; i < pt_values.size(); i++) {
@@ -811,7 +811,7 @@ PtCorrection_eleFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
                                      sf_dm0_e, sf_dm1_e](
                                         const ROOT::RVec<float> &pt_values,
                                         const ROOT::RVec<float> &eta_values,
-                                        const ROOT::RVec<int> &decay_modes,
+                                        const ROOT::RVec<UChar_t> &decay_modes,
                                         const ROOT::RVec<UChar_t> &genmatch) {
         ROOT::RVec<float> corrected_pt_values(pt_values.size());
         for (int i = 0; i < pt_values.size(); i++) {
@@ -896,7 +896,7 @@ PtCorrection_muFake(ROOT::RDF::RNode df,
     auto tau_pt_correction_lambda =
         [evaluator, idAlgorithm, sf_es](const ROOT::RVec<float> &pt_values,
                                         const ROOT::RVec<float> &eta_values,
-                                        const ROOT::RVec<int> &decay_modes,
+                                        const ROOT::RVec<UChar_t> &decay_modes,
                                         const ROOT::RVec<UChar_t> &genmatch) {
             ROOT::RVec<float> corrected_pt_values(pt_values.size());
             for (int i = 0; i < pt_values.size(); i++) {
@@ -957,7 +957,7 @@ PtCorrection_muFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
     auto tau_pt_correction_lambda =
         [evaluator, idAlgorithm, sf_es](const ROOT::RVec<float> &pt_values,
                                         const ROOT::RVec<float> &eta_values,
-                                        const ROOT::RVec<int> &decay_modes,
+                                        const ROOT::RVec<UChar_t> &decay_modes,
                                         const ROOT::RVec<UChar_t> &genmatch) {
             ROOT::RVec<float> corrected_pt_values(pt_values.size());
             for (int i = 0; i < pt_values.size(); i++) {
@@ -1003,7 +1003,7 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
                      const float &sf_dm10, const float &sf_dm11) {
     auto tau_pt_correction_lambda =
         [sf_dm0, sf_dm1, sf_dm10, sf_dm11](const ROOT::RVec<float> &pt_values,
-                                           const ROOT::RVec<int> &decay_modes) {
+                                           const ROOT::RVec<UChar_t> &decay_modes) {
             ROOT::RVec<float> corrected_pt_values(pt_values.size());
             for (int i = 0; i < pt_values.size(); i++) {
                 if (decay_modes.at(i) == 0)
@@ -1064,7 +1064,7 @@ PtCorrection_genTau(ROOT::RDF::RNode df,
                                      DM11](
                                         const ROOT::RVec<float> &pt_values,
                                         const ROOT::RVec<float> &eta_values,
-                                        const ROOT::RVec<int> &decay_modes,
+                                        const ROOT::RVec<UChar_t> &decay_modes,
                                         const ROOT::RVec<UChar_t> &genmatch) {
         ROOT::RVec<float> corrected_pt_values(pt_values.size());
         for (int i = 0; i < pt_values.size(); i++) {
@@ -1451,7 +1451,7 @@ ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
 ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
                          const std::string &nameID, const int &IDvalue) {
     auto df1 =
-        df.Define(maskname, basefunctions::FilterMinInt(IDvalue), {nameID});
+        df.Define(maskname, basefunctions::FilterMinUChar(IDvalue), {nameID});
     return df1;
 }
 /// Function to cut electrons based on failing the cut based electron ID

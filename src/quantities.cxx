@@ -739,9 +739,9 @@ ROOT::RDF::RNode decaymode(ROOT::RDF::RNode df, const std::string &outputname,
                            const std::string &decaymodecolumn) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
-                                const ROOT::RVec<int> &decaymode) {
+                                const ROOT::RVec<UChar_t> &decaymode) {
                          const int index = pair.at(position);
-                         return decaymode.at(index, default_int);
+                         return static_cast<int>(decaymode.at(index, default_int));
                      },
                      {pairname, decaymodecolumn});
 }

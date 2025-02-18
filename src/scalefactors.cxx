@@ -1090,7 +1090,7 @@ btagSF(ROOT::RDF::RNode df,
                           variation](const ROOT::RVec<float> &pt_values,
                                      const ROOT::RVec<float> &eta_values,
                                      const ROOT::RVec<float> &btag_values,
-                                     const ROOT::RVec<int> &flavors,
+                                     const ROOT::RVec<UChar_t> &flavors,
                                      const ROOT::RVec<int> &jet_mask,
                                      const ROOT::RVec<int> &bjet_mask,
                                      const ROOT::RVec<int> &jet_veto_mask) {

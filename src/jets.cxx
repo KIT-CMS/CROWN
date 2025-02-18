@@ -331,7 +331,7 @@ JetPtCorrection(ROOT::RDF::RNode df,
                                          const ROOT::RVec<float> &area_values,
                                          const ROOT::RVec<float>
                                              &rawFactor_values,
-                                         const ROOT::RVec<int> &ID_values,
+                                         const ROOT::RVec<UChar_t> &ID_values,
                                          const ROOT::RVec<float> &gen_pt_values,
                                          const ROOT::RVec<float>
                                              &gen_eta_values,
@@ -727,12 +727,12 @@ ROOT::RDF::RNode flavor(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &flavorcolumn,
                         const std::string &jetcollection, const int &position) {
     return df.Define(outputname,
-                     [position](const ROOT::RVec<int> &flavorvalues,
+                     [position](const ROOT::RVec<UChar_t> &flavorvalues,
                                 const ROOT::RVec<int> &jetcollection) {
                          int flavorValue = default_int;
                          const int index =
                              jetcollection.at(position, default_int);
-                         flavorValue = flavorvalues.at(index, default_int);
+                         flavorValue = static_cast<int>(flavorvalues.at(index, default_int));
                          return flavorValue;
                      },
                      {flavorcolumn, jetcollection});

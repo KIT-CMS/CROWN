@@ -121,7 +121,7 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
                  const int daughter_1_pdgid, const int daughter_2_pdgid) {
 
     auto getTrueGenPair = [mother_pdgid, daughter_1_pdgid,
-                           daughter_2_pdgid](const ROOT::RVec<int> &statusflags,
+                           daughter_2_pdgid](const ROOT::RVec<UShort_t> &statusflags,
                                              const ROOT::RVec<int> &status,
                                              const ROOT::RVec<int> &pdgids,
                                              const ROOT::RVec<int> &motherids,
@@ -549,6 +549,8 @@ namespace fullhadronic {
 /// \returns an `ROOT::RVec<int>` with two values, the first one beeing
 /// the leading tau index and the second one beeing trailing tau index.
 auto PairSelectionAlgo(const float &mindeltaR) {
+    Logger::get("HalloSimon tt?")
+    ->debug("Setting up algorithm");
     Logger::get("fullhadronic::PairSelectionAlgo")
         ->debug("Setting up algorithm");
     return [mindeltaR](const ROOT::RVec<float> &tau_pt,
@@ -559,10 +561,16 @@ auto PairSelectionAlgo(const float &mindeltaR) {
                        const ROOT::RVec<int> &tau_mask) {
         // first entry is the leading tau index,
         // second entry is the trailing tau index
+        Logger::get("fullhadronic::PairSelectionAlgo")
+        ->debug("HalloSimon tau_mask: {}", tau_mask);
         ROOT::RVec<int> selected_pair = {-1, -1};
         const auto original_tau_indices = ROOT::VecOps::Nonzero(tau_mask);
+        Logger::get("fullhadronic::PairSelectionAlgo")
+        ->debug("HalloSimon size: {}", original_tau_indices.size());
 
         if (original_tau_indices.size() < 2) {
+            Logger::get("fullhadronic::PairSelectionAlgo")
+            ->debug("HalloSimon return < 2");
             return selected_pair;
         }
         Logger::get("fullhadronic::PairSelectionAlgo")
