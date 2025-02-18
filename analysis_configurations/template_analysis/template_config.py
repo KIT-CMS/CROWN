@@ -110,8 +110,7 @@ def build_config(
     configuration.add_config_parameters(
         ["mm"],
         {
-            # "muon_index_in_pair": 0,
-            # "second_muon_index_in_pair": 1,
+            
             "muon_first_index_in_pair": 0,
             "muon_second_index_in_pair": 1,
             "muon_min_pt": 25.0,
@@ -142,7 +141,6 @@ def build_config(
     configuration.add_config_parameters(
         scopes,
         {
-            # "jet_veto_min_deltaR": 0.5,
             "mm_pair_min_deltaR": 0.5,
         },
     )

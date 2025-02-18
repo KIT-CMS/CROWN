@@ -91,15 +91,15 @@ For the cmake command, a minimal set of options has to be provided, in this case
 
 The options that are currently available are:
 
-   * :code:`-DANALYSIS=template_analysis`: The analysis to be used. This is the name of the folder in the :code:`analysis_configurations` directory.
-   * :code:`-DCONFIG=template_config`: The configuration to be used. This is the name of the python configuration file. The file has to be located in the directory of the analysis and the path is provided in the Python import syntax e.g. :code:`subfolder.myspecialconfig`
-   * :code:`-DSAMPLES=dyjets`: The samples to be used. This is a single sample or a comma-separated list of sample names.
-   * :code:`-DERAS=2018`: The era to be used. This is a single era or a comma-separated list of era names.
-   * :code:`-DSCOPES=mt`: The scopes to be run. This is a single scope or a comma-separated list of scopes. The `global` scope is always run.
-   * :code:`-DTHREADS=20`: The number of threads to be used. Default: :code:`1` (single threading).
-   * :code:`-DSHIFTS=all`: The shifts to be used. If set to :code:`all`, all shifts are used, if set to :code:`none`, no shifts are used, so only nominal is produced. If set to a comma-separated list of shifts, only those shifts are used. If set to only a substring matching multiple shifts, all shifts matching that string will be produced e.g. :code:`-DSHIFTS=tauES` will produce all shifts containing :code:`tauES` in the name. Default: :code:`all`
-   * :code:`-DDEBUG=true`: If set to true, the code generation will run with debug information and the executable will be compiled with debug flags. Default: :code:`false`
-   * :code:`-DOPTIMIZED=true`: If set to true, the compiler will run with :code:`-O3`, resulting in slower build times but faster runtimes. Should be used for developments, but not in production. Default: :code:`true`
+   * :code:`-DANALYSIS`: The analysis to be used. This is the name of the folder in the :code:`analysis_configurations` directory.
+   * :code:`-DCONFIG`: The configuration to be used. This is the name of the python configuration file. The file has to be located in the directory of the analysis and the path is provided in the Python import syntax e.g. :code:`subfolder.myspecialconfig`
+   * :code:`-DSAMPLES`: The samples to be used. This is a single sample or a comma-separated string of sample names.
+   * :code:`-DERAS`: The era to be used. This is a single era or a comma-separated string of era names.
+   * :code:`-DSCOPES`: The scopes to be run. This is a single scope or a comma-separated string of scopes. The `global` scope is always run.
+   * :code:`-DTHREADS`: The number of threads to be used. Default: :code:`1` (single threading).
+   * :code:`-DSHIFTS`: The shifts to be used. If set to :code:`all`, all shifts are used, if set to :code:`none`, no shifts are used, so only nominal is produced. If set to a comma-separated string of shifts, only those shifts are used. If set to only a substring matching multiple shifts, all shifts matching that string will be produced e.g. :code:`-DSHIFTS=tauES` will produce all shifts containing :code:`tauES` in the name. Default: :code:`all`
+   * :code:`-DDEBUG`: If set to true, the code generation will run with debug information and the executable will be compiled with debug flags. Default: :code:`false`
+   * :code:`-DOPTIMIZED`: If set to true, the compiler will run with :code:`-O3`, resulting in slower build times but faster runtimes. Should be used for developments, but not in production. Default: :code:`true`
 
 Compile the executable using
 
