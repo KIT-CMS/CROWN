@@ -81,7 +81,7 @@ and then run `cmake` to set up the Makefiles. A python configuration is needed t
    To be able to execute CROWN, you yourself have to provide the files and code for both \
 
    1. the analysis that you want to run e.g. `-DANALYSIS=template_analysis`
-   2. the configuration that should be used `-DCONFIG=min_config`
+   2. the configuration that should be used `-DCONFIG=template_config`
 
 For the cmake command, a minimal set of options has to be provided, in this case, we use the template analysis with the minimal example
 
@@ -93,7 +93,7 @@ The options that are currently available are:
 
    * :code:`-DANALYSIS=template_analysis`: The analysis to be used. This is the name of the folder in the :code:`analysis_configurations` directory.
    * :code:`-DCONFIG=template_config`: The configuration to be used. This is the name of the python configuration file. The file has to be located in the directory of the analysis and the path is provided in the Python import syntax e.g. :code:`subfolder.myspecialconfig`
-   * :code:`-DSAMPLES=data`: The samples to be used. This is a single sample or a comma-separated list of sample names.
+   * :code:`-DSAMPLES=dyjets`: The samples to be used. This is a single sample or a comma-separated list of sample names.
    * :code:`-DERAS=2018`: The era to be used. This is a single era or a comma-separated list of era names.
    * :code:`-DSCOPES=mt`: The scopes to be run. This is a single scope or a comma-separated list of scopes. The `global` scope is always run.
    * :code:`-DTHREADS=20`: The number of threads to be used. Default: :code:`1` (single threading).
