@@ -558,6 +558,26 @@ ROOT::RDF::RNode mT(ROOT::RDF::RNode df, const std::string &outputname,
     return df.Define(outputname, calculate_mt, {particle_p4, met});
 }
 
+ROOT::RDF::RNode mT_fatjet(ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &particle_p4, const std::string &met) {
+auto calculate_mt = [](ROOT::Math::PtEtaPhiMVector &particle_p4,
+           ROOT::Math::PtEtaPhiMVector &met) {
+            Logger::get("mT_fatjet")
+                ->debug(
+                    "position fatjet pT {}",
+                    particle_p4.pt());
+            float met_fj;
+                if ( particle_p4.eta() != 100 ){
+                    met_fj = vectoroperations::calculateMT(particle_p4, met);
+                } else{
+                    met_fj = -100;
+                }
+
+return met_fj;
+};
+return df.Define(outputname, calculate_mt, {particle_p4, met});
+}
+
 /**
  * @brief function used to calculate the pt of the dilepton + met system.
  *

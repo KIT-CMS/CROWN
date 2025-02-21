@@ -68,6 +68,42 @@ VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
     return df1;
 }
 
+
+ROOT::RDF::RNode VetoOverlappingJets_boosted(ROOT::RDF::RNode df, const std::string &output_col,
+                                            const std::string &jet_eta, const std::string &jet_phi,
+                                            const std::string &p4_1, const float &deltaRmin) {
+            auto df1 = df.Define(
+                output_col,
+                [deltaRmin](const ROOT::RVec<float> &jet_eta,
+                            const ROOT::RVec<float> &jet_phi,
+                            const ROOT::Math::PtEtaPhiMVector &p4_1) {
+            Logger::get("VetoOverlappingJets (1 particle)")
+                ->debug("Checking jets");
+            ROOT::RVec<int> mask(jet_eta.size(), 1);
+            for (std::size_t idx = 0; idx < mask.size(); ++idx) {
+                ROOT::Math::RhoEtaPhiVectorF jet(0, jet_eta.at(idx),
+                                jet_phi.at(idx));
+                Logger::get("VetoOverlappingJets (1 particle)")
+                ->debug("Jet:  Eta: {} Phi: {} ", jet.Eta(), jet.Phi());
+                Logger::get("VetoOverlappingJets (1 particle)")
+                ->debug("Lepton {}:  Eta: {} Phi: {}, Pt{}", p4_1,
+                p4_1.Eta(), p4_1.Phi(), p4_1.Pt());
+
+                auto deltaR_1 = ROOT::Math::VectorUtil::DeltaR(jet, p4_1);
+                Logger::get("VetoOverlappingJets (1 particle)")
+                ->debug("DeltaR 1 {}", deltaR_1);
+
+                mask[idx] = (deltaR_1 > deltaRmin);
+            }
+            Logger::get("VetoOverlappingJets (1 particle)")
+            ->debug("vetomask due to overlap: {}", mask);
+                return mask;
+            },
+            {jet_eta, jet_phi, p4_1});
+            return df1;
+}
+
+
 /// Function to veto jets overlapping with particle candidates
 ///
 /// \param[in] df the input dataframe
