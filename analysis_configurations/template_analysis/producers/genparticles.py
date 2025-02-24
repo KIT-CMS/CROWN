@@ -5,27 +5,15 @@ from code_generation.producer import Producer, ProducerGroup
 ####################
 # Set of producers to get the genParticles from the ditaupair
 ####################
+
 MMGenPair = Producer(
     name="MMGenPair",
     call="ditau_pairselection::buildgenpair({df}, {input}, {output})",
-    input=[q.dileptonpair, nanoAOD.Muon_indexToGen, nanoAOD.Muon_indexToGen],
+    input=[q.dileptonpair, nanoAOD.Muon_genPartIdx, nanoAOD.Muon_genPartIdx],
     output=[q.gen_dileptonpair],
     scopes=["mm"],
 )
 
-MMTrueGenPair = Producer(
-    name="GenPair",
-    call="ditau_pairselection::buildtruegenpair({df}, {input}, {output}, {truegen_mother_pdgid}, {truegen_daughter_1_pdgid}, {truegen_daugher_2_pdgid})",
-    input=[
-        nanoAOD.GenParticle_statusFlags,
-        nanoAOD.GenParticle_status,
-        nanoAOD.GenParticle_pdgId,
-        nanoAOD.GenParticle_motherid,
-        nanoAOD.GenParticle_pt,
-    ],
-    output=[q.truegenpair],
-    scopes=["mm"],
-)
 ####################
 # Set of general producers for Gen DiTauPair Quantities
 ####################
@@ -56,32 +44,7 @@ LVGenParticle2 = Producer(
     output=[q.gen_p4_2],
     scopes=["mm"],
 )
-LVTrueGenParticle1 = Producer(
-    name="LVTrueGenParticle1",
-    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
-    input=[
-        q.truegenpair,
-        nanoAOD.GenParticle_pt,
-        nanoAOD.GenParticle_eta,
-        nanoAOD.GenParticle_phi,
-        nanoAOD.GenParticle_mass,
-    ],
-    output=[q.gen_p4_1],
-    scopes=["mm"],
-)
-LVTrueGenParticle2 = Producer(
-    name="LVTrueGenParticle2",
-    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
-    input=[
-        q.truegenpair,
-        nanoAOD.GenParticle_pt,
-        nanoAOD.GenParticle_eta,
-        nanoAOD.GenParticle_phi,
-        nanoAOD.GenParticle_mass,
-    ],
-    output=[q.gen_p4_2],
-    scopes=["mm"],
-)
+
 gen_pt_1 = Producer(
     name="gen_pt_1",
     call="quantities::pt({df}, {output}, {input})",
@@ -152,44 +115,7 @@ gen_pdgid_2 = Producer(
     output=[q.gen_pdgid_2],
     scopes=["mm"],
 )
-gen_m_vis = Producer(
-    name="gen_m_vis",
-    call="quantities::m_vis({df}, {output}, {input_vec})",
-    input=[q.gen_p4_1, q.gen_p4_2],
-    output=[q.gen_m_vis],
-    scopes=["mm"],
-)
-gen_match_2 = Producer(
-    name="gen_match_2",
-    call="quantities::tau::genmatch({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_genMatch],
-    output=[q.gen_match_2],
-    scopes=["mm"],
-)
-gen_taujet_pt_1 = Producer(
-    name="gen_taujet_pt_1",
-    call="quantities::tau::matching_genjet_pt({df}, {output}, 0, {input})",
-    input=[
-        q.dileptonpair,
-        nanoAOD.Tau_associatedJet,
-        nanoAOD.Jet_associatedGenJet,
-        nanoAOD.GenJet_pt,
-    ],
-    output=[q.gen_taujet_pt_1],
-    scopes=["mm"],
-)
-gen_taujet_pt_2 = Producer(
-    name="gen_taujet_pt_2",
-    call="quantities::tau::matching_genjet_pt({df}, {output}, 1, {input})",
-    input=[
-        q.dileptonpair,
-        nanoAOD.Tau_associatedJet,
-        nanoAOD.Jet_associatedGenJet,
-        nanoAOD.GenJet_pt,
-    ],
-    output=[q.gen_taujet_pt_2],
-    scopes=["mm"],
-)
+
 UnrollGenMuLV1 = ProducerGroup(
     name="UnrollGenMuLV1",
     call=None,
@@ -207,6 +133,13 @@ UnrollGenMuLV2 = ProducerGroup(
     subproducers=[gen_pt_2, gen_eta_2, gen_phi_2, gen_mass_2, gen_pdgid_2],
 )
 
+gen_mm_pair_mass = Producer(
+    name="gen_mm_pair_mass",
+    call="quantities::m_vis({df}, {output}, {input_vec})",
+    input=[q.gen_p4_1, q.gen_p4_2],
+    output=[q.gen_mm_pair_mass],
+    scopes=["mm"],
+)
 
 MMGenDiTauPairQuantities = ProducerGroup(
     name="GenDiTauPairQuantities",
@@ -220,21 +153,6 @@ MMGenDiTauPairQuantities = ProducerGroup(
         LVGenParticle2,
         UnrollGenMuLV1,
         UnrollGenMuLV2,
-        gen_m_vis,
-    ],
-)
-MMTrueGenDiTauPairQuantities = ProducerGroup(
-    name="GenDiTauPairQuantities",
-    call=None,
-    input=None,
-    output=None,
-    scopes=["mm"],
-    subproducers=[
-        MMTrueGenPair,
-        LVTrueGenParticle1,
-        LVTrueGenParticle2,
-        UnrollGenMuLV1,
-        UnrollGenMuLV2,
-        gen_m_vis,
+        gen_mm_pair_mass,
     ],
 )

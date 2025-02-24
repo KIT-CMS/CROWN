@@ -24,9 +24,6 @@ echo "Setting up CROWN for $distro Version $os_version"
 if [[ "$distro" == "CentOS" ]]; then
     # if the first number of os_version is a 7, we are on centOS 7
     if [[ ${os_version:0:1} == "7" ]]; then # if uname -a | grep -E 'el7' -q
-        # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-gcc11-opt/setup.sh
-        # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-clang12-opt/setup.sh
-        # source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-centos7-gcc11-dbg/setup.sh
         echo "CentOS 7 is EOL, running on LCG 105, support will be dropped soon"
         source /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-centos7-gcc11-opt/setup.sh
     else
@@ -38,7 +35,7 @@ elif [[ "$distro" == "RedHatEnterprise" || "$distro" == "Alma" || "$distro" == "
         echo "Unsupported CentOS version, exiting..."
         return 0
     elif [[ ${os_version:0:1} == "9" ]]; then # elif uname -a | grep -E 'el8' -q
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-el9-gcc13-dbg/setup.sh
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-el9-gcc13-opt/setup.sh
     else
         echo "Unsupported CentOS version, exiting..."
         return 0
@@ -74,7 +71,7 @@ else
         git clone git@github.com:KIT-CMS/TauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/tau"
     elif [[ "$1" == "earlyrun3" && ! -d "${SCRIPT_DIR}/analysis_configurations/earlyrun3" ]]; then
         echo "Cloning analysis earlyrun3 into ${SCRIPT_DIR}/analysis_configurations/earlyrun3"
-        git clone https://github.com/khaosmos93/CROWN-config-earlyRun3.git "${SCRIPT_DIR}/analysis_configurations/earlyrun3"
+        git clone https://github.com/KIT-CMS/earlyRun3Analysis-CROWN "${SCRIPT_DIR}/analysis_configurations/earlyrun3"
     elif [[ "$1" == "whtautau" && ! -d "${SCRIPT_DIR}/analysis_configurations/whtautau" ]]; then
         echo "Cloning analysis whtautau into ${SCRIPT_DIR}/analysis_configurations/whtautau"
         git clone git@github.com:KIT-CMS/WHTauTauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/whtautau"
