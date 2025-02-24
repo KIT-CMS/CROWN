@@ -22,14 +22,11 @@ ROOT::RDF::RNode OrderJetsByPt(ROOT::RDF::RNode df,
                                const std::string &output_col,
                                const std::string &jet_pt,
                                const std::string &jetmask_name);
-
-ROOT::RDF::RNode
-VetoJetsByVetoMap(ROOT::RDF::RNode df, 		  const std::string &maskname,
-		  const std::string &jet_eta, const std::string &jet_phi,
-		  const std::string &vetomap_path,
-		  const std::string &vetomap_name,
-		  const std::string &vetomap_type,
-		  const std::string &object = "Jets");
+ROOT::RDF::RNode VetoJetsByVetoMap(
+    ROOT::RDF::RNode df, const std::string &maskname,
+    const std::string &jet_eta, const std::string &jet_phi,
+    const std::string &vetomap_path, const std::string &vetomap_name,
+    const std::string &vetomap_type, const std::string &object = "Jets");
 } // end namespace jet
 
 namespace physicsobject {
