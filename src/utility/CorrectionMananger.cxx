@@ -21,6 +21,8 @@ namespace correctionManager {
 const correction::Correction *
 CorrectionManager::loadCorrection(const std::string &filePath,
                                   const std::string &corrName) {
+    Logger::get("CorrectionManager")
+        ->debug("Loading Correctionmanager: {}", filePath);
     auto filePath_it = correction_map.find(filePath);
     if (filePath_it == correction_map.end()) {
         Logger::get("CorrectionManager")
