@@ -853,14 +853,16 @@ ROOT::RDF::RNode TauIDFlag(ROOT::RDF::RNode df, const std::string &outputname,
         outputname,
         [position, idxID](const ROOT::RVec<int> &pair,
                           const ROOT::RVec<UChar_t> &IDs) {
-            Logger::get("tauIDFlag")
+            Logger::debug("tauIDFlag")
                 ->debug(
                     "position tau in pair {}, pair {}, id bit {}, vsjet ids {}",
                     position, pair, idxID, IDs);
             const int index = pair.at(position);
             const int ID = IDs.at(index, default_int);
-            Logger:get("tauIDFlag")
-                ->debug("index value {} <= ID value {}", ID, idxID);
+
+            Logger::debug("tauIDFlag")
+                ->debug("index value {}, ID value {}", ID, idxID);
+
             if (ID != default_int) {
                 if (index <= ID)
                     return int(1);
