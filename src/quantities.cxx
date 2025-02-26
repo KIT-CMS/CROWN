@@ -861,10 +861,10 @@ ROOT::RDF::RNode TauIDFlag(ROOT::RDF::RNode df, const std::string &outputname,
             const int ID = IDs.at(index, default_int);
 
             Logger::get("tauIDFlag")
-                ->debug("index value {}, ID value {}", index, ID);
+                ->debug("threshold value {}, ID value {}", idxID, ID);
 
             if (ID != default_int) {
-                if (index <= ID)
+                if (idxID <= ID)
                     return int(1);
                 else
                     return int(0);
