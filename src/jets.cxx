@@ -202,6 +202,77 @@ ROOT::RDF::RNode OrderJetsByPt(ROOT::RDF::RNode df,
         {jetmask_name, jet_pt});
     return df1;
 }
+
+/// Function to veto jets based on veto maps from JME
+///
+/// \param[in] df the input dataframe
+/// \param[out] output_col the name of the produced mask
+/// \param[in] jet_eta name of the jet etas
+/// \param[in] jet_phi name of the jet phis
+/// \param[in] path to the json file with the map
+/// \param[in] name of the correction in the json
+/// \param[in] type of the correction in the json
+/// \param[in] name of the object for debug output (can be also used for
+/// electrons) particle candidates
+///
+/// \return a dataframe containing the new mask
+
+ROOT::RDF::RNode VetoJetsByVetoMap(
+    ROOT::RDF::RNode df, const std::string &maskname,
+    const std::string &jet_eta, const std::string &jet_phi,
+    const std::string &vetomap_path, const std::string &vetomap_name,
+    const std::string &vetomap_type, const std::string &object = "Jets") {
+
+    std::string logger_str = "VetoMap_" + object;
+
+    auto vetomap_evaluator =
+        correction::CorrectionSet::from_file(vetomap_path)->at(vetomap_name);
+
+    auto lambda = [vetomap_evaluator, vetomap_type,
+                   logger_str](const ROOT::RVec<float> &eta,
+                               const ROOT::RVec<float> &phi) {
+        unsigned n_obj = eta.size();
+        ROOT::RVec<int> mask(n_obj, 1.);
+        bool veto = false;
+
+        for (unsigned j = 0; j < n_obj; j++) {
+
+            // due to floating point precision abs(phi) can be >pi, this is ofc
+            // not catched in the correction...
+            float phi_tmp = phi[j];
+            if (phi_tmp > 3.14) {
+                phi_tmp = 3.14;
+            }
+            if (phi_tmp < -3.14) {
+                phi_tmp = -3.14;
+            }
+            // ... and also no overflow catch for eta :(
+            float eta_tmp = eta[j];
+            if (eta_tmp > 5.1) {
+                eta_tmp = 5.1;
+            }
+            if (eta_tmp < -5.1) {
+                eta_tmp = -5.1;
+            }
+
+            veto = bool(
+                vetomap_evaluator->evaluate({vetomap_type, eta_tmp, phi_tmp}));
+
+            Logger::get(logger_str)
+                ->debug("checking object with eta {} and phi {}: should object "
+                        "get vetoed? -> {}",
+                        eta[j], phi[j], veto);
+            mask[j] = 1 - veto;
+        }
+        Logger::get(logger_str)->debug("final object veto mask {}", mask);
+
+        return mask;
+    };
+
+    auto df1 = df.Define(maskname, lambda, {jet_eta, jet_phi});
+    return df1;
+}
+
 } // end namespace jet
 
 namespace physicsobject {
@@ -829,6 +900,7 @@ ROOT::RDF::RNode AntiCutRawID(ROOT::RDF::RNode df, const std::string &quantity,
         df.Define(maskname, basefunctions::FilterMax(idThreshold), {quantity});
     return df1;
 }
+
 } // end namespace jet
 } // end namespace physicsobject
 
