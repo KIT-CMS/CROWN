@@ -685,10 +685,10 @@ ROOT::RDF::RNode propagateJetsToMet(
             if (jet_pt_corrected.at(index) > min_jet_pt) {
                 // construct the uncorrected and the corrected lorentz
                 // vectors
-                uncorrected_jet = ROOT::Math::PtEtaPhiMVector(
+                corrected_jet = ROOT::Math::PtEtaPhiMVector(
                     jet_pt_corrected.at(index), jet_eta_corrected.at(index),
                     jet_phi_corrected.at(index), jet_mass_corrected.at(index));
-                corrected_jet = ROOT::Math::PtEtaPhiMVector(
+                uncorrected_jet = ROOT::Math::PtEtaPhiMVector(
                     jet_pt.at(index), jet_eta.at(index), jet_phi.at(index),
                     jet_mass.at(index));
                 // update the correction factors that are applied to the met
