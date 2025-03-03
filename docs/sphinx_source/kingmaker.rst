@@ -1,7 +1,7 @@
 Workflow Management
 ====================
 
-KingMaker is a workflow management for producing ntuples with the CROWN framework. The workflow management is based on law (https://github.com/riga/law), which uses luigi (https://github.com/spotify/luigi) as the backend. Kingmaker is used to orchestrate the production of ntuples and friend trees for the CROWN framework. The workflow is designed to be flexible and can be adapted to different analyses. Kingmaker takes care of building all required CROWN executables, submitting jobs to a batch system and writing the output to a remote storage. On top of that, Kingmaker can be used to generate FriendTrees, which can be used to store additional information in the ntuples. A sample manager is provided to manage the samples and keep track of the individual input files that have to be processed.
+KingMaker is a workflow management for producing ntuples with the CROWN framework. The workflow management is based on law (https://github.com/riga/law), which uses luigi (https://github.com/spotify/luigi) as the backend. Kingmaker is used to orchestrate the production of ntuples and friend trees for the CROWN framework. The workflow is designed to be flexible and can be adapted to different analyses. Kingmaker takes care of building all required CROWN executables, submitting jobs to a batch system and writing the output to a remote storage. On top of that, Kingmaker can be used to generate FriendTrees, which can be used to store additional information to extend the ntuples. A sample manager is provided to manage the samples and keep track of the individual input files that have to be processed.
 
 .. image:: ../images/kingmaker_sketch.png
   :width: 900
@@ -51,9 +51,9 @@ The naming convention of CMS datasets is according to https://twiki.cern.ch/twik
     ## User-produced Dataset:
     /Tau/aakhmets-data_2016ULpreVFP_tau_Tau_Run2016B-ver2_HIPM_1736940678-00000000000000000000000000000000/USER
 
-- ``PrimaryDataset`` usually represents the superset of data recorded by the experiment in case of Data, and the simulated process in case of MC simulation. In general, for User-produced Datasets this can be anything, however, users are responsible for having meaningful names.
-- ``ProcessedDataset`` provides details on the actual production or processing campaigns of the dataset, including conditions (so-called ``GlobalTag``), version, etc. Again, user Datasets can have there anything, but users are encouraged to have there something meaningful.
-- ``DataTier`` represents the dataformat of the dataset. A list of some more popular formats is given here: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookDataFormats#EvenT. We are mostly interested in NANOAOD(SIM) and MINIAOD(SIM) tailored for analyses. The ``USER`` datatier represents anything that a user can produce.
+- ``PrimaryDataset`` usually represents the superset of data recorded by the experiment in case of Data, and the simulated process in case of MC simulation. In general, for User-produced Datasets this can be anything, however, it is the responsibility of the users to giving meaningful names so that other people can also use their Datasets.
+- ``ProcessedDataset`` provides details on the actual production or processing campaigns of the dataset, including conditions (so-called ``GlobalTag``), version, etc. Again, user Datasets can state anything, but users are encouraged to set meaningful names.
+- ``DataTier`` represents the dataformat of the dataset. A list of some more popular formats is given here: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookDataFormats#EvenT. We are mostly interested in NANOAOD(SIM) and MINIAOD(SIM) which are tailored for analyses. The ``USER`` datatier represents anything that a user can produce.
 
 All centrally produced datasets from CMS are stored under the ``prod/global`` DAS instance, while there is a dedicated DAS instance for user datasets, ``prod/phys03``.
 See https://cmsweb.cern.ch/das/services for more details.
@@ -84,7 +84,7 @@ When adding a new sample, follow the instructions of the ``sample_manager``. In 
     ○ Nick: /DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM - last changed: 20 Feb 2022 06:54 - created: 17 Feb 2022 22:29
     ○ Nick: /DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM - last changed: 29 Nov 2021 11:10 - created: 28 Nov 2021 07:54
 
-The results will be sorted by time, starting the the newest samples on top. The query name has to match the CMS conventions ``/*/*/*``. Select all samples that you want to add. Afterwards, set the correct sample type. Optionally, the ``sample_manager`` can calculate the GeneratorWeight associated to the sample. Since this process can take some time, the task can also be triggered afterwards.
+The results will be sorted by time, starting with the newest samples on top. The query name has to match the CMS conventions ``/*/*/*``. Select all samples that you want to add. Afterwards, set the correct sample type. Optionally, the ``sample_manager`` can calculate the GeneratorWeight associated to the sample. Since this process can take some time, the task can also be triggered afterwards.
 
 
 Generation of sample lists
@@ -109,7 +109,7 @@ To generate a sample list select ``Create a production file``
         Answer: Create a production file
 
 
-In the next step, select the eras you want to use using the arrow keys and space bar
+In the next step, select the eras you want to process using the arrow keys and space bar
 
 .. code-block::
 
@@ -126,16 +126,17 @@ and then select the sample types you want to process. The output file will be a 
 Submission of ntuples
 ---------------------
 
-In Kingmaker, two tasks are separated:
+In Kingmaker, three main tasks are present:
 
 1. The production of ntuples
 2. The production of friend trees
+3. THe production of multiple friend trees (friend trees that depend on other friend trees)
 
-The first task is handled by the ``ProduceFriends`` task, the latter by the ``ProduceFriends`` task. In the case of friend trees, missing Ntuples are generated automatically.
+The first task is handled by the ``ProduceSamples`` task, the second by the ``ProduceFriends`` task and the last by the ``ProduceMultiFriends`` task. In the case of friend trees, missing Ntuples or other friend trees are generated automatically.
 
 .. warning::
     By default, KingMaker will write all outputs to the GridKA NRG storage. As a result, the user has to provide a valid X509 proxy, and the environment variable ``X509_USER_PROXY`` has to be set. The proxy can be created using ``voms-proxy-init``. The proxy has to be valid for at least 24 hours. The proxy can be checked using ``voms-proxy-info``.
-    To use a different output storage, the KingMaker configuration has to be adapted, more details can be found in the :ref:`KingMaker Configuration` section
+    To use a different output storage, the KingMaker configuration has to be adapted, more details can be found in the :ref:`KingMaker Configuration` section.
 
 Production of NTuples
 ~~~~~~~~~~~~~~~~~~~~~
@@ -144,18 +145,18 @@ To trigger a production of ntuples run
 
 .. code-block:: bash
 
-    law run ProduceSamples --analysis tau --config config --sample-list samples.txt --production-tag debug_2 --workers 10 --scopes mt --print-status -1
+    law run ProduceSamples --analysis tau --config config --production-tag debug_v2 --sample-list samples.txt --scopes mt --workers 10 --print-status -1
 
 
 The different options are:
 
 - ``--analysis``: The analysis to be used. The name corresponds to the analysis folder in the ``CROWN/analysis_configurations`` folder.
-- ``--config``: The config file to be used. The config file contains the information about the samples, the input files, the output files, the friend trees, the branches to be read, etc. The config file is located in the ``CROWN/analysis_configurations/<analysis>/config`` folder.
+- ``--config``: The config file to be used. The config file contains the information about all producers, parameters and output branches that are needed to run the ntuple production of your analysis. The config file is located in the ``CROWN/analysis_configurations/<analysis>/config`` folder.
+- ``--production-tag``: The production tag is used to identify the production. It is used to create the output folder and the output files. The output files are stored in the ``/<base>/<production-tag>/CROWNRun/`` folder. The ``base`` variable is set using the Configuration. By default, it is set to ``root://cmsxrootd-kit-disk.gridka.de//store/user/${USER}/CROWN/ntuples/``. Within the ``CROWNRun`` folder, the different samples are stored, matching the ``<era>/<samplenick>/<channel>/<samplenick>_<counter>.root`` pattern.
 - ``--sample-list``: The sample list to be used. The sample list can be generated by the ``sample_manager`` and contains the information about the samples to be processed. The sample nicks can also be provided as a comma-separated list.
-- ``--production-tag``: The production tag is used to identify the production. It is used to create the output folder and the output files. The output files are stored in the ``/<base>/<production-tag>/CROWNRun/`` folder. The ``base`` variable is set using the Configuration. By default, it is set to ``root://cmsxrootd-kit-disk.gridka.de//store/user/${USER}/CROWN/ntuples/``. Within the folder, the different samples are stored, matching the ``<era>/<samplenick>/<channel>/<samplenick>_<counter>.root`` pattern.
-- ``--workers``: The number of workers to be used. Each worker is responsible for the submission and handling of one sample. The number of workers should be at least the number of samples.
 - ``--scopes``: The scopes to be used, provided as a comma-separated list.
-- ``--shifts``: The shifts to be used, provided as a comma-separated list. If no shifts are provided, no shifts are applied. If ``All`` is provided, all shifts are applied, if ``None`` is provided, no shifts are applied.
+- ``--shifts``: The shifts to be used, provided as a comma-separated list. If this parameter is not set, no shifts are applied. If ``All`` is provided, all shifts are applied, if ``None`` is provided, no shifts are applied.
+- ``--workers``: The number of workers to be used. Each worker is responsible for the submission and handling of one sample. The number of workers should be at least the number of samples. If it is lower only the given number of samples will be processed at the same time and the additional samples will only be submitted when one of the already submitted samples is finished.
 
 .. warning::
     The law processes can get stuck after building the tarball when trying to upload it to the dCache when using more than 1 worker. The task will be stuck indefinitely. To avoid this, the user must cancel the running law command using ``Ctrl+C``. Afterwards, the task can be restarted using the same command. The task will then continue with the upload of the tarball. The reason for this behaviour is unknown.
@@ -178,12 +179,12 @@ For the production of friend trees, the same options as for the production of nt
 
 .. code-block:: bash
 
-    law run ProduceFriends --analysis tau --config config --friend-config tau_friends --sample-list samples.txt --shifts None --friend-name test --production-tag debugging_v81 --workers 2
+    law run ProduceFriends --analysis tau --config config --production-tag debug_v2 --friend-config tau_friend_config --friend-name test --sample-list samples.txt --scopes mt --shifts None --workers 10
 
 Some additional options are required:
 
-- ``--friend-config``: The friend config file to be used. The friend config file contains the information about the friend trees to be produced. The friend config file is located in the ``CROWN/analysis_configurations/<analysis>/config`` folder.
-- ``--friend-name``: The name of the friend tree to be produced. The name has to match the name in the friend config file. The resulting friend trees will be stored in the ``/<base>/<production-tag>/CROWNFriends/<friend-name>/`` folder.
+- ``--friend-config``: The friend config file to be used. The friend config file contains the information about the friend trees to be produced like the producers to be run and the output branches that should be saved to the friend trees. The friend config file is located in the ``CROWN/analysis_configurations/<analysis>/tau_friends`` folder.
+- ``--friend-name``: The name or tag of the friend tree to be produced. The name can be different from the friend config file name and can be seen as a tag for a friend tree production. The resulting friend trees will be stored in the ``/<base>/<production-tag>/CROWNFriends/<friend-name>/`` folder.
 
 The resulting folder structure for the command listed above will be
 
@@ -195,6 +196,11 @@ The resulting folder structure for the command listed above will be
         |- CROWNFriends/
                         |- test/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root
 
+To perform the generation of friend trees locally, use
+
+- ``--CROWNFriends-workflow local --CROWNRun-workflow local``: This option can be used to run the production locally. This is useful for debugging purposes if the batch system is currently not available. However, be aware, that this option should only run with a limited amount of workers and samples since it is very easy to overload the local machine.
+
+
 Production of friend trees with additional friends as input
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -202,17 +208,17 @@ If the requested friend tree depends on additional friend trees the ``ProduceMul
 
 .. code-block:: bash
 
-    law run ProduceFriends --analysis tau --config config --friend-config tau_classifier --friend-dependencies tau_friends,tau_friends_2 --sample-list samples.txt --shifts None --friend-name special_tau_classifier --production-tag debugging_v81 --workers 2
+    law run ProduceMultiFriends --analysis tau --config config --production-tag debug_v2 --friend-config tau_classifier_config --friend-name special_tau_classifier --friend-dependencies tau_friend_config,tau_other_friend_config --sample-list samples.txt --scopes mt --shifts None --workers 10
 
-contains an additional option
+contains additional options
 
-- ``--friend-dependencies``: A list of additional configurations to be run. The list has to be provided as a comma-separated list. The resulting friend trees will be stored in the ``/<base>/<production-tag>/CROWNFriends/<friend-config>/`` folder. To set the name for the intermediate friend trees, two options are available. By default, the name of the configuration will be used as the name of the friend tree. Alternatively, the parameter ``friend_mapping`` can be used, to define a dictionary, where a mapping between the friend config name and the friend tree name can be defined. The dictionary has to be provided as a JSON string. An example is given below:
+- ``--friend-dependencies``: A list of additional friend configurations to be run because their outputs are needed for ``--friend-config tau_classifier_config``. The list has to be provided as a comma-separated list. If these friend trees are already produced, their production will be skipped. To set the name for the intermediate friend trees, two options are available. By default, the name of the configuration will be used as the name of the friend tree. The resulting friend trees will be stored in the ``/<base>/<production-tag>/CROWNFriends/<friend-config>/`` folder. Alternatively, the parameter ``friend_mapping`` can be used, to define a dictionary, where a mapping between the friend config name and the friend tree name can be defined. The dictionary has to be provided as a JSON string. An example is given below:
 
 .. code-block:: python
 
-    friend_mapping = {"tau_friends": "tau_friends_leptonscalefactors", "tau_friends_2": "tau_friends_svfit"}
+    --friend-mapping '{"tau_friends":"test","tau_friends_2":"tau_svfit"}'
 
-As an example, the command listed above will produce not only ntuples for all samples specified in ``samples.txt`` using the config but also the friend trees ``tau_friends`` and ``tau_friends_2``. All those three inputs will then be used, to produce the final friend tree ``special_tau_classifier``. The resulting folder structure will be
+As an example, the command listed above will produce not only ntuples for all samples specified in ``samples.txt`` using the config but also the friend trees ``tau_friend_config`` and ``tau_other_friend_config``. All those three inputs will then be used, to produce the final friend tree ``special_tau_classifier``. The resulting folder structure will be
 
 .. code-block::
 
@@ -220,10 +226,10 @@ As an example, the command listed above will produce not only ntuples for all sa
         |- CROWNRun/
                         |- <era>/<samplenick>/<channel>/<samplenick>_<counter>.root
         |- CROWNFriends/
-                        |- tau_friends/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root      (name automatically generated)
-                        |- tau_friends_2/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root    (name automatically generated)
+                        |- tau_friend_config/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root      (name automatically generated)
+                        |- tau_other_friend_config/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root    (name automatically generated)
         |- CROWNMultiFriends/
-                        |- tau_classifier/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root
+                        |- special_tau_classifier/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root
 
 if no ``friend_mapping`` is used, or
 
@@ -233,17 +239,12 @@ if no ``friend_mapping`` is used, or
         |- CROWNRun/
                         |- <era>/<samplenick>/<channel>/<samplenick>_<counter>.root
         |- CROWNFriends/
-                        |- tau_friends_leptonscalefactors/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root      (name automatically generated)
-                        |- tau_friends_svfit/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root    (name automatically generated)
+                        |- test/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root
+                        |- tau_svfit/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root
         |- CROWNMultiFriends/
-                        |- tau_classifier/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root
+                        |- special_tau_classifier/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root
 
 with the exmaple ``friend_mapping`` mentioned above.
-
-To perform the generation of friend trees locally, use
-
-- ``--CROWNFriends-workflow local --CROWNRun-workflow local``: This option can be used to run the production locally. This is useful for debugging purposes if the batch system is currently not available. However, be aware, that this option should only run with a limited amount of workers and samples since it is very easy to overload the local machine.
-
 
 
 KingMaker Configuration
@@ -278,7 +279,6 @@ The ``KingMaker_luigi.cfg`` file contains the configuration of the different tas
     htcondor_accounting_group = cms.higgs
     htcondor_remote_job = True
     htcondor_universe = docker
-    htcondor_docker_image = mschnepf/slc7-condocker:latest
     transfer_logs = True
     local_scheduler = True
     tolerance = 0.00
@@ -294,7 +294,7 @@ The ``KingMaker_luigi.cfg`` file contains the configuration of the different tas
     scopes = mt,et
     shifts = None
 
-Here, the ``wlcg_path`` option should be set to the same path, as the ``base`` path in the ``KingMaker_law.cfg``. The different ``htconddor_`` parameters have to be adopted according to the requirements of the batch system. For the two tasks, that are run remotely, different job requirements can be set. The ``files_per_task`` option defines the number of files to be processed per task. The ``scopes`` and ``shifts`` options define the scopes and shifts to be used. These two parameters can also be provided as command line arguments, which is the recommended way.
+Here, the ``wlcg_path`` option should be set to the same path, as the ``base`` path in the ``KingMaker_law.cfg``. The different ``htcondor_`` parameters have to be adopted according to the requirements of the batch system. For the different tasks, that are run remotely, different job requirements can be set. The ``files_per_task`` option defines the number of files to be processed per task. The ``scopes`` and ``shifts`` options define the scopes and shifts to be used. These two parameters can also be provided as command line arguments, which is the recommended way. Here ``CROWNRun`` and ``CROWNFriends`` as an example:
 
 .. code-block::
 
@@ -302,7 +302,6 @@ Here, the ``wlcg_path`` option should be set to the same path, as the ``base`` p
     ; HTCondor
     htcondor_walltime = 10800
     htcondor_request_memory = 16000
-    htcondor_requirements = TARGET.ProvidesCPU && TARGET.ProvidesIO
     htcondor_request_disk = 20000000
     htcondor_request_cpus = 4
     # for these eras, only one file per task is processed
@@ -312,7 +311,6 @@ Here, the ``wlcg_path`` option should be set to the same path, as the ``base`` p
     ; HTCondor
     htcondor_walltime = 10800
     htcondor_request_memory = 16000
-    htcondor_requirements = TARGET.ProvidesCPU && TARGET.ProvidesIO
     htcondor_request_disk = 20000000
     # friends have to be run in single core mode to ensure a correct order of the tree entries
     htcondor_request_cpus = 1
