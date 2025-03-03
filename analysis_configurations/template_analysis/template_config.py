@@ -156,7 +156,8 @@ def build_config(
         [
             muons.GoodMuons,
             muons.NumberOfGoodMuons,
-            pairselection.ZMMPairSelection,
+            # pairselection.MMPairSelection, # this selection looks for a pair with the highest pT
+            pairselection.ZMMPairSelection, # this selection looks for a pair with the closest invariant mass to the Z boson
             pairselection.GoodMMPairFilter,
             pairselection.LVMu1,
             pairselection.LVMu2,
