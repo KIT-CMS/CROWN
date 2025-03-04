@@ -153,6 +153,19 @@ ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
         },
         {pairname, chargecolumn});
 }
+
+ROOT::RDF::RNode charge_short(ROOT::RDF::RNode df, const std::string &outputname,
+    const int &position, const std::string &pairname,
+    const std::string &chargecolumn) {
+return df.Define(
+outputname,
+[position](const ROOT::RVec<int> &pair, const ROOT::RVec<Short_t> &charge) {
+const int index = pair.at(position);
+return static_cast<int>(charge.at(index, default_int));
+},
+{pairname, chargecolumn});
+}
+
 /// Function to calculate the scalar sum of pts for given lorentz vectors and
 /// add it to the dataframe
 ///
@@ -795,7 +808,7 @@ ROOT::RDF::RNode matching_jet_pt(ROOT::RDF::RNode df,
                                  const std::string &jetpt_column) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
-                                const ROOT::RVec<int> &taujets,
+                                const ROOT::RVec<Short_t> &taujets,
                                 const ROOT::RVec<float> &jetpt) {
                          const int tauindex = pair.at(position);
                          const int jetindex = taujets.at(tauindex, -1);
@@ -824,8 +837,8 @@ ROOT::RDF::RNode matching_genjet_pt(
     const std::string &genjet_index, const std::string &genjetpt_column) {
     return df.Define(outputname,
                      [position](const ROOT::RVec<int> &pair,
-                                const ROOT::RVec<int> &taujets,
-                                const ROOT::RVec<int> &genjets,
+                                const ROOT::RVec<Short_t> &taujets,
+                                const ROOT::RVec<Short_t> &genjets,
                                 const ROOT::RVec<float> &genjetpt) {
                          const int tauindex = pair.at(position);
                          const int jetindex = taujets.at(tauindex, -1);

@@ -74,8 +74,8 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
                               const std::string &genindex_particle2,
                               const std::string &genpairname) {
     auto getGenPair = [](const ROOT::RVec<int> &recopair,
-                         const ROOT::RVec<int> &genindex_particle1,
-                         const ROOT::RVec<int> &genindex_particle2) {
+                         const ROOT::RVec<Short_t> &genindex_particle1,
+                         const ROOT::RVec<Short_t> &genindex_particle2) {
         ROOT::RVec<int> genpair = {-1, -1};
         Logger::get("buildgenpair")->debug("existing Pair: {}", recopair);
         genpair[0] = genindex_particle1.at(recopair.at(0), -1);
@@ -113,8 +113,7 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
  * @return auto the new Dataframe with the genpair column
  */
 
-ROOT::RDF::RNode
-buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
+ROOT::RDF::RNode buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
                  const std::string &status, const std::string &pdgids,
                  const std::string &motherids, const std::string &pts,
                  const std::string &genpair, const int mother_pdgid,
@@ -124,7 +123,7 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
                            daughter_2_pdgid](const ROOT::RVec<UShort_t> &statusflags,
                                              const ROOT::RVec<int> &status,
                                              const ROOT::RVec<int> &pdgids,
-                                             const ROOT::RVec<int> &motherids,
+                                             const ROOT::RVec<Short_t> &motherids,
                                              const ROOT::RVec<float> &pts) {
         ROOT::RVec<int> genpair = {-1, -1};
 

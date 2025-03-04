@@ -228,7 +228,7 @@ channel with
  * correctionlib
 
 Description of the bit map used to define the tau id working points of the
-DeepTau2017v2p1 tagger.
+DeepTau2018v2p5 tagger.
 vsJets                              | Value | Bit (value used in the config)
 ------------------------------------|-------|-------
 no ID selection (takes every tau)   |  0    | -
@@ -558,7 +558,7 @@ channel with
  * correctionlib
 
 Description of the bit map used to define the tau id working points of the
-DeepTau2017v2p1 tagger.
+DeepTau2018v2p5 tagger.
 vsJets                              | Value | Bit (value used in the config)
 ------------------------------------|-------|-------
 no ID selection (takes every tau)   |  0    | -
@@ -697,7 +697,7 @@ ROOT::RDF::RNode id_vsJet_tt(
  * correctionlib
 
 Description of the bit map used to define the tau id working points of the
-DeepTau2017v2p1 tagger.
+DeepTau2018v2p5 tagger.
 vsElectrons                         | Value | Bit (value used in the config)
 ------------------------------------|-------|-------
 no ID selection (takes every tau)   |  0    | -
@@ -788,7 +788,7 @@ id_vsEle(ROOT::RDF::RNode df,
  * correctionlib
 
 Description of the bit map used to define the tau id working points of the
-DeepTau2017v2p1 tagger.
+DeepTau2018v2p5 tagger.
 vsElectrons                         | Value | Bit (value used in the config)
 ------------------------------------|-------|-------
 no ID selection (takes every tau)   |  0    | -

@@ -712,6 +712,8 @@ PtCorrection_eleFake(ROOT::RDF::RNode df,
                      const std::string &idAlgorithm,
                      const std::string &sf_dm0_b, const std::string &sf_dm1_b,
                      const std::string &sf_dm0_e, const std::string &sf_dm1_e) {
+    Logger::get("ptcorrection ele fake")
+        ->debug("Loading CorrectionManager");
     auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
     auto tau_pt_correction_lambda = [evaluator, idAlgorithm, sf_dm0_b, sf_dm1_b,
                                      sf_dm0_e, sf_dm1_e](
@@ -720,6 +722,13 @@ PtCorrection_eleFake(ROOT::RDF::RNode df,
                                         const ROOT::RVec<UChar_t> &decay_modes,
                                         const ROOT::RVec<UChar_t> &genmatch) {
         ROOT::RVec<float> corrected_pt_values(pt_values.size());
+        std::string wp = "Medium";
+        std::string wp_VSe = "VVLoose";
+        Logger::get("ptcorrection ele fake")->debug(
+            "wp = {}, wp_VSe = {}, pt_values.size() = {}, eta_values.size() = {}, decay_modes.size() "
+            "= {}, genmatch.size() = {}",
+            wp, wp_VSe, pt_values.size(), eta_values.size(), decay_modes.size(),
+            genmatch.size());
         for (int i = 0; i < pt_values.size(); i++) {
             if (genmatch.at(i) == 1 || genmatch.at(i) == 3) {
                 // only considering wanted tau decay modes
@@ -728,7 +737,7 @@ PtCorrection_eleFake(ROOT::RDF::RNode df,
                     auto sf = evaluator->evaluate(
                         {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_dm0_b});
+                         idAlgorithm, wp, wp_VSe, sf_dm0_b});
                     corrected_pt_values[i] = pt_values.at(i) * sf;
                 } else if (decay_modes.at(i) == 0 &&
                            std::abs(eta_values.at(i)) > 1.5 &&
@@ -736,14 +745,14 @@ PtCorrection_eleFake(ROOT::RDF::RNode df,
                     auto sf = evaluator->evaluate(
                         {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_dm0_e});
+                         idAlgorithm, wp, wp_VSe, sf_dm0_e});
                     corrected_pt_values[i] = pt_values.at(i) * sf;
                 } else if (decay_modes.at(i) == 1 &&
                            std::abs(eta_values.at(i)) <= 1.5) {
                     auto sf = evaluator->evaluate(
                         {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_dm1_b});
+                         idAlgorithm, wp, wp_VSe, sf_dm1_b});
                     corrected_pt_values[i] = pt_values.at(i) * sf;
                 } else if (decay_modes.at(i) == 1 &&
                            std::abs(eta_values.at(i)) > 1.5 &&
@@ -751,7 +760,7 @@ PtCorrection_eleFake(ROOT::RDF::RNode df,
                     auto sf = evaluator->evaluate(
                         {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_dm1_e});
+                         idAlgorithm, wp, wp_VSe, sf_dm1_e});
                     corrected_pt_values[i] = pt_values.at(i) * sf;
                 }
             } else {
@@ -892,6 +901,8 @@ PtCorrection_muFake(ROOT::RDF::RNode df,
                     const std::string &genMatch, const std::string &sf_file,
                     const std::string &jsonESname,
                     const std::string &idAlgorithm, const std::string &sf_es) {
+    Logger::get("ptcorrection mu fake")
+        ->debug("Loading CorrectionManager");
     auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
     auto tau_pt_correction_lambda =
         [evaluator, idAlgorithm, sf_es](const ROOT::RVec<float> &pt_values,
@@ -899,22 +910,32 @@ PtCorrection_muFake(ROOT::RDF::RNode df,
                                         const ROOT::RVec<UChar_t> &decay_modes,
                                         const ROOT::RVec<UChar_t> &genmatch) {
             ROOT::RVec<float> corrected_pt_values(pt_values.size());
+            std::string wp = "Medium";
+            std::string wp_VSe = "VVLoose";
+            Logger::get("ptcorrection mu fake")->debug(
+                "wp = {}, wp_VSe = {}, pt_values.size() = {}, eta_values.size() = {}, "
+                "decay_modes.size() = {}, genmatch.size() = {}",
+                wp, wp_VSe, pt_values.size(), eta_values.size(), decay_modes.size(),
+                genmatch.size());
             for (int i = 0; i < pt_values.size(); i++) {
                 if (genmatch.at(i) == 2 || genmatch.at(i) == 4) {
                     // only considering wanted tau decay modes
                     auto sf = evaluator->evaluate(
                         {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_es});
+                         idAlgorithm, wp, wp_VSe, sf_es});
                     corrected_pt_values[i] = pt_values.at(i) * sf;
                 } else {
                     corrected_pt_values[i] = pt_values.at(i);
                 }
-                if (genmatch.at(i) == 2 || genmatch.at(i) == 4) {
-                    Logger::get("mu fake")->debug(
-                        "tau pt before {}, tau pt after {}", pt_values.at(i),
-                        corrected_pt_values.at(i));
-                }
+                // if (genmatch.at(i) == 2 || genmatch.at(i) == 4) {
+                //     Logger::get("mu fake")->debug(
+                //         "tau pt before {}, tau pt after {}", pt_values.at(i),
+                //         corrected_pt_values.at(i));
+                // }
+                Logger::get("ptcorrection mu fake")->debug(
+                    "i = {}, tau pt before {}, tau pt after {}", i, pt_values.at(i),
+                    corrected_pt_values.at(i));
             }
             return corrected_pt_values;
         };
@@ -1059,6 +1080,8 @@ PtCorrection_genTau(ROOT::RDF::RNode df,
                     const std::string &idAlgorithm, const std::string &DM0,
                     const std::string &DM1, const std::string &DM10,
                     const std::string &DM11) {
+    Logger::get("tauEnergyCorrection")
+        ->debug("Loading CorrectionManager");
     auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
     auto tau_pt_correction_lambda = [evaluator, idAlgorithm, DM0, DM1, DM10,
                                      DM11](
@@ -1067,32 +1090,47 @@ PtCorrection_genTau(ROOT::RDF::RNode df,
                                         const ROOT::RVec<UChar_t> &decay_modes,
                                         const ROOT::RVec<UChar_t> &genmatch) {
         ROOT::RVec<float> corrected_pt_values(pt_values.size());
+        std::string wp = "Medium";
+        std::string wp_VSe = "VVLoose";
         for (int i = 0; i < pt_values.size(); i++) {
             if (genmatch.at(i) == 5) {
                 // only considering wanted tau decay modes
+                Logger::get("tauEnergyCorrection")
+                ->debug(" i = {}, wp = {}, wp_VSe = {}, pt_values.at(i) = {}, eta_values.at(i) = {}, "
+                        "decay_modes.at(i) = {}, genmatch.at(i) = {}", 
+                        i, wp, wp_VSe, pt_values.at(i), eta_values.at(i),
+                        decay_modes.at(i), genmatch.at(i));
                 if (decay_modes.at(i) == 0) {
                     auto sf = evaluator->evaluate(
                         {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, DM0});
+                         idAlgorithm, wp, wp_VSe, DM0});
+                    Logger::get("tauEnergyCorrection")
+                        ->debug("sf = {}", sf);
                     corrected_pt_values[i] = pt_values.at(i) * sf;
                 } else if (decay_modes.at(i) == 1) {
                     auto sf = evaluator->evaluate(
                         {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, DM1});
+                         idAlgorithm, wp, wp_VSe, DM1});
+                    Logger::get("tauEnergyCorrection")
+                        ->debug("sf = {}", sf);
                     corrected_pt_values[i] = pt_values.at(i) * sf;
                 } else if (decay_modes.at(i) == 10) {
                     auto sf = evaluator->evaluate(
                         {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, DM10});
+                         idAlgorithm, wp, wp_VSe, DM10});
+                    Logger::get("tauEnergyCorrection")
+                        ->debug("sf = {}", sf);
                     corrected_pt_values[i] = pt_values.at(i) * sf;
                 } else if (decay_modes.at(i) == 11) {
                     auto sf = evaluator->evaluate(
                         {pt_values.at(i), std::abs(eta_values.at(i)),
                          decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, DM11});
+                         idAlgorithm, wp, wp_VSe, DM11});
+                    Logger::get("tauEnergyCorrection")
+                        ->debug("sf = {}", sf);
                     corrected_pt_values[i] = pt_values.at(i) * sf;
                 }
             } else {
@@ -1165,10 +1203,15 @@ PtCorrection(ROOT::RDF::RNode df,
              const std::string &eta, const std::string &sf_barrel,
              const std::string &sf_endcap, const std::string &sf_file,
              const std::string &jsonESname) {
+    Logger::get("PtCorrection")
+        ->debug("Loading CorrectionManager");
     auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
     auto electron_pt_correction_lambda = [evaluator, sf_barrel, sf_endcap](
                                              const ROOT::RVec<float> &pt_values,
                                              const ROOT::RVec<float> &eta) {
+        Logger::get("eleEnergyCorrection")
+            ->debug("pt_values.size() = {}, eta_values.size() = {}",
+                    pt_values.size(), eta.size());
         ROOT::RVec<float> corrected_pt_values(pt_values.size());
         for (int i = 0; i < pt_values.size(); i++) {
             if (abs(eta.at(i)) <= 1.479) {
@@ -1272,6 +1315,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &ES_sigma_up, const std::string &ES_sigma_down,
                const std::string &era, const std::string &variation,
                const std::string &ES_file) {
+    Logger::get("ElectronPtCorrectionMC")
+        ->debug("Loading CorrectionManager");
     auto evaluator =
         correctionManager.loadCorrection(ES_file, "UL-EGM_ScaleUnc");
     auto electron_pt_correction_lambda =
@@ -1280,6 +1325,12 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                                     const ROOT::RVec<UChar_t> &gain,
                                     const ROOT::RVec<float> &ES_sigma_up,
                                     const ROOT::RVec<float> &ES_sigma_down) {
+            Logger::get("ElectronPtCorrectionMC")
+                ->debug("pt_values.size() = {}, eta_values.size() = {}, "
+                        "gain.size() = {}, ES_sigma_up.size() = {}, "
+                        "ES_sigma_down.size() = {}",
+                        pt_values.size(), eta.size(), gain.size(),
+                        ES_sigma_up.size(), ES_sigma_down.size());
             ROOT::RVec<float> corrected_pt_values(pt_values.size());
             for (int i = 0; i < pt_values.size(); i++) {
                 if (variation == "resolutionUp") {

@@ -409,7 +409,7 @@ ROOT::RDF::RNode hadronicGenTaus(ROOT::RDF::RNode df,
 
     auto gentaus = [](const ROOT::RVec<int> &pdgids,
                       const ROOT::RVec<UShort_t> &status_flags,
-                      const ROOT::RVec<int> &mother_index) {
+                      const ROOT::RVec<Short_t> &mother_index) {
         // set default values for the output
         std::vector<int> hadronicGenTaus;
         if (pdgids.size() == 0) {

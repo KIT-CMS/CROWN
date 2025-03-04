@@ -24,6 +24,9 @@ ROOT::RDF::RNode dz(ROOT::RDF::RNode df, const std::string &outputname,
 ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
                         const int &position, const std::string &pairname,
                         const std::string &chargecolumn);
+ROOT::RDF::RNode charge_short(ROOT::RDF::RNode df, const std::string &outputname,
+                        const int &position, const std::string &pairname,
+                        const std::string &chargecolumn);
 ROOT::RDF::RNode scalarPtSum(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &pt_1, const std::string &pt_2,
                              const std::string &pt_3);

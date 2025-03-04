@@ -119,7 +119,8 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
                    ROOT::RVec<float> &triggerobject_etas,
                    ROOT::RVec<float> &triggerobject_phis,
                    ROOT::RVec<int> &triggerobject_bits,
-                   ROOT::RVec<int> &triggerobject_ids, const float &matchDeltaR,
+                   ROOT::RVec<UShort_t> &triggerobject_ids, 
+                   const float &matchDeltaR,
                    const float &pt_cut, const float &eta_cut,
                    const int &trigger_particle_id_cut,
                    const int &triggerbit_cut) {
@@ -231,12 +232,14 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
     const int &trigger_particle_id_cut, const int &triggerbit_cut,
     const float &DeltaR_threshold) {
 
+    Logger::get("GenerateSingleTriggerFlag")->debug("init");
+
     auto triggermatch = [DeltaR_threshold, pt_cut, eta_cut,
                          trigger_particle_id_cut, triggerbit_cut, hltpath](
                             bool hltpath_match,
                             const ROOT::Math::PtEtaPhiMVector &particle_p4,
                             ROOT::RVec<int> triggerobject_bits,
-                            ROOT::RVec<int> triggerobject_ids,
+                            ROOT::RVec<UShort_t> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
@@ -363,6 +366,8 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
     const int &p2_trigger_particle_id_cut, const int &p1_triggerbit_cut,
     const int &p2_triggerbit_cut, const float &DeltaR_threshold) {
 
+    Logger::get("GenerateDoubleTriggerFlag")->debug("init");
+
     auto triggermatch = [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut,
                          p2_eta_cut, p1_trigger_particle_id_cut,
                          p2_trigger_particle_id_cut, p1_triggerbit_cut,
@@ -371,7 +376,7 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
                             const ROOT::Math::PtEtaPhiMVector &particle1_p4,
                             const ROOT::Math::PtEtaPhiMVector &particle2_p4,
                             ROOT::RVec<int> triggerobject_bits,
-                            ROOT::RVec<int> triggerobject_ids,
+                            ROOT::RVec<UShort_t> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
@@ -504,6 +509,8 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
     const int &p2_trigger_particle_id_cut, const int &p1_triggerbit_cut,
     const int &p2_triggerbit_cut, const float &DeltaR_threshold) {
 
+    Logger::get("MatchDoubleTriggerObject")->debug("init");
+
     auto triggermatch =
         [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut, p2_eta_cut,
          p1_trigger_particle_id_cut, p2_trigger_particle_id_cut,
@@ -511,7 +518,7 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
          p2_triggerbit_cut](const ROOT::Math::PtEtaPhiMVector &particle1_p4,
                             const ROOT::Math::PtEtaPhiMVector &particle2_p4,
                             ROOT::RVec<int> triggerobject_bits,
-                            ROOT::RVec<int> triggerobject_ids,
+                            ROOT::RVec<UShort_t> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
@@ -583,11 +590,13 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
     const int &trigger_particle_id_cut, const int &triggerbit_cut,
     const float &DeltaR_threshold) {
 
+    Logger::get("MatchSingleTriggerObject")->debug("init");
+
     auto triggermatch = [DeltaR_threshold, pt_cut, eta_cut,
                          trigger_particle_id_cut, triggerbit_cut](
                             const ROOT::Math::PtEtaPhiMVector &particle_p4,
                             ROOT::RVec<int> triggerobject_bits,
-                            ROOT::RVec<int> triggerobject_ids,
+                            ROOT::RVec<UShort_t> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
@@ -625,6 +634,8 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
 ROOT::RDF::RNode GenerateTriggerFlag(
     ROOT::RDF::RNode df, const std::string &triggerflag_name,
     const std::string &hltpath) {
+
+    Logger::get("GenerateTriggerFlag")->debug("init");
 
     auto triggermatch =
         [hltpath](bool hltpath_match) {
@@ -713,7 +724,8 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
                    ROOT::RVec<float> &triggerobject_etas,
                    ROOT::RVec<float> &triggerobject_phis,
                    ROOT::RVec<int> &triggerobject_bits,
-                   ROOT::RVec<int> &triggerobject_ids, const float &matchDeltaR,
+                   ROOT::RVec<UShort_t> &triggerobject_ids, 
+                   const float &matchDeltaR,
                    const float &pt_cut, const float &eta_cut,
                    const int &trigger_particle_id_cut,
                    const int &triggerbit_cut,
@@ -828,12 +840,14 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
     const int &trigger_particle_id_cut, const int &triggerbit_cut,
     const float &DeltaR_threshold, const float &trigger_particle_pt_cut) {
 
+    Logger::get("MatchSingleTriggerObject")->debug("init");
+
     auto triggermatch = [DeltaR_threshold, pt_cut, eta_cut,
                          trigger_particle_id_cut, triggerbit_cut,
                          trigger_particle_pt_cut](
                             const ROOT::Math::PtEtaPhiMVector &particle_p4,
                             ROOT::RVec<int> triggerobject_bits,
-                            ROOT::RVec<int> triggerobject_ids,
+                            ROOT::RVec<UShort_t> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
@@ -897,12 +911,14 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
     const int &trigger_particle_id_cut, const int &triggerbit_cut,
     const float &DeltaR_threshold, const float &trigger_particle_pt_cut) {
 
+    Logger::get("GenerateSingleTriggerFlag")->debug("init");
+
     auto triggermatch =
         [DeltaR_threshold, pt_cut, eta_cut, trigger_particle_id_cut,
          triggerbit_cut, trigger_particle_pt_cut, hltpath](
             bool hltpath_match, const ROOT::Math::PtEtaPhiMVector &particle_p4,
             ROOT::RVec<int> triggerobject_bits,
-            ROOT::RVec<int> triggerobject_ids,
+            ROOT::RVec<UShort_t> triggerobject_ids,
             ROOT::RVec<float> triggerobject_pts,
             ROOT::RVec<float> triggerobject_etas,
             ROOT::RVec<float> triggerobject_phis) {
@@ -1034,6 +1050,8 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
     const float &p1_trigger_particle_pt_cut,
     const float &p2_trigger_particle_pt_cut) {
 
+    Logger::get("GenerateDoubleTriggerFlag")->debug("init");
+
     auto triggermatch = [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut,
                          p2_eta_cut, p1_trigger_particle_id_cut,
                          p2_trigger_particle_id_cut, p1_triggerbit_cut,
@@ -1043,7 +1061,7 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
                             const ROOT::Math::PtEtaPhiMVector &particle1_p4,
                             const ROOT::Math::PtEtaPhiMVector &particle2_p4,
                             ROOT::RVec<int> triggerobject_bits,
-                            ROOT::RVec<int> triggerobject_ids,
+                            ROOT::RVec<UShort_t> triggerobject_ids,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
