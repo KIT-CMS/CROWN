@@ -156,3 +156,36 @@ MMGenDiTauPairQuantities = ProducerGroup(
         gen_mm_pair_mass,
     ],
 )
+
+# Lorentz vectors for friend trees
+LVGenParticle1_friend = Producer(
+    name="LVGenParticle1_friend",
+    call="lorentzvectors::build({df}, {input_vec}, {output})",
+    input=[
+        q.gen_pt_1,
+        q.gen_eta_1,
+        q.gen_phi_1,
+        q.gen_mass_1,
+    ],
+    output=[q.gen_p4_1],
+    scopes=["mm"],
+)
+LVGenParticle2_friend = Producer(
+    name="LVGenParticle2_friend",
+    call="lorentzvectors::build({df}, {input_vec}, {output})",
+    input=[
+        q.gen_pt_2,
+        q.gen_eta_2,
+        q.gen_phi_2,
+        q.gen_mass_2,
+    ],
+    output=[q.gen_p4_2],
+    scopes=["mm"],
+)
+LV_GenMM_reconstruction = Producer(
+    name="LV_GenMM_reconstruction",
+    call="lorentzvectors::CombineP4s({df}, {output}, {input})",
+    input=[q.gen_p4_1, q.gen_p4_2],
+    output=[q.gen_p4_mm],
+    scopes=["mm"],
+)
