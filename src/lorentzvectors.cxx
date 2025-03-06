@@ -93,6 +93,43 @@ ROOT::RDF::RNode build(ROOT::RDF::RNode df,
 }
 
 /**
+ * @brief Function used to construct a 4-vector for a single particle with known 
+ * p4 values.
+ *
+ * @param df the input dataframe
+ * @param obj_quantities a vector of strings containing the names of the
+ * quantities used for the 4 vector building.
+ * @param obj_p4_name name of the column containing the 4-vector
+ * @return a new df, containing the thw column
+ */
+
+ROOT::RDF::RNode build(ROOT::RDF::RNode df,
+                       const std::vector<std::string> &obj_quantities,
+                       const std::string &obj_p4_name) {
+    Logger::get("lorentzvectors")->debug("Building {}", obj_p4_name);
+    for (auto i : obj_quantities)
+        Logger::get("lorentzvectors")->debug("Used object quantities {}", i);
+    auto df1 = df.Define(
+        obj_p4_name,
+        [](const float &pt, const float &eta, const float &phi,
+            const float &mass) {
+            ROOT::Math::PtEtaPhiMVector p4;
+            if (pt >= 0.) {
+                p4 = ROOT::Math::PtEtaPhiMVector(pt, eta, phi, mass);
+            }
+            else {
+                p4 = ROOT::Math::PtEtaPhiMVector(default_float, default_float,
+                                                 default_float, default_float);
+            }
+            Logger::get("lorentzvectors")
+                ->debug("P4 : {}", p4);
+            return p4;
+        },
+        obj_quantities);
+    return df1;
+}
+
+/**
  * @brief Function used to construct the missing transverse energy lorentz
  * vector.
  *
