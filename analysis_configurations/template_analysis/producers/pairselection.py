@@ -77,3 +77,36 @@ LVMu2 = Producer(
     output=[q.p4_2],
     scopes=["mm"],
 )
+
+# Lorentz vectors for friend trees
+LVMu1_friend = Producer(
+    name="LVMu1_friend",
+    call="lorentzvectors::build({df}, {input_vec}, {output})",
+    input=[
+        q.pt_1,
+        q.eta_1,
+        q.phi_1,
+        q.mass_1,
+    ],
+    output=[q.p4_1],
+    scopes=["mm"],
+)
+LVMu2_friend = Producer(
+    name="LVMu2_friend",
+    call="lorentzvectors::build({df}, {input_vec}, {output})",
+    input=[
+        q.pt_2,
+        q.eta_2,
+        q.phi_2,
+        q.mass_2,
+    ],
+    output=[q.p4_2],
+    scopes=["mm"],
+)
+LV_MM_reconstruction = Producer(
+    name="LV_MM_reconstruction",
+    call="lorentzvectors::CombineP4s({df}, {output}, {input})",
+    input=[q.p4_1, q.p4_2],
+    output=[q.p4_mm],
+    scopes=["mm"],
+)
