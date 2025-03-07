@@ -666,7 +666,7 @@ ROOT::RDF::RNode mt_tot(ROOT::RDF::RNode df, const std::string &outputname,
     p(\tau_{i}) = (1 + x_{\tau_{i}^{vis}}) \cdot p(\tau_{i}^{vis}), \qquad i = 1,2
  \f]
  where \f$ p(...) \f$ represents the lorentz vectors of the \f$ \tau \f$ leptons
- \f$ \tau_{1} \f$ and \f$ \tau_{2} \f$. The fractions \f$ x_{\tau_{i}^{vis} \f$
+ \f$ \tau_{1} \f$ and \f$ \tau_{2} \f$. The fractions \f$ x_{\tau_{i}^{vis}} \f$
  are the additional amount of neutrinos contributions, relative to the visible
  decay products. This means, the missing transverse energy vector \f$ \vec{p}_{T}^{miss} \f$
  can be computed as follows:
@@ -675,9 +675,9 @@ ROOT::RDF::RNode mt_tot(ROOT::RDF::RNode df, const std::string &outputname,
  \f]
  This set of equations in turn allows to determine the values \f$ x_{\tau_{i}^{vis}} \f$. Example for \f$ i = 1\f$:
  \f[
-    x_{\tau_{1}^{vis}} = \frac{p_{T}^{miss}}{p_{T}^{1}} \cdot \frac{\sin(\phi_{2} - \phi_{miss})}{\sin(\phi_{2} - \phi_{1})}
+    x_{\tau_{1}^{vis}} = \frac{p_{T}^{miss}}{p_{T}(\tau_{1}^{vis})} \cdot \frac{\sin(\phi_{\tau_{2}^{vis}} - \phi_{miss})}{\sin(\phi_{\tau_{2}^{vis}} - \phi_{\tau_{1}^{vis}})}
  \f]
- The collinear mass approximation is then computed from sum of the full \f$ \tau \f$ lorentz vectors \f$ p(\tau_{i}) \f$
+ The collinear mass approximation is then computed from sum of the full \f$ \tau \f$ lorentz vectors \f$ p(\tau_{i}) \f$.
  *
  * @param df name of the dataframe
  * @param outputname name of the new column containing the mt_tot value
