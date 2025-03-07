@@ -693,7 +693,7 @@ ROOT::RDF::RNode mt_tot(ROOT::RDF::RNode df, const std::string &outputname,
  The collinear mass approximation is then computed from sum of the full \f$ \tau \f$ lorentz vectors \f$ p(\tau_{i}) \f$.
  *
  * @param df name of the dataframe
- * @param outputname name of the new column containing the mt_tot value
+ * @param outputname name of the new column containing the mtt_coll_approx value
  * @param p_1_p4 lorentz vector of the first particle
  * @param p_2_p4 lorentz vector of the second particle
  * @param met lorentz vector of the met
