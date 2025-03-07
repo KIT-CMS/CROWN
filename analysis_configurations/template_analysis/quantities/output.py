@@ -25,6 +25,7 @@ q_2 = Quantity("q_2")
 
 mm_pair_mass = Quantity("mm_pair_mass")
 mm_pair_pt = Quantity("mm_pair_pt")
+p4_mm = Quantity("p4_mm")
 
 ## Gen Quantities
 gen_dileptonpair = Quantity("gen_dileptonpair")
@@ -44,6 +45,7 @@ gen_mass_2 = Quantity("gen_mass_2")
 gen_pdgid_2 = Quantity("gen_pdgid_2")
 
 gen_mm_pair_mass = Quantity("gen_mm_pair_mass")
+gen_p4_mm = Quantity("gen_p4_mm")
 
 # sample flags
 is_data = Quantity("is_data")
