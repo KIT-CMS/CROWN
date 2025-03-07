@@ -45,7 +45,7 @@ def build_config(
             q.gen_p4_mm,
         ],
     )
-    
+
     configuration.add_modification_rule(
         "mm",
         RemoveProducer(
