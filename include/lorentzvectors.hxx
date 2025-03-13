@@ -16,6 +16,9 @@ ROOT::RDF::RNode buildparticle(ROOT::RDF::RNode df,
 ROOT::RDF::RNode build(ROOT::RDF::RNode df,
                        const std::vector<std::string> &obj_quantities,
                        const int pairindex, const std::string &obj_p4_name);
+ROOT::RDF::RNode build(ROOT::RDF::RNode df,
+                       const std::vector<std::string> &obj_quantities,
+                       const std::string &obj_p4_name);
 ROOT::RDF::RNode buildMet(ROOT::RDF::RNode df, const std::string &met_pt,
                           const std::string &met_phi,
                           const std::string &outputname);
