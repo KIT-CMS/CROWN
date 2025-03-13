@@ -15,9 +15,25 @@ Setup
 
     git clone git@github.com:KIT-CMS/KingMaker.git
     cd KingMaker
-    source setup.sh KingMaker
+    source setup.sh
 
 This should install all required packages and set up the environment. In addition, a ``luigid`` scheduler is started, if not already running. The required port is set to the ```LUIGIPORT``` environment variable.
+The setup script has also additional options:
+
+.. code-block:: bash
+    
+    Usage: source setup.sh [options]
+
+    Options:
+    -a, --analysis ANALYSIS    Specify the analysis workflow to use
+                                [default: KingMaker]
+    -c, --crown-analysis NAME  Specify CROWN analysis to check out (only with KingMaker workflow)
+                                [default: plain CROWN]
+                                Available analyses: https://crown.readthedocs.io/en/latest/introduction.html#id1
+    -e, --env-path PATH       Specify custom environment path
+                                [default: auto-detected]
+    -l, --list                List available workflows
+    -h, --help                Show this help message
 
 Management of samples
 ---------------------
