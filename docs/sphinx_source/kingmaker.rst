@@ -202,7 +202,7 @@ If the requested friend tree depends on additional friend trees the ``ProduceMul
 
 .. code-block:: bash
 
-    law run ProduceFriends --analysis tau --config config --friend-config tau_classifier --friend-dependencies tau_friends,tau_friends_2 --sample-list samples.txt --shifts None --friend-name special_tau_classifier --production-tag debugging_v81 --workers 2
+    law run ProduceMultiFriends --analysis tau --config config --friend-config tau_classifier --friend-dependencies tau_friends,tau_friends_2 --sample-list samples.txt --shifts None --friend-name special_tau_classifier --production-tag debugging_v81 --workers 2
 
 contains an additional option
 
