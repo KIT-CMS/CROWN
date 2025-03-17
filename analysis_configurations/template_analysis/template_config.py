@@ -156,7 +156,8 @@ def build_config(
         [
             muons.GoodMuons,
             muons.NumberOfGoodMuons,
-            pairselection.ZMMPairSelection,
+            # pairselection.MMPairSelection, # this selection looks for a pair with the highest pT
+            pairselection.ZMMPairSelection,  # this selection looks for a pair with the closest invariant mass to the Z boson
             pairselection.GoodMMPairFilter,
             pairselection.LVMu1,
             pairselection.LVMu2,
@@ -211,6 +212,7 @@ def build_config(
         ],
     )
 
+    # with the "RemoveProducer" rule, specific producers are removed for specific samples
     configuration.add_modification_rule(
         "mm",
         RemoveProducer(
@@ -222,6 +224,7 @@ def build_config(
         ),
     )
 
+    # with the "AppendProducer" rule, specific producers are added for specific samples
     configuration.add_modification_rule(
         "global",
         AppendProducer(producers=event.JSONFilter, samples=["data", "embedding"]),

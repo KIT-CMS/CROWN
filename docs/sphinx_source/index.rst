@@ -4,7 +4,10 @@ Welcome to The CROWN documentation!
 The **C** ++-based **RO** OT **W** orkflow for **N** -tuples (CROWN) is a fast new way to convert NanoAOD samples into flat :code:`TTrees` to be used in further analysis. The main focus of the framework is to provide a fast and clean way of selecting events and calculating quantities and weights. The framework has minimal dependencies and only uses ROOT and it's Dataframe as a backend.
 
 .. note::
-   To get started, go here: :ref:`Getting started`.
+   To get started with CROWN, go here: :ref:`Getting started`.
+
+.. note::
+  To get started with an ntuple production workflow that uses CROWN, go here: :ref:`Workflow Management`.
 
 .. note::
    To read about recent changes and new features, go here: :ref:`changelog`.
@@ -41,10 +44,10 @@ Documentation Content
    :maxdepth: 2
 
    introduction.rst
-   changelog.rst
    kingmaker.rst
    postprocessing.rst
    friend_trees.rst
+   changelog.rst
 
 .. toctree::
    :maxdepth: 2
