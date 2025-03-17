@@ -97,7 +97,7 @@ The options that are currently available are:
    * :code:`-DERAS`: The era to be used. This is a single era or a comma-separated string of era names.
    * :code:`-DSCOPES`: The scopes to be run. This is a single scope or a comma-separated string of scopes. The `global` scope is always run.
    * :code:`-DTHREADS`: The number of threads to be used. Default: :code:`1` (single threading).
-   * :code:`-DSHIFTS`: The shifts to be used. If set to :code:`all`, all shifts are used, if set to :code:`none`, no shifts are used, so only nominal is produced. If set to a comma-separated string of shifts, only those shifts are used. If set to only a substring matching multiple shifts, all shifts matching that string will be produced e.g. :code:`-DSHIFTS=tauES` will produce all shifts containing :code:`tauES` in the name. Default: :code:`all`
+   * :code:`-DSHIFTS`: The shifts to be used. If set to :code:`all`, all shifts are used, if set to :code:`none`, no shifts are used, so only nominal is produced. If set to a comma-separated string of shifts, only those shifts are used. If set to only a substring matching multiple shifts, all shifts matching that string will be produced e.g. :code:`-DSHIFTS=tauES` will produce all shifts containing :code:`tauES` in the name. Default: :code:`none`
    * :code:`-DDEBUG`: If set to true, the code generation will run with debug information and the executable will be compiled with debug flags. Default: :code:`false`
    * :code:`-DOPTIMIZED`: If set to true, the compiler will run with :code:`-O3`, resulting in slower build times but faster runtimes. Should be used for developments, but not in production. Default: :code:`true`
 
