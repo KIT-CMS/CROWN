@@ -212,6 +212,7 @@ def build_config(
         ],
     )
 
+    # with the "RemoveProducer" rule, specific producers are removed for specific samples 
     configuration.add_modification_rule(
         "mm",
         RemoveProducer(
@@ -223,6 +224,7 @@ def build_config(
         ),
     )
 
+    # with the "AppendProducer" rule, specific producers are added for specific samples
     configuration.add_modification_rule(
         "global",
         AppendProducer(producers=event.JSONFilter, samples=["data", "embedding"]),
