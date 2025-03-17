@@ -127,7 +127,7 @@ class ProducerRule:
         outputs_to_be_updated: QuantitiesStore,
     ) -> None:
         if self.is_applicable(sample):
-            log.warning(f"Applying rule {self} for sample {sample}")
+            log.critical(f"Applying rule {self} for sample {sample}")
             log.debug("For sample {}, applying >> {} ".format(sample, self))
             self.update_producers(producers_to_be_updated, unpacked_producers)
             self.update_outputs(outputs_to_be_updated)
@@ -368,9 +368,6 @@ class ReplaceProducer(ProducerRule):
                         [self.producers[1]], self.global_scope
                     )
             else:
-                log.debug(
-                    f"Updating outputs for producer in {self.scopes} scope --> adding output to all scopes"
-                )
                 scopes = self.scopes
                 for scope in scopes:
                     removed_outputs[scope] = CollectProducersOutput(
@@ -385,11 +382,6 @@ class ReplaceProducer(ProducerRule):
                 )
             else:
                 for scope in scopes:
-                    outputs_after_replace = []
-                    for added_output in added_outputs[scope]:
-                        if added_output in outputs_to_be_updated[scope]:
-                            outputs_after_replace.append(added_output)
-
                     for removed_output in removed_outputs[scope]:
                         if removed_output in outputs_to_be_updated[scope]:
                             log.debug(
@@ -399,7 +391,7 @@ class ReplaceProducer(ProducerRule):
                             )
                             outputs_to_be_updated[scope].remove(removed_output)
                     for added_output in added_outputs[scope]:
-                        if added_output in outputs_after_replace:
+                        if added_output in outputs_to_be_updated[scope]:
                             log.debug(
                                 "ReplaceProducer: Adding {} from outputs in scope {}".format(
                                     added_output, scope
