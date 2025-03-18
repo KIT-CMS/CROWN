@@ -658,6 +658,60 @@ ROOT::RDF::RNode mt_tot(ROOT::RDF::RNode df, const std::string &outputname,
     return df.Define(outputname, calculate_mt_tot, {p_1_p4, p_2_p4, met});
 }
 
+/**
+ * @brief function used to calculate collinear mass approximation `mtt_coll_approx`.
+ * It is defined through two equations, assuming, that neutrinos of \f$ \tau \f$ decays
+ fly into the same direction as visible decay products:
+ \f[
+    p(\tau_{i}) = (1 + x_{\tau_{i}^{vis}}) \cdot p(\tau_{i}^{vis}), \qquad i = 1,2
+ \f]
+ where \f$ p(...) \f$ represents the lorentz vectors of the \f$ \tau \f$ leptons
+ \f$ \tau_{1} \f$ and \f$ \tau_{2} \f$. The fractions \f$ x_{\tau_{i}^{vis}} \f$
+ are the additional amount of neutrinos contributions, relative to the visible
+ decay products. This means, the missing transverse energy vector \f$ \vec{p}_{T}^{miss} \f$
+ can be computed as follows:
+ \f[
+    \vec{p}_{T}^{miss} = x_{\tau_{1}^{vis}} \cdot \vec{p}_{T}(\tau_{1}^{vis}) + x_{\tau_{2}^{vis}} \cdot \vec{p}_{T}(\tau_{2}^{vis})
+ \f]
+ This set of equations in turn allows to determine the values \f$ x_{\tau_{i}^{vis}} \f$. Example for \f$ i = 1\f$:
+ \f[
+    x_{\tau_{1}^{vis}} = \frac{p_{T}^{miss}}{p_{T}(\tau_{1}^{vis})} \cdot \frac{\sin(\phi_{\tau_{2}^{vis}} - \phi_{miss})}{\sin(\phi_{\tau_{2}^{vis}} - \phi_{\tau_{1}^{vis}})}
+ \f]
+ The collinear mass approximation is then computed from sum of the full \f$ \tau \f$ lorentz vectors \f$ p(\tau_{i}) \f$.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the mtt_coll_approx value
+ * @param p_1_p4 lorentz vector of the first particle
+ * @param p_2_p4 lorentz vector of the second particle
+ * @param met lorentz vector of the met
+ * @return a new dataframe with the new column
+ */
+
+ROOT::RDF::RNode mtt_coll_approx(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &p_1_p4, const std::string &p_2_p4,
+                        const std::string &met) {
+    auto calculate_mtt_coll_approx = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
+                               ROOT::Math::PtEtaPhiMVector &p_2_p4,
+                               ROOT::Math::PtEtaPhiMVector &met) -> float {
+
+        // Require valid pt values
+        if (!(p_1_p4.Pt() > 0. && p_2_p4.Pt() > 0. && met.Pt() > 0.))
+            return default_float;
+
+        // Calculate the phi difference between the two visible particles
+        const float delta_phi = p_2_p4.Phi() - p_1_p4.Phi();
+        // Avoid division by zero by checking the sine of the phi difference
+        if (std::fabs(sin(delta_phi)) < 1e-6)
+            return default_float;
+
+        const float x_1 = met.Pt() / p_1_p4.Pt() * sin(p_2_p4.Phi() - met.Phi()) / sin(delta_phi);
+        const float x_2 = met.Pt() / p_2_p4.Pt() * sin(p_1_p4.Phi() - met.Phi()) / (-sin(delta_phi));
+        ROOT::Math::PtEtaPhiMVector coll_lorentz = (1. + x_1) * p_1_p4 + (1. + x_2) * p_2_p4;
+        return coll_lorentz.M();
+    };
+    return df.Define(outputname, calculate_mtt_coll_approx, {p_1_p4, p_2_p4, met});
+}
+
 /// Function to writeout the isolation of a particle. The particle is
 /// identified via the index stored in the pair vector
 ///

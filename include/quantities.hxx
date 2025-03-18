@@ -82,6 +82,9 @@ ROOT::RDF::RNode jet_hemisphere(ROOT::RDF::RNode df,
 ROOT::RDF::RNode mt_tot(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &p_1_p4, const std::string &p_2_p4,
                         const std::string &met);
+ROOT::RDF::RNode mtt_coll_approx(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &p_1_p4, const std::string &p_2_p4,
+                        const std::string &met);
 ROOT::RDF::RNode isolation(ROOT::RDF::RNode df, const std::string &outputname,
                            const int &position, const std::string &pairname,
                            const std::string &isolationcolumn);

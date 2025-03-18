@@ -327,14 +327,7 @@ def build_config(
             ),
             "muon_id_sf_name": "NUM_MediumID_DEN_TrackerMuons",
             "muon_iso_sf_name": "NUM_TightRelIso_DEN_MediumID",
-            "muon_sf_year_id": EraModifier(
-                {
-                    "2016": "2016postVFP_UL",
-                    "2017": "2017_UL",
-                    "2018": "2018_UL",
-                }
-            ),
-            "muon_sf_varation": "sf",
+            "muon_sf_varation": "nominal",
         },
     )
     # ET/EM scope electron selection
@@ -345,11 +338,6 @@ def build_config(
             "min_electron_pt": 25.0,
             "max_electron_eta": 2.1,
             "electron_iso_cut": 0.3,
-            # "muon_sf_workspace": "data/muon_corrections/htt_scalefactors_legacy_2018_muons.root",
-            # "muon_sf_id_name": "m_id_kit_ratio",
-            # "muon_sf_id_args": "m_pt,m_eta",
-            # "muon_sf_iso_name": "m_iso_binned_kit_ratio",
-            # "muon_sf_iso_args": "m_pt,m_eta,m_iso",
         },
     )
     configuration.add_config_parameters(

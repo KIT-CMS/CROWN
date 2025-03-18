@@ -1,6 +1,7 @@
 # folders
-build/
+build/*
 build*/
+!build/.gitkeep
 log/
 logs/
 generation_logs/

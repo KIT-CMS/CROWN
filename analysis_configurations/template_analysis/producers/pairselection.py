@@ -6,9 +6,10 @@ from code_generation.producer import Producer, Filter
 # Set of producers used for contruction of MT good pairs and the coressponding lorentz vectors
 ####################
 
+# mm pair with highest pt
 MMPairSelection = Producer(
     name="MMPairSelection",
-    call="ditau_pairselection::mumu::PairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
+    call="ditau_pairselection::mumu::PairSelection({df}, {input_vec}, {output}, {mm_pair_min_deltaR})",
     input=[
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,
@@ -19,9 +20,10 @@ MMPairSelection = Producer(
     output=[q.dileptonpair],
     scopes=["mm"],
 )
+# mm pair closest to Z boson mass
 ZMMPairSelection = Producer(
     name="MMPairSelection",
-    call="ditau_pairselection::mumu::ZBosonPairSelection({df}, {input_vec}, {output}, {pairselection_min_dR})",
+    call="ditau_pairselection::mumu::ZBosonPairSelection({df}, {input_vec}, {output}, {mm_pair_min_deltaR})",
     input=[
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,
@@ -40,7 +42,6 @@ GoodMMPairFlag = Producer(
     output=[],
     scopes=["mm"],
 )
-
 GoodMMPairFilter = Filter(
     name="GoodMMPairFilter",
     call='basefunctions::FilterFlagsAny({df}, "GoodMuMuPairs", {input})',
@@ -77,30 +78,35 @@ LVMu2 = Producer(
     scopes=["mm"],
 )
 
-## uncorrected versions of all particles, used for MET propagation
-LVMu1Uncorrected = Producer(
-    name="LVMu1Uncorrected",
-    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
+# Lorentz vectors for friend trees
+LVMu1_friend = Producer(
+    name="LVMu1_friend",
+    call="lorentzvectors::build({df}, {input_vec}, {output})",
     input=[
-        q.dileptonpair,
-        nanoAOD.Muon_pt,
-        nanoAOD.Muon_eta,
-        nanoAOD.Muon_phi,
-        nanoAOD.Muon_mass,
+        q.pt_1,
+        q.eta_1,
+        q.phi_1,
+        q.mass_1,
     ],
-    output=[q.p4_1_uncorrected],
+    output=[q.p4_1],
     scopes=["mm"],
 )
-LVMu2Uncorrected = Producer(
-    name="LVMu2Uncorrected",
-    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
+LVMu2_friend = Producer(
+    name="LVMu2_friend",
+    call="lorentzvectors::build({df}, {input_vec}, {output})",
     input=[
-        q.dileptonpair,
-        nanoAOD.Muon_pt,
-        nanoAOD.Muon_eta,
-        nanoAOD.Muon_phi,
-        nanoAOD.Muon_mass,
+        q.pt_2,
+        q.eta_2,
+        q.phi_2,
+        q.mass_2,
     ],
-    output=[q.p4_2_uncorrected],
+    output=[q.p4_2],
+    scopes=["mm"],
+)
+LV_MM_reconstruction = Producer(
+    name="LV_MM_reconstruction",
+    call="lorentzvectors::CombineP4s({df}, {output}, {input})",
+    input=[q.p4_1, q.p4_2],
+    output=[q.p4_mm],
     scopes=["mm"],
 )

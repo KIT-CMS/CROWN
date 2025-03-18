@@ -1,11 +1,18 @@
 # build a shared lib from all CROWN functions
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/include)
+
+include_directories(${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/cpp_addons/src)
+include_directories(${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/cpp_addons/include)
+
 file(GLOB SOURCES_1 ${CMAKE_SOURCE_DIR}/src/*.cxx)
 file(GLOB SOURCES_2 ${CMAKE_SOURCE_DIR}/src/utility/*.cxx
      ${CMAKE_SOURCE_DIR}/src/RecoilCorrections/*.cxx
      ${CMAKE_SOURCE_DIR}/src/SVFit/*.cxx)
-set(SOURCES ${SOURCES_1} ${SOURCES_2})
+
+file(GLOB SOURCES_3 ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/cpp_addons/src/*.cxx)
+
+set(SOURCES ${SOURCES_1} ${SOURCES_2} ${SOURCES_3})
 
 if(BUILD_CROWNLIB_ONLY)
   message(STATUS "Building only the CROWNLIB library")
@@ -46,6 +53,8 @@ if(NOT CROWNLIB_FOUND OR REBUILD_CROWN_LIB)
     nlohmann_json::nlohmann_json
     ${ONNX_RUNTIME_LIB_PATH})
   install(TARGETS CROWNLIB DESTINATION ${INSTALLDIR}/lib)
+  # needed if compiling with ninja
+  set(CMAKE_BUILD_RPATH ${INSTALLDIR}/lib)
 else()
   message(STATUS "Found CROWNLIB in ${CROWNLIB_FOUND}")
   install(FILES ${CROWNLIB_FOUND} DESTINATION ${INSTALLDIR}/lib)

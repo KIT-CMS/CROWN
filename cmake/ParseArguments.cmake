@@ -105,7 +105,7 @@ if(NOT BUILD_CROWNLIB_ONLY)
       STATUS
         "No shifts specificed, using -DSHIFTS=all. If you want to run nominal only, use -DSHIFTS=none"
     )
-    set(SHIFTS "all")
+    set(SHIFTS "none")
   endif()
 
   if(NOT DEFINED QUANTITIESMAP)

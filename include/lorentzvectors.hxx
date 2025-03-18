@@ -16,6 +16,9 @@ ROOT::RDF::RNode buildparticle(ROOT::RDF::RNode df,
 ROOT::RDF::RNode build(ROOT::RDF::RNode df,
                        const std::vector<std::string> &obj_quantities,
                        const int pairindex, const std::string &obj_p4_name);
+ROOT::RDF::RNode build(ROOT::RDF::RNode df,
+                       const std::vector<std::string> &obj_quantities,
+                       const std::string &obj_p4_name);
 ROOT::RDF::RNode buildMet(ROOT::RDF::RNode df, const std::string &met_pt,
                           const std::string &met_phi,
                           const std::string &outputname);
@@ -54,6 +57,21 @@ ROOT::RDF::RNode CombineP4s(ROOT::RDF::RNode df, const std::string &outputflag,
 ROOT::RDF::RNode scaleP4(ROOT::RDF::RNode df, const std::string &outputname,
                          const std::vector<std::string> &inputvector,
                          const float &p4_miss_sf);
+
+ROOT::RDF::RNode BuildP4Collection(ROOT::RDF::RNode df,
+                                   const std::string &outputname,
+                                   const std::string &pts,
+                                   const std::string &etas,
+                                   const std::string &phis,
+                                   const std::string &masses,
+                                   const std::string &collection_index);
+                                   
+ROOT::RDF::RNode BuildP4Collection(ROOT::RDF::RNode df,
+                                    const std::string &outputname,
+                                    const std::string &pts,
+                                    const std::string &etas,
+                                    const std::string &phis,
+                                    const std::string &masses);
 /// namespace used for mutau lorentzvectors
 namespace mutau {
 ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &pairname,
