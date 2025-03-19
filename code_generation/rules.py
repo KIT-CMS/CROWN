@@ -384,6 +384,9 @@ class ReplaceProducer(ProducerRule):
                     f"Outputs {added_outputs} are identical, no need to update outputs"
                 )
             else:
+                log.warning(
+                    f"Outputs {added_outputs} that should be added are not identical to the removed outputs {removed_output}"
+                )
                 for scope in scopes:
                     outputs_after_replace = []
                     for added_output in added_outputs[scope]:

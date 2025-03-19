@@ -69,7 +69,7 @@ CorrectionManager::loadCompoundCorrection(const std::string &filePath,
     auto filePath_it = correctionCompound_map.find(filePath);
     if (filePath_it == correctionCompound_map.end()) {
         Logger::get("CorrectionManager")
-            ->debug("Compound CorrectionFile {} not loaded yet, adding it to the "
+            ->debug("CorrectionFile {} not loaded yet, adding it to the "
                     "CorrectionManager...",
                     filePath);
         auto result = correctionCompound_map.emplace(
@@ -94,7 +94,7 @@ CorrectionManager::loadCompoundCorrection(const std::string &filePath,
         n_corrections++;
     } else {
         Logger::get("CorrectionManager")
-            ->debug("Correction already exists for file - name: {} - "
+            ->debug("CompoundCorrection already exists for file - name: {} - "
                     "{}, using preloaded CompoundCorrection",
                     filePath, corrName);
     }
