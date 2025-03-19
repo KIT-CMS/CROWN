@@ -94,7 +94,7 @@ CorrectionManager::loadCompoundCorrection(const std::string &filePath,
         n_corrections++;
     } else {
         Logger::get("CorrectionManager")
-            ->debug("Correction already exists for file - name: {} - "
+            ->debug("CompoundCorrection already exists for file - name: {} - "
                     "{}, using preloaded CompoundCorrection",
                     filePath, corrName);
     }
