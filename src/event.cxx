@@ -9,10 +9,12 @@
 namespace event {
 
 /**
- * @brief Function to filter events based on their run and luminosity block
+ * @brief Function to filter events based on their `run` and `luminosity` block
  * values from the golden json. The json files are taken from the CMS
  * recommendations.
+ *
  * Run2: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2
+ *
  * Run3: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun3 (not
  * added yet)
  *

@@ -8,9 +8,9 @@ namespace basefilters {
 
 /**
  * @brief Function to apply a maximal filter requirement to a quantity
- * of type T. The type has to be defined when calling this function
+ * of type `T`. The type has to be defined when calling this function
  * `basefilters::FilterMax<T>`. It returns true if the value is
- * smaller than the given cut value.
+ * smaller than the given `cut` value.
  *
  * @param cut cut value of the filter
  *
@@ -25,9 +25,9 @@ template <typename T> inline auto FilterMax(const T &cut) {
 
 /**
  * @brief Function to apply a maximal filter requirement to a quantity
- * of type T. The type has to be defined when calling this function
+ * of type `T`. The type has to be defined when calling this function
  * `basefilters::FilterAbsMax<T>`. It returns true if the absolute
- * value is smaller than the given cut value.
+ * value is smaller than the given `cut` value.
  *
  * @param cut cut value of the filter
  *
@@ -42,9 +42,9 @@ template <typename T> inline auto FilterAbsMax(const T &cut) {
 
 /**
  * @brief Function to apply a minimal filter requirement to a quantity
- * of type T. The type has to be defined when calling this function
+ * of type `T`. The type has to be defined when calling this function
  * `basefilters::FilterMin<T>`. It returns true if the value is
- * larger than the given cut value or equal to it.
+ * larger than the given `cut` value or equal to it.
  *
  * @param cut cut value of the filter
  *
@@ -59,9 +59,9 @@ template <typename T> inline auto FilterMin(const T &cut) {
 
 /**
  * @brief Function to apply a minimal filter requirement to a quantity
- * of type T. The type has to be defined when calling this function
+ * of type `T`. The type has to be defined when calling this function
  * `basefilters::FilterAbsMin<T>`. It returns true if the absolute
- * value is larger than the given cut value or equal to it.
+ * value is larger than the given `cut` value or equal to it.
  *
  * @param cut cut value of the filter
  *
@@ -76,9 +76,9 @@ template <typename T> inline auto FilterAbsMin(const T &cut) {
 
 /**
  * @brief Function to apply an exact filter requirement to a quantity
- * of type T. The type has to be defined when calling this function
+ * of type `T`. The type has to be defined when calling this function
  * `basefilters::FilterEqual<T>`. It returns true if the value is
- * equal to the given cut value.
+ * equal to the given `cut` value.
  *
  * @param cut cut value of the filter
  *
@@ -93,9 +93,9 @@ template <typename T> inline auto FilterEqual(const T &cut) {
 
 /**
  * @brief Function to apply an exact filter requirement to a quantity
- * of type T. The type has to be defined when calling this function
+ * of type `T`. The type has to be defined when calling this function
  * `basefilters::FilterAbsEqual<T>`. It returns true if the absolute
- * value is equal to the given cut value.
+ * value is equal to the given `cut` value.
  *
  * @param cut cut value of the filter
  *
@@ -110,9 +110,9 @@ template <typename T> inline auto FilterAbsEqual(const T &cut) {
 
 /**
  * @brief Function to apply a filter requirement to a bitmask quantity
- * of type Int_t or UChar_t. The type has to be defined when calling this
+ * of type `Int_t` or `UChar_t`. The type has to be defined when calling this
  * function `basefilters::FilterBitmask<T>`. It returns true if the bitmask
- * value is larger than the given cut bitmask value.
+ * value is larger than the given `cut` bitmask value.
  *
  * @param cut bitmask cut value of the filter
  *

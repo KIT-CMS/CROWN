@@ -17,9 +17,10 @@ GoldenJSONFilter(ROOT::RDF::RNode df,
 
 /**
  * @brief Function to apply a flag filter to the dataframe. The input flag can
- * be an already existing flag in the NanoAOD like e.g. the noise filters
+ * be an already existing flag in the NanoAOD e.g. the noise filters
  * recommended by the CMS JetMET group
  * (https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2).
+ * 
  * However the flag can be the result output of another producer.
  *
  * @param df input dataframe
@@ -36,7 +37,7 @@ inline ROOT::RDF::RNode FlagFilter(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief This function filters events, where none of the input flags is true.
+ * @brief This function filters events, where none of the input `flags` is true.
  * This is used to filter events which do not pass an underlying requirement in
  * any systematic variation.
  *
@@ -62,10 +63,10 @@ inline ROOT::RDF::RNode AnyFlagsFilter(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief Function to apply a selection on a quantity of type T (e.g. int,
- * float, double, bool). The type has to be defined when calling this function
- * `event::QuantityFilter<T>`. If the quantity value is in the given selection
- * value vector (with values of type T), an event is kept. If not it is filtered
+ * @brief Function to apply a `selection` on a `quantity` of type `T` (e.g. `int`,
+ * `float`, `double`, `bool`). The type has to be defined when calling this function
+ * `event::QuantityFilter<T>`. If the `quantity` value is in the given `selection`
+ * value vector (with values of type `T`), an event is kept. If not it is filtered
  * out.
  *
  * @param df input dataframe
@@ -88,35 +89,12 @@ QuantityFilter(ROOT::RDF::RNode df, const std::string &filtername,
 }
 
 /**
- * @brief This function creates a new column `outputname` with the negatives of
- * the values in the column `inputname`.
- *
- * Note that this function is implemented as a template, so specify the type `T`
- * of the objects in the input column when calling this function with
- * `Negative<T>(...)`. The type can also be a vector with
- * `ROOT::VecOps::RVec<T>`.
- *
- * @param df input dataframe
- * @param outputname name of the output column
- * @param inputname column name of the input column
- *
- * @return a dataframe with the new column
- */
-template <typename T>
-inline ROOT::RDF::RNode Negative(ROOT::RDF::RNode df,
-                                 const std::string &outputname,
-                                 const std::string &inputname) {
-    auto negative = [](const T &input) { return -input; };
-    return df.Define(outputname, negative, {inputname});
-}
-
-/**
- * @brief Function to write out a quantity from a quantity vector based
+ * @brief Function to write out a quantity from a vector quantity based
  * on an index taken from a index vector.
  *
  * @param df input dataframe
  * @param outputname name of the new column containing the quantity value
- * @param column name of the column containing the quantity vector
+ * @param column name of the column containing the vector quantity
  * @param index_vector name of the column containing the index vector
  * @param position index of the position in the index vector
  *
@@ -145,7 +123,7 @@ GetQuantity(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief Function to write out a quantity from a vector qunatity based
+ * @brief Function to write out a quantity from a vector quantity based
  * on an index.
  *
  * @param df input dataframe
@@ -274,7 +252,7 @@ UnrollVectorQuantity(ROOT::RDF::RNode df, const std::string &name,
 
 /**
  * @brief This function defines a flag that is true if at least one of the input
- * flags is true.
+ * `flags` is true.
  *
  * @param df input dataframe
  * @param outputflag name of the new column
