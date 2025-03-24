@@ -9,8 +9,9 @@
 
 namespace basefunctions {
 
-/** 
- * @brief Function to add an input column as a new column under a different name.
+/**
+ * @brief Function to add an input column as a new column under a different
+ * name.
  *
  * @param df input dataframe
  * @param outputname name of the new column
@@ -25,9 +26,10 @@ inline ROOT::RDF::RNode Rename(ROOT::RDF::RNode df,
     return df.Define(outputname, [](const T &q) { return q; }, {inputname});
 }
 
-/** 
- * @brief Function to add a new column with a defined value of type T. The type needs 
- * to be specified when calling this function with `DefineQuantity<T>(...)`.
+/**
+ * @brief Function to add a new column with a defined value of type T. The type
+ * needs to be specified when calling this function with
+ * `DefineQuantity<T>(...)`.
  *
  * @param df input dataframe
  * @param outputname name of the new column
@@ -42,14 +44,15 @@ inline ROOT::RDF::RNode DefineQuantity(ROOT::RDF::RNode df,
     return df.Define(outputname, [value]() { return value; }, {});
 }
 
-/**  
- * @brief Function to evaluate a `RooWorkspace` function and put the output into a new
- * dataframe column.
+/**
+ * @brief Function to evaluate a `RooWorkspace` function and put the output into
+ * a new dataframe column.
  *
  * @param df input dataframe
  * @param outputname name of the new column
- * @param function a `RooFunctor` pointer, which has to be loaded from a Roo Workspace 
- * @param inputs a parameter pack containing all column names needed to be able 
+ * @param function a `RooFunctor` pointer, which has to be loaded from a Roo
+ * Workspace
+ * @param inputs a parameter pack containing all column names needed to be able
  * to evaluate the workspace function
  *
  * @return a dataframe with the new column

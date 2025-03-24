@@ -10,7 +10,7 @@ const int default_pdgid = -999;
 const float default_float = -10.0;
 const UChar_t default_uchar = -10;
 const bool default_bool = false;
-const auto default_lorentzvector = ROOT::Math::PtEtaPhiMVector(0.,0.,0.,0.);
+const auto default_lorentzvector = ROOT::Math::PtEtaPhiMVector(0., 0., 0., 0.);
 
 template <typename T> const T default_value() {
     if (std::is_same<T, int>::value) {
