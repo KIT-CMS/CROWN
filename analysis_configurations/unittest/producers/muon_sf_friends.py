@@ -20,7 +20,7 @@ MuonIsoSF_friends_1 = Producer(
 
 Rename_IDSF = Producer(
     name="Rename_IDSF",
-    call="basefunctions::rename<double>({df}, {input}, {output})",
+    call="basefunctions::Rename<double>({df}, {output}, {input})",
     input=[q.id_wgt_mu_friend_1],
     output=[q.id_wgt_mu_friend_1_renamed],
     scopes=["mt", "mm"],

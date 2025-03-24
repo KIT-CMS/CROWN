@@ -81,14 +81,14 @@ TauPtCorrection_genTau = Producer(
 )
 TauPtCorrection_data = Producer(
     name="TauPtCorrection_data",
-    call="basefunctions::rename<ROOT::RVec<float>>({df}, {input}, {output})",
+    call="basefunctions::Rename<ROOT::RVec<float>>({df}, {output}, {input})",
     input=[nanoAOD.Tau_pt],
     output=[q.Tau_pt_corrected],
     scopes=["et", "mt", "tt"],
 )
 TauMassCorrection_data = Producer(
     name="TauMassCorrection_data",
-    call="basefunctions::rename<ROOT::RVec<float>>({df}, {input}, {output})",
+    call="basefunctions::Rename<ROOT::RVec<float>>({df}, {output}, {input})",
     input=[nanoAOD.Tau_mass],
     output=[q.Tau_mass_corrected],
     scopes=["et", "mt", "tt"],

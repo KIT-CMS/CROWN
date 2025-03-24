@@ -1,7 +1,7 @@
 #ifndef GUARDHTXS_H
 #define GUARDHTXS_H
 
-#include "../include/basefunctions.hxx"
+#include "../include/event.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/ggF_qcd_uncertainty_2017.hxx"
 #include "../include/utility/qq2Hqq_uncert_scheme.hxx"
@@ -89,7 +89,7 @@ ggH_WG1_uncertainties(ROOT::RDF::RNode df,
             return qcd_ggF_uncertSF_2017(njets, pth, flag);
         },
         {htxs_flag, htxs_pth, htxs_njets});
-    auto df2 = basefunctions::UnrollVectorQuantity<double>(
+    auto df2 = event::UnrollVectorQuantity<double>(
         df1, "ggH_WG1_uncertainties", weight_names);
     return df2;
 }

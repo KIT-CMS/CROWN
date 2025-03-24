@@ -8,7 +8,7 @@ from code_generation.producer import BaseFilter, Producer, ProducerGroup, Vector
 
 JSONFilter = BaseFilter(
     name="JSONFilter",
-    call='basefunctions::JSONFilter({df}, correctionManager, "{golden_json_file}", {input}, "GoldenJSONFilter")',
+    call='event::GoldenJSONFilter({df}, correctionManager, "GoldenJSONFilter", {input}, "{golden_json_file}")',
     input=[nanoAOD.run, nanoAOD.luminosityBlock],
     scopes=["global"],
 )
@@ -74,7 +74,7 @@ SampleFlags = ProducerGroup(
 
 MetFilter = VectorProducer(
     name="MetFilter",
-    call='metfilter::ApplyMetFilter({df}, "{met_filters}", "{met_filters}")',
+    call='event::FlagFilter({df}, "{met_filters}", "{met_filters}")',
     input=[],
     output=None,
     scopes=["global"],
@@ -83,7 +83,7 @@ MetFilter = VectorProducer(
 
 Lumi = Producer(
     name="Lumi",
-    call="basefunctions::rename<UInt_t>({df}, {input}, {output})",
+    call="basefunctions::Rename<UInt_t>({df}, {output}, {input})",
     input=[nanoAOD.luminosityBlock],
     output=[q.lumi],
     scopes=["global"],
