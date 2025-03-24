@@ -293,7 +293,7 @@ namespace jet {
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
                        const std::string &nameID, const int &idxID) {
-    auto df1 = df.Define(maskname, basefilters::FilterBitmask<int>(idxID), {nameID});
+    auto df1 = df.Define(maskname, basefilters::Bitmask<int>(idxID), {nameID});
     return df1;
 }
 /// Function to cut jets based on the jet pileup ID. This ID is applied to jets
@@ -317,8 +317,8 @@ ROOT::RDF::RNode CutPUID(ROOT::RDF::RNode df, const std::string &maskname,
                          const int &idxID, const float &jet_pt_cut) {
     auto pass_PUID = [idxID, jet_pt_cut](const ROOT::RVec<int> &PUIDs,
                                          const ROOT::RVec<float> &jet_pts) {
-        ROOT::RVec<int> id_mask = basefilters::FilterBitmask<int>(idxID)(PUIDs);
-        ROOT::RVec<int> pt_mask = basefilters::FilterMin<float>(jet_pt_cut)(jet_pts);
+        ROOT::RVec<int> id_mask = basefilters::Bitmask<int>(idxID)(PUIDs);
+        ROOT::RVec<int> pt_mask = basefilters::Min<float>(jet_pt_cut)(jet_pts);
         ROOT::RVec<int> mask = (id_mask + pt_mask) > 0;
         return mask;
     };
@@ -881,7 +881,7 @@ JetPtCorrection_data(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
 }
 
 /// Function to select jets passing a ID requirement, using
-/// basefilters::FilterMin
+/// basefilters::Min
 ///
 /// \param[in] df the input dataframe
 /// \param[in] quantity name of the rawID column in the NanoAOD
@@ -894,11 +894,11 @@ ROOT::RDF::RNode CutRawID(ROOT::RDF::RNode df, const std::string &quantity,
                           const std::string &maskname,
                           const float &idThreshold) {
     auto df1 =
-        df.Define(maskname, basefilters::FilterMin<float>(idThreshold), {quantity});
+        df.Define(maskname, basefilters::Min<float>(idThreshold), {quantity});
     return df1;
 }
 /// Function to select jets failing a ID requirement, using
-/// basefilters::FilterMax
+/// basefilters::Max
 ///
 /// \param[in] df the input dataframe
 /// \param[in] quantity name of the rawID column in the NanoAOD
@@ -911,7 +911,7 @@ ROOT::RDF::RNode AntiCutRawID(ROOT::RDF::RNode df, const std::string &quantity,
                               const std::string &maskname,
                               const float &idThreshold) {
     auto df1 =
-        df.Define(maskname, basefilters::FilterMax<float>(idThreshold), {quantity});
+        df.Define(maskname, basefilters::Max<float>(idThreshold), {quantity});
     return df1;
 }
 
