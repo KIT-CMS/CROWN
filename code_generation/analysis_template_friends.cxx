@@ -23,7 +23,6 @@
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"
 #include "include/ml.hxx"
-#include "include/metfilter.hxx"
 #include "include/pairselection.hxx"
 #include "include/physicsobjects.hxx"
 #include "include/quantities.hxx"

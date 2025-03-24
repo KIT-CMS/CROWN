@@ -5,13 +5,15 @@
 #include <string>
 #include <utility> // make_index_sequence
 #include <vector>
+
 /// Namespace used for common utility functions.
 namespace utility {
+
 /**
- * @brief function to check if two double values are approximately equal
+ * @brief Function to check if two double values are approximately equal
  *
- * @param value1 double value to compare
- * @param value2 double value to compare
+ * @param value1 first double value to compare
+ * @param value2 second double value to compare
  * @param maxDelta maximum difference between the two values
  * @return true or false
  */
@@ -26,6 +28,7 @@ inline bool ApproxEqual(double value1, double value2, double maxDelta = 1e-5) {
         return (delta < maxDelta);
     }
 }
+
 /**
  * @brief Function to append a parameter pack to a vector
  *
@@ -36,6 +39,7 @@ inline void appendParameterPackToVector(std::vector<std::string> &v,
                                         const std::string &parameter) {
     v.push_back(parameter);
 }
+
 /**
  * @brief Function to append a parameter pack to a vector
  *
@@ -51,6 +55,7 @@ inline void appendParameterPackToVector(std::vector<std::string> &v,
     v.push_back(parameter);
     appendParameterPackToVector(v, pack...);
 }
+
 /// \cond
 template <typename I, typename T, typename F> class PassAsVecHelper;
 

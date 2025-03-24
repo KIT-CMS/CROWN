@@ -10,7 +10,7 @@ from .muons import DiMuonVeto
 
 RunLumiEventFilter = VectorProducer(
     name="RunLumiEventFilter",
-    call='basefunctions::FilterIntSelection<{RunLumiEventFilter_Quantity_Types}>({df}, "{RunLumiEventFilter_Quantities}", {vec_open}{RunLumiEventFilter_Selections}{vec_close}, "RunLumiEventFilter")',
+    call='event::QuantityFilter<{RunLumiEventFilter_Quantity_Types}>({df}, "RunLumiEventFilter", "{RunLumiEventFilter_Quantities}", {vec_open}{RunLumiEventFilter_Selections}{vec_close})',
     input=[],
     output=None,
     scopes=["global"],
@@ -23,14 +23,14 @@ RunLumiEventFilter = VectorProducer(
 
 JSONFilter = BaseFilter(
     name="JSONFilter",
-    call='basefunctions::JSONFilter({df}, "{golden_json_file}", {input}, "GoldenJSONFilter")',
+    call='event::GoldenJSONFilter({df}, correctionManager, "GoldenJSONFilter", {input}, "{golden_json_file}")',
     input=[nanoAOD.run, nanoAOD.luminosityBlock],
     scopes=["global"],
 )
 
 PrefireWeight = Producer(
     name="PrefireWeight",
-    call="basefunctions::rename<Float_t>({df}, {input}, {output})",
+    call="basefunctions::Rename<Float_t>({df}, {output}, {input})",
     input=[nanoAOD.prefireWeight],
     output=[q.prefireweight],
     scopes=["global"],
@@ -114,7 +114,7 @@ SampleFlags = ProducerGroup(
 
 MetFilter = VectorProducer(
     name="MetFilter",
-    call='metfilter::ApplyMetFilter({df}, "{met_filters}", "{met_filters}")',
+    call='event::FlagFilter({df}, "{met_filters}", "{met_filters}")',
     input=[],
     output=None,
     scopes=["global"],
@@ -123,7 +123,7 @@ MetFilter = VectorProducer(
 
 Lumi = Producer(
     name="Lumi",
-    call="basefunctions::rename<UInt_t>({df}, {input}, {output})",
+    call="basefunctions::Rename<UInt_t>({df}, {output}, {input})",
     input=[nanoAOD.luminosityBlock],
     output=[q.lumi],
     scopes=["global"],
@@ -131,7 +131,7 @@ Lumi = Producer(
 
 npartons = Producer(
     name="npartons",
-    call="basefunctions::rename<UChar_t>({df}, {input}, {output})",
+    call="basefunctions::Rename<UChar_t>({df}, {output}, {input})",
     input=[nanoAOD.LHE_Njets],
     output=[q.npartons],
     scopes=["global"],
@@ -169,7 +169,7 @@ TopPtReweighting = Producer(
 
 DiLeptonVeto = ProducerGroup(
     name="DiLeptonVeto",
-    call="basefunctions::CombineFlagsAny({df}, {output}, {input})",
+    call="event::CombineAnyFlags({df}, {output}, {input})",
     input=[],
     output=[q.dilepton_veto],
     scopes=["global"],

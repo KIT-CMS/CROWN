@@ -1,7 +1,6 @@
 #ifndef GUARDDEFAULTS_H
 #define GUARDDEFAULTS_H
 
-#include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include <Math/Vector4D.h>
 #include <type_traits>
@@ -31,7 +30,6 @@ template <typename T> const T default_value() {
     } else if (std::is_same<T, const UChar_t>::value) {
         return default_uchar;
     }
-    // is there a better way to handle this?
     return static_cast<T>(default_int);
 };
 
