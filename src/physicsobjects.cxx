@@ -29,7 +29,7 @@
 /// physicsobject::CombineMasks.
 namespace physicsobject {
 /// Function to select objects above a pt threshold, using
-/// basefilters::FilterMin
+/// basefilters::Min
 ///
 /// \param[in] df the input dataframe
 /// \param[in] quantity name of the pt column in the NanoAOD
@@ -40,11 +40,11 @@ namespace physicsobject {
 ROOT::RDF::RNode CutPt(ROOT::RDF::RNode df, const std::string &quantity,
                        const std::string &maskname, const float &ptThreshold) {
     auto df1 =
-        df.Define(maskname, basefilters::FilterMin<float>(ptThreshold), {quantity});
+        df.Define(maskname, basefilters::Min<float>(ptThreshold), {quantity});
     return df1;
 }
 /// Function to select objects blow an eta threshold, using
-/// basefilters::FilterAbsMax
+/// basefilters::AbsMax
 ///
 /// \param[in] df the input dataframe
 /// \param[in] quantity name of the eta column in the NanoAOD
@@ -55,12 +55,12 @@ ROOT::RDF::RNode CutPt(ROOT::RDF::RNode df, const std::string &quantity,
 ROOT::RDF::RNode CutEta(ROOT::RDF::RNode df, const std::string &quantity,
                         const std::string &maskname,
                         const float &EtaThreshold) {
-    auto df1 = df.Define(maskname, basefilters::FilterAbsMax<float>(EtaThreshold),
+    auto df1 = df.Define(maskname, basefilters::AbsMax<float>(EtaThreshold),
                          {quantity});
     return df1;
 }
 /// Function to select objects below an Dz threshold, using
-/// basefilters::FilterAbsMax
+/// basefilters::AbsMax
 ///
 /// \param[in] df the input dataframe
 /// \param[in] quantity name of the Dz column in the NanoAOD
@@ -71,11 +71,11 @@ ROOT::RDF::RNode CutEta(ROOT::RDF::RNode df, const std::string &quantity,
 ROOT::RDF::RNode CutDz(ROOT::RDF::RNode df, const std::string &quantity,
                        const std::string &maskname, const float &Threshold) {
     auto df1 =
-        df.Define(maskname, basefilters::FilterAbsMax<float>(Threshold), {quantity});
+        df.Define(maskname, basefilters::AbsMax<float>(Threshold), {quantity});
     return df1;
 }
 /// Function to select objects below an Dxy threshold, using
-/// basefilters::FilterAbsMax
+/// basefilters::AbsMax
 ///
 /// \param[in] df the input dataframe
 /// \param[in] quantity name of the Dxy column in the NanoAOD
@@ -86,7 +86,7 @@ ROOT::RDF::RNode CutDz(ROOT::RDF::RNode df, const std::string &quantity,
 ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
                         const std::string &maskname, const float &Threshold) {
     auto df1 =
-        df.Define(maskname, basefilters::FilterAbsMax<float>(Threshold), {quantity});
+        df.Define(maskname, basefilters::AbsMax<float>(Threshold), {quantity});
     return df1;
 }
 /// Function to select objects with eta dependent upper and lower thesholds
@@ -420,7 +420,7 @@ ROOT::RDF::RNode CheckForDiLeptonPairs(
 ROOT::RDF::RNode SelectInt(ROOT::RDF::RNode df, const std::string &maskname,
                            const std::string &nameID, const int &IDvalue) {
     auto df1 =
-        df.Define(maskname, basefilters::FilterEqual<int>(IDvalue), {nameID});
+        df.Define(maskname, basefilters::Equal<int>(IDvalue), {nameID});
     return df1;
 }
 
@@ -443,7 +443,7 @@ ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
     return df1;
 }
 /// Function to cut on muons based on the muon isolation using
-/// basefilters::FilterMax
+/// basefilters::Max
 ///
 /// \param[in] df the input dataframe
 /// \param[in] isolationName name of the isolation column in the NanoAOD
@@ -455,12 +455,12 @@ ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
 ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
                               const std::string &isolationName,
                               const float &Threshold) {
-    auto df1 = df.Define(maskname, basefilters::FilterMax<float>(Threshold),
+    auto df1 = df.Define(maskname, basefilters::Max<float>(Threshold),
                          {isolationName});
     return df1;
 }
 /// Function to cut on muons based on the muon isolation using
-/// basefilters::FilterMin
+/// basefilters::Min
 ///
 /// \param[in] df the input dataframe
 /// \param[in] isolationName name of the isolation column in the NanoAOD
@@ -473,7 +473,7 @@ ROOT::RDF::RNode AntiCutIsolation(ROOT::RDF::RNode df,
                                   const std::string &maskname,
                                   const std::string &isolationName,
                                   const float &Threshold) {
-    auto df1 = df.Define(maskname, basefilters::FilterMin<float>(Threshold),
+    auto df1 = df.Define(maskname, basefilters::Min<float>(Threshold),
                          {isolationName});
     return df1;
 }
@@ -670,7 +670,7 @@ ROOT::RDF::RNode CutDecayModes(ROOT::RDF::RNode df, const std::string &maskname,
 /// \return a dataframe containing the new mask
 ROOT::RDF::RNode CutTauID(ROOT::RDF::RNode df, const std::string &maskname,
                           const std::string &nameID, const int &idxID) {
-    auto df1 = df.Define(maskname, basefilters::FilterBitmask<UChar_t>(idxID), {nameID});
+    auto df1 = df.Define(maskname, basefilters::Bitmask<UChar_t>(idxID), {nameID});
     return df1;
 }
 /// Function to correct e to tau fake pt
@@ -1538,7 +1538,7 @@ ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
 ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
                          const std::string &nameID, const int &IDvalue) {
     auto df1 =
-        df.Define(maskname, basefilters::FilterMin<int>(IDvalue), {nameID});
+        df.Define(maskname, basefilters::Min<int>(IDvalue), {nameID});
     return df1;
 }
 /// Function to cut electrons based on failing the cut based electron ID
@@ -1553,12 +1553,12 @@ ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
 ROOT::RDF::RNode AntiCutCBID(ROOT::RDF::RNode df, const std::string &maskname,
                              const std::string &nameID, const int &IDvalue) {
     auto df1 =
-        df.Define(maskname, basefilters::FilterMax<int>(IDvalue), {nameID});
+        df.Define(maskname, basefilters::Max<int>(IDvalue), {nameID});
     return df1;
 }
 
 /// Function to cut electrons based on the electron isolation using
-/// basefilters::FilterMax
+/// basefilters::Max
 ///
 /// \param[in] df the input dataframe
 /// \param[in] isolationName name of the isolation column in the NanoAOD
@@ -1570,7 +1570,7 @@ ROOT::RDF::RNode AntiCutCBID(ROOT::RDF::RNode df, const std::string &maskname,
 ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
                               const std::string &isolationName,
                               const float &Threshold) {
-    auto df1 = df.Define(maskname, basefilters::FilterMax<float>(Threshold),
+    auto df1 = df.Define(maskname, basefilters::Max<float>(Threshold),
                          {isolationName});
     return df1;
 }

@@ -10,7 +10,7 @@ from .muons import DiMuonVeto
 
 RunLumiEventFilter = VectorProducer(
     name="RunLumiEventFilter",
-    call='event::QuantityFilter<{RunLumiEventFilter_Quantity_Types}>({df}, "RunLumiEventFilter", "{RunLumiEventFilter_Quantities}", {vec_open}{RunLumiEventFilter_Selections}{vec_close})',
+    call='event::FilterQuantity<{RunLumiEventFilter_Quantity_Types}>({df}, "RunLumiEventFilter", "{RunLumiEventFilter_Quantities}", {vec_open}{RunLumiEventFilter_Selections}{vec_close})',
     input=[],
     output=None,
     scopes=["global"],
@@ -114,7 +114,7 @@ SampleFlags = ProducerGroup(
 
 MetFilter = VectorProducer(
     name="MetFilter",
-    call='event::FlagFilter({df}, "{met_filters}", "{met_filters}")',
+    call='event::FilterFlag({df}, "{met_filters}", "{met_filters}")',
     input=[],
     output=None,
     scopes=["global"],
@@ -169,7 +169,7 @@ TopPtReweighting = Producer(
 
 DiLeptonVeto = ProducerGroup(
     name="DiLeptonVeto",
-    call="event::CombineAnyFlags({df}, {output}, {input})",
+    call="event::CombineFlagsAny({df}, {output}, {input})",
     input=[],
     output=[q.dilepton_veto],
     scopes=["global"],

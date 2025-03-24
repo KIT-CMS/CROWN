@@ -16,20 +16,17 @@ GoldenJSONFilter(ROOT::RDF::RNode df,
                  const std::string &luminosity, const std::string &json_path);
 
 /**
- * @brief Function to apply a flag filter to the dataframe. The input flag can
- * be an already existing flag in the NanoAOD e.g. the noise filters
- * recommended by the CMS JetMET group
- * (https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2).
+ * @brief Function to apply a flag filter to the dataframe. The input flag should 
+ * be a flag in the NanoAOD e.g. the noise filters recommended by the CMS JetMET 
+ * group (https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2).
  * 
- * However the flag can be the result output of another producer.
- *
  * @param df input dataframe
  * @param filtername name of the filter, used in the dataframe report
  * @param flagname name of the filter flag
  *
  * @return a filtered dataframe
  */
-inline ROOT::RDF::RNode FlagFilter(ROOT::RDF::RNode df,
+inline ROOT::RDF::RNode FilterFlag(ROOT::RDF::RNode df,
                                    const std::string &filtername,
                                    const std::string &flagname) {
     return df.Filter([](const bool flag) { return flag; }, {flagname},
@@ -37,9 +34,9 @@ inline ROOT::RDF::RNode FlagFilter(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief This function filters events, where none of the input `flags` is true.
- * This is used to filter events which do not pass an underlying requirement in
- * any systematic variation.
+ * @brief This function filters events, where none of the input `flags` are true.
+ * This can be used to filter events which do not pass an underlying requirement 
+ * in any systematic variation.
  *
  * @param df input dataframe
  * @param filtername name of the filter, used in the dataframe report
@@ -49,7 +46,7 @@ inline ROOT::RDF::RNode FlagFilter(ROOT::RDF::RNode df,
  * @return a filtered dataframe
  */
 template <class... Flags>
-inline ROOT::RDF::RNode AnyFlagsFilter(ROOT::RDF::RNode df,
+inline ROOT::RDF::RNode FilterFlagsAny(ROOT::RDF::RNode df,
                                        const std::string &filtername,
                                        const Flags &...flags) {
     std::vector<std::string> FlagList;
@@ -63,9 +60,35 @@ inline ROOT::RDF::RNode AnyFlagsFilter(ROOT::RDF::RNode df,
 }
 
 /**
+ * @brief This function filters events, where at least one of the input `flags` 
+ * is false. This is used to filter events which do not pass an underlying 
+ * requirement in all systematic variation.
+ *
+ * @param df input dataframe
+ * @param filtername name of the filter, used in the dataframe report
+ * @param flags parameter pack of column names that contain the considered
+ * flags of type bool
+ *
+ * @return a filtered dataframe
+ */
+template <class... Flags>
+inline ROOT::RDF::RNode FilterFlagsAll(ROOT::RDF::RNode df,
+                                       const std::string &filtername,
+                                       const Flags &...flags) {
+    std::vector<std::string> FlagList;
+    utility::appendParameterPackToVector(FlagList, flags...);
+    const auto nFlags = sizeof...(Flags);
+    using namespace ROOT::VecOps;
+    return df.Filter(
+        utility::PassAsVec<nFlags, bool>(
+            [](const ROOT::RVec<bool> &flags) { return All(flags); }),
+        FlagList, filtername);
+}
+
+/**
  * @brief Function to apply a `selection` on a `quantity` of type `T` (e.g. `int`,
  * `float`, `double`, `bool`). The type has to be defined when calling this function
- * `event::QuantityFilter<T>`. If the `quantity` value is in the given `selection`
+ * `event::FilterQuantity<T>`. If the `quantity` value is in the given `selection`
  * value vector (with values of type `T`), an event is kept. If not it is filtered
  * out.
  *
@@ -78,7 +101,7 @@ inline ROOT::RDF::RNode AnyFlagsFilter(ROOT::RDF::RNode df,
  */
 template <typename T>
 inline ROOT::RDF::RNode
-QuantityFilter(ROOT::RDF::RNode df, const std::string &filtername,
+FilterQuantity(ROOT::RDF::RNode df, const std::string &filtername,
                const std::string &quantity, const std::vector<T> &selection) {
     return df.Filter(
         [selection](const T quantity) {
@@ -262,7 +285,7 @@ UnrollVectorQuantity(ROOT::RDF::RNode df, const std::string &name,
  * @return a dataframe with the new column
  */
 template <class... Flags>
-inline ROOT::RDF::RNode CombineAnyFlags(ROOT::RDF::RNode df,
+inline ROOT::RDF::RNode CombineFlagsAny(ROOT::RDF::RNode df,
                                         const std::string &outputflag,
                                         const Flags &...flags) {
     std::vector<std::string> FlagList;
@@ -273,6 +296,32 @@ inline ROOT::RDF::RNode CombineAnyFlags(ROOT::RDF::RNode df,
         outputflag,
         utility::PassAsVec<nFlags, bool>(
             [](const ROOT::RVec<bool> &flags) { return Any(flags); }),
+        FlagList);
+}
+
+/**
+ * @brief This function defines a flag that is true if all of the input
+ * `flags` are true.
+ *
+ * @param df input dataframe
+ * @param outputflag name of the new column
+ * @param flags parameter pack of column names that contain the considered
+ * flags of type bool
+ *
+ * @return a dataframe with the new column
+ */
+template <class... Flags>
+inline ROOT::RDF::RNode CombineFlagsAll(ROOT::RDF::RNode df,
+                                        const std::string &outputflag,
+                                        const Flags &...flags) {
+    std::vector<std::string> FlagList;
+    utility::appendParameterPackToVector(FlagList, flags...);
+    const auto nFlags = sizeof...(Flags);
+    using namespace ROOT::VecOps;
+    return df.Define(
+        outputflag,
+        utility::PassAsVec<nFlags, bool>(
+            [](const ROOT::RVec<bool> &flags) { return All(flags); }),
         FlagList);
 }
 } // namespace event

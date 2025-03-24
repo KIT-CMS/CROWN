@@ -74,7 +74,7 @@ SampleFlags = ProducerGroup(
 
 MetFilter = VectorProducer(
     name="MetFilter",
-    call='event::FlagFilter({df}, "{met_filters}", "{met_filters}")',
+    call='event::FilterFlag({df}, "{met_filters}", "{met_filters}")',
     input=[],
     output=None,
     scopes=["global"],
