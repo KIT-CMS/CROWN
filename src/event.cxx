@@ -10,12 +10,15 @@ namespace event {
 
 /**
  * @brief Function to filter events based on their run and luminosity block
- * values from the golden json. The json files are taken from the CMS recommendations.
+ * values from the golden json. The json files are taken from the CMS
+ * recommendations.
  * Run2: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2
- * Run3: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun3 (not added yet)
+ * Run3: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun3 (not
+ * added yet)
  *
  * @param df input dataframe
- * @param correctionManager correction manager to be used to read the golden json
+ * @param correctionManager correction manager to be used to read the golden
+ * json
  * @param filtername name of the filter, used in the dataframe report
  * @param run column containing the run value
  * @param luminosity column containing the luminosity block value
@@ -23,10 +26,11 @@ namespace event {
  * runs and luminosity blocks
  * @return a filtered dataframe
  */
-ROOT::RDF::RNode GoldenJSONFilter(ROOT::RDF::RNode df,
-           correctionManager::CorrectionManager &correctionManager,
-           const std::string &filtername, const std::string &run, 
-           const std::string &luminosity, const std::string &json_path) {
+ROOT::RDF::RNode
+GoldenJSONFilter(ROOT::RDF::RNode df,
+                 correctionManager::CorrectionManager &correctionManager,
+                 const std::string &filtername, const std::string &run,
+                 const std::string &luminosity, const std::string &json_path) {
     nlohmann::json golden_json = *correctionManager.loadjson(json_path);
     auto jsonFilterlambda = [golden_json](UInt_t run, UInt_t luminosity) {
         bool matched = false;
