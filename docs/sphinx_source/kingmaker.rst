@@ -335,3 +335,61 @@ The ``problematic_eras`` option is used to define eras, where only one file per 
     For friend trees, multiprocessing is not possible, since the resulting friend tree must have the same order as the input tree. Therefore, the ``htcondor_request_cpus`` option has to be set to 1, which will disable multiprocessing.
 
 For a more complete description of the different options, please refer to the overcomplete configuration in the law repository (https://github.com/riga/law/blob/master/law.cfg.example).
+
+Local debugging
+-----------------------
+
+The compiled executables that are used in the submitted jobs can be found in the ``tarballs/<production_tag>/`` directories. 
+All executables can be tested locally:
+
+1. Switch to the directory with the executable.
+2. source the ``init.sh`` script.
+3. Run the executable with the required arguments.
+
+The exact arguments with which to call the executable depend on the type:
+ - For Ntuples, provide an output path and the NanoAOD file(s).
+ - For Friends, provide an output path and the CROWN-Ntuple file.
+ - For Friends with additional friend inputs, provide an output path, the CROWN-Ntuple file and the additional friend file(s).
+
+Ntuples, as well as produced Friends are stored in remote storage by default.
+The executables work with remote input paths, but the output path should be local.
+
+.. code-block:: bash
+
+    # Ntuples
+    cd tarballs/<production_tag>/CROWN_<analysis_name>_<config_name>/
+    source init.sh
+    ./<config_name>_<data_type>_<era> <output_path> <input_file1> <input_file2> ...
+
+
+    # Friends
+    cd tarballs/<production_tag>/CROWNFriends_<analysis_name>_<friend_config_name>_<mapped_friend_name>_<sample_type>_<era>
+    # Where `friend_name` is either directly set via `--friend-name`, or set in the `--friend-mapping` for the `friend_config`.
+    source init.sh
+    ./<friend_config_name>_<data_type>_<era> <output_path> <Ntuple_file> 
+
+
+    # MultiFriends (Friends with Friends as inputs)
+    cd tarballs/<production_tag>/CROWNFriends_<analysis_name>_<multifriend_config_name>_<multi_friend_name>_<sample_type>_<era>
+    # Where `multi_friend_name` is set via `--friend-name`.
+    source init.sh
+    ./<multifriend_config_name>_<data_type>_<era> <output_path> <Ntuple_file> <Friend_file1> <Friend_file2> ...
+
+For the the command provided in :ref:`Production of friend trees with additional friends as input`, this turns into:
+
+.. code-block:: bash
+
+    # Ntuples
+    cd tarballs/test_production_v1/CROWN_template_analysis_template_config/
+    source init.sh
+    ./template_config_data_2018 <Ntuple_file> <input_file1> <input_file2> ...
+
+    # Friends
+    cd tarballs/test_production_v1/CROWNFriends_template_analysis_template_friend_config_test_friend_v1_data_2018/
+    source init.sh
+    ./template_friend_config_data_2018_mm <Friend_file> <Ntuple_file>
+
+    # MultiFriends (Friends with Friends as inputs)
+    cd tarballs/test_production_v1/CROWNFriends_template_analysis_template_multifriend_config_test_multifriend_v1_data_2018/
+    source init.sh
+    ./template_multifriend_config_data_2018_mm <MultiFriend_file> <Ntuple_file> <Friend_file>
