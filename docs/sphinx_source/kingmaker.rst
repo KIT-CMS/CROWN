@@ -224,29 +224,17 @@ If the requested friend tree depends on additional friend trees the ``ProduceMul
 
 .. code-block:: bash
 
-    law run ProduceMultiFriends --analysis template_analysis --config template_config --production-tag test_production_v1 --friend-config template_multifriend_config --friend-name test_multifriend_v1 --friend-dependencies template_friend_config --friend-mapping '{"template_friend_config":"test_friend_v1"}' --sample-list samples.txt --scopes mm --shifts None --workers 8
+    law run ProduceMultiFriends --analysis template_analysis --config template_config --production-tag test_production_v1 --friend-config template_multifriend_config --friend-name test_multifriend_v1 --friend-mapping '{"template_friend_config":"test_friend_v1"}' --sample-list samples.txt --scopes mm --shifts None --workers 8
 
-contains additional options
+contains an additional option
 
-- ``--friend-dependencies``: A list of additional friend configurations to be run because their outputs are needed for ``--friend-config template_multifriend_config``. The list has to be provided as a comma-separated list. If these friend trees are already produced, their production will be skipped. To set the name for the intermediate friend trees, two options are available. By default, the name of the configuration will be used as the name of the friend tree. The resulting friend trees will be stored in the ``/<base>/<production-tag>/CROWNFriends/<friend-config>/`` folder. Alternatively, the parameter ``friend_mapping`` can be used, to define a dictionary, where a mapping between the friend config name and the friend tree name can be defined. The dictionary has to be provided as a JSON string. An example is given below:
+- ``--friend-mapping``: A dictionary of additional friend configurations and friend tree names to be run because their outputs are needed for ``--friend-config template_multifriend_config``. If these friend trees are already produced, their production will be skipped. The dictionary has to be provided as a JSON string. An example is given below:
 
 .. code-block:: python
 
     --friend-mapping '{"template_friend_config":"test_friend_v1"}'
 
-As an example, the command listed above will produce not only ntuples for all samples specified in ``samples.txt`` using the config but also the friend tree ``template_friend_config``. All those three inputs will then be used, to produce the final friend tree ``template_multifriend_config``. The resulting folder structure will be
-
-.. code-block::
-
-    /<base>/<production-tag>/
-        |- CROWNRun/
-                        |- <era>/<samplenick>/<channel>/<samplenick>_<counter>.root
-        |- CROWNFriends/
-                        |- template_friend_config/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root      (name automatically generated)
-        |- CROWNMultiFriends/
-                        |- test_multifriend_v1/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root
-
-if no ``friend_mapping`` is used, or
+As an example, the command listed above will produce not only ntuples for all samples specified in ``samples.txt`` using the ``template_config`` but also the friend tree ``test_friend_v1`` based on the ``template_friend_config``. Both inputs will then be used, to produce the final friend tree ``test_multifriend_v1`` based on the ``template_multifriend_config``. The resulting folder structure will be
 
 .. code-block::
 
@@ -258,7 +246,7 @@ if no ``friend_mapping`` is used, or
         |- CROWNMultiFriends/
                         |- test_multifriend_v1/<era>/<samplenick>/<channel>/<samplenick>_<counter>.root
 
-with the exmaple ``friend_mapping`` mentioned above.
+with the example ``friend_mapping`` mentioned above.
 
 
 KingMaker Configuration
