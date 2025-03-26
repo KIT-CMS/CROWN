@@ -342,16 +342,16 @@ Local debugging
 The compiled executables that are used in the submitted jobs can be found in the ``tarballs/<production_tag>/`` directories. 
 All executables can be tested locally:
 
-1. Change to the directory with the executable (`tarballs/<production_tag>/CROWN*/`, depending on with step you are running).
+1. Change to the directory with the executable (`tarballs/<production_tag>/CROWN*/`, depending on which step you are running).
 2. Source the ``init.sh`` script.
 3. Run the executable with the required arguments.
 
-The exact arguments with which to call the executable depend on the type:
+The exact arguments required to call the executable depend on the type:
  - For Ntuples, provide an output file name and the NanoAOD file(s).
  - For Friends, provide an output file name and the CROWN-Ntuple file.
  - For Friends with additional friend inputs, provide an output file name, the CROWN-Ntuple file and the additional friend file(s).
 
-Ntuples, as well as produced Friends are stored in remote storage by default.
+Ntuples, as well as produced Friends, are stored in remote storage by default.
 The executables work with remote input paths/files, but the path to the output file should be local.
 
 .. code-block:: bash
@@ -375,7 +375,7 @@ The executables work with remote input paths/files, but the path to the output f
     source init.sh
     ./<multifriend_config_name>_<data_type>_<era>_<scope> <output_file> <Ntuple_file> <Friend_file1> <Friend_file2> ...
 
-For the the command provided in :ref:`Production of friend trees with additional friends as input`, this turns into:
+For the command provided in :ref:`Production of friend trees with additional friends as input`, this turns into:
 
 .. code-block:: bash
 
@@ -394,5 +394,5 @@ For the the command provided in :ref:`Production of friend trees with additional
     source init.sh
     ./template_multifriend_config_data_2018_mm <MultiFriend_file> <Ntuple_file> <Friend_file>
 
-If further investigation is needed, a local compilation of the CROWN config is recommented as describled in :ref:`Running the framework` 
+If further investigation is needed, a local compilation of the CROWN config is recommended as described in :ref:`Running the framework` 
 with optionally activating `-DDEBUG`.
