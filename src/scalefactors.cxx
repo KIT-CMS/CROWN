@@ -38,7 +38,7 @@ ROOT::RDF::RNode id_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
 
     const std::shared_ptr<RooFunctorThreadsafe> id_function =
         loadFunctor(workspace_name, id_functor_name, id_arguments);
-    auto df1 = basefunctions::evaluateWorkspaceFunction(df, id_output,
+    auto df1 = basefunctions::EvaluateWorkspaceFunction(df, id_output,
                                                         id_function, pt, eta);
     return df1;
 }
@@ -69,7 +69,7 @@ ROOT::RDF::RNode iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
 
     const std::shared_ptr<RooFunctorThreadsafe> iso_function =
         loadFunctor(workspace_name, iso_functor_name, iso_arguments);
-    auto df1 = basefunctions::evaluateWorkspaceFunction(
+    auto df1 = basefunctions::EvaluateWorkspaceFunction(
         df, iso_output, iso_function, pt, eta, iso);
     return df1;
 }

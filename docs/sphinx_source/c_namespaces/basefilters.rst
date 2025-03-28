@@ -1,6 +1,6 @@
-Namespace: Fakefactors
+Namespace: Basefilters
 ======================
-.. doxygennamespace:: fakefactors
+.. doxygennamespace:: basefilters
    :members:
    :undoc-members:
    :private-members:
