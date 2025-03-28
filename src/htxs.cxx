@@ -90,7 +90,7 @@ ggH_WG1_uncertainties(ROOT::RDF::RNode df,
         },
         {htxs_flag, htxs_pth, htxs_njets});
     auto df2 = event::UnrollVectorQuantity<double>(
-        df1, "ggH_WG1_uncertainties", weight_names);
+        df1, weight_names, "ggH_WG1_uncertainties");
     return df2;
 }
 
