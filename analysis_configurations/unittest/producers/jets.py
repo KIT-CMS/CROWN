@@ -25,7 +25,7 @@ JetPtCorrection = Producer(
 )
 JetMassCorrection = Producer(
     name="JetMassCorrection",
-    call="physicsobject::ObjectMassCorrectionWithPt({df}, {output}, {input})",
+    call="physicsobject::MassCorrectionWithPt({df}, {output}, {input})",
     input=[
         nanoAOD.Jet_mass,
         nanoAOD.Jet_pt,
@@ -37,14 +37,14 @@ JetMassCorrection = Producer(
 # in data and embdedded sample, we simply rename the nanoAOD jets to the jet_pt_corrected column
 RenameJetPt = Producer(
     name="RenameJetPt",
-    call="basefunctions::Rename<ROOT::RVec<float>>({df}, {output}, {input})",
+    call="event::Rename<ROOT::RVec<float>>({df}, {output}, {input})",
     input=[nanoAOD.Jet_pt],
     output=[q.Jet_pt_corrected],
     scopes=["global"],
 )
 RenameJetMass = Producer(
     name="RenameJetMass",
-    call="basefunctions::Rename<ROOT::RVec<float>>({df}, {output}, {input})",
+    call="event::Rename<ROOT::RVec<float>>({df}, {output}, {input})",
     input=[nanoAOD.Jet_mass],
     output=[q.Jet_mass_corrected],
     scopes=["global"],
@@ -67,28 +67,28 @@ JetEnergyCorrection = ProducerGroup(
 )
 JetPtCut = Producer(
     name="JetPtCut",
-    call="physicsobject::CutPt({df}, {input}, {output}, {min_jet_pt})",
+    call="physicsobject::CutMin<float>({df}, {output}, {input}, {min_jet_pt})",
     input=[q.Jet_pt_corrected],
     output=[],
     scopes=["global"],
 )
 BJetPtCut = Producer(
     name="BJetPtCut",
-    call="physicsobject::CutPt({df}, {input}, {output}, {min_bjet_pt})",
+    call="physicsobject::CutMin<float>({df}, {output}, {input}, {min_bjet_pt})",
     input=[q.Jet_pt_corrected],
     output=[],
     scopes=["global"],
 )
 JetEtaCut = Producer(
     name="JetEtaCut",
-    call="physicsobject::CutEta({df}, {input}, {output}, {max_jet_eta})",
+    call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_jet_eta})",
     input=[nanoAOD.Jet_eta],
     output=[],
     scopes=["global"],
 )
 BJetEtaCut = Producer(
     name="BJetEtaCut",
-    call="physicsobject::CutEta({df}, {input}, {output}, {max_bjet_eta})",
+    call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_bjet_eta})",
     input=[nanoAOD.Jet_eta],
     output=[],
     scopes=["global"],

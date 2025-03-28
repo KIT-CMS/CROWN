@@ -8,28 +8,28 @@ from code_generation.producer import Producer, ProducerGroup
 
 ElectronPtCut = Producer(
     name="ElectronPtCut",
-    call="physicsobject::CutPt({df}, {input}, {output}, {min_ele_pt})",
+    call="physicsobject::CutMin<float>({df}, {output}, {input}, {min_ele_pt})",
     input=[nanoAOD.Electron_pt],
     output=[],
     scopes=["global"],
 )
 ElectronEtaCut = Producer(
     name="ElectronEtaCut",
-    call="physicsobject::CutEta({df}, {input}, {output}, {max_ele_eta})",
+    call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_ele_eta})",
     input=[nanoAOD.Electron_eta],
     output=[],
     scopes=["global"],
 )
 ElectronDxyCut = Producer(
     name="ElectronDxyCut",
-    call="physicsobject::CutDxy({df}, {input}, {output}, {max_ele_dxy})",
+    call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_ele_dxy})",
     input=[nanoAOD.Electron_dxy],
     output=[],
     scopes=["global"],
 )
 ElectronDzCut = Producer(
     name="ElectronDzCut",
-    call="physicsobject::CutDz({df}, {input}, {output}, {max_ele_dz})",
+    call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_ele_dz})",
     input=[nanoAOD.Electron_dz],
     output=[],
     scopes=["global"],
@@ -70,14 +70,14 @@ BaseElectrons = ProducerGroup(
 
 GoodElectronPtCut = Producer(
     name="GoodElectronPtCut",
-    call="physicsobject::CutPt({df}, {input}, {output}, {min_electron_pt})",
+    call="physicsobject::CutMin<float>({df}, {output}, {input}, {min_electron_pt})",
     input=[nanoAOD.Electron_pt],
     output=[],
     scopes=["em", "et", "ee"],
 )
 GoodElectronEtaCut = Producer(
     name="GoodElectronEtaCut",
-    call="physicsobject::CutEta({df}, {input}, {output}, {max_electron_eta})",
+    call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_electron_eta})",
     input=[nanoAOD.Electron_eta],
     output=[],
     scopes=["em", "et", "ee"],
@@ -104,21 +104,21 @@ GoodElectrons = ProducerGroup(
 
 VetoElectrons = Producer(
     name="VetoElectrons",
-    call="physicsobject::VetoCandInMask({df}, {output}, {input}, {electron_index_in_pair})",
+    call="physicsobject::VetoSingleObject({df}, {output}, {input}, {electron_index_in_pair})",
     input=[q.base_electrons_mask, q.dileptonpair],
     output=[q.veto_electrons_mask],
     scopes=["em", "et", "ee"],
 )
 VetoSecondElectron = Producer(
     name="VetoSecondElectron",
-    call="physicsobject::VetoCandInMask({df}, {output}, {input}, {second_electron_index_in_pair})",
+    call="physicsobject::VetoSingleObject({df}, {output}, {input}, {second_electron_index_in_pair})",
     input=[q.veto_electrons_mask, q.dileptonpair],
     output=[q.veto_electrons_mask_2],
     scopes=["ee"],
 )
 ExtraElectronsVeto = Producer(
     name="ExtraElectronsVeto",
-    call="physicsobject::LeptonVetoFlag({df}, {output}, {input})",
+    call="physicsobject::Veto({df}, {output}, {input})",
     input={
         "em": [q.veto_electrons_mask],
         "et": [q.veto_electrons_mask],
@@ -144,7 +144,7 @@ NumberOfGoodElectrons = Producer(
 
 DiElectronVetoPtCut = Producer(
     name="DiElectronVetoPtCut",
-    call="physicsobject::CutPt({df}, {input}, {output}, {min_dielectronveto_pt})",
+    call="physicsobject::CutMin<float>({df}, {output}, {input}, {min_dielectronveto_pt})",
     input=[nanoAOD.Electron_pt],
     output=[],
     scopes=["global"],
@@ -172,7 +172,7 @@ DiElectronVetoElectrons = ProducerGroup(
 )
 DiElectronVeto = ProducerGroup(
     name="DiElectronVeto",
-    call="physicsobject::CheckForDiLeptonPairs({df}, {output}, {input}, {dileptonveto_dR})",
+    call="physicsobject::VetoLeptonPairs({df}, {output}, {input}, {dileptonveto_dR})",
     input=[
         nanoAOD.Electron_pt,
         nanoAOD.Electron_eta,
