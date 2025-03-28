@@ -9,233 +9,180 @@
 #include "ROOT/RVec.hxx"
 
 namespace event {
-ROOT::RDF::RNode
-GoldenJSONFilter(ROOT::RDF::RNode df,
-                 correctionManager::CorrectionManager &correctionManager,
-                 const std::string &filtername, const std::string &run,
-                 const std::string &luminosity, const std::string &json_path);
 
 /**
- * @brief Function to apply a flag filter to the dataframe. The input flag should 
- * be a flag in the NanoAOD e.g. the noise filters recommended by the CMS JetMET 
- * group (https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2).
+ * @brief This function creates a new column in the dataframe with the specified 
+ * `outputname`, copying the values from an existing `quantity` column. The original 
+ * column remains unchanged.
+ *
+ * @tparam T type of the input quantity values
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param quantity name of the existing column to copy values from
  * 
- * @param df input dataframe
- * @param filtername name of the filter, used in the dataframe report
- * @param flagname name of the filter flag
- *
- * @return a filtered dataframe
- */
-inline ROOT::RDF::RNode FilterFlag(ROOT::RDF::RNode df,
-                                   const std::string &filtername,
-                                   const std::string &flagname) {
-    return df.Filter([](const bool flag) { return flag; }, {flagname},
-                     filtername);
-}
-
-/**
- * @brief This function filters events, where none of the input `flags` are true.
- * This can be used to filter events which do not pass an underlying requirement 
- * in any systematic variation.
- *
- * @param df input dataframe
- * @param filtername name of the filter, used in the dataframe report
- * @param flags parameter pack of column names that contain the considered
- * flags of type bool
- *
- * @return a filtered dataframe
- */
-template <class... Flags>
-inline ROOT::RDF::RNode FilterFlagsAny(ROOT::RDF::RNode df,
-                                       const std::string &filtername,
-                                       const Flags &...flags) {
-    std::vector<std::string> FlagList;
-    utility::appendParameterPackToVector(FlagList, flags...);
-    const auto nFlags = sizeof...(Flags);
-    using namespace ROOT::VecOps;
-    return df.Filter(
-        utility::PassAsVec<nFlags, bool>(
-            [](const ROOT::RVec<bool> &flags) { return Any(flags); }),
-        FlagList, filtername);
-}
-
-/**
- * @brief This function filters events, where at least one of the input `flags` 
- * is false. This is used to filter events which do not pass an underlying 
- * requirement in all systematic variation.
- *
- * @param df input dataframe
- * @param filtername name of the filter, used in the dataframe report
- * @param flags parameter pack of column names that contain the considered
- * flags of type bool
- *
- * @return a filtered dataframe
- */
-template <class... Flags>
-inline ROOT::RDF::RNode FilterFlagsAll(ROOT::RDF::RNode df,
-                                       const std::string &filtername,
-                                       const Flags &...flags) {
-    std::vector<std::string> FlagList;
-    utility::appendParameterPackToVector(FlagList, flags...);
-    const auto nFlags = sizeof...(Flags);
-    using namespace ROOT::VecOps;
-    return df.Filter(
-        utility::PassAsVec<nFlags, bool>(
-            [](const ROOT::RVec<bool> &flags) { return All(flags); }),
-        FlagList, filtername);
-}
-
-/**
- * @brief Function to apply a `selection` on a `quantity` of type `T` (e.g. `int`,
- * `float`, `double`, `bool`). The type has to be defined when calling this function
- * `event::FilterQuantity<T>`. If the `quantity` value is in the given `selection`
- * value vector (with values of type `T`), an event is kept. If not it is filtered
- * out.
- *
- * @param df input dataframe
- * @param filtername name of the filter, used in the dataframe report
- * @param quantity quantity for the selection
- * @param selection values of the quantity that are accepted
- *
- * @return a filtered dataframe
- */
-template <typename T>
-inline ROOT::RDF::RNode
-FilterQuantity(ROOT::RDF::RNode df, const std::string &filtername,
-               const std::string &quantity, const std::vector<T> &selection) {
-    return df.Filter(
-        [selection](const T quantity) {
-            return std::find(selection.begin(), selection.end(), quantity) !=
-                   selection.end();
-        },
-        {quantity}, filtername);
-}
-
-/**
- * @brief Function to write out a quantity from a vector quantity based
- * on an index taken from a index vector.
- *
- * @param df input dataframe
- * @param outputname name of the new column containing the quantity value
- * @param column name of the column containing the vector quantity
- * @param index_vector name of the column containing the index vector
- * @param position index of the position in the index vector
- *
  * @return a dataframe with the new column
  */
 template <typename T>
-inline ROOT::RDF::RNode
-GetQuantity(ROOT::RDF::RNode df, const std::string &outputname,
-            const std::string &column, const std::string &index_vector,
-            const int &position) {
+inline ROOT::RDF::RNode Rename(ROOT::RDF::RNode df,
+                               const std::string &outputname,
+                               const std::string &quantity) {
+    return df.Define(outputname, [](const T &q) { return q; }, {quantity});
+}
+
+/**
+ * @brief This function adds a new column to the dataframe, assigning it a 
+ * constant value for all entries.
+ *
+ * @tparam T type of the value to be assigned
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param value constant value to be assigned to the new column
+ * 
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode DefineQuantity(ROOT::RDF::RNode df,
+                                       const std::string &outputname,
+                                       T const &value) {
+    return df.Define(outputname, [value]() { return value; }, {});
+}
+
+/**
+ * @brief This function creates a new column in the dataframe by applying 
+ * element-wise negation to an existing `quantity` column.
+ *
+ * @tparam T type of the input quantity values
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param quantity name of the existing column to be negated
+ * 
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode Negate(ROOT::RDF::RNode df,
+                               const std::string &outputname,
+                               const std::string &quantity) {
+    auto negative = [](const T &quantity) { return -quantity; };
+    return df.Define(outputname, negative, {quantity});
+}
+
+/**
+ * @brief This function extracts a value from the given column at a specified index.
+ * If the index is out of range, a default value of type `T` is returned.
+ *
+ * @tparam T type of the input column values
+ * @param df input dataframe
+ * @param outputname name of the new column containing the extracted value
+ * @param quantity name of the column from which the value is retrieved
+ * @param index fixed index position used to extract the value
+ * 
+ * @return a dataframe with the new column
+ *
+ * @note If the index is out of range, a default value of type `T` is returned.
+ */
+template <typename T>
+inline ROOT::RDF::RNode GetQuantity(ROOT::RDF::RNode df, 
+                                    const std::string &outputname,
+                                    const std::string &quantity, 
+                                    const int &index) {
+    return df.Define(outputname,
+        [index](const ROOT::RVec<T> &quantity) {
+            return quantity.at(index, default_value<T>());
+        },
+        {quantity});
+}
+
+/**
+ * @brief This function extracts a value from the given column based on an index 
+ * stored in another column. If the index is out of range, a default value 
+ * is returned.
+ *
+ * @tparam T type of the input column values
+ * @param df input dataframe
+ * @param outputname name of the new column containing the extracted value
+ * @param quantity name of the column from which the value is retrieved
+ * @param index_vector name of the column containing index positions
+ * @param position position within the index vector used to retrieve the index
+ * 
+ * @return a dataframe with the new column
+ *
+ * @note If the index is out of range, a default value of type T is returned.
+ */
+template <typename T>
+inline ROOT::RDF::RNode GetQuantity(ROOT::RDF::RNode df, 
+                                    const std::string &outputname,
+                                    const std::string &quantity, 
+                                    const std::string &index_vector,
+                                    const int &position) {
     return df.Define(
         outputname,
-        [position](const ROOT::RVec<int> &idx_vec, const ROOT::RVec<T> &col) {
-            T out = default_value<T>();
+        [position](const ROOT::RVec<T> &quantity, const ROOT::RVec<int> &indices) {
+            T result = default_value<T>();
 
             try {
-                const int index = idx_vec.at(position);
-                out = col.at(index, default_value<T>());
+                const int index = indices.at(position);
+                result = quantity.at(index, default_value<T>());
             } catch (const std::out_of_range &e) {
                 Logger::get("GetQuantity")
                     ->debug("Index not found, returning dummy value!");
             }
-            return out;
+            return result;
         },
-        {index_vector, column});
+        {quantity, index_vector});
 }
 
 /**
- * @brief Function to write out a quantity from a vector quantity based
- * on an index.
+ * @brief This function computes the sum of the elements in the `quantity` column, 
+ * selected by the indices from the `indices` column. The sum is computed 
+ * per event, and a default value (provided by `zero`) is used if no elements 
+ * are selected.
  *
+ * @tparam T type of the input column values
  * @param df input dataframe
- * @param outputname name of the new column containing the quantity value
- * @param column name of the column containing the vector quantity
- * @param index index in the vector quantity
- *
+ * @param outputname name of the new column containing the summed values
+ * @param quantity name of the column containing the vector of values to be summed
+ * @param indices name of the column containing the indices used to select values 
+ * from `quantity`
+ * @param zero default value to use in `ROOT::VecOps::Sum` (default is `T(0)`)
+ * 
  * @return a dataframe with the new column
  */
 template <typename T>
-inline ROOT::RDF::RNode
-GetQuantity(ROOT::RDF::RNode df, const std::string &outputname,
-            const std::string &column, const int &index) {
-    return df.Define(outputname,
-                     [index](const ROOT::RVec<T> &col) {
-                         return col.at(index, default_value<T>());
-                     },
-                     {column});
-}
-
-/**
- * @brief Function to sum all elements of the column with name `quantity`
- * containing `ROOT::VecOps::RVec<T>` objects.
- *
- * This function is a template implementation, i.e., call SumVectorQuantity<T>
- * if the column `quantity` contains `ROOT::VecOps::RVec<T>` objects.
- *
- * Elements of the `ROOT::VecOps::RVec<T>`, which should enter the sum, can be
- * selected with index lists from the column `collection_index` as
- * `ROOT::VecOps::RVec<int>` objects per entry.
- *
- * Internally, `ROOT::VecOps::Sum` is used to calculate the sum. A custom zero
- * element, which is a second optional argument of `ROOT::VecOps::Sum`, can be
- * passed to this function by setting the parameter `zero`. Its default value is
- * `T(0)`. For instance, when dealing with `ROOT::Math::PtEtaPhiMVector`
- * objects, the `zero` parameter must be set to `ROOT::Math::PtEtaPhiMVector(0.,
- * 0., 0., 0)` in order to enable summation with this function.
- *
- * @param df input dataframe
- * @param outputname name of the output column
- * @param quantity column name of the vector quantity which is summed per event
- * @param collection_index column name for index lists of the elements to be
- * summed
- * @param zero zero element passed as the second argument to the
- * `ROOT::VecOps::Sum` function
- *
- * @return a dataframe with the new column
- */
-template <typename T>
-inline ROOT::RDF::RNode
-SumVectorQuantity(ROOT::RDF::RNode df, const std::string &outputname,
-                  const std::string &quantity,
-                  const std::string &collection_index, const T zero = T(0)) {
+inline ROOT::RDF::RNode SumVectorQuantity(ROOT::RDF::RNode df, 
+                                          const std::string &outputname,
+                                          const std::string &quantity,
+                                          const std::string &indices, 
+                                          const T zero = T(0)) {
     auto sum_per_event = [zero](const ROOT::RVec<T> &quantity,
-                                const ROOT::RVec<int> &collection_index) {
+                                const ROOT::RVec<int> &indices) {
         Logger::get("SumVectorQuantity")
-            ->debug("sum values {} at indices {}", quantity, collection_index);
+            ->debug("sum values {} at indices {}", quantity, indices);
         T sum = ROOT::VecOps::Sum(
-            ROOT::VecOps::Take(quantity, collection_index), zero);
+            ROOT::VecOps::Take(quantity, indices), zero);
         Logger::get("SumVectorQuantity")->debug("sum {}", sum);
         return sum;
     };
-    return df.Define(outputname, sum_per_event, {quantity, collection_index});
+    return df.Define(outputname, sum_per_event, {quantity, indices});
 }
 
 /**
- * @brief Function to sum all elements of the column with name `quantity`
- * containing `ROOT::VecOps::RVec<T>` objects.
+ * @brief This function computes the sum of the elements in the `quantity` column 
+ * for each event. If no elements are selected, a default value (provided 
+ * by `zero`) is used as the sum for that event.
  *
- * This function is a template implementation, i.e., call SumVectorQuantity<T>
- * if the column `quantity` contains `ROOT::VecOps::RVec<T>` objects.
- *
- * Internally, `ROOT::VecOps::Sum` is used to calculate the sum. A custom zero
- * element, which is a second optional argument of `ROOT::VecOps::Sum`, can be
- * passed to this function by setting the parameter `zero`. Its default value is
- * `T(0)`.
- *
+ * @tparam T type of the input column values
  * @param df input dataframe
- * @param outputname name of the output column
- * @param quantity column name of the vector quantity which is summed per event
- * @param zero zero element passed as the second argument to the
- * `ROOT::VecOps::Sum` function
- *
+ * @param outputname name of the new column containing the summed values
+ * @param quantity name of the column containing the vector of values to be summed
+ * @param zero default value to use in `ROOT::VecOps::Sum` (default is `T(0)`)
+ * 
  * @return a dataframe with the new column
  */
 template <typename T>
-inline ROOT::RDF::RNode
-SumVectorQuantity(ROOT::RDF::RNode df, const std::string &outputname,
-                  const std::string &quantity, const T zero = T(0)) {
+inline ROOT::RDF::RNode SumVectorQuantity(ROOT::RDF::RNode df, 
+                                          const std::string &outputname,
+                                          const std::string &quantity, 
+                                          const T zero = T(0)) {
     auto sum_per_event = [zero](const ROOT::RVec<T> &quantity) {
         Logger::get("SumVectorQuantity")->debug("sum values {}", quantity);
         T sum = ROOT::VecOps::Sum(quantity, zero);
@@ -246,84 +193,201 @@ SumVectorQuantity(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief Helper function to recursively define columns for each entry of a
- * vector quantity.
- *
+ * @brief This function recursively unrolls a vector (`std::vector<T>`) from the 
+ * `quantity` column into individual columns in the dataframe. Each element of the 
+ * vector is stored in a separate column with names provided in the `outputnames` vector.
+ * The function works recursively to define a new column for each element in the vector.
+ * 
+ * @tparam T type of the input column values
  * @param df input dataframe
- * @param outputnames vector of names for the new columns
- * @param name name of the vector quantity
- * @param idx index of the current recursion loop, should not be set outside
- * this function
- *
- * @return a lambda function to be used in RDF Define and a new column for each
- * vector entry
+ * @param outputnames a vector of names for the new columns where the individual 
+ * elements of the vector will be stored
+ * @param quantity name of the column containing the vector of values to unroll
+ * @param idx index of the current element to unroll (defaults to 0).
+ * 
+ * @return a dataframe with the new columns containing each individual element of 
+ * the vector from the `quantity` column
+ * 
+ * @note The function is recursive and will create one column for each element of 
+ * the vector in `quantity`. If `outputnames` has fewer entries than the 
+ * number of elements in the vector, the function will stop at the end of 
+ * `outputnames`. The `idx` should not be set outside this function.
  */
 template <typename T>
-inline ROOT::RDF::RNode
-UnrollVectorQuantity(ROOT::RDF::RNode df, const std::string &name,
-                     const std::vector<std::string> &names,
-                     const size_t &idx = 0) {
-    if (idx >= names.size()) {
+inline ROOT::RDF::RNode UnrollVectorQuantity(ROOT::RDF::RNode df, 
+                                             const std::vector<std::string> &outputnames,
+                                             const std::string &quantity,
+                                             const size_t &idx = 0) {
+    if (idx >= outputnames.size()) {
         return df;
     }
     auto df1 = df.Define(
-        names.at(idx),
+        outputnames.at(idx),
         [idx](const std::vector<T> &quantities) { return quantities.at(idx); },
-        {name});
-    return UnrollVectorQuantity<T>(df1, name, names, idx + 1);
+        {quantity});
+    return UnrollVectorQuantity<T>(df1, outputnames, quantity, idx + 1);
 }
 
 /**
- * @brief This function defines a flag that is true if at least one of the input
- * `flags` is true.
+ * @brief This function combines multiple boolean flags into a single boolean value 
+ * based on the selected mode ("any", "all", or "none"). The mode determines 
+ * how the flags are evaluated:
+ * - `"any"`: Returns `true` if at least one of the flags is `true`
+ * - `"all"`: Returns `true` if all flags are `true`
+ * - `"none"`: Returns `true` if none of the flags are `true`
  *
+ * @tparam Args variadic template parameter pack representing the flag columns
  * @param df input dataframe
- * @param outputflag name of the new column
- * @param flags parameter pack of column names that contain the considered
- * flags of type bool
+ * @param outputname name of the output column containing the combined flag
+ * @param args parameter pack of column names that contain the considered flags of 
+ * type `bool`, with the last argument being the mode (`"any"`, `"all"`, or `"none"`)
+ * 
+ * @return a dataframe with a new column
  *
- * @return a dataframe with the new column
+ * @note The mode (`"any"`, `"all"`, or `"none"`) is extracted as the last argument 
+ * in the `args` parameter pack, and the rest of the arguments are treated as 
+ * individual flag columns.
  */
-template <class... Flags>
-inline ROOT::RDF::RNode CombineFlagsAny(ROOT::RDF::RNode df,
-                                        const std::string &outputflag,
-                                        const Flags &...flags) {
-    std::vector<std::string> FlagList;
-    utility::appendParameterPackToVector(FlagList, flags...);
-    const auto nFlags = sizeof...(Flags);
+template <typename... Args>
+inline auto CombineFlags(ROOT::RDF::RNode df,
+                         const std::string &outputflag,
+                         Args... args) {
+    auto argTuple = std::make_tuple(args...);
+    auto mode = utility::extractLastArgument(argTuple);
+
+    std::vector<std::string> FlagList{args...};
+    FlagList.pop_back();  
+    const auto nFlags = sizeof...(Args) - 1;
+
     using namespace ROOT::VecOps;
     return df.Define(
         outputflag,
         utility::PassAsVec<nFlags, bool>(
-            [](const ROOT::RVec<bool> &flags) { return Any(flags); }),
+            [mode](const ROOT::RVec<bool> &flags) {
+                if (mode == std::string("any")) {
+                    return Any(flags);
+                }
+                else if (mode == std::string("all")) {
+                    return All(flags);
+                }
+                else if (mode == std::string("none")) {
+                    return !Any(flags);
+                }
+                else {
+                    Logger::get("CombineFlags")->error("Mode {} is not defined!", mode);
+                    throw std::runtime_error("Mode is not defined!");
+                }
+            }
+        ),
         FlagList);
 }
 
+namespace filter {
+
 /**
- * @brief This function defines a flag that is true if all of the input
- * `flags` are true.
+ * @brief This function applies a filter to the input dataframe based on a boolean 
+ * flag column. It returns only the rows where the flag value is `true`. 
+ *
+ * Use case examples are the noise filters recommended by the CMS JetMET 
+ * group (https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2).
  *
  * @param df input dataframe
- * @param outputflag name of the new column
- * @param flags parameter pack of column names that contain the considered
- * flags of type bool
+ * @param filtername name of the filter to be applied (used in the dataframe report)
+ * @param flagname name of the boolean flag column to use for filtering
  *
- * @return a dataframe with the new column
+ * @return a filtered dataframe
  */
-template <class... Flags>
-inline ROOT::RDF::RNode CombineFlagsAll(ROOT::RDF::RNode df,
-                                        const std::string &outputflag,
-                                        const Flags &...flags) {
-    std::vector<std::string> FlagList;
-    utility::appendParameterPackToVector(FlagList, flags...);
-    const auto nFlags = sizeof...(Flags);
-    using namespace ROOT::VecOps;
-    return df.Define(
-        outputflag,
-        utility::PassAsVec<nFlags, bool>(
-            [](const ROOT::RVec<bool> &flags) { return All(flags); }),
-        FlagList);
+inline ROOT::RDF::RNode Flag(ROOT::RDF::RNode df,
+                             const std::string &filtername,
+                             const std::string &flagname) {
+    return df.Filter([](const bool flag) { return flag; }, {flagname},
+        filtername);
 }
+
+/**
+ * @brief This function filters the rows of the input dataframe by evaluating 
+ * multiple boolean flags according to a specified mode. The filtering mode 
+ * can be "any", "all", or "none":
+ * - `"any"`: Keeps the rows where at least one flag is `true`
+ * - `"all"`: Keeps the rows where all flags are `true`
+ * - `"none"`: Keeps the rows where none of the flags are `true`
+ *
+ * @tparam Args variadic template parameter pack representing the flag columns
+ * @param df input dataframe
+ * @param filtername name of the filter to be applied (used in the dataframe report)
+ * @param args parameter pack of column names that contain the considered flags of 
+ * type `bool`, with the last argument being the mode (`"any"`, `"all"`, or `"none"`)
+ *
+ * @return a filtered dataframe
+ *
+ * @note The last argument must be the mode, while the preceding arguments are the 
+ * boolean flag columns to be evaluated.
+ */
+template <typename... Args>
+inline auto Flags(ROOT::RDF::RNode df,
+                  const std::string &filtername,
+                  Args... args) {
+    auto argTuple = std::make_tuple(args...);
+    auto mode = utility::extractLastArgument(argTuple);
+
+    std::vector<std::string> FlagList{args...};
+    FlagList.pop_back();  
+    const auto nFlags = sizeof...(Args) - 1;
+
+    using namespace ROOT::VecOps;
+    return df.Filter(
+        utility::PassAsVec<nFlags, bool>(
+            [mode](const ROOT::RVec<bool> &flags) {
+                if (mode == std::string("any")) {
+                    return Any(flags);
+                }
+                else if (mode == std::string("all")) {
+                    return All(flags);
+                }
+                else if (mode == std::string("none")) {
+                    return !Any(flags);
+                }
+                else {
+                    Logger::get("FilterFlags")->error("Mode {} is not defined!", mode);
+                    throw std::runtime_error("Mode is not defined!");
+                }
+            }
+        ),
+        FlagList, filtername);
+}
+
+/**
+ * @brief This function filters the rows of the input dataframe by checking if a 
+ * specified `quantity` exists in the provided `selection` vector. Rows where the 
+ * quantity is found in the selection vector are kept, while others are removed.
+ *
+ * @tparam T type of the input column values
+ * @param df input dataframe
+ * @param filtername name of the filter to be applied (used in the dataframe report)
+ * @param quantity name of the quantity column in the dataframe of type `T`
+ * @param selection a vector containing the selection of values of type `T` to filter 
+ * the quantity against
+ *
+ * @return a filtered dataframe
+ */
+template <typename T>
+inline ROOT::RDF::RNode Quantity(ROOT::RDF::RNode df, 
+                                 const std::string &filtername,
+                                 const std::string &quantity, 
+                                 const std::vector<T> &selection) {
+    return df.Filter(
+        [selection](const T quantity) {
+            return std::find(selection.begin(), selection.end(), quantity) !=
+                   selection.end();
+        },
+        {quantity}, filtername);
+}
+
+ROOT::RDF::RNode GoldenJSON(ROOT::RDF::RNode df,
+           correctionManager::CorrectionManager &correctionManager,
+           const std::string &filtername, const std::string &run,
+           const std::string &luminosity, const std::string &json_path);
+} // namespace filter
 } // namespace event
 
 #endif /* GUARDEVENT_H */

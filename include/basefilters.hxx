@@ -16,7 +16,8 @@ namespace basefilters {
  *
  * @return a lambda function to be used in RDF Define
  */
-template <typename T> inline auto Max(const T &cut) {
+template <typename T> 
+inline auto Max(const T &cut) {
     return [cut](const ROOT::RVec<T> &values) {
         ROOT::RVec<int> mask = values < cut;
         return mask;
@@ -33,7 +34,8 @@ template <typename T> inline auto Max(const T &cut) {
  *
  * @return a lambda function to be used in RDF Define
  */
-template <typename T> inline auto AbsMax(const T &cut) {
+template <typename T> 
+inline auto AbsMax(const T &cut) {
     return [cut](const ROOT::RVec<T> &values) {
         ROOT::RVec<int> mask = abs(values) < cut;
         return mask;
@@ -50,7 +52,8 @@ template <typename T> inline auto AbsMax(const T &cut) {
  *
  * @return a lambda function to be used in RDF Define
  */
-template <typename T> inline auto Min(const T &cut) {
+template <typename T> 
+inline auto Min(const T &cut) {
     return [cut](const ROOT::RVec<T> &values) {
         ROOT::RVec<int> mask = values >= cut;
         return mask;
@@ -67,7 +70,8 @@ template <typename T> inline auto Min(const T &cut) {
  *
  * @return a lambda function to be used in RDF Define
  */
-template <typename T> inline auto AbsMin(const T &cut) {
+template <typename T> 
+inline auto AbsMin(const T &cut) {
     return [cut](const ROOT::RVec<T> &values) {
         ROOT::RVec<int> mask = abs(values) >= cut;
         return mask;
@@ -84,7 +88,8 @@ template <typename T> inline auto AbsMin(const T &cut) {
  *
  * @return a lambda function to be used in RDF Define
  */
-template <typename T> inline auto Equal(const T &cut) {
+template <typename T> 
+inline auto Equal(const T &cut) {
     return [cut](const ROOT::RVec<T> &values) {
         ROOT::RVec<int> mask = values == cut;
         return mask;
@@ -101,7 +106,8 @@ template <typename T> inline auto Equal(const T &cut) {
  *
  * @return a lambda function to be used in RDF Define
  */
-template <typename T> inline auto AbsEqual(const T &cut) {
+template <typename T> 
+inline auto AbsEqual(const T &cut) {
     return [cut](const ROOT::RVec<T> &values) {
         ROOT::RVec<int> mask = abs(values) == cut;
         return mask;
@@ -118,7 +124,8 @@ template <typename T> inline auto AbsEqual(const T &cut) {
  *
  * @return a lambda function to be used in RDF Define
  */
-template <typename T> inline auto Bitmask(const int &cut) {
+template <typename T> 
+inline auto Bitmask(const int &cut) {
     return [cut](const ROOT::RVec<T> &values) {
         ROOT::RVec<int> mask;
         if (std::is_same<T, int>::value) {

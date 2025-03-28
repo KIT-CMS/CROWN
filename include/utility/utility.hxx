@@ -6,6 +6,11 @@
 #include <utility> // make_index_sequence
 #include <vector>
 
+#include "../include/utility/Logger.hxx"
+#include "../include/utility/RooFunctorThreadsafe.hxx"
+#include "ROOT/RDataFrame.hxx"
+#include "ROOT/RVec.hxx"
+
 /// Namespace used for common utility functions.
 namespace utility {
 
@@ -27,6 +32,23 @@ inline bool ApproxEqual(double value1, double value2, double maxDelta = 1e-5) {
         }
         return (delta < maxDelta);
     }
+}
+
+/**
+ * @brief This function extracts and returns the last element from a tuple 
+ * containing a variable number of arguments. The function uses `std::get` 
+ * to access the last element of the tuple, allowing you to retrieve the 
+ * last argument without knowing its type or index beforehand.
+ *
+ * @param args input tuple containing the arguments
+ * 
+ * @return last element of the tuple
+ */
+template <typename... Args>
+constexpr auto extractLastArgument(const std::tuple<Args...>& args) {
+    constexpr size_t N = sizeof...(Args);
+    // Extract last argument
+    return std::get<N - 1>(args);  
 }
 
 /**

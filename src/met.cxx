@@ -4,7 +4,7 @@
 #include "../include/RecoilCorrections/MetSystematics.hxx"
 #include "../include/RecoilCorrections/RecoilCorrector.hxx"
 #include "../include/utility/CorrectionManager.hxx"
-#include "../include/basefunctions.hxx"
+#include "../include/event.hxx"
 #include "../include/defaults.hxx"
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
@@ -466,7 +466,7 @@ ROOT::RDF::RNode propagateLeptonsToMet(
     } else {
         // if we do not apply the propagation, just rename the met column to
         // the new outputname and dont change anything else
-        return basefunctions::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
+        return event::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
     }
 }
 /**
@@ -548,7 +548,7 @@ propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
     } else {
         // if we do not apply the propagation, just rename the met column to
         // the new outputname and dont change anything else
-        return basefunctions::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
+        return event::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
     }
 }
 
@@ -620,7 +620,7 @@ ROOT::RDF::RNode propagateLeptonsToMet(ROOT::RDF::RNode df,
     } else {
         // if we do not apply the propagation, just rename the met column to
         // the new outputname and dont change anything else
-        return basefunctions::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
+        return event::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
     }
 }
 
@@ -716,7 +716,7 @@ ROOT::RDF::RNode propagateJetsToMet(
     } else {
         // if we do not apply the propagation, just rename the met column to
         // the new outputname and dont change anything else
-        return basefunctions::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
+        return event::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
     }
 }
 /**
@@ -828,7 +828,7 @@ ROOT::RDF::RNode applyRecoilCorrections(
     } else {
         // if we do not apply the recoil corrections, just rename the met
         // column to the new outputname and dont change anything else
-        return basefunctions::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
+        return event::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
     }
 }
 

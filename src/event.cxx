@@ -7,11 +7,16 @@
 #include <nlohmann/json.hpp>
 
 namespace event {
+namespace filter {
 
 /**
- * @brief Function to filter events based on their `run` and `luminosity` block
- * values from the golden json. The json files are taken from the CMS
- * recommendations.
+ * @brief This function applies a filter to the input dataframe using a Golden JSON 
+ * file, which contains a mapping of valid run-luminosity pairs. The dataframe 
+ * is filtered by checking if the run and luminosity values for each row match 
+ * the entries in the Golden JSON. Rows with invalid run-luminosity pairs are 
+ * removed.
+ *
+ * The Golden JSON files are taken from the CMS recommendations.
  *
  * Run2: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2
  *
@@ -19,21 +24,20 @@ namespace event {
  * added yet)
  *
  * @param df input dataframe
- * @param correctionManager correction manager to be used to read the golden
- * json
- * @param filtername name of the filter, used in the dataframe report
- * @param run column containing the run value
- * @param luminosity column containing the luminosity block value
- * @param json_path path to the golden json file containing all valid
- * runs and luminosity blocks
+ * @param correction_manager correction manager responsible for loading 
+ * the Golden JSON
+ * @param filtername name of the filter to be applied (used in the dataframe report)
+ * @param run name of the run column
+ * @param luminosity name of the luminosity column
+ * @param json_path path to the Golden JSON file
+ *
  * @return a filtered dataframe
  */
-ROOT::RDF::RNode
-GoldenJSONFilter(ROOT::RDF::RNode df,
-                 correctionManager::CorrectionManager &correctionManager,
-                 const std::string &filtername, const std::string &run,
-                 const std::string &luminosity, const std::string &json_path) {
-    nlohmann::json golden_json = *correctionManager.loadjson(json_path);
+ROOT::RDF::RNode GoldenJSON(ROOT::RDF::RNode df,
+           correctionManager::CorrectionManager &correction_manager,
+           const std::string &filtername, const std::string &run,
+           const std::string &luminosity, const std::string &json_path) {
+    nlohmann::json golden_json = *correction_manager.loadjson(json_path);
     auto jsonFilterlambda = [golden_json](UInt_t run, UInt_t luminosity) {
         bool matched = false;
         // check if the run exists
@@ -57,6 +61,7 @@ GoldenJSONFilter(ROOT::RDF::RNode df,
     };
     return df.Filter(jsonFilterlambda, {run, luminosity}, filtername);
 }
+} // namespace filter
 } // namespace event
 
 #endif /* GUARDEVENT_H */
