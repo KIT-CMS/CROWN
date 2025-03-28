@@ -25,12 +25,14 @@
 #include "include/pairselection.hxx"
 #include "include/tripleselection.hxx"
 #include "include/physicsobjects.hxx"
+#include "include/muons.hxx"
+#include "include/electrons.hxx"
+#include "include/taus.hxx"
 #include "include/quantities.hxx"
 #include "include/reweighting.hxx"
 #include "include/scalefactors.hxx"
 #include "include/topreco.hxx"
 #include "include/triggers.hxx"
-#include "include/fakefactors.hxx"
 
 // {INCLUDE_ANALYSISADDONS}
 

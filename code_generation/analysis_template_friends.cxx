@@ -16,7 +16,6 @@
 #include "include/utility/OnnxSessionManager.hxx"
 #include "include/utility/CorrectionManager.hxx"
 
-#include "include/fakefactors.hxx"
 #include "include/genparticles.hxx"
 #include "include/htxs.hxx"
 #include "include/jets.hxx"
@@ -25,6 +24,9 @@
 #include "include/ml.hxx"
 #include "include/pairselection.hxx"
 #include "include/physicsobjects.hxx"
+#include "include/muons.hxx"
+#include "include/electrons.hxx"
+#include "include/taus.hxx"
 #include "include/quantities.hxx"
 #include "include/reweighting.hxx"
 #include "include/scalefactors.hxx"
