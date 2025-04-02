@@ -1,7 +1,6 @@
 #ifndef GUARD_PHYSICSOBJECTS_H
 #define GUARD_PHYSICSOBJECTS_H
 
-#include "../include/RoccoR.hxx"
 #include "../include/basefilters.hxx"
 #include "../include/defaults.hxx"
 #include "../include/utility/CorrectionManager.hxx"
@@ -231,7 +230,7 @@ ROOT::RDF::RNode GetIndices(ROOT::RDF::RNode df,
 /**
  * @brief This function checks if any object in a given collection (`object_mask`) 
  * overlaps with a specified target object defined by its four-momentum within a 
- * user-defined `deltaR_cut` distance. If an object is found within this threshold, 
+ * user-defined `delta_r_cut` distance. If an object is found within this threshold, 
  * the function returns `true`, indicating an overlap with the target object. The 
  * result can be used to veto events that have overlapping objects.
  *
@@ -245,7 +244,7 @@ ROOT::RDF::RNode GetIndices(ROOT::RDF::RNode df,
  * @param object_mass name of the column containing object masses
  * @param object_mask name of the column containing the mask of selected objects to 
  * compare with
- * @param deltaR_cut minimal deltaR distance allowed between objects and target to 
+ * @param delta_r_cut minimal deltaR distance allowed between objects and target to 
  * count as not overlapping
  *
  * @return a dataframe with a new flag column
@@ -258,9 +257,9 @@ ROOT::RDF::RNode OverlapVeto(ROOT::RDF::RNode df,
                              const std::string &object_phi,
                              const std::string &object_mass, 
                              const std::string &object_mask, 
-                             const float deltaR_cut) {
+                             const float delta_r_cut) {
     auto veto_overlapping_target =
-        [deltaR_cut](const ROOT::Math::PtEtaPhiMVector &p4,
+        [delta_r_cut](const ROOT::Math::PtEtaPhiMVector &p4,
                      const ROOT::RVec<float> &pts,
                      const ROOT::RVec<float> &etas,
                      const ROOT::RVec<float> &phis,
@@ -282,7 +281,7 @@ ROOT::RDF::RNode OverlapVeto(ROOT::RDF::RNode df,
                     selected_pts, selected_etas, selected_phis, selected_masses);
             
             for (const auto &p4_test : selected_p4s) {
-                if (ROOT::Math::VectorUtil::DeltaR(p4_test, p4) < deltaR_cut) {
+                if (ROOT::Math::VectorUtil::DeltaR(p4_test, p4) < delta_r_cut) {
                     return true;
                 }
             }
@@ -334,7 +333,7 @@ ROOT::RDF::RNode MassCorrectionWithPt(ROOT::RDF::RNode df,
 
 /**
  * @brief This function checks for the presence of same-flavor opposite-sign 
- * lepton pairs with a given deltaR separation (`deltaR_cut`). If such a pair 
+ * lepton pairs with a given deltaR separation (`delta_r_cut`). If such a pair 
  * is found, a veto flag is set and can be later used to remove event with such
  * lepton pairs.
  *
@@ -347,7 +346,7 @@ ROOT::RDF::RNode MassCorrectionWithPt(ROOT::RDF::RNode df,
  * @param lepton_charge name of the column containing lepton charges
  * @param lepton_mask name of the column containing the mask of selected lepton 
  * objects
- * @param deltaR_cut maximal deltaR distance allowed between lepton objects to 
+ * @param delta_r_cut maximal deltaR distance allowed between lepton objects to 
  * not being vetoed
  *
  * @return a dataframe with a new flag column
@@ -360,9 +359,9 @@ ROOT::RDF::RNode VetoLeptonPairs(ROOT::RDF::RNode df,
                                  const std::string &lepton_mass,
                                  const std::string &lepton_charge,
                                  const std::string &lepton_mask, 
-                                 const float deltaR_cut) {
+                                 const float delta_r_cut) {
     auto pair_finder_lambda = 
-        [deltaR_cut](const ROOT::RVec<float> &pts,
+        [delta_r_cut](const ROOT::RVec<float> &pts,
                      const ROOT::RVec<float> &etas,
                      const ROOT::RVec<float> &phis,
                      const ROOT::RVec<float> &masses,
@@ -380,7 +379,7 @@ ROOT::RDF::RNode VetoLeptonPairs(ROOT::RDF::RNode df,
                     auto p4_2 = ROOT::Math::PtEtaPhiMVector(
                         pts.at(*index_2), etas.at(*index_2),
                         phis.at(*index_2), masses.at(*index_2));
-                    if (ROOT::Math::VectorUtil::DeltaR(p4_1, p4_2) >= deltaR_cut)
+                    if (ROOT::Math::VectorUtil::DeltaR(p4_1, p4_2) >= delta_r_cut)
                         return true;
                 }
             }

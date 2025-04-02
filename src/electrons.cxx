@@ -1,467 +1,204 @@
 #ifndef GUARD_ELECTRONS_H
 #define GUARD_ELECTRONS_H
 
-#include "../include/RoccoR.hxx"
-#include "../include/basefilters.hxx"
-#include "../include/defaults.hxx"
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
-#include "TRandom3.h"
+#include "ROOT/RVec.hxx"
 #include "correction.h"
-#include <Math/Vector4D.h>
-#include <Math/VectorUtil.h>
-#include <iostream>
-#include <string>
-#include <type_traits>
-#include <vector>
 
 namespace physicsobject {
 namespace electron {
-/// Function to correct electron pt
-///
-/// \param[in] df the input dataframe
-/// \param[out] corrected_pt name of the corrected electron pt to be calculated
-/// \param[in] pt name of the raw electron pt
-/// \param[in] eta the name of the raw electron eta
-/// \param[in] sf_barrel scale factor to be applied to electrons in the barrel
-/// \param[in] sf_endcap scale factor to be applied to electrons in the endcap
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                     const std::string &pt, const std::string &eta,
-                     const float &sf_barrel, const float &sf_endcap) {
-    auto electron_pt_correction_lambda =
-        [sf_barrel, sf_endcap](const ROOT::RVec<float> &pt_values,
-                               const ROOT::RVec<float> &eta) {
-            ROOT::RVec<float> corrected_pt_values(pt_values.size());
-            for (int i = 0; i < pt_values.size(); i++) {
-                if (abs(eta.at(i)) <= 1.479) {
-                    corrected_pt_values[i] = pt_values.at(i) * sf_barrel;
-                } else if (abs(eta.at(i)) > 1.479) {
-                    corrected_pt_values[i] = pt_values.at(i) * sf_endcap;
-                } else {
-                    corrected_pt_values[i] = pt_values.at(i);
-                }
-            }
-            return corrected_pt_values;
-        };
-    auto df1 =
-        df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
-    return df1;
-}
-/// Function to correct electron pt, based on correctionlib file
-///
-/// \param[in] df the input dataframe
-/// \param[in] correctionManager the correction manager instance
-/// \param[out] corrected_pt name of the corrected tau pt to be calculated
-/// \param[in] pt name of the raw tau pt
-/// \param[in] eta name of raw tau eta
-/// \param[in] sf_barrel scale factor to be applied to electrons in the barrel
-/// \param[in] sf_endcap scale factor to be applied to electrons in the endcap
-/// \param[in] sf_file:
-/// \param[in] jsonESname name of the tau energy correction in the json file
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection(ROOT::RDF::RNode df,
-             correctionManager::CorrectionManager &correctionManager,
-             const std::string &corrected_pt, const std::string &pt,
-             const std::string &eta, const std::string &sf_barrel,
-             const std::string &sf_endcap, const std::string &sf_file,
-             const std::string &jsonESname) {
-    auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
-    auto electron_pt_correction_lambda = [evaluator, sf_barrel, sf_endcap](
-                                             const ROOT::RVec<float> &pt_values,
-                                             const ROOT::RVec<float> &eta) {
-        ROOT::RVec<float> corrected_pt_values(pt_values.size());
-        for (int i = 0; i < pt_values.size(); i++) {
-            if (abs(eta.at(i)) <= 1.479) {
-                auto sf = evaluator->evaluate({"barrel", sf_barrel});
-                corrected_pt_values[i] = pt_values.at(i) * sf;
-                Logger::get("eleEnergyCorrection")
-                    ->debug("barrel: ele pt before {}, ele pt after {}, sf {}",
-                            pt_values.at(i), corrected_pt_values.at(i), sf);
-            } else if (abs(eta.at(i)) > 1.479) {
-                auto sf = evaluator->evaluate({"endcap", sf_endcap});
-                corrected_pt_values[i] = pt_values.at(i) * sf;
-                Logger::get("eleEnergyCorrection")
-                    ->debug("endcap: ele pt before {}, ele pt after {}, sf {}",
-                            pt_values.at(i), corrected_pt_values.at(i), sf);
-            } else {
-                corrected_pt_values[i] = pt_values.at(i);
-            }
-        }
-        return corrected_pt_values;
-    };
-    auto df1 =
-        df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
-    return df1;
-}
-/// Function to correct electron pt, based on correctionlib file
-/// WARNING: The function without the CorrectionManager is deprecated and will
-/// be removed in the future \param[in] df the input dataframe \param[out]
-/// corrected_pt name of the corrected tau pt to be calculated \param[in] pt
-/// name of the raw tau pt \param[in] eta name of raw tau eta \param[in]
-/// sf_barrel scale factor to be applied to electrons in the barrel \param[in]
-/// sf_endcap scale factor to be applied to electrons in the endcap \param[in]
-/// sf_file: \param[in] jsonESname name of the tau energy correction in the json
-/// file
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
-             const std::string &pt, const std::string &eta,
-             const std::string &sf_barrel, const std::string &sf_endcap,
-             const std::string &sf_file, const std::string &jsonESname) {
-    Logger::get("eleEnergyCorrection")
-        ->warn("The function without CorrectionManager is deprecated and will "
-               "be removed in the future. Please use the function with "
-               "CorrectionManager instead.");
+
+/**
+ * @brief This function calculates uncertainties for the electron energy scale 
+ * and resolution corrections that are already applied in nanoAOD (Run2 UL). The 
+ * resolution uncertainty is taken for dedicated variation branches in the nanoAODs. 
+ * The same cannot be done for the scale uncertainty due to a bug in the nanoAOD 
+ * (Run2 UL) production. Therefore, a patch is used based on a correctionlib json 
+ * file. This procedure is recommended by EGM POG and described in 
+ *
+ * https://cms-talk.web.cern.ch/t/electron-scale-smear-variables-in-nanoaod/20210
+ *
+ * and https://twiki.cern.ch/twiki/bin/view/CMS/EgammaSFJSON
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the 
+ * correction scale uncertainty patch file
+ * @param outputname name of the output column for corrected pT values
+ * @param pt name of the column containing electron pT values
+ * @param eta name of the column containing electron pseudorapidities
+ * @param gain name of the column containing electron gain values
+ * @param es_resolution_up name of the column containing the one sigma upward 
+ * energy smearing uncertainties
+ * @param es_resolution_down name of the column containing the one sigma downward 
+ * energy smearing uncertainties
+ * @param es_file path to the correction file for the energy scale uncertainties
+ * @param era data-taking period of Run2, possible options are "2018", "2017", 
+ * "2016postVFP", "2016preVFP"
+ * @param variation name of the energy correction variation that should be 
+ * calculated (e.g., "resolutionUp", "resolutionDown", "scaleUp", "scaleDown"), 
+ * for "nominal" nothing is done because energy correction is already applied
+ *
+ * @return a dataframe containing the varied electron transverse momenta
+ */
+ROOT::RDF::RNode PtCorrectionMC(ROOT::RDF::RNode df,
+                 correctionManager::CorrectionManager &correction_manager,
+                 const std::string &outputname, const std::string &pt,
+                 const std::string &eta, const std::string &gain,
+                 const std::string &es_resolution_up, const std::string &es_resolution_down,
+                 const std::string &es_file, const std::string &era, 
+                 const std::string &variation) {
     auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
-    auto electron_pt_correction_lambda = [evaluator, sf_barrel, sf_endcap](
-                                             const ROOT::RVec<float> &pt_values,
-                                             const ROOT::RVec<float> &eta) {
-        ROOT::RVec<float> corrected_pt_values(pt_values.size());
-        for (int i = 0; i < pt_values.size(); i++) {
-            if (abs(eta.at(i)) <= 1.479) {
-                auto sf = evaluator->evaluate({"barrel", sf_barrel});
-                corrected_pt_values[i] = pt_values.at(i) * sf;
-                Logger::get("eleEnergyCorrection")
-                    ->debug("barrel: ele pt before {}, ele pt after {}, sf {}",
-                            pt_values.at(i), corrected_pt_values.at(i), sf);
-            } else if (abs(eta.at(i)) > 1.479) {
-                auto sf = evaluator->evaluate({"endcap", sf_endcap});
-                corrected_pt_values[i] = pt_values.at(i) * sf;
-                Logger::get("eleEnergyCorrection")
-                    ->debug("endcap: ele pt before {}, ele pt after {}, sf {}",
-                            pt_values.at(i), corrected_pt_values.at(i), sf);
-            } else {
-                corrected_pt_values[i] = pt_values.at(i);
-            }
-        }
-        return corrected_pt_values;
-    };
-    auto df1 =
-        df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
-    return df1;
-}
-/// Function to calculate uncertainties for electron pt correction. The electron
-/// energy correction is already applied in nanoAOD and in general there are
-/// branches in nanoAOD with the energy shifts for scale and resolution, but due
-/// to a bug the scale shifts are all 0 and have to be calculated from a json
-/// file. Information taken from
-/// https://cms-talk.web.cern.ch/t/electron-scale-smear-variables-in-nanoaod/20210
-/// and https://twiki.cern.ch/twiki/bin/view/CMS/EgammaSFJSON
-///
-/// \param[in] df the input dataframe
-/// \param[in] correctionManager the correction manager instance
-/// \param[out] corrected_pt name of the corrected electron pt to be calculated
-/// \param[in] pt name of the electron pt
-/// \param[in] eta name of electron eta
-/// \param[in] gain name of electron seedGain
-/// \param[in] ES_sigma_up name of electron energy smearing value 1 sigma up
-/// shifted \param[in] ES_sigma_down name of electron energy smearing value 1
-/// sigma down shifted \param[in] era era of the electron measurement e.g.
-/// "2018" \param[in] variation name of the variation to be calculated (nominal
-/// correction is already applied) \param[in] ES_file name of the json file with
-/// the energy scale uncertainties
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correctionManager,
-               const std::string &corrected_pt, const std::string &pt,
-               const std::string &eta, const std::string &gain,
-               const std::string &ES_sigma_up, const std::string &ES_sigma_down,
-               const std::string &era, const std::string &variation,
-               const std::string &ES_file) {
-    auto evaluator =
-        correctionManager.loadCorrection(ES_file, "UL-EGM_ScaleUnc");
+        correction_manager.loadCorrection(es_file, "UL-EGM_ScaleUnc");
     auto electron_pt_correction_lambda =
-        [evaluator, era, variation](const ROOT::RVec<float> &pt_values,
-                                    const ROOT::RVec<float> &eta,
-                                    const ROOT::RVec<UChar_t> &gain,
-                                    const ROOT::RVec<float> &ES_sigma_up,
-                                    const ROOT::RVec<float> &ES_sigma_down) {
-            ROOT::RVec<float> corrected_pt_values(pt_values.size());
-            for (int i = 0; i < pt_values.size(); i++) {
+        [evaluator, era, variation](const ROOT::RVec<float> &pts,
+                                    const ROOT::RVec<float> &etas,
+                                    const ROOT::RVec<UChar_t> &gains,
+                                    const ROOT::RVec<float> &es_reso_up,
+                                    const ROOT::RVec<float> &es_reso_down) {
+            ROOT::RVec<float> corrected_pts(pts.size());
+            for (int i = 0; i < pts.size(); i++) {
                 if (variation == "resolutionUp") {
-                    auto dpt = ES_sigma_up.at(i) / std::cosh(eta.at(i));
-                    corrected_pt_values[i] = pt_values.at(i) + dpt;
-                    Logger::get("ElectronPtCorrectionMC")
+                    auto dpt = es_reso_up.at(i) / std::cosh(etas.at(i));
+                    corrected_pts[i] = pts.at(i) + dpt;
+                    Logger::get("ElectronPtCorrection")
                         ->debug("ele pt before {}, ele pt after {}, dpt {}",
-                                pt_values.at(i), corrected_pt_values.at(i),
-                                dpt);
+                                pts.at(i), corrected_pts.at(i), dpt);
                 } else if (variation == "resolutionDown") {
-                    auto dpt = ES_sigma_down.at(i) / std::cosh(eta.at(i));
-                    corrected_pt_values[i] = pt_values.at(i) + dpt;
-                    Logger::get("ElectronPtCorrectionMC")
+                    auto dpt = es_reso_down.at(i) / std::cosh(etas.at(i));
+                    corrected_pts[i] = pts.at(i) + dpt;
+                    Logger::get("ElectronPtCorrection")
                         ->debug("ele pt before {}, ele pt after {}, dpt {}",
-                                pt_values.at(i), corrected_pt_values.at(i),
-                                dpt);
+                                pts.at(i), corrected_pts.at(i), dpt);
                 } else if (variation == "scaleUp") {
-                    Logger::get("ElectronPtCorrectionMC")
+                    Logger::get("ElectronPtCorrection")
                         ->debug("inputs: era {}, eta {}, gain {}", era,
-                                eta.at(i), static_cast<int>(gain.at(i)));
+                                etas.at(i), static_cast<int>(gains.at(i)));
                     auto sf =
-                        evaluator->evaluate({era, "scaleup", eta.at(i),
-                                             static_cast<int>(gain.at(i))});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                    Logger::get("ElectronPtCorrectionMC")
+                        evaluator->evaluate({era, "scaleup", etas.at(i),
+                                             static_cast<int>(gains.at(i))});
+                    corrected_pts[i] = pts.at(i) * sf;
+                    Logger::get("ElectronPtCorrection")
                         ->debug("ele pt before {}, ele pt after {}, sf {}",
-                                pt_values.at(i), corrected_pt_values.at(i), sf);
+                                pts.at(i), corrected_pts.at(i), sf);
                 } else if (variation == "scaleDown") {
-                    Logger::get("ElectronPtCorrectionMC")
+                    Logger::get("ElectronPtCorrection")
                         ->debug("inputs: era {}, eta {}, gain {}", era,
-                                eta.at(i), static_cast<int>(gain.at(i)));
+                                etas.at(i), static_cast<int>(gains.at(i)));
                     auto sf =
-                        evaluator->evaluate({era, "scaledown", eta.at(i),
-                                             static_cast<int>(gain.at(i))});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                    Logger::get("ElectronPtCorrectionMC")
+                        evaluator->evaluate({era, "scaledown", etas.at(i),
+                                             static_cast<int>(gains.at(i))});
+                    corrected_pts[i] = pts.at(i) * sf;
+                    Logger::get("ElectronPtCorrection")
                         ->debug("ele pt before {}, ele pt after {}, sf {}",
-                                pt_values.at(i), corrected_pt_values.at(i), sf);
+                                pts.at(i), corrected_pts.at(i), sf);
                 } else {
-                    corrected_pt_values[i] = pt_values.at(i);
-                    Logger::get("ElectronPtCorrectionMC")
+                    corrected_pts[i] = pts.at(i);
+                    Logger::get("ElectronPtCorrection")
                         ->debug("ele pt before {}, ele pt after {}",
-                                pt_values.at(i), corrected_pt_values.at(i));
+                                pts.at(i), corrected_pts.at(i));
                 }
             }
-            return corrected_pt_values;
+            return corrected_pts;
         };
-    auto df1 = df.Define(corrected_pt, electron_pt_correction_lambda,
-                         {pt, eta, gain, ES_sigma_up, ES_sigma_down});
-    return df1;
-}
-/// Function to calculate uncertainties for electron pt correction. The electron
-/// energy correction is already applied in nanoAOD and in general there are
-/// branches in nanoAOD with the energy shifts for scale and resolution, but due
-/// to a bug the scale shifts are all 0 and have to be calculated from a json
-/// file. Information taken from
-/// https://cms-talk.web.cern.ch/t/electron-scale-smear-variables-in-nanoaod/20210
-/// and https://twiki.cern.ch/twiki/bin/view/CMS/EgammaSFJSON
-/// WARNING: The function without the CorrectionManager is deprecated and will
-/// be removed in the future
-///
-/// \param[in] df the input dataframe
-/// \param[out] corrected_pt name of the corrected electron pt to be calculated
-/// \param[in] pt name of the electron pt
-/// \param[in] eta name of electron eta
-/// \param[in] gain name of electron seedGain
-/// \param[in] ES_sigma_up name of electron energy smearing value 1 sigma up
-/// shifted \param[in] ES_sigma_down name of electron energy smearing value 1
-/// sigma down shifted \param[in] era era of the electron measurement e.g.
-/// "2018" \param[in] variation name of the variation to be calculated (nominal
-/// correction is already applied) \param[in] ES_file name of the json file with
-/// the energy scale uncertainties
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df, const std::string &corrected_pt,
-               const std::string &pt, const std::string &eta,
-               const std::string &gain, const std::string &ES_sigma_up,
-               const std::string &ES_sigma_down, const std::string &era,
-               const std::string &variation, const std::string &ES_file) {
-    Logger::get("ElectronPtCorrectionMC")
-        ->warn("The function without CorrectionManager is deprecated and will "
-               "be removed in the future. Please use the function with "
-               "CorrectionManager instead.");
-    auto evaluator =
-        correction::CorrectionSet::from_file(ES_file)->at("UL-EGM_ScaleUnc");
-    auto electron_pt_correction_lambda =
-        [evaluator, era, variation](const ROOT::RVec<float> &pt_values,
-                                    const ROOT::RVec<float> &eta,
-                                    const ROOT::RVec<UChar_t> &gain,
-                                    const ROOT::RVec<float> &ES_sigma_up,
-                                    const ROOT::RVec<float> &ES_sigma_down) {
-            ROOT::RVec<float> corrected_pt_values(pt_values.size());
-            for (int i = 0; i < pt_values.size(); i++) {
-                if (variation == "resolutionUp") {
-                    auto dpt = ES_sigma_up.at(i) / std::cosh(eta.at(i));
-                    corrected_pt_values[i] = pt_values.at(i) + dpt;
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}, dpt {}",
-                                pt_values.at(i), corrected_pt_values.at(i),
-                                dpt);
-                } else if (variation == "resolutionDown") {
-                    auto dpt = ES_sigma_down.at(i) / std::cosh(eta.at(i));
-                    corrected_pt_values[i] = pt_values.at(i) + dpt;
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}, dpt {}",
-                                pt_values.at(i), corrected_pt_values.at(i),
-                                dpt);
-                } else if (variation == "scaleUp") {
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("inputs: era {}, eta {}, gain {}", era,
-                                eta.at(i), static_cast<int>(gain.at(i)));
-                    auto sf =
-                        evaluator->evaluate({era, "scaleup", eta.at(i),
-                                             static_cast<int>(gain.at(i))});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}, sf {}",
-                                pt_values.at(i), corrected_pt_values.at(i), sf);
-                } else if (variation == "scaleDown") {
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("inputs: era {}, eta {}, gain {}", era,
-                                eta.at(i), static_cast<int>(gain.at(i)));
-                    auto sf =
-                        evaluator->evaluate({era, "scaledown", eta.at(i),
-                                             static_cast<int>(gain.at(i))});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}, sf {}",
-                                pt_values.at(i), corrected_pt_values.at(i), sf);
-                } else {
-                    corrected_pt_values[i] = pt_values.at(i);
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}",
-                                pt_values.at(i), corrected_pt_values.at(i));
-                }
-            }
-            return corrected_pt_values;
-        };
-    auto df1 = df.Define(corrected_pt, electron_pt_correction_lambda,
-                         {pt, eta, gain, ES_sigma_up, ES_sigma_down});
-    return df1;
-}
-/// Function to cut electrons based on the electron MVA ID
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe \param[in] nameID name of the ID column in the NanoAOD
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
-                       const std::string &nameID) {
-    auto df1 = df.Define(
-        maskname,
-        [](const ROOT::RVec<Bool_t> &id) { return (ROOT::RVec<int>)id; },
-        {nameID});
-    return df1;
-}
-/// Function to cut electrons based on the cut based electron ID
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe
-/// \param[in] nameID name of the ID column in the NanoAOD
-/// \param[in] IDvalue value of the WP the has to be passed
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
-                         const std::string &nameID, const int &IDvalue) {
-    auto df1 =
-        df.Define(maskname, basefilters::Min<int>(IDvalue), {nameID});
-    return df1;
-}
-/// Function to cut electrons based on failing the cut based electron ID
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe
-/// \param[in] nameID name of the ID column in the NanoAOD
-/// \param[in] IDvalue value of the WP the has to be failed
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode AntiCutCBID(ROOT::RDF::RNode df, const std::string &maskname,
-                             const std::string &nameID, const int &IDvalue) {
-    auto df1 =
-        df.Define(maskname, basefilters::Max<int>(IDvalue), {nameID});
+    auto df1 = df.Define(outputname, electron_pt_correction_lambda,
+                        {pt, eta, gain, es_resolution_up, es_resolution_down});
     return df1;
 }
 
-/// Function to cut electrons based on the electron isolation using
-/// basefilters::Max
-///
-/// \param[in] df the input dataframe
-/// \param[in] isolationName name of the isolation column in the NanoAOD
-/// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe
-/// \param[in] Threshold maximal isolation threshold
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
-                              const std::string &isolationName,
-                              const float &Threshold) {
-    auto df1 = df.Define(maskname, basefilters::Max<float>(Threshold),
-                         {isolationName});
-    return df1;
-}
-/// Function to select electrons below an Dxy and Dz threshold, based on the
-/// electrons supercluster
-///
-/// \param[in] df the input dataframe
-/// \param[in] eta quantity name of the electron eta column in the NanoAOD
-/// \param[in] detasc quantity name of the electron deltaEtaSC column in the
-/// NanoAOD
-/// \param[in] dxy quantity name of the Dxy column in the NanoAOD
-/// \param[in] dz quantity name of the Dz column in the NanoAOD
-/// \param[out] maskname the name of the mask to be added as column to the
-/// dataframe
-/// \param[in] abseta_eb_ee abs(eta) of the EB-EE transition
-/// \param[in] max_dxy_eb Threshold maximal Dxy value in the barrel
-/// \param[in] max_dz_eb Threshold maximal Dz value in the barrel
-/// \param[in] max_dxy_ee hreshold maximal Dxy value in the endcap
-/// \param[in] max_dz_ee Threshold maximal Dz value in the endcap
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutIP(ROOT::RDF::RNode df, const std::string &eta,
-                       const std::string &detasc, const std::string &dxy,
-                       const std::string &dz, const std::string &maskname,
-                       const float &abseta_eb_ee, const float &max_dxy_eb,
-                       const float &max_dz_eb, const float &max_dxy_ee,
-                       const float &max_dz_ee) {
-    auto lambda = [abseta_eb_ee, max_dxy_eb, max_dz_eb, max_dxy_ee,
-                   max_dz_ee](const ROOT::RVec<float> &eta,
-                              const ROOT::RVec<float> &detasc,
-                              const ROOT::RVec<float> &dxy,
-                              const ROOT::RVec<float> &dz) {
-        ROOT::RVec<int> mask = (((abs(eta + detasc) < abseta_eb_ee) &&
-                                 (dxy < max_dxy_eb) && (dz < max_dz_eb)) ||
-                                ((abs(eta + detasc) >= abseta_eb_ee) &&
-                                 (dxy < max_dxy_ee) && (dz < max_dz_ee)));
-        return mask;
-    };
-
-    auto df1 = df.Define(maskname, lambda, {eta, detasc, dxy, dz});
-    return df1;
-}
-
-/// Function to veto electrons in the transition region of EB and EE, based on
-/// the electrons supercluster
-///
-/// \param[in] df the input dataframe
-/// \param[in] eta quantity name of the electron eta column in the NanoAOD
-/// \param[in] detasc quantity name of the electron deltaEtaSC column in the
-/// NanoAOD
-/// \param[out] maskname the name of the mask to be added as column to
-/// the dataframe
-/// \param[in] end_eb abs(eta) of the beginning of the transition
-/// region
-///\param[in] start_ee abs(eta) of the end of the transition region
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutGap(ROOT::RDF::RNode df, const std::string &eta,
-                        const std::string &detasc, const std::string &maskname,
-                        const float &end_eb, const float &start_ee) {
-    auto lambda = [end_eb, start_ee](const ROOT::RVec<float> &eta,
-                                     const ROOT::RVec<float> &detasc) {
+/**
+ * @brief This function defines a boolean mask that identifies electrons 
+ * falling within the ECAL barrel-endcap transition gap. The mask is `true` 
+ * for electrons outside the gap and `false` for those inside.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column containing the veto mask
+ * @param eta name of the column containing electron pseudorapidities
+ * @param delta_eta_sc name of the column containing the distance in 
+ * pseudorapidity between supercluster and electron
+ * @param end_ecal_barrel end of the ECAL barrel region (in pseudorapidity)
+ * @param start_ecal_endcap begin of the ECAL endcap region (in pseudorapidity)
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+ROOT::RDF::RNode VetoECALGap(ROOT::RDF::RNode df, 
+                        const std::string &outputname,
+                        const std::string &eta,
+                        const std::string &delta_eta_sc, 
+                        const float &end_ecal_barrel, 
+                        const float &start_ecal_endcap) {
+    auto lambda = [end_ecal_barrel, start_ecal_endcap](
+                    const ROOT::RVec<float> &eta,
+                    const ROOT::RVec<float> &delta_eta_sc) {
         ROOT::RVec<int> mask =
-            (abs(eta + detasc) < end_eb) || (abs(eta + detasc) > start_ee);
+            (abs(eta + delta_eta_sc) < end_ecal_barrel) || 
+            (abs(eta + delta_eta_sc) >= start_ecal_endcap);
         return mask;
     };
 
-    auto df1 = df.Define(maskname, lambda, {eta, detasc});
+    auto df1 = df.Define(outputname, lambda, {eta, delta_eta_sc});
     return df1;
 }
 
+/**
+ * @brief This function creates a selection mask based on the transverse 
+ * impact parameter `dxy` and longitudinal impact parameter `dz` of electrons.
+ * The selection criteria differ between the barrel and endcap regions of the 
+ * detector. 
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column containing the selection mask
+ * @param eta name of the column containing electron pseudorapidities
+ * @param delta_eta_scname of the column containing the distance in 
+ * pseudorapidity between supercluster and electron
+ * @param dxy name of the column containing transverse impact parameter
+ * @param dz name of the column containing longitudinal impact parameter
+ * @param ecal_barrel_endcap_boundary absolute eta boundary separating the 
+ * barrel and endcap regions
+ * @param max_dxy_barrel maximal dxy in the ECAL barrel region
+ * @param max_dz_barrel maximal dz in the ECAL barrel region
+ * @param max_dxy_endcap maximal dxy in the ECAL endcap region
+ * @param max_dz_endcap maximal dz in the ECAL endcap region
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+ROOT::RDF::RNode CutInteractionPoint(ROOT::RDF::RNode df, 
+                       const std::string &outputname,
+                       const std::string &eta, 
+                       const std::string &delta_eta_sc, 
+                       const std::string &dxy, 
+                       const std::string &dz, 
+                       const float &ecal_barrel_endcap_boundary, 
+                       const float &max_dxy_barrel,
+                       const float &max_dz_barrel, 
+                       const float &max_dxy_endcap,
+                       const float &max_dz_endcap) {
+    auto lambda = [ecal_barrel_endcap_boundary, max_dxy_barrel, max_dz_barrel, 
+                   max_dxy_endcap, max_dz_endcap](
+                    const ROOT::RVec<float> &eta,
+                    const ROOT::RVec<float> &delta_eta_sc,
+                    const ROOT::RVec<float> &dxy,
+                    const ROOT::RVec<float> &dz) {
+        ROOT::RVec<int> mask = 
+            (
+                (
+                    (abs(eta + delta_eta_sc) < ecal_barrel_endcap_boundary) &&
+                    (dxy < max_dxy_barrel) && 
+                    (dz < max_dz_barrel)
+                ) ||
+                (
+                    (abs(eta + delta_eta_sc) >= ecal_barrel_endcap_boundary) &&
+                    (dxy < max_dxy_endcap) && 
+                    (dz < max_dz_endcap)
+                )
+            );
+        return mask;
+    };
+
+    auto df1 = df.Define(outputname, lambda, {eta, delta_eta_sc, dxy, dz});
+    return df1;
+}
 } // namespace electron
 } // namespace physicsobject
 #endif /* GUARD_ELECTRONS_H */

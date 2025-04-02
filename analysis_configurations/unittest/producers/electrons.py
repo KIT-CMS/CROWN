@@ -36,21 +36,21 @@ ElectronDzCut = Producer(
 )
 ElectronIDCut = Producer(
     name="ElectronIDCut",
-    call='physicsobject::electron::CutID({df}, {output}, "{ele_id}")',
-    input=[],
+    call='physicsobject::CutEqual<bool>({df}, {output}, {input}, true)',
+    input=[nanoAOD.Electron_IDWP90],
     output=[],
     scopes=["global"],
 )
 ElectronIsoCut = Producer(
     name="ElectronIsoCut",
-    call="physicsobject::electron::CutIsolation({df}, {output}, {input}, {max_ele_iso})",
+    call="physicsobject::CutMax<float>({df}, {output}, {input}, {max_ele_iso})",
     input=[nanoAOD.Electron_iso],
     output=[],
     scopes=["global"],
 )
 BaseElectrons = ProducerGroup(
     name="BaseElectrons",
-    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
     input=[],
     output=[q.base_electrons_mask],
     scopes=["global"],
@@ -84,14 +84,14 @@ GoodElectronEtaCut = Producer(
 )
 GoodElectronIsoCut = Producer(
     name="GoodElectronIsoCut",
-    call="physicsobject::electron::CutIsolation({df}, {output}, {input}, {electron_iso_cut})",
+    call="physicsobject::CutMax<float>({df}, {output}, {input}, {electron_iso_cut})",
     input=[nanoAOD.Electron_iso],
     output=[],
     scopes=["em", "et", "ee"],
 )
 GoodElectrons = ProducerGroup(
     name="GoodElectrons",
-    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
     input=[q.base_electrons_mask],
     output=[q.good_electrons_mask],
     scopes=["em", "et", "ee"],
@@ -151,14 +151,14 @@ DiElectronVetoPtCut = Producer(
 )
 DiElectronVetoIDCut = Producer(
     name="DiElectronVetoIDCut",
-    call='physicsobject::electron::CutCBID({df}, {output}, "{dielectronveto_id}", {dielectronveto_id_wp})',
-    input=[],
+    call='physicsobject::CutMin<int>({df}, {output}, {input}, {dielectronveto_id_wp})',
+    input=[nanoAOD.Electron_cutBased],
     output=[],
     scopes=["global"],
 )
 DiElectronVetoElectrons = ProducerGroup(
     name="DiElectronVetoElectrons",
-    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
     input=ElectronEtaCut.output
     + ElectronDxyCut.output
     + ElectronDzCut.output

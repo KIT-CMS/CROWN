@@ -1,7 +1,6 @@
 #ifndef GUARD_TAUS_H
 #define GUARD_TAUS_H
 
-#include "../include/RoccoR.hxx"
 #include "../include/basefilters.hxx"
 #include "../include/defaults.hxx"
 #include "../include/utility/CorrectionManager.hxx"

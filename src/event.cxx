@@ -1,5 +1,5 @@
-#ifndef GUARDEVENT_H
-#define GUARDEVENT_H
+#ifndef GUARD_EVENT_H
+#define GUARD_EVENT_H
 
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
@@ -44,9 +44,9 @@ ROOT::RDF::RNode GoldenJSON(ROOT::RDF::RNode df,
         if (golden_json.find(std::to_string(run)) != golden_json.end()) {
             // now loop over all luminosity blocks and check if the event is
             // valid
-            for (auto &luminosityrange : golden_json[std::to_string(run)]) {
-                if (luminosity >= luminosityrange[0] &&
-                    luminosity <= luminosityrange[1]) {
+            for (auto &luminosity_range : golden_json[std::to_string(run)]) {
+                if (luminosity >= luminosity_range[0] &&
+                    luminosity <= luminosity_range[1]) {
                     matched = true;
                     break;
                 }
@@ -64,4 +64,4 @@ ROOT::RDF::RNode GoldenJSON(ROOT::RDF::RNode df,
 } // namespace filter
 } // namespace event
 
-#endif /* GUARDEVENT_H */
+#endif /* GUARD_EVENT_H */

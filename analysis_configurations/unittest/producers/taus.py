@@ -81,14 +81,14 @@ TauPtCorrection_genTau = Producer(
 )
 TauPtCorrection_data = Producer(
     name="TauPtCorrection_data",
-    call="event::Rename<ROOT::RVec<float>>({df}, {output}, {input})",
+    call="event::quantity::Rename<ROOT::RVec<float>>({df}, {output}, {input})",
     input=[nanoAOD.Tau_pt],
     output=[q.Tau_pt_corrected],
     scopes=["et", "mt", "tt"],
 )
 TauMassCorrection_data = Producer(
     name="TauMassCorrection_data",
-    call="event::Rename<ROOT::RVec<float>>({df}, {output}, {input})",
+    call="event::quantity::Rename<ROOT::RVec<float>>({df}, {output}, {input})",
     input=[nanoAOD.Tau_mass],
     output=[q.Tau_mass_corrected],
     scopes=["et", "mt", "tt"],
@@ -174,7 +174,7 @@ TauDMCut = Producer(
 # )
 # BaseTaus = ProducerGroup(
 #     name="BaseTaus",
-#     call="physicsobject::CombineMasks({df}, {output}, {input})",
+#     call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
 #     input=[],
 #     output=[q.base_taus_mask],
 #     scopes=["global"],
@@ -213,7 +213,7 @@ GoodTauDMCut = Producer(
 )
 GoodTaus = ProducerGroup(
     name="GoodTaus",
-    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
     input=[],
     output=[q.good_taus_mask],
     scopes=["et", "mt", "tt"],

@@ -1,5 +1,5 @@
-#ifndef GUARDDEFAULTS_H
-#define GUARDDEFAULTS_H
+#ifndef GUARD_DEFAULTS_H
+#define GUARD_DEFAULTS_H
 
 #include "ROOT/RDataFrame.hxx"
 #include <Math/Vector4D.h>
@@ -33,4 +33,4 @@ template <typename T> const T default_value() {
     return static_cast<T>(default_int);
 };
 
-#endif /* GUARDDEFAULTS_H */
+#endif /* GUARD_DEFAULTS_H */

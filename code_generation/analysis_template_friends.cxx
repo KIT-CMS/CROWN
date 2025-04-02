@@ -15,7 +15,6 @@
 #include <string>
 #include "include/utility/OnnxSessionManager.hxx"
 #include "include/utility/CorrectionManager.hxx"
-
 #include "include/genparticles.hxx"
 #include "include/htxs.hxx"
 #include "include/jets.hxx"
@@ -23,6 +22,7 @@
 #include "include/met.hxx"
 #include "include/ml.hxx"
 #include "include/pairselection.hxx"
+#include "include/embedding.hxx"
 #include "include/physicsobjects.hxx"
 #include "include/muons.hxx"
 #include "include/electrons.hxx"

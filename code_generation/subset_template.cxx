@@ -24,6 +24,7 @@
 #include "include/ml.hxx"
 #include "include/pairselection.hxx"
 #include "include/tripleselection.hxx"
+#include "include/embedding.hxx"
 #include "include/physicsobjects.hxx"
 #include "include/muons.hxx"
 #include "include/electrons.hxx"

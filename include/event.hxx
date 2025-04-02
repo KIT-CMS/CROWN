@@ -1,5 +1,5 @@
-#ifndef GUARDEVENT_H
-#define GUARDEVENT_H
+#ifndef GUARD_EVENT_H
+#define GUARD_EVENT_H
 
 #include "../include/defaults.hxx"
 #include "../include/utility/CorrectionManager.hxx"
@@ -7,226 +7,9 @@
 #include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
+#include <TRandom3.h>
 
 namespace event {
-
-/**
- * @brief This function creates a new column in the dataframe with the specified 
- * `outputname`, copying the values from an existing `quantity` column. The original 
- * column remains unchanged.
- *
- * @tparam T type of the input quantity values
- * @param df input dataframe
- * @param outputname name of the new column
- * @param quantity name of the existing column to copy values from
- * 
- * @return a dataframe with the new column
- */
-template <typename T>
-inline ROOT::RDF::RNode Rename(ROOT::RDF::RNode df,
-                               const std::string &outputname,
-                               const std::string &quantity) {
-    return df.Define(outputname, [](const T &q) { return q; }, {quantity});
-}
-
-/**
- * @brief This function adds a new column to the dataframe, assigning it a 
- * constant value for all entries.
- *
- * @tparam T type of the value to be assigned
- * @param df input dataframe
- * @param outputname name of the new column
- * @param value constant value to be assigned to the new column
- * 
- * @return a dataframe with the new column
- */
-template <typename T>
-inline ROOT::RDF::RNode DefineQuantity(ROOT::RDF::RNode df,
-                                       const std::string &outputname,
-                                       T const &value) {
-    return df.Define(outputname, [value]() { return value; }, {});
-}
-
-/**
- * @brief This function creates a new column in the dataframe by applying 
- * element-wise negation to an existing `quantity` column.
- *
- * @tparam T type of the input quantity values
- * @param df input dataframe
- * @param outputname name of the new column
- * @param quantity name of the existing column to be negated
- * 
- * @return a dataframe with the new column
- */
-template <typename T>
-inline ROOT::RDF::RNode Negate(ROOT::RDF::RNode df,
-                               const std::string &outputname,
-                               const std::string &quantity) {
-    auto negative = [](const T &quantity) { return -quantity; };
-    return df.Define(outputname, negative, {quantity});
-}
-
-/**
- * @brief This function extracts a value from the given column at a specified index.
- * If the index is out of range, a default value of type `T` is returned.
- *
- * @tparam T type of the input column values
- * @param df input dataframe
- * @param outputname name of the new column containing the extracted value
- * @param quantity name of the column from which the value is retrieved
- * @param index fixed index position used to extract the value
- * 
- * @return a dataframe with the new column
- *
- * @note If the index is out of range, a default value of type `T` is returned.
- */
-template <typename T>
-inline ROOT::RDF::RNode GetQuantity(ROOT::RDF::RNode df, 
-                                    const std::string &outputname,
-                                    const std::string &quantity, 
-                                    const int &index) {
-    return df.Define(outputname,
-        [index](const ROOT::RVec<T> &quantity) {
-            return quantity.at(index, default_value<T>());
-        },
-        {quantity});
-}
-
-/**
- * @brief This function extracts a value from the given column based on an index 
- * stored in another column. If the index is out of range, a default value 
- * is returned.
- *
- * @tparam T type of the input column values
- * @param df input dataframe
- * @param outputname name of the new column containing the extracted value
- * @param quantity name of the column from which the value is retrieved
- * @param index_vector name of the column containing index positions
- * @param position position within the index vector used to retrieve the index
- * 
- * @return a dataframe with the new column
- *
- * @note If the index is out of range, a default value of type T is returned.
- */
-template <typename T>
-inline ROOT::RDF::RNode GetQuantity(ROOT::RDF::RNode df, 
-                                    const std::string &outputname,
-                                    const std::string &quantity, 
-                                    const std::string &index_vector,
-                                    const int &position) {
-    return df.Define(
-        outputname,
-        [position](const ROOT::RVec<T> &quantity, const ROOT::RVec<int> &indices) {
-            T result = default_value<T>();
-
-            try {
-                const int index = indices.at(position);
-                result = quantity.at(index, default_value<T>());
-            } catch (const std::out_of_range &e) {
-                Logger::get("GetQuantity")
-                    ->debug("Index not found, returning dummy value!");
-            }
-            return result;
-        },
-        {quantity, index_vector});
-}
-
-/**
- * @brief This function computes the sum of the elements in the `quantity` column, 
- * selected by the indices from the `indices` column. The sum is computed 
- * per event, and a default value (provided by `zero`) is used if no elements 
- * are selected.
- *
- * @tparam T type of the input column values
- * @param df input dataframe
- * @param outputname name of the new column containing the summed values
- * @param quantity name of the column containing the vector of values to be summed
- * @param indices name of the column containing the indices used to select values 
- * from `quantity`
- * @param zero default value to use in `ROOT::VecOps::Sum` (default is `T(0)`)
- * 
- * @return a dataframe with the new column
- */
-template <typename T>
-inline ROOT::RDF::RNode SumVectorQuantity(ROOT::RDF::RNode df, 
-                                          const std::string &outputname,
-                                          const std::string &quantity,
-                                          const std::string &indices, 
-                                          const T zero = T(0)) {
-    auto sum_per_event = [zero](const ROOT::RVec<T> &quantity,
-                                const ROOT::RVec<int> &indices) {
-        Logger::get("SumVectorQuantity")
-            ->debug("sum values {} at indices {}", quantity, indices);
-        T sum = ROOT::VecOps::Sum(
-            ROOT::VecOps::Take(quantity, indices), zero);
-        Logger::get("SumVectorQuantity")->debug("sum {}", sum);
-        return sum;
-    };
-    return df.Define(outputname, sum_per_event, {quantity, indices});
-}
-
-/**
- * @brief This function computes the sum of the elements in the `quantity` column 
- * for each event. If no elements are selected, a default value (provided 
- * by `zero`) is used as the sum for that event.
- *
- * @tparam T type of the input column values
- * @param df input dataframe
- * @param outputname name of the new column containing the summed values
- * @param quantity name of the column containing the vector of values to be summed
- * @param zero default value to use in `ROOT::VecOps::Sum` (default is `T(0)`)
- * 
- * @return a dataframe with the new column
- */
-template <typename T>
-inline ROOT::RDF::RNode SumVectorQuantity(ROOT::RDF::RNode df, 
-                                          const std::string &outputname,
-                                          const std::string &quantity, 
-                                          const T zero = T(0)) {
-    auto sum_per_event = [zero](const ROOT::RVec<T> &quantity) {
-        Logger::get("SumVectorQuantity")->debug("sum values {}", quantity);
-        T sum = ROOT::VecOps::Sum(quantity, zero);
-        Logger::get("SumVectorQuantity")->debug("sum {}", sum);
-        return sum;
-    };
-    return df.Define(outputname, sum_per_event, {quantity});
-}
-
-/**
- * @brief This function recursively unrolls a vector (`std::vector<T>`) from the 
- * `quantity` column into individual columns in the dataframe. Each element of the 
- * vector is stored in a separate column with names provided in the `outputnames` vector.
- * The function works recursively to define a new column for each element in the vector.
- * 
- * @tparam T type of the input column values
- * @param df input dataframe
- * @param outputnames a vector of names for the new columns where the individual 
- * elements of the vector will be stored
- * @param quantity name of the column containing the vector of values to unroll
- * @param idx index of the current element to unroll (defaults to 0).
- * 
- * @return a dataframe with the new columns containing each individual element of 
- * the vector from the `quantity` column
- * 
- * @note The function is recursive and will create one column for each element of 
- * the vector in `quantity`. If `outputnames` has fewer entries than the 
- * number of elements in the vector, the function will stop at the end of 
- * `outputnames`. The `idx` should not be set outside this function.
- */
-template <typename T>
-inline ROOT::RDF::RNode UnrollVectorQuantity(ROOT::RDF::RNode df, 
-                                             const std::vector<std::string> &outputnames,
-                                             const std::string &quantity,
-                                             const size_t &idx = 0) {
-    if (idx >= outputnames.size()) {
-        return df;
-    }
-    auto df1 = df.Define(
-        outputnames.at(idx),
-        [idx](const std::vector<T> &quantities) { return quantities.at(idx); },
-        {quantity});
-    return UnrollVectorQuantity<T>(df1, outputnames, quantity, idx + 1);
-}
 
 /**
  * @brief This function combines multiple boolean flags into a single boolean value 
@@ -236,7 +19,7 @@ inline ROOT::RDF::RNode UnrollVectorQuantity(ROOT::RDF::RNode df,
  * - `"all"`: Returns `true` if all flags are `true`
  * - `"none"`: Returns `true` if none of the flags are `true`
  *
- * @tparam Args variadic template parameter pack representing the flag columns
+ * @tparam Args variadic template parameter pack representing the flag columns plus mode
  * @param df input dataframe
  * @param outputname name of the output column containing the combined flag
  * @param args parameter pack of column names that contain the considered flags of 
@@ -274,13 +57,263 @@ inline auto CombineFlags(ROOT::RDF::RNode df,
                     return !Any(flags);
                 }
                 else {
-                    Logger::get("CombineFlags")->error("Mode {} is not defined!", mode);
+                    Logger::get("event::CombineFlags")->error("Mode {} is not defined!", mode);
                     throw std::runtime_error("Mode is not defined!");
                 }
             }
         ),
         FlagList);
 }
+
+namespace quantity {
+
+/**
+ * @brief This function creates a new column in the dataframe with the specified 
+ * `outputname`, copying the values from an existing `quantity` column. The original 
+ * column remains unchanged.
+ *
+ * @tparam T type of the input quantity values
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param quantity name of the existing column to copy values from
+ * 
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode Rename(ROOT::RDF::RNode df,
+                               const std::string &outputname,
+                               const std::string &quantity) {
+    return df.Define(outputname, [](const T &q) { return q; }, {quantity});
+}
+
+/**
+ * @brief This function adds a new column to the dataframe, assigning it a 
+ * constant value for all entries.
+ *
+ * @tparam T type of the value to be assigned
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param value constant value to be assigned to the new column
+ * 
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode Define(ROOT::RDF::RNode df,
+                               const std::string &outputname,
+                               T const &value) {
+    return df.Define(outputname, [value]() { return value; }, {});
+}
+
+/**
+ * @brief This function defines a new column in the dataframe, where each element is 
+ * a randomly generated number. The random values are generated using `TRandom3`, 
+ * seeded with a user-specified value and uniformly distributed in the range [0,1]. 
+ * The number of generated values matches the size of the input column vector.
+ *
+ * @tparam T type of the input column values
+ * @param df input dataframe
+ * @param outputname name of the new column containing the generated random vector
+ * @param quantity name of the input column whose size determines the length of the 
+ * random vector
+ * @param seed seed value for the random number generator
+ * 
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode GenerateRandomVector(ROOT::RDF::RNode df,
+                                      const std::string &outputname,
+                                      const std::string &quantity, 
+                                      const int seed) {
+    return df.Define(outputname, 
+        [rndm = TRandom3(seed)](const ROOT::RVec<T> &quantity) mutable {        
+            ROOT::RVec<float> rndm_array(quantity.size());
+            rndm.RndmArray(quantity.size(), rndm_array.data());
+            return rndm_array;
+        }, 
+        {quantity});
+}
+
+/**
+ * @brief This function creates a new column in the dataframe by applying 
+ * element-wise negation to an existing `quantity` column.
+ *
+ * @tparam T type of the input quantity values
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param quantity name of the existing column to be negated
+ * 
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode Negate(ROOT::RDF::RNode df,
+                               const std::string &outputname,
+                               const std::string &quantity) {
+    auto negative = [](const T &quantity) { return -quantity; };
+    return df.Define(outputname, negative, {quantity});
+}
+
+/**
+ * @brief This function extracts a value from the given column at a specified index.
+ * If the index is out of range, a default value of type `T` is returned.
+ *
+ * @tparam T type of the input column values
+ * @param df input dataframe
+ * @param outputname name of the new column containing the extracted value
+ * @param quantity name of the column from which the value is retrieved
+ * @param index fixed index position used to extract the value
+ * 
+ * @return a dataframe with the new column
+ *
+ * @note If the index is out of range, a default value of type `T` is returned.
+ */
+template <typename T>
+inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, 
+                            const std::string &outputname,
+                            const std::string &quantity, 
+                            const int &index) {
+    return df.Define(outputname,
+        [index](const ROOT::RVec<T> &quantity) {
+            return quantity.at(index, default_value<T>());
+        },
+        {quantity});
+}
+
+/**
+ * @brief This function extracts a value from the given column based on an index 
+ * stored in another column. If the index is out of range, a default value 
+ * is returned.
+ *
+ * @tparam T type of the input column values
+ * @param df input dataframe
+ * @param outputname name of the new column containing the extracted value
+ * @param quantity name of the column from which the value is retrieved
+ * @param index_vector name of the column containing index values
+ * @param position position within the index vector used to retrieve the index
+ * 
+ * @return a dataframe with the new column
+ *
+ * @note If the index is out of range, a default value of type T is returned.
+ */
+template <typename T>
+inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, 
+                            const std::string &outputname,
+                            const std::string &quantity, 
+                            const std::string &index_vector,
+                            const int &position) {
+    return df.Define(
+        outputname,
+        [position](const ROOT::RVec<T> &quantity, const ROOT::RVec<int> &indices) {
+            T result = default_value<T>();
+
+            try {
+                const int index = indices.at(position);
+                result = quantity.at(index, default_value<T>());
+            } catch (const std::out_of_range &e) {
+                Logger::get("event::quantity::Get")
+                    ->debug("Index not found, returning dummy value!");
+            }
+            return result;
+        },
+        {quantity, index_vector});
+}
+
+/**
+ * @brief This function computes the sum of the elements in the `quantity` column, 
+ * selected by the indices from the `indices` column. The sum is computed 
+ * per event, and a default value (provided by `zero`) is used if no elements 
+ * are selected.
+ *
+ * @tparam T type of the input column values
+ * @param df input dataframe
+ * @param outputname name of the new column containing the summed values
+ * @param quantity name of the column containing the vector of values to be summed
+ * @param indices name of the column containing the indices used to select values 
+ * from `quantity`
+ * @param zero default value to use in `ROOT::VecOps::Sum` (default is `T(0)`)
+ * 
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, 
+                                  const std::string &outputname,
+                                  const std::string &quantity,
+                                  const std::string &indices, 
+                                  const T zero = T(0)) {
+    auto sum_per_event = [zero](const ROOT::RVec<T> &quantity,
+                                const ROOT::RVec<int> &indices) {
+        Logger::get("event::quantity::SumVector")
+            ->debug("sum values {} at indices {}", quantity, indices);
+        T sum = ROOT::VecOps::Sum(
+            ROOT::VecOps::Take(quantity, indices), zero);
+        Logger::get("event::quantity::SumVector")->debug("sum {}", sum);
+        return sum;
+    };
+    return df.Define(outputname, sum_per_event, {quantity, indices});
+}
+
+/**
+ * @brief This function computes the sum of the elements in the `quantity` column 
+ * for each event. If no elements are selected, a default value (provided 
+ * by `zero`) is used as the sum for that event.
+ *
+ * @tparam T type of the input column values
+ * @param df input dataframe
+ * @param outputname name of the new column containing the summed values
+ * @param quantity name of the column containing the vector of values to be summed
+ * @param zero default value to use in `ROOT::VecOps::Sum` (default is `T(0)`)
+ * 
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, 
+                                  const std::string &outputname,
+                                  const std::string &quantity, 
+                                  const T zero = T(0)) {
+    auto sum_per_event = [zero](const ROOT::RVec<T> &quantity) {
+        Logger::get("event::quantity::Sum")->debug("sum values {}", quantity);
+        T sum = ROOT::VecOps::Sum(quantity, zero);
+        Logger::get("event::quantity::Sum")->debug("sum {}", sum);
+        return sum;
+    };
+    return df.Define(outputname, sum_per_event, {quantity});
+}
+
+/**
+ * @brief This function recursively unrolls a vector (`std::vector<T>`) from the 
+ * `quantity` column into individual columns in the dataframe. Each element of the 
+ * vector is stored in a separate column with names provided in the `outputnames` vector.
+ * The function works recursively to define a new column for each element in the vector.
+ * 
+ * @tparam T type of the input column values
+ * @param df input dataframe
+ * @param outputnames a vector of names for the new columns where the individual 
+ * elements of the vector will be stored
+ * @param quantity name of the column containing the vector of values to unroll
+ * @param idx index of the current element to unroll (defaults to 0).
+ * 
+ * @return a dataframe with the new columns containing each individual element of 
+ * the vector from the `quantity` column
+ * 
+ * @note The function is recursive and will create one column for each element of 
+ * the vector in `quantity`. If `outputnames` has fewer entries than the 
+ * number of elements in the vector, the function will stop at the end of 
+ * `outputnames`. The `idx` should not be set outside this function.
+ */
+template <typename T>
+inline ROOT::RDF::RNode Unroll(ROOT::RDF::RNode df, 
+                               const std::vector<std::string> &outputnames,
+                               const std::string &quantity,
+                               const size_t &idx = 0) {
+    if (idx >= outputnames.size()) {
+        return df;
+    }
+    auto df1 = df.Define(
+        outputnames.at(idx),
+        [idx](const std::vector<T> &quantities) { return quantities.at(idx); },
+        {quantity});
+    return Unroll<T>(df1, outputnames, quantity, idx + 1);
+}
+} // namespace quantity
 
 namespace filter {
 
@@ -312,7 +345,7 @@ inline ROOT::RDF::RNode Flag(ROOT::RDF::RNode df,
  * - `"all"`: Keeps the rows where all flags are `true`
  * - `"none"`: Keeps the rows where none of the flags are `true`
  *
- * @tparam Args variadic template parameter pack representing the flag columns
+ * @tparam Args variadic template parameter pack representing the flag columns plus mode
  * @param df input dataframe
  * @param filtername name of the filter to be applied (used in the dataframe report)
  * @param args parameter pack of column names that contain the considered flags of 
@@ -390,4 +423,4 @@ ROOT::RDF::RNode GoldenJSON(ROOT::RDF::RNode df,
 } // namespace filter
 } // namespace event
 
-#endif /* GUARDEVENT_H */
+#endif /* GUARD_EVENT_H */
