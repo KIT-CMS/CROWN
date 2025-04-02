@@ -30,7 +30,7 @@ JSONFilter = BaseFilter(
 
 PrefireWeight = Producer(
     name="PrefireWeight",
-    call="event::Rename<float>({df}, {output}, {input})",
+    call="event::quantity::Rename<float>({df}, {output}, {input})",
     input=[nanoAOD.prefireWeight],
     output=[q.prefireweight],
     scopes=["global"],
@@ -39,56 +39,56 @@ PrefireWeight = Producer(
 is_data = Producer(
     name="isData",
     input=[],
-    call="event::DefineQuantity({df}, {output}, {is_data})",
+    call="event::quantity::Define({df}, {output}, {is_data})",
     output=[q.is_data],
     scopes=["global"],
 )
 
 is_embedding = Producer(
     name="is_embedding",
-    call="event::DefineQuantity({df}, {output}, {is_embedding})",
+    call="event::quantity::Define({df}, {output}, {is_embedding})",
     input=[],
     output=[q.is_embedding],
     scopes=["global"],
 )
 is_ttbar = Producer(
     name="is_ttbar",
-    call="event::DefineQuantity({df}, {output}, {is_ttbar})",
+    call="event::quantity::Define({df}, {output}, {is_ttbar})",
     input=[],
     output=[q.is_ttbar],
     scopes=["global"],
 )
 is_dyjets = Producer(
     name="is_dyjets",
-    call="event::DefineQuantity({df}, {output}, {is_dyjets})",
+    call="event::quantity::Define({df}, {output}, {is_dyjets})",
     input=[],
     output=[q.is_dyjets],
     scopes=["global"],
 )
 is_wjets = Producer(
     name="is_wjets",
-    call="event::DefineQuantity({df}, {output}, {is_wjets})",
+    call="event::quantity::Define({df}, {output}, {is_wjets})",
     input=[],
     output=[q.is_wjets],
     scopes=["global"],
 )
 is_ggh_htautau = Producer(
     name="is_ggh_htautau",
-    call="event::DefineQuantity({df}, {output}, {is_ggh_htautau})",
+    call="event::quantity::Define({df}, {output}, {is_ggh_htautau})",
     input=[],
     output=[q.is_ggh_htautau],
     scopes=["global"],
 )
 is_vbf_htautau = Producer(
     name="is_vbf_htautau",
-    call="event::DefineQuantity({df}, {output}, {is_vbf_htautau})",
+    call="event::quantity::Define({df}, {output}, {is_vbf_htautau})",
     input=[],
     output=[q.is_vbf_htautau],
     scopes=["global"],
 )
 is_diboson = Producer(
     name="is_diboson",
-    call="event::DefineQuantity({df}, {output}, {is_diboson})",
+    call="event::quantity::Define({df}, {output}, {is_diboson})",
     input=[],
     output=[q.is_diboson],
     scopes=["global"],
@@ -123,7 +123,7 @@ MetFilter = VectorProducer(
 
 Lumi = Producer(
     name="Lumi",
-    call="event::Rename<UInt_t>({df}, {output}, {input})",
+    call="event::quantity::Rename<UInt_t>({df}, {output}, {input})",
     input=[nanoAOD.luminosityBlock],
     output=[q.lumi],
     scopes=["global"],
@@ -131,7 +131,7 @@ Lumi = Producer(
 
 npartons = Producer(
     name="npartons",
-    call="event::Rename<UChar_t>({df}, {output}, {input})",
+    call="event::quantity::Rename<UChar_t>({df}, {output}, {input})",
     input=[nanoAOD.LHE_Njets],
     output=[q.npartons],
     scopes=["global"],

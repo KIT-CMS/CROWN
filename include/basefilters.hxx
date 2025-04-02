@@ -1,5 +1,5 @@
-#ifndef GUARDBASEFILTERS_H
-#define GUARDBASEFILTERS_H
+#ifndef GUARD_BASEFILTERS_H
+#define GUARD_BASEFILTERS_H
 
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RVec.hxx"
@@ -147,4 +147,4 @@ inline auto Bitmask(const int &cut) {
 }
 } // namespace basefilters
 
-#endif /* GUARDBASEFILTERS_H */
+#endif /* GUARD_BASEFILTERS_H */

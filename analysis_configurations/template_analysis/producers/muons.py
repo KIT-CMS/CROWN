@@ -36,21 +36,21 @@ MuonDzCut = Producer(
 )
 MuonIDCut = Producer(
     name="MuonIDCut",
-    call='physicsobject::muon::CutID({df}, {output}, "{muon_id}")',
-    input=[],
+    call='physicsobject::CutEqual<bool>({df}, {output}, {input}, true)',
+    input=[nanoAOD.Muon_mediumId],
     output=[],
     scopes=["global"],
 )
 MuonIsoCut = Producer(
     name="MuonIsoCut",
-    call="physicsobject::muon::CutIsolation({df}, {output}, {input}, {muon_max_iso})",
+    call="physicsobject::CutMax<float>({df}, {output}, {input}, {muon_max_iso})",
     input=[nanoAOD.Muon_iso],
     output=[],
     scopes=["global"],
 )
 BaseMuons = ProducerGroup(
     name="BaseMuons",
-    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
     input=[],
     output=[q.base_muons_mask],
     scopes=["global"],
@@ -84,14 +84,14 @@ GoodMuonEtaCut = Producer(
 )
 GoodMuonIsoCut = Producer(
     name="GoodMuonIsoCut",
-    call="physicsobject::electron::CutIsolation({df}, {output}, {input}, {muon_max_iso})",
+    call="physicsobject::CutMax<float>({df}, {output}, {input}, {muon_max_iso})",
     input=[nanoAOD.Muon_iso],
     output=[],
     scopes=["mm"],
 )
 GoodMuons = ProducerGroup(
     name="GoodMuons",
-    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
     input=[q.base_muons_mask],
     output=[q.good_muons_mask],
     scopes=["mm"],

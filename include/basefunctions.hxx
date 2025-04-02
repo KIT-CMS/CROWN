@@ -1,5 +1,5 @@
-#ifndef GUARDBASEFUCTIONS_H
-#define GUARDBASEFUCTIONS_H
+#ifndef GUARD_BASEFUCTIONS_H
+#define GUARD_BASEFUCTIONS_H
 
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/RooFunctorThreadsafe.hxx"
@@ -47,4 +47,4 @@ EvaluateWorkspaceFunction(ROOT::RDF::RNode df, const std::string &outputname,
 }
 } // namespace basefunctions
 
-#endif /* GUARDBASEFUNCTIONS_H */
+#endif /* GUARD_BASEFUNCTIONS_H */

@@ -256,7 +256,7 @@ tau_decaymode_1 = Producer(
 )
 tau_decaymode_1_notau = Producer(
     name="tau_decaymode_1_notau",
-    call="event::DefineQuantity({df}, {output}, -1)",
+    call="event::quantity::Define({df}, {output}, -1)",
     input=[],
     output=[q.tau_decaymode_1],
     scopes=["et", "mt", "em", "ee", "mm"],
@@ -309,7 +309,7 @@ tau_decaymode_2 = Producer(
 )
 tau_decaymode_2_notau = Producer(
     name="tau_decaymode_2_notau",
-    call="event::DefineQuantity({df}, {output}, -1)",
+    call="event::quantity::Define({df}, {output}, -1)",
     input=[],
     output=[q.tau_decaymode_2],
     scopes=["em", "ee", "mm"],

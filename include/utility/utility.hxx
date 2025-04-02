@@ -1,5 +1,5 @@
-#ifndef GUARDUTILITY_H
-#define GUARDUTILITY_H
+#ifndef GUARD_UTILITY_H
+#define GUARD_UTILITY_H
 
 #include <cmath>
 #include <string>
@@ -100,4 +100,4 @@ auto PassAsVec(F &&f) -> PassAsVecHelper<std::make_index_sequence<N>, T, F> {
 }
 /// \endcond
 } // end namespace utility
-#endif /* GUARDUTILITY_H */
+#endif /* GUARD_UTILITY_H */

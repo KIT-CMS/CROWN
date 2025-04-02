@@ -102,7 +102,6 @@ def build_config(
             "muon_max_eta": 2.4,
             "muon_max_dxy": 0.045,
             "muon_max_dz": 0.2,
-            "muon_id": "Muon_mediumId",
             "muon_max_iso": 0.3,
         },
     )
