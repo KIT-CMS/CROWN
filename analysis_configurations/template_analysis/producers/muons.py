@@ -36,7 +36,7 @@ MuonDzCut = Producer(
 )
 MuonIDCut = Producer(
     name="MuonIDCut",
-    call='physicsobject::CutEqual<bool>({df}, {output}, {input}, true)',
+    call="physicsobject::CutEqual<bool>({df}, {output}, {input}, true)",
     input=[nanoAOD.Muon_mediumId],
     output=[],
     scopes=["global"],

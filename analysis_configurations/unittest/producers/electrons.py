@@ -36,7 +36,7 @@ ElectronDzCut = Producer(
 )
 ElectronIDCut = Producer(
     name="ElectronIDCut",
-    call='physicsobject::CutEqual<bool>({df}, {output}, {input}, true)',
+    call="physicsobject::CutEqual<bool>({df}, {output}, {input}, true)",
     input=[nanoAOD.Electron_IDWP90],
     output=[],
     scopes=["global"],
@@ -151,7 +151,7 @@ DiElectronVetoPtCut = Producer(
 )
 DiElectronVetoIDCut = Producer(
     name="DiElectronVetoIDCut",
-    call='physicsobject::CutMin<int>({df}, {output}, {input}, {dielectronveto_id_wp})',
+    call="physicsobject::CutMin<int>({df}, {output}, {input}, {dielectronveto_id_wp})",
     input=[nanoAOD.Electron_cutBased],
     output=[],
     scopes=["global"],
