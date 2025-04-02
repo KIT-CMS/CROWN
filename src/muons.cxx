@@ -52,6 +52,9 @@ PtCorrectionData(ROOT::RDF::RNode df, const std::string &outputname,
             pts.at(index) * rc.kScaleDT(charges.at(index), pts.at(index),
                                           etas.at(index), phis.at(index),
                                           error_set, error_member);
+        Logger::get("MuonPtCorrectionData")
+            ->debug("muon pt before {}, muon pt after {}",
+                    pts.at(index), corrected_pt);
         return corrected_pt;
     };
 
@@ -125,7 +128,9 @@ PtCorrectionMC(ROOT::RDF::RNode df, const std::string &outputname,
                                 n_tracker_layers.at(index),
                                 rndm_values.at(position), error_set, error_member);
         }
-
+        Logger::get("MuonPtCorrectionMC")
+            ->debug("muon pt before {}, muon pt after {}",
+                    pts.at(index), corrected_pt);
         return corrected_pt;
     };
 

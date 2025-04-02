@@ -160,6 +160,70 @@ inline ROOT::RDF::RNode CutAbsEqual(ROOT::RDF::RNode df, const std::string &outp
         }, 
         {quantity});
 }
+
+/**
+ * @brief This function checks whether a specified bit (given by `threshold`) is 
+ * set in each element of the input column and creates a new mask column with 
+ * values of `1` if the bit is set, and `0` otherwise. If `threshold` is `0` or 
+ * negative, all values in the mask are set to `1`.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the input column containing the bitmasks of 
+ * type `ROOT::RVec<UChar_t>`
+ * @param threshold bit position to check in each bitmask
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+inline ROOT::RDF::RNode CutBitmask(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &quantity, const int &threshold) {
+    return df.Define(outputname, 
+        [threshold](const ROOT::RVec<UChar_t> &values) {
+            ROOT::RVec<int> mask;
+            
+            for (auto const value : values) {
+                if (threshold > 0)
+                    mask.push_back(std::min(1, int(value & 1 << (threshold - 1))));
+                else
+                    mask.push_back(int(1));
+            }
+            return mask;
+        }, 
+        {quantity});
+}
+
+/**
+ * @brief This function compares each element in the input column against a provided 
+ * `selection` list and returns a mask column where each entry is `1` if the value is 
+ * in the `selection` list and `0` otherwise.
+ *
+ * @tparam T type of values in the input column and the selection list
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the input column containing values to be checked of 
+ * type `ROOT::RVec<T>`
+ * @param selection a vector containing the selection of values of type `T`
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode CutQuantity(ROOT::RDF::RNode df, 
+                                 const std::string &outputname,
+                                 const std::string &quantity, 
+                                 const std::vector<T> &selection) {
+    return df.Define(outputname,
+        [selection](const ROOT::RVec<T> &values) {
+            ROOT::RVec<int> mask;
+            for (auto const value : values) {
+                mask.push_back(int(std::find(selection.begin(),
+                                             selection.end(),
+                                             value) != selection.end()));
+            }
+            return mask;
+        },
+        {quantity});
+}
+
 /**
  * @brief This function takes multiple masks and applies a logical operation 
  * ("any", "all", or "none") elemet-wise to generate a combined mask. The 
