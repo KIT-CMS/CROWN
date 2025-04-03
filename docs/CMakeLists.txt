@@ -6,7 +6,7 @@ project(Docs NONE)
 # Search for dependencies
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 find_package(Doxygen 1.8 REQUIRED)
-find_package(Sphinx 3.4 REQUIRED)
+find_package(Sphinx 4.2 REQUIRED)
 find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
 
 function(find_python_package PYPINAME NAME MIN_VERSION)

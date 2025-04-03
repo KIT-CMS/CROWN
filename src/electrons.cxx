@@ -150,7 +150,7 @@ ROOT::RDF::RNode VetoECALGap(ROOT::RDF::RNode df,
  * @param df input dataframe
  * @param outputname name of the output column containing the selection mask
  * @param eta name of the column containing electron pseudorapidities
- * @param delta_eta_scname of the column containing the distance in 
+ * @param delta_eta_sc name of the column containing the distance in 
  * pseudorapidity between supercluster and electron
  * @param dxy name of the column containing transverse impact parameter
  * @param dz name of the column containing longitudinal impact parameter

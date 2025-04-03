@@ -478,9 +478,9 @@ ROOT::RDF::RNode mTdileptonMET(ROOT::RDF::RNode df,
 /**
  * @brief function used to calculate the deltaR between two lorentz vectors. It
  is defined as
- $\f[ \Delta R = \sqrt{(\eta_1 - \eta_2)^2 + (\phi_1 - \phi_2)^2} \f$
- where $\eta_1$ and $\phi_1$ are from the first lorentz vector and $\eta_2$
- and $\phi_2$ are from the second lorentz vector.
+ \f[ \Delta R = \sqrt{(\eta_1 - \eta_2)^2 + (\phi_1 - \phi_2)^2} \f]
+ where \f$\eta_1\f$ and \f$\phi_1\f$ are from the first lorentz vector and \f$\eta_2\f$
+ and \f$\phi_2\f$ are from the second lorentz vector.
  *
  * @param df name of the dataframe
  * @param outputname name of the new column containing the deltaR value

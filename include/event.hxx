@@ -33,7 +33,7 @@ namespace event {
  */
 template <typename... Args>
 inline auto CombineFlags(ROOT::RDF::RNode df,
-                         const std::string &outputflag,
+                         const std::string &outputname,
                          Args... args) {
     auto argTuple = std::make_tuple(args...);
     auto mode = utility::extractLastArgument(argTuple);
@@ -44,7 +44,7 @@ inline auto CombineFlags(ROOT::RDF::RNode df,
 
     using namespace ROOT::VecOps;
     return df.Define(
-        outputflag,
+        outputname,
         utility::PassAsVec<nFlags, bool>(
             [mode](const ROOT::RVec<bool> &flags) {
                 if (mode == std::string("any")) {

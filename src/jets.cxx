@@ -206,13 +206,13 @@ ROOT::RDF::RNode OrderJetsByPt(ROOT::RDF::RNode df,
 /// Function to veto jets based on veto maps from JME
 ///
 /// \param[in] df the input dataframe
-/// \param[out] output_col the name of the produced mask
+/// \param[out] maskname the name of the produced mask
 /// \param[in] jet_eta name of the jet etas
 /// \param[in] jet_phi name of the jet phis
-/// \param[in] path to the json file with the map
-/// \param[in] name of the correction in the json
-/// \param[in] type of the correction in the json
-/// \param[in] name of the object for debug output (can be also used for
+/// \param[in] vetomap_path to the json file with the map
+/// \param[in] vetomap_name of the correction in the json
+/// \param[in] vetomap_type of the correction in the json
+/// \param[in] object of the object for debug output (can be also used for
 /// electrons) particle candidates
 ///
 /// \return a dataframe containing the new mask

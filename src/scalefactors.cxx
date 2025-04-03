@@ -238,7 +238,6 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
  * @param correctionManager The CorrectionManager object
  * @param pt muon pt
  * @param eta muon eta
- * @param year_id id for the year of data taking and mc compaign
  * @param variation id for the variation of the scale factor "sf" for nominal
  * and "systup"/"systdown" the up/down variation
  * @param iso_output name of the iso scale factor column
