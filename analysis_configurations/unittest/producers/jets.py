@@ -25,7 +25,7 @@ JetPtCorrection = Producer(
 )
 JetMassCorrection = Producer(
     name="JetMassCorrection",
-    call="physicsobject::ObjectMassCorrectionWithPt({df}, {output}, {input})",
+    call="physicsobject::MassCorrectionWithPt({df}, {output}, {input})",
     input=[
         nanoAOD.Jet_mass,
         nanoAOD.Jet_pt,
@@ -37,14 +37,14 @@ JetMassCorrection = Producer(
 # in data and embdedded sample, we simply rename the nanoAOD jets to the jet_pt_corrected column
 RenameJetPt = Producer(
     name="RenameJetPt",
-    call="basefunctions::rename<ROOT::RVec<float>>({df}, {input}, {output})",
+    call="event::quantity::Rename<ROOT::RVec<float>>({df}, {output}, {input})",
     input=[nanoAOD.Jet_pt],
     output=[q.Jet_pt_corrected],
     scopes=["global"],
 )
 RenameJetMass = Producer(
     name="RenameJetMass",
-    call="basefunctions::rename<ROOT::RVec<float>>({df}, {input}, {output})",
+    call="event::quantity::Rename<ROOT::RVec<float>>({df}, {output}, {input})",
     input=[nanoAOD.Jet_mass],
     output=[q.Jet_mass_corrected],
     scopes=["global"],
@@ -67,28 +67,28 @@ JetEnergyCorrection = ProducerGroup(
 )
 JetPtCut = Producer(
     name="JetPtCut",
-    call="physicsobject::CutPt({df}, {input}, {output}, {min_jet_pt})",
+    call="physicsobject::CutMin<float>({df}, {output}, {input}, {min_jet_pt})",
     input=[q.Jet_pt_corrected],
     output=[],
     scopes=["global"],
 )
 BJetPtCut = Producer(
     name="BJetPtCut",
-    call="physicsobject::CutPt({df}, {input}, {output}, {min_bjet_pt})",
+    call="physicsobject::CutMin<float>({df}, {output}, {input}, {min_bjet_pt})",
     input=[q.Jet_pt_corrected],
     output=[],
     scopes=["global"],
 )
 JetEtaCut = Producer(
     name="JetEtaCut",
-    call="physicsobject::CutEta({df}, {input}, {output}, {max_jet_eta})",
+    call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_jet_eta})",
     input=[nanoAOD.Jet_eta],
     output=[],
     scopes=["global"],
 )
 BJetEtaCut = Producer(
     name="BJetEtaCut",
-    call="physicsobject::CutEta({df}, {input}, {output}, {max_bjet_eta})",
+    call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_bjet_eta})",
     input=[nanoAOD.Jet_eta],
     output=[],
     scopes=["global"],
@@ -116,7 +116,7 @@ BTagCut = Producer(
 )
 GoodJets = ProducerGroup(
     name="GoodJets",
-    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
     input=[],
     output=[q.good_jets_mask],
     scopes=["global"],
@@ -124,7 +124,7 @@ GoodJets = ProducerGroup(
 )
 GoodBJets = ProducerGroup(
     name="GoodBJets",
-    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
     input=[q.jet_id_mask, q.jet_puid_mask],
     output=[q.good_bjets_mask],
     scopes=["global"],
@@ -148,7 +148,7 @@ VetoOverlappingJets = Producer(
 
 GoodJetsWithVeto = ProducerGroup(
     name="GoodJetsWithVeto",
-    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
     input=[q.good_jets_mask],
     output=[],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
@@ -157,7 +157,7 @@ GoodJetsWithVeto = ProducerGroup(
 
 GoodBJetsWithVeto = Producer(
     name="GoodBJetsWithVeto",
-    call="physicsobject::CombineMasks({df}, {output}, {input})",
+    call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
     input=[q.good_bjets_mask, q.jet_overlap_veto_mask],
     output=[],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],

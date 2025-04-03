@@ -1,5 +1,5 @@
-#ifndef GUARD_SESSION_MANAGER
-#define GUARD_SESSION_MANAGER
+#ifndef GUARD_ONNX_SESSION_MANAGER
+#define GUARD_ONNX_SESSION_MANAGER
 
 #include "Logger.hxx"
 #include <memory>
@@ -54,4 +54,4 @@ std::vector<float> run_interference(Ort::Session *session,
 
 } // namespace onnxhelper
 
-#endif /* GUARD_SESSION_MANAGER */
+#endif /* GUARD_ONNX_SESSION_MANAGER */

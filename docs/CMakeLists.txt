@@ -6,7 +6,7 @@ project(Docs NONE)
 # Search for dependencies
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 find_package(Doxygen 1.8 REQUIRED)
-find_package(Sphinx 3.4 REQUIRED)
+find_package(Sphinx 4.2 REQUIRED)
 find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
 
 function(find_python_package PYPINAME NAME MIN_VERSION)
@@ -48,7 +48,7 @@ file(GLOB_RECURSE HEADERS
 
 # Write doxyfile
 # Replace variables inside @@ with the current values
-set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/../src ${PROJECT_SOURCE_DIR}/../include ${PROJECT_SOURCE_DIR}/../src/utility ${PROJECT_SOURCE_DIR}/../include/utility ) # set in Doxyfile.in
+set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/../include ${PROJECT_SOURCE_DIR}/../src ${PROJECT_SOURCE_DIR}/../include/utility ${PROJECT_SOURCE_DIR}/../src/utility ) # set in Doxyfile.in
 list(JOIN DOXYGEN_INPUT_DIR "\" \"" DOXYGEN_INPUT_DIR)
 set(DOXYGEN_OUTPUT_DIR ${PROJECT_BINARY_DIR}/docs/) # set in Doxyfile.in
 set(DOXYFILE_IN ${PROJECT_SOURCE_DIR}/Doxyfile.in)

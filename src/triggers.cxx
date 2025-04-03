@@ -1138,6 +1138,7 @@ ROOT::RDF::RNode GetPrescaleValues(ROOT::RDF::RNode df,
  * trigger given run and lumiblock, read from an external JSON file
  *
  * @param df The input dataframe
+ * @param correctionManager correction manager
  * @param prescale_columnname name of the output column for the prescale value
  * @param hlt_columnname name of the column for the HLT path
  * @param run_columnname name of the column for the run number

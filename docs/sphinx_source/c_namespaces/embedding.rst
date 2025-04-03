@@ -1,6 +1,6 @@
-Namespace: Metfilter
+Namespace: Embedding
 ====================
-.. doxygennamespace:: metfilter
+.. doxygennamespace:: embedding
    :members:
    :undoc-members:
    :private-members:

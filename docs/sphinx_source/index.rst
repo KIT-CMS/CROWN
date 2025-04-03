@@ -47,6 +47,7 @@ Documentation Content
    kingmaker.rst
    postprocessing.rst
    friend_trees.rst
+   cms_analysis.rst
    changelog.rst
 
 .. toctree::

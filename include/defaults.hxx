@@ -1,7 +1,6 @@
-#ifndef GUARDDEFAULTS_H
-#define GUARDDEFAULTS_H
+#ifndef GUARD_DEFAULTS_H
+#define GUARD_DEFAULTS_H
 
-#include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include <Math/Vector4D.h>
 #include <type_traits>
@@ -11,7 +10,7 @@ const int default_pdgid = -999;
 const float default_float = -10.0;
 const UChar_t default_uchar = -10;
 const bool default_bool = false;
-const auto default_lorentzvector = ROOT::Math::PtEtaPhiMVector(0.,0.,0.,0.);
+const auto default_lorentzvector = ROOT::Math::PtEtaPhiMVector(0., 0., 0., 0.);
 
 template <typename T> const T default_value() {
     if (std::is_same<T, int>::value) {
@@ -31,8 +30,7 @@ template <typename T> const T default_value() {
     } else if (std::is_same<T, const UChar_t>::value) {
         return default_uchar;
     }
-    // is there a better way to handle this?
     return static_cast<T>(default_int);
 };
 
-#endif /* GUARDDEFAULTS_H */
+#endif /* GUARD_DEFAULTS_H */

@@ -94,7 +94,7 @@ This adds the parameters ``muon_iso_cut``, ``min_muon_pt``, ``max_muon_eta`` and
 
     GoodMuonPtCut = Producer(
         name="GoodMuonPtCut",
-        call="physicsobject::CutPt({df}, {input}, {output}, {min_muon_pt})",
+        call="physicsobject::CutMin<float>({df}, {output}, {input}, {min_muon_pt})",
         input=[nanoAOD.Muon_pt],
         output=[],
         scopes=["em", "mt", "mm"],

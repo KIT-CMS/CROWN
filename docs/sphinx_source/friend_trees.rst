@@ -1,5 +1,5 @@
 FriendTree Generation
-===========================
+=====================
 
 CROWN can be used, to generate FriendTrees based on a CROWN Ntuple. The concept of FriendTrees is explained here: https://root.cern/manual/trees/#widening-a-ttree-through-friends. They allow to extend an existing ntuple with new quantities. Common use cases are new high-level variables like neural network outputs or additional correction factors.
 

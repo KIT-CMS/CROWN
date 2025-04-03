@@ -3,7 +3,8 @@
 
 #include "../include/RecoilCorrections/MetSystematics.hxx"
 #include "../include/RecoilCorrections/RecoilCorrector.hxx"
-#include "../include/basefunctions.hxx"
+#include "../include/utility/CorrectionManager.hxx"
+#include "../include/event.hxx"
 #include "../include/defaults.hxx"
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
@@ -12,6 +13,7 @@
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include <cmath>
+#include "correction.h"
 
 typedef std::bitset<20> IntBits;
 
@@ -464,8 +466,7 @@ ROOT::RDF::RNode propagateLeptonsToMet(
     } else {
         // if we do not apply the propagation, just rename the met column to
         // the new outputname and dont change anything else
-        return basefunctions::rename<ROOT::Math::PtEtaPhiMVector>(df, met,
-                                                                  outputname);
+        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
     }
 }
 /**
@@ -547,8 +548,7 @@ propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
     } else {
         // if we do not apply the propagation, just rename the met column to
         // the new outputname and dont change anything else
-        return basefunctions::rename<ROOT::Math::PtEtaPhiMVector>(df, met,
-                                                                  outputname);
+        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
     }
 }
 
@@ -620,8 +620,7 @@ ROOT::RDF::RNode propagateLeptonsToMet(ROOT::RDF::RNode df,
     } else {
         // if we do not apply the propagation, just rename the met column to
         // the new outputname and dont change anything else
-        return basefunctions::rename<ROOT::Math::PtEtaPhiMVector>(df, met,
-                                                                  outputname);
+        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
     }
 }
 
@@ -717,8 +716,7 @@ ROOT::RDF::RNode propagateJetsToMet(
     } else {
         // if we do not apply the propagation, just rename the met column to
         // the new outputname and dont change anything else
-        return basefunctions::rename<ROOT::Math::PtEtaPhiMVector>(df, met,
-                                                                  outputname);
+        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
     }
 }
 /**
@@ -830,8 +828,7 @@ ROOT::RDF::RNode applyRecoilCorrections(
     } else {
         // if we do not apply the recoil corrections, just rename the met
         // column to the new outputname and dont change anything else
-        return basefunctions::rename<ROOT::Math::PtEtaPhiMVector>(df, met,
-                                                                  outputname);
+        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
     }
 }
 

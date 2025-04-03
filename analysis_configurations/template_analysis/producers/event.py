@@ -8,7 +8,7 @@ from code_generation.producer import BaseFilter, Producer, ProducerGroup, Vector
 
 JSONFilter = BaseFilter(
     name="JSONFilter",
-    call='basefunctions::JSONFilter({df}, correctionManager, "{golden_json_file}", {input}, "GoldenJSONFilter")',
+    call='event::filter::GoldenJSON({df}, correctionManager, "GoldenJSONFilter", {input}, "{golden_json_file}")',
     input=[nanoAOD.run, nanoAOD.luminosityBlock],
     scopes=["global"],
 )
@@ -16,41 +16,41 @@ JSONFilter = BaseFilter(
 is_data = Producer(
     name="isData",
     input=[],
-    call="basefunctions::DefineQuantity({df}, {output}, {is_data})",
+    call="event::quantity::Define({df}, {output}, {is_data})",
     output=[q.is_data],
     scopes=["global"],
 )
 is_embedding = Producer(
     name="is_embedding",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_embedding})",
+    call="event::quantity::Define({df}, {output}, {is_embedding})",
     input=[],
     output=[q.is_embedding],
     scopes=["global"],
 )
 is_ttbar = Producer(
     name="is_ttbar",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_ttbar})",
+    call="event::quantity::Define({df}, {output}, {is_ttbar})",
     input=[],
     output=[q.is_ttbar],
     scopes=["global"],
 )
 is_dyjets = Producer(
     name="is_dyjets",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_dyjets})",
+    call="event::quantity::Define({df}, {output}, {is_dyjets})",
     input=[],
     output=[q.is_dyjets],
     scopes=["global"],
 )
 is_wjets = Producer(
     name="is_wjets",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_wjets})",
+    call="event::quantity::Define({df}, {output}, {is_wjets})",
     input=[],
     output=[q.is_wjets],
     scopes=["global"],
 )
 is_diboson = Producer(
     name="is_diboson",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_diboson})",
+    call="event::quantity::Define({df}, {output}, {is_diboson})",
     input=[],
     output=[q.is_diboson],
     scopes=["global"],
@@ -74,7 +74,7 @@ SampleFlags = ProducerGroup(
 
 MetFilter = VectorProducer(
     name="MetFilter",
-    call='metfilter::ApplyMetFilter({df}, "{met_filters}", "{met_filters}")',
+    call='event::filter::Flag({df}, "{met_filters}", "{met_filters}")',
     input=[],
     output=None,
     scopes=["global"],
@@ -83,7 +83,7 @@ MetFilter = VectorProducer(
 
 Lumi = Producer(
     name="Lumi",
-    call="basefunctions::rename<UInt_t>({df}, {input}, {output})",
+    call="event::quantity::Rename<UInt_t>({df}, {output}, {input})",
     input=[nanoAOD.luminosityBlock],
     output=[q.lumi],
     scopes=["global"],

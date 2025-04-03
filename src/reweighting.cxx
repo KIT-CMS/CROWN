@@ -169,7 +169,7 @@ ROOT::RDF::RNode zPtMassReweighting(ROOT::RDF::RNode df,
 
     const std::shared_ptr<RooFunctorThreadsafe> weight_function =
         loadFunctor(workspace_file, functor_name, argset);
-    auto df3 = basefunctions::evaluateWorkspaceFunction(
+    auto df3 = basefunctions::EvaluateWorkspaceFunction(
         df2, weightname, weight_function, gen_boson + "_mass",
         gen_boson + "_pt");
     return df3;
