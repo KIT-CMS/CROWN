@@ -10,7 +10,12 @@ from .muons import DiMuonVeto
 
 RunLumiEventFilter = VectorProducer(
     name="RunLumiEventFilter",
-    call='event::filter::Quantity<{RunLumiEventFilter_Quantity_Types}>({df}, "RunLumiEventFilter", "{RunLumiEventFilter_Quantities}", {vec_open}{RunLumiEventFilter_Selections}{vec_close})',
+    call="""event::filter::Quantity<{RunLumiEventFilter_Quantity_Types}>(
+        {df}, 
+        "RunLumiEventFilter", 
+        "{RunLumiEventFilter_Quantities}", 
+        {vec_open}{RunLumiEventFilter_Selections}{vec_close})
+        """,
     input=[],
     output=None,
     scopes=["global"],
@@ -23,7 +28,13 @@ RunLumiEventFilter = VectorProducer(
 
 JSONFilter = BaseFilter(
     name="JSONFilter",
-    call='event::filter::GoldenJSON({df}, correctionManager, "GoldenJSONFilter", {input}, "{golden_json_file}")',
+    call="""event::filter::GoldenJSON(
+        {df}, 
+        correctionManager, 
+        "GoldenJSONFilter", 
+        {input}, 
+        "{golden_json_file}")
+        """,
     input=[nanoAOD.run, nanoAOD.luminosityBlock],
     scopes=["global"],
 )
@@ -139,7 +150,15 @@ npartons = Producer(
 
 PUweights = Producer(
     name="PUweights",
-    call='reweighting::puweights({df}, correctionManager, {output}, {input}, "{PU_reweighting_file}", "{PU_reweighting_era}", "{PU_reweighting_variation}")',
+    call="""reweighting::puweights(
+        {df}, 
+        correctionManager, 
+        {output}, 
+        {input}, 
+        "{PU_reweighting_file}", 
+        "{PU_reweighting_era}", 
+        "{PU_reweighting_variation}")
+        """,
     input=[nanoAOD.Pileup_nTrueInt],
     output=[q.puweight],
     scopes=["global"],
@@ -147,7 +166,14 @@ PUweights = Producer(
 
 ZPtMassReweighting = Producer(
     name="ZPtMassReweighting",
-    call='reweighting::zPtMassReweighting({df}, {output}, {input}, "{zptmass_file}", "{zptmass_functor}", "{zptmass_arguments}")',
+    call="""reweighting::zPtMassReweighting(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{zptmass_file}", 
+        "{zptmass_functor}", 
+        "{zptmass_arguments}")
+        """,
     input=[
         q.recoil_genboson_p4_vec,
     ],
@@ -178,7 +204,13 @@ DiLeptonVeto = ProducerGroup(
 
 GGH_NNLO_Reweighting = Producer(
     name="GGH_NNLO_Reweighting",
-    call='htxs::ggHNNLOWeights({df}, {output}, "{ggHNNLOweightsRootfile}", "{ggH_generator}", {input})',
+    call="""htxs::ggHNNLOWeights(
+        {df}, 
+        {output}, 
+        "{ggHNNLOweightsRootfile}", 
+        "{ggH_generator}", 
+        {input})
+        """,
     input=[nanoAOD.HTXS_Higgs_pt, nanoAOD.HTXS_njets30],
     output=[q.ggh_NNLO_weight],
     scopes=["global", "em", "et", "mt", "tt", "mm"],

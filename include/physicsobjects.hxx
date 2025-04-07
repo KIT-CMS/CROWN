@@ -307,13 +307,13 @@ ROOT::RDF::RNode VetoSingleObject(ROOT::RDF::RNode df,
                             const std::string &object_mask,
                             const std::string &index_vector, 
                             const int position);
-ROOT::RDF::RNode Number(ROOT::RDF::RNode df, 
-                        const std::string &outputname,
-                        const std::string &object_mask);
-ROOT::RDF::RNode NumberFlag(ROOT::RDF::RNode df, 
-                            const std::string &outputname,
-                            const std::string &object_mask, 
-                            const int &number);
+ROOT::RDF::RNode Count(ROOT::RDF::RNode df, 
+                       const std::string &outputname,
+                       const std::string &object_mask);
+ROOT::RDF::RNode CountFlag(ROOT::RDF::RNode df, 
+                           const std::string &outputname,
+                           const std::string &object_mask, 
+                           const int &number);
 ROOT::RDF::RNode Veto(ROOT::RDF::RNode df,
                       const std::string &outputname,
                       const std::string &object_mask);

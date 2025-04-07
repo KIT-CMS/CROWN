@@ -140,9 +140,9 @@ ROOT::RDF::RNode VetoSingleObject(ROOT::RDF::RNode df,
  *
  * @return a dataframe with a new column
  */
-ROOT::RDF::RNode Number(ROOT::RDF::RNode df, 
-                        const std::string &outputname,
-                        const std::string &object_mask) {
+ROOT::RDF::RNode Count(ROOT::RDF::RNode df, 
+                       const std::string &outputname,
+                       const std::string &object_mask) {
     return df.Define(outputname,
         [](const ROOT::RVec<int> &mask) {
             int count = ROOT::VecOps::Nonzero(mask).size();
@@ -161,10 +161,10 @@ ROOT::RDF::RNode Number(ROOT::RDF::RNode df,
  *
  * @return a dataframe with a new flag column
  */
-ROOT::RDF::RNode NumberFlag(ROOT::RDF::RNode df, 
-                            const std::string &outputname,
-                            const std::string &object_mask, 
-                            const int &number) {
+ROOT::RDF::RNode CountFlag(ROOT::RDF::RNode df, 
+                           const std::string &outputname,
+                           const std::string &object_mask, 
+                           const int &number) {
     return df.Define(outputname,
         [number](const ROOT::RVec<int> &mask) {
             return ROOT::VecOps::Nonzero(mask).size() == number;

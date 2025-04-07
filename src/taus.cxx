@@ -78,33 +78,38 @@ PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
                                 const ROOT::RVec<int> &decay_modes,
                                 const ROOT::RVec<UChar_t> &gen_matches) {
         ROOT::RVec<float> corrected_pts(pts.size());
+        const float barrel_end_cut = 1.5;
+        const float endcap_end_cut = 2.5;
+        const int dm0 = 0;
+        const int dm1 = 1;
+
         for (int i = 0; i < pts.size(); i++) {
             if (gen_matches.at(i) == 1 || gen_matches.at(i) == 3) {
-                if (decay_modes.at(i) == 0 && 
-                    std::abs(etas.at(i)) <= 1.5) {
+                if (decay_modes.at(i) == dm0 && 
+                    std::abs(etas.at(i)) <= barrel_end_cut) {
                     auto correction_factor = evaluator->evaluate(
                         {pts.at(i), std::abs(etas.at(i)),
                          decay_modes.at(i), static_cast<int>(gen_matches.at(i)),
                          id_algorithm, variation_dm0_barrel});
                     corrected_pts[i] = pts.at(i) * correction_factor;
-                } else if (decay_modes.at(i) == 0 &&
-                           std::abs(etas.at(i)) > 1.5 &&
-                           std::abs(etas.at(i)) <= 2.5) {
+                } else if (decay_modes.at(i) == dm0 &&
+                           std::abs(etas.at(i)) > barrel_end_cut &&
+                           std::abs(etas.at(i)) <= endcap_end_cut) {
                     auto correction_factor = evaluator->evaluate(
                         {pts.at(i), std::abs(etas.at(i)),
                          decay_modes.at(i), static_cast<int>(gen_matches.at(i)),
                          id_algorithm, variation_dm0_endcap});
                     corrected_pts[i] = pts.at(i) * correction_factor;
-                } else if (decay_modes.at(i) == 1 &&
-                           std::abs(etas.at(i)) <= 1.5) {
+                } else if (decay_modes.at(i) == dm1 &&
+                           std::abs(etas.at(i)) <= barrel_end_cut) {
                     auto correction_factor = evaluator->evaluate(
                         {pts.at(i), std::abs(etas.at(i)),
                          decay_modes.at(i), static_cast<int>(gen_matches.at(i)),
                          id_algorithm, variation_dm1_barrel});
                     corrected_pts[i] = pts.at(i) * correction_factor;
-                } else if (decay_modes.at(i) == 1 &&
-                           std::abs(etas.at(i)) > 1.5 &&
-                           std::abs(etas.at(i)) <= 2.5) {
+                } else if (decay_modes.at(i) == dm1 &&
+                           std::abs(etas.at(i)) > barrel_end_cut &&
+                           std::abs(etas.at(i)) <= endcap_end_cut) {
                     auto correction_factor = evaluator->evaluate(
                         {pts.at(i), std::abs(etas.at(i)),
                          decay_modes.at(i), static_cast<int>(gen_matches.at(i)),

@@ -196,7 +196,19 @@ PropagateJetsToPFMet = Producer(
 
 ApplyRecoilCorrections = Producer(
     name="ApplyRecoilCorrections",
-    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down}, {is_wjets})',
+    call="""met::applyRecoilCorrections(
+        {df}, 
+        {input}, 
+        {output}, 
+        "{recoil_corrections_file}", 
+        "{recoil_systematics_file}", 
+        {applyRecoilCorrections}, 
+        {apply_recoil_resolution_systematic}, 
+        {apply_recoil_response_systematic}, 
+        {recoil_systematic_shift_up}, 
+        {recoil_systematic_shift_down}, 
+        {is_wjets})
+        """,
     input=[
         q.met_p4_jetcorrected,
         q.recoil_genboson_p4_vec,
@@ -207,7 +219,19 @@ ApplyRecoilCorrections = Producer(
 )
 ApplyRecoilCorrectionsPFMet = Producer(
     name="ApplyRecoilCorrectionsPFMet",
-    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down}, {is_wjets})',
+    call="""met::applyRecoilCorrections(
+        {df}, 
+        {input}, 
+        {output}, 
+        "{recoil_corrections_file}", 
+        "{recoil_systematics_file}", 
+        {applyRecoilCorrections}, 
+        {apply_recoil_resolution_systematic}, 
+        {apply_recoil_response_systematic}, 
+        {recoil_systematic_shift_up}, 
+        {recoil_systematic_shift_down}, 
+        {is_wjets})
+        """,
     input=[
         q.pfmet_p4_jetcorrected,
         q.recoil_genboson_p4_vec,

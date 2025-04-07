@@ -50,7 +50,7 @@ MuonIsoCut = Producer(
 )
 BaseMuons = ProducerGroup(
     name="BaseMuons",
-    call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
+    call='physicsobject::CombineMasks({df}, {output}, {input}, "all_of")',
     input=[],
     output=[q.base_muons_mask],
     scopes=["global"],
@@ -91,7 +91,7 @@ GoodMuonIsoCut = Producer(
 )
 GoodMuons = ProducerGroup(
     name="GoodMuons",
-    call='physicsobject::CombineMasks({df}, {output}, {input}, "all")',
+    call='physicsobject::CombineMasks({df}, {output}, {input}, "all_of")',
     input=[q.base_muons_mask],
     output=[q.good_muons_mask],
     scopes=["mm"],
@@ -104,7 +104,7 @@ GoodMuons = ProducerGroup(
 
 NumberOfGoodMuons = Producer(
     name="NumberOfGoodMuons",
-    call="quantities::NumberOfGoodLeptons({df}, {output}, {input})",
+    call="physicsobject::Count({df}, {output}, {input})",
     input=[q.good_muons_mask],
     output=[q.nmuons],
     scopes=["mm"],
