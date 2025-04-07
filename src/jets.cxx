@@ -439,26 +439,8 @@ ROOT::RDF::RNode ApplyVetoMap(ROOT::RDF::RNode df,
         bool veto = false;
 
         for (int i = 0; i < etas.size(); i++) {
-            // due to floating point precision abs(phi) can be >pi, this is ofc
-            // not catched in the correction...
             float phi_tmp = std::clamp(phis.at(i), (float)-3.14, (float)3.14);
-            // // ... and also no overflow catch for eta :(
             float eta_tmp = std::clamp(etas.at(i), (float)-5.1, (float)5.1);
-            // float phi_tmp = phis.at(i);
-            // if (phi_tmp > 3.14) {
-            //     phi_tmp = 3.14;
-            // }
-            // if (phi_tmp < -3.14) {
-            //     phi_tmp = -3.14;
-            // }
-            
-            // float eta_tmp = etas.at(i);
-            // if (eta_tmp > 5.1) {
-            //     eta_tmp = 5.1;
-            // }
-            // if (eta_tmp < -5.1) {
-            //     eta_tmp = -5.1;
-            // }
             veto = bool(
                 vetomap_evaluator->evaluate({vetomap_type, eta_tmp, phi_tmp}));
 

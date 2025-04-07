@@ -7,22 +7,22 @@ namespace physicsobject {
 
 /**
  * @brief This function takes multiple masks and applies a logical operation 
- * ("any", "all", or "none") elemet-wise to generate a combined mask. The 
+ * ("any_of", "all_of", or "none_of") elemet-wise to generate a combined mask. The 
  * function ensures that elements are correctly merged based on the given mode:
  *
- * - "any": The resulting mask contains true values if any element of 
+ * - "any_of": The resulting mask contains true values if any element of 
  * the input masks is true (element-wise)
- * - "all": The resulting mask contains true values if all elements of 
+ * - "all_of": The resulting mask contains true values if all elements of 
  * the input masks are true (element-wise)
- * - "none": The resulting mask contains true values if no element of 
+ * - "none_of": The resulting mask contains true values if no element of 
  * the input masks is true (element-wise)
  *
  * @tparam Args variadic template parameter pack representing mask columns plus mode
  * @param df input dataframe
  * @param outputname name of the output column containing the combined mask
  * @param args parameter pack of column names that contain the considered masks of 
- * type `ROOT::RVec<int>`, with the last argument being the mode (`"any"`, `"all"`, 
- * or `"none"`)
+ * type `ROOT::RVec<int>`, with the last argument being the mode (`"any_of"`, `"all_of"`, 
+ * or `"none_of"`)
  *
  * @return a dataframe containing the new mask as a column
  *
@@ -41,7 +41,7 @@ inline ROOT::RDF::RNode CombineMasks(ROOT::RDF::RNode df,
     const auto nMasks = sizeof...(Args) - 1;
 
     auto lambda = [mode](const ROOT::RVec<ROOT::RVec<int>> &masks) {
-        if (mode == std::string("any")) {
+        if (mode == std::string("any_of")) {
             ROOT::RVec<int> result(masks[0].size(), 0);
             for (auto &mask : masks) {
                 result += mask;
@@ -49,14 +49,14 @@ inline ROOT::RDF::RNode CombineMasks(ROOT::RDF::RNode df,
             result = ROOT::VecOps::Map(result, [](int x) { return x != 0; });
             return result;
         }
-        else if (mode == std::string("all")) {
+        else if (mode == std::string("all_of")) {
             ROOT::RVec<int> result(masks[0].size(), 1);
             for (auto &mask : masks) {
                 result *= mask;
             }
             return result;
         }
-        else if (mode == std::string("none")) {
+        else if (mode == std::string("none_of")) {
             ROOT::RVec<int> result(masks[0].size(), 0);
             for (auto &mask : masks) {
                 result += mask;

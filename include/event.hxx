@@ -13,23 +13,24 @@ namespace event {
 
 /**
  * @brief This function combines multiple boolean flags into a single boolean value 
- * based on the selected mode ("any", "all", or "none"). The mode determines 
+ * based on the selected mode ("any_of", "all_of", or "none_of"). The mode determines 
  * how the flags are evaluated:
- * - `"any"`: Returns `true` if at least one of the flags is `true`
- * - `"all"`: Returns `true` if all flags are `true`
- * - `"none"`: Returns `true` if none of the flags are `true`
+ * - `"any_of"`: Returns `true` if at least one of the flags is `true`
+ * - `"all_of"`: Returns `true` if all flags are `true`
+ * - `"none_of"`: Returns `true` if none of the flags are `true`
  *
  * @tparam Args variadic template parameter pack representing the flag columns plus mode
  * @param df input dataframe
  * @param outputname name of the output column containing the combined flag
  * @param args parameter pack of column names that contain the considered flags of 
- * type `bool`, with the last argument being the mode (`"any"`, `"all"`, or `"none"`)
+ * type `bool`, with the last argument being the mode (`"any_of"`, `"all_of"`, or 
+ * `"none_of"`)
  * 
  * @return a dataframe with a new column
  *
- * @note The mode (`"any"`, `"all"`, or `"none"`) is extracted as the last argument 
- * in the `args` parameter pack, and the rest of the arguments are treated as 
- * individual flag columns.
+ * @note The mode (`"any_of"`, `"all_of"`, or `"none_of"`) is extracted as the last 
+ * argument in the `args` parameter pack, and the rest of the arguments are treated 
+ * as individual flag columns.
  */
 template <typename... Args>
 inline auto CombineFlags(ROOT::RDF::RNode df,
@@ -47,13 +48,13 @@ inline auto CombineFlags(ROOT::RDF::RNode df,
         outputname,
         utility::PassAsVec<nFlags, bool>(
             [mode](const ROOT::RVec<bool> &flags) {
-                if (mode == std::string("any")) {
+                if (mode == std::string("any_of")) {
                     return Any(flags);
                 }
-                else if (mode == std::string("all")) {
+                else if (mode == std::string("all_of")) {
                     return All(flags);
                 }
-                else if (mode == std::string("none")) {
+                else if (mode == std::string("none_of")) {
                     return !Any(flags);
                 }
                 else {
@@ -340,16 +341,17 @@ inline ROOT::RDF::RNode Flag(ROOT::RDF::RNode df,
 /**
  * @brief This function filters the rows of the input dataframe by evaluating 
  * multiple boolean flags according to a specified mode. The filtering mode 
- * can be "any", "all", or "none":
- * - `"any"`: Keeps the rows where at least one flag is `true`
- * - `"all"`: Keeps the rows where all flags are `true`
- * - `"none"`: Keeps the rows where none of the flags are `true`
+ * can be "any_of", "all_of", or "none_of":
+ * - `"any_of"`: Keeps the rows where at least one flag is `true`
+ * - `"all_of"`: Keeps the rows where all flags are `true`
+ * - `"none_of"`: Keeps the rows where none of the flags are `true`
  *
  * @tparam Args variadic template parameter pack representing the flag columns plus mode
  * @param df input dataframe
  * @param filtername name of the filter to be applied (used in the dataframe report)
  * @param args parameter pack of column names that contain the considered flags of 
- * type `bool`, with the last argument being the mode (`"any"`, `"all"`, or `"none"`)
+ * type `bool`, with the last argument being the mode (`"any_of"`, `"all_of"`, or 
+ * `"none_of"`)
  *
  * @return a filtered dataframe
  *
@@ -371,13 +373,13 @@ inline auto Flags(ROOT::RDF::RNode df,
     return df.Filter(
         utility::PassAsVec<nFlags, bool>(
             [mode](const ROOT::RVec<bool> &flags) {
-                if (mode == std::string("any")) {
+                if (mode == std::string("any_of")) {
                     return Any(flags);
                 }
-                else if (mode == std::string("all")) {
+                else if (mode == std::string("all_of")) {
                     return All(flags);
                 }
-                else if (mode == std::string("none")) {
+                else if (mode == std::string("none_of")) {
                     return !Any(flags);
                 }
                 else {

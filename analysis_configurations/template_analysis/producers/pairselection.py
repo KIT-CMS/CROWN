@@ -44,7 +44,7 @@ GoodMMPairFlag = Producer(
 )
 GoodMMPairFilter = Filter(
     name="GoodMMPairFilter",
-    call='event::filter::Flags({df}, "GoodMuMuPairs", {input}, "any")',
+    call='event::filter::Flags({df}, "GoodMuMuPairs", {input}, "any_of")',
     input=[],
     scopes=["mm"],
     subproducers=[GoodMMPairFlag],

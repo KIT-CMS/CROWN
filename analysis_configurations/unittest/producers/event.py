@@ -169,7 +169,7 @@ TopPtReweighting = Producer(
 
 DiLeptonVeto = ProducerGroup(
     name="DiLeptonVeto",
-    call='event::CombineFlags({df}, {output}, {input}, "any")',
+    call='event::CombineFlags({df}, {output}, {input}, "any_of")',
     input=[],
     output=[q.dilepton_veto],
     scopes=["global"],
