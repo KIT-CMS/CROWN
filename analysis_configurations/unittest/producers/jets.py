@@ -145,9 +145,9 @@ GoodBJets = ProducerGroup(
 )
 
 ####################
-# Set of producers to apply a veto of jets overlapping with ditaupair candidates and ordering 
+# Set of producers to apply a veto of jets overlapping with ditaupair candidates and ordering
 # jets by their pt
-# 1. check all jets vs the two lepton candidates, if they are not within deltaR = 0.5, 
+# 1. check all jets vs the two lepton candidates, if they are not within deltaR = 0.5,
 #    keep them --> mask
 # 2. Combine mask with good_jets_mask
 # 3. Generate JetCollection, an RVec containing all indices of good Jets in pt order
