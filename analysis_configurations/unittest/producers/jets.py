@@ -7,7 +7,7 @@ from code_generation.producer import Producer, ProducerGroup
 ####################
 JetPtCorrection = Producer(
     name="JetPtCorrection",
-    call="physicsobject::jet::JetPtCorrection({df}, correctionManager, {output}, {input}, {jet_reapplyJES}, {jet_jes_sources}, {jet_jes_shift}, {jet_jer_shift}, {jet_jec_file}, {jet_jer_tag}, {jet_jes_tag}, {jet_jec_algo})",
+    call="physicsobject::jet::PtCorrectionMC({df}, correctionManager, {output}, {input}, {jet_jec_file}, {jet_jec_algo}, {jet_jes_tag}, {jet_jes_sources}, {jet_jer_tag}, {jet_reapplyJES}, {jet_jes_shift}, {jet_jer_shift})",
     input=[
         nanoAOD.Jet_pt,
         nanoAOD.Jet_eta,
@@ -95,21 +95,21 @@ BJetEtaCut = Producer(
 )
 JetIDCut = Producer(
     name="JetIDCut",
-    call="physicsobject::jet::CutID({df}, {output}, {input}, {jet_id})",
+    call="physicsobject::CutMin<int>({df}, {output}, {input}, {jet_id})",
     input=[nanoAOD.Jet_ID],
     output=[q.jet_id_mask],
     scopes=["global"],
 )
 JetPUIDCut = Producer(
     name="JetPUIDCut",
-    call="physicsobject::jet::CutPUID({df}, {output}, {input}, {jet_puid}, {jet_puid_max_pt})",
+    call="physicsobject::jet::CutPileupID({df}, {output}, {input}, {jet_puid}, {jet_puid_max_pt})",
     input=[nanoAOD.Jet_PUID, q.Jet_pt_corrected],
     output=[q.jet_puid_mask],
     scopes=["global"],
 )
 BTagCut = Producer(
     name="BTagCut",
-    call="physicsobject::jet::CutRawID({df}, {input}, {output}, {btag_cut})",
+    call="physicsobject::CutMin<float>({df}, {output}, {input}, {btag_cut})",
     input=[nanoAOD.BJet_discriminator],
     output=[],
     scopes=["global"],
@@ -140,7 +140,7 @@ GoodBJets = ProducerGroup(
 ####################
 VetoOverlappingJets = Producer(
     name="VetoOverlappingJets",
-    call="jet::VetoOverlappingJets({df}, {output}, {input}, {deltaR_jet_veto})",
+    call="physicsobject::jet::VetoOverlappingJets({df}, {output}, {input}, {deltaR_jet_veto})",
     input=[nanoAOD.Jet_eta, nanoAOD.Jet_phi, q.p4_1, q.p4_2],
     output=[q.jet_overlap_veto_mask],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
@@ -165,7 +165,7 @@ GoodBJetsWithVeto = Producer(
 
 JetCollection = ProducerGroup(
     name="JetCollection",
-    call="jet::OrderJetsByPt({df}, {output}, {input})",
+    call="physicsobject::OrderByPt({df}, {output}, {input})",
     input=[q.Jet_pt_corrected],
     output=[q.good_jet_collection],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
@@ -174,7 +174,7 @@ JetCollection = ProducerGroup(
 
 BJetCollection = ProducerGroup(
     name="BJetCollection",
-    call="jet::OrderJetsByPt({df}, {output}, {input})",
+    call="physicsobject::OrderByPt({df}, {output}, {input})",
     input=[q.Jet_pt_corrected],
     output=[q.good_bjet_collection],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
@@ -214,7 +214,7 @@ LVJet2 = Producer(
 )
 NumberOfJets = Producer(
     name="NumberOfJets",
-    call="quantities::jet::NumberOfJets({df}, {output}, {input})",
+    call="physicsobject::Number({df}, {output}, {input})",
     input=[q.good_jet_collection],
     output=[q.njets],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
@@ -263,14 +263,14 @@ jphi_2 = Producer(
 )
 jtag_value_1 = Producer(
     name="jtag_value_1",
-    call="quantities::jet::btagValue({df}, {output}, {input}, 0)",
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
     input=[nanoAOD.BJet_discriminator, q.good_jet_collection],
     output=[q.jtag_value_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 jtag_value_2 = Producer(
     name="jtag_value_2",
-    call="quantities::jet::btagValue({df}, {output}, {input}, 1)",
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
     input=[nanoAOD.BJet_discriminator, q.good_jet_collection],
     output=[q.jtag_value_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
@@ -337,7 +337,7 @@ LVBJet2 = Producer(
 )
 NumberOfBJets = Producer(
     name="NumberOfBJets",
-    call="quantities::jet::NumberOfJets({df}, {output}, {input})",
+    call="physicsobject::Number({df}, {output}, {input})",
     input=[q.good_bjet_collection],
     output=[q.nbtag],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
@@ -386,14 +386,14 @@ bphi_2 = Producer(
 )
 btag_value_1 = Producer(
     name="btag_value_1",
-    call="quantities::jet::btagValue({df}, {output}, {input}, 0)",
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
     input=[nanoAOD.BJet_discriminator, q.good_bjet_collection],
     output=[q.btag_value_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 btag_value_2 = Producer(
     name="btag_value_2",
-    call="quantities::jet::btagValue({df}, {output}, {input}, 1)",
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
     input=[nanoAOD.BJet_discriminator, q.good_bjet_collection],
     output=[q.btag_value_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],

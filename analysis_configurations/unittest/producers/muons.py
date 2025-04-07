@@ -168,7 +168,7 @@ DiMuonVetoMuons = ProducerGroup(
 )
 DiMuonVeto = ProducerGroup(
     name="DiMuonVeto",
-    call="physicsobject::VetoLeptonPairs({df}, {output}, {input}, {dileptonveto_dR})",
+    call="physicsobject::LeptonPairVeto({df}, {output}, {input}, {dileptonveto_dR})",
     input=[
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,

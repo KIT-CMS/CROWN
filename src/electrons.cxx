@@ -25,8 +25,8 @@ namespace electron {
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the 
  * correction scale uncertainty patch file
- * @param outputname name of the output column for corrected pT values
- * @param pt name of the column containing electron pT values
+ * @param outputname name of the output column for corrected \f$p_T\f$ values
+ * @param pt name of the column containing electron \f$p_T\f$ values
  * @param eta name of the column containing electron pseudorapidities
  * @param gain name of the column containing electron gain values
  * @param es_resolution_up name of the column containing the one sigma upward 

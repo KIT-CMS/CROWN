@@ -10,21 +10,22 @@ namespace embedding {
 namespace electron {
 
 /**
- * @brief This function scales the pt values of electrons depending on whether 
- * they fall within the barrel or endcap region of the detector. The correction 
- * factors are provided as input parameters.
+ * @brief This function scales the \f$p_T\f$ values of electrons depending on 
+ * whether they fall within the barrel or endcap region of the detector. The 
+ * correction factors are provided as input parameters.
  *
  * @param df input dataframe
- * @param corrected_pt name of the output column storing the corrected pt values
- * @param pt name of the input column containing pt values
+ * @param outputname name of the output column storing the corrected \f$p_T\f$ 
+ * values
+ * @param pt name of the input column containing \f$p_T\f$ values
  * @param eta name of the column containing eta values
  * @param sf_barrel scale factor applied in the barrel region (|eta| <= 1.479)
  * @param sf_endcap scale factor applied in the endcap region (|eta| > 1.479)
  *
- * @return a dataframe with the corrected pt values
+ * @return a dataframe with the corrected \f$p_T\f$ values
  */
 ROOT::RDF::RNode
-PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
+PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &outputname,
                      const std::string &pt, const std::string &eta,
                      const float &sf_barrel, const float &sf_endcap) {
     auto correction_lambda =
@@ -46,21 +47,21 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
             return corrected_pts;
         };
     auto df1 =
-        df.Define(corrected_pt, correction_lambda, {pt, eta});
+        df.Define(outputname, correction_lambda, {pt, eta});
     return df1;
 }
 
 /**
- * @brief This function scales the pt values of electrons based on their 
+ * @brief This function scales the \f$p_T\f$ values of electrons based on their 
  * pseudorapidity (`eta`), applying different correction factors for 
  * the barrel and endcap regions of the detector.
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the 
  * correction file
- * @param corrected_pt name of the output column storing the corrected 
- * electron pT values
- * @param pt name of the input column containing electron pT values
+ * @param outputname name of the output column storing the corrected 
+ * electron \f$p_T\f$pT values
+ * @param pt name of the input column containing electron \f$p_T\f$ values
  * @param eta name of the column containing electron eta values
  * @param es_file path to the correction file for the energy scale correction
  * @param correction_name name of the correction in `es_file`
@@ -69,12 +70,12 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
  * @param variation_endcap variation for the endcap region, options are 
  * "nom", "up", "down"
  *
- * @return a dataframe with the corrected pt values
+ * @return a dataframe with the corrected \f$p_T\f$ values
  */
 ROOT::RDF::RNode
 PtCorrection(ROOT::RDF::RNode df,
              correctionManager::CorrectionManager &correction_manager,
-             const std::string &corrected_pt, const std::string &pt,
+             const std::string &outputname, const std::string &pt,
              const std::string &eta, const std::string &es_file,
              const std::string &correction_name, 
              const std::string &variation_barrel,
@@ -104,7 +105,7 @@ PtCorrection(ROOT::RDF::RNode df,
         return corrected_pts;
     };
     auto df1 =
-        df.Define(corrected_pt, correction_lambda, {pt, eta});
+        df.Define(outputname, correction_lambda, {pt, eta});
     return df1;
 }
 } // namespace electron
@@ -112,22 +113,22 @@ PtCorrection(ROOT::RDF::RNode df,
 namespace tau {
 
 /**
- * @brief This function scales the pt values of hadronic taus based on their 
+ * @brief This function scales the \f$p_T\f$ values of hadronic taus based on their 
  * decay mode. The correction factors are provided as input parameters.
  *
  * @param df input dataframe
- * @param corrected_pt name of the output column storing the corrected pt values
- * @param pt name of the input column containing pt values
+ * @param outputname name of the output column storing the corrected \f$p_T\f$ values
+ * @param pt name of the input column containing \f$p_T\f$ values
  * @param decay_mode name of the column containing the tau decay modes
  * @param sf_dm0 scale factor applied for decay mode 0
  * @param sf_dm1 scale factor applied for decay mode 1
  * @param sf_dm10 scale factor applied for decay mode 10
  * @param sf_dm11 scale factor applied for decay mode 11
  *
- * @return a dataframe with the corrected pt values
+ * @return a dataframe with the corrected \f$p_T\f$ values
  */
 ROOT::RDF::RNode
-PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
+PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &outputname,
                      const std::string &pt, const std::string &decay_mode,
                      const float &sf_dm0, const float &sf_dm1,
                      const float &sf_dm10, const float &sf_dm11) {
@@ -154,7 +155,7 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
             return corrected_pts;
         };
     auto df1 =
-        df.Define(corrected_pt, correction_lambda, {pt, decay_mode});
+        df.Define(outputname, correction_lambda, {pt, decay_mode});
     return df1;
 }
 } // namespace tau

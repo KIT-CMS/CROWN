@@ -6,8 +6,8 @@
 #include <utility> // make_index_sequence
 #include <vector>
 
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/RooFunctorThreadsafe.hxx"
+#include "../../include/utility/Logger.hxx"
+#include "../../include/utility/RooFunctorThreadsafe.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 
@@ -99,5 +99,42 @@ auto PassAsVec(F &&f) -> PassAsVecHelper<std::make_index_sequence<N>, T, F> {
         std::forward<F>(f));
 }
 /// \endcond
+
+/**
+ * @brief Function to evaluate a `RooWorkspace` function and put the output into
+ * a new dataframe column.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param function a `RooFunctor` pointer, which has to be loaded from a Roo
+ * Workspace
+ * @param inputs a parameter pack containing all column names needed to be able
+ * to evaluate the workspace function
+ *
+ * @return a dataframe with the new column
+ */
+template <class... Inputs>
+inline ROOT::RDF::RNode
+EvaluateWorkspaceFunction(ROOT::RDF::RNode df, const std::string &outputname,
+                          const std::shared_ptr<RooFunctorThreadsafe> &function,
+                          const Inputs &...inputs) {
+    Logger::get("EvaluateWorkspaceFunction")
+        ->debug("Starting evaluation for {}", outputname);
+    auto getValue = [function](const ROOT::RVec<float> &values) {
+        Logger::get("EvaluateWorkspaceFunction")
+            ->debug("Type: {} ", typeid(function).name());
+        std::vector<double> argvalues(values.begin(), values.end());
+        auto result = function->eval(argvalues.data());
+        Logger::get("EvaluateWorkspaceFunction")->debug("result {}", result);
+        return result;
+    };
+    std::vector<std::string> InputList;
+    appendParameterPackToVector(InputList, inputs...);
+    const auto nInputs = sizeof...(Inputs);
+    Logger::get("EvaluateWorkspaceFunction")->debug("nInputs: {} ", nInputs);
+    auto df1 = df.Define(
+        outputname, PassAsVec<nInputs, float>(getValue), InputList);
+    return df1;
+}
 } // end namespace utility
 #endif /* GUARD_UTILITY_H */

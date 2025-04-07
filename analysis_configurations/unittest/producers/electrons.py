@@ -172,7 +172,7 @@ DiElectronVetoElectrons = ProducerGroup(
 )
 DiElectronVeto = ProducerGroup(
     name="DiElectronVeto",
-    call="physicsobject::VetoLeptonPairs({df}, {output}, {input}, {dileptonveto_dR})",
+    call="physicsobject::LeptonPairVeto({df}, {output}, {input}, {dileptonveto_dR})",
     input=[
         nanoAOD.Electron_pt,
         nanoAOD.Electron_eta,

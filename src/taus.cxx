@@ -10,8 +10,8 @@ namespace physicsobject {
 namespace tau {
 
 /**
- * @brief This function corrects the transverse momentum (pT) in MC simulations of 
- * hadronic taus that originate from electrons that are misidentified. The energy 
+ * @brief This function corrects the transverse momentum (\f$p_T\f$) in MC simulations 
+ * of hadronic taus that originate from electrons that are misidentified. The energy 
  * scale correction for these objects is measured for two tau decay modes (dm0 and 
  * dm1) and depends on the barrel and endcap region of the detector. 
  *
@@ -29,9 +29,9 @@ namespace tau {
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the 
  * correction file
- * @param corrected_pt name of the output column storing the corrected hadronic 
- * tau pT values
- * @param pt name of the input column containing hadronic tau pT values
+ * @param outputname name of the output column storing the corrected hadronic 
+ * tau \f$p_T\f$ values
+ * @param pt name of the input column containing hadronic tau \f$p_T\f$ values
  * @param eta name of the column containing hadronic tau eta values
  * @param decay_mode name of the column containing hadronic tau decay modes
  * @param gen_match name of the column with the matching information of the hadronic 
@@ -57,7 +57,7 @@ namespace tau {
 ROOT::RDF::RNode
 PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
                        correctionManager::CorrectionManager &correction_manager,
-                       const std::string &corrected_pt, 
+                       const std::string &outputname, 
                        const std::string &pt,
                        const std::string &eta, 
                        const std::string &decay_mode,
@@ -120,13 +120,13 @@ PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
         }
         return corrected_pts;
     };
-    auto df1 = df.Define(corrected_pt, correction_lambda,
+    auto df1 = df.Define(outputname, correction_lambda,
                          {pt, eta, decay_mode, gen_match});
     return df1;
 }
 
 /**
- * @brief This function corrects the transverse momentum (pT) in MC simulations of 
+ * @brief This function corrects the transverse momentum (\f$p_T\f$) in MC simulations of 
  * hadronic taus that originate from muons that are misidentified. The energy 
  * scale correction is always set to `1` and for the uncertainty varied by `1%`.
  *
@@ -144,9 +144,9 @@ PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the 
  * correction file
- * @param corrected_pt name of the output column storing the corrected hadronic 
- * tau pT values
- * @param pt name of the input column containing hadronic tau pT values
+ * @param outputname name of the output column storing the corrected hadronic 
+ * tau \f$p_T\f$ values
+ * @param pt name of the input column containing hadronic tau \f$p_T\f$ values
  * @param eta name of the column containing hadronic tau eta values
  * @param decay_mode name of the column containing hadronic tau decay modes
  * @param gen_match name of the column with the matching information of the hadronic 
@@ -165,7 +165,7 @@ PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
 ROOT::RDF::RNode
 PtCorrectionMC_muFake(ROOT::RDF::RNode df,
                       correctionManager::CorrectionManager &correction_manager,
-                      const std::string &corrected_pt, 
+                      const std::string &outputname, 
                       const std::string &pt,
                       const std::string &eta, 
                       const std::string &decay_mode,
@@ -197,13 +197,13 @@ PtCorrectionMC_muFake(ROOT::RDF::RNode df,
             }
             return corrected_pts;
         };
-    auto df1 = df.Define(corrected_pt, correction_lambda,
+    auto df1 = df.Define(outputname, correction_lambda,
                          {pt, eta, decay_mode, gen_match});
     return df1;
 }
 
 /**
- * @brief This function corrects the transverse momentum (pT) in MC simulations of 
+ * @brief This function corrects the transverse momentum (\f$p_T\f$) in MC simulations of 
  * genuine hadronic taus. The energy scale correction for these objects is measured 
  * for four tau decay modes (dm0, dm1, dm10 and dm11) and depends on the transverse 
  * momentum of the hadronic tau.
@@ -222,9 +222,9 @@ PtCorrectionMC_muFake(ROOT::RDF::RNode df,
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the 
  * correction file
- * @param corrected_pt name of the output column storing the corrected hadronic 
- * tau pT values
- * @param pt name of the input column containing hadronic tau pT values
+ * @param outputname name of the output column storing the corrected hadronic 
+ * tau \f$p_T\f$ values
+ * @param pt name of the input column containing hadronic tau \f$p_T\f$ values
  * @param eta name of the column containing hadronic tau eta values
  * @param decay_mode name of the column containing hadronic tau decay modes
  * @param gen_match name of the column with the matching information of the hadronic 
@@ -244,7 +244,7 @@ PtCorrectionMC_muFake(ROOT::RDF::RNode df,
 ROOT::RDF::RNode
 PtCorrectionMC_genuineTau(ROOT::RDF::RNode df,
                     correctionManager::CorrectionManager &correction_manager,
-                    const std::string &corrected_pt, 
+                    const std::string &outputname, 
                     const std::string &pt,
                     const std::string &eta, 
                     const std::string &decay_mode,
@@ -301,7 +301,7 @@ PtCorrectionMC_genuineTau(ROOT::RDF::RNode df,
         }
         return corrected_pts;
     };
-    auto df1 = df.Define(corrected_pt, correction_lambda,
+    auto df1 = df.Define(outputname, correction_lambda,
                          {pt, eta, decay_mode, gen_match});
     return df1;
 }

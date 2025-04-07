@@ -1,21 +1,10 @@
 #ifndef GUARD_PHYSICSOBJECTS_H
 #define GUARD_PHYSICSOBJECTS_H
 
-#include "../include/basefilters.hxx"
-#include "../include/defaults.hxx"
-#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
-#include "TRandom3.h"
-#include "correction.h"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
-#include <iostream>
-#include <string>
-#include <type_traits>
-#include <vector>
 
 /** 
  * This namespace contains functions to apply cuts on physics objects. The
@@ -206,6 +195,132 @@ ROOT::RDF::RNode Veto(ROOT::RDF::RNode df,
 }
 
 /**
+ * @brief This function checks if any object in a given collection (`object_mask`) 
+ * overlaps with a specified target object defined by its four-momentum within a 
+ * user-defined `delta_r_cut` distance. If an object is found within this threshold, 
+ * the function returns `true`, indicating an overlap with the target object. The 
+ * result can be used to veto events that have overlapping objects.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column storing the overlap veto flag
+ * @param target_p4 name of the column containing the target four-momentum as a 
+ * `ROOT::Math::PtEtaPhiMVector`
+ * @param object_pt name of the column containing object transverse momenta
+ * @param object_eta name of the column containing object pseudorapidities
+ * @param object_phi name of the column containing object azimuthal angles
+ * @param object_mass name of the column containing object masses
+ * @param object_mask name of the column containing the mask of selected objects to 
+ * compare with
+ * @param min_delta_r minimal deltaR distance allowed between objects and target to 
+ * count as not overlapping
+ *
+ * @return a dataframe with a new flag column
+ */
+ROOT::RDF::RNode OverlapVeto(ROOT::RDF::RNode df, 
+                             const std::string &outputname, 
+                             const std::string &target_p4,
+                             const std::string &object_pt,
+                             const std::string &object_eta, 
+                             const std::string &object_phi,
+                             const std::string &object_mass, 
+                             const std::string &object_mask, 
+                             const float min_delta_r) {
+    auto veto_overlapping_target =
+        [min_delta_r](const ROOT::Math::PtEtaPhiMVector &p4,
+                     const ROOT::RVec<float> &pts,
+                     const ROOT::RVec<float> &etas,
+                     const ROOT::RVec<float> &phis,
+                     const ROOT::RVec<float> &masses,
+                     const ROOT::RVec<int> &mask) {
+
+            ROOT::RVec<int> selected_indices =
+                ROOT::VecOps::Nonzero(mask);
+            const auto selected_pts =
+                ROOT::VecOps::Take(pts, selected_indices);
+            const auto selected_etas =
+                ROOT::VecOps::Take(etas, selected_indices);
+            const auto selected_phis =
+                ROOT::VecOps::Take(phis, selected_indices);
+            const auto selected_masses =
+                ROOT::VecOps::Take(masses, selected_indices);
+            auto selected_p4s =
+                ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(
+                    selected_pts, selected_etas, selected_phis, selected_masses);
+            
+            for (const auto &p4_test : selected_p4s) {
+                if (ROOT::Math::VectorUtil::DeltaR(p4_test, p4) < min_delta_r) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    auto df1 = df.Define(outputname, veto_overlapping_target,
+        {target_p4, object_pt, object_eta, object_phi, object_mass, object_mask});
+    return df1;
+}
+
+/**
+ * @brief This function checks for the presence of same-flavor opposite-sign 
+ * lepton pairs with a given deltaR separation (`delta_r_cut`). If such a pair 
+ * is found, a veto flag is set and can be later used to remove event with such
+ * lepton pairs.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output flag column
+ * @param lepton_pt name of the column containing lepton transverse momenta
+ * @param lepton_eta name of the column containing lepton pseudorapidities
+ * @param lepton_phi name of the column containing lepton azimuthal angles
+ * @param lepton_mass name of the column containing lepton masses
+ * @param lepton_charge name of the column containing lepton charges
+ * @param lepton_mask name of the column containing the mask of selected lepton 
+ * objects
+ * @param max_delta_r maximal deltaR distance allowed between lepton objects to 
+ * not being vetoed
+ *
+ * @return a dataframe with a new flag column
+ */
+ROOT::RDF::RNode LeptonPairVeto(ROOT::RDF::RNode df, 
+                                const std::string &outputname, 
+                                const std::string &lepton_pt, 
+                                const std::string &lepton_eta,
+                                const std::string &lepton_phi, 
+                                const std::string &lepton_mass,
+                                const std::string &lepton_charge,
+                                const std::string &lepton_mask, 
+                                const float max_delta_r) {
+    auto pair_finder_lambda = 
+        [max_delta_r](const ROOT::RVec<float> &pts,
+                     const ROOT::RVec<float> &etas,
+                     const ROOT::RVec<float> &phis,
+                     const ROOT::RVec<float> &masses,
+                     const ROOT::RVec<int> &charges,
+                     const ROOT::RVec<int> &mask) {
+        const auto selected_indices = ROOT::VecOps::Nonzero(mask);
+        for (auto index_1 = selected_indices.begin();
+             index_1 != selected_indices.end(); index_1++) {
+            for (auto index_2 = index_1 + 1; 
+                 index_2 != selected_indices.end(); index_2++) {
+                if (charges.at(*index_1) != charges.at(*index_2)) {
+                    auto p4_1 = ROOT::Math::PtEtaPhiMVector(
+                        pts.at(*index_1), etas.at(*index_1),
+                        phis.at(*index_1), masses.at(*index_1));
+                    auto p4_2 = ROOT::Math::PtEtaPhiMVector(
+                        pts.at(*index_2), etas.at(*index_2),
+                        phis.at(*index_2), masses.at(*index_2));
+                    if (ROOT::Math::VectorUtil::DeltaR(p4_1, p4_2) >= max_delta_r)
+                        return true;
+                }
+            }
+        }
+        return false;
+    };
+    auto df1 = df.Define(outputname, pair_finder_lambda,
+                         {lepton_pt, lepton_eta, lepton_phi, lepton_mass, 
+                          lepton_charge, lepton_mask});
+    return df1;
+}
+
+/**
  * @brief This function extracts the indices of objects that are marked as selected 
  * in the given object mask.
  *
@@ -228,67 +343,48 @@ ROOT::RDF::RNode GetIndices(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief This function checks if any object in a given collection (`object_mask`) 
- * overlaps with a specified target object defined by its four-momentum within a 
- * user-defined `delta_r_cut` distance. If an object is found within this threshold, 
- * the function returns `true`, indicating an overlap with the target object. The 
- * result can be used to veto events that have overlapping objects.
+ * @brief This function orders objects by their transverse momentum (\f$p_T\f$) 
+ * in descending order. Only selected objects based on a provided mask are taken 
+ * and then sorted according to their \f$p_T\f$.
  *
  * @param df input dataframe
- * @param outputname name of the output column storing the overlap veto flag
- * @param target_p4 name of the column containing the target four-momentum as a 
- * `ROOT::Math::PtEtaPhiMVector`
+ * @param outputname name of the output column storing sorted object indices
  * @param object_pt name of the column containing object transverse momenta
- * @param object_eta name of the column containing object pseudorapidities
- * @param object_phi name of the column containing object azimuthal angles
- * @param object_mass name of the column containing object masses
- * @param object_mask name of the column containing the mask of selected objects to 
- * compare with
- * @param delta_r_cut minimal deltaR distance allowed between objects and target to 
- * count as not overlapping
+ * @param object_mask name of the column containing the object selection mask 
+ * (with `1` for selected objects, `0` otherwise)
  *
- * @return a dataframe with a new flag column
+ * @return a dataframe containing the ordered object indices
  */
-ROOT::RDF::RNode OverlapVeto(ROOT::RDF::RNode df, 
-                             const std::string &outputname, 
-                             const std::string &target_p4,
-                             const std::string &object_pt,
-                             const std::string &object_eta, 
-                             const std::string &object_phi,
-                             const std::string &object_mass, 
-                             const std::string &object_mask, 
-                             const float delta_r_cut) {
-    auto veto_overlapping_target =
-        [delta_r_cut](const ROOT::Math::PtEtaPhiMVector &p4,
-                     const ROOT::RVec<float> &pts,
-                     const ROOT::RVec<float> &etas,
-                     const ROOT::RVec<float> &phis,
-                     const ROOT::RVec<float> &masses,
-                     const ROOT::RVec<int> &mask) {
-
-            ROOT::RVec<int> selected_indices =
-                ROOT::VecOps::Nonzero(mask);
-            const auto selected_pts =
-                ROOT::VecOps::Take(pts, selected_indices);
-            const auto selected_etas =
-                ROOT::VecOps::Take(etas, selected_indices);
-            const auto selected_phis =
-                ROOT::VecOps::Take(phis, selected_indices);
-            const auto selected_masses =
-                ROOT::VecOps::Take(masses, selected_indices);
-            auto selected_p4s =
-                ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(
-                    selected_pts, selected_etas, selected_phis, selected_masses);
-            
-            for (const auto &p4_test : selected_p4s) {
-                if (ROOT::Math::VectorUtil::DeltaR(p4_test, p4) < delta_r_cut) {
-                    return true;
-                }
-            }
-            return false;
-        };
-    auto df1 = df.Define(outputname, veto_overlapping_target,
-        {target_p4, object_pt, object_eta, object_phi, object_mass, object_mask});
+ROOT::RDF::RNode OrderByPt(ROOT::RDF::RNode df,
+                           const std::string &outputname,
+                           const std::string &object_pt,
+                           const std::string &object_mask) {
+    auto df1 = df.Define(
+        outputname,
+        [outputname, object_mask](const ROOT::RVec<float> &pts,
+                                  const ROOT::RVec<int> &mask) {
+            Logger::get("OrderByPt")
+                ->debug("Ordering good objects from {} by pt, output stored in {}",
+                        object_mask, outputname);
+            Logger::get("OrderByPt")->debug("Object pt before {}", pts);
+            Logger::get("OrderByPt")->debug("Mask {}", mask);
+            auto good_object_pts =
+                ROOT::VecOps::Where(mask > 0, pts, (float)0.);
+            Logger::get("OrderByPt")->debug("Object pt after {}", good_object_pts);
+            // we have to convert the result into an RVec of int's since argsort
+            // gives back an unsigned long vector
+            auto temp = ROOT::VecOps::Intersect(
+                ROOT::VecOps::Argsort(good_object_pts,
+                                      [](double x, double y) { return x > y; }),
+                ROOT::VecOps::Nonzero(good_object_pts));
+            Logger::get("OrderByPt")->debug("Object indices {}", temp);
+            ROOT::RVec<int> result(temp.size());
+            std::transform(temp.begin(), temp.end(), result.begin(),
+                           [](unsigned long int x) { return (int)x; });
+            Logger::get("OrderByPt")->debug("Object indices int {}", result);
+            return result;
+        },
+        {object_pt, object_mask});
     return df1;
 }
 
@@ -302,7 +398,7 @@ ROOT::RDF::RNode OverlapVeto(ROOT::RDF::RNode df,
  * corrections that were before to the transverse momenta.
  *
  * @param df input dataframe
- * @param corrected_mass name of the output column storing the corrected masses
+ * @param outputname name of the output column storing the corrected masses
  * @param raw_mass name of the column containing raw object masses
  * @param raw_pt name of the column containing raw object transverse momenta
  * @param corrected_pt name of the column containing corrected transverse momenta
@@ -310,7 +406,7 @@ ROOT::RDF::RNode OverlapVeto(ROOT::RDF::RNode df,
  * @return a dataframe with a new column
  */
 ROOT::RDF::RNode MassCorrectionWithPt(ROOT::RDF::RNode df,
-                                      const std::string &corrected_mass,
+                                      const std::string &outputname,
                                       const std::string &raw_mass,
                                       const std::string &raw_pt,
                                       const std::string &corrected_pt) {
@@ -326,69 +422,8 @@ ROOT::RDF::RNode MassCorrectionWithPt(ROOT::RDF::RNode df,
                 }
                 return corrected_masses;
             };
-    auto df1 = df.Define(corrected_mass, mass_correction_lambda,
+    auto df1 = df.Define(outputname, mass_correction_lambda,
                          {raw_mass, raw_pt, corrected_pt});
-    return df1;
-}
-
-/**
- * @brief This function checks for the presence of same-flavor opposite-sign 
- * lepton pairs with a given deltaR separation (`delta_r_cut`). If such a pair 
- * is found, a veto flag is set and can be later used to remove event with such
- * lepton pairs.
- *
- * @param df input dataframe
- * @param outputname name of the output flag column
- * @param lepton_pt name of the column containing lepton transverse momenta
- * @param lepton_eta name of the column containing lepton pseudorapidities
- * @param lepton_phi name of the column containing lepton azimuthal angles
- * @param lepton_mass name of the column containing lepton masses
- * @param lepton_charge name of the column containing lepton charges
- * @param lepton_mask name of the column containing the mask of selected lepton 
- * objects
- * @param delta_r_cut maximal deltaR distance allowed between lepton objects to 
- * not being vetoed
- *
- * @return a dataframe with a new flag column
- */
-ROOT::RDF::RNode VetoLeptonPairs(ROOT::RDF::RNode df, 
-                                 const std::string &outputname, 
-                                 const std::string &lepton_pt, 
-                                 const std::string &lepton_eta,
-                                 const std::string &lepton_phi, 
-                                 const std::string &lepton_mass,
-                                 const std::string &lepton_charge,
-                                 const std::string &lepton_mask, 
-                                 const float delta_r_cut) {
-    auto pair_finder_lambda = 
-        [delta_r_cut](const ROOT::RVec<float> &pts,
-                     const ROOT::RVec<float> &etas,
-                     const ROOT::RVec<float> &phis,
-                     const ROOT::RVec<float> &masses,
-                     const ROOT::RVec<int> &charges,
-                     const ROOT::RVec<int> &mask) {
-        const auto selected_indices = ROOT::VecOps::Nonzero(mask);
-        for (auto index_1 = selected_indices.begin();
-             index_1 != selected_indices.end(); index_1++) {
-            for (auto index_2 = index_1 + 1; 
-                 index_2 != selected_indices.end(); index_2++) {
-                if (charges.at(*index_1) != charges.at(*index_2)) {
-                    auto p4_1 = ROOT::Math::PtEtaPhiMVector(
-                        pts.at(*index_1), etas.at(*index_1),
-                        phis.at(*index_1), masses.at(*index_1));
-                    auto p4_2 = ROOT::Math::PtEtaPhiMVector(
-                        pts.at(*index_2), etas.at(*index_2),
-                        phis.at(*index_2), masses.at(*index_2));
-                    if (ROOT::Math::VectorUtil::DeltaR(p4_1, p4_2) >= delta_r_cut)
-                        return true;
-                }
-            }
-        }
-        return false;
-    };
-    auto df1 = df.Define(outputname, pair_finder_lambda,
-                         {lepton_pt, lepton_eta, lepton_phi, lepton_mass, 
-                          lepton_charge, lepton_mask});
     return df1;
 }
 } // namespace physicsobject
