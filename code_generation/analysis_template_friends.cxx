@@ -173,10 +173,7 @@ int main(int argc, char *argv[]) {
     ROOT::RDataFrame df0(dataset);
     // print all available branches to the log
     if (nevents != 0) {
-<<<<<<< HEAD
-=======
         ROOT::RDF::Experimental::AddProgressBar(df0); // add progress bar
->>>>>>> main
         Logger::get("main")->debug("Available branches:");
         for (auto const &branch : df0.GetColumnNames()) {
             Logger::get("main")->debug("{}", branch);
