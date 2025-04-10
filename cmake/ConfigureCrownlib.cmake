@@ -10,7 +10,7 @@ file(GLOB SOURCES_2 ${CMAKE_SOURCE_DIR}/src/utility/*.cxx
      ${CMAKE_SOURCE_DIR}/src/RecoilCorrections/*.cxx
      ${CMAKE_SOURCE_DIR}/src/SVFit/*.cxx)
 
-file(GLOB SOURCES_3 ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/cpp_addons/src/*.cxx)
+file(GLOB SOURCES_3 ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/cpp_addons/src/*.cxx ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/cpp_addons/src/*/*.cxx)
 
 set(SOURCES ${SOURCES_1} ${SOURCES_2} ${SOURCES_3})
 
