@@ -7,9 +7,7 @@ include_directories(${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/cpp_
 
 file(GLOB SOURCES_1 
   ${CMAKE_SOURCE_DIR}/src/*.cxx
-  ${CMAKE_SOURCE_DIR}/src/utility/*.cxx
-  ${CMAKE_SOURCE_DIR}/src/RecoilCorrections/*.cxx
-  ${CMAKE_SOURCE_DIR}/src/SVFit/*.cxx)
+  ${CMAKE_SOURCE_DIR}/src/*/*.cxx)
 
 file(GLOB SOURCES_2 
   ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/cpp_addons/src/*.cxx
