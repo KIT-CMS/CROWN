@@ -1,1647 +1,430 @@
 #ifndef GUARD_PHYSICSOBJECTS_H
 #define GUARD_PHYSICSOBJECTS_H
 
-#include "../include/RoccoR.hxx"
-#include "../include/basefunctions.hxx"
-#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
-#include "TRandom3.h"
-#include "correction.h"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
-#include <iostream>
-#include <string>
-#include <type_traits>
-#include <vector>
-/// Namespace containing function to apply cuts on physics objects. The
-/// cut results are typically stored within a mask, which is represented by
-/// an `ROOT::RVec<int>`.
-///    \code
-///    In the mask
-///    1 --> cut is passed by the object
-///    0 --> cut is not passed by the object
-///    \endcode
-/// multiple cuts can be combined by multiplying masks using
-/// physicsobject::CombineMasks.
+
+/** 
+ * This namespace contains functions to apply cuts on physics objects. The
+ * cut results are typically stored within a mask of the same length as the 
+ * physics objects vector and is represented by a `ROOT::RVec<int>`.
+ *    \code
+ *    In the mask
+ *    1 --> object passes a cut
+ *    0 --> object does not pass a cut
+ *    \endcode
+ * Multiple cuts can be combined by multiplying masks using
+ * physicsobject::CombineMasks.
+ */
 namespace physicsobject {
-/// Function to select objects above a pt threshold, using
-/// basefunctions::FilterMin
-///
-/// \param[in] df the input dataframe
-/// \param[in] quantity name of the pt column in the NanoAOD
-/// \param[out] maskname the name of the mask to be added as column to the
-/// dataframe \param[in] ptThreshold minimal pt value
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutPt(ROOT::RDF::RNode df, const std::string &quantity,
-                       const std::string &maskname, const float &ptThreshold) {
-    auto df1 =
-        df.Define(maskname, basefunctions::FilterMin(ptThreshold), {quantity});
-    return df1;
-}
-/// Function to select objects blow an eta threshold, using
-/// basefunctions::FilterAbsMax
-///
-/// \param[in] df the input dataframe
-/// \param[in] quantity name of the eta column in the NanoAOD
-/// \param[out] maskname the name of the mask to be added as column to the
-/// dataframe \param[in] EtaThreshold maximal eta value
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutEta(ROOT::RDF::RNode df, const std::string &quantity,
-                        const std::string &maskname,
-                        const float &EtaThreshold) {
-    auto df1 = df.Define(maskname, basefunctions::FilterAbsMax(EtaThreshold),
-                         {quantity});
-    return df1;
-}
-/// Function to select objects below an Dz threshold, using
-/// basefunctions::FilterMax
-///
-/// \param[in] df the input dataframe
-/// \param[in] quantity name of the Dz column in the NanoAOD
-/// \param[out] maskname the name of the mask to be added as column to the
-/// dataframe \param[in] Threshold maximal Dz value
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutDz(ROOT::RDF::RNode df, const std::string &quantity,
-                       const std::string &maskname, const float &Threshold) {
-    auto df1 =
-        df.Define(maskname, basefunctions::FilterAbsMax(Threshold), {quantity});
-    return df1;
-}
-/// Function to select objects below an Dxy threshold, using
-/// basefunctions::FilterMax
-///
-/// \param[in] df the input dataframe
-/// \param[in] quantity name of the Dxy column in the NanoAOD
-/// \param[out] maskname the name of the mask to be added as column to the
-/// dataframe \param[in] Threshold maximal Dxy value
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
-                        const std::string &maskname, const float &Threshold) {
-    auto df1 =
-        df.Define(maskname, basefunctions::FilterAbsMax(Threshold), {quantity});
-    return df1;
-}
-/// Function to select objects with eta dependent upper and lower thesholds
-/// for a given variable
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the mask to be added as column to the
-/// \param[in] etaColumnName name of the eta column in the NanoAOD dataframe
-/// \param[in] cutVarColumnName name of the variable column to apply the
-/// selection in the NanoAOD dataframe
-/// \param[in] etaBoundary boundary of absolute eta for the barrel and endcap
-/// regions of the detector
-/// \param[in] lowerThresholdBarrel lower threshold for the barrel
-/// \param[in] upperThresholdBarrel upper threshold for the barrel
-/// \param[in] lowerThresholdEndcap lower threshold for the endcap
-/// \param[in] upperThresholdEndcap upper threshold for the barrel
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutVariableBarrelEndcap(
-    ROOT::RDF::RNode df, const std::string &maskname,
-    const std::string &etaColumnName, const std::string &cutVarColumnName,
-    const float &etaBoundary, const float &lowerThresholdBarrel,
-    const float &upperThresholdBarrel, const float &lowerThresholdEndcap,
-    const float &upperThresholdEndcap) {
-    auto lambda = [etaBoundary, lowerThresholdBarrel, upperThresholdBarrel,
-                   lowerThresholdEndcap,
-                   upperThresholdEndcap](const ROOT::RVec<float> &eta,
-                                         const ROOT::RVec<float> &variable) {
+
+/**
+ * @brief This function defines a mask in the dataframe that selects objects based on 
+ * eta-dependent upper and lower thresholds for a given object `quantity`. The selection 
+ * criteria differ between the barrel and endcap regions of the detector.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output mask column
+ * @param eta name of the eta column of a physics object in the dataframe
+ * @param quantity name of the quantity column to apply the selection on
+ * @param barrel_endcap_boundary absolute eta boundary separating the 
+ * barrel and endcap regions
+ * @param lower_threshold_barrel lower threshold for selection in the barrel region
+ * @param upper_threshold_barrel upper threshold for selection in the barrel region
+ * @param lower_threshold_endcap lower threshold for selection in the endcap region
+ * @param upper_threshold_endcap upper threshold for selection in the endcap region
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+ROOT::RDF::RNode CutQunatityBarrelEndcap(ROOT::RDF::RNode df, 
+                                         const std::string &outputname,
+                                         const std::string &eta, 
+                                         const std::string &quantity,
+                                         const float &barrel_endcap_boundary, 
+                                         const float &lower_threshold_barrel,
+                                         const float &upper_threshold_barrel, 
+                                         const float &lower_threshold_endcap,
+                                         const float &upper_threshold_endcap) {
+    auto lambda = [barrel_endcap_boundary, lower_threshold_barrel, 
+                   upper_threshold_barrel, lower_threshold_endcap, 
+                   upper_threshold_endcap](
+                     const ROOT::RVec<float> &etas,
+                     const ROOT::RVec<float> &values) {
         ROOT::RVec<int> mask =
-            (((abs(eta) < etaBoundary) && (variable >= lowerThresholdBarrel) &&
-              (variable < upperThresholdBarrel)) ||
-             ((abs(eta) >= etaBoundary) && (variable >= lowerThresholdEndcap) &&
-              (variable < upperThresholdEndcap)));
+            (
+                (
+                    (abs(etas) < barrel_endcap_boundary) && 
+                    (values >= lower_threshold_barrel) &&
+                    (values < upper_threshold_barrel)
+                ) ||
+                (
+                    (abs(etas) >= barrel_endcap_boundary) &&
+                    (values >= lower_threshold_endcap) &&
+                    (values < upper_threshold_endcap)
+                )
+            );
         return mask;
     };
 
-    auto df1 = df.Define(maskname, lambda, {etaColumnName, cutVarColumnName});
+    auto df1 = df.Define(outputname, lambda, {eta, quantity});
     return df1;
-}
-
-/// Function to take a mask and create a new one where a particle candidate is
-/// set to false
-///
-/// \param[in] df the input dataframe
-/// \param[out] outputmaskname the name of the new mask to be added as column to
-/// the dataframe
-/// \param[in] inputmaskname the name of the input mask
-/// \param[in] dileptonpair name of the column of the dileptonpair
-/// \param[in] index index of the particle candidate to be ignored by mask
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode VetoCandInMask(ROOT::RDF::RNode df,
-                                const std::string &outputmaskname,
-                                const std::string &inputmaskname,
-                                const std::string &dileptonpair,
-                                const int index) {
-    return df.Define(outputmaskname,
-                     [index, inputmaskname](const ROOT::RVec<int> &mask,
-                                            const ROOT::RVec<int> &pair) {
-                         Logger::get("VetoCandInMask")
-                             ->debug("Vetoing the selected candidate (index "
-                                     "{}) from the mask {}",
-                                     index, inputmaskname);
-                         auto newmask = mask;
-                         if (pair.at(index) >= 0)
-                             newmask.at(pair.at(index)) = 0;
-                         return newmask;
-                     },
-                     {inputmaskname, dileptonpair});
-}
-
-/// Function to filter events based on a mask. If the mask contains at least
-/// one object, the event is filtered
-///
-///   \param df the input dataframe
-///   \param maskname the name of the column containing the vetomap
-///    to be used
-///
-///   \return a new df with the events filtered
-ROOT::RDF::RNode FilterMasks(ROOT::RDF::RNode df, const std::string &maskname) {
-    auto df1 = df.Filter(
-        [](const ROOT::RVec<Int_t> &mask) {
-            auto result = Any(mask);
-            return result;
-        },
-        {maskname});
-    return df1;
-}
-
-/// Function to generate a veto based on a mask. If the mask contains at least
-/// one object, the veto flag is set, meaning that this event contains at least
-/// one object matching the requirements of the veto map.
-///
-/// \code
-///  In the veto column
-///  1 --> the event contains at least one object matching the veto map
-///  0 --> the event does not contain any object matching the veto map
-/// \endcode
-///
-/// \param df the input dataframe
-/// \param outputname name of the new quantity containing the veto flags
-/// \param vetomap the name of the column containing the vetomap to be used
-///
-/// \return a new df containing the veto flag column
-ROOT::RDF::RNode LeptonVetoFlag(ROOT::RDF::RNode df,
-                                const std::string &outputname,
-                                const std::string &vetomap) {
-    return df.Define(outputname,
-                     [](const ROOT::RVec<int> &mask) {
-                         return ROOT::VecOps::Nonzero(mask).size() != 0;
-                     },
-                     {vetomap});
-}
-
-/// Function to create a boolian flag based on the number of non-zero masks.
-/// The flag is set to true if the number of non-zero masks is zero.
-///
-/// \param df the input dataframe
-/// \param outputname the name of the output column that is created
-/// \param vetomap the name of the column containing the input mask to be used
-///
-/// \return a new df containing the output flag column
-ROOT::RDF::RNode IsEmptyFlag(ROOT::RDF::RNode df, const std::string &outputname,
-                             const std::string &vetomap) {
-    return df.Define(outputname,
-                     [](const ROOT::RVec<int> &mask) {
-                         return ROOT::VecOps::Nonzero(mask).size() == 0;
-                     },
-                     {vetomap});
-}
-
-/// Function to create a boolian flag based on the number of non-zero masks.
-/// The flag is set to true if the number of non-zero masks matches the
-/// allowed value provided as an input.
-///
-/// \param df the input dataframe
-/// \param outputname the name of the output column that is created
-/// \param map the name of the column containing the input mask to be used
-/// \param n the allowed number of non-zero masks
-///
-/// \return a new df containing the output flag column
-ROOT::RDF::RNode CutNFlag(ROOT::RDF::RNode df, const std::string &outputname,
-                          const std::string &map, const int &n) {
-    return df.Define(outputname,
-                     [n](const ROOT::RVec<int> &mask) {
-                         return ROOT::VecOps::Nonzero(mask).size() == n;
-                     },
-                     {map});
-}
-
-/// Function to create a column for a vector of indices of objects based on
-/// input masks. Indices of objects with non-zero mask are stored in the output
-/// column.
-///
-/// \param[in] df the input dataframe
-/// \param[out] outputname the name of the output column that is created
-/// \param[in] inputmaskname the name of input masks
-///
-/// \return a dataframe containing a vector of indices for the selected objects
-ROOT::RDF::RNode SelectedObjects(ROOT::RDF::RNode df,
-                                 const std::string &outputname,
-                                 const std::string &inputmaskname) {
-    return df.Define(outputname,
-                     [](const ROOT::RVec<int> &mask) {
-                         Logger::get("SelectedObjects")
-                             ->debug("size = {}",
-                                     ROOT::VecOps::Nonzero(mask).size());
-                         return static_cast<ROOT::VecOps::RVec<int>>(
-                             ROOT::VecOps::Nonzero(mask));
-                     },
-                     {inputmaskname});
 }
 
 /**
- * @brief Function used to veto a particle, if it is overlapping within a given
- * DeltaR value with another particle within a mask. For the particle to test,
- * the lorentz vector is used, for the veto, the mask and all input quantities
- * needed to calculate the lorentz vector are used. Returns true if the particle
- * is vetoed, false if it is not.
+ * @brief This function updates the mask by setting the value at the specified index 
+ * to zero, effectively vetoing the object at that position.
  *
- * @param df The input dataframe
- * @param output_flag The name of the veto flag to be added as column to the
- * dataframe
- * @param p4 The name of the Lorentz vector column to be used for the particle
- * to test
- * @param particle_mask The name of the mask to be used for the veto
- * @param particle_pt The name of the pt column to be used for the particles to
- * test against
- * @param particle_eta The name of the eta column to be used for the particles
- * to test against
- * @param particle_phi The name of the phi column to be used for the particles
- * to test against
- * @param particle_mass The name of the mass column to be used for the particles
- * to test against
- * @param dR_cut The maximum dR to be used for the veto
- * @return ROOT::RDF::RNode a dataframe containing the new veto flag
+ * @param df input dataframe
+ * @param outputname name of the output mask column after vetoing the object
+ * @param object_mask name of the mask column that contains object selection flags
+ * @param index index of an object that specifies which object to veto
+ *
+ * @return a dataframe containing the new mask as a column
  */
+ROOT::RDF::RNode VetoSingleObject(ROOT::RDF::RNode df,
+                                  const std::string &outputname,
+                                  const std::string &object_mask,
+                                  const int index) {
+    return df.Define(outputname,
+        [index, object_mask](const ROOT::RVec<int> &mask) {
+            Logger::get("VetoSingleObject")
+                ->debug("Vetoing the object at index {} from the mask {}",
+                        index, object_mask);
+            auto new_mask = mask;
+            new_mask.at(index) = 0;
+            return new_mask;
+        },
+        {object_mask});
+}
 
-ROOT::RDF::RNode DeltaRParticleVeto(
-    ROOT::RDF::RNode df, const std::string &output_flag, const std::string &p4,
-    const std::string &particle_mask, const std::string &particle_pt,
-    const std::string &particle_eta, const std::string &particle_phi,
-    const std::string &particle_mass, const float dR_cut) {
-    auto veto_overlapping_particle =
-        [dR_cut](const ROOT::Math::PtEtaPhiMVector &p4,
-                 const ROOT::RVec<float> &particle_pt,
-                 const ROOT::RVec<float> &particle_eta,
-                 const ROOT::RVec<float> &particle_phi,
-                 const ROOT::RVec<float> &particle_mass,
-                 const ROOT::RVec<int> &particle_mask) {
-            // for all particles in the mask, check if they overlap with the
-            // particle, if so, return true
-            ROOT::RVec<int> valid_particle_indices =
-                ROOT::VecOps::Nonzero(particle_mask);
-            const auto selected_pt =
-                ROOT::VecOps::Take(particle_pt, valid_particle_indices);
-            const auto selected_eta =
-                ROOT::VecOps::Take(particle_eta, valid_particle_indices);
-            const auto selected_phi =
-                ROOT::VecOps::Take(particle_phi, valid_particle_indices);
-            const auto selected_mass =
-                ROOT::VecOps::Take(particle_mass, valid_particle_indices);
+/**
+ * @brief This function updates the mask by setting the value at the specified index 
+ * to zero, effectively vetoing the object at that position.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output mask column after vetoing the object
+ * @param object_mask name of the mask column that contains object selection flags
+ * @param index_vector name of the column containing indices of objects
+ * @param position position in the index vector that specifies which object to veto
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+ROOT::RDF::RNode VetoSingleObject(ROOT::RDF::RNode df,
+                                  const std::string &outputname,
+                                  const std::string &object_mask,
+                                  const std::string &index_vector,
+                                  const int position) {
+    return df.Define(outputname,
+        [position, object_mask](const ROOT::RVec<int> &mask,
+                            const ROOT::RVec<int> &index_vector) {
+            Logger::get("VetoSingleObject")
+                ->debug("Vetoing the object at index {} from the mask {}",
+                        index_vector.at(position), object_mask);
+            auto new_mask = mask;
+            if (index_vector.at(position) >= 0)
+                new_mask.at(index_vector.at(position)) = 0;
+            return new_mask;
+        },
+        {object_mask, index_vector});
+}
+
+/**
+ * @brief This function counts the number of selected objects in the provided object 
+ * mask and stores the number.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column storing the object count
+ * @param object_mask name of the mask column indicating selected objects
+ *
+ * @return a dataframe with a new column
+ */
+ROOT::RDF::RNode Count(ROOT::RDF::RNode df, 
+                       const std::string &outputname,
+                       const std::string &object_mask) {
+    return df.Define(outputname,
+        [](const ROOT::RVec<int> &mask) {
+            int count = ROOT::VecOps::Nonzero(mask).size();
+            return count;
+        },
+        {object_mask});
+}
+/**
+ * @brief This function checks how many objects are selected based on the provided 
+ * mask and returns `true` if the count matches the specified number.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output flag column
+ * @param object_mask name of the mask column indicating selected objects
+ * @param number expected number of selected objects
+ *
+ * @return a dataframe with a new flag column
+ */
+ROOT::RDF::RNode CountFlag(ROOT::RDF::RNode df, 
+                           const std::string &outputname,
+                           const std::string &object_mask, 
+                           const int &number) {
+    return df.Define(outputname,
+        [number](const ROOT::RVec<int> &mask) {
+            return ROOT::VecOps::Nonzero(mask).size() == number;
+        },
+        {object_mask});
+}
+
+/**
+ * @brief This function checks if there is at least one selected object in the provided 
+ * object mask. If at least one object is selected, the output flag is set to `true`, 
+ * otherwise, it is set to `false`. This flag can be used to veto events that include 
+ * a specific object.
+ *
+ * @param[in] df input dataframe
+ * @param[in] outputname name of the output column storing the veto flag
+ * @param[in] object_mask name of the mask column indicating selected objects
+ *
+ * @return a dataframe with a new flag column
+ */
+ROOT::RDF::RNode Veto(ROOT::RDF::RNode df,
+                      const std::string &outputname,
+                      const std::string &object_mask) {
+    return df.Define(outputname,
+        [](const ROOT::RVec<int> &mask) {
+            return ROOT::VecOps::Nonzero(mask).size() != 0;
+        },
+        {object_mask});
+}
+
+/**
+ * @brief This function checks if any object in a given collection (`object_mask`) 
+ * overlaps with a specified target object defined by its four-momentum within a 
+ * user-defined `delta_r_cut` distance. If an object is found within this threshold, 
+ * the function returns `true`, indicating an overlap with the target object. The 
+ * result can be used to veto events that have overlapping objects.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column storing the overlap veto flag
+ * @param target_p4 name of the column containing the target four-momentum as a 
+ * `ROOT::Math::PtEtaPhiMVector`
+ * @param object_pt name of the column containing object transverse momenta
+ * @param object_eta name of the column containing object pseudorapidities
+ * @param object_phi name of the column containing object azimuthal angles
+ * @param object_mass name of the column containing object masses
+ * @param object_mask name of the column containing the mask of selected objects to 
+ * compare with
+ * @param min_delta_r minimal deltaR distance allowed between objects and target to 
+ * count as not overlapping
+ *
+ * @return a dataframe with a new flag column
+ */
+ROOT::RDF::RNode OverlapVeto(ROOT::RDF::RNode df, 
+                             const std::string &outputname, 
+                             const std::string &target_p4,
+                             const std::string &object_pt,
+                             const std::string &object_eta, 
+                             const std::string &object_phi,
+                             const std::string &object_mass, 
+                             const std::string &object_mask, 
+                             const float min_delta_r) {
+    auto veto_overlapping_target =
+        [min_delta_r](const ROOT::Math::PtEtaPhiMVector &p4,
+                     const ROOT::RVec<float> &pts,
+                     const ROOT::RVec<float> &etas,
+                     const ROOT::RVec<float> &phis,
+                     const ROOT::RVec<float> &masses,
+                     const ROOT::RVec<int> &mask) {
+
+            ROOT::RVec<int> selected_indices =
+                ROOT::VecOps::Nonzero(mask);
+            const auto selected_pts =
+                ROOT::VecOps::Take(pts, selected_indices);
+            const auto selected_etas =
+                ROOT::VecOps::Take(etas, selected_indices);
+            const auto selected_phis =
+                ROOT::VecOps::Take(phis, selected_indices);
+            const auto selected_masses =
+                ROOT::VecOps::Take(masses, selected_indices);
             auto selected_p4s =
                 ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(
-                    selected_pt, selected_eta, selected_phi, selected_mass);
+                    selected_pts, selected_etas, selected_phis, selected_masses);
+            
             for (const auto &p4_test : selected_p4s) {
-                if (ROOT::Math::VectorUtil::DeltaR(p4_test, p4) < dR_cut) {
+                if (ROOT::Math::VectorUtil::DeltaR(p4_test, p4) < min_delta_r) {
                     return true;
                 }
             }
-            // if no particle is close enough to the p4, return false
             return false;
         };
-    auto df1 = df.Define(output_flag, veto_overlapping_particle,
-                         {p4, particle_pt, particle_eta, particle_phi,
-                          particle_mass, particle_mask});
+    auto df1 = df.Define(outputname, veto_overlapping_target,
+        {target_p4, object_pt, object_eta, object_phi, object_mass, object_mask});
     return df1;
 }
 
-/// Function to correct object mass in alignment with object pt correction
-///
-/// \param[in] df the input dataframe
-/// \param[out] corrected_mass the name of the corrected masses to be determined
-/// \param[in] raw_mass name of the input mass
-/// \param[in] raw_pt name of the uncorrected object pts
-/// \param[in] corrected_pt name of the corrected object pts
-///
-/// \return a dataframe containing the modified object masses
-ROOT::RDF::RNode ObjectMassCorrectionWithPt(ROOT::RDF::RNode df,
-                                            const std::string &corrected_mass,
-                                            const std::string &raw_mass,
-                                            const std::string &raw_pt,
-                                            const std::string &corrected_pt) {
-    auto mass_correction_lambda =
-        [](const ROOT::RVec<float> &mass_values,
-           const ROOT::RVec<float> &pt_values,
-           const ROOT::RVec<float> &corrected_pt_values) {
-            ROOT::RVec<float> corrected_mass_values(mass_values.size());
-            for (int i = 0; i < mass_values.size(); i++) {
-                corrected_mass_values[i] = mass_values.at(i) *
-                                           corrected_pt_values.at(i) /
-                                           pt_values.at(i);
-            }
-            return corrected_mass_values;
-        };
-    auto df1 = df.Define(corrected_mass, mass_correction_lambda,
-                         {raw_mass, raw_pt, corrected_pt});
-    return df1;
-}
-
-/// Function to check whether at least one lepton pair is present
-///
-/// \param[in] df the input dataframe
-/// \param[out] output_flag the name of the bool column that is created
-/// \param[in] leptons_pt name of the input pt column of the lepton collection
-/// \param[in] leptons_eta name of the input eta column of the lepton collection
-/// \param[in] leptons_phi name of the input phi column of the lepton collection
-/// \param[in] leptons_mass name of the input mass column of the lepton
-/// collection
-/// \param[in] leptons_charge name of the input charge column of the
-/// lepton collection
-/// \param[in] leptons_mask name of the input mask column of
-/// the lepton collection that marks lepton to be taken into account
-/// \param[in] dR_cut minimum required angular distance between the leptons
-///
-/// \return a dataframe containing the new bool column
-ROOT::RDF::RNode CheckForDiLeptonPairs(
-    ROOT::RDF::RNode df, const std::string &output_flag,
-    const std::string &leptons_pt, const std::string &leptons_eta,
-    const std::string &leptons_phi, const std::string &leptons_mass,
-    const std::string &leptons_charge, const std::string &leptons_mask,
-    const float dR_cut) {
-    auto pair_finder_lambda = [dR_cut](const ROOT::RVec<float> &pt_values,
-                                       const ROOT::RVec<float> &eta_values,
-                                       const ROOT::RVec<float> &phi_values,
-                                       const ROOT::RVec<float> &mass_values,
-                                       const ROOT::RVec<int> &charge_values,
-                                       const ROOT::RVec<int> &mask) {
-        const auto valid_lepton_indices = ROOT::VecOps::Nonzero(mask);
-        for (auto it1 = valid_lepton_indices.begin();
-             it1 != valid_lepton_indices.end(); it1++) {
-            for (auto it2 = it1 + 1; it2 != valid_lepton_indices.end(); it2++) {
-                if (charge_values.at(*it1) != charge_values.at(*it2)) {
+/**
+ * @brief This function checks for the presence of same-flavor opposite-sign 
+ * lepton pairs with a given deltaR separation (`delta_r_cut`). If such a pair 
+ * is found, a veto flag is set and can be later used to remove event with such
+ * lepton pairs.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output flag column
+ * @param lepton_pt name of the column containing lepton transverse momenta
+ * @param lepton_eta name of the column containing lepton pseudorapidities
+ * @param lepton_phi name of the column containing lepton azimuthal angles
+ * @param lepton_mass name of the column containing lepton masses
+ * @param lepton_charge name of the column containing lepton charges
+ * @param lepton_mask name of the column containing the mask of selected lepton 
+ * objects
+ * @param max_delta_r maximal deltaR distance allowed between lepton objects to 
+ * not being vetoed
+ *
+ * @return a dataframe with a new flag column
+ */
+ROOT::RDF::RNode LeptonPairVeto(ROOT::RDF::RNode df, 
+                                const std::string &outputname, 
+                                const std::string &lepton_pt, 
+                                const std::string &lepton_eta,
+                                const std::string &lepton_phi, 
+                                const std::string &lepton_mass,
+                                const std::string &lepton_charge,
+                                const std::string &lepton_mask, 
+                                const float max_delta_r) {
+    auto pair_finder_lambda = 
+        [max_delta_r](const ROOT::RVec<float> &pts,
+                     const ROOT::RVec<float> &etas,
+                     const ROOT::RVec<float> &phis,
+                     const ROOT::RVec<float> &masses,
+                     const ROOT::RVec<int> &charges,
+                     const ROOT::RVec<int> &mask) {
+        const auto selected_indices = ROOT::VecOps::Nonzero(mask);
+        for (auto index_1 = selected_indices.begin();
+             index_1 != selected_indices.end(); index_1++) {
+            for (auto index_2 = index_1 + 1; 
+                 index_2 != selected_indices.end(); index_2++) {
+                if (charges.at(*index_1) != charges.at(*index_2)) {
                     auto p4_1 = ROOT::Math::PtEtaPhiMVector(
-                        pt_values.at(*it1), eta_values.at(*it1),
-                        phi_values.at(*it1), mass_values.at(*it1));
+                        pts.at(*index_1), etas.at(*index_1),
+                        phis.at(*index_1), masses.at(*index_1));
                     auto p4_2 = ROOT::Math::PtEtaPhiMVector(
-                        pt_values.at(*it2), eta_values.at(*it2),
-                        phi_values.at(*it2), mass_values.at(*it2));
-                    if (ROOT::Math::VectorUtil::DeltaR(p4_1, p4_2) >= dR_cut)
+                        pts.at(*index_2), etas.at(*index_2),
+                        phis.at(*index_2), masses.at(*index_2));
+                    if (ROOT::Math::VectorUtil::DeltaR(p4_1, p4_2) >= max_delta_r)
                         return true;
                 }
             }
         }
         return false;
     };
-    auto df1 = df.Define(output_flag, pair_finder_lambda,
-                         {leptons_pt, leptons_eta, leptons_phi, leptons_mass,
-                          leptons_charge, leptons_mask});
-    return df1;
-}
-/// Function to select objects based on matching a specific integer value
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe
-/// \param[in] nameID name of the ID column in the NanoAOD
-/// \param[in] IDvalue value that has to match
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode SelectInt(ROOT::RDF::RNode df, const std::string &maskname,
-                           const std::string &nameID, const int &IDvalue) {
-    auto df1 =
-        df.Define(maskname, basefunctions::FilterEqualInt(IDvalue), {nameID});
+    auto df1 = df.Define(outputname, pair_finder_lambda,
+                         {lepton_pt, lepton_eta, lepton_phi, lepton_mass, 
+                          lepton_charge, lepton_mask});
     return df1;
 }
 
-/// Muon specific functions
-namespace muon {
-/// Function to cut on muons based on the muon ID
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe
-/// \param[in] nameID name of the ID column in the NanoAOD
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
-                       const std::string &nameID) {
-    auto df1 = df.Define(
-        maskname,
-        [](const ROOT::RVec<Bool_t> &id) { return (ROOT::RVec<int>)id; },
-        {nameID});
-    return df1;
-}
-/// Function to cut on muons based on the muon isolation using
-/// basefunctions::FilterMax
-///
-/// \param[in] df the input dataframe
-/// \param[in] isolationName name of the isolation column in the NanoAOD
-/// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe
-/// \param[in] Threshold maximal isolation threshold
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
-                              const std::string &isolationName,
-                              const float &Threshold) {
-    auto df1 = df.Define(maskname, basefunctions::FilterMax(Threshold),
-                         {isolationName});
-    return df1;
-}
-/// Function to cut on muons based on the muon isolation using
-/// basefunctions::FilterMin
-///
-/// \param[in] df the input dataframe
-/// \param[in] isolationName name of the isolation column in the NanoAOD
-/// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe
-/// \param[in] Threshold minimal isolation threshold
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode AntiCutIsolation(ROOT::RDF::RNode df,
-                                  const std::string &maskname,
-                                  const std::string &isolationName,
-                                  const float &Threshold) {
-    auto df1 = df.Define(maskname, basefunctions::FilterMin(Threshold),
-                         {isolationName});
-    return df1;
-}
-/// Function to cut on muons based on the muon signature: isTracker or isGlobal
-///
-/// \param[in] df the input dataframe
-/// \param[in] isTracker name of the signature column in the NanoAOD
-/// \param[in] isGlobal name of the signature column in the NanoAOD
-/// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutIsTrackerOrIsGlobal(ROOT::RDF::RNode df,
-                                        const std::string &isTracker,
-                                        const std::string &isGlobal,
-                                        const std::string &maskname) {
-    auto lambda = [](const ROOT::RVec<Bool_t> &tracker,
-                     const ROOT::RVec<Bool_t> &global) {
-        ROOT::RVec<int> mask = (tracker == 1 || global == 1);
-        Logger::get("lep1lep1_lep2::TripleSelectionAlgo")
-            ->debug("istracker {}, isglobal {}, mask {}", tracker, global,
-                    mask);
-        return mask;
-    };
-    auto df1 = df.Define(maskname, lambda, {isTracker, isGlobal});
-    return df1;
-}
-/// Function to create a column of vector of random numbers between 0 and 1
-/// with size of the input object collection
-///
-/// \param[in] df the input dataframe
-/// \param[out] outputname the name of the output column that is created
-/// \param[in] objCollection the name of the input object collection
-/// \param[in] seed the seed of the random number generator
-///
-/// \return a dataframe with the new column
-ROOT::RDF::RNode GenerateRndmRVec(ROOT::RDF::RNode df,
-                                  const std::string &outputname,
-                                  const std::string &objCollection, int seed) {
-    gRandom->SetSeed(seed);
-    auto lambda = [](const ROOT::RVec<int> &objects) {
-        const int len = objects.size();
-        float rndm[len];
-        gRandom->RndmArray(len, rndm);
-        ROOT::RVec<float> out = {};
-        for (auto &x : rndm) {
-            out.push_back(x);
-        }
-        return out;
-    };
-    return df.Define(outputname, lambda, {objCollection});
-}
-
-/// Function to create a column of Rochester correction applied transverse
-/// momentum for data, see https://gitlab.cern.ch/akhukhun/roccor
-///
-/// \param[in] df the input dataframe
-/// \param[out] outputname the name of the output column that is created
-/// \param[in] filename the name of Rochester correction file
-/// \param[in] position index of the position in the input vector
-/// \param[in] objCollection the name of the column containing the input vector
-/// \param[in] chargColumn the name of the column containing muon charges
-/// \param[in] ptColumn the name of the column containing muon charge values
-/// \param[in] etaColumn the name of the column containing muon eta values
-/// \param[in] phiColumn the name of the column containing muon phi values
-/// \param[in] error_set the error set number
-/// \param[in] error_member the error member number
-///
-/// \return a dataframe with the new column
-ROOT::RDF::RNode
-applyRoccoRData(ROOT::RDF::RNode df, const std::string &outputname,
-                const std::string &filename, const int &position,
-                const std::string &objCollection,
-                const std::string &chargColumn, const std::string &ptColumn,
-                const std::string &etaColumn, const std::string &phiColumn,
-                int error_set, int error_member) {
-    RoccoR rc(filename);
-    auto lambda = [rc, position, error_set,
-                   error_member](const ROOT::RVec<int> &objects,
-                                 const ROOT::RVec<int> &chargCol,
-                                 const ROOT::RVec<float> &ptCol,
-                                 const ROOT::RVec<float> &etaCol,
-                                 const ROOT::RVec<float> &phiCol) {
-        const int index = objects.at(position);
-        double pt_rc =
-            ptCol.at(index) * rc.kScaleDT(chargCol.at(index), ptCol.at(index),
-                                          etaCol.at(index), phiCol.at(index),
-                                          error_set, error_member);
-        return pt_rc;
-    };
-
-    return df.Define(
-        outputname, lambda,
-        {objCollection, chargColumn, ptColumn, etaColumn, phiColumn});
-}
-
-/// Function to create a column of Rochester correction applied transverse
-/// momentum for MC, see https://gitlab.cern.ch/akhukhun/roccor
-///
-/// \param[in] df the input dataframe
-/// \param[out] outputname the name of the output column that is created
-/// \param[in] filename the name of Rochester correction file
-/// \param[in] position index of the position in the input vector
-/// \param[in] objCollection the name of the column containing the input vector
-/// \param[in] chargColumn the name of the column containing muon charges
-/// \param[in] ptColumn the name of the column containing muon charge values
-/// \param[in] etaColumn the name of the column containing muon eta values
-/// \param[in] phiColumn the name of the column containing muon phi values
-/// \param[in] genPtColumn the name of the column containing gen-level
-/// transverse momentum value of the target muon \param[in] nTrackerLayersColumn
-/// the name of the column containing number of tracker layers values \param[in]
-/// rndmColumn the name of the column containing random number generated for
-/// each muon \param[in] error_set the error set number \param[in] error_member
-/// the error member number
-///
-/// \return a dataframe with the new column
-ROOT::RDF::RNode
-applyRoccoRMC(ROOT::RDF::RNode df, const std::string &outputname,
-              const std::string &filename, const int &position,
-              const std::string &objCollection, const std::string &chargColumn,
-              const std::string &ptColumn, const std::string &etaColumn,
-              const std::string &phiColumn, const std::string &genPtColumn,
-              const std::string &nTrackerLayersColumn,
-              const std::string &rndmColumn, int error_set, int error_member) {
-    RoccoR rc(filename);
-    auto lambda = [rc, position, error_set, error_member](
-                      const ROOT::RVec<int> &objects,
-                      const ROOT::RVec<int> &chargCol,
-                      const ROOT::RVec<float> &ptCol,
-                      const ROOT::RVec<float> &etaCol,
-                      const ROOT::RVec<float> &phiCol, const float &genPt,
-                      const ROOT::RVec<int> &nTrackerLayersCol,
-                      const ROOT::RVec<float> &rndmCol) {
-        double pt_rc = default_float;
-        const int index = objects.at(position);
-        if (genPt > 0.) {
-            pt_rc = ptCol.at(index) *
-                    rc.kSpreadMC(chargCol.at(index), ptCol.at(index),
-                                 etaCol.at(index), phiCol.at(index), genPt,
-                                 error_set, error_member);
-        } else {
-            pt_rc = ptCol.at(index) *
-                    rc.kSmearMC(chargCol.at(index), ptCol.at(index),
-                                etaCol.at(index), phiCol.at(index),
-                                nTrackerLayersCol.at(index),
-                                rndmCol.at(position), error_set, error_member);
-        }
-
-        return pt_rc;
-    };
-
-    return df.Define(outputname, lambda,
-                     {objCollection, chargColumn, ptColumn, etaColumn,
-                      phiColumn, genPtColumn, nTrackerLayersColumn,
-                      rndmColumn});
-}
-} // end namespace muon
-/// Tau specific functions
-namespace tau {
-/// Function to cut on taus based on the tau decay mode
-///
-/// \param[in] df the input dataframe
-/// \param[in] tau_dms name of the column with tau decay modes
-/// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe
-/// \param[in] SelectedDecayModes a `std::vector<int>` containing the
-/// decay modes, that should pass the cut
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutDecayModes(ROOT::RDF::RNode df, const std::string &maskname,
-                               const std::string &tau_dms,
-                               const std::vector<int> &SelectedDecayModes) {
-    auto df1 = df.Define(
-        maskname,
-        [SelectedDecayModes](const ROOT::RVec<Int_t> &decaymodes) {
-            ROOT::RVec<int> mask;
-            for (auto n : decaymodes) {
-                mask.push_back(int(std::find(SelectedDecayModes.begin(),
-                                             SelectedDecayModes.end(),
-                                             n) != SelectedDecayModes.end()));
-            }
-            return mask;
+/**
+ * @brief This function extracts the indices of objects that are marked as selected 
+ * in the given object mask.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column storing the object indices
+ * @param object_mask name of the mask column indicating selected objects
+ *
+ * @return a dataframe with a new column
+ */
+ROOT::RDF::RNode GetIndices(ROOT::RDF::RNode df,
+                            const std::string &outputname,
+                            const std::string &object_mask) {
+    return df.Define(outputname,
+        [](const ROOT::RVec<int> &mask) {
+            ROOT::VecOps::RVec<int> indices = ROOT::VecOps::Nonzero(mask);
+            Logger::get("GetIndices")->debug("indices = {}", indices);
+            return indices;
         },
-        {tau_dms});
-    return df1;
+        {object_mask});
 }
-/// Function to cut taus based on the tau ID
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe \param[in] nameID name of the ID column in the NanoAOD \param[in]
-/// idxID bitvalue of the WP the has to be passed
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutTauID(ROOT::RDF::RNode df, const std::string &maskname,
-                          const std::string &nameID, const int &idxID) {
-    auto df1 = df.Define(maskname, basefunctions::FilterID(idxID), {nameID});
-    return df1;
-}
-/// Function to correct e to tau fake pt
-///
-/// \param[out] corrected_pt name of the corrected tau pt to be calculated
-/// \param[in] df the input dataframe
-/// \param[in] correctionManager the correction manager instance
-/// \param[in] pt name of the raw tau pt
-/// \param[in] eta name of raw tau eta
-/// \param[in] decayMode decay mode of the tau
-/// \param[in] genMatch column with genmatch values (from prompt e, prompt mu,
-/// tau->e, tau->mu, had. tau)
-/// \param[in] sf_file:
-///     2018:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2018_UL.html
-///     2017:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2017_UL.html
-///     2016:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016preVFP_UL.html
-///           https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016postVFP_UL.html
-/// \param[in] jsonESname name of the tau energy correction in the json file
-/// \param[in] idAlgorithm name of the used tau id algorithm
-/// \param[in] sf_dm0_b scale factor to be applied to taus with decay mode 0 and
-/// eta region barrel
-/// \param[in] sf_dm1_b scale factor to be applied to taus
-/// with decay mode 1 and eta region barrel
-/// \param[in] sf_dm0_e scale factor to
-/// be applied to taus with decay mode 0 and eta region endcap
-/// \param[in] sf_dm1_e scale factor to be applied to taus with decay mode 1 and
-/// eta region endcap name of the tau decay mode quantity
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection_eleFake(ROOT::RDF::RNode df,
-                     correctionManager::CorrectionManager &correctionManager,
-                     const std::string &corrected_pt, const std::string &pt,
-                     const std::string &eta, const std::string &decayMode,
-                     const std::string &genMatch, const std::string &sf_file,
-                     const std::string &jsonESname,
-                     const std::string &idAlgorithm,
-                     const std::string &sf_dm0_b, const std::string &sf_dm1_b,
-                     const std::string &sf_dm0_e, const std::string &sf_dm1_e) {
-    auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
-    auto tau_pt_correction_lambda = [evaluator, idAlgorithm, sf_dm0_b, sf_dm1_b,
-                                     sf_dm0_e, sf_dm1_e](
-                                        const ROOT::RVec<float> &pt_values,
-                                        const ROOT::RVec<float> &eta_values,
-                                        const ROOT::RVec<int> &decay_modes,
-                                        const ROOT::RVec<UChar_t> &genmatch) {
-        ROOT::RVec<float> corrected_pt_values(pt_values.size());
-        for (int i = 0; i < pt_values.size(); i++) {
-            if (genmatch.at(i) == 1 || genmatch.at(i) == 3) {
-                // only considering wanted tau decay modes
-                if (decay_modes.at(i) == 0 &&
-                    std::abs(eta_values.at(i)) <= 1.5) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_dm0_b});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else if (decay_modes.at(i) == 0 &&
-                           std::abs(eta_values.at(i)) > 1.5 &&
-                           std::abs(eta_values.at(i)) <= 2.5) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_dm0_e});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else if (decay_modes.at(i) == 1 &&
-                           std::abs(eta_values.at(i)) <= 1.5) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_dm1_b});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else if (decay_modes.at(i) == 1 &&
-                           std::abs(eta_values.at(i)) > 1.5 &&
-                           std::abs(eta_values.at(i)) <= 2.5) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_dm1_e});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                }
-            } else {
-                corrected_pt_values[i] = pt_values.at(i);
-            }
-            Logger::get("ptcorrection ele fake")
-                ->debug("tau pt before {}, tau pt after {}", pt_values.at(i),
-                        corrected_pt_values.at(i));
-        }
-        return corrected_pt_values;
-    };
-    auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda,
-                         {pt, eta, decayMode, genMatch});
-    return df1;
-}
-/// Function to correct e to tau fake pt
-/// WARNING: The function without the CorrectionManager is deprecated and will
-/// be removed in the future \param[out] corrected_pt name of the corrected tau
-/// pt to be calculated \param[in] df the input dataframe \param[in] pt name of
-/// the raw tau pt \param[in] eta name of raw tau eta \param[in] decayMode decay
-/// mode of the tau \param[in] genMatch column with genmatch values (from prompt
-/// e, prompt mu, tau->e, tau->mu, had. tau) \param[in] sf_file:
-///     2018:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2018_UL.html
-///     2017:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2017_UL.html
-///     2016:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016preVFP_UL.html
-///           https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016postVFP_UL.html
-/// \param[in] jsonESname name of the tau energy correction in the json file
-/// \param[in] idAlgorithm name of the used tau id algorithm
-/// \param[in] sf_dm0_b scale factor to be applied to taus with decay mode 0 and
-/// eta region barrel
-/// \param[in] sf_dm1_b scale factor to be applied to taus
-/// with decay mode 1 and eta region barrel
-/// \param[in] sf_dm0_e scale factor to
-/// be applied to taus with decay mode 0 and eta region endcap
-/// \param[in] sf_dm1_e scale factor to be applied to taus with decay mode 1 and
-/// eta region endcap name of the tau decay mode quantity
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection_eleFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                     const std::string &pt, const std::string &eta,
-                     const std::string &decayMode, const std::string &genMatch,
-                     const std::string &sf_file, const std::string &jsonESname,
-                     const std::string &idAlgorithm,
-                     const std::string &sf_dm0_b, const std::string &sf_dm1_b,
-                     const std::string &sf_dm0_e, const std::string &sf_dm1_e) {
-    Logger::get("ptcorrection ele fake")
-        ->warn("The function  without CorrectionManager is deprecated and will "
-               "be removed in the future. Please use the function with "
-               "CorrectionManager instead.");
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
-    auto tau_pt_correction_lambda = [evaluator, idAlgorithm, sf_dm0_b, sf_dm1_b,
-                                     sf_dm0_e, sf_dm1_e](
-                                        const ROOT::RVec<float> &pt_values,
-                                        const ROOT::RVec<float> &eta_values,
-                                        const ROOT::RVec<int> &decay_modes,
-                                        const ROOT::RVec<UChar_t> &genmatch) {
-        ROOT::RVec<float> corrected_pt_values(pt_values.size());
-        for (int i = 0; i < pt_values.size(); i++) {
-            if (genmatch.at(i) == 1 || genmatch.at(i) == 3) {
-                // only considering wanted tau decay modes
-                if (decay_modes.at(i) == 0 &&
-                    std::abs(eta_values.at(i)) <= 1.5) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_dm0_b});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else if (decay_modes.at(i) == 0 &&
-                           std::abs(eta_values.at(i)) > 1.5 &&
-                           std::abs(eta_values.at(i)) <= 2.5) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_dm0_e});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else if (decay_modes.at(i) == 1 &&
-                           std::abs(eta_values.at(i)) <= 1.5) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_dm1_b});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else if (decay_modes.at(i) == 1 &&
-                           std::abs(eta_values.at(i)) > 1.5 &&
-                           std::abs(eta_values.at(i)) <= 2.5) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_dm1_e});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                }
-            } else {
-                corrected_pt_values[i] = pt_values.at(i);
-            }
-            Logger::get("ptcorrection ele fake")
-                ->debug("tau pt before {}, tau pt after {}", pt_values.at(i),
-                        corrected_pt_values.at(i));
-        }
-        return corrected_pt_values;
-    };
-    auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda,
-                         {pt, eta, decayMode, genMatch});
-    return df1;
-}
-/// Function to correct mu to tau fake pt
-///
-/// \param[out] corrected_pt name of the corrected tau pt to be calculated
-/// \param[in] correctionManager the correction manager instance
-/// \param[in] df the input dataframe
-/// \param[in] pt name of the raw tau pt
-/// \param[in] eta name of raw tau eta
-/// \param[in] decayMode decay mode of the tau
-/// \param[in] genMatch column with genmatch values (from prompt e, prompt mu,
-/// tau->e, tau->mu, had. tau) \param[in] sf_file:
-///     2018:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2018_UL.html
-///     2017:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2017_UL.html
-///     2016:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016preVFP_UL.html
-///           https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016postVFP_UL.html
-/// \param[in] jsonESname name of the tau energy correction in the json file
-/// \param[in] idAlgorithm name of the used tau id algorithm
-/// \param[in] sf_es scale factor to be applied to taus faked by muons
-/// name of the tau decay mode quantity
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection_muFake(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correctionManager,
-                    const std::string &corrected_pt, const std::string &pt,
-                    const std::string &eta, const std::string &decayMode,
-                    const std::string &genMatch, const std::string &sf_file,
-                    const std::string &jsonESname,
-                    const std::string &idAlgorithm, const std::string &sf_es) {
-    auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
-    auto tau_pt_correction_lambda =
-        [evaluator, idAlgorithm, sf_es](const ROOT::RVec<float> &pt_values,
-                                        const ROOT::RVec<float> &eta_values,
-                                        const ROOT::RVec<int> &decay_modes,
-                                        const ROOT::RVec<UChar_t> &genmatch) {
-            ROOT::RVec<float> corrected_pt_values(pt_values.size());
-            for (int i = 0; i < pt_values.size(); i++) {
-                if (genmatch.at(i) == 2 || genmatch.at(i) == 4) {
-                    // only considering wanted tau decay modes
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_es});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else {
-                    corrected_pt_values[i] = pt_values.at(i);
-                }
-                if (genmatch.at(i) == 2 || genmatch.at(i) == 4) {
-                    Logger::get("mu fake")->debug(
-                        "tau pt before {}, tau pt after {}", pt_values.at(i),
-                        corrected_pt_values.at(i));
-                }
-            }
-            return corrected_pt_values;
-        };
-    auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda,
-                         {pt, eta, decayMode, genMatch});
-    return df1;
-}
-/// Function to correct mu to tau fake pt
-/// WARNING: The function without the CorrectionManager is deprecated and will
-/// be removed in the future \param[out] corrected_pt name of the corrected tau
-/// pt to be calculated \param[in] df the input dataframe \param[in] pt name of
-/// the raw tau pt \param[in] eta name of raw tau eta \param[in] decayMode decay
-/// mode of the tau \param[in] genMatch column with genmatch values (from prompt
-/// e, prompt mu, tau->e, tau->mu, had. tau) \param[in] sf_file:
-///     2018:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2018_UL.html
-///     2017:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2017_UL.html
-///     2016:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016preVFP_UL.html
-///           https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016postVFP_UL.html
-/// \param[in] jsonESname name of the tau energy correction in the json file
-/// \param[in] idAlgorithm name of the used tau id algorithm
-/// \param[in] sf_es scale factor to be applied to taus faked by muons
-/// name of the tau decay mode quantity
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection_muFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                    const std::string &pt, const std::string &eta,
-                    const std::string &decayMode, const std::string &genMatch,
-                    const std::string &sf_file, const std::string &jsonESname,
-                    const std::string &idAlgorithm, const std::string &sf_es) {
-    Logger::get("ptcorrection mu fake")
-        ->warn("The function without CorrectionManager is deprecated and will "
-               "be removed in the future. Please use the function with "
-               "CorrectionManager instead.");
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
-    auto tau_pt_correction_lambda =
-        [evaluator, idAlgorithm, sf_es](const ROOT::RVec<float> &pt_values,
-                                        const ROOT::RVec<float> &eta_values,
-                                        const ROOT::RVec<int> &decay_modes,
-                                        const ROOT::RVec<UChar_t> &genmatch) {
-            ROOT::RVec<float> corrected_pt_values(pt_values.size());
-            for (int i = 0; i < pt_values.size(); i++) {
-                if (genmatch.at(i) == 2 || genmatch.at(i) == 4) {
-                    // only considering wanted tau decay modes
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, sf_es});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else {
-                    corrected_pt_values[i] = pt_values.at(i);
-                }
-                if (genmatch.at(i) == 2 || genmatch.at(i) == 4) {
-                    Logger::get("mu fake")->debug(
-                        "tau pt before {}, tau pt after {}", pt_values.at(i),
-                        corrected_pt_values.at(i));
-                }
-            }
-            return corrected_pt_values;
-        };
-    auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda,
-                         {pt, eta, decayMode, genMatch});
-    return df1;
-}
-/// Function to correct tau pt
-///
-/// \param[in] df the input dataframe
-/// \param[out] corrected_pt name of the corrected tau pt to be calculated
-/// \param[in] pt name of the raw tau pt
-/// \param[in] decayMode decay mode of the tau
-/// \param[in] sf_dm0 scale factor to be applied to taus with decay mode 0
-/// \param[in] sf_dm1 scale factor to be applied to other 1 prong taus
-/// \param[in] sf_dm10 scale factor to be applied to taus with decay mode 10
-/// \param[in] sf_dm11 scale factor to be applied to other 3 prong taus
-/// name of the tau decay mode quantity
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                     const std::string &pt, const std::string &decayMode,
-                     const float &sf_dm0, const float &sf_dm1,
-                     const float &sf_dm10, const float &sf_dm11) {
-    auto tau_pt_correction_lambda =
-        [sf_dm0, sf_dm1, sf_dm10, sf_dm11](const ROOT::RVec<float> &pt_values,
-                                           const ROOT::RVec<int> &decay_modes) {
-            ROOT::RVec<float> corrected_pt_values(pt_values.size());
-            for (int i = 0; i < pt_values.size(); i++) {
-                if (decay_modes.at(i) == 0)
-                    corrected_pt_values[i] = pt_values.at(i) * sf_dm0;
-                else if (decay_modes.at(i) > 0 && decay_modes.at(i) < 5)
-                    corrected_pt_values[i] = pt_values.at(i) * sf_dm1;
-                else if (decay_modes.at(i) == 10)
-                    corrected_pt_values[i] = pt_values.at(i) * sf_dm10;
-                else if (decay_modes.at(i) > 10 && decay_modes.at(i) < 15)
-                    corrected_pt_values[i] = pt_values.at(i) * sf_dm11;
-                else
-                    corrected_pt_values[i] = pt_values.at(i);
-            }
-            return corrected_pt_values;
-        };
-    auto df1 =
-        df.Define(corrected_pt, tau_pt_correction_lambda, {pt, decayMode});
-    return df1;
-}
-/// Function to correct tau pt with correctionlib
-///
-/// \param[in] df the input dataframe
-/// \param[in] correctionManager the correction manager instance
-/// \param[out] corrected_pt name of the corrected tau pt to be calculated
-/// \param[in] pt name of the raw tau pt
-/// \param[in] eta name of raw tau eta
-/// \param[in] decayMode decay mode of the tau
-/// \param[in] genMatch column with genmatch values (from prompt e, prompt mu,
-/// tau->e, tau->mu, had. tau) \param[in] sf_file:
-///     2018:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2018_UL.html
-///     2017:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2017_UL.html
-///     2016:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016preVFP_UL.html
-///           https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016postVFP_UL.html
-/// \param[in] jsonESname name of the tau energy correction in the json file
-/// \param[in] idAlgorithm name of the used tau id algorithm
-/// \param[in] DM0 variation decay mode 0
-/// \param[in] DM1 variation decay mode 1
-/// \param[in] DM10 variation decay mode 10
-/// \param[in] DM11 variation decay mode 11
-/// DM values: "nom","up","down"
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection_genTau(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correctionManager,
-                    const std::string &corrected_pt, const std::string &pt,
-                    const std::string &eta, const std::string &decayMode,
-                    const std::string &genMatch, const std::string &sf_file,
-                    const std::string &jsonESname,
-                    const std::string &idAlgorithm, const std::string &DM0,
-                    const std::string &DM1, const std::string &DM10,
-                    const std::string &DM11) {
-    auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
-    auto tau_pt_correction_lambda = [evaluator, idAlgorithm, DM0, DM1, DM10,
-                                     DM11](
-                                        const ROOT::RVec<float> &pt_values,
-                                        const ROOT::RVec<float> &eta_values,
-                                        const ROOT::RVec<int> &decay_modes,
-                                        const ROOT::RVec<UChar_t> &genmatch) {
-        ROOT::RVec<float> corrected_pt_values(pt_values.size());
-        for (int i = 0; i < pt_values.size(); i++) {
-            if (genmatch.at(i) == 5) {
-                // only considering wanted tau decay modes
-                if (decay_modes.at(i) == 0) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, DM0});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else if (decay_modes.at(i) == 1) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, DM1});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else if (decay_modes.at(i) == 10) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, DM10});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else if (decay_modes.at(i) == 11) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, DM11});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                }
-            } else {
-                corrected_pt_values[i] = pt_values.at(i);
-            }
-            Logger::get("tauEnergyCorrection")
-                ->debug("tau pt before {}, tau pt after {}, decaymode {}",
-                        pt_values.at(i), corrected_pt_values.at(i),
-                        decay_modes.at(i));
-        }
-        return corrected_pt_values;
-    };
-    auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda,
-                         {pt, eta, decayMode, genMatch});
-    return df1;
-}
-/// Function to correct tau pt with correctionlib
-/// WARNING: The function without the CorrectionManager is deprecated and will
-/// be removed in the future \param[in] df the input dataframe \param[out]
-/// corrected_pt name of the corrected tau pt to be calculated \param[in] pt
-/// name of the raw tau pt \param[in] eta name of raw tau eta \param[in]
-/// decayMode decay mode of the tau \param[in] genMatch column with genmatch
-/// values (from prompt e, prompt mu, tau->e, tau->mu, had. tau) \param[in]
-/// sf_file:
-///     2018:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2018_UL.html
-///     2017:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2017_UL.html
-///     2016:
-///     https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016preVFP_UL.html
-///           https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/TAU_tau_Run2_UL/TAU_tau_2016postVFP_UL.html
-/// \param[in] jsonESname name of the tau energy correction in the json file
-/// \param[in] idAlgorithm name of the used tau id algorithm
-/// \param[in] DM0 variation decay mode 0
-/// \param[in] DM1 variation decay mode 1
-/// \param[in] DM10 variation decay mode 10
-/// \param[in] DM11 variation decay mode 11
-/// DM values: "nom","up","down"
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection_genTau(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                    const std::string &pt, const std::string &eta,
-                    const std::string &decayMode, const std::string &genMatch,
-                    const std::string &sf_file, const std::string &jsonESname,
-                    const std::string &idAlgorithm, const std::string &DM0,
-                    const std::string &DM1, const std::string &DM10,
-                    const std::string &DM11) {
-    Logger::get("ptcorrection gen tau")
-        ->warn("The function without CorrectionManager is deprecated and will "
-               "be removed in the future. Please use the function with "
-               "CorrectionManager instead.");
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
-    auto tau_pt_correction_lambda = [evaluator, idAlgorithm, DM0, DM1, DM10,
-                                     DM11](
-                                        const ROOT::RVec<float> &pt_values,
-                                        const ROOT::RVec<float> &eta_values,
-                                        const ROOT::RVec<int> &decay_modes,
-                                        const ROOT::RVec<UChar_t> &genmatch) {
-        ROOT::RVec<float> corrected_pt_values(pt_values.size());
-        for (int i = 0; i < pt_values.size(); i++) {
-            if (genmatch.at(i) == 5) {
-                // only considering wanted tau decay modes
-                if (decay_modes.at(i) == 0) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, DM0});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else if (decay_modes.at(i) == 1) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, DM1});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else if (decay_modes.at(i) == 10) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, DM10});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                } else if (decay_modes.at(i) == 11) {
-                    auto sf = evaluator->evaluate(
-                        {pt_values.at(i), std::abs(eta_values.at(i)),
-                         decay_modes.at(i), static_cast<int>(genmatch.at(i)),
-                         idAlgorithm, DM11});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                }
-            } else {
-                corrected_pt_values[i] = pt_values.at(i);
-            }
-            Logger::get("tauEnergyCorrection")
-                ->debug("tau pt before {}, tau pt after {}, decaymode {}",
-                        pt_values.at(i), corrected_pt_values.at(i),
-                        decay_modes.at(i));
-        }
-        return corrected_pt_values;
-    };
-    auto df1 = df.Define(corrected_pt, tau_pt_correction_lambda,
-                         {pt, eta, decayMode, genMatch});
-    return df1;
-}
-} // end namespace tau
 
-namespace electron {
-/// Function to correct electron pt
-///
-/// \param[in] df the input dataframe
-/// \param[out] corrected_pt name of the corrected electron pt to be calculated
-/// \param[in] pt name of the raw electron pt
-/// \param[in] eta the name of the raw electron eta
-/// \param[in] sf_barrel scale factor to be applied to electrons in the barrel
-/// \param[in] sf_endcap scale factor to be applied to electrons in the endcap
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                     const std::string &pt, const std::string &eta,
-                     const float &sf_barrel, const float &sf_endcap) {
-    auto electron_pt_correction_lambda =
-        [sf_barrel, sf_endcap](const ROOT::RVec<float> &pt_values,
-                               const ROOT::RVec<float> &eta) {
-            ROOT::RVec<float> corrected_pt_values(pt_values.size());
-            for (int i = 0; i < pt_values.size(); i++) {
-                if (abs(eta.at(i)) <= 1.479) {
-                    corrected_pt_values[i] = pt_values.at(i) * sf_barrel;
-                } else if (abs(eta.at(i)) > 1.479) {
-                    corrected_pt_values[i] = pt_values.at(i) * sf_endcap;
-                } else {
-                    corrected_pt_values[i] = pt_values.at(i);
-                }
-            }
-            return corrected_pt_values;
-        };
-    auto df1 =
-        df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
-    return df1;
-}
-/// Function to correct electron pt, based on correctionlib file
-///
-/// \param[in] df the input dataframe
-/// \param[in] correctionManager the correction manager instance
-/// \param[out] corrected_pt name of the corrected tau pt to be calculated
-/// \param[in] pt name of the raw tau pt
-/// \param[in] eta name of raw tau eta
-/// \param[in] sf_barrel scale factor to be applied to electrons in the barrel
-/// \param[in] sf_endcap scale factor to be applied to electrons in the endcap
-/// \param[in] sf_file:
-/// \param[in] jsonESname name of the tau energy correction in the json file
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection(ROOT::RDF::RNode df,
-             correctionManager::CorrectionManager &correctionManager,
-             const std::string &corrected_pt, const std::string &pt,
-             const std::string &eta, const std::string &sf_barrel,
-             const std::string &sf_endcap, const std::string &sf_file,
-             const std::string &jsonESname) {
-    auto evaluator = correctionManager.loadCorrection(sf_file, jsonESname);
-    auto electron_pt_correction_lambda = [evaluator, sf_barrel, sf_endcap](
-                                             const ROOT::RVec<float> &pt_values,
-                                             const ROOT::RVec<float> &eta) {
-        ROOT::RVec<float> corrected_pt_values(pt_values.size());
-        for (int i = 0; i < pt_values.size(); i++) {
-            if (abs(eta.at(i)) <= 1.479) {
-                auto sf = evaluator->evaluate({"barrel", sf_barrel});
-                corrected_pt_values[i] = pt_values.at(i) * sf;
-                Logger::get("eleEnergyCorrection")
-                    ->debug("barrel: ele pt before {}, ele pt after {}, sf {}",
-                            pt_values.at(i), corrected_pt_values.at(i), sf);
-            } else if (abs(eta.at(i)) > 1.479) {
-                auto sf = evaluator->evaluate({"endcap", sf_endcap});
-                corrected_pt_values[i] = pt_values.at(i) * sf;
-                Logger::get("eleEnergyCorrection")
-                    ->debug("endcap: ele pt before {}, ele pt after {}, sf {}",
-                            pt_values.at(i), corrected_pt_values.at(i), sf);
-            } else {
-                corrected_pt_values[i] = pt_values.at(i);
-            }
-        }
-        return corrected_pt_values;
-    };
-    auto df1 =
-        df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
-    return df1;
-}
-/// Function to correct electron pt, based on correctionlib file
-/// WARNING: The function without the CorrectionManager is deprecated and will
-/// be removed in the future \param[in] df the input dataframe \param[out]
-/// corrected_pt name of the corrected tau pt to be calculated \param[in] pt
-/// name of the raw tau pt \param[in] eta name of raw tau eta \param[in]
-/// sf_barrel scale factor to be applied to electrons in the barrel \param[in]
-/// sf_endcap scale factor to be applied to electrons in the endcap \param[in]
-/// sf_file: \param[in] jsonESname name of the tau energy correction in the json
-/// file
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
-             const std::string &pt, const std::string &eta,
-             const std::string &sf_barrel, const std::string &sf_endcap,
-             const std::string &sf_file, const std::string &jsonESname) {
-    Logger::get("eleEnergyCorrection")
-        ->warn("The function without CorrectionManager is deprecated and will "
-               "be removed in the future. Please use the function with "
-               "CorrectionManager instead.");
-    auto evaluator =
-        correction::CorrectionSet::from_file(sf_file)->at(jsonESname);
-    auto electron_pt_correction_lambda = [evaluator, sf_barrel, sf_endcap](
-                                             const ROOT::RVec<float> &pt_values,
-                                             const ROOT::RVec<float> &eta) {
-        ROOT::RVec<float> corrected_pt_values(pt_values.size());
-        for (int i = 0; i < pt_values.size(); i++) {
-            if (abs(eta.at(i)) <= 1.479) {
-                auto sf = evaluator->evaluate({"barrel", sf_barrel});
-                corrected_pt_values[i] = pt_values.at(i) * sf;
-                Logger::get("eleEnergyCorrection")
-                    ->debug("barrel: ele pt before {}, ele pt after {}, sf {}",
-                            pt_values.at(i), corrected_pt_values.at(i), sf);
-            } else if (abs(eta.at(i)) > 1.479) {
-                auto sf = evaluator->evaluate({"endcap", sf_endcap});
-                corrected_pt_values[i] = pt_values.at(i) * sf;
-                Logger::get("eleEnergyCorrection")
-                    ->debug("endcap: ele pt before {}, ele pt after {}, sf {}",
-                            pt_values.at(i), corrected_pt_values.at(i), sf);
-            } else {
-                corrected_pt_values[i] = pt_values.at(i);
-            }
-        }
-        return corrected_pt_values;
-    };
-    auto df1 =
-        df.Define(corrected_pt, electron_pt_correction_lambda, {pt, eta});
-    return df1;
-}
-/// Function to calculate uncertainties for electron pt correction. The electron
-/// energy correction is already applied in nanoAOD and in general there are
-/// branches in nanoAOD with the energy shifts for scale and resolution, but due
-/// to a bug the scale shifts are all 0 and have to be calculated from a json
-/// file. Information taken from
-/// https://cms-talk.web.cern.ch/t/electron-scale-smear-variables-in-nanoaod/20210
-/// and https://twiki.cern.ch/twiki/bin/view/CMS/EgammaSFJSON
-///
-/// \param[in] df the input dataframe
-/// \param[in] correctionManager the correction manager instance
-/// \param[out] corrected_pt name of the corrected electron pt to be calculated
-/// \param[in] pt name of the electron pt
-/// \param[in] eta name of electron eta
-/// \param[in] gain name of electron seedGain
-/// \param[in] ES_sigma_up name of electron energy smearing value 1 sigma up
-/// shifted \param[in] ES_sigma_down name of electron energy smearing value 1
-/// sigma down shifted \param[in] era era of the electron measurement e.g.
-/// "2018" \param[in] variation name of the variation to be calculated (nominal
-/// correction is already applied) \param[in] ES_file name of the json file with
-/// the energy scale uncertainties
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correctionManager,
-               const std::string &corrected_pt, const std::string &pt,
-               const std::string &eta, const std::string &gain,
-               const std::string &ES_sigma_up, const std::string &ES_sigma_down,
-               const std::string &era, const std::string &variation,
-               const std::string &ES_file) {
-    auto evaluator =
-        correctionManager.loadCorrection(ES_file, "UL-EGM_ScaleUnc");
-    auto electron_pt_correction_lambda =
-        [evaluator, era, variation](const ROOT::RVec<float> &pt_values,
-                                    const ROOT::RVec<float> &eta,
-                                    const ROOT::RVec<UChar_t> &gain,
-                                    const ROOT::RVec<float> &ES_sigma_up,
-                                    const ROOT::RVec<float> &ES_sigma_down) {
-            ROOT::RVec<float> corrected_pt_values(pt_values.size());
-            for (int i = 0; i < pt_values.size(); i++) {
-                if (variation == "resolutionUp") {
-                    auto dpt = ES_sigma_up.at(i) / std::cosh(eta.at(i));
-                    corrected_pt_values[i] = pt_values.at(i) + dpt;
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}, dpt {}",
-                                pt_values.at(i), corrected_pt_values.at(i),
-                                dpt);
-                } else if (variation == "resolutionDown") {
-                    auto dpt = ES_sigma_down.at(i) / std::cosh(eta.at(i));
-                    corrected_pt_values[i] = pt_values.at(i) + dpt;
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}, dpt {}",
-                                pt_values.at(i), corrected_pt_values.at(i),
-                                dpt);
-                } else if (variation == "scaleUp") {
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("inputs: era {}, eta {}, gain {}", era,
-                                eta.at(i), static_cast<int>(gain.at(i)));
-                    auto sf =
-                        evaluator->evaluate({era, "scaleup", eta.at(i),
-                                             static_cast<int>(gain.at(i))});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}, sf {}",
-                                pt_values.at(i), corrected_pt_values.at(i), sf);
-                } else if (variation == "scaleDown") {
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("inputs: era {}, eta {}, gain {}", era,
-                                eta.at(i), static_cast<int>(gain.at(i)));
-                    auto sf =
-                        evaluator->evaluate({era, "scaledown", eta.at(i),
-                                             static_cast<int>(gain.at(i))});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}, sf {}",
-                                pt_values.at(i), corrected_pt_values.at(i), sf);
-                } else {
-                    corrected_pt_values[i] = pt_values.at(i);
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}",
-                                pt_values.at(i), corrected_pt_values.at(i));
-                }
-            }
-            return corrected_pt_values;
-        };
-    auto df1 = df.Define(corrected_pt, electron_pt_correction_lambda,
-                         {pt, eta, gain, ES_sigma_up, ES_sigma_down});
-    return df1;
-}
-/// Function to calculate uncertainties for electron pt correction. The electron
-/// energy correction is already applied in nanoAOD and in general there are
-/// branches in nanoAOD with the energy shifts for scale and resolution, but due
-/// to a bug the scale shifts are all 0 and have to be calculated from a json
-/// file. Information taken from
-/// https://cms-talk.web.cern.ch/t/electron-scale-smear-variables-in-nanoaod/20210
-/// and https://twiki.cern.ch/twiki/bin/view/CMS/EgammaSFJSON
-/// WARNING: The function without the CorrectionManager is deprecated and will
-/// be removed in the future
-///
-/// \param[in] df the input dataframe
-/// \param[out] corrected_pt name of the corrected electron pt to be calculated
-/// \param[in] pt name of the electron pt
-/// \param[in] eta name of electron eta
-/// \param[in] gain name of electron seedGain
-/// \param[in] ES_sigma_up name of electron energy smearing value 1 sigma up
-/// shifted \param[in] ES_sigma_down name of electron energy smearing value 1
-/// sigma down shifted \param[in] era era of the electron measurement e.g.
-/// "2018" \param[in] variation name of the variation to be calculated (nominal
-/// correction is already applied) \param[in] ES_file name of the json file with
-/// the energy scale uncertainties
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df, const std::string &corrected_pt,
-               const std::string &pt, const std::string &eta,
-               const std::string &gain, const std::string &ES_sigma_up,
-               const std::string &ES_sigma_down, const std::string &era,
-               const std::string &variation, const std::string &ES_file) {
-    Logger::get("ElectronPtCorrectionMC")
-        ->warn("The function without CorrectionManager is deprecated and will "
-               "be removed in the future. Please use the function with "
-               "CorrectionManager instead.");
-    auto evaluator =
-        correction::CorrectionSet::from_file(ES_file)->at("UL-EGM_ScaleUnc");
-    auto electron_pt_correction_lambda =
-        [evaluator, era, variation](const ROOT::RVec<float> &pt_values,
-                                    const ROOT::RVec<float> &eta,
-                                    const ROOT::RVec<UChar_t> &gain,
-                                    const ROOT::RVec<float> &ES_sigma_up,
-                                    const ROOT::RVec<float> &ES_sigma_down) {
-            ROOT::RVec<float> corrected_pt_values(pt_values.size());
-            for (int i = 0; i < pt_values.size(); i++) {
-                if (variation == "resolutionUp") {
-                    auto dpt = ES_sigma_up.at(i) / std::cosh(eta.at(i));
-                    corrected_pt_values[i] = pt_values.at(i) + dpt;
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}, dpt {}",
-                                pt_values.at(i), corrected_pt_values.at(i),
-                                dpt);
-                } else if (variation == "resolutionDown") {
-                    auto dpt = ES_sigma_down.at(i) / std::cosh(eta.at(i));
-                    corrected_pt_values[i] = pt_values.at(i) + dpt;
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}, dpt {}",
-                                pt_values.at(i), corrected_pt_values.at(i),
-                                dpt);
-                } else if (variation == "scaleUp") {
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("inputs: era {}, eta {}, gain {}", era,
-                                eta.at(i), static_cast<int>(gain.at(i)));
-                    auto sf =
-                        evaluator->evaluate({era, "scaleup", eta.at(i),
-                                             static_cast<int>(gain.at(i))});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}, sf {}",
-                                pt_values.at(i), corrected_pt_values.at(i), sf);
-                } else if (variation == "scaleDown") {
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("inputs: era {}, eta {}, gain {}", era,
-                                eta.at(i), static_cast<int>(gain.at(i)));
-                    auto sf =
-                        evaluator->evaluate({era, "scaledown", eta.at(i),
-                                             static_cast<int>(gain.at(i))});
-                    corrected_pt_values[i] = pt_values.at(i) * sf;
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}, sf {}",
-                                pt_values.at(i), corrected_pt_values.at(i), sf);
-                } else {
-                    corrected_pt_values[i] = pt_values.at(i);
-                    Logger::get("ElectronPtCorrectionMC")
-                        ->debug("ele pt before {}, ele pt after {}",
-                                pt_values.at(i), corrected_pt_values.at(i));
-                }
-            }
-            return corrected_pt_values;
-        };
-    auto df1 = df.Define(corrected_pt, electron_pt_correction_lambda,
-                         {pt, eta, gain, ES_sigma_up, ES_sigma_down});
-    return df1;
-}
-/// Function to cut electrons based on the electron MVA ID
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe \param[in] nameID name of the ID column in the NanoAOD
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
-                       const std::string &nameID) {
+/**
+ * @brief This function orders objects by their transverse momentum (\f$p_T\f$) 
+ * in descending order. Only selected objects based on a provided mask are taken 
+ * and then sorted according to their \f$p_T\f$.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column storing sorted object indices
+ * @param object_pt name of the column containing object transverse momenta
+ * @param object_mask name of the column containing the object selection mask 
+ * (with `1` for selected objects, `0` otherwise)
+ *
+ * @return a dataframe containing the ordered object indices
+ */
+ROOT::RDF::RNode OrderByPt(ROOT::RDF::RNode df,
+                           const std::string &outputname,
+                           const std::string &object_pt,
+                           const std::string &object_mask) {
     auto df1 = df.Define(
-        maskname,
-        [](const ROOT::RVec<Bool_t> &id) { return (ROOT::RVec<int>)id; },
-        {nameID});
-    return df1;
-}
-/// Function to cut electrons based on the cut based electron ID
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe
-/// \param[in] nameID name of the ID column in the NanoAOD
-/// \param[in] IDvalue value of the WP the has to be passed
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
-                         const std::string &nameID, const int &IDvalue) {
-    auto df1 =
-        df.Define(maskname, basefunctions::FilterMinInt(IDvalue), {nameID});
-    return df1;
-}
-/// Function to cut electrons based on failing the cut based electron ID
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe
-/// \param[in] nameID name of the ID column in the NanoAOD
-/// \param[in] IDvalue value of the WP the has to be failed
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode AntiCutCBID(ROOT::RDF::RNode df, const std::string &maskname,
-                             const std::string &nameID, const int &IDvalue) {
-    auto df1 =
-        df.Define(maskname, basefunctions::FilterMaxInt(IDvalue), {nameID});
+        outputname,
+        [outputname, object_mask](const ROOT::RVec<float> &pts,
+                                  const ROOT::RVec<int> &mask) {
+            Logger::get("OrderByPt")
+                ->debug("Ordering good objects from {} by pt, output stored in {}",
+                        object_mask, outputname);
+            Logger::get("OrderByPt")->debug("Object pt before {}", pts);
+            Logger::get("OrderByPt")->debug("Mask {}", mask);
+            auto good_object_pts =
+                ROOT::VecOps::Where(mask > 0, pts, (float)0.);
+            Logger::get("OrderByPt")->debug("Object pt after {}", good_object_pts);
+            // we have to convert the result into an RVec of int's since argsort
+            // gives back an unsigned long vector
+            auto temp = ROOT::VecOps::Intersect(
+                ROOT::VecOps::Argsort(good_object_pts,
+                                      [](double x, double y) { return x > y; }),
+                ROOT::VecOps::Nonzero(good_object_pts));
+            Logger::get("OrderByPt")->debug("Object indices {}", temp);
+            ROOT::RVec<int> result(temp.size());
+            std::transform(temp.begin(), temp.end(), result.begin(),
+                           [](unsigned long int x) { return (int)x; });
+            Logger::get("OrderByPt")->debug("Object indices int {}", result);
+            return result;
+        },
+        {object_pt, object_mask});
     return df1;
 }
 
-/// Function to cut electrons based on the electron isolation using
-/// basefunctions::FilterMax
-///
-/// \param[in] df the input dataframe
-/// \param[in] isolationName name of the isolation column in the NanoAOD
-/// \param[out] maskname the name of the new mask to be added as column to
-/// the dataframe
-/// \param[in] Threshold maximal isolation threshold
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
-                              const std::string &isolationName,
-                              const float &Threshold) {
-    auto df1 = df.Define(maskname, basefunctions::FilterMax(Threshold),
-                         {isolationName});
+/**
+ * @brief This function modifies the mass of objects in an event using the formula
+ * \f[
+ * M_{\text{corrected},i} = M_{\text{raw},i} \times \frac{p_{T,\text{corrected},i}}{p_{T,\text{raw},i}}
+ * \f]
+ * for each object of an object collection in the event. The correction is applied 
+ * element-wise to the mass vector and is needed as part of for example energy scale 
+ * corrections that were before to the transverse momenta.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column storing the corrected masses
+ * @param raw_mass name of the column containing raw object masses
+ * @param raw_pt name of the column containing raw object transverse momenta
+ * @param corrected_pt name of the column containing corrected transverse momenta
+ *
+ * @return a dataframe with a new column
+ */
+ROOT::RDF::RNode MassCorrectionWithPt(ROOT::RDF::RNode df,
+                                      const std::string &outputname,
+                                      const std::string &raw_mass,
+                                      const std::string &raw_pt,
+                                      const std::string &corrected_pt) {
+    auto mass_correction_lambda =
+        [](const ROOT::RVec<float> &masses,
+           const ROOT::RVec<float> &pts,
+           const ROOT::RVec<float> &corrected_pts) {
+                ROOT::RVec<float> corrected_masses(masses.size());
+                for (int i = 0; i < masses.size(); i++) {
+                    corrected_masses[i] = masses.at(i) *
+                                          corrected_pts.at(i) /
+                                          pts.at(i);
+                }
+                return corrected_masses;
+            };
+    auto df1 = df.Define(outputname, mass_correction_lambda,
+                         {raw_mass, raw_pt, corrected_pt});
     return df1;
 }
-/// Function to select electrons below an Dxy and Dz threshold, based on the
-/// electrons supercluster
-///
-/// \param[in] df the input dataframe
-/// \param[in] eta quantity name of the electron eta column in the NanoAOD
-/// \param[in] detasc quantity name of the electron deltaEtaSC column in the
-/// NanoAOD
-/// \param[in] dxy quantity name of the Dxy column in the NanoAOD
-/// \param[in] dz quantity name of the Dz column in the NanoAOD
-/// \param[out] maskname the name of the mask to be added as column to the
-/// dataframe
-/// \param[in] abseta_eb_ee abs(eta) of the EB-EE transition
-/// \param[in] max_dxy_eb Threshold maximal Dxy value in the barrel
-/// \param[in] max_dz_eb Threshold maximal Dz value in the barrel
-/// \param[in] max_dxy_ee hreshold maximal Dxy value in the endcap
-/// \param[in] max_dz_ee Threshold maximal Dz value in the endcap
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutIP(ROOT::RDF::RNode df, const std::string &eta,
-                       const std::string &detasc, const std::string &dxy,
-                       const std::string &dz, const std::string &maskname,
-                       const float &abseta_eb_ee, const float &max_dxy_eb,
-                       const float &max_dz_eb, const float &max_dxy_ee,
-                       const float &max_dz_ee) {
-    auto lambda = [abseta_eb_ee, max_dxy_eb, max_dz_eb, max_dxy_ee,
-                   max_dz_ee](const ROOT::RVec<float> &eta,
-                              const ROOT::RVec<float> &detasc,
-                              const ROOT::RVec<float> &dxy,
-                              const ROOT::RVec<float> &dz) {
-        ROOT::RVec<int> mask = (((abs(eta + detasc) < abseta_eb_ee) &&
-                                 (dxy < max_dxy_eb) && (dz < max_dz_eb)) ||
-                                ((abs(eta + detasc) >= abseta_eb_ee) &&
-                                 (dxy < max_dxy_ee) && (dz < max_dz_ee)));
-        return mask;
-    };
-
-    auto df1 = df.Define(maskname, lambda, {eta, detasc, dxy, dz});
-    return df1;
-}
-
-/// Function to veto electrons in the transition region of EB and EE, based on
-/// the electrons supercluster
-///
-/// \param[in] df the input dataframe
-/// \param[in] eta quantity name of the electron eta column in the NanoAOD
-/// \param[in] detasc quantity name of the electron deltaEtaSC column in the
-/// NanoAOD
-/// \param[out] maskname the name of the mask to be added as column to
-/// the dataframe
-/// \param[in] end_eb abs(eta) of the beginning of the transition
-/// region
-///\param[in] start_ee abs(eta) of the end of the transition region
-///
-/// \return a dataframe containing the new mask
-ROOT::RDF::RNode CutGap(ROOT::RDF::RNode df, const std::string &eta,
-                        const std::string &detasc, const std::string &maskname,
-                        const float &end_eb, const float &start_ee) {
-    auto lambda = [end_eb, start_ee](const ROOT::RVec<float> &eta,
-                                     const ROOT::RVec<float> &detasc) {
-        ROOT::RVec<int> mask =
-            (abs(eta + detasc) < end_eb) || (abs(eta + detasc) > start_ee);
-        return mask;
-    };
-
-    auto df1 = df.Define(maskname, lambda, {eta, detasc});
-    return df1;
-}
-
-} // end namespace electron
-
 } // namespace physicsobject
 #endif /* GUARD_PHYSICSOBJECTS_H */

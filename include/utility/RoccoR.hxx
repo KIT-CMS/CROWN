@@ -1,5 +1,5 @@
-#ifndef ElectroWeakAnalysis_RoccoR_H
-#define ElectroWeakAnalysis_RoccoR_H
+#ifndef GUARD_ROCCOR_H
+#define GUARD_ROCCOR_H
 
 #include <boost/math/special_functions/erf.hpp>
 
@@ -208,4 +208,4 @@ class RoccoR {
                                  int n, double u, double w) const;
 };
 
-#endif
+#endif /* GUARD_ROCCOR_H */

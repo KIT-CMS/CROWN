@@ -8,7 +8,16 @@ from code_generation.producer import ExtendedVectorProducer
 
 MMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
     name="MMGenerateSingleMuonTriggerFlags",
-    call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
+    call="""trigger::GenerateSingleTriggerFlag(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{hlt_path}", 
+        {ptcut}, {etacut}, 
+        {trigger_particle_id}, 
+        {filterbit}, 
+        {max_deltaR_triggermatch})
+        """,
     input=[
         q.p4_1,
         nanoAOD.TriggerObject_bit,
@@ -23,7 +32,17 @@ MMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
 )
 MTGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
     name="MTGenerateSingleMuonTriggerFlags",
-    call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
+    call="""trigger::GenerateSingleTriggerFlag(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{hlt_path}", 
+        {ptcut}, 
+        {etacut}, 
+        {trigger_particle_id}, 
+        {filterbit}, 
+        {max_deltaR_triggermatch})
+        """,
     input=[
         q.p4_1,
         nanoAOD.TriggerObject_bit,
@@ -38,7 +57,17 @@ MTGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
 )
 ETGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
     name="ETGenerateSingleElectronTriggerFlags",
-    call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
+    call="""trigger::GenerateSingleTriggerFlag(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{hlt_path}", 
+        {ptcut}, 
+        {etacut}, 
+        {trigger_particle_id}, 
+        {filterbit}, 
+        {max_deltaR_triggermatch})
+        """,
     input=[
         q.p4_1,
         nanoAOD.TriggerObject_bit,
@@ -53,7 +82,17 @@ ETGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
 )
 EMGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
     name="EMGenerateSingleElectronTriggerFlags",
-    call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
+    call="""trigger::GenerateSingleTriggerFlag(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{hlt_path}", 
+        {ptcut}, 
+        {etacut}, 
+        {trigger_particle_id}, 
+        {filterbit}, 
+        {max_deltaR_triggermatch})
+        """,
     input=[
         q.p4_1,
         nanoAOD.TriggerObject_bit,
@@ -68,7 +107,17 @@ EMGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
 )
 GenerateSingleLeadingTauTriggerFlags = ExtendedVectorProducer(
     name="GenerateSingleLeadingTauTriggerFlags",
-    call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
+    call="""trigger::GenerateSingleTriggerFlag(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{hlt_path}", 
+        {ptcut}, 
+        {etacut}, 
+        {trigger_particle_id}, 
+        {filterbit}, 
+        {max_deltaR_triggermatch})
+        """,
     input=[
         q.p4_1,
         nanoAOD.TriggerObject_bit,
@@ -83,7 +132,17 @@ GenerateSingleLeadingTauTriggerFlags = ExtendedVectorProducer(
 )
 GenerateSingleTrailingTauTriggerFlags = ExtendedVectorProducer(
     name="GenerateSingleTrailingTauTriggerFlags",
-    call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
+    call="""trigger::GenerateSingleTriggerFlag(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{hlt_path}", 
+        {ptcut}, 
+        {etacut}, 
+        {trigger_particle_id}, 
+        {filterbit}, 
+        {max_deltaR_triggermatch})
+        """,
     input=[
         q.p4_2,
         nanoAOD.TriggerObject_bit,
@@ -98,7 +157,17 @@ GenerateSingleTrailingTauTriggerFlags = ExtendedVectorProducer(
 )
 EMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
     name="EMGenerateSingleMuonTriggerFlags",
-    call='trigger::GenerateSingleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {ptcut}, {etacut}, {trigger_particle_id}, {filterbit}, {max_deltaR_triggermatch} )',
+    call="""trigger::GenerateSingleTriggerFlag(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{hlt_path}", 
+        {ptcut}, 
+        {etacut}, 
+        {trigger_particle_id}, 
+        {filterbit}, 
+        {max_deltaR_triggermatch})
+        """,
     input=[
         q.p4_2,
         nanoAOD.TriggerObject_bit,
@@ -113,7 +182,21 @@ EMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
 )
 MTGenerateCrossTriggerFlags = ExtendedVectorProducer(
     name="GenerateCrossTriggerFlags",
-    call='trigger::GenerateDoubleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {p1_ptcut}, {p2_ptcut}, {p1_etacut}, {p2_etacut}, {p1_trigger_particle_id}, {p2_trigger_particle_id}, {p1_filterbit}, {p2_filterbit}, {max_deltaR_triggermatch})',
+    call="""trigger::GenerateDoubleTriggerFlag(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{hlt_path}", 
+        {p1_ptcut}, 
+        {p2_ptcut}, 
+        {p1_etacut}, 
+        {p2_etacut}, 
+        {p1_trigger_particle_id}, 
+        {p2_trigger_particle_id}, 
+        {p1_filterbit}, 
+        {p2_filterbit}, 
+        {max_deltaR_triggermatch})
+        """,
     input=[
         q.p4_1,
         q.p4_2,
@@ -129,7 +212,21 @@ MTGenerateCrossTriggerFlags = ExtendedVectorProducer(
 )
 ETGenerateCrossTriggerFlags = ExtendedVectorProducer(
     name="GenerateCrossTriggerFlags",
-    call='trigger::GenerateDoubleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {p1_ptcut}, {p2_ptcut}, {p1_etacut}, {p2_etacut}, {p1_trigger_particle_id}, {p2_trigger_particle_id}, {p1_filterbit}, {p2_filterbit}, {max_deltaR_triggermatch})',
+    call="""trigger::GenerateDoubleTriggerFlag(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{hlt_path}", 
+        {p1_ptcut}, 
+        {p2_ptcut}, 
+        {p1_etacut}, 
+        {p2_etacut}, 
+        {p1_trigger_particle_id}, 
+        {p2_trigger_particle_id}, 
+        {p1_filterbit}, 
+        {p2_filterbit}, 
+        {max_deltaR_triggermatch})
+        """,
     input=[
         q.p4_1,
         q.p4_2,
@@ -145,7 +242,21 @@ ETGenerateCrossTriggerFlags = ExtendedVectorProducer(
 )
 TTGenerateDoubleTriggerFlags = ExtendedVectorProducer(
     name="TTGenerateDoubleTriggerFlags",
-    call='trigger::GenerateDoubleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {p1_ptcut}, {p2_ptcut}, {p1_etacut}, {p2_etacut}, {p1_trigger_particle_id}, {p2_trigger_particle_id}, {p1_filterbit}, {p2_filterbit}, {max_deltaR_triggermatch})',
+    call="""trigger::GenerateDoubleTriggerFlag(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{hlt_path}", 
+        {p1_ptcut}, 
+        {p2_ptcut}, 
+        {p1_etacut}, 
+        {p2_etacut}, 
+        {p1_trigger_particle_id}, 
+        {p2_trigger_particle_id}, 
+        {p1_filterbit}, 
+        {p2_filterbit}, 
+        {max_deltaR_triggermatch})
+        """,
     input=[
         q.p4_1,
         q.p4_2,
@@ -161,7 +272,21 @@ TTGenerateDoubleTriggerFlags = ExtendedVectorProducer(
 )
 EMGenerateCrossTriggerFlags = ExtendedVectorProducer(
     name="EMGenerateCrossTriggerFlags",
-    call='trigger::GenerateDoubleTriggerFlag({df}, {output}, {input}, "{hlt_path}", {p1_ptcut}, {p2_ptcut}, {p1_etacut}, {p2_etacut}, {p1_trigger_particle_id}, {p2_trigger_particle_id}, {p1_filterbit}, {p2_filterbit}, {max_deltaR_triggermatch})',
+    call="""trigger::GenerateDoubleTriggerFlag(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{hlt_path}", 
+        {p1_ptcut}, 
+        {p2_ptcut}, 
+        {p1_etacut}, 
+        {p2_etacut}, 
+        {p1_trigger_particle_id}, 
+        {p2_trigger_particle_id}, 
+        {p1_filterbit}, 
+        {p2_filterbit}, 
+        {max_deltaR_triggermatch})
+        """,
     input=[
         q.p4_1,
         q.p4_2,

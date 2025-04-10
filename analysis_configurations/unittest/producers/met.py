@@ -28,7 +28,7 @@ BuildPFMetVector = Producer(
 )
 MetCov00 = Producer(
     name="MetCov00",
-    call="basefunctions::rename<float>({df}, {input}, {output})",
+    call="event::quantity::Rename<float>({df}, {output}, {input})",
     input=[
         nanoAOD.MET_covXX,
     ],
@@ -37,7 +37,7 @@ MetCov00 = Producer(
 )
 MetCov01 = Producer(
     name="MetCov01",
-    call="basefunctions::rename<float>({df}, {input}, {output})",
+    call="event::quantity::Rename<float>({df}, {output}, {input})",
     input=[
         nanoAOD.MET_covXY,
     ],
@@ -46,7 +46,7 @@ MetCov01 = Producer(
 )
 MetCov10 = Producer(
     name="MetCov10",
-    call="basefunctions::rename<float>({df}, {input}, {output})",
+    call="event::quantity::Rename<float>({df}, {output}, {input})",
     input=[
         nanoAOD.MET_covXY,
     ],
@@ -55,7 +55,7 @@ MetCov10 = Producer(
 )
 MetCov11 = Producer(
     name="MetCov11",
-    call="basefunctions::rename<float>({df}, {input}, {output})",
+    call="event::quantity::Rename<float>({df}, {output}, {input})",
     input=[
         nanoAOD.MET_covYY,
     ],
@@ -64,7 +64,7 @@ MetCov11 = Producer(
 )
 MetSumEt = Producer(
     name="MetSumEt",
-    call="basefunctions::rename<float>({df}, {input}, {output})",
+    call="event::quantity::Rename<float>({df}, {output}, {input})",
     input=[
         nanoAOD.MET_sumEt,
     ],
@@ -196,7 +196,19 @@ PropagateJetsToPFMet = Producer(
 
 ApplyRecoilCorrections = Producer(
     name="ApplyRecoilCorrections",
-    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down}, {is_wjets})',
+    call="""met::applyRecoilCorrections(
+        {df}, 
+        {input}, 
+        {output}, 
+        "{recoil_corrections_file}", 
+        "{recoil_systematics_file}", 
+        {applyRecoilCorrections}, 
+        {apply_recoil_resolution_systematic}, 
+        {apply_recoil_response_systematic}, 
+        {recoil_systematic_shift_up}, 
+        {recoil_systematic_shift_down}, 
+        {is_wjets})
+        """,
     input=[
         q.met_p4_jetcorrected,
         q.recoil_genboson_p4_vec,
@@ -207,7 +219,19 @@ ApplyRecoilCorrections = Producer(
 )
 ApplyRecoilCorrectionsPFMet = Producer(
     name="ApplyRecoilCorrectionsPFMet",
-    call='met::applyRecoilCorrections({df}, {input}, {output}, "{recoil_corrections_file}", "{recoil_systematics_file}", {applyRecoilCorrections}, {apply_recoil_resolution_systematic}, {apply_recoil_response_systematic}, {recoil_systematic_shift_up}, {recoil_systematic_shift_down}, {is_wjets})',
+    call="""met::applyRecoilCorrections(
+        {df}, 
+        {input}, 
+        {output}, 
+        "{recoil_corrections_file}", 
+        "{recoil_systematics_file}", 
+        {applyRecoilCorrections}, 
+        {apply_recoil_resolution_systematic}, 
+        {apply_recoil_response_systematic}, 
+        {recoil_systematic_shift_up}, 
+        {recoil_systematic_shift_down}, 
+        {is_wjets})
+        """,
     input=[
         q.pfmet_p4_jetcorrected,
         q.recoil_genboson_p4_vec,

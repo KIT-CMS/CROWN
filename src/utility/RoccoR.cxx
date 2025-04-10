@@ -1,7 +1,4 @@
-#ifndef ElectroWeakAnalysis_RoccoR
-#define ElectroWeakAnalysis_RoccoR
-
-#include "../include/RoccoR.hxx"
+#include "../../include/utility/RoccoR.hxx"
 #include <TString.h>
 #include <fstream>
 #include <iostream>
@@ -391,5 +388,3 @@ double RoccoR::kScaleAndSmearMCerror(int Q, double pt, double eta, double phi,
         return kScaleAndSmearMC(Q, pt, eta, phi, n, u, w, s, m);
     });
 }
-
-#endif

@@ -49,7 +49,14 @@ EEGenPair = Producer(
 )
 MMTrueGenPair = Producer(
     name="GenPair",
-    call="ditau_pairselection::buildtruegenpair({df}, {input}, {output}, {truegen_mother_pdgid}, {truegen_daughter_1_pdgid}, {truegen_daugher_2_pdgid})",
+    call="""ditau_pairselection::buildtruegenpair(
+        {df}, 
+        {input}, 
+        {output}, 
+        {truegen_mother_pdgid}, 
+        {truegen_daughter_1_pdgid}, 
+        {truegen_daugher_2_pdgid})
+        """,
     input=[
         nanoAOD.GenParticle_statusFlags,
         nanoAOD.GenParticle_status,

@@ -1,7 +1,6 @@
 #ifndef GUARD_QUANTITIES_H
 #define GUARD_QUANTITIES_H
 
-#include "basefunctions.hxx"
 #include "defaults.hxx"
 #include "utility/Logger.hxx"
 #include "vectoroperations.hxx"

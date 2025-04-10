@@ -292,10 +292,10 @@ namespace three_flavor {
 /// Events contain at least two good leptons and one good tau, if the
 /// the two leptonmasks have nonzero elements. These masks are
 /// constructed using the functions from the physicsobject namespace
-/// (e.g. physicsobject::CutPt). The argument triple gives information wheather
-/// the emt or the met channel is considered. Events with two good electrons or
-/// two good muons are vetos immediately. For the fake rate estimation, base
-/// leptons are also considered.
+/// (e.g. physicsobject::CutMin applied for pT). The argument triple gives 
+/// information wheather the emt or the met channel is considered. Events 
+/// with two good electrons or two good muons are vetos immediately. For the 
+/// fake rate estimation, base leptons are also considered.
 ///
 /// \returns an `ROOT::RVec<int>` with three values, the first one beeing
 /// the lepton from the W index, the second one beeing the lepton from the tau
@@ -510,7 +510,7 @@ auto TripleSelectionAlgo(const float &mindeltaR_leptau,
 /// goodleptons and one goodTau are considered. Events contain at least two good
 /// leptons and one good tau, if the tau_mask the two leptonmasks have nonzero
 /// elements. These masks are constructed using the functions from the
-/// physicsobject namespace (e.g. physicsobject::CutPt). To estimate the jet to
+/// physicsobject namespace (e.g. physicsobject::CutMin). To estimate the jet to
 /// lepton fake rate, we select also events with base leptons \returns an
 /// `ROOT::RVec<int>` with three values, the first one beeing the lepton from
 /// the W index, the second one beeing the lepton from the tau index and the
@@ -647,7 +647,7 @@ namespace two_flavor {
 /// considered. Events contain at least two good leptons and one good tau, if
 /// the the leptonmask and the taumask have nonzero elements. These masks are
 /// constructed using the functions from the physicsobject namespace
-/// (e.g. physicsobject::CutPt). The argument triple gives information wheather
+/// (e.g. physicsobject::CutMin). The argument triple gives information wheather
 /// the emt or the met channel is considered. To estimate the jet to lepton fake
 /// rate, we select also events with base leptons \returns an `ROOT::RVec<int>`
 /// with three values, the first one beeing the lepton from the W index, the
@@ -846,7 +846,7 @@ namespace lep_tautau {
 /// Events contain one good lepton and at least two good taus, if the
 /// tau_mask and the leptonmask have nonzero elements. These masks are
 /// constructed using the functions from the physicsobject namespace
-/// (e.g. physicsobject::CutPt). The argument triple gives information wheather
+/// (e.g. physicsobject::CutMin). The argument triple gives information wheather
 /// the emt or the met channel is considered.
 ///
 /// \returns an `ROOT::RVec<int>` with three values, the first one beeing
@@ -1010,7 +1010,7 @@ namespace lep1lep1_lep2 {
 /// Events contain two good lep1 and one loose lep2, if the corresponding
 /// leptonmask have nonzero elements. These masks are
 /// constructed using the functions from the physicsobject namespace
-/// (e.g. physicsobject::CutPt). The argument triple gives information wheather
+/// (e.g. physicsobject::CutMin). The argument triple gives information wheather
 /// the emt or the met channel is considered.
 ///
 /// \returns an `ROOT::RVec<int>` with three values, the first one beeing

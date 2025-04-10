@@ -1,96 +1,62 @@
-#ifndef GUARDJETS_H
-#define GUARDJETS_H
-
-namespace jet {
-ROOT::RDF::RNode
-VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
-                    const std::string &jet_eta, const std::string &jet_phi,
-                    const std::string &p4_1, const std::string &p4_2,
-                    const float &deltaRmin);
-ROOT::RDF::RNode
-VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &output_col,
-                    const std::string &jet_eta, const std::string &jet_phi,
-                    const std::string &p4_1, const float &deltaRmin);
-ROOT::RDF::RNode VetoOverlappingJetsIsoLepOnly(ROOT::RDF::RNode df,
-                                               const std::string &output_col,
-                                               const std::string &jet_eta,
-                                               const std::string &jet_phi,
-                                               const std::string &p4_1,
-                                               const std::string &lep_is_iso,
-                                               const float &deltaRmin);
-ROOT::RDF::RNode OrderJetsByPt(ROOT::RDF::RNode df,
-                               const std::string &output_col,
-                               const std::string &jet_pt,
-                               const std::string &jetmask_name);
-ROOT::RDF::RNode VetoJetsByVetoMap(
-    ROOT::RDF::RNode df, const std::string &maskname,
-    const std::string &jet_eta, const std::string &jet_phi,
-    const std::string &vetomap_path, const std::string &vetomap_name,
-    const std::string &vetomap_type, const std::string &object = "Jets");
-} // end namespace jet
+#ifndef GUARD_JETS_H
+#define GUARD_JETS_H
 
 namespace physicsobject {
 namespace jet {
 
-ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
-                       const std::string &nameID, const int &idxID);
-ROOT::RDF::RNode CutPUID(ROOT::RDF::RNode df, const std::string &maskname,
-                         const std::string &nameID, const std::string &jet_pt,
-                         const int &idxID, const float &jet_pt_cut);
 ROOT::RDF::RNode
-JetPtCorrection(ROOT::RDF::RNode df,
-                correctionManager::CorrectionManager &correctionManager,
-                const std::string &corrected_jet_pt, const std::string &jet_pt,
-                const std::string &jet_eta, const std::string &jet_phi,
-                const std::string &jet_area, const std::string &jet_rawFactor,
-                const std::string &jet_ID, const std::string &gen_jet_pt,
-                const std::string &gen_jet_eta, const std::string &gen_jet_phi,
-                const std::string &rho, bool reapplyJES,
-                const std::vector<std::string> &jes_shift_sources,
-                const int &jes_shift, const std::string &jer_shift,
-                const std::string &jec_file, const std::string &jer_tag,
-                const std::string &jes_tag, const std::string &jec_algo);
-// Deprecated function without CorrectionManager
+PtCorrectionMC(ROOT::RDF::RNode df,
+               correctionManager::CorrectionManager &correction_manager,
+               const std::string &outputname, const std::string &jet_pt,
+               const std::string &jet_eta, const std::string &jet_phi,
+               const std::string &jet_area, const std::string &jet_raw_factor,
+               const std::string &jet_id, const std::string &gen_jet_pt,
+               const std::string &gen_jet_eta, const std::string &gen_jet_phi,
+               const std::string &rho, const std::string &jec_file,
+               const std::string &jec_algo, const std::string &jes_tag,
+               const std::vector<std::string> &jes_shift_sources,
+               const std::string &jer_tag, bool reapply_jes,
+               const int &jes_shift, const std::string &jer_shift);
 ROOT::RDF::RNode
-JetPtCorrection(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
-                const std::string &jet_pt, const std::string &jet_eta,
-                const std::string &jet_phi, const std::string &jet_area,
-                const std::string &jet_rawFactor, const std::string &jet_ID,
-                const std::string &gen_jet_pt, const std::string &gen_jet_eta,
-                const std::string &gen_jet_phi, const std::string &rho,
-                bool reapplyJES,
-                const std::vector<std::string> &jes_shift_sources,
-                const int &jes_shift, const std::string &jer_shift,
-                const std::string &jec_file, const std::string &jer_tag,
-                const std::string &jes_tag, const std::string &jec_algo);
-ROOT::RDF::RNode
-JetPtCorrection_data(ROOT::RDF::RNode df, const std::string &corrected_jet_pt,
-                     const std::string &jet_pt, const std::string &jet_eta,
-                     const std::string &jet_area,
-                     const std::string &jet_rawFactor, const std::string &rho,
-                     const std::string &jec_file, const std::string &jes_tag,
-                     const std::string &jec_algo);
-ROOT::RDF::RNode CutRawID(ROOT::RDF::RNode df, const std::string &quantity,
-                          const std::string &maskname,
-                          const float &idThreshold);
-ROOT::RDF::RNode AntiCutRawID(ROOT::RDF::RNode df, const std::string &quantity,
-                              const std::string &maskname,
-                              const float &idThreshold);
+PtCorrectionData(ROOT::RDF::RNode df, const std::string &outputname,
+                 correctionManager::CorrectionManager &correction_manager,
+                 const std::string &jet_pt, const std::string &jet_eta,
+                 const std::string &jet_area, const std::string &jet_raw_factor, 
+                 const std::string &rho, const std::string &jec_file, 
+                 const std::string &jec_algo, const std::string &jes_tag);
+ROOT::RDF::RNode CutPileupID(ROOT::RDF::RNode df, 
+                             const std::string &outputname,
+                             const std::string &jet_pu_id, 
+                             const std::string &jet_pt,
+                             const int &pu_id_cut, 
+                             const float &pt_cut);
+ROOT::RDF::RNode ApplyVetoMap(ROOT::RDF::RNode df, 
+                              const std::string &outputname,
+                              const std::string &jet_eta, 
+                              const std::string &jet_phi,
+                              const std::string &vetomap_file, 
+                              const std::string &vetomap_name,
+                              const std::string &vetomap_type);
+ROOT::RDF::RNode VetoOverlappingJets(ROOT::RDF::RNode df, 
+                                     const std::string &outputname,
+                                     const std::string &jet_eta, 
+                                     const std::string &jet_phi,
+                                     const std::string &target_p4_1, 
+                                     const std::string &target_p4_2,
+                                     const float &min_delta_r);
+ROOT::RDF::RNode VetoOverlappingJets(ROOT::RDF::RNode df, 
+                                     const std::string &outputname,
+                                     const std::string &jet_eta, 
+                                     const std::string &jet_phi,
+                                     const std::string &target_p4, 
+                                     const float &min_delta_r);
+ROOT::RDF::RNode VetoOverlappingJetsWithIsoLepton(ROOT::RDF::RNode df,
+                                               const std::string &outputname,
+                                               const std::string &jet_eta,
+                                               const std::string &jet_phi,
+                                               const std::string &lepton_p4,
+                                               const std::string &lepton_iso,
+                                               const float &min_delta_r);
 } // end namespace jet
 } // end namespace physicsobject
-
-namespace quantities {
-namespace jet {
-ROOT::RDF::RNode NumberOfJets(ROOT::RDF::RNode df,
-                              const std::string &outputname,
-                              const std::string &jetcollection);
-ROOT::RDF::RNode btagValue(ROOT::RDF::RNode df, const std::string &outputname,
-                           const std::string &btagcolumn,
-                           const std::string &jetcollection,
-                           const int &position);
-ROOT::RDF::RNode flavor(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::string &flavorcolumn,
-                        const std::string &jetcollection, const int &position);
-} // end namespace jet
-} // end namespace quantities
-#endif /* GUARDJETS_H */
+#endif /* GUARD_JETS_H */
