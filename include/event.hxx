@@ -284,6 +284,8 @@ inline ROOT::RDF::RNode Sum(ROOT::RDF::RNode df,
  * `quantity` column into individual columns in the dataframe. Each element of the 
  * vector is stored in a separate column with names provided in the `outputnames` vector.
  * The function works recursively to define a new column for each element in the vector.
+ *
+ * @warning The length of the quantity vector has to be the same for each event.
  * 
  * @tparam T type of the input column values
  * @param df input dataframe
