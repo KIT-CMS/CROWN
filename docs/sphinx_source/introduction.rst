@@ -76,7 +76,7 @@ To create a new analysis executable, first create a build directory
 
 and then run `cmake` to set up the Makefiles. A python configuration is needed to specify the code, that should be generated. Configurations are located in the :code:`analysis_configuations` directory. Within this folder, a subfolder for each installed type of analysis is present. Within the analysis folder, multiple Configurations belonging to the same analysis can be located. For example in the `tau` analysis, a main configuration `config.py` as well as several smaller Configurations exist.
 
-.. Note::
+.. note::
 
    To be able to execute CROWN, you yourself have to provide the files and code for both \
 
