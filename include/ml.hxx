@@ -31,7 +31,7 @@ StandardTransformer(ROOT::RDF::RNode df,
 /// and one output tensor
 ///
 /// \param df the dataframe to add the quantity to
-/// \param OnnxSessionManager The OnnxSessionManager object to handle the
+/// \param onnxSessionManager The OnnxSessionManager object to handle the
 /// runtime session. By default this is called onnxSessionManager and created in
 /// the main function
 /// \param outputname Name of the output column

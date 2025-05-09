@@ -13,6 +13,7 @@ Muon_dz = NanoAODQuantity("Muon_dz")
 Muon_dxy = NanoAODQuantity("Muon_dxy")
 Muon_charge = NanoAODQuantity("Muon_charge")
 Muon_genPartIdx = NanoAODQuantity("Muon_genPartIdx")
+Muon_mediumId = NanoAODQuantity("Muon_mediumId")
 
 GenParticle_eta = NanoAODQuantity("GenPart_eta")
 GenParticle_phi = NanoAODQuantity("GenPart_phi")

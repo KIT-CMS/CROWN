@@ -10,7 +10,12 @@ from .muons import DiMuonVeto
 
 RunLumiEventFilter = VectorProducer(
     name="RunLumiEventFilter",
-    call='basefunctions::FilterIntSelection<{RunLumiEventFilter_Quantity_Types}>({df}, "{RunLumiEventFilter_Quantities}", {vec_open}{RunLumiEventFilter_Selections}{vec_close}, "RunLumiEventFilter")',
+    call="""event::filter::Quantity<{RunLumiEventFilter_Quantity_Types}>(
+        {df}, 
+        "RunLumiEventFilter", 
+        "{RunLumiEventFilter_Quantities}", 
+        {vec_open}{RunLumiEventFilter_Selections}{vec_close})
+        """,
     input=[],
     output=None,
     scopes=["global"],
@@ -23,14 +28,20 @@ RunLumiEventFilter = VectorProducer(
 
 JSONFilter = BaseFilter(
     name="JSONFilter",
-    call='basefunctions::JSONFilter({df}, "{golden_json_file}", {input}, "GoldenJSONFilter")',
+    call="""event::filter::GoldenJSON(
+        {df}, 
+        correctionManager, 
+        "GoldenJSONFilter", 
+        {input}, 
+        "{golden_json_file}")
+        """,
     input=[nanoAOD.run, nanoAOD.luminosityBlock],
     scopes=["global"],
 )
 
 PrefireWeight = Producer(
     name="PrefireWeight",
-    call="basefunctions::rename<Float_t>({df}, {input}, {output})",
+    call="event::quantity::Rename<float>({df}, {output}, {input})",
     input=[nanoAOD.prefireWeight],
     output=[q.prefireweight],
     scopes=["global"],
@@ -39,56 +50,56 @@ PrefireWeight = Producer(
 is_data = Producer(
     name="isData",
     input=[],
-    call="basefunctions::DefineQuantity({df}, {output}, {is_data})",
+    call="event::quantity::Define({df}, {output}, {is_data})",
     output=[q.is_data],
     scopes=["global"],
 )
 
 is_embedding = Producer(
     name="is_embedding",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_embedding})",
+    call="event::quantity::Define({df}, {output}, {is_embedding})",
     input=[],
     output=[q.is_embedding],
     scopes=["global"],
 )
 is_ttbar = Producer(
     name="is_ttbar",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_ttbar})",
+    call="event::quantity::Define({df}, {output}, {is_ttbar})",
     input=[],
     output=[q.is_ttbar],
     scopes=["global"],
 )
 is_dyjets = Producer(
     name="is_dyjets",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_dyjets})",
+    call="event::quantity::Define({df}, {output}, {is_dyjets})",
     input=[],
     output=[q.is_dyjets],
     scopes=["global"],
 )
 is_wjets = Producer(
     name="is_wjets",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_wjets})",
+    call="event::quantity::Define({df}, {output}, {is_wjets})",
     input=[],
     output=[q.is_wjets],
     scopes=["global"],
 )
 is_ggh_htautau = Producer(
     name="is_ggh_htautau",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_ggh_htautau})",
+    call="event::quantity::Define({df}, {output}, {is_ggh_htautau})",
     input=[],
     output=[q.is_ggh_htautau],
     scopes=["global"],
 )
 is_vbf_htautau = Producer(
     name="is_vbf_htautau",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_vbf_htautau})",
+    call="event::quantity::Define({df}, {output}, {is_vbf_htautau})",
     input=[],
     output=[q.is_vbf_htautau],
     scopes=["global"],
 )
 is_diboson = Producer(
     name="is_diboson",
-    call="basefunctions::DefineQuantity({df}, {output}, {is_diboson})",
+    call="event::quantity::Define({df}, {output}, {is_diboson})",
     input=[],
     output=[q.is_diboson],
     scopes=["global"],
@@ -114,7 +125,7 @@ SampleFlags = ProducerGroup(
 
 MetFilter = VectorProducer(
     name="MetFilter",
-    call='metfilter::ApplyMetFilter({df}, "{met_filters}", "{met_filters}")',
+    call='event::filter::Flag({df}, "{met_filters}", "{met_filters}")',
     input=[],
     output=None,
     scopes=["global"],
@@ -123,7 +134,7 @@ MetFilter = VectorProducer(
 
 Lumi = Producer(
     name="Lumi",
-    call="basefunctions::rename<UInt_t>({df}, {input}, {output})",
+    call="event::quantity::Rename<UInt_t>({df}, {output}, {input})",
     input=[nanoAOD.luminosityBlock],
     output=[q.lumi],
     scopes=["global"],
@@ -131,7 +142,7 @@ Lumi = Producer(
 
 npartons = Producer(
     name="npartons",
-    call="basefunctions::rename<UChar_t>({df}, {input}, {output})",
+    call="event::quantity::Rename<UChar_t>({df}, {output}, {input})",
     input=[nanoAOD.LHE_Njets],
     output=[q.npartons],
     scopes=["global"],
@@ -139,7 +150,15 @@ npartons = Producer(
 
 PUweights = Producer(
     name="PUweights",
-    call='reweighting::puweights({df}, correctionManager, {output}, {input}, "{PU_reweighting_file}", "{PU_reweighting_era}", "{PU_reweighting_variation}")',
+    call="""reweighting::puweights(
+        {df}, 
+        correctionManager, 
+        {output}, 
+        {input}, 
+        "{PU_reweighting_file}", 
+        "{PU_reweighting_era}", 
+        "{PU_reweighting_variation}")
+        """,
     input=[nanoAOD.Pileup_nTrueInt],
     output=[q.puweight],
     scopes=["global"],
@@ -147,7 +166,14 @@ PUweights = Producer(
 
 ZPtMassReweighting = Producer(
     name="ZPtMassReweighting",
-    call='reweighting::zPtMassReweighting({df}, {output}, {input}, "{zptmass_file}", "{zptmass_functor}", "{zptmass_arguments}")',
+    call="""reweighting::zPtMassReweighting(
+        {df}, 
+        {output}, 
+        {input}, 
+        "{zptmass_file}", 
+        "{zptmass_functor}", 
+        "{zptmass_arguments}")
+        """,
     input=[
         q.recoil_genboson_p4_vec,
     ],
@@ -169,7 +195,7 @@ TopPtReweighting = Producer(
 
 DiLeptonVeto = ProducerGroup(
     name="DiLeptonVeto",
-    call="basefunctions::CombineFlagsAny({df}, {output}, {input})",
+    call='event::CombineFlags({df}, {output}, {input}, "any_of")',
     input=[],
     output=[q.dilepton_veto],
     scopes=["global"],
@@ -178,7 +204,13 @@ DiLeptonVeto = ProducerGroup(
 
 GGH_NNLO_Reweighting = Producer(
     name="GGH_NNLO_Reweighting",
-    call='htxs::ggHNNLOWeights({df}, {output}, "{ggHNNLOweightsRootfile}", "{ggH_generator}", {input})',
+    call="""htxs::ggHNNLOWeights(
+        {df}, 
+        {output}, 
+        "{ggHNNLOweightsRootfile}", 
+        "{ggH_generator}", 
+        {input})
+        """,
     input=[nanoAOD.HTXS_Higgs_pt, nanoAOD.HTXS_njets30],
     output=[q.ggh_NNLO_weight],
     scopes=["global", "em", "et", "mt", "tt", "mm"],

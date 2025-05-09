@@ -47,16 +47,17 @@ Documentation Content
    kingmaker.rst
    postprocessing.rst
    friend_trees.rst
+   cms_analysis.rst
    changelog.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Setup your own Configuration
 
-   contrib.rst
    py_configuration.rst
-   correction_manager.rst
+   contrib.rst
    cpp_addons.rst
+   correction_manager.rst
    nanoAODversions.rst
 
 .. toctree::

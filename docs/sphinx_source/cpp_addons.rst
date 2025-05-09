@@ -1,5 +1,5 @@
-C++ Add-ons
-============
+Analysis specific C++ Add-ons
+=============================
 
 In some cases, the core codebase of CROWN (CROWNLIB) may not include all the features required for an analysis. To address this, users can add custom C++ code within their analysis configurations. These add-ons are automatically integrated to the C++ code during the code generation process.
 

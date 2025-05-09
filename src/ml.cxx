@@ -2,7 +2,6 @@
 #define GUARD_ML_H
 
 #include "../include/ml.hxx"
-#include "../include/basefunctions.hxx"
 #include "../include/defaults.hxx"
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
@@ -127,6 +126,7 @@ ROOT::RDF::RNode StandardTransformer(ROOT::RDF::RNode df,
  * NN evaluation.
  *
  * @param df The input dataframe
+ * @param correctionManager correction manager
  * @param inputname name of the variable which should be transformed
  * @param outputname name of the output column
  * @param param_file path to a json file with a dictionary of mean and std

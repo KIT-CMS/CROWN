@@ -1,10 +1,10 @@
 #ifndef GUARD_REWEIGHTING_H
 #define GUARD_REWEIGHTING_H
 
-#include "../include/basefunctions.hxx"
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/RooFunctorThreadsafe.hxx"
+#include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "TFile.h"
@@ -169,7 +169,7 @@ ROOT::RDF::RNode zPtMassReweighting(ROOT::RDF::RNode df,
 
     const std::shared_ptr<RooFunctorThreadsafe> weight_function =
         loadFunctor(workspace_file, functor_name, argset);
-    auto df3 = basefunctions::evaluateWorkspaceFunction(
+    auto df3 = utility::EvaluateWorkspaceFunction(
         df2, weightname, weight_function, gen_boson + "_mass",
         gen_boson + "_pt");
     return df3;

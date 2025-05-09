@@ -1,22 +1,24 @@
 Writing a new producer
-=======================
+======================
 
 Writing a new producer involves two main parts, adding the :ref:`C++ function<Writing a new C++ function>` and the required :ref:`python component<Defining a new python Producer>`.
 
 If the C++ function is written generically enough, it can be used in multiple producers and multiple purposes in the end.
-For example, the producer generating the pt_1 quantity can be used regardless of what particle is being considered.
+For example, the producer generating the ``pt_1`` quantity can be used regardless of what object is being considered (e.g. muons, jets, ...).
 
-In the following, an introduction to adding a new producer is given. As an example, we will add a new producer, which can be used to calculate the Lorentz vectors of particles, in our case electrons. For simplicity, we only want to calculate one single Lorentz vector for a given index. First, we will do the C++ implementation of the function followed by the Python definition. Keep in mind, that those two parts are connected.
+In the following, an introduction about how to add a new producer is given. As an example, we will add a new producer, which can be used to calculate the Lorentz vectors of particles, in our case electrons. For simplicity, we only want to calculate one single Lorentz vector for a given index. First, we will do the C++ implementation of the function followed by the Python definition. Keep in mind, that those two parts are connected.
 
 Writing a new C++ function
-============================
+**************************
 
 For a new C++ function, both a definition in the header file and the implementation in the source file are required. As good practice, we will add the function to a namespace called ``lorentzvector``, and call the function ``build``.
 The return type of any function in CROWN should always be ``ROOT::RDF::RNode``, and the first argument of the function should always be the RDataframe, where we want to Define our new quantity. This means the basic definition of the function should look like this:
 
 .. code-block:: cpp
 
-    ROOT::RDF::RNode buildMet(ROOT::RDF::RNode df, ...);
+    namespace lorentzvector {
+        ROOT::RDF::RNode build(ROOT::RDF::RNode df, ...);
+    }
 
 This will go into the corresponding header file located within the ``include`` folder, and the implementation will go into the source file in the ``src`` folder.
 
@@ -29,7 +31,7 @@ The C++ functions used in CROWN always act as wrapper functions surrounding the 
                         const std::string &phis, const std::string &masses,
                         const int &index);
 
-Note, that we can add these arguments as ``const string &``, since we do not need to change the value of the argument, also a reference is enough. Additionally, we added the ``outputname``, which is the name of the output quantity. This is also a string and is used to name the output quantity. The next step is to add the actual RDataFrame command. In our case, we will use the ``Define`` command, which is used to define a new quantity. The following is the definition of the command:
+Note, that we can add these arguments as ``const string &``, since we do not need to change the value of the argument, also a reference is enough. Additionally, we added the ``outputname``, which is the name of the output quantity. This is also a string and is used to name the output quantity. The next step is to add the actual RDataFrame command. In our case, we will use the ``Define`` command, which is used to define a new quantity. The following includes the definition of the command:
 
 .. code-block:: cpp
 
@@ -72,7 +74,7 @@ We define the lambda function with the type ``auto`` and pass it all our input c
         auto build_vector = [index](ROOT::RVec<float> pts, ROOT::RVec<float> etas,
                                     ROOT::RVec<float> phis,
                                     ROOT::RVec<float> masses) {
-            // Create the Lorentz vector for each particle
+            // Create the Lorentz vector for each object in the event
             Logger::get("build")->debug("size of pt {}, eta {}, phi {}, mass {}",
                                     pts.size(), etas.size(), phis.size(),
                                     masses.size());
@@ -84,14 +86,14 @@ We define the lambda function with the type ``auto`` and pass it all our input c
         return df.Define(outputname, build_vector, {pts, etas, phis, masses});
     };
 
-We also added a simple debug statement here, to print the size of the ``RVec`` objects. This concludes the implementation of the new producer.
+We also added a simple debug statement here, to print the size of the ``RVec`` objects. This concludes the implementation of the new C++ function for the producer.
 
-.. warning::
-    Remember to add both the definition within the header file and the implementation within the source file. Also, add docstrings to the source file as documentation of what the function does.
+.. note::
+    Remember to add both the definition within the header file and the implementation within the source file. 
+    Also, add docstrings to the source file as documentation of what the function does.
 
-
-Defining a New Python Producer
-================================
+Defining a new Python producer
+******************************
 
 Now, after we have finished our new C++ function, we want to add it to our configuration. Therefore, we must define a new Python producer. There are several types of Producers available, more information can be found in the documentation of the Producer classes :ref:`here <Producers>`. In our example, a regular :py:class:`~code_generation.producer.Producer` is sufficient. For the complete definition of the producer, we have to define
 
@@ -99,7 +101,7 @@ Now, after we have finished our new C++ function, we want to add it to our confi
 2. The function call, representing the mapping between the C++ function and the Python function
 3. The input quantities
 4. The output quantities
-5. The scopes in with the producer can run
+5. The scopes in which the producer is allowed to run
 
 In our case, the Producer will look like this:
 
@@ -133,9 +135,9 @@ We set the name of the Producer to be ``ElectronLV``. The call corresponds to th
 The last keyword ``scopes`` is used to specify the scopes in which the producer is available. This makes sense to prevent errors, where the producer is used in a scope that is not specified, e.g. in a final state without any electrons, we would not need to run this producer. Note that the output of this producer is of type ``ROOT::Math::PtEtaPhiMVector``, so it always makes sense to represent that in the name of the quantity in some way for easier understanding.
 
 .. warning::
-    The definition of the producer should be put into a corresponding file in the ``code_generation/producers`` directory.
+    The definition of the producer should be put into a corresponding file in your analysis directory ``analysis_configurations/YOUR_ANALYSIS/producers``.
 
-The quantities themselves that are used also have to be defined. Within CROWN, systematic shifts are tracked within these quantity objects, so if a systematic shift is defined, the quantity object will register the shift. During the code generation, this allows to automatic create the necessary code to calculate all needed systematic shifts. Quantities are defined as
+The quantities themselves that are used also have to be defined. Within CROWN, systematic shifts are tracked within these quantity objects, so if a systematic shift is defined, the quantity object will register the shift. During the code generation, this allows to automatically create the necessary code to calculate all needed systematic shifts. Quantities are defined as
 
 
 .. code-block:: python
@@ -149,7 +151,7 @@ The quantities themselves that are used also have to be defined. Within CROWN, s
 
     Electron_p4s = Quantity("Electron_p4")
 
-The only argument here is the column name of the quantity. The same goes for our new output quantity, however, since it is a new quantity it should be of type :py:class:`~code_generation.quantity.Quantity`, not :py:class:`~code_generation.quantity.NanoAODQuantity`. The quantities are defined in the files found in the ``code_generation/quantities`` directory.
+The only argument here is the column name of the quantity. The same goes for our new output quantity, however, since it is a new quantity it should be of type :py:class:`~code_generation.quantity.Quantity`, not :py:class:`~code_generation.quantity.NanoAODQuantity`. The quantities are defined in the files found in the ``analysis_configurations/YOUR_ANALYSIS/quantities`` directory.
 
 After this, our new producer is now ready to be added to the configuration. To get the producer running, we have to add it to the set of producers, and we have to add the output quantity to the set of required outputs. To learn more about writing a configuration check out :ref:`Writing a CROWN Configuration<Writing a CROWN Configuration>`.
 
@@ -169,15 +171,11 @@ After this, our new producer is now ready to be added to the configuration. To g
         ],
     )
 
-
-
-
-
-Best Practices for Contributions
-=================================
+Best practices for contributions
+********************************
 
 C++ functions
-**************
+-------------
 
 The main purpose of the framework is to be efficient and fast. Therefore, it is essential to write clear and fast C++ functions, with as little overhead as possible. We try to enforce the following minimal requirements for new functions:
 
@@ -187,7 +185,20 @@ The main purpose of the framework is to be efficient and fast. Therefore, it is 
 
 * Use `const` references wherever possible
 
-* Documentation via docstrings directly in the code. These docstrings are then used to automatically generate the documentation.
+* Documentation via docstrings directly in the code. These docstrings are then used to automatically generate the documentation. The prefered format for such a docstring  is
+    
+    .. code-block:: cpp
+
+        /** 
+        * @brief description of the function
+        *
+        * @param name1 short description of the parameter
+        * @param name2 short description of the parameter
+        * ...
+        * 
+        * @return description of the return value, in our case 
+        * it is almost always a RDataFrame with a new column
+        */
 
 * Check the performance using the methods described below. Try to avoid adding functions that will be "fixed later down the line". This will be the beginning of the end of the frameworks' performance.
 
@@ -195,29 +206,36 @@ The main purpose of the framework is to be efficient and fast. Therefore, it is 
 
 * The first argument of the function should always be the dataframe, again with the type ``ROOT::RDF::RNode``.
 
+* For the arguments in general a predefined order is expected. Of coarse some of them are optional if they are not needed for a function.
+    
+    1. The dataframe
+    2. The correctionManager (optional)
+    3. The output quantity (optional)
+    4. The input quantities (optional)
+    5. Additional parameters (optional)
+
 * Add meaningful debug messages to the code, using the provided logging functions.
 
-
-
-Python Producers
-*******************
+Python producers
+----------------
 
 There are different types of producers available
 
-Producer: This is the standard producer class and takes the following arguments:
+Producer: This is the standard producer class. 
+  It takes the following arguments:
 
   * ``<string> name``: Name of the producer showing up in error messages of the Python workflow
   * ``<string> call``: Function call to be embedded into the C++ template. Use curly brackets like ``{parameter_name}`` to mark places where parameters
     of the configuration shall be written. The following keys fulfil special roles and are reserved, therefore:
 
+    * ``{df}``: to be filled with the input dataframe
     * ``{output}``: to be filled with names of output quantities (see :ref:`Python Quantities`) as strings separated by commas
     * ``{output_vec}``: like output but with curly brackets around it representing a C++ vector
     * ``{input}``: to be filled with names of input quantities as strings separated by commas
     * ``{input_vec}``: like input but with curly brackets around it representing a C++ vector
-    * ``{df}``: to be filled with the input dataframe
 
-  * ``<list of quantities> inputs``: input quantities, which are used to fill ``{input}`` and/or ``{input_vec}``. The list can be empty if no inputs are required.
-  * ``<list of quantities> outputs / None``: is used to fill ``{output}`` (not usable if None). Use None (not an empty list) if no output is generated.
+  * ``<list of quantities> input``: input quantities, which are used to fill ``{input}`` and/or ``{input_vec}``. The list can be empty if no inputs are required.
+  * ``<list of quantities> output / None``: is used to fill ``{output}`` (not usable if None). Use None (not an empty list) if no output is generated.
   * ``<list of strings> scopes``: Scopes define certain sections of the production chain. ``global`` is the initial scope, and it can be split into multiple custom scopes working on individual dataframe branches and writing out separate ROOT trees. This list of scopes defines, which scopes the producer can be used in. Dependencies between quantities will be traced separately for each scope. For example, properties of the tau candidates may be generated with the same producer but in different decay channels, which are represented by separate scopes.
 
 VectorProducer: This is an extension of the standard producer class which can be used for C++ producers that need to be called several times with various parameter values.
@@ -232,7 +250,7 @@ ProducerGroup: This object can be used to collect several producers for simplify
     The producer group executes the subproducers first. Optionally, a closing call can be added by filling the ``call``, ``inputs``, and ``output`` arguments accordingly. If set to None, no closing call is added and only the subproducers are executed. A closing call is used to process the outputs of the subproducers forming a new output. In this case, the outputs of the subproducers can be regarded as internal quantities and be set automatically. Initialize the output of subproducers as an empty list if this automated generation of the output quantity is intended. All output quantities of the subproducers (generated automatically or by hand) are appended to the inputs of the closing call.
 
 Python Quantities
-******************
+-----------------
 
 Quantities_ are objects in the Python part that are used to trace the dependency between physical quantities and for bookkeeping, in which systematic variations of a quantity exist.
 Each physical quantity needs to be represented by such a Python object.
@@ -241,20 +259,20 @@ The output collection is defined as a list of such quantities and an individual 
 .. _Quantities: https://github.com/KIT-CMS/CROWN/blob/main/code_generation/quantity.py
 
 Debugging
-**********
+---------
 
 A more verbose version of the framework can be activated by setting a higher debug level. This can be done by setting the argument ``-DDebug=True`` during the cmake build. This will make the code generation, as well as the executable much more verbose.
 
 Profiling
-**********
+---------
 
 Profiling with perf & flamegraph for CPU
------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 See the script https://github.com/KIT-CMS/CROWN/blob/main/profiling/flamegraph.sh.
 
 
 Profiling with valgrind massif for Memory
-------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 See the script https://github.com/KIT-CMS/CROWN/blob/main/profiling/massif.sh.

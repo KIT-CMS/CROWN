@@ -15,7 +15,7 @@ def get_available_namespaces(input):
         input (str): path to xml file
     """
     # the xml namespace is identified via ` kind="namespace">` in the xml file
-    # example: <compound refid="namespacebasefunctions" kind="namespace"><name>basefunctions</name>
+    # example: <compound refid="namespacephysicsobject" kind="namespace"><name>physicsobject</name>
 
     # read in the xml file
     tree = ET.parse(input)
@@ -37,9 +37,9 @@ def update_namespace_docs(available_namespaces, output):
         if namespace not in documented_namespaces:
             # now create a new file for this namespace
             """
-            Metfilter
+            Namespace: Physicsobject
             ***********
-            .. doxygennamespace:: metfilter
+            .. doxygennamespace:: physicsobject
             :members:
             """
             print(f"Creating new docs file for namespace {namespace}")

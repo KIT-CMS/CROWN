@@ -1,10 +1,10 @@
 #ifndef GUARD_SCALEFACTORS_H
 #define GUARD_SCALEFACTORS_H
 
-#include "../include/basefunctions.hxx"
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/RooFunctorThreadsafe.hxx"
+#include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "RooFunctor.h"
 #include "RooWorkspace.h"
@@ -38,7 +38,7 @@ ROOT::RDF::RNode id_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
 
     const std::shared_ptr<RooFunctorThreadsafe> id_function =
         loadFunctor(workspace_name, id_functor_name, id_arguments);
-    auto df1 = basefunctions::evaluateWorkspaceFunction(df, id_output,
+    auto df1 = utility::EvaluateWorkspaceFunction(df, id_output,
                                                         id_function, pt, eta);
     return df1;
 }
@@ -69,7 +69,7 @@ ROOT::RDF::RNode iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
 
     const std::shared_ptr<RooFunctorThreadsafe> iso_function =
         loadFunctor(workspace_name, iso_functor_name, iso_arguments);
-    auto df1 = basefunctions::evaluateWorkspaceFunction(
+    auto df1 = utility::EvaluateWorkspaceFunction(
         df, iso_output, iso_function, pt, eta, iso);
     return df1;
 }
@@ -238,7 +238,6 @@ ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
  * @param correctionManager The CorrectionManager object
  * @param pt muon pt
  * @param eta muon eta
- * @param year_id id for the year of data taking and mc compaign
  * @param variation id for the variation of the scale factor "sf" for nominal
  * and "systup"/"systdown" the up/down variation
  * @param iso_output name of the iso scale factor column

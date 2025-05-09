@@ -1,239 +1,343 @@
 #ifndef GUARD_PHYSICSOBJECTS_H
 #define GUARD_PHYSICSOBJECTS_H
 
-namespace physicsobject {
-ROOT::RDF::RNode CutPt(ROOT::RDF::RNode df, const std::string &quantity,
-                       const std::string &maskname, const float &ptThreshold);
-ROOT::RDF::RNode CutEta(ROOT::RDF::RNode df, const std::string &quantity,
-                        const std::string &maskname, const float &EtaThreshold);
-ROOT::RDF::RNode CutDz(ROOT::RDF::RNode df, const std::string &quantity,
-                       const std::string &maskname, const float &Threshold);
-ROOT::RDF::RNode CutDxy(ROOT::RDF::RNode df, const std::string &quantity,
-                        const std::string &maskname, const float &Threshold);
-ROOT::RDF::RNode CutVariableBarrelEndcap(
-    ROOT::RDF::RNode df, const std::string &maskname,
-    const std::string &etaColumnName, const std::string &cutVarColumnName,
-    const float &etaBoundary, const float &lowerThresholdBarrel,
-    const float &upperThresholdBarrel, const float &lowerThresholdEndcap,
-    const float &upperThresholdEndcap);
+#include "../include/utility/utility.hxx"
 
-/// Function to combine a list of masks into a single mask. This is done be
-/// multiplying all input masks
-///
-/// \param[in] df the input dataframe
-/// \param[out] maskname the name of the new mask to be added as column to the
-/// dataframe
-/// \param[in] masks a parameter pack containing an arbitrary number of
-/// `std::vector<std::string>` objects. Each string is the name of a mask to be
-/// combined
-///
-/// \return a dataframe containing the new mask
-template <class... Masks>
+namespace physicsobject {
+
+/**
+ * @brief This function takes multiple masks and applies a logical operation 
+ * ("any_of", "all_of", or "none_of") elemet-wise to generate a combined mask. The 
+ * function ensures that elements are correctly merged based on the given mode:
+ *
+ * - "any_of": The resulting mask contains true values if any element of 
+ * the input masks is true (element-wise)
+ * - "all_of": The resulting mask contains true values if all elements of 
+ * the input masks are true (element-wise)
+ * - "none_of": The resulting mask contains true values if no element of 
+ * the input masks is true (element-wise)
+ *
+ * @tparam Args variadic template parameter pack representing mask columns plus mode
+ * @param df input dataframe
+ * @param outputname name of the output column containing the combined mask
+ * @param args parameter pack of column names that contain the considered masks of 
+ * type `ROOT::RVec<int>`, with the last argument being the mode (`"any_of"`, `"all_of"`, 
+ * or `"none_of"`)
+ *
+ * @return a dataframe containing the new mask as a column
+ *
+ * @note The masks must have the same size, as element-wise operations are performed.
+ */
+template <class... Args>
 inline ROOT::RDF::RNode CombineMasks(ROOT::RDF::RNode df,
-                                     const std::string &maskname,
-                                     const Masks &...masks) {
-    auto multiplyMasks = [](const ROOT::RVec<ROOT::RVec<int>> &x) {
-        ROOT::RVec<int> result(x[0].size(), 1);
-        for (auto &xx : x) {
-            result *= xx;
+                                     const std::string &outputname,
+                                     const Args ...args) {
+    
+    auto argTuple = std::make_tuple(args...);
+    auto mode = utility::extractLastArgument(argTuple);
+
+    std::vector<std::string> MaskList{args...};
+    MaskList.pop_back();  
+    const auto nMasks = sizeof...(Args) - 1;
+
+    auto lambda = [mode](const ROOT::RVec<ROOT::RVec<int>> &masks) {
+        if (mode == std::string("any_of")) {
+            ROOT::RVec<int> result(masks[0].size(), 0);
+            for (auto &mask : masks) {
+                result += mask;
+            }
+            result = ROOT::VecOps::Map(result, [](int x) { return x != 0; });
+            return result;
         }
-        return result;
+        else if (mode == std::string("all_of")) {
+            ROOT::RVec<int> result(masks[0].size(), 1);
+            for (auto &mask : masks) {
+                result *= mask;
+            }
+            return result;
+        }
+        else if (mode == std::string("none_of")) {
+            ROOT::RVec<int> result(masks[0].size(), 0);
+            for (auto &mask : masks) {
+                result += mask;
+            }
+            result = ROOT::VecOps::Map(result, [](int x) { return x != 0; });
+            return result;
+        }
+        else {
+            Logger::get("physicsobject::CombineMasks")->error("Mode {} is not defined!", mode);
+            throw std::runtime_error("Mode is not defined!");
+        }        
     };
-    // std::vector<std::string> MaskList{{masks...}}; does weird things in case
-    // of two arguments in masks
-    std::vector<std::string> MaskList;
-    utility::appendParameterPackToVector(MaskList, masks...);
-    const auto nMasks = sizeof...(Masks);
     return df.Define(
-        maskname, ROOT::RDF::PassAsVec<nMasks, ROOT::RVec<int>>(multiplyMasks),
+        outputname, ROOT::RDF::PassAsVec<nMasks, ROOT::RVec<int>>(lambda),
         MaskList);
 }
-ROOT::RDF::RNode VetoCandInMask(ROOT::RDF::RNode df,
-                                const std::string &outputmaskname,
-                                const std::string &inputmaskname,
-                                const std::string &ditaupair, const int index);
-ROOT::RDF::RNode FilterMasks(ROOT::RDF::RNode df, const std::string &maskname);
-ROOT::RDF::RNode LeptonVetoFlag(ROOT::RDF::RNode df,
-                                const std::string &outputname,
-                                const std::string &vetomap);
-ROOT::RDF::RNode IsEmptyFlag(ROOT::RDF::RNode df, const std::string &outputname,
-                             const std::string &vetomap);
-ROOT::RDF::RNode CutNFlag(ROOT::RDF::RNode df, const std::string &outputname,
-                          const std::string &map, const int &n);
-ROOT::RDF::RNode SelectedObjects(ROOT::RDF::RNode df,
+
+/**
+ * @brief This function defines a mask for objects that satisfy a minimum threshold 
+ * requirement. The mask is created by comparing the values in the specified 
+ * column with the given threshold, marking elements as `1` if they pass 
+ * the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the object column in the NanoAOD for which the 
+ * cut should be applied, expected to be of type `ROOT::RVec<T>`
+ * @param threshold minimum threshold value of type `T`
+ * 
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T> 
+inline ROOT::RDF::RNode CutMin(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &quantity, const T &threshold) {
+    return df.Define(outputname, 
+        [threshold](const ROOT::RVec<T> &values) {
+            ROOT::RVec<int> mask = values >= threshold;
+            return mask;
+        }, 
+        {quantity});
+}
+
+/**
+ * @brief This function defines a mask for objects that satisfy a minimum threshold 
+ * requirement. The mask is created by comparing the absolute values in the specified 
+ * column with the given threshold, marking elements as `1` if they pass 
+ * the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the object column in the NanoAOD for which the 
+ * cut should be applied, expected to be of type `ROOT::RVec<T>`
+ * @param threshold minimum threshold value of type `T`
+ * 
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T> 
+inline ROOT::RDF::RNode CutAbsMin(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &quantity, const T &threshold) {
+    return df.Define(outputname, 
+        [threshold](const ROOT::RVec<T> &values) {
+            ROOT::RVec<int> mask = abs(values) >= threshold;
+            return mask;
+        }, 
+        {quantity});
+}
+
+/**
+ * @brief This function defines a mask for objects that satisfy a maximum threshold 
+ * requirement. The mask is created by comparing the values in the specified 
+ * column with the given threshold, marking elements as `1` if they pass 
+ * the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the object column in the NanoAOD for which the 
+ * cut should be applied, expected to be of type `ROOT::RVec<T>`
+ * @param threshold maximum threshold value of type `T`
+ * 
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T> 
+inline ROOT::RDF::RNode CutMax(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &quantity, const T &threshold) {
+    return df.Define(outputname, 
+        [threshold](const ROOT::RVec<T> &values) {
+            ROOT::RVec<int> mask = values < threshold;
+            return mask;
+        }, 
+        {quantity});
+}
+
+/**
+ * @brief This function defines a mask for objects that satisfy a maximum threshold 
+ * requirement. The mask is created by comparing the absolute values in the specified 
+ * column with the given threshold, marking elements as `1` if they pass 
+ * the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the object column in the NanoAOD for which the 
+ * cut should be applied, expected to be of type `ROOT::RVec<T>`
+ * @param threshold maximum threshold value of type `T`
+ * 
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T> 
+inline ROOT::RDF::RNode CutAbsMax(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &quantity, const T &threshold) {
+    return df.Define(outputname, 
+        [threshold](const ROOT::RVec<T> &values) {
+            ROOT::RVec<int> mask = abs(values) < threshold;
+            return mask;
+        }, 
+        {quantity});
+}
+
+/**
+ * @brief This function defines a mask for objects that satisfy an exact threshold 
+ * requirement. The mask is created by comparing the values in the specified 
+ * column with the given threshold, marking elements as `1` if they pass 
+ * the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the object column in the NanoAOD for which the 
+ * cut should be applied, expected to be of type `ROOT::RVec<T>`
+ * @param threshold exact threshold value of type `T`
+ * 
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T> 
+inline ROOT::RDF::RNode CutEqual(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &quantity, const T &threshold) {
+    return df.Define(outputname, 
+        [threshold](const ROOT::RVec<T> &values) {
+            ROOT::RVec<int> mask = values == threshold;
+            return mask;
+        }, 
+        {quantity});
+}
+
+/**
+ * @brief This function defines a mask for objects that satisfy an exact threshold 
+ * requirement. The mask is created by comparing the absolute values in the specified 
+ * column with the given threshold, marking elements as `1` if they pass 
+ * the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the object column in the NanoAOD for which the 
+ * cut should be applied, expected to be of type `ROOT::RVec<T>`
+ * @param threshold exact threshold value of type `T`
+ * 
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T> 
+inline ROOT::RDF::RNode CutAbsEqual(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &quantity, const T &threshold) {
+    return df.Define(outputname, 
+        [threshold](const ROOT::RVec<T> &values) {
+            ROOT::RVec<int> mask = abs(values) == threshold;
+            return mask;
+        }, 
+        {quantity});
+}
+
+/**
+ * @brief This function checks whether a specified bit (given by `threshold`) is 
+ * set in each element of the input column and creates a new mask column with 
+ * values of `1` if the bit is set, and `0` otherwise. If `threshold` is `0` or 
+ * negative, all values in the mask are set to `1`.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the input column containing the bitmasks of 
+ * type `ROOT::RVec<UChar_t>`
+ * @param threshold bit position to check in each bitmask
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+inline ROOT::RDF::RNode CutBitmask(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &quantity, const int &threshold) {
+    return df.Define(outputname, 
+        [threshold](const ROOT::RVec<UChar_t> &values) {
+            ROOT::RVec<int> mask;
+            
+            for (auto const value : values) {
+                if (threshold > 0)
+                    mask.push_back(std::min(1, int(value & 1 << (threshold - 1))));
+                else
+                    mask.push_back(int(1));
+            }
+            return mask;
+        }, 
+        {quantity});
+}
+
+/**
+ * @brief This function compares each element in the input column against a provided 
+ * `selection` list and returns a mask column where each entry is `1` if the value is 
+ * in the `selection` list and `0` otherwise.
+ *
+ * @tparam T type of values in the input column and the selection list
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the input column containing values to be checked of 
+ * type `ROOT::RVec<T>`
+ * @param selection a vector containing the selection of values of type `T`
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode CutQuantity(ROOT::RDF::RNode df, 
                                  const std::string &outputname,
-                                 const std::string &inputmaskname);
-ROOT::RDF::RNode DeltaRParticleVeto(
-    ROOT::RDF::RNode df, const std::string &output_flag, const std::string &p4,
-    const std::string &particle_mask, const std::string &particle_pt,
-    const std::string &particle_eta, const std::string &particle_phi,
-    const std::string &particle_mass, const float dR_cut);
-ROOT::RDF::RNode ObjectMassCorrectionWithPt(ROOT::RDF::RNode df,
-                                            const std::string &corrected_mass,
-                                            const std::string &raw_mass,
-                                            const std::string &raw_pt,
-                                            const std::string &corrected_pt);
-ROOT::RDF::RNode CheckForDiLeptonPairs(
-    ROOT::RDF::RNode df, const std::string &output_flag,
-    const std::string &leptons_pt, const std::string &leptons_eta,
-    const std::string &leptons_phi, const std::string &leptons_mass,
-    const std::string &leptons_charge, const std::string &leptons_mask,
-    const float dR_cut);
-ROOT::RDF::RNode SelectInt(ROOT::RDF::RNode df, const std::string &maskname,
-                           const std::string &nameID, const int &IDvalue);
-namespace muon {
-ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
-                       const std::string &nameID);
-ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
-                              const std::string &isolationName,
-                              const float &Threshold);
-ROOT::RDF::RNode AntiCutIsolation(ROOT::RDF::RNode df,
-                                  const std::string &maskname,
-                                  const std::string &isolationName,
-                                  const float &Threshold);
-ROOT::RDF::RNode CutIsTrackerOrIsGlobal(ROOT::RDF::RNode df,
-                                        const std::string &isTracker,
-                                        const std::string &isGlobal,
-                                        const std::string &maskname);
-ROOT::RDF::RNode GenerateRndmRVec(ROOT::RDF::RNode df,
-                                  const std::string &outputname,
-                                  const std::string &objCollection, int seed);
-ROOT::RDF::RNode
-applyRoccoRData(ROOT::RDF::RNode df, const std::string &outputname,
-                const std::string &filename, const int &position,
-                const std::string &objCollection,
-                const std::string &chargColumn, const std::string &ptColumn,
-                const std::string &etaColumn, const std::string &phiColumn,
-                int error_set, int error_member);
-ROOT::RDF::RNode
-applyRoccoRMC(ROOT::RDF::RNode df, const std::string &outputname,
-              const std::string &filename, const int &position,
-              const std::string &objCollection, const std::string &chargColumn,
-              const std::string &ptColumn, const std::string &etaColumn,
-              const std::string &phiColumn, const std::string &genPtColumn,
-              const std::string &nTrackerLayersColumn,
-              const std::string &rndmColumn, int error_set, int error_member);
-} // namespace muon
-namespace tau {
-ROOT::RDF::RNode CutDecayModes(ROOT::RDF::RNode df, const std::string &maskname,
-                               const std::string &tau_dms,
-                               const std::vector<int> &SelectedDecayModes);
-ROOT::RDF::RNode CutTauID(ROOT::RDF::RNode df, const std::string &maskname,
-                          const std::string &nameID, const int &idxID);
-ROOT::RDF::RNode
-PtCorrection_eleFake(ROOT::RDF::RNode df,
-                     correctionManager::CorrectionManager &correctionManager,
-                     const std::string &corrected_pt, const std::string &pt,
-                     const std::string &eta, const std::string &decayMode,
-                     const std::string &genMatch, const std::string &sf_file,
-                     const std::string &jsonESname,
-                     const std::string &idAlgorithm,
-                     const std::string &sf_dm0_b, const std::string &sf_dm1_b,
-                     const std::string &sf_dm0_e, const std::string &sf_dm1_e);
-// deprecated version without CorrectionManager
-ROOT::RDF::RNode
-PtCorrection_eleFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                     const std::string &pt, const std::string &eta,
-                     const std::string &decayMode, const std::string &genMatch,
-                     const std::string &sf_file, const std::string &jsonESname,
-                     const std::string &idAlgorithm,
-                     const std::string &sf_dm0_b, const std::string &sf_dm1_b,
-                     const std::string &sf_dm0_e, const std::string &sf_dm1_e);
-ROOT::RDF::RNode
-PtCorrection_muFake(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correctionManager,
-                    const std::string &corrected_pt, const std::string &pt,
-                    const std::string &eta, const std::string &decayMode,
-                    const std::string &genMatch, const std::string &sf_file,
-                    const std::string &jsonESname,
-                    const std::string &idAlgorithm, const std::string &sf_es);
-// deprecated version without CorrectionManager
-ROOT::RDF::RNode
-PtCorrection_muFake(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                    const std::string &pt, const std::string &eta,
-                    const std::string &decayMode, const std::string &genMatch,
-                    const std::string &sf_file, const std::string &jsonESname,
-                    const std::string &idAlgorithm, const std::string &sf_es);
-ROOT::RDF::RNode
-PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                     const std::string &pt, const std::string &decayMode,
-                     const float &sf_dm0, const float &sf_dm1,
-                     const float &sf_dm10, const float &sf_dm11);
-ROOT::RDF::RNode
-PtCorrection_genTau(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correctionManager,
-                    const std::string &corrected_pt, const std::string &pt,
-                    const std::string &eta, const std::string &decayMode,
-                    const std::string &genMatch, const std::string &sf_file,
-                    const std::string &jsonESname,
-                    const std::string &idAlgorithm, const std::string &DM0,
-                    const std::string &DM1, const std::string &DM10,
-                    const std::string &DM11);
-// deprecated version without CorrectionManager
-ROOT::RDF::RNode
-PtCorrection_genTau(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                    const std::string &pt, const std::string &eta,
-                    const std::string &decayMode, const std::string &genMatch,
-                    const std::string &sf_file, const std::string &jsonESname,
-                    const std::string &idAlgorithm, const std::string &DM0,
-                    const std::string &DM1, const std::string &DM10,
-                    const std::string &DM11);
-} // namespace tau
+                                 const std::string &quantity, 
+                                 const std::vector<T> &selection) {
+    return df.Define(outputname,
+        [selection](const ROOT::RVec<T> &values) {
+            ROOT::RVec<int> mask;
+            for (auto const value : values) {
+                mask.push_back(int(std::find(selection.begin(),
+                                             selection.end(),
+                                             value) != selection.end()));
+            }
+            return mask;
+        },
+        {quantity});
+}
 
-namespace electron {
-
-ROOT::RDF::RNode
-PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &corrected_pt,
-                     const std::string &pt, const std::string &eta,
-                     const float &sf_barrel, const float &sf_endcap);
-ROOT::RDF::RNode
-PtCorrection(ROOT::RDF::RNode df,
-             correctionManager::CorrectionManager &correctionManager,
-             const std::string &corrected_pt, const std::string &pt,
-             const std::string &eta, const std::string &sf_barrel,
-             const std::string &sf_endcap, const std::string &sf_file,
-             const std::string &jsonESname);
-// deprecated version without CorrectionManager
-ROOT::RDF::RNode
-PtCorrection(ROOT::RDF::RNode df, const std::string &corrected_pt,
-             const std::string &pt, const std::string &eta,
-             const std::string &sf_barrel, const std::string &sf_endcap,
-             const std::string &sf_file, const std::string &jsonESname);
-ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correctionManager,
-               const std::string &corrected_pt, const std::string &pt,
-               const std::string &eta, const std::string &gain,
-               const std::string &ES_sigma_up, const std::string &ES_sigma_down,
-               const std::string &era, const std::string &variation,
-               const std::string &ES_file);
-// deprecated version without CorrectionManager
-ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df, const std::string &corrected_pt,
-               const std::string &pt, const std::string &eta,
-               const std::string &gain, const std::string &ES_sigma_up,
-               const std::string &ES_sigma_down, const std::string &era,
-               const std::string &variation, const std::string &ES_file);
-ROOT::RDF::RNode CutID(ROOT::RDF::RNode df, const std::string &maskname,
-                       const std::string &nameID);
-ROOT::RDF::RNode CutCBID(ROOT::RDF::RNode df, const std::string &maskname,
-                         const std::string &nameID, const int &IDvalue);
-ROOT::RDF::RNode AntiCutCBID(ROOT::RDF::RNode df, const std::string &maskname,
-                             const std::string &nameID, const int &IDvalue);
-ROOT::RDF::RNode CutIsolation(ROOT::RDF::RNode df, const std::string &maskname,
-                              const std::string &isolationName,
-                              const float &Threshold);
-ROOT::RDF::RNode CutIP(ROOT::RDF::RNode df, const std::string &eta,
-                       const std::string &detasc, const std::string &dxy,
-                       const std::string &dz, const std::string &maskname,
-                       const float &abseta_eb_ee, const float &max_dxy_eb,
-                       const float &max_dz_eb, const float &max_dxy_ee,
-                       const float &max_dz_ee);
-
-ROOT::RDF::RNode CutGap(ROOT::RDF::RNode df, const std::string &eta,
-                        const std::string &detasc, const std::string &maskname,
-                        const float &end_eb, const float &start_ee);
-
-} // end namespace electron
+ROOT::RDF::RNode CutQuantityBarrelEndcap(ROOT::RDF::RNode df, 
+                 const std::string &outputname, const std::string &eta, 
+                 const std::string &quantity, const float &barrel_endcap_boundary, 
+                 const float &lower_threshold_barrel, const float &upper_threshold_barrel, 
+                 const float &lower_threshold_endcap, const float &upper_threshold_endcap);
+ROOT::RDF::RNode VetoSingleObject(ROOT::RDF::RNode df,
+                            const std::string &outputname,
+                            const std::string &object_mask,
+                            const int index);
+ROOT::RDF::RNode VetoSingleObject(ROOT::RDF::RNode df,
+                            const std::string &outputname,
+                            const std::string &object_mask,
+                            const std::string &index_vector, 
+                            const int position);
+ROOT::RDF::RNode Count(ROOT::RDF::RNode df, 
+                       const std::string &outputname,
+                       const std::string &object_mask);
+ROOT::RDF::RNode CountFlag(ROOT::RDF::RNode df, 
+                           const std::string &outputname,
+                           const std::string &object_mask, 
+                           const int &number);
+ROOT::RDF::RNode Veto(ROOT::RDF::RNode df,
+                      const std::string &outputname,
+                      const std::string &object_mask);
+ROOT::RDF::RNode OverlapVeto(ROOT::RDF::RNode df, 
+                 const std::string &outputname, const std::string &target_p4,
+                 const std::string &object_pt, const std::string &object_eta, 
+                 const std::string &object_phi, const std::string &object_mass, 
+                 const std::string &object_mask, const float min_delta_r);
+ROOT::RDF::RNode LeptonPairVeto(ROOT::RDF::RNode df, 
+                 const std::string &outputname, const std::string &lepton_pt, 
+                 const std::string &lepton_eta, const std::string &lepton_phi, 
+                 const std::string &lepton_mass, const std::string &lepton_charge, 
+                 const std::string &lepton_mask, const float max_delta_r);
+ROOT::RDF::RNode GetIndices(ROOT::RDF::RNode df,
+                            const std::string &outputname,
+                            const std::string &inputmaskname);
+ROOT::RDF::RNode OrderByPt(ROOT::RDF::RNode df,
+                           const std::string &outputname,
+                           const std::string &object_pt,
+                           const std::string &object_mask);
+ROOT::RDF::RNode MassCorrectionWithPt(ROOT::RDF::RNode df,
+                                      const std::string &outputname,
+                                      const std::string &raw_mass,
+                                      const std::string &raw_pt,
+                                      const std::string &corrected_pt);
 } // namespace physicsobject
 #endif /* GUARD_PHYSICSOBJECTS_H */
