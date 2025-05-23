@@ -18,8 +18,9 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift);
 ROOT::RDF::RNode
-PtCorrectionData(ROOT::RDF::RNode df, const std::string &outputname,
+PtCorrectionData(ROOT::RDF::RNode df, 
                  correctionManager::CorrectionManager &correction_manager,
+                 const std::string &outputname,
                  const std::string &jet_pt, const std::string &jet_eta,
                  const std::string &jet_area, const std::string &jet_raw_factor, 
                  const std::string &rho, const std::string &jec_file, 
