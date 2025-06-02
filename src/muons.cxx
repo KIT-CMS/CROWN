@@ -6,7 +6,6 @@
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/RoccoR.hxx"
 #include "../include/utility/utility.hxx"
-// #include "../include/utility/RooFunctorThreadsafe.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "RooFunctor.h"
