@@ -133,23 +133,6 @@ tau_trigger_sf(ROOT::RDF::RNode df, const std::string &decaymode,
                const std::string &sf_file, const std::string &correctionset);
 } // namespace tau
 
-namespace electron {
-
-ROOT::RDF::RNode id(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correctionManager,
-                    const std::string &pt, const std::string &eta,
-                    const std::string &year_id, const std::string &wp,
-                    const std::string &variation, const std::string &id_output,
-                    const std::string &sf_file, const std::string &idAlgorithm);
-// Deprecated function without CorrectionManager
-ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &pt,
-                    const std::string &eta, const std::string &year_id,
-                    const std::string &wp, const std::string &variation,
-                    const std::string &id_output, const std::string &sf_file,
-                    const std::string &idAlgorithm);
-} // namespace electron
-// namespace electron
-
 namespace jet {
 
 ROOT::RDF::RNode

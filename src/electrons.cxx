@@ -42,6 +42,8 @@ namespace electron {
  * for "nominal" nothing is done because energy correction is already applied
  *
  * @return a dataframe containing the varied electron transverse momenta
+ *
+ * @note TODO: This function should be extended to support Run3
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
@@ -188,6 +190,70 @@ CutInteractionPoint(ROOT::RDF::RNode df, const std::string &outputname,
     auto df1 = df.Define(outputname, lambda, {eta, delta_eta_sc, dxy, dz});
     return df1;
 }
+
+namespace scalefactor {
+
+/**
+ * @brief This function calculates electron ID scale factors (SFs) for a single
+ * electron dependening on its pseudorapidity (\f$\eta\f$) and transverse
+ * momentum
+ * (\f$p_T\f$). The scale factors are loaded from a correctionlib file using a
+ * specified scale factor name and variation.
+ *
+ * Recommendations by EgammaPOG:
+ * - [Run2](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018)
+ * - [Run3](https://twiki.cern.ch/twiki/bin/view/CMS/EgammSFandSSRun3)
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * electron scale factor file
+ * @param outputname name of the output column containing the ID scale factor
+ * @param pt name of the column containing the transverse momentum of an
+ * electron
+ * @param eta name of the column containing the pseudorapidity of an electron
+ * @param era string with the era name of a data taking period, e.g.
+ * "2016preVFP"
+ * @param wp working point of the electron id that should be used, e.g.
+ * "Medium", "wp90noiso", ...
+ * @param sf_file path to the file with the electron scale factors
+ * @param sf_name name of the electron scale factor for the ID correction,
+ * e.g. "UL-Electron-ID-SF"
+ * @param variation name the scale factor variation, "sf" for the nominal
+ * scale factor and "sfup"/"sfdown" for the up/down variation
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
+                    const std::string &outputname, const std::string &pt,
+                    const std::string &eta, const std::string &era,
+                    const std::string &wp, const std::string &sf_file,
+                    const std::string &sf_name, const std::string &variation) {
+    Logger::get("physicsobject::electron::scalefactor::Id")
+        ->debug("Setting up functions for electron id sf with correctionlib");
+    Logger::get("physicsobject::electron::scalefactor::Id")
+        ->debug("ID - Name {}", sf_name);
+    auto evaluator = correctionManager.loadCorrection(sf_file, sf_name);
+    auto df1 = df.Define(
+        outputname,
+        [evaluator, era, sf_name, wp, variation](const float &pt,
+                                                 const float &eta) {
+            Logger::get("physicsobject::electron::scalefactor::Id")
+                ->debug("Era {}, Variation {}, WP {}", era, variation, wp);
+            Logger::get("physicsobject::electron::scalefactor::Id")
+                ->debug("ID - pt {}, eta {}", pt, eta);
+            double sf = 1.;
+            if (pt >= 0.0) {
+                sf = evaluator->evaluate({era, variation, wp, eta, pt});
+            }
+            Logger::get("physicsobject::electron::scalefactor::Id")
+                ->debug("Scale Factor {}", sf);
+            return sf;
+        },
+        {pt, eta});
+    return df1;
+}
+} // namespace scalefactor
 } // namespace electron
 } // namespace physicsobject
 #endif /* GUARD_ELECTRONS_H */
