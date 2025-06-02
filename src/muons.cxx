@@ -5,7 +5,8 @@
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/RoccoR.hxx"
-#include "../include/utility/RooFunctorThreadsafe.hxx"
+#include "../include/utility/utility.hxx"
+// #include "../include/utility/RooFunctorThreadsafe.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "RooFunctor.h"
@@ -363,7 +364,7 @@ Trigger(ROOT::RDF::RNode df,
                 if (pt >= 0.0 && std::abs(eta) >= 0.0) {
                     sf = evaluator->evaluate({std::abs(eta), pt, variation});
                 }
-            } catch (const std::out_of_range &e) {
+            } catch (const std::runtime_error &e) {
                 // this error can occur because the pt range starts at different
                 // values for different triggers
                 Logger::get("physicsobject::muon::scalefactor::Trigger")
