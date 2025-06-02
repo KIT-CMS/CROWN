@@ -8,6 +8,21 @@ from code_generation.producer import ExtendedVectorProducer
 # The readout is done via correctionlib
 ############################
 
+Muon_1_Reco_SF = Producer(
+    name="MuonReco_SF",
+    call="""physicsobject::muon::scalefactor::Reco(
+        {df}, 
+        correctionManager, 
+        {output},
+        {input},
+        "{muon_sf_file}",
+        "{muon_reco_sf_name}",
+        "{muon_sf_varation}")
+        """,
+    input=[q.pt_1, q.eta_1],
+    output=[q.reco_wgt_mu_1],
+    scopes=["mt", "mm"],
+)
 Muon_1_ID_SF = Producer(
     name="MuonID_SF",
     call="""physicsobject::muon::scalefactor::Id(
@@ -36,6 +51,21 @@ Muon_1_Iso_SF = Producer(
         """,
     input=[q.pt_1, q.eta_1],
     output=[q.iso_wgt_mu_1],
+    scopes=["mt", "mm"],
+)
+Muon_1_Trigger_SF = Producer(
+    name="MuonTrigger_SF",
+    call="""physicsobject::muon::scalefactor::Trigger(
+        {df}, 
+        correctionManager, 
+        {output},
+        {input},
+        "{muon_sf_file}",
+        "{muon_trg_sf_name}",
+        "{muon_sf_varation}")
+        """,
+    input=[q.pt_1, q.eta_1],
+    output=[q.trg_wgt_mu_1],
     scopes=["mt", "mm"],
 )
 Muon_2_ID_SF = Producer(
@@ -76,8 +106,10 @@ MuonIDIso_SF = ProducerGroup(
     scopes=["mt", "em", "mm"],
     subproducers={
         "mt": [
+            Muon_1_Reco_SF,
             Muon_1_ID_SF,
             Muon_1_Iso_SF,
+            Muon_1_Trigger_SF,
         ],
         "em": [
             Muon_2_ID_SF,
