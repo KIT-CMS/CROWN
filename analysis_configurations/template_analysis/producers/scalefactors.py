@@ -8,14 +8,14 @@ from code_generation.producer import Producer, ProducerGroup
 
 Muon_1_Reco_SF = Producer(
     name="Muon_1_Reco_SF",
-    call="""scalefactor::muon::reco(
+    call="""physicsobject::muon::scalefactor::Reco(
         {df}, 
         correctionManager, 
-        {input}, 
-        "{muon_sf_varation}", 
-        {output}, 
-        "{muon_sf_file}", 
-        "{muon_reco_sf_name}")
+        {output},
+        {input},
+        "{muon_sf_file}",
+        "{muon_reco_sf_name}",
+        "{muon_sf_varation}")
         """,
     input=[q.pt_1, q.eta_1],
     output=[q.reco_wgt_mu_1],
@@ -23,14 +23,14 @@ Muon_1_Reco_SF = Producer(
 )
 Muon_1_ID_SF = Producer(
     name="Muon_1_ID_SF",
-    call="""scalefactor::muon::id(
+    call="""physicsobject::muon::scalefactor::Id(
         {df}, 
         correctionManager, 
-        {input}, 
-        "{muon_sf_varation}", 
-        {output}, 
-        "{muon_sf_file}", 
-        "{muon_id_sf_name}")
+        {output},
+        {input},
+        "{muon_sf_file}",
+        "{muon_id_sf_name}",
+        "{muon_sf_varation}")
         """,
     input=[q.pt_1, q.eta_1],
     output=[q.id_wgt_mu_1],
@@ -38,14 +38,14 @@ Muon_1_ID_SF = Producer(
 )
 Muon_1_Iso_SF = Producer(
     name="Muon_1_Iso_SF",
-    call="""scalefactor::muon::iso(
+    call="""physicsobject::muon::scalefactor::Iso(
         {df}, 
         correctionManager, 
-        {input}, 
-        "{muon_sf_varation}", 
-        {output}, 
-        "{muon_sf_file}", 
-        "{muon_iso_sf_name}")
+        {output},
+        {input},
+        "{muon_sf_file}",
+        "{muon_iso_sf_name}",
+        "{muon_sf_varation}")
         """,
     input=[q.pt_1, q.eta_1],
     output=[q.iso_wgt_mu_1],
@@ -54,14 +54,14 @@ Muon_1_Iso_SF = Producer(
 
 Muon_2_Reco_SF = Producer(
     name="Muon_2_Reco_SF",
-    call="""scalefactor::muon::reco(
+    call="""physicsobject::muon::scalefactor::Reco(
         {df}, 
         correctionManager, 
-        {input}, 
-        "{muon_sf_varation}", 
-        {output}, 
-        "{muon_sf_file}", 
-        "{muon_reco_sf_name}")
+        {output},
+        {input},
+        "{muon_sf_file}",
+        "{muon_reco_sf_name}",
+        "{muon_sf_varation}")
         """,
     input=[q.pt_2, q.eta_2],
     output=[q.reco_wgt_mu_2],
@@ -69,14 +69,14 @@ Muon_2_Reco_SF = Producer(
 )
 Muon_2_ID_SF = Producer(
     name="Muon_2_ID_SF",
-    call="""scalefactor::muon::id(
+    call="""physicsobject::muon::scalefactor::Id(
         {df}, 
         correctionManager, 
-        {input}, 
-        "{muon_sf_varation}", 
-        {output}, 
-        "{muon_sf_file}", 
-        "{muon_id_sf_name}")
+        {output},
+        {input},
+        "{muon_sf_file}",
+        "{muon_id_sf_name}",
+        "{muon_sf_varation}")
         """,
     input=[q.pt_2, q.eta_2],
     output=[q.id_wgt_mu_2],
@@ -84,14 +84,14 @@ Muon_2_ID_SF = Producer(
 )
 Muon_2_Iso_SF = Producer(
     name="Muon_2_Iso_SF",
-    call="""scalefactor::muon::iso(
+    call="""physicsobject::muon::scalefactor::Iso(
         {df}, 
         correctionManager, 
-        {input}, 
-        "{muon_sf_varation}", 
-        {output}, 
-        "{muon_sf_file}", 
-        "{muon_iso_sf_name}")
+        {output},
+        {input},
+        "{muon_sf_file}",
+        "{muon_iso_sf_name}",
+        "{muon_sf_varation}")
         """,
     input=[q.pt_2, q.eta_2],
     output=[q.iso_wgt_mu_2],

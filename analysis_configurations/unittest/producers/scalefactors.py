@@ -8,44 +8,16 @@ from code_generation.producer import ExtendedVectorProducer
 # The readout is done via correctionlib
 ############################
 
-Muon_1_ID_SF_RooWorkspace = Producer(
-    name="MuonID_SF_RooWorkspace",
-    call="""scalefactor::muon::id_rooworkspace(
-        {df}, 
-        {input}, 
-        {output}, 
-        "{muon_sf_workspace}", 
-        "{muon_sf_id_name}", 
-        "{muon_sf_id_args}")
-        """,
-    input=[q.pt_1, q.eta_1],
-    output=[q.id_wgt_mu_1],
-    scopes=["mt", "mm"],
-)
-Muon_1_Iso_SF_RooWorkspace = Producer(
-    name="MuonIso_SF_RooWorkspace",
-    call="""scalefactor::muon::iso_rooworkspace(
-        {df}, 
-        {input}, 
-        {output}, 
-        "{muon_sf_workspace}", 
-        "{muon_sf_iso_name}", 
-        "{muon_sf_iso_args}")
-        """,
-    input=[q.pt_1, q.eta_1, q.iso_1],
-    output=[q.iso_wgt_mu_1],
-    scopes=["mt", "mm"],
-)
 Muon_1_ID_SF = Producer(
     name="MuonID_SF",
-    call="""scalefactor::muon::id(
+    call="""physicsobject::muon::scalefactor::Id(
         {df}, 
         correctionManager, 
-        {input}, 
-        "{muon_sf_varation}", 
-        {output}, 
-        "{muon_sf_file}", 
-        "{muon_id_sf_name}")
+        {output},
+        {input},
+        "{muon_sf_file}",
+        "{muon_id_sf_name}",
+        "{muon_sf_varation}")
         """,
     input=[q.pt_1, q.eta_1],
     output=[q.id_wgt_mu_1],
@@ -53,57 +25,29 @@ Muon_1_ID_SF = Producer(
 )
 Muon_1_Iso_SF = Producer(
     name="MuonIso_SF",
-    call="""scalefactor::muon::iso(
+    call="""physicsobject::muon::scalefactor::Iso(
         {df}, 
         correctionManager, 
-        {input}, 
-        "{muon_sf_varation}", 
-        {output}, 
-        "{muon_sf_file}", 
-        "{muon_iso_sf_name}")
+        {output},
+        {input},
+        "{muon_sf_file}",
+        "{muon_id_sf_name}",
+        "{muon_sf_varation}")
         """,
     input=[q.pt_1, q.eta_1],
     output=[q.iso_wgt_mu_1],
     scopes=["mt", "mm"],
 )
-Muon_2_ID_SF_RooWorkspace = Producer(
-    name="MuonID_SF_RooWorkspace",
-    call="""scalefactor::muon::id_rooworkspace(
-        {df}, 
-        {input}, 
-        {output}, 
-        "{muon_sf_workspace}", 
-        "{muon_sf_id_name}", 
-        "{muon_sf_id_args}")
-        """,
-    input=[q.pt_2, q.eta_2],
-    output=[q.id_wgt_mu_2],
-    scopes=["em", "mm"],
-)
-Muon_2_Iso_SF_RooWorkspace = Producer(
-    name="MuonIso_SF_RooWorkspace",
-    call="""scalefactor::muon::iso_rooworkspace(
-        {df}, 
-        {input}, 
-        {output}, 
-        "{muon_sf_workspace}", 
-        "{muon_sf_iso_name}", 
-        "{muon_sf_iso_args}")
-        """,
-    input=[q.pt_2, q.eta_2, q.iso_2],
-    output=[q.iso_wgt_mu_2],
-    scopes=["em", "mm"],
-)
 Muon_2_ID_SF = Producer(
     name="MuonID_SF",
-    call="""scalefactor::muon::id(
+    call="""physicsobject::muon::scalefactor::Id(
         {df}, 
         correctionManager, 
-        {input}, 
-        "{muon_sf_varation}", 
-        {output}, 
-        "{muon_sf_file}", 
-        "{muon_id_sf_name}")
+        {output},
+        {input},
+        "{muon_sf_file}",
+        "{muon_id_sf_name}",
+        "{muon_sf_varation}")
         """,
     input=[q.pt_2, q.eta_2],
     output=[q.id_wgt_mu_2],
@@ -111,14 +55,14 @@ Muon_2_ID_SF = Producer(
 )
 Muon_2_Iso_SF = Producer(
     name="MuonIso_SF",
-    call="""scalefactor::muon::iso(
+    call="""physicsobject::muon::scalefactor::Iso(
         {df}, 
         correctionManager, 
-        {input}, 
-        "{muon_sf_varation}", 
-        {output}, 
-        "{muon_sf_file}", 
-        "{muon_iso_sf_name}")
+        {output},
+        {input},
+        "{muon_sf_file}",
+        "{muon_id_sf_name}",
+        "{muon_sf_varation}")
         """,
     input=[q.pt_2, q.eta_2],
     output=[q.iso_wgt_mu_2],
@@ -146,6 +90,63 @@ MuonIDIso_SF = ProducerGroup(
             Muon_2_Iso_SF,
         ],
     },
+)
+
+Muon_1_ID_SF_RooWorkspace = Producer(
+    name="MuonID_SF_RooWorkspace",
+    call="""physicsobject::muon::scalefactor::Id_rooworkspace(
+        {df}, 
+        {input}, 
+        {output}, 
+        "{muon_sf_workspace}", 
+        "{muon_sf_id_name}", 
+        "{muon_sf_id_args}")
+        """,
+    input=[q.pt_1, q.eta_1],
+    output=[q.id_wgt_mu_1],
+    scopes=["mt", "mm"],
+)
+Muon_1_Iso_SF_RooWorkspace = Producer(
+    name="MuonIso_SF_RooWorkspace",
+    call="""physicsobject::muon::scalefactor::Iso_rooworkspace(
+        {df}, 
+        {input}, 
+        {output}, 
+        "{muon_sf_workspace}", 
+        "{muon_sf_iso_name}", 
+        "{muon_sf_iso_args}")
+        """,
+    input=[q.pt_1, q.eta_1, q.iso_1],
+    output=[q.iso_wgt_mu_1],
+    scopes=["mt", "mm"],
+)
+Muon_2_ID_SF_RooWorkspace = Producer(
+    name="MuonID_SF_RooWorkspace",
+    call="""physicsobject::muon::scalefactor::Id_rooworkspace(
+        {df}, 
+        {input}, 
+        {output}, 
+        "{muon_sf_workspace}", 
+        "{muon_sf_id_name}", 
+        "{muon_sf_id_args}")
+        """,
+    input=[q.pt_2, q.eta_2],
+    output=[q.id_wgt_mu_2],
+    scopes=["em", "mm"],
+)
+Muon_2_Iso_SF_RooWorkspace = Producer(
+    name="MuonIso_SF_RooWorkspace",
+    call="""physicsobject::muon::scalefactor::Iso_rooworkspace(
+        {df}, 
+        {input}, 
+        {output}, 
+        "{muon_sf_workspace}", 
+        "{muon_sf_iso_name}", 
+        "{muon_sf_iso_args}")
+        """,
+    input=[q.pt_2, q.eta_2, q.iso_2],
+    output=[q.iso_wgt_mu_2],
+    scopes=["em", "mm"],
 )
 MuonIDIso_SF_RooWorkspace = ProducerGroup(
     name="MuonIDIso_SF_RooWorkspace",
