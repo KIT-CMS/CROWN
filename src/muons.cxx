@@ -426,7 +426,7 @@ ROOT::RDF::RNode Id_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
  *
  * @return a new dataframe containing the new column
  *
- * * @warning This function is deprecated and should not be used!
+ * @warning This function is deprecated and should not be used!
  */
 ROOT::RDF::RNode Iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
                                   const std::string &eta,
