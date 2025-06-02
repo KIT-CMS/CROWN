@@ -51,7 +51,7 @@ namespace muon {
  *
  * @return a dataframe with the new column
  *
- * @todo Corrections for Run3 are not yet implemented
+ * @note TODO: Corrections for Run3 are not yet implemented
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df, const std::string &outputname,
@@ -120,7 +120,7 @@ PtCorrectionMC(ROOT::RDF::RNode df, const std::string &outputname,
  *
  * @return a dataframe with the new column
  *
- * @todo Corrections for Run3 are not yet implemented
+ * @note TODO: Corrections for Run3 are not yet implemented
  */
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df, const std::string &outputname,
