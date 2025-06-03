@@ -92,6 +92,7 @@ ROOT::RDF::RNode id_vsJet_lt_embedding(
 ROOT::RDF::RNode id_vsJet_tt_embedding(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correctionManager,
+    const std::string &pt,
     const std::string &decaymode, const std::string &wp,
     const std::string &sf_vsjet_tauDM0, const std::string &sf_vsjet_tauDM1,
     const std::string &sf_vsjet_tauDM10, const std::string &sf_vsjet_tauDM11,

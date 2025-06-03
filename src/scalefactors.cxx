@@ -397,7 +397,7 @@ id_vsJet_lt(ROOT::RDF::RNode df,
                             sf_vsjet_tau500to1000, sf_vsjet_tau1000toinf,
                             sf_dependence, selectedDMs,
                             idAlgorithm](const float &pt, const int &decayMode,
-                                         const UChar_t &genMatch) {
+                                         const int &genMatch) {
         Logger::get("TauIDvsJet_lt_SF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes default
         // values due to tau energy correction shifts below good tau pt
@@ -519,7 +519,7 @@ ROOT::RDF::RNode id_vsJet_lt(
                             sf_vsjet_tau500to1000, sf_vsjet_tau1000toinf,
                             sf_dependence, selectedDMs,
                             idAlgorithm](const float &pt, const int &decayMode,
-                                         const UChar_t &genMatch) {
+                                         const int &genMatch) {
         Logger::get("TauIDvsJet_lt_SF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes default
         // values due to tau energy correction shifts below good tau pt
@@ -755,6 +755,7 @@ factor
 ROOT::RDF::RNode id_vsJet_tt_embedding(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correctionManager,
+    const std::string &pt,
     const std::string &decaymode, const std::string &wp,
     const std::string &sf_vsjet_tauDM0, const std::string &sf_vsjet_tauDM1,
     const std::string &sf_vsjet_tauDM10, const std::string &sf_vsjet_tauDM11,
@@ -768,29 +769,29 @@ ROOT::RDF::RNode id_vsJet_tt_embedding(
     auto evaluator = correctionManager.loadCorrection(sf_file, correctionset);
     auto idSF_calculator = [evaluator, wp, sf_vsjet_tauDM0, sf_vsjet_tauDM1,
                             sf_vsjet_tauDM10, sf_vsjet_tauDM11,
-                            correctionset](const int &decaymode) {
+                            correctionset](const float &pt, const int &decaymode) {
         double sf = 1.;
         Logger::get("TauIDvsJet_tt_SF_embedding")
-            ->debug("ID {} - decaymode {}, wp {} "
+            ->debug("ID {} - decaymode {}, wp {}, pt {} "
                     "sf_vsjet_tauDM0 {}, sf_vsjet_tauDM1 {}, "
                     "sf_vsjet_tauDM10{}, sf_vsjet_tauDM11 {}, ",
-                    correctionset, decaymode, wp, sf_vsjet_tauDM0,
+                    correctionset, decaymode, wp, pt, sf_vsjet_tauDM0,
                     sf_vsjet_tauDM1, sf_vsjet_tauDM10, sf_vsjet_tauDM11);
         if (decaymode == 0) {
-            sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM0, wp});
+            sf = evaluator->evaluate({pt, decaymode, sf_vsjet_tauDM0, wp});
         } else if (decaymode == 1) {
-            sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM1, wp});
+            sf = evaluator->evaluate({pt, decaymode, sf_vsjet_tauDM1, wp});
         } else if (decaymode == 10) {
-            sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM10, wp});
+            sf = evaluator->evaluate({pt, decaymode, sf_vsjet_tauDM10, wp});
         } else if (decaymode == 11) {
-            sf = evaluator->evaluate({decaymode, sf_vsjet_tauDM11, wp});
+            sf = evaluator->evaluate({pt, decaymode, sf_vsjet_tauDM11, wp});
         } else {
             sf = 1.;
         }
         Logger::get("TauIDvsJet_tt_SF_embedding")->debug("Scale Factor {}", sf);
         return sf;
     };
-    auto df1 = df.Define(id_output, idSF_calculator, {decaymode});
+    auto df1 = df.Define(id_output, idSF_calculator, {pt, decaymode});
     return df1;
 }
 /**
@@ -927,7 +928,7 @@ ROOT::RDF::RNode id_vsJet_tt(
                             sf_vsjet_tauDM1, sf_vsjet_tauDM10, sf_vsjet_tauDM11,
                             sf_dependence, selectedDMs,
                             idAlgorithm](const float &pt, const int &decayMode,
-                                         const UChar_t &genMatch) {
+                                         const int &genMatch) {
         Logger::get("TauIDvsJet_tt_SF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes default
         // values due to tau energy correction shifts below good tau pt
@@ -1038,7 +1039,7 @@ ROOT::RDF::RNode id_vsJet_tt(
                             sf_vsjet_tauDM1, sf_vsjet_tauDM10, sf_vsjet_tauDM11,
                             sf_dependence, selectedDMs,
                             idAlgorithm](const float &pt, const int &decayMode,
-                                         const UChar_t &genMatch) {
+                                         const int &genMatch) {
         Logger::get("TauIDvsJet_tt_SF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes default
         // values due to tau energy correction shifts below good tau pt
@@ -1142,7 +1143,7 @@ id_vsEle(ROOT::RDF::RNode df,
     auto idSF_calculator = [evaluator, wp, sf_vsele_barrel, sf_vsele_endcap,
                             selectedDMs,
                             idAlgorithm](const float &eta, const int &decayMode,
-                                         const UChar_t &genMatch) {
+                                         const int &genMatch) {
         double sf = 1.;
         Logger::get("TauIDvsEleSF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes
@@ -1238,7 +1239,7 @@ id_vsEle(ROOT::RDF::RNode df, const std::string &eta,
     auto idSF_calculator = [evaluator, wp, sf_vsele_barrel, sf_vsele_endcap,
                             selectedDMs,
                             idAlgorithm](const float &eta, const int &decayMode,
-                                         const UChar_t &genMatch) {
+                                         const int &genMatch) {
         double sf = 1.;
         Logger::get("TauIDvsEleSF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes
@@ -1340,7 +1341,7 @@ id_vsMu(ROOT::RDF::RNode df,
                             sf_vsmu_wheel3, sf_vsmu_wheel4, sf_vsmu_wheel5,
                             selectedDMs,
                             idAlgorithm](const float &eta, const int &decayMode,
-                                         const UChar_t &genMatch) {
+                                         const int &genMatch) {
         double sf = 1.;
         Logger::get("TauIDvsMuSF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes
@@ -1457,7 +1458,7 @@ id_vsMu(ROOT::RDF::RNode df, const std::string &eta,
                             sf_vsmu_wheel3, sf_vsmu_wheel4, sf_vsmu_wheel5,
                             selectedDMs,
                             idAlgorithm](const float &eta, const int &decayMode,
-                                         const UChar_t &genMatch) {
+                                         const int &genMatch) {
         double sf = 1.;
         Logger::get("TauIDvsMuSF")->debug("ID - decayMode {}", decayMode);
         // only calculate SFs for allowed tau decay modes (also excludes

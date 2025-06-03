@@ -24,9 +24,9 @@ CorrectionManager::loadCorrection(const std::string &filePath,
     auto filePath_it = correction_map.find(filePath);
     if (filePath_it == correction_map.end()) {
         Logger::get("CorrectionManager")
-            ->debug("CorrectionFile {} not loaded yet, adding it to the "
-                    "CorrectionManager...",
-                    filePath);
+            ->debug("CorrectionFile {} not loaded yet, adding {} to the "
+                    "CorrectionManager...", 
+                    filePath, corrName);
         auto result = correction_map.emplace(
             filePath,
             std::unordered_map<
