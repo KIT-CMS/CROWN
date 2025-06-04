@@ -13,7 +13,7 @@ PtCorrection(ROOT::RDF::RNode df,
              correctionManager::CorrectionManager &correction_manager,
              const std::string &outputname, const std::string &pt,
              const std::string &eta, const std::string &es_file,
-             const std::string &correction_name, 
+             const std::string &correction_name,
              const std::string &variation_barrel,
              const std::string &variation_endcap);
 } // namespace electron
