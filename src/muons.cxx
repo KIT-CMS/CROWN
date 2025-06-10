@@ -448,7 +448,7 @@ ROOT::RDF::RNode Iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
                                                   pt, eta, iso);
     return df1;
 }
-} // namespace scalefactor
+} // end namespace scalefactor
 } // end namespace muon
-} // namespace physicsobject
+} // end namespace physicsobject
 #endif /* GUARD_MUONS_H */

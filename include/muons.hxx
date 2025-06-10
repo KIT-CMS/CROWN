@@ -56,7 +56,7 @@ ROOT::RDF::RNode Iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
                                   const std::string &workspace_name,
                                   const std::string &iso_functor_name,
                                   const std::string &iso_arguments);
-} // namespace scalefactor
-} // namespace muon
-} // namespace physicsobject
+} // end namespace scalefactor
+} // end namespace muon
+} // end namespace physicsobject
 #endif /* GUARD_MUONS_H */

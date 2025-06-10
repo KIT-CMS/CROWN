@@ -16,7 +16,7 @@ PtCorrection(ROOT::RDF::RNode df,
              const std::string &correction_name,
              const std::string &variation_barrel,
              const std::string &variation_endcap);
-} // namespace electron
+} // end namespace electron
 
 namespace tau {
 
@@ -25,6 +25,6 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &outputname,
                      const std::string &pt, const std::string &decay_mode,
                      const float &sf_dm0, const float &sf_dm1,
                      const float &sf_dm10, const float &sf_dm11);
-} // namespace tau
-} // namespace embedding
+} // end namespace tau
+} // end namespace embedding
 #endif /* GUARD_EMBEDDING_H */

@@ -309,7 +309,7 @@ Unroll(ROOT::RDF::RNode df, const std::vector<std::string> &outputnames,
         {quantity});
     return Unroll<T>(df1, outputnames, quantity, idx + 1);
 }
-} // namespace quantity
+} // end namespace quantity
 
 namespace filter {
 
@@ -418,7 +418,7 @@ GoldenJSON(ROOT::RDF::RNode df,
            correctionManager::CorrectionManager &correctionManager,
            const std::string &filtername, const std::string &run,
            const std::string &luminosity, const std::string &json_path);
-} // namespace filter
-} // namespace event
+} // end namespace filter
+} // end namespace event
 
 #endif /* GUARD_EVENT_H */

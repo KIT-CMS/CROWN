@@ -43,7 +43,7 @@ namespace physicsobject {
  *
  * @return a dataframe containing the new mask as a column
  */
-ROOT::RDF::RNode CutQunatityBarrelEndcap(
+ROOT::RDF::RNode CutQuantityBarrelEndcap(
     ROOT::RDF::RNode df, const std::string &outputname, const std::string &eta,
     const std::string &quantity, const float &barrel_endcap_boundary,
     const float &lower_threshold_barrel, const float &upper_threshold_barrel,
@@ -173,9 +173,9 @@ ROOT::RDF::RNode CountFlag(ROOT::RDF::RNode df, const std::string &outputname,
  * set to `true`, otherwise, it is set to `false`. This flag can be used to veto
  * events that include a specific object.
  *
- * @param[in] df input dataframe
- * @param[in] outputname name of the output column storing the veto flag
- * @param[in] object_mask name of the mask column indicating selected objects
+ * @param df input dataframe
+ * @param outputname name of the output column storing the veto flag
+ * @param object_mask name of the mask column indicating selected objects
  *
  * @return a dataframe with a new flag column
  */
@@ -414,5 +414,5 @@ ROOT::RDF::RNode MassCorrectionWithPt(ROOT::RDF::RNode df,
                          {raw_mass, raw_pt, corrected_pt});
     return df1;
 }
-} // namespace physicsobject
+} // end namespace physicsobject
 #endif /* GUARD_PHYSICSOBJECTS_H */

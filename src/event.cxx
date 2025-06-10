@@ -63,7 +63,7 @@ GoldenJSON(ROOT::RDF::RNode df,
     };
     return df.Filter(jsonFilterlambda, {run, luminosity}, filtername);
 }
-} // namespace filter
-} // namespace event
+} // end namespace filter
+} // end namespace event
 
 #endif /* GUARD_EVENT_H */
