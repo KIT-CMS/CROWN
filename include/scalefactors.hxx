@@ -5,30 +5,6 @@ namespace scalefactor {
 namespace tau {
 
 ROOT::RDF::RNode
-id_vsJet_lt(ROOT::RDF::RNode df,
-            correctionManager::CorrectionManager &correctionManager,
-            const std::string &pt, const std::string &decayMode,
-            const std::string &genMatch, const std::vector<int> &selectedDMs,
-            const std::string &wp, const std::string &sf_vsjet_tau30to35,
-            const std::string &sf_vsjet_tau35to40,
-            const std::string &sf_vsjet_tau40to500,
-            const std::string &sf_vsjet_tau500to1000,
-            const std::string &sf_vsjet_tau1000toinf,
-            const std::string &sf_dependence, const std::string &vsele_wp,
-            const std::string &id_output, const std::string &sf_file,
-            const std::string &idAlgorithm);
-// Deprecated function without CorrectionManager
-ROOT::RDF::RNode id_vsJet_lt(
-    ROOT::RDF::RNode df, const std::string &pt, const std::string &decayMode,
-    const std::string &genMatch, const std::vector<int> &selectedDMs,
-    const std::string &wp, const std::string &sf_vsjet_tau30to35,
-    const std::string &sf_vsjet_tau35to40,
-    const std::string &sf_vsjet_tau40to500,
-    const std::string &sf_vsjet_tau500to1000,
-    const std::string &sf_vsjet_tau1000toinf, const std::string &sf_dependence,
-    const std::string &vsele_wp, const std::string &id_output,
-    const std::string &sf_file, const std::string &idAlgorithm);
-ROOT::RDF::RNode
 id_vsJet_lt_embedding(ROOT::RDF::RNode df,
                       correctionManager::CorrectionManager &correctionManager,
                       const std::string &pt, const std::string &wp,
@@ -39,15 +15,6 @@ id_vsJet_lt_embedding(ROOT::RDF::RNode df,
                       const std::string &sf_vsjet_tau40toInf,
                       const std::string &id_output, const std::string &sf_file,
                       const std::string &correctionset);
-// Deprecated function without CorrectionManager
-ROOT::RDF::RNode id_vsJet_lt_embedding(
-    ROOT::RDF::RNode df, const std::string &pt, const std::string &wp,
-    const std::string &sf_vsjet_tau20to25,
-    const std::string &sf_vsjet_tau25to30,
-    const std::string &sf_vsjet_tau30to35,
-    const std::string &sf_vsjet_tau35to40,
-    const std::string &sf_vsjet_tau40toInf, const std::string &id_output,
-    const std::string &sf_file, const std::string &correctionset);
 ROOT::RDF::RNode id_vsJet_tt_embedding(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correctionManager,
@@ -57,80 +24,6 @@ ROOT::RDF::RNode id_vsJet_tt_embedding(
     const std::string &sf_vsjet_tauDM10, const std::string &sf_vsjet_tauDM11,
     const std::string &id_output, const std::string &sf_file,
     const std::string &correctionset);
-// Deprecated function without CorrectionManager
-ROOT::RDF::RNode id_vsJet_tt_embedding(
-    ROOT::RDF::RNode df, const std::string &decaymode, const std::string &wp,
-    const std::string &sf_vsjet_tauDM0, const std::string &sf_vsjet_tauDM1,
-    const std::string &sf_vsjet_tauDM10, const std::string &sf_vsjet_tauDM11,
-    const std::string &id_output, const std::string &sf_file,
-    const std::string &correctionset);
-ROOT::RDF::RNode id_vsJet_tt(
-    ROOT::RDF::RNode df,
-    correctionManager::CorrectionManager &correctionManager,
-    const std::string &pt, const std::string &decayMode,
-    const std::string &genMatch, const std::vector<int> &selectedDMs,
-    const std::string &wp, const std::string &sf_vsjet_tauDM0,
-    const std::string &sf_vsjet_tauDM1, const std::string &sf_vsjet_tauDM10,
-    const std::string &sf_vsjet_tauDM11, const std::string &sf_dependence,
-    const std::string &id_output, const std::string &vsele_wp,
-    const std::string &sf_file, const std::string &idAlgorithm);
-// Deprecated function without CorrectionManager
-ROOT::RDF::RNode id_vsJet_tt(
-    ROOT::RDF::RNode df, const std::string &pt, const std::string &decayMode,
-    const std::string &genMatch, const std::vector<int> &selectedDMs,
-    const std::string &wp, const std::string &sf_vsjet_tauDM0,
-    const std::string &sf_vsjet_tauDM1, const std::string &sf_vsjet_tauDM10,
-    const std::string &sf_vsjet_tauDM11, const std::string &sf_dependence,
-    const std::string &id_output, const std::string &vsele_wp,
-    const std::string &sf_file, const std::string &idAlgorithm);
-ROOT::RDF::RNode
-id_vsEle(ROOT::RDF::RNode df,
-         correctionManager::CorrectionManager &correctionManager,
-         const std::string &eta, const std::string &decayMode,
-         const std::string &genMatch, const std::vector<int> &selectedDMs,
-         const std::string &wp, const std::string &sf_vsele_barrel,
-         const std::string &sf_vsele_endcap, const std::string &id_output,
-         const std::string &sf_file, const std::string &idAlgorithm);
-// Deprecated function without CorrectionManager
-ROOT::RDF::RNode
-id_vsEle(ROOT::RDF::RNode df, const std::string &eta,
-         const std::string &decayMode, const std::string &genMatch,
-         const std::vector<int> &selectedDMs, const std::string &wp,
-         const std::string &sf_vsele_barrel, const std::string &sf_vsele_endcap,
-         const std::string &id_output, const std::string &sf_file,
-         const std::string &idAlgorithm);
-ROOT::RDF::RNode
-id_vsMu(ROOT::RDF::RNode df,
-        correctionManager::CorrectionManager &correctionManager,
-        const std::string &eta, const std::string &decayMode,
-        const std::string &genMatch, const std::vector<int> &selectedDMs,
-        const std::string &wp, const std::string &sf_vsmu_wheel1,
-        const std::string &sf_vsmu_wheel2, const std::string &sf_vsmu_wheel3,
-        const std::string &sf_vsmu_wheel4, const std::string &sf_vsmu_wheel5,
-        const std::string &id_output, const std::string &sf_file,
-        const std::string &idAlgorithm);
-// Deprecated function without CorrectionManager
-ROOT::RDF::RNode
-id_vsMu(ROOT::RDF::RNode df, const std::string &eta,
-        const std::string &decayMode, const std::string &genMatch,
-        const std::vector<int> &selectedDMs, const std::string &wp,
-        const std::string &sf_vsmu_wheel1, const std::string &sf_vsmu_wheel2,
-        const std::string &sf_vsmu_wheel3, const std::string &sf_vsmu_wheel4,
-        const std::string &sf_vsmu_wheel5, const std::string &id_output,
-        const std::string &sf_file, const std::string &idAlgorithm);
-ROOT::RDF::RNode
-tau_trigger_sf(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correctionManager,
-               const std::string &decaymode, const std::string &pt,
-               const std::string &wp, const std::string &type,
-               const std::string &id_output, const std::string &sf_file,
-               const std::string &correctionset);
-// Deprecated function without CorrectionManager
-ROOT::RDF::RNode
-tau_trigger_sf(ROOT::RDF::RNode df, const std::string &decaymode,
-               const std::string &pt, const std::string &wp,
-               const std::string &type, const std::string &id_output,
-               const std::string &sf_file, const std::string &correctionset);
 } // namespace tau
 
 namespace jet {
