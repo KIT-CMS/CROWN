@@ -26,26 +26,6 @@ ROOT::RDF::RNode id_vsJet_tt_embedding(
     const std::string &correctionset);
 } // namespace tau
 
-namespace jet {
-
-ROOT::RDF::RNode
-btagSF(ROOT::RDF::RNode df,
-       correctionManager::CorrectionManager &correctionManager,
-       const std::string &pt, const std::string &eta,
-       const std::string &btag_discr, const std::string &flavor,
-       const std::string &jet_mask, const std::string &bjet_mask,
-       const std::string &jet_veto_mask, const std::string &variation,
-       const std::string &sf_output, const std::string &sf_file,
-       const std::string &corr_algorithm);
-// Deprecated function without CorrectionManager
-ROOT::RDF::RNode
-btagSF(ROOT::RDF::RNode df, const std::string &pt, const std::string &eta,
-       const std::string &btag_discr, const std::string &flavor,
-       const std::string &jet_mask, const std::string &bjet_mask,
-       const std::string &jet_veto_mask, const std::string &variation,
-       const std::string &sf_output, const std::string &sf_file,
-       const std::string &corr_algorithm);
-} // namespace jet
 namespace embedding {
 ROOT::RDF::RNode
 selection_trigger(ROOT::RDF::RNode df,
