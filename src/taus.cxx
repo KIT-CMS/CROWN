@@ -443,7 +443,7 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
                 sf = evaluator->evaluate(
                     {pt, decay_mode, gen_match, wp, vsele_wp,
                      variation_pt500to1000, sf_dependence});
-            } else if (pt >= 1000.0 && pt < 3000.0) {
+            } else if (pt >= 1000.0 && pt < 10000.0) {
                 sf = evaluator->evaluate(
                     {pt, decay_mode, gen_match, wp, vsele_wp,
                      variation_pt1000toInf, sf_dependence});

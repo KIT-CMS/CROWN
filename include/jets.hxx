@@ -50,6 +50,19 @@ ROOT::RDF::RNode VetoOverlappingJetsWithIsoLepton(ROOT::RDF::RNode df,
                                                   const std::string &lepton_p4,
                                                   const std::string &lepton_iso,
                                                   const float &min_delta_r);
+
+namespace scalefactor {
+
+ROOT::RDF::RNode
+Btagging(ROOT::RDF::RNode df,
+       correctionManager::CorrectionManager &correction_manager,
+       const std::string &outputname, const std::string &pt, 
+       const std::string &eta, const std::string &btag_value, 
+       const std::string &flavor, const std::string &jet_mask, 
+       const std::string &bjet_mask, const std::string &jet_veto_mask, 
+       const std::string &sf_file, const std::string &sf_name, 
+       const std::string &variation);  
+} // end namespace scalefactor
 } // end namespace jet
 } // end namespace physicsobject
 #endif /* GUARD_JETS_H */
