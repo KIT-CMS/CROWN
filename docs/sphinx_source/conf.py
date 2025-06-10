@@ -80,7 +80,6 @@ html_logo = "../logos/crown_logo_bw.svg"
 # html_static_path = ["../_static"]
 html_theme_options = {
     "logo_only": True,
-    "display_version": False,
 }
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -100,6 +99,11 @@ extensions = [
 
 autodoc_typehints = "description"
 autoclass_content = "both"
+
+# Add any modules you want to mock here.
+# This is perfect for heavy or C-backed modules like ROOT, numpy, pandas, etc.,
+# that are not needed to simply parse the docstrings.
+autodoc_mock_imports = ["ROOT"]
 
 # Breathe Configuration
 breathe_default_project = "CROWN"
