@@ -33,7 +33,7 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
                     const std::string &eta, const std::string &era,
                     const std::string &wp, const std::string &sf_file,
                     const std::string &sf_name, const std::string &variation);
-} // namespace scalefactor
-} // namespace electron
-} // namespace physicsobject
+} // end namespace scalefactor
+} // end namespace electron
+} // end namespace physicsobject
 #endif /* GUARD_ELECTRONS_H */

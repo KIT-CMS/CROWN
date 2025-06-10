@@ -196,9 +196,8 @@ namespace scalefactor {
 /**
  * @brief This function calculates electron ID scale factors (SFs) for a single
  * electron dependening on its pseudorapidity (\f$\eta\f$) and transverse
- * momentum
- * (\f$p_T\f$). The scale factors are loaded from a correctionlib file using a
- * specified scale factor name and variation.
+ * momentum (\f$p_T\f$). The scale factors are loaded from a correctionlib file 
+ * using a specified scale factor name and variation.
  *
  * Recommendations by EgammaPOG:
  * - [Run2](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018)
@@ -224,7 +223,7 @@ namespace scalefactor {
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correctionManager,
+                    correctionManager::CorrectionManager &correction_manager,
                     const std::string &outputname, const std::string &pt,
                     const std::string &eta, const std::string &era,
                     const std::string &wp, const std::string &sf_file,
@@ -233,7 +232,7 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
         ->debug("Setting up functions for electron id sf with correctionlib");
     Logger::get("physicsobject::electron::scalefactor::Id")
         ->debug("ID - Name {}", sf_name);
-    auto evaluator = correctionManager.loadCorrection(sf_file, sf_name);
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     auto df1 = df.Define(
         outputname,
         [evaluator, era, sf_name, wp, variation](const float &pt,
@@ -253,7 +252,7 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
         {pt, eta});
     return df1;
 }
-} // namespace scalefactor
-} // namespace electron
-} // namespace physicsobject
+} // end namespace scalefactor
+} // end namespace electron
+} // end namespace physicsobject
 #endif /* GUARD_ELECTRONS_H */

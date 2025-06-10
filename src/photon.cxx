@@ -3,5 +3,5 @@
 
 namespace physicsobject {
 namespace photon {} // namespace photon
-} // namespace physicsobject
+} // end namespace physicsobject
 #endif /* GUARD_PHOTONS_H */

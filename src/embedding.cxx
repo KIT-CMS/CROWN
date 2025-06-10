@@ -111,7 +111,7 @@ PtCorrection(ROOT::RDF::RNode df,
     auto df1 = df.Define(outputname, correction_lambda, {pt, eta});
     return df1;
 }
-} // namespace electron
+} // end namespace electron
 
 namespace tau {
 
@@ -161,7 +161,7 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &outputname,
     auto df1 = df.Define(outputname, correction_lambda, {pt, decay_mode});
     return df1;
 }
-} // namespace tau
-} // namespace embedding
+} // end namespace tau
+} // end namespace embedding
 
 #endif /* GUARD_EMBEDDING_H */

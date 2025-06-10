@@ -7,15 +7,15 @@ namespace physicsobject {
 
 /**
  * @brief This function takes multiple masks and applies a logical operation
- * ("any_of", "all_of", or "none_of") elemet-wise to generate a combined mask.
+ * (`"any_of"`, `"all_of"`, or `"none_of"`) elemet-wise to generate a combined mask.
  * The function ensures that elements are correctly merged based on the given
  * mode:
  *
- * - "any_of": The resulting mask contains true values if any element of
+ * - `"any_of"`: The resulting mask contains true values if any element of
  * the input masks is true (element-wise)
- * - "all_of": The resulting mask contains true values if all elements of
+ * - `"all_of"`: The resulting mask contains true values if all elements of
  * the input masks are true (element-wise)
- * - "none_of": The resulting mask contains true values if no element of
+ * - `"none_of"`: The resulting mask contains true values if no element of
  * the input masks is true (element-wise)
  *
  * @tparam Args variadic template parameter pack representing mask columns plus
