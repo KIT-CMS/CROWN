@@ -789,22 +789,28 @@ Trigger(ROOT::RDF::RNode df,
         const std::string &corr_type, const std::string &variation) {
 
     Logger::get("physicsobject::tau::scalefactor::Trigger")
-        ->info("Setting up function for tau trigger sf");
+        ->debug("Setting up function for tau trigger sf");
     Logger::get("physicsobject::tau::scalefactor::Trigger")
-        ->info("ID - Name {}, file {}", sf_name, sf_file);
+        ->debug("ID - Name {}, file {}", sf_name, sf_file);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    Logger::get("physicsobject::tau::scalefactor::Trigger")->info("WP {} - type {}", wp, corr_type);
+    Logger::get("physicsobject::tau::scalefactor::Trigger")->debug("WP {} - type {}", wp, corr_type);
     auto sf_calculator = [evaluator, trigger_name, wp, corr_type, variation, sf_name](
                                      const float &pt, const int &decay_mode) {
         float sf = 1.;
         if (pt > 0.) {
             Logger::get("physicsobject::tau::scalefactor::Trigger")
-                ->info("ID {} - decaymode {}, wp {} "
+                ->debug("ID {} - decaymode {}, wp {} "
                     "pt {}, type {}, variation {}",
                     sf_name, decay_mode, wp, pt, corr_type, variation);
-            sf = evaluator->evaluate({pt, decay_mode, trigger_name, wp, corr_type, variation});
+            if (decay_mode == 0 || decay_mode == 1 || decay_mode == 10 ||
+                decay_mode == 11) {
+                sf = evaluator->evaluate(
+                    {pt, decay_mode, trigger_name, wp, corr_type, variation});
+            } else {
+                sf = evaluator->evaluate({pt, -1, trigger_name, wp, corr_type, variation});
+            }
         }
-        Logger::get("physicsobject::tau::scalefactor::Trigger")->info("Scale Factor {}", sf);
+        Logger::get("physicsobject::tau::scalefactor::Trigger")->debug("Scale Factor {}", sf);
         return sf;
     };
     auto df1 = df.Define(outputname, sf_calculator, {pt, decay_mode});
