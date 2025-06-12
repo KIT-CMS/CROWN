@@ -31,7 +31,6 @@
 #include "include/taus.hxx"
 #include "include/quantities.hxx"
 #include "include/reweighting.hxx"
-#include "include/scalefactors.hxx"
 #include "include/topreco.hxx"
 #include "include/triggers.hxx"
 

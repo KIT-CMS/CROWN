@@ -325,8 +325,10 @@ def build_config(
                     "2018": "data/jsonpog-integration/POG/MUO/2018_UL/muon_Z.json.gz",
                 }
             ),
+            "muon_reco_sf_name": "NUM_TrackerMuons_DEN_genTracks",
             "muon_id_sf_name": "NUM_MediumID_DEN_TrackerMuons",
             "muon_iso_sf_name": "NUM_TightRelIso_DEN_MediumID",
+            "muon_trg_sf_name": "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight",
             "muon_sf_varation": "nominal",
         },
     )
@@ -723,8 +725,10 @@ def build_config(
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
+            q.reco_wgt_mu_1,
             q.id_wgt_mu_1,
             q.iso_wgt_mu_1,
+            q.trg_wgt_mu_1,
         ],
     )
     configuration.add_outputs(

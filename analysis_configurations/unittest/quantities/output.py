@@ -218,10 +218,12 @@ id_wgt_ele_wp90nonIso_2 = Quantity("id_wgt_ele_wp90nonIso_2")
 id_wgt_ele_wp80nonIso_1 = Quantity("id_wgt_ele_wp80nonIso_1")
 id_wgt_ele_wp80nonIso_2 = Quantity("id_wgt_ele_wp80nonIso_2")
 # Muon weights
+reco_wgt_mu_1 = Quantity("reco_wgt_mu_1")
 id_wgt_mu_1 = Quantity("id_wgt_mu_1")
 id_wgt_mu_2 = Quantity("id_wgt_mu_2")
 iso_wgt_mu_1 = Quantity("iso_wgt_mu_1")
 iso_wgt_mu_2 = Quantity("iso_wgt_mu_2")
+trg_wgt_mu_1 = Quantity("trg_wgt_mu_1")
 # friend tree weights
 id_wgt_mu_friend_1 = Quantity("id_wgt_mu_friend_1")
 iso_wgt_mu_friend_1 = Quantity("iso_wgt_mu_friend_1")
