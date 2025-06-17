@@ -34,6 +34,11 @@ The information is collected in either a CERN Twiki page or wiki docs:
     
     Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM
 
+.. admonition:: Generator Group
+    
+   | Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/GeneratorMain
+   | Wiki docs: https://cms-generators.docs.cern.ch/
+
 There is also additional information specifically for the scale factors and how to 
 evaluate them using ``correctionlib``. This tool is used in CROWN. 
 
