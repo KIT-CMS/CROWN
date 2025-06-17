@@ -150,7 +150,7 @@ npartons = Producer(
 
 PUweights = Producer(
     name="PUweights",
-    call="""reweighting::puweights(
+    call="""event::reweighting::Pileup(
         {df}, 
         correctionManager, 
         {output}, 
@@ -166,7 +166,7 @@ PUweights = Producer(
 
 ZPtMassReweighting = Producer(
     name="ZPtMassReweighting",
-    call="""reweighting::zPtMassReweighting(
+    call="""event::reweighting::ZPtMass(
         {df}, 
         {output}, 
         {input}, 
@@ -183,7 +183,7 @@ ZPtMassReweighting = Producer(
 
 TopPtReweighting = Producer(
     name="TopPtReweighting",
-    call="reweighting::topptreweighting({df}, {output}, {input})",
+    call="event::reweighting::TopPt({df}, {output}, {input})",
     input=[
         nanoAOD.GenParticle_pdgId,
         nanoAOD.GenParticle_statusFlags,
