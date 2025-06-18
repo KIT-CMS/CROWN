@@ -210,7 +210,7 @@ ROOT::RDF::RNode LHEscale(ROOT::RDF::RNode df,
                             scale_weights.size());
                 throw std::runtime_error("Invalid number of LHE scale weights");
             }
-            std::pair<const float, const float> variations = {mu_r, mu_f};
+            std::pair<const float, const float> variations = {mu_f, mu_r};
             int index = index_map[variations];
             return scale_weights.at(index);
         };
