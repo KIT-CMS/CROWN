@@ -20,26 +20,26 @@ MMGenPair = Producer(
 
 LVGenParticle1 = Producer(
     name="LVGenParticle1",
-    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
+    call="lorentzvector::Build({df}, {output}, {input}, 0)",
     input=[
-        q.gen_dileptonpair,
         nanoAOD.GenParticle_pt,
         nanoAOD.GenParticle_eta,
         nanoAOD.GenParticle_phi,
         nanoAOD.GenParticle_mass,
+        q.gen_dileptonpair,
     ],
     output=[q.gen_p4_1],
     scopes=["mm"],
 )
 LVGenParticle2 = Producer(
     name="LVGenParticle2",
-    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
+    call="lorentzvector::Build({df}, {output}, {input}, 1)",
     input=[
-        q.gen_dileptonpair,
         nanoAOD.GenParticle_pt,
         nanoAOD.GenParticle_eta,
         nanoAOD.GenParticle_phi,
         nanoAOD.GenParticle_mass,
+        q.gen_dileptonpair,
     ],
     output=[q.gen_p4_2],
     scopes=["mm"],
@@ -47,56 +47,56 @@ LVGenParticle2 = Producer(
 
 gen_pt_1 = Producer(
     name="gen_pt_1",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.gen_p4_1],
     output=[q.gen_pt_1],
     scopes=["mm"],
 )
 gen_pt_2 = Producer(
     name="gen_pt_2",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.gen_p4_2],
     output=[q.gen_pt_2],
     scopes=["mm"],
 )
 gen_eta_1 = Producer(
     name="gen_eta_1",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.gen_p4_1],
     output=[q.gen_eta_1],
     scopes=["mm"],
 )
 gen_eta_2 = Producer(
     name="gen_eta_2",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.gen_p4_2],
     output=[q.gen_eta_2],
     scopes=["mm"],
 )
 gen_phi_1 = Producer(
     name="gen_phi_1",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.gen_p4_1],
     output=[q.gen_phi_1],
     scopes=["mm"],
 )
 gen_phi_2 = Producer(
     name="gen_phi_2",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.gen_p4_2],
     output=[q.gen_phi_2],
     scopes=["mm"],
 )
 gen_mass_1 = Producer(
     name="gen_mass_1",
-    call="quantities::mass({df}, {output}, {input})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.gen_p4_1],
     output=[q.gen_mass_1],
     scopes=["mm"],
 )
 gen_mass_2 = Producer(
     name="gen_mass_2",
-    call="quantities::mass({df}, {output}, {input})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.gen_p4_2],
     output=[q.gen_mass_2],
     scopes=["mm"],
@@ -160,7 +160,7 @@ MMGenDiTauPairQuantities = ProducerGroup(
 # Lorentz vectors for friend trees
 LVGenParticle1_friend = Producer(
     name="LVGenParticle1_friend",
-    call="lorentzvectors::build({df}, {input_vec}, {output})",
+    call="lorentzvector::Build({df}, {output}, {input})",
     input=[
         q.gen_pt_1,
         q.gen_eta_1,
@@ -172,7 +172,7 @@ LVGenParticle1_friend = Producer(
 )
 LVGenParticle2_friend = Producer(
     name="LVGenParticle2_friend",
-    call="lorentzvectors::build({df}, {input_vec}, {output})",
+    call="lorentzvector::Build({df}, {output}, {input})",
     input=[
         q.gen_pt_2,
         q.gen_eta_2,
@@ -184,7 +184,7 @@ LVGenParticle2_friend = Producer(
 )
 LV_GenMM_reconstruction = Producer(
     name="LV_GenMM_reconstruction",
-    call="lorentzvectors::CombineP4s({df}, {output}, {input})",
+    call="lorentzvector::Combine({df}, {output}, {input})",
     input=[q.gen_p4_1, q.gen_p4_2],
     output=[q.gen_p4_mm],
     scopes=["mm"],
