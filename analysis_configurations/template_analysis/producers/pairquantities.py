@@ -64,15 +64,15 @@ mass_2 = Producer(
 )
 muon_q_1 = Producer(
     name="muon_q_1",
-    call="quantities::charge({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Muon_charge, q.dileptonpair],
     output=[q.q_1],
     scopes=["mm"],
 )
 muon_q_2 = Producer(
     name="muon_q_2",
-    call="quantities::charge({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Muon_charge, q.dileptonpair],
     output=[q.q_2],
     scopes=["mm"],
 )

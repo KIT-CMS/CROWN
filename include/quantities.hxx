@@ -6,15 +6,6 @@
 #include "vectoroperations.hxx"
 #include <Math/Vector4D.h>
 namespace quantities {
-ROOT::RDF::RNode dxy(ROOT::RDF::RNode df, const std::string &outputname,
-                     const int &position, const std::string &pairname,
-                     const std::string &dxycolumn);
-ROOT::RDF::RNode dz(ROOT::RDF::RNode df, const std::string &outputname,
-                    const int &position, const std::string &pairname,
-                    const std::string &dzcolumn);
-ROOT::RDF::RNode charge(ROOT::RDF::RNode df, const std::string &outputname,
-                        const int &position, const std::string &pairname,
-                        const std::string &chargecolumn);
 ROOT::RDF::RNode scalarPtSum(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &pt_1, const std::string &pt_2,
                              const std::string &pt_3);
@@ -76,22 +67,7 @@ ROOT::RDF::RNode mt_tot(ROOT::RDF::RNode df, const std::string &outputname,
 ROOT::RDF::RNode mtt_coll_approx(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &p_1_p4, const std::string &p_2_p4,
                         const std::string &met);
-ROOT::RDF::RNode isolation(ROOT::RDF::RNode df, const std::string &outputname,
-                           const int &position, const std::string &pairname,
-                           const std::string &isolationcolumn);
-ROOT::RDF::RNode pdgid(ROOT::RDF::RNode df, const std::string &outputname,
-                       const int &position, const std::string &pairname,
-                       const std::string &pdgidcolumn);
-ROOT::RDF::RNode NumberOfGoodLeptons(ROOT::RDF::RNode df,
-                                     const std::string &outputname,
-                                     const std::string &goodleptons);
 namespace tau {
-ROOT::RDF::RNode decaymode(ROOT::RDF::RNode df, const std::string &outputname,
-                           const int &position, const std::string &pairname,
-                           const std::string &decaymodecolumn);
-ROOT::RDF::RNode genmatch(ROOT::RDF::RNode df, const std::string &outputname,
-                          const int &position, const std::string &pairname,
-                          const std::string &genmatchcolumn);
 ROOT::RDF::RNode matching_jet_pt(ROOT::RDF::RNode df,
                                  const std::string &outputname,
                                  const int &position,
@@ -106,21 +82,5 @@ ROOT::RDF::RNode TauIDFlag(ROOT::RDF::RNode df, const std::string &outputname,
                            const int &position, const std::string &pairname,
                            const std::string &nameID, const int &idxID);
 } // end namespace tau
-namespace muon {
-ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &outputname,
-                    const int &position, const std::string &pairname,
-                    const std::string &idcolumn);
-ROOT::RDF::RNode is_global(ROOT::RDF::RNode df, const std::string &outputname,
-                           const int &position, const std::string &pairname,
-                           const std::string &globalflagcolumn);
-ROOT::RDF::RNode is_tracker(ROOT::RDF::RNode df, const std::string &outputname,
-                            const int &position, const std::string &pairname,
-                            const std::string &trackerflagcolumn);
-} // namespace muon
-namespace electron {
-ROOT::RDF::RNode id(ROOT::RDF::RNode df, const std::string &outputname,
-                    const int &position, const std::string &pairname,
-                    const std::string &idcolumn);
-} // end namespace electron
 } // end namespace quantities
 #endif /* GUARD_QUANTITIES_H */

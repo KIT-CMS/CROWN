@@ -181,15 +181,15 @@ gen_mass_2 = Producer(
 )
 gen_pdgid_1 = Producer(
     name="gen_pdgid_1",
-    call="quantities::pdgid({df}, {output}, 0, {input})",
-    input=[q.gen_dileptonpair, nanoAOD.GenParticle_pdgId],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.GenParticle_pdgId, q.gen_dileptonpair],
     output=[q.gen_pdgid_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 gen_pdgid_2 = Producer(
     name="gen_pdgid_2",
-    call="quantities::pdgid({df}, {output}, 1, {input})",
-    input=[q.gen_dileptonpair, nanoAOD.GenParticle_pdgId],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.GenParticle_pdgId, q.gen_dileptonpair],
     output=[q.gen_pdgid_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
@@ -202,8 +202,8 @@ gen_m_vis = Producer(
 )
 gen_match_2 = Producer(
     name="gen_match_2",
-    call="quantities::tau::genmatch({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_genMatch],
+    call="event::quantity::Get<UChar_t>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Tau_genMatch, q.dileptonpair],
     output=[q.tau_gen_match_2],
     scopes=["mt", "et", "tt"],
 )

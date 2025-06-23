@@ -8,6 +8,7 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include <TRandom3.h>
+#include <type_traits>
 
 namespace event {
 
@@ -199,19 +200,30 @@ inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, const std::string &outputname,
     return df.Define(outputname,
                      [position](const ROOT::RVec<T> &quantity,
                                 const ROOT::RVec<int> &indices) {
-                         T result = default_value<T>();
+                        T result = default_value<T>();
 
-                         try {
-                             const int index = indices.at(position);
-                             result = quantity.at(index, default_value<T>());
-                         } catch (const std::out_of_range &e) {
-                             Logger::get("event::quantity::Get")
-                                 ->debug(
-                                     "Index not found, returning dummy value!");
-                         }
-                         return result;
-                     },
-                     {quantity, index_vector});
+                        try {
+                            const int index = indices.at(position);
+                            result = quantity.at(index, default_value<T>());
+                        } catch (const std::out_of_range &e) {
+                            Logger::get("event::quantity::Get")
+                                ->debug(
+                                    "Index not found, returning dummy value!");
+                        }
+                        // the static_cast is used because some types of nanoAOD 
+                        // branches changed from Int_t to UChar_t for nanoAOD 
+                        // versions > 9
+                        if constexpr (std::is_same<T, UChar_t>::value) {
+                            int cast_result = static_cast<int>(result);
+                            Logger::get("event::quantity::Get")
+                                ->debug("Returning UChar_t quantity as int: {}",
+                                        cast_result);
+                            return cast_result;
+                        } else {
+                            return result;
+                        }
+                    },
+                    {quantity, index_vector});
 }
 
 /**
