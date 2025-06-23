@@ -215,7 +215,7 @@ For the production of friend trees, the same options as for the production of nt
 
 Some additional options are required:
 
-- ``--friend-config``: The friend config file to be used. The friend config file contains the information about the friend trees to be produced like the producers to be run and the output branches that should be saved to the friend trees. The friend config file is located in the ``CROWN/analysis_configurations/<analysis>/tau_friends`` folder.
+- ``--friend-config``: The friend config file to be used. The friend config file contains the information about the friend trees to be produced like the producers to be run and the output branches that should be saved to the friend trees. The friend config file needs to be located in the ``CROWN/analysis_configurations/<analysis>/`` folder.
 - ``--friend-name``: The name or tag of the friend tree to be produced. The name can be different from the friend config file name and can be seen as a tag for a friend tree production. The resulting friend trees will be stored in the ``/<base>/<production-tag>/CROWNFriends/<friend-name>/`` folder.
 
 The resulting folder structure for the command listed above will be
