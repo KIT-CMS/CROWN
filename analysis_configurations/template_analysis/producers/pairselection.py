@@ -53,26 +53,26 @@ GoodMMPairFilter = Filter(
 
 LVMu1 = Producer(
     name="LVMu1",
-    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
+    call="lorentzvector::Build({df}, {output}, {input}, 0)",
     input=[
-        q.dileptonpair,
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,
         nanoAOD.Muon_phi,
         nanoAOD.Muon_mass,
+        q.dileptonpair,
     ],
     output=[q.p4_1],
     scopes=["mm"],
 )
 LVMu2 = Producer(
     name="LVMu2",
-    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
+    call="lorentzvector::Build({df}, {output}, {input}, 1)",
     input=[
-        q.dileptonpair,
         nanoAOD.Muon_pt,
         nanoAOD.Muon_eta,
         nanoAOD.Muon_phi,
         nanoAOD.Muon_mass,
+        q.dileptonpair,
     ],
     output=[q.p4_2],
     scopes=["mm"],
@@ -81,7 +81,7 @@ LVMu2 = Producer(
 # Lorentz vectors for friend trees
 LVMu1_friend = Producer(
     name="LVMu1_friend",
-    call="lorentzvectors::build({df}, {input_vec}, {output})",
+    call="lorentzvector::Build({df}, {output}, {input})",
     input=[
         q.pt_1,
         q.eta_1,
@@ -93,7 +93,7 @@ LVMu1_friend = Producer(
 )
 LVMu2_friend = Producer(
     name="LVMu2_friend",
-    call="lorentzvectors::build({df}, {input_vec}, {output})",
+    call="lorentzvector::Build({df}, {output}, {input})",
     input=[
         q.pt_2,
         q.eta_2,
@@ -105,7 +105,7 @@ LVMu2_friend = Producer(
 )
 LV_MM_reconstruction = Producer(
     name="LV_MM_reconstruction",
-    call="lorentzvectors::CombineP4s({df}, {output}, {input})",
+    call="lorentzvector::Combine({df}, {output}, {input})",
     input=[q.p4_1, q.p4_2],
     output=[q.p4_mm],
     scopes=["mm"],

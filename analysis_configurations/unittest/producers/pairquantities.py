@@ -8,56 +8,56 @@ from code_generation.producer import Producer, ProducerGroup, ExtendedVectorProd
 
 pt_1 = Producer(
     name="pt_1",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.pt_1],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 pt_2 = Producer(
     name="pt_2",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.pt_2],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 eta_1 = Producer(
     name="eta_1",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.eta_1],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 eta_2 = Producer(
     name="eta_2",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.eta_2],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 phi_1 = Producer(
     name="phi_1",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.phi_1],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 phi_2 = Producer(
     name="phi_2",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.phi_2],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 mass_1 = Producer(
     name="mass_1",
-    call="quantities::mass({df}, {output}, {input})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.mass_1],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 mass_2 = Producer(
     name="mass_2",
-    call="quantities::mass({df}, {output}, {input})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.mass_2],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
@@ -676,28 +676,28 @@ p4_fastmtt_em = Producer(
 
 pt_fastmtt = Producer(
     name="pt_fastmtt",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_fastmtt],
     output=[q.pt_fastmtt],
     scopes=["mt", "et", "tt", "em"],
 )
 eta_fastmtt = Producer(
     name="eta_fastmtt",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.p4_fastmtt],
     output=[q.eta_fastmtt],
     scopes=["mt", "et", "tt", "em"],
 )
 phi_fastmtt = Producer(
     name="phi_fastmtt",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.p4_fastmtt],
     output=[q.phi_fastmtt],
     scopes=["mt", "et", "tt", "em"],
 )
 m_fastmtt = Producer(
     name="m_fastmtt",
-    call="quantities::mass({df}, {output}, {input})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.p4_fastmtt],
     output=[q.m_fastmtt],
     scopes=["mt", "et", "tt", "em"],

@@ -6,14 +6,6 @@
 #include "vectoroperations.hxx"
 #include <Math/Vector4D.h>
 namespace quantities {
-ROOT::RDF::RNode pt(ROOT::RDF::RNode df, const std::string &outputname,
-                    const std::string &inputvector);
-ROOT::RDF::RNode eta(ROOT::RDF::RNode df, const std::string &outputname,
-                     const std::string &inputvector);
-ROOT::RDF::RNode phi(ROOT::RDF::RNode df, const std::string &outputname,
-                     const std::string &inputvector);
-ROOT::RDF::RNode mass(ROOT::RDF::RNode df, const std::string &outputname,
-                      const std::string &inputvector);
 ROOT::RDF::RNode dxy(ROOT::RDF::RNode df, const std::string &outputname,
                      const int &position, const std::string &pairname,
                      const std::string &dxycolumn);

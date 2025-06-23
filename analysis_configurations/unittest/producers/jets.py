@@ -203,26 +203,26 @@ BJetCollection = ProducerGroup(
 
 LVJet1 = Producer(
     name="LVJet1",
-    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
+    call="lorentzvector::Build({df}, {output}, {input}, 0)",
     input=[
-        q.good_jet_collection,
         q.Jet_pt_corrected,
         nanoAOD.Jet_eta,
         nanoAOD.Jet_phi,
         q.Jet_mass_corrected,
+        q.good_jet_collection,
     ],
     output=[q.jet_p4_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 LVJet2 = Producer(
     name="LVJet2",
-    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
+    call="lorentzvector::Build({df}, {output}, {input}, 1)",
     input=[
-        q.good_jet_collection,
         q.Jet_pt_corrected,
         nanoAOD.Jet_eta,
         nanoAOD.Jet_phi,
         q.Jet_mass_corrected,
+        q.good_jet_collection,
     ],
     output=[q.jet_p4_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
@@ -236,42 +236,42 @@ NumberOfJets = Producer(
 )
 jpt_1 = Producer(
     name="jpt_1",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.jet_p4_1],
     output=[q.jpt_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 jpt_2 = Producer(
     name="jpt_2",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.jet_p4_2],
     output=[q.jpt_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 jeta_1 = Producer(
     name="jeta_1",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.jet_p4_1],
     output=[q.jeta_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 jeta_2 = Producer(
     name="jeta_2",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.jet_p4_2],
     output=[q.jeta_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 jphi_1 = Producer(
     name="jphi_1",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.jet_p4_1],
     output=[q.jphi_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 jphi_2 = Producer(
     name="jphi_2",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.jet_p4_2],
     output=[q.jphi_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
@@ -326,26 +326,26 @@ BasicJetQuantities = ProducerGroup(
 
 LVBJet1 = Producer(
     name="LVBJet1",
-    call="lorentzvectors::build({df}, {input_vec}, 0, {output})",
+    call="lorentzvector::Build({df}, {output}, {input}, 0)",
     input=[
-        q.good_bjet_collection,
         q.Jet_pt_corrected,
         nanoAOD.Jet_eta,
         nanoAOD.Jet_phi,
         q.Jet_mass_corrected,
+        q.good_bjet_collection,
     ],
     output=[q.bjet_p4_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 LVBJet2 = Producer(
     name="LVBJet2",
-    call="lorentzvectors::build({df}, {input_vec}, 1, {output})",
+    call="lorentzvector::Build({df}, {output}, {input}, 1)",
     input=[
-        q.good_bjet_collection,
         q.Jet_pt_corrected,
         nanoAOD.Jet_eta,
         nanoAOD.Jet_phi,
         q.Jet_mass_corrected,
+        q.good_bjet_collection,
     ],
     output=[q.bjet_p4_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
@@ -359,42 +359,42 @@ NumberOfBJets = Producer(
 )
 bpt_1 = Producer(
     name="bpt_1",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.bjet_p4_1],
     output=[q.bpt_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 bpt_2 = Producer(
     name="bpt_2",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.bjet_p4_2],
     output=[q.bpt_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 beta_1 = Producer(
     name="beta_1",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.bjet_p4_1],
     output=[q.beta_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 beta_2 = Producer(
     name="beta_2",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.bjet_p4_2],
     output=[q.beta_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 bphi_1 = Producer(
     name="bphi_1",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.bjet_p4_1],
     output=[q.bphi_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 bphi_2 = Producer(
     name="bphi_2",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.bjet_p4_2],
     output=[q.bphi_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
