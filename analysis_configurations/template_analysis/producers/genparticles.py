@@ -103,15 +103,15 @@ gen_mass_2 = Producer(
 )
 gen_pdgid_1 = Producer(
     name="gen_pdgid_1",
-    call="quantities::pdgid({df}, {output}, 0, {input})",
-    input=[q.gen_dileptonpair, nanoAOD.GenParticle_pdgId],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.GenParticle_pdgId, q.gen_dileptonpair],
     output=[q.gen_pdgid_1],
     scopes=["mm"],
 )
 gen_pdgid_2 = Producer(
     name="gen_pdgid_2",
-    call="quantities::pdgid({df}, {output}, 1, {input})",
-    input=[q.gen_dileptonpair, nanoAOD.GenParticle_pdgId],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.GenParticle_pdgId, q.gen_dileptonpair],
     output=[q.gen_pdgid_2],
     scopes=["mm"],
 )

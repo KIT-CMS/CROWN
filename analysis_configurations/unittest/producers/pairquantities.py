@@ -81,176 +81,176 @@ pt_vis = Producer(
 ####################
 muon_dxy_1 = Producer(
     name="muon_dxy_1",
-    call="quantities::dxy({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_dxy],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Muon_dxy, q.dileptonpair],
     output=[q.dxy_1],
     scopes=["mt", "mm"],
 )
 muon_dxy_2 = Producer(
     name="muon_dxy_2",
-    call="quantities::dxy({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_dxy],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Muon_dxy, q.dileptonpair],
     output=[q.dxy_2],
     scopes=["em", "mm"],
 )
 electron_dxy_1 = Producer(
     name="electron_dxy_1",
-    call="quantities::dxy({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_dxy],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Electron_dxy, q.dileptonpair],
     output=[q.dxy_1],
     scopes=["et", "ee", "em"],
 )
 electron_dxy_2 = Producer(
     name="electron_dxy_2",
-    call="quantities::dxy({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_dxy],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Electron_dxy, q.dileptonpair],
     output=[q.dxy_2],
     scopes=["ee"],
 )
 tau_dxy_1 = Producer(
     name="tau_dxy_1",
-    call="quantities::dxy({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_dxy],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Tau_dxy, q.dileptonpair],
     output=[q.dxy_1],
     scopes=["tt"],
 )
 tau_dxy_2 = Producer(
     name="tau_dxy_2",
-    call="quantities::dxy({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_dxy],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Tau_dxy, q.dileptonpair],
     output=[q.dxy_2],
     scopes=["mt", "et", "tt"],
 )
 muon_dz_1 = Producer(
     name="muon_dz_1",
-    call="quantities::dz({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_dz],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Muon_dz, q.dileptonpair],
     output=[q.dz_1],
     scopes=["mt", "mm"],
 )
 muon_dz_2 = Producer(
     name="muon_dz_2",
-    call="quantities::dz({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_dz],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Muon_dz, q.dileptonpair],
     output=[q.dz_2],
     scopes=["em", "mm"],
 )
 electron_dz_1 = Producer(
     name="electron_dz_1",
-    call="quantities::dz({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_dz],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Electron_dz, q.dileptonpair],
     output=[q.dz_1],
     scopes=["et", "ee", "em"],
 )
 electron_dz_2 = Producer(
     name="electron_dz_2",
-    call="quantities::dz({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_dz],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Electron_dz, q.dileptonpair],
     output=[q.dz_2],
     scopes=["ee"],
 )
 tau_dz_1 = Producer(
     name="tau_dz_1",
-    call="quantities::dz({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_dz],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Tau_dz, q.dileptonpair],
     output=[q.dz_1],
     scopes=["tt"],
 )
 tau_dz_2 = Producer(
     name="tau_dz_2",
-    call="quantities::dz({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_dz],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Tau_dz, q.dileptonpair],
     output=[q.dz_2],
     scopes=["mt", "et", "tt"],
 )
 muon_q_1 = Producer(
     name="muon_q_1",
-    call="quantities::charge({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Muon_charge, q.dileptonpair],
     output=[q.q_1],
     scopes=["mt", "mm"],
 )
 muon_q_2 = Producer(
     name="muon_q_2",
-    call="quantities::charge({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Muon_charge, q.dileptonpair],
     output=[q.q_2],
     scopes=["em", "mm"],
 )
 electron_q_1 = Producer(
     name="electron_q_1",
-    call="quantities::charge({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Electron_charge, q.dileptonpair],
     output=[q.q_1],
     scopes=["et", "ee", "em"],
 )
 electron_q_2 = Producer(
     name="electron_q_2",
-    call="quantities::charge({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Electron_charge, q.dileptonpair],
     output=[q.q_2],
     scopes=["ee"],
 )
 tau_q_1 = Producer(
     name="tau_q_1",
-    call="quantities::charge({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Tau_charge, q.dileptonpair],
     output=[q.q_1],
     scopes=["tt"],
 )
 tau_q_2 = Producer(
     name="tau_q_2",
-    call="quantities::charge({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Tau_charge, q.dileptonpair],
     output=[q.q_2],
     scopes=["mt", "et", "tt"],
 )
 muon_iso_1 = Producer(
     name="muon_iso_1",
-    call="quantities::isolation({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_iso],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Muon_iso, q.dileptonpair],
     output=[q.iso_1],
     scopes=["mt", "mm"],
 )
 muon_iso_2 = Producer(
     name="muon_iso_2",
-    call="quantities::isolation({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_iso],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Muon_iso, q.dileptonpair],
     output=[q.iso_2],
     scopes=["em", "mm"],
 )
 electron_iso_1 = Producer(
     name="electron_iso_1",
-    call="quantities::isolation({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_iso],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Electron_iso, q.dileptonpair],
     output=[q.iso_1],
     scopes=["et", "ee", "em"],
 )
 electron_iso_2 = Producer(
     name="electron_iso_2",
-    call="quantities::isolation({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_iso],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Electron_iso, q.dileptonpair],
     output=[q.iso_2],
     scopes=["ee"],
 )
 tau_iso_1 = Producer(
     name="tau_iso_1",
-    call="quantities::isolation({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_IDraw],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Tau_IDraw, q.dileptonpair],
     output=[q.iso_1],
     scopes=["tt"],
 )
 tau_iso_2 = Producer(
     name="tau_iso_2",
-    call="quantities::isolation({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_IDraw],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Tau_IDraw, q.dileptonpair],
     output=[q.iso_2],
     scopes=["mt", "et", "tt"],
 )
 tau_decaymode_1 = Producer(
     name="decaymode_1",
-    call="quantities::tau::decaymode({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_decayMode],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Tau_decayMode, q.dileptonpair],
     output=[q.tau_decaymode_1],
     scopes=["tt"],
 )
@@ -263,8 +263,8 @@ tau_decaymode_1_notau = Producer(
 )
 tau_gen_match_1 = Producer(
     name="gen_match_1",
-    call="quantities::tau::genmatch({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_genMatch],
+    call="event::quantity::Get<UChar_t>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Tau_genMatch, q.dileptonpair],
     output=[q.tau_gen_match_1],
     scopes=["tt"],
 )
@@ -302,8 +302,8 @@ VsMuTauIDFlag_1 = ExtendedVectorProducer(
 
 tau_decaymode_2 = Producer(
     name="taudecaymode_2",
-    call="quantities::tau::decaymode({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_decayMode],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Tau_decayMode, q.dileptonpair],
     output=[q.tau_decaymode_2],
     scopes=["mt", "et", "tt"],
 )
@@ -316,8 +316,8 @@ tau_decaymode_2_notau = Producer(
 )
 tau_gen_match_2 = Producer(
     name="taugen_match_2",
-    call="quantities::tau::genmatch({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_genMatch],
+    call="event::quantity::Get<UChar_t>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Tau_genMatch, q.dileptonpair],
     output=[q.tau_gen_match_2],
     scopes=["mt", "et", "tt"],
 )
