@@ -108,14 +108,14 @@ UnrollMuLV2 = ProducerGroup(
 
 mm_pair_mass = Producer(
     name="mm_pair_mass",
-    call="quantities::m_vis({df}, {output}, {input_vec})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.p4_1, q.p4_2],
     output=[q.mm_pair_mass],
     scopes=["mm"],
 )
 mm_pair_pt = Producer(
     name="mm_pair_pt",
-    call="quantities::pt_vis({df}, {output}, {input_vec})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_1, q.p4_2],
     output=[q.mm_pair_pt],
     scopes=["mm"],

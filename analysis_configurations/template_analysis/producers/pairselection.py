@@ -105,8 +105,8 @@ LVMu2_friend = Producer(
 )
 LV_MM_reconstruction = Producer(
     name="LV_MM_reconstruction",
-    call="lorentzvector::Combine({df}, {output}, {input})",
+    call="lorentzvector::Sum({df}, {output}, {input})",
     input=[q.p4_1, q.p4_2],
-    output=[q.p4_mm],
+    output=[q.p4_mm_pair],
     scopes=["mm"],
 )

@@ -171,7 +171,27 @@ inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, const std::string &outputname,
                             const std::string &quantity, const int &index) {
     return df.Define(outputname,
                      [index](const ROOT::RVec<T> &quantity) {
-                         return quantity.at(index, default_value<T>());
+                        T result = default_value<T>();
+
+                        try {
+                            result = quantity.at(index);
+                        } catch (const std::out_of_range &e) {
+                            Logger::get("event::quantity::Get")
+                                ->debug(
+                                    "Index not found, returning dummy value!");
+                        }
+                        // the static_cast is used because some types of nanoAOD 
+                        // branches changed from Int_t to UChar_t for nanoAOD 
+                        // versions > 9
+                        if constexpr (std::is_same<T, UChar_t>::value) {
+                            int cast_result = static_cast<int>(result);
+                            Logger::get("event::quantity::Get")
+                                ->debug("Returning UChar_t quantity as int: {}",
+                                        cast_result);
+                            return cast_result;
+                        } else {
+                            return result;
+                        }
                      },
                      {quantity});
 }
@@ -204,7 +224,7 @@ inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, const std::string &outputname,
 
                         try {
                             const int index = indices.at(position);
-                            result = quantity.at(index, default_value<T>());
+                            result = quantity.at(index);
                         } catch (const std::out_of_range &e) {
                             Logger::get("event::quantity::Get")
                                 ->debug(
@@ -224,38 +244,6 @@ inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, const std::string &outputname,
                         }
                     },
                     {quantity, index_vector});
-}
-
-/**
- * @brief This function computes the sum of the elements in the `quantity`
- * column, selected by the indices from the `indices` column. The sum is
- * computed per event, and a default value (provided by `zero`) is used if no
- * elements are selected.
- *
- * @tparam T type of the input column values
- * @param df input dataframe
- * @param outputname name of the new column containing the summed values
- * @param quantity name of the column containing the vector of values to be
- * summed
- * @param indices name of the column containing the indices used to select
- * values from `quantity`
- * @param zero default value to use in `ROOT::VecOps::Sum` (default is `T(0)`)
- *
- * @return a dataframe with the new column
- */
-template <typename T>
-inline ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, const std::string &outputname,
-                            const std::string &quantity,
-                            const std::string &indices, const T zero = T(0)) {
-    auto sum_per_event = [zero](const ROOT::RVec<T> &quantity,
-                                const ROOT::RVec<int> &indices) {
-        Logger::get("event::quantity::Sum")
-            ->debug("sum values {} at indices {}", quantity, indices);
-        T sum = ROOT::VecOps::Sum(ROOT::VecOps::Take(quantity, indices), zero);
-        Logger::get("event::quantity::Sum")->debug("sum {}", sum);
-        return sum;
-    };
-    return df.Define(outputname, sum_per_event, {quantity, indices});
 }
 
 /**
@@ -285,6 +273,73 @@ inline ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
+ * @brief This function computes the sum of the elements in the `quantity`
+ * column, selected by the indices from the `indices` column. The sum is
+ * computed per event, and a default value (provided by `zero`) is used if no
+ * elements are selected.
+ *
+ * @tparam T type of the input column values
+ * @param df input dataframe
+ * @param outputname name of the new column containing the summed values
+ * @param quantity name of the column containing the vector of values to be
+ * summed
+ * @param index_vector name of the column containing the indices used to select
+ * values from `quantity`
+ * @param zero default value to use in `ROOT::VecOps::Sum` (default is `T(0)`)
+ *
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, const std::string &outputname,
+                            const std::string &quantity,
+                            const std::string &index_vector, const T zero = T(0)) {
+    auto sum_per_event = [zero](const ROOT::RVec<T> &quantity,
+                                const ROOT::RVec<int> &indices) {
+        Logger::get("event::quantity::Sum")
+            ->debug("sum values {} at indices {}", quantity, indices);
+        T sum = ROOT::VecOps::Sum(ROOT::VecOps::Take(quantity, indices), zero);
+        Logger::get("event::quantity::Sum")->debug("sum {}", sum);
+        return sum;
+    };
+    return df.Define(outputname, sum_per_event, {quantity, index_vector});
+}
+
+/**
+ * @brief This function calculates the scalar sum of an arbitrary set of quantities
+ * of type `float`.
+ *
+ * @tparam Quantities variadic template parameter pack representing the quantity columns
+ * @param df input dataframe
+ * @param outputname name of the output column containing the scalar sum
+ * @param quantities parameter pack of column names that contain the considered quantities
+ *
+ * @return a dataframe with a new column
+ */
+template <typename... Quantities>
+inline auto ScalarSum(ROOT::RDF::RNode df, const std::string &outputname,
+                         Quantities... quantities) {
+    auto argTuple = std::make_tuple(quantities...);
+    std::vector<std::string> QuantityList{quantities...};
+    const auto nQuantities = sizeof...(Quantities);
+
+    using namespace ROOT::VecOps;
+    return df.Define(
+        outputname,
+        utility::PassAsVec<nQuantities, float>([](const ROOT::RVec<float> &quantities) {
+            for (const auto &quantity : quantities) {
+                if (quantity < 0.0) {
+                    Logger::get("event::quantity::ScalarSum")
+                        ->debug("Negative quantity found, returning default value!");
+                    return default_float;
+                }
+            }
+            const auto sum = Sum(quantities, float(0.0));
+            return sum;
+        }),
+        QuantityList);
+}
+
+/**
  * @brief This function recursively unrolls a vector (`std::vector<T>`) from the
  * `quantity` column into individual columns in the dataframe. Each element of
  * the vector is stored in a separate column with names provided in the
@@ -298,7 +353,7 @@ inline ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, const std::string &outputname,
  * @param outputnames a vector of names for the new columns where the individual
  * elements of the vector will be stored
  * @param quantity name of the column containing the vector of values to unroll
- * @param idx index of the current element to unroll (defaults to 0).
+ * @param index index of the current element to unroll (defaults to 0).
  *
  * @return a dataframe with the new columns containing each individual element
  * of the vector from the `quantity` column
@@ -306,20 +361,20 @@ inline ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, const std::string &outputname,
  * @note The function is recursive and will create one column for each element
  * of the vector in `quantity`. If `outputnames` has fewer entries than the
  * number of elements in the vector, the function will stop at the end of
- * `outputnames`. The `idx` should not be set outside this function.
+ * `outputnames`. The `index` should not be set outside this function.
  */
 template <typename T>
 inline ROOT::RDF::RNode
 Unroll(ROOT::RDF::RNode df, const std::vector<std::string> &outputnames,
-       const std::string &quantity, const size_t &idx = 0) {
-    if (idx >= outputnames.size()) {
+       const std::string &quantity, const size_t &index = 0) {
+    if (index >= outputnames.size()) {
         return df;
     }
     auto df1 = df.Define(
-        outputnames.at(idx),
-        [idx](const std::vector<T> &quantities) { return quantities.at(idx); },
+        outputnames.at(index),
+        [index](const std::vector<T> &quantities) { return quantities.at(index); },
         {quantity});
-    return Unroll<T>(df1, outputnames, quantity, idx + 1);
+    return Unroll<T>(df1, outputnames, quantity, index + 1);
 }
 } // end namespace quantity
 

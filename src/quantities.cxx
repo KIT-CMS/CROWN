@@ -5,114 +5,325 @@
 #include "../include/SVFit/MeasuredTauLepton.hxx"
 #include "../include/defaults.hxx"
 #include "../include/utility/Logger.hxx"
-#include "../include/vectoroperations.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 
-/// The namespace that is used to hold the functions for basic quantities that
-/// are needed for every event
+
 namespace quantities {
 
-/// Function to calculate the scalar sum of pts for given lorentz vectors and
-/// add it to the dataframe
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the new column containing the pt value
-/// \param pt_1 name of the column containing the first lorentz vector
-/// \param pt_2 name of the column containing the second lorentz vector
-/// \param pt_3 name of the column containing the third lorentz vector
-/// \returns a dataframe with the new column
-
-ROOT::RDF::RNode scalarPtSum(ROOT::RDF::RNode df, const std::string &outputname,
-                             const std::string &pt_1, const std::string &pt_2,
-                             const std::string &pt_3) {
-    // build scalar sum of pts of 3 objects
-    return df.Define(
-        outputname,
-        [](const float &pt_1, const float &pt_2, const float &pt_3) {
-            if (pt_1 < 0.0 || pt_2 < 0.0 || pt_3 < 0.0)
-                return default_float;
-            auto const triple_lepton_pt = pt_1 + pt_2 + pt_3;
-            return (float)triple_lepton_pt;
-        },
-        {pt_1, pt_2, pt_3});
-}
 /**
- * @brief function used to calculate the deltaPhi between two lorentz vectors.
+ * @brief This function calculates the spatial distance in the x-y-plane 
+ * (\f$\Delta\phi\f$) between two Lorentz vectors.
  *
- * @param df name of the dataframe
- * @param outputname name of the new column containing the deltaR value
- * @param p_1_p4 first lorentz vector
- * @param p_2_p4 second lorentz vector of
+ * @note For the calculation the `ROOT::Math::VectorUtil::DeltaPhi()` 
+ * function is used which already takes care of the periodicity of the 
+ * azimuthal angle.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the \f$\Delta\phi\f$ 
+ * value
+ * @param vector_1 name of the column containing the first Lorentz vector
+ * @param vector_2 name of the column containing the second Lorentz vector
+ *
  * @return a new dataframe with the new column
  */
-ROOT::RDF::RNode deltaPhi(ROOT::RDF::RNode df, const std::string &outputname,
-                          const std::string &p_1_p4,
-                          const std::string &p_2_p4) {
-    auto calculate_deltaPhi = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
-                                 ROOT::Math::PtEtaPhiMVector &p_2_p4) {
-        return ROOT::Math::VectorUtil::DeltaPhi(p_1_p4, p_2_p4);
+ROOT::RDF::RNode DeltaPhi(ROOT::RDF::RNode df, const std::string &outputname,
+                          const std::string &vector_1,
+                          const std::string &vector_2) {
+    auto calculate_deltaPhi = [](ROOT::Math::PtEtaPhiMVector &p4_1,
+                                 ROOT::Math::PtEtaPhiMVector &p4_2) {
+        if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0)
+            return default_float;
+        return (float)ROOT::Math::VectorUtil::DeltaPhi(p4_1, p4_2);
     };
-    return df.Define(outputname, calculate_deltaPhi, {p_1_p4, p_2_p4});
+    return df.Define(outputname, calculate_deltaPhi, {vector_1, vector_2});
 }
+
 /**
- * @brief function used to calculate the deltaPhi between the lepton from a W
- * and the visible Higgs decay products.
+ * @brief This function calculates the spatial distance in the 
+ * \f$\eta\f$-\f$\phi\f$-plane (\f$\Delta R\f$) between two Lorentz vectors.
+ * It is defined as
+ * \f[ \Delta R = \sqrt{(\eta_1 - \eta_2)^2 + (\phi_1 - \phi_2)^2} \f]
+ * where \f$\eta_1\f$ and \f$\phi_1\f$ are from the first Lorentz vector and \f$\eta_2\f$
+ * and \f$\phi_2\f$ are from the second Lorentz vector.
  *
- * @param df name of the dataframe
- * @param outputname name of the new column containing the deltaR value
- * @param p_1_p4 first lorentz vector
- * @param p_2_p4 second lorentz vector
- * @param p_3_p4 second lorentz vector
+ * @param df input dataframe
+ * @param outputname name of the new column containing the \f$\Delta R\f$ 
+ * value
+ * @param vector_1 name of the column containing the first Lorentz vector
+ * @param vector_2 name of the column containing the second Lorentz vector
+ *
  * @return a new dataframe with the new column
  */
-ROOT::RDF::RNode deltaPhi_WH(ROOT::RDF::RNode df, const std::string &outputname,
-                             const std::string &p_1_p4,
-                             const std::string &p_2_p4,
-                             const std::string &p_3_p4) {
-    auto calculate_deltaPhi = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
-                                 ROOT::Math::PtEtaPhiMVector &p_2_p4,
-                                 ROOT::Math::PtEtaPhiMVector &p_3_p4) {
-        auto const dileptonsystem = p_2_p4 + p_3_p4;
-        return ROOT::Math::VectorUtil::DeltaPhi(p_1_p4, dileptonsystem);
+ROOT::RDF::RNode DeltaR(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &vector_1, const std::string &vector_2) {
+    auto calculate_deltaR = [](ROOT::Math::PtEtaPhiMVector &p4_1,
+                               ROOT::Math::PtEtaPhiMVector &p4_2) {
+        if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0)
+            return default_float;
+        return (float)ROOT::Math::VectorUtil::DeltaR(p4_1, p4_2);
     };
-    return df.Define(outputname, calculate_deltaPhi, {p_1_p4, p_2_p4, p_3_p4});
-}
-/// Function to calculate the visible mass from a pair of lorentz vectors and
-/// add it to the dataframe. The visible mass is calculated as the mass of the
-/// lorentz vector of the dilepton system.
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the new column containing the pt value
-/// \param inputvectors a vector of the two names of the columns containing the
-/// required lorentz vectors
-///
-/// \returns a dataframe with the new column
-
-ROOT::RDF::RNode m_vis(ROOT::RDF::RNode df, const std::string &outputname,
-                       const std::vector<std::string> &inputvectors) {
-    // build visible mass from the two particles
-    return df.Define(
-        outputname,
-        [](const ROOT::Math::PtEtaPhiMVector &p4_1,
-           const ROOT::Math::PtEtaPhiMVector &p4_2) {
-            if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0)
-                return default_float;
-            auto const dileptonsystem = p4_1 + p4_2;
-            return (float)dileptonsystem.mass();
-        },
-        inputvectors);
+    return df.Define(outputname, calculate_deltaR, {vector_1, vector_2});
 }
 
 /**
- * @brief Function used to calculate the FastMTT p4 from the given inputs. The
- * implementation is based on
+ * @brief This function checks the hemisphere of a pair of particles. If both
+ * particles are in the same hemisphere (both positive/negative \f$\eta\f$), 
+ * the quantity is set to `1`, otherwise it is set to `0`.
+ *
+ * @param df name of the dataframe
+ * @param outputname name of the new column containing the hemisphere value
+ * @param vector_1 name of the column containing the first Lorentz vector
+ * @param vector_2 name of the column containing the second Lorentz vector
+ *
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode PairHemisphere(ROOT::RDF::RNode df,
+                                const std::string &outputname,
+                                const std::string &vector_1,
+                                const std::string &vector_2) {
+    auto calculate_hemisphere = [](ROOT::Math::PtEtaPhiMVector &p4_1,
+                                   ROOT::Math::PtEtaPhiMVector &p4_2) {
+        if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0)
+            return default_int;
+        return (int)(p4_1.Eta() * p4_2.Eta() > 0);
+    };
+    return df.Define(outputname, calculate_hemisphere,
+                     {vector_1, vector_2});
+}
+
+/**
+ * @brief This function calculates the quantity `pZetaMissVis` from the two leptons
+ * in the event and the MET vector. The variable is defined as:
+ * \f[
+ *    D_\zeta = p_\zeta^\text{miss} - 0.85 p_\zeta^\text{vis}
+ *   \qquad;
+ *   p_\zeta^\text{miss} = \vec{p}_\text{T}^\text{miss} \cdot \hat{\zeta}
+ *   \qquad;
+ *   p_\zeta^\text{vis} = (\vec{p}_\text{T}^{p_1} + \vec{p}_\text{T}^{p_2}) \cdot
+ *   \hat{\zeta} 
+ * \f] 
+ * where \f$\vec{p}_\text{T}^{p_{1,2}}\f$ corresponds to the transverse momentum 
+ * vector of the first (second) lepton and \f$\hat{\zeta}\f$ to the bisectional 
+ * direction between the two leptons in the transverse plane.
+ *
+ * For more information check: D. Jang, “Search for MSSM Higgs decaying to tau pairs 
+ * in pp collision at √s=1.96 TeV at CDF”. PhD thesis, Rutgers University, 2006. 
+ * FERMILAB-THESIS-2006-11.
+ *
+ * @param df the input dataframe
+ * @param outputname the name of the new column containing the PzetaMissVis value
+ * @param vector_1 name of the column containing the first Lorentz vector
+ * @param vector_2 name of the column containing the second Lorentz vector
+ * @param vector_3 name of the column containing the third Lorentz vector (MET vector)
+ *
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode PzetaMissVis(ROOT::RDF::RNode df,
+                              const std::string &outputname,
+                              const std::string &vector_1,
+                              const std::string &vector_2,
+                              const std::string &vector_3) {
+    float alpha = 0.85;
+    auto calculate_pzetamissvis = [alpha](ROOT::Math::PtEtaPhiMVector &p4_1,
+                                          ROOT::Math::PtEtaPhiMVector &p4_2,
+                                          ROOT::Math::PtEtaPhiMVector &p4_met) {
+        auto met_3dvec = p4_met.Vect();
+        met_3dvec.SetZ(0.0);
+        // calculate zeta for the delepton system
+        auto p1_norm = p4_1.Vect().Unit();
+        auto p2_norm = p4_2.Vect().Unit();
+        p1_norm.SetZ(0.0);
+        p2_norm.SetZ(0.0);
+        p1_norm = p1_norm.Unit();
+        p2_norm = p2_norm.Unit();
+        auto zeta = (p1_norm + p2_norm).Unit();
+
+        auto dileptonsystem = p4_1.Vect() + p4_2.Vect();
+        dileptonsystem.SetZ(0);
+        auto pzetaVis = dileptonsystem.Dot(zeta);
+        return met_3dvec.Dot(zeta) - (alpha * pzetaVis);
+    };
+    return df.Define(outputname, calculate_pzetamissvis, {vector_1, vector_2, vector_3});
+}
+
+/**
+ * @brief This function calculates the transverse mass \f$m_T\f$ of a two particle 
+ * system, where both particles are massless. The transverse mass is defined as:
+ *
+ * \f[
+ *    m_{T} = \sqrt{2 \cdot p_{T,1} \cdot p_{T,2} \cdot
+ * (1-\cos(\Delta\phi))}
+ * \f]
+ *
+ * where \f$\Delta\phi\f$ is the azimuthal angle between the two particles.
+ *
+ * @note The transverse mass is usually used to estimate the mass of the W boson
+ * based on a lepton (particle 1) and the missing transverse energy as the 
+ * neutrino (particle 2). 
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the \f$m_T\f$ value
+ * @param vector_1 name of the column containing the first Lorentz vector
+ * @param vector_2 name of the column containing the second Lorentz vector
+ *
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &vector_1, const std::string &vector_2) {
+    auto calculate_MT = [](ROOT::Math::PtEtaPhiMVector &p4_1,
+                           ROOT::Math::PtEtaPhiMVector &p4_2) {
+        if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0)
+            return default_float;
+        return (float)sqrt(2 * p4_1.Pt() * p4_2.Pt() *
+            (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(p4_1, p4_2))));
+    };
+    return df.Define(outputname, calculate_MT, {vector_1, vector_2});
+}
+
+/**
+ * @brief This function calculates the transverse mass \f$m_T\f$ of a three 
+ * particle system, where first the two first particles are summed up and 
+ * used to calculate the transverse mass with the third particle. 
+ * The transverse mass is defined as:
+ *
+ * \f[
+ *    m_{T} = \sqrt{2 \cdot p_{T,1+2} \cdot p_{T,3} \cdot
+ * (1-\cos(\Delta\phi))}
+ * \f]
+ *
+ * where \f$\Delta\phi\f$ is the azimuthal angle between the third particle 
+ * and the summed Lorentz vector of the first two particles.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the \f$m_T\f$ value
+ * @param vector_1 name of the column containing the first Lorentz vector
+ * @param vector_2 name of the column containing the second Lorentz vector
+ * @param vector_3 name of the column containing the third Lorentz vector
+ *
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &vector_1, const std::string &vector_2, 
+                        const std::string &vector_3) {
+    auto calculate_MT = [](ROOT::Math::PtEtaPhiMVector &p4_1,
+                           ROOT::Math::PtEtaPhiMVector &p4_2,
+                           ROOT::Math::PtEtaPhiMVector &p4_3) {
+        if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0 || p4_3.pt() < 0.0)
+            return default_float;
+        ROOT::Math::PtEtaPhiMVector sum_p4 = p4_1 + p4_2;
+        return (float)sqrt(2 * sum_p4.Pt() * p4_3.Pt() *
+            (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(sum_p4, p4_3))));
+    };
+    return df.Define(outputname, calculate_MT, {vector_1, vector_2, vector_3});
+}
+
+/**
+ * @brief This function calculates the total transverse mass. This is usually
+ * used to estimate the Higgs to \f$\tau\tau\f$ decay where multiple neutrinos
+ * are involved and estimated via the MET vector. The total transverse mass is 
+ * defined as:
+ * \f[
+ *   m_{T}^{tot} = \sqrt{m_{T}^2(p_{1},E_{T}^{miss}) +
+ *    m_{T}^2(p_{2},E_{T}^{miss}) + m_{T}^2(p_{1},p_2) } 
+ * \f]
+ * where \f$ m_{T}^2 \f$ is the transverse mass, \f$ p_{1}\f$ and \f$ p_{2}\f$ 
+ * are the lepton Lorentzvectors and \f$E_{T}^{miss}\f$ is the missing energy.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the total transverse mass
+ * @param vector_1 name of the column containing the first Lorentz vector
+ * @param vector_2 name of the column containing the second Lorentz vector
+ * @param vector_3 name of the column containing the third Lorentz vector (usually
+ * the missing transverse energy vector)
+ *
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode TotalTransverseMass(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &vector_1, const std::string &vector_2,
+                        const std::string &vector_3) {
+    auto calculate_mt_tot = [](ROOT::Math::PtEtaPhiMVector &p4_1,
+                               ROOT::Math::PtEtaPhiMVector &p4_2,
+                               ROOT::Math::PtEtaPhiMVector &p4_met) {
+        const float mt_1 = sqrt(2 * p4_1.Pt() * p4_met.Pt() *
+            (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(p4_1, p4_met))));
+        const float mt_2 = sqrt(2 * p4_2.Pt() * p4_met.Pt() *
+            (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(p4_2, p4_met))));
+        const float mt_mix = sqrt(2 * p4_1.Pt() * p4_2.Pt() *
+            (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(p4_1, p4_2))));
+        return (float)sqrt(mt_1 * mt_1 + mt_2 * mt_2 + mt_mix * mt_mix);
+    };
+    return df.Define(outputname, calculate_mt_tot, {vector_1, vector_2, vector_3});
+}
+
+/**
+ * @brief This function calculates collinear mass approximation. It is defined through 
+ * two equations, assuming, that neutrinos of \f$\tau\f$ decays fly into the same 
+ * direction as visible decay products:
+ * \f[
+ *   p(\tau_{i}) = (1 + x_{\tau_{i}^{vis}}) \cdot p(\tau_{i}^{vis}), \qquad i = 1,2
+ * \f]
+ * where \f$ p(...)\f$ represents the Lorentz vectors of the \f$\tau\f$ leptons
+ * \f$\tau_{1}\f$ and \f$\tau_{2}\f$. The fractions \f$x_{\tau_{i}^{vis}}\f$ are the 
+ * additional amount of neutrino contributions, relative to the visible decay products. 
+ * This means, the missing transverse energy vector \f$\vec{p}_{T}^{miss}\f$ can be 
+ * computed as follows:
+ * \f[
+ *   \vec{p}_{T}^{miss} = x_{\tau_{1}^{vis}} \cdot \vec{p}_{T}(\tau_{1}^{vis}) 
+ *    + x_{\tau_{2}^{vis}} \cdot \vec{p}_{T}(\tau_{2}^{vis})
+ * \f]
+ * This set of equations in turn allows to determine the values \f$x_{\tau_{i}^{vis}}\f$. 
+ * Example for \f$i=1\f$:
+ * \f[
+ *   x_{\tau_{1}^{vis}} = \frac{p_{T}^{miss}}{p_{T}(\tau_{1}^{vis})} \cdot 
+ *    \frac{\sin(\phi_{\tau_{2}^{vis}} - \phi_{miss})}{\sin(\phi_{\tau_{2}^{vis}} 
+ *    - \phi_{\tau_{1}^{vis}})}
+ * \f]
+ * The collinear mass approximation is then computed from the sum of the full \f$\tau\f$ 
+ * Lorentz vectors \f$p(\tau_{i})\f$.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the approximanted collinear mass
+ * @param vector_1 name of the column containing the first Lorentz vector
+ * @param vector_2 name of the column containing the second Lorentz vector
+ * @param vector_3 name of the column containing the third Lorentz vector (MET vector)
+ *
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode CollinearApproxMtt(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &vector_1, const std::string &vector_2,
+                        const std::string &vector_3) {
+    auto calculate_mtt = [](ROOT::Math::PtEtaPhiMVector &p4_1,
+                            ROOT::Math::PtEtaPhiMVector &p4_2,
+                            ROOT::Math::PtEtaPhiMVector &p4_met) {
+        // Require valid pt values
+        if (p4_1.Pt() < 0. || p4_2.Pt() < 0. || p4_met.Pt() > 0.)
+            return default_float;
+
+        // Calculate the phi difference between the two visible particles
+        const float delta_phi = p4_2.Phi() - p4_1.Phi();
+        // Avoid division by zero by checking the sine of the phi difference
+        if (std::fabs(sin(delta_phi)) < 1e-6)
+            return default_float;
+
+        const float x_1 = p4_met.Pt() / p4_1.Pt() * sin(p4_2.Phi() - p4_met.Phi()) / sin(delta_phi);
+        const float x_2 = p4_met.Pt() / p4_2.Pt() * sin(p4_1.Phi() - p4_met.Phi()) / (-sin(delta_phi));
+        ROOT::Math::PtEtaPhiMVector coll_lorentz = (1. + x_1) * p4_1 + (1. + x_2) * p4_2;
+        return (float)coll_lorentz.mass();
+    };
+    return df.Define(outputname, calculate_mtt, {vector_1, vector_2, vector_3});
+}
+
+/**
+ * @brief This function calculates the FastMTT Lorentz vector as an estimate 
+ * for H\f$(\tau\tau)\f$ based on the information from both reconstructed 
+ * leptons and the reconstructed MET. The implementation is based on
  * https://github.com/SVfit/ClassicSVfit/tree/fastMTT_19_02_2019
  *
  * @param df The dataframe to add the quantity to
- * @param outputname name of the new column containing the lorentz vector value
+ * @param outputname name of the new column containing the Lorentz vector
  * @param pt_1 the name of the column containing the pt of the first particle
  * @param pt_2 the name of the column containing the pt of the second particle
  * @param eta_1  the name of the column containing the eta of the first particle
@@ -134,10 +345,11 @@ ROOT::RDF::RNode m_vis(ROOT::RDF::RNode df, const std::string &outputname,
  * second particle
  * @param finalstate the final state of the ditaudecay. Supported are "mt",
  * "et", "tt", "em"
- * @return ROOT::RDF::RNode
+ *
+ * @return a new dataframe with the new column
  */
 ROOT::RDF::RNode
-p4_fastmtt(ROOT::RDF::RNode df, const std::string &outputname,
+FastMtt(ROOT::RDF::RNode df, const std::string &outputname,
            const std::string &pt_1, const std::string &pt_2,
            const std::string &eta_1, const std::string &eta_2,
            const std::string &phi_1, const std::string &phi_2,
@@ -207,44 +419,46 @@ p4_fastmtt(ROOT::RDF::RNode df, const std::string &outputname,
                       met_pt, met_phi, met_cov_xx, met_cov_xy, met_cov_yy,
                       decay_mode_1, decay_mode_2});
 }
-/// Function to calculate the visible pt from a pair of lorentz vectors and
-/// add it to the dataframe. The visible pt is calculated as the pt of the
-/// lorentz vector of the dilepton system.
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the new column containing the pt value
-/// \param inputvectors a vector of the two names of the columns containing the
-/// required lorentz vectors
-///
-/// \returns a dataframe with the new column
 
-ROOT::RDF::RNode pt_vis(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::vector<std::string> &inputvectors) {
-    // build visible pt from the two particles
-    return df.Define(
-        outputname,
-        [](const ROOT::Math::PtEtaPhiMVector &p4_1,
-           const ROOT::Math::PtEtaPhiMVector &p4_2) {
-            if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0)
-                return default_float;
-            auto const dileptonsystem = p4_1 + p4_2;
-            return (float)dileptonsystem.pt();
-        },
-        inputvectors);
+/**
+ * @brief This function calculates the deltaPhi between the lepton from a W boson
+ * and the visible Higgs boson decay products.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the deltaR value
+ * @param vector_1 name of the column containing the first Lorentz vector
+ * @param vector_2 name of the column containing the second Lorentz vector
+ * @param vector_3 name of the column containing the third Lorentz vector
+ *
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode deltaPhi_WH(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &vector_1,
+                             const std::string &vector_2,
+                             const std::string &vector_3) {
+    auto calculate_deltaPhi = [](ROOT::Math::PtEtaPhiMVector &vector_1,
+                                 ROOT::Math::PtEtaPhiMVector &vector_2,
+                                 ROOT::Math::PtEtaPhiMVector &vector_3) {
+        auto const dileptonsystem = vector_2 + vector_3;
+        return ROOT::Math::VectorUtil::DeltaPhi(vector_1, dileptonsystem);
+    };
+    return df.Define(outputname, calculate_deltaPhi, {vector_1, vector_2, vector_3});
 }
-/// Function to calculate the pt of the W from a the visible lepton fourvector,
-/// the met four vector and the neutrino four vector from the Higgs system and
-/// add it to the dataframe.
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the new column containing the pt value
-/// \param inputvectors a vector of the two names of the columns containing the
-/// required lorentz vectors
-///
-/// \returns a dataframe with the new column
 
+/**
+ * @brief This function estimates the pt of the W boson from the visible lepton 
+ * Lorentz vector, the MET Lorentz vector and the neutrino Lorentz vector 
+ * component from the Higgs system.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the pt value
+ * @param vectors vector with three names of the columns containing the
+ * required Lorentz vectors
+ *
+ * @return a new dataframe with the new column
+ */
 ROOT::RDF::RNode pt_W(ROOT::RDF::RNode df, const std::string &outputname,
-                      const std::vector<std::string> &inputvectors) {
+                      const std::vector<std::string> &vectors) {
     // build visible pt from the two particles
     return df.Define(
         outputname,
@@ -256,323 +470,9 @@ ROOT::RDF::RNode pt_W(ROOT::RDF::RNode df, const std::string &outputname,
             auto const w_p4 = p4_1 + p4_2 - p4_3;
             return (float)w_p4.Pt();
         },
-        inputvectors);
-}
-/**
- * @brief Function to calculate the quantity `pZetaMissVis` from the two leptons
- in the event + the met vector. The variable is defined as
- * \f[
-     D_\zeta = p_\zeta^\text{miss} - 0.85 p_\zeta^\text{vis}
-    \qquad;
-    p_\zeta^\text{miss} = \vec{p}_\text{T}^\text{miss} \cdot \hat{\zeta}
-    \qquad;
-    p_\zeta^\text{vis} = (\vec{p}_\text{T}^{p_1} + \vec{p}_\text{T}^{p_2}) \cdot
- \hat{\zeta} \f] where \f$\vec{p}_\text{T}^{p_{1,2}}\f$ corresponds to the
- transverse momentum vector of the first (second) lepton and \f$\hat{\zeta}\f$
- to the bisectional direction between the two leptons in the transverse plane.
- For more information check
-
- D. Jang, “Search for MSSM Higgs decaying to
- tau pairs in pp collision at √s=1.96 TeV at CDF”. PhD thesis, Rutgers
- University, 2006. FERMILAB-THESIS-2006-11.
-
- * @param df the input dataframe
- * @param p_1_p4 the lorentz vector of the first particle
- * @param p_2_p4 the lorentz vector of the second particle
- * @param met the lorentz vector of the met
- * @param outputname the name of the new column containing the pZetaMissVis
- value
- * @return a new dataframe with the new column
- */
-ROOT::RDF::RNode pzetamissvis(ROOT::RDF::RNode df,
-                              const std::string &outputname,
-                              const std::string &p_1_p4,
-                              const std::string &p_2_p4,
-                              const std::string &met) {
-    float alpha = 0.85;
-    auto calculate_pzetamissvis = [alpha](ROOT::Math::PtEtaPhiMVector &p_1_p4,
-                                          ROOT::Math::PtEtaPhiMVector &p_2_p4,
-                                          ROOT::Math::PtEtaPhiMVector &met) {
-        auto met_3dvec = met.Vect();
-        met_3dvec.SetZ(0.0);
-        // calculate zeta for the delepton system
-        auto p1_norm = p_1_p4.Vect().Unit();
-        auto p2_norm = p_2_p4.Vect().Unit();
-        p1_norm.SetZ(0.0);
-        p2_norm.SetZ(0.0);
-        p1_norm = p1_norm.Unit();
-        p2_norm = p2_norm.Unit();
-        auto zeta = (p1_norm + p2_norm).Unit();
-
-        auto dileptonsystem = p_1_p4.Vect() + p_2_p4.Vect();
-        dileptonsystem.SetZ(0);
-        auto pzetaVis = dileptonsystem.Dot(zeta);
-        return met_3dvec.Dot(zeta) - (alpha * pzetaVis);
-    };
-    return df.Define(outputname, calculate_pzetamissvis, {p_1_p4, p_2_p4, met});
-}
-/**
- * @brief function used to calculate mTdileptonMET, which is the transverse mass
- * of the di-lepton system. The transverse mass is calculated using the
- * vectoroperations::calculateMT function.
- *
- * @param df name of the dataframe
- * @param outputname name of the new column containing the mTdileptonMET value
- * @param p_1_p4 lorentz vector of the first particle
- * @param p_2_p4 lorentz vector of the second particle
- * @param met lorentz vector of the met
- * @return a new dataframe with the new column
- */
-ROOT::RDF::RNode mTdileptonMET(ROOT::RDF::RNode df,
-                               const std::string &outputname,
-                               const std::string &p_1_p4,
-                               const std::string &p_2_p4,
-                               const std::string &met) {
-    auto calculate_mTdileptonMET = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
-                                      ROOT::Math::PtEtaPhiMVector &p_2_p4,
-                                      ROOT::Math::PtEtaPhiMVector &met) {
-        ROOT::Math::PtEtaPhiMVector dilepton = p_1_p4 + p_2_p4;
-        return vectoroperations::calculateMT(dilepton, met);
-    };
-    return df.Define(outputname, calculate_mTdileptonMET,
-                     {p_1_p4, p_2_p4, met});
+        vectors);
 }
 
-/**
- * @brief function used to calculate the deltaR between two lorentz vectors. It
- is defined as
- \f[ \Delta R = \sqrt{(\eta_1 - \eta_2)^2 + (\phi_1 - \phi_2)^2} \f]
- where \f$\eta_1\f$ and \f$\phi_1\f$ are from the first lorentz vector and \f$\eta_2\f$
- and \f$\phi_2\f$ are from the second lorentz vector.
- *
- * @param df name of the dataframe
- * @param outputname name of the new column containing the deltaR value
- * @param p_1_p4 first lorentz vector
- * @param p_2_p4 second lorentz vector of
- * @return a new dataframe with the new column
- */
-ROOT::RDF::RNode deltaR(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::string &p_1_p4, const std::string &p_2_p4) {
-    auto calculate_deltaR = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
-                               ROOT::Math::PtEtaPhiMVector &p_2_p4) {
-        if (p_1_p4.pt() < 0.0 || p_2_p4.pt() < 0.0)
-            return default_float;
-        return (float)ROOT::Math::VectorUtil::DeltaR(p_1_p4, p_2_p4);
-    };
-    return df.Define(outputname, calculate_deltaR, {p_1_p4, p_2_p4});
-}
-/**
- * @brief function used to calculate the transverse mass of a particle. The
- * transverse mass is calculated using the vectoroperations::calculateMT
- * function.
- *
- * @param df name of the dataframe
- * @param outputname name of the new column containing the mT value
- * @param particle_p4 lorentz vector of the particle
- * @param met lorentz vector of the met
- * @return a new dataframe with the new column
- */
-
-ROOT::RDF::RNode mT(ROOT::RDF::RNode df, const std::string &outputname,
-                    const std::string &particle_p4, const std::string &met) {
-    auto calculate_mt = [](ROOT::Math::PtEtaPhiMVector &particle_p4,
-                           ROOT::Math::PtEtaPhiMVector &met) {
-        return vectoroperations::calculateMT(particle_p4, met);
-    };
-    return df.Define(outputname, calculate_mt, {particle_p4, met});
-}
-
-/**
- * @brief function used to calculate the pt of the dilepton + met system.
- *
- * @param df name of the dataframe
- * @param outputname name of the new column containing the pt_tt value
- * @param p_1_p4 lorentz vector of the first particle
- * @param p_2_p4 lorentz vector of the second particle
- * @param met lorentz vector of the met
- * @return a new dataframe with the new column
- */
-
-ROOT::RDF::RNode pt_tt(ROOT::RDF::RNode df, const std::string &outputname,
-                       const std::string &p_1_p4, const std::string &p_2_p4,
-                       const std::string &met) {
-    auto calculate_pt_tt = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
-                              ROOT::Math::PtEtaPhiMVector &p_2_p4,
-                              ROOT::Math::PtEtaPhiMVector &met) {
-        auto dileptonmet = p_1_p4 + p_2_p4 + met;
-        return (float)dileptonmet.Pt();
-    };
-    return df.Define(outputname, calculate_pt_tt, {p_1_p4, p_2_p4, met});
-}
-
-/**
- * @brief function used to calculate the pt of the dilepton + two leading jets +
- * met system. If the number of jets is less than 2, the quantity is set to 10
- * instead.
- *
- * @param df name of the dataframe
- * @param outputname name of the new column containing the pt_ttjj value
- * @param p_1_p4 lorentz vector of the first particle
- * @param p_2_p4 lorentz vector of the second particle
- * @param jet_1_p4 lorentz vector of the first jet
- * @param jet_2_p4 lorentz vector of the second jet
- * @param met lorentz vector of the met
- * @return a new dataframe with the new column
- */
-
-ROOT::RDF::RNode pt_ttjj(ROOT::RDF::RNode df, const std::string &outputname,
-                         const std::string &p_1_p4, const std::string &p_2_p4,
-                         const std::string &jet_1_p4,
-                         const std::string &jet_2_p4, const std::string &met) {
-    auto calculate_pt_ttjj = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
-                                ROOT::Math::PtEtaPhiMVector &p_2_p4,
-                                ROOT::Math::PtEtaPhiMVector &jet_1_p4,
-                                ROOT::Math::PtEtaPhiMVector &jet_2_p4,
-                                ROOT::Math::PtEtaPhiMVector &met) {
-        if (jet_1_p4.pt() < 0.0 || jet_2_p4.pt() < 0.0)
-            return default_float;
-        auto jetlepmet = p_1_p4 + p_2_p4 + met + jet_1_p4 + jet_2_p4;
-        return (float)jetlepmet.Pt();
-    };
-    return df.Define(outputname, calculate_pt_ttjj,
-                     {p_1_p4, p_2_p4, jet_1_p4, jet_2_p4, met});
-}
-
-/**
- * @brief function used to calculate the pt two leading jets
- If the number of jets is less than 2, the quantity is set to -10
- * instead.
- *
- * @param df name of the dataframe
- * @param outputname name of the new column containing the pt_dijet value
- * @param jet_1_p4 lorentz vector of the first jet
- * @param jet_2_p4 lorentz vector of the second jet
- * @return a new dataframe with the new column
- */
-
-ROOT::RDF::RNode pt_dijet(ROOT::RDF::RNode df, const std::string &outputname,
-                          const std::string &jet_1_p4,
-                          const std::string &jet_2_p4) {
-    auto calculate_pt_dijet = [](ROOT::Math::PtEtaPhiMVector &jet_1_p4,
-                                 ROOT::Math::PtEtaPhiMVector &jet_2_p4) {
-        if (jet_1_p4.pt() < 0.0 || jet_2_p4.pt() < 0.0)
-            return default_float;
-        auto dijetsystem = jet_1_p4 + jet_2_p4;
-        return (float)dijetsystem.Pt();
-    };
-    return df.Define(outputname, calculate_pt_dijet, {jet_1_p4, jet_2_p4});
-}
-
-/**
- * @brief function used to check the hemisphere of the two leading jets, if both
- jets are in the same hemisphere, the quantity is set to 1, otherwise it is set
- to 0. If the number of jets is less than 2, the quantity is set to 10
- * instead.
- *
- * @param df name of the dataframe
- * @param outputname name of the new column containing the jet hemisphere value
- * @param jet_1_p4 lorentz vector of the first jet
- * @param jet_2_p4 lorentz vector of the second jet
- * @return a new dataframe with the new column
- */
-
-ROOT::RDF::RNode jet_hemisphere(ROOT::RDF::RNode df,
-                                const std::string &outputname,
-                                const std::string &jet_1_p4,
-                                const std::string &jet_2_p4) {
-    auto calculate_jet_hemisphere = [](ROOT::Math::PtEtaPhiMVector &jet_1_p4,
-                                       ROOT::Math::PtEtaPhiMVector &jet_2_p4) {
-        if (jet_1_p4.pt() < 0.0 || jet_2_p4.pt() < 0.0)
-            return default_int;
-        return (int)(jet_1_p4.Eta() * jet_2_p4.Eta() > 0);
-    };
-    return df.Define(outputname, calculate_jet_hemisphere,
-                     {jet_1_p4, jet_2_p4});
-}
-
-/**
- * @brief function used to calculate `mt_tot`. It is defined as
- \f[
-    m_{T}^{tot} = \sqrt{m_{T}^2(p_{1},E_{T}^{miss}) +
- m_{T}^2(p_{2},E_{T}^{miss}) + m_{T}^2(p_{1},p_2) } \f] where \f$ m_{T}^2 \f$ is
- the transverse mass, \f$ p_{1} \f$ and \f$ p_{2} \f$ are the lepton lorentz
- vectors and \f$ E_{T}^{miss} \f$ is the missing energy.
- *
- * @param df name of the dataframe
- * @param outputname name of the new column containing the mt_tot value
- * @param p_1_p4 lorentz vector of the first particle
- * @param p_2_p4 lorentz vector of the second particle
- * @param met lorentz vector of the met
- * @return a new dataframe with the new column
- */
-
-ROOT::RDF::RNode mt_tot(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::string &p_1_p4, const std::string &p_2_p4,
-                        const std::string &met) {
-    auto calculate_mt_tot = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
-                               ROOT::Math::PtEtaPhiMVector &p_2_p4,
-                               ROOT::Math::PtEtaPhiMVector &met) {
-        const float mt_1 = vectoroperations::calculateMT(p_1_p4, met);
-        const float mt_2 = vectoroperations::calculateMT(p_2_p4, met);
-        const float mt_mix = vectoroperations::calculateMT(p_1_p4, p_2_p4);
-        return (float)sqrt(mt_1 * mt_1 + mt_2 * mt_2 + mt_mix * mt_mix);
-    };
-    return df.Define(outputname, calculate_mt_tot, {p_1_p4, p_2_p4, met});
-}
-
-/**
- * @brief function used to calculate collinear mass approximation `mtt_coll_approx`.
- * It is defined through two equations, assuming, that neutrinos of \f$ \tau \f$ decays
- fly into the same direction as visible decay products:
- \f[
-    p(\tau_{i}) = (1 + x_{\tau_{i}^{vis}}) \cdot p(\tau_{i}^{vis}), \qquad i = 1,2
- \f]
- where \f$ p(...) \f$ represents the lorentz vectors of the \f$ \tau \f$ leptons
- \f$ \tau_{1} \f$ and \f$ \tau_{2} \f$. The fractions \f$ x_{\tau_{i}^{vis}} \f$
- are the additional amount of neutrinos contributions, relative to the visible
- decay products. This means, the missing transverse energy vector \f$ \vec{p}_{T}^{miss} \f$
- can be computed as follows:
- \f[
-    \vec{p}_{T}^{miss} = x_{\tau_{1}^{vis}} \cdot \vec{p}_{T}(\tau_{1}^{vis}) + x_{\tau_{2}^{vis}} \cdot \vec{p}_{T}(\tau_{2}^{vis})
- \f]
- This set of equations in turn allows to determine the values \f$ x_{\tau_{i}^{vis}} \f$. Example for \f$ i = 1\f$:
- \f[
-    x_{\tau_{1}^{vis}} = \frac{p_{T}^{miss}}{p_{T}(\tau_{1}^{vis})} \cdot \frac{\sin(\phi_{\tau_{2}^{vis}} - \phi_{miss})}{\sin(\phi_{\tau_{2}^{vis}} - \phi_{\tau_{1}^{vis}})}
- \f]
- The collinear mass approximation is then computed from sum of the full \f$ \tau \f$ lorentz vectors \f$ p(\tau_{i}) \f$.
- *
- * @param df name of the dataframe
- * @param outputname name of the new column containing the mtt_coll_approx value
- * @param p_1_p4 lorentz vector of the first particle
- * @param p_2_p4 lorentz vector of the second particle
- * @param met lorentz vector of the met
- * @return a new dataframe with the new column
- */
-
-ROOT::RDF::RNode mtt_coll_approx(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::string &p_1_p4, const std::string &p_2_p4,
-                        const std::string &met) {
-    auto calculate_mtt_coll_approx = [](ROOT::Math::PtEtaPhiMVector &p_1_p4,
-                               ROOT::Math::PtEtaPhiMVector &p_2_p4,
-                               ROOT::Math::PtEtaPhiMVector &met) -> float {
-
-        // Require valid pt values
-        if (!(p_1_p4.Pt() > 0. && p_2_p4.Pt() > 0. && met.Pt() > 0.))
-            return default_float;
-
-        // Calculate the phi difference between the two visible particles
-        const float delta_phi = p_2_p4.Phi() - p_1_p4.Phi();
-        // Avoid division by zero by checking the sine of the phi difference
-        if (std::fabs(sin(delta_phi)) < 1e-6)
-            return default_float;
-
-        const float x_1 = met.Pt() / p_1_p4.Pt() * sin(p_2_p4.Phi() - met.Phi()) / sin(delta_phi);
-        const float x_2 = met.Pt() / p_2_p4.Pt() * sin(p_1_p4.Phi() - met.Phi()) / (-sin(delta_phi));
-        ROOT::Math::PtEtaPhiMVector coll_lorentz = (1. + x_1) * p_1_p4 + (1. + x_2) * p_2_p4;
-        return coll_lorentz.M();
-    };
-    return df.Define(outputname, calculate_mtt_coll_approx, {p_1_p4, p_2_p4, met});
-}
 /// namespace for tau specific quantities
 namespace tau {
 

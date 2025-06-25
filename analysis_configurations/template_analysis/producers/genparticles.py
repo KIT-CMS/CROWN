@@ -135,7 +135,7 @@ UnrollGenMuLV2 = ProducerGroup(
 
 gen_mm_pair_mass = Producer(
     name="gen_mm_pair_mass",
-    call="quantities::m_vis({df}, {output}, {input_vec})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.gen_p4_1, q.gen_p4_2],
     output=[q.gen_mm_pair_mass],
     scopes=["mm"],
@@ -184,8 +184,8 @@ LVGenParticle2_friend = Producer(
 )
 LV_GenMM_reconstruction = Producer(
     name="LV_GenMM_reconstruction",
-    call="lorentzvector::Combine({df}, {output}, {input})",
+    call="lorentzvector::Sum({df}, {output}, {input})",
     input=[q.gen_p4_1, q.gen_p4_2],
-    output=[q.gen_p4_mm],
+    output=[q.gen_p4_mm_pair],
     scopes=["mm"],
 )

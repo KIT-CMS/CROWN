@@ -291,8 +291,8 @@ jtag_value_2 = Producer(
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 mjj = Producer(
-    name="jphi_2",
-    call="quantities::m_vis({df}, {output}, {input_vec})",
+    name="mjj",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.jet_p4_1, q.jet_p4_2],
     output=[q.mjj],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
