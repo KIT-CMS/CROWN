@@ -195,7 +195,7 @@ gen_pdgid_2 = Producer(
 )
 gen_m_vis = Producer(
     name="gen_m_vis",
-    call="quantities::m_vis({df}, {output}, {input_vec})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.gen_p4_1, q.gen_p4_2],
     output=[q.gen_m_vis],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],

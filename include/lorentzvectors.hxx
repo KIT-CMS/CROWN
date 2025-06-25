@@ -15,7 +15,8 @@ namespace lorentzvector {
  * Lorentz vectors. If one of the Lorentz vectors is not well defined (has 
  * default values), the function returns a default Lorentz vector.
  *
- * @tparam Lorentzvectors type of the input column
+ * @tparam Lorentzvectors variadic template parameter pack representing the 
+ * Lorentz vector columns
  * @param df input dataframe
  * @param outputname name of the output column containing the summed Lorentz vector
  * @param LVs Parameter pack of column names that contain the considered
@@ -24,7 +25,7 @@ namespace lorentzvector {
  * @return a dataframe containing the new column
  */
 template <class... Lorentzvectors>
-ROOT::RDF::RNode Combine(ROOT::RDF::RNode df, const std::string &outputname,
+ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, const std::string &outputname,
                             const Lorentzvectors &...LVs) {
     std::vector<std::string> LV_list;
     utility::appendParameterPackToVector(LV_list, LVs...);
@@ -85,15 +86,90 @@ ROOT::RDF::RNode Scale(ROOT::RDF::RNode df, const std::string &outputname,
                          const float &scalefactor);
 ROOT::RDF::RNode GetPt(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &vector);
+/**
+ * @brief This function constructs a vectorial sum of an arbitrary number of 
+ * Lorentz vectors and returns its transverse momentum (\f$p_T\f$). If one 
+ * of the Lorentz vectors is not well defined (has default values), the function 
+ * returns a default value.
+ *
+ * @tparam Lorentzvectors variadic template parameter pack representing the 
+ * Lorentz vector columns
+ * @param df input dataframe
+ * @param outputname name of the output column containing the \f$p_T\f$ of the 
+ * summed Lorentz vectors
+ * @param LVs Parameter pack of column names that contain the considered
+ * Lorentz vectors, must be of type `ROOT::Math::PtEtaPhiMVector`
+ *
+ * @return a dataframe containing the new column
+ */
+template <class... Lorentzvectors>
+ROOT::RDF::RNode GetPt(ROOT::RDF::RNode df, const std::string &outputname,
+                            const Lorentzvectors &...LVs) {
+    std::vector<std::string> LV_list;
+    utility::appendParameterPackToVector(LV_list, LVs...);
+    const auto n_LVs = sizeof...(Lorentzvectors);
+    using namespace ROOT::VecOps;
+    return df.Define(
+        outputname,
+        utility::PassAsVec<n_LVs, ROOT::Math::PtEtaPhiMVector>(
+            [](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &LVs) {
+                for (int i = 0; i < LVs.size(); i++) {
+                    auto vector = LVs.at(i);
+                    if (vector.pt() < 0.) {
+                        return default_float;
+                    }
+                }
+                ROOT::Math::PtEtaPhiMVector new_LV = Sum(LVs, ROOT::Math::PtEtaPhiMVector());
+                return (float)new_LV.pt();
+            }),
+        LV_list);
+}
 ROOT::RDF::RNode GetEta(ROOT::RDF::RNode df, const std::string &outputname,
                      const std::string &vector);
 ROOT::RDF::RNode GetPhi(ROOT::RDF::RNode df, const std::string &outputname,
                      const std::string &vector);
 ROOT::RDF::RNode GetMass(ROOT::RDF::RNode df, const std::string &outputname,
                       const std::string &vector);
+/**
+ * @brief This function constructs a vectorial sum of an arbitrary number of 
+ * Lorentz vectors and returns its invariant mass. If one of the Lorentz 
+ * vectors is not well defined (has default values), the function returns a 
+ * default value.
+ *
+ * @tparam Lorentzvectors variadic template parameter pack representing the 
+ * Lorentz vector columns
+ * @param df input dataframe
+ * @param outputname name of the output column containing the invariant mass 
+ * of the summed Lorentz vectors
+ * @param LVs Parameter pack of column names that contain the considered
+ * Lorentz vectors, must be of type `ROOT::Math::PtEtaPhiMVector`
+ *
+ * @return a dataframe containing the new column
+ */
+template <class... Lorentzvectors>
+ROOT::RDF::RNode GetMass(ROOT::RDF::RNode df, const std::string &outputname,
+                            const Lorentzvectors &...LVs) {
+    std::vector<std::string> LV_list;
+    utility::appendParameterPackToVector(LV_list, LVs...);
+    const auto n_LVs = sizeof...(Lorentzvectors);
+    using namespace ROOT::VecOps;
+    return df.Define(
+        outputname,
+        utility::PassAsVec<n_LVs, ROOT::Math::PtEtaPhiMVector>(
+            [](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &LVs) {
+                for (int i = 0; i < LVs.size(); i++) {
+                    auto vector = LVs.at(i);
+                    if (vector.pt() < 0.) {
+                        return default_float;
+                    }
+                }
+                ROOT::Math::PtEtaPhiMVector new_LV = Sum(LVs, ROOT::Math::PtEtaPhiMVector());
+                return (float)new_LV.mass();
+            }),
+        LV_list);
+}
 ROOT::RDF::RNode GetEnergy(ROOT::RDF::RNode df, const std::string &outputname,
                       const std::string &vector);
-
 /// namespace used for mutau lorentzvectors
 namespace mutau {
 ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &pairname,

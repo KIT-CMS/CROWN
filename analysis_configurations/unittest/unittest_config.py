@@ -530,10 +530,19 @@ def build_config(
         ],
     )
     configuration.add_modification_rule(
-        ["et", "mt", "tt"],
+        ["tt"],
         RemoveProducer(
             producers=[
                 scalefactors.Tau_1_VsMuTauID_SF,
+                scalefactors.Tau_2_VsMuTauID_SF,
+            ],
+            samples="data",
+        ),
+    )
+    configuration.add_modification_rule(
+        ["et", "mt"],
+        RemoveProducer(
+            producers=[
                 scalefactors.Tau_2_VsMuTauID_SF,
             ],
             samples="data",
