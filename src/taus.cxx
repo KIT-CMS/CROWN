@@ -3,6 +3,7 @@
 
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
+#include "../include/defaults.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "correction.h"
 
@@ -329,6 +330,45 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
                          {pt, eta, decay_mode, gen_match});
     return df1;
 }
+
+namespace quantity {
+
+/**
+ * @brief This function writes out a flag that is true if a tau passes a specific 
+ * tau ID working point (`wp`). The working point is defined by the bit value. The
+ * bit values can be found e.g. in the description of the tau ID scale factors. 
+ * 
+ * @param df input dataframe
+ * @param outputname name of the output column containing the flag
+ * @param ID name of the column containing the tau ID values 
+ * @param index_vector name of the column containing the vector with the relevant
+ * tau pair indices
+ * @param position position in the index vector of the relevant tau in the pair
+ * @param wp bit value of the WP that has to be passed
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode IDFlag(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &ID, const std::string &index_vector,
+                        const int &position, const int &wp) {
+    return df.Define(
+        outputname,
+        [position, wp](const ROOT::RVec<int> &index_vector,
+                          const ROOT::RVec<UChar_t> &IDs) {
+            Logger::get("physicsobject::tau::quantity::IDFlag")
+                ->debug(
+                    "position tau in pair {}, tau pair {}, id wp bit {}, vsjet ids {}",
+                    position, index_vector, wp, IDs);
+            const int index = index_vector.at(position);
+            const int id_value = IDs.at(index, default_int);
+            if (id_value != default_int)
+                return std::min(1, int(id_value & 1 << (wp - 1)));
+            else
+                return int(id_value);
+        },
+        {index_vector, ID});
+}
+} // end namespace quantity
 
 namespace scalefactor {
 

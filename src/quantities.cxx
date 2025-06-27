@@ -22,7 +22,7 @@ namespace quantities {
  * azimuthal angle.
  *
  * @param df input dataframe
- * @param outputname name of the new column containing the \f$\Delta\phi\f$ 
+ * @param outputname name of the output column containing the \f$\Delta\phi\f$ 
  * value
  * @param vector_1 name of the column containing the first Lorentz vector
  * @param vector_2 name of the column containing the second Lorentz vector
@@ -50,7 +50,7 @@ ROOT::RDF::RNode DeltaPhi(ROOT::RDF::RNode df, const std::string &outputname,
  * and \f$\phi_2\f$ are from the second Lorentz vector.
  *
  * @param df input dataframe
- * @param outputname name of the new column containing the \f$\Delta R\f$ 
+ * @param outputname name of the output column containing the \f$\Delta R\f$ 
  * value
  * @param vector_1 name of the column containing the first Lorentz vector
  * @param vector_2 name of the column containing the second Lorentz vector
@@ -74,7 +74,7 @@ ROOT::RDF::RNode DeltaR(ROOT::RDF::RNode df, const std::string &outputname,
  * the quantity is set to `1`, otherwise it is set to `0`.
  *
  * @param df name of the dataframe
- * @param outputname name of the new column containing the hemisphere value
+ * @param outputname name of the output column containing the hemisphere value
  * @param vector_1 name of the column containing the first Lorentz vector
  * @param vector_2 name of the column containing the second Lorentz vector
  *
@@ -114,7 +114,7 @@ ROOT::RDF::RNode PairHemisphere(ROOT::RDF::RNode df,
  * FERMILAB-THESIS-2006-11.
  *
  * @param df the input dataframe
- * @param outputname the name of the new column containing the PzetaMissVis value
+ * @param outputname the name of the output column containing the PzetaMissVis value
  * @param vector_1 name of the column containing the first Lorentz vector
  * @param vector_2 name of the column containing the second Lorentz vector
  * @param vector_3 name of the column containing the third Lorentz vector (MET vector)
@@ -165,7 +165,7 @@ ROOT::RDF::RNode PzetaMissVis(ROOT::RDF::RNode df,
  * neutrino (particle 2). 
  *
  * @param df input dataframe
- * @param outputname name of the new column containing the \f$m_T\f$ value
+ * @param outputname name of the output column containing the \f$m_T\f$ value
  * @param vector_1 name of the column containing the first Lorentz vector
  * @param vector_2 name of the column containing the second Lorentz vector
  *
@@ -198,7 +198,7 @@ ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputna
  * and the summed Lorentz vector of the first two particles.
  *
  * @param df input dataframe
- * @param outputname name of the new column containing the \f$m_T\f$ value
+ * @param outputname name of the output column containing the \f$m_T\f$ value
  * @param vector_1 name of the column containing the first Lorentz vector
  * @param vector_2 name of the column containing the second Lorentz vector
  * @param vector_3 name of the column containing the third Lorentz vector
@@ -233,7 +233,7 @@ ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputna
  * are the lepton Lorentzvectors and \f$E_{T}^{miss}\f$ is the missing energy.
  *
  * @param df input dataframe
- * @param outputname name of the new column containing the total transverse mass
+ * @param outputname name of the output column containing the total transverse mass
  * @param vector_1 name of the column containing the first Lorentz vector
  * @param vector_2 name of the column containing the second Lorentz vector
  * @param vector_3 name of the column containing the third Lorentz vector (usually
@@ -285,7 +285,7 @@ ROOT::RDF::RNode TotalTransverseMass(ROOT::RDF::RNode df, const std::string &out
  * Lorentz vectors \f$p(\tau_{i})\f$.
  *
  * @param df input dataframe
- * @param outputname name of the new column containing the approximanted collinear mass
+ * @param outputname name of the output column containing the approximanted collinear mass
  * @param vector_1 name of the column containing the first Lorentz vector
  * @param vector_2 name of the column containing the second Lorentz vector
  * @param vector_3 name of the column containing the third Lorentz vector (MET vector)
@@ -322,28 +322,26 @@ ROOT::RDF::RNode CollinearApproxMtt(ROOT::RDF::RNode df, const std::string &outp
  * leptons and the reconstructed MET. The implementation is based on
  * https://github.com/SVfit/ClassicSVfit/tree/fastMTT_19_02_2019
  *
- * @param df The dataframe to add the quantity to
- * @param outputname name of the new column containing the Lorentz vector
- * @param pt_1 the name of the column containing the pt of the first particle
- * @param pt_2 the name of the column containing the pt of the second particle
- * @param eta_1  the name of the column containing the eta of the first particle
- * @param eta_2 the name of the column containing the eta of the second particle
- * @param phi_1 the name of the column containing the phi of the first particle
- * @param phi_2 the name of the column containing the phi of the second particle
- * @param mass_1 the name of the column containing the mass of the first
- * particle
- * @param mass_2 the name of the column containing the mass of the second
- * particle
- * @param met_pt the name of the column containing the met pt
- * @param met_phi the name of the column containing the met phi
- * @param met_cov_xx the name of the column containing the met covariance xx
- * @param met_cov_xy the name of the column containing the met covariance xy
- * @param met_cov_yy the name of the column containing the met covariance yy
- * @param decay_mode_1 the name of the column containing the decay mode of the
+ * @param df input dataframe
+ * @param outputname name of the output column containing the FastMtt Lorentz vector
+ * @param pt_1 name of the column containing the \f$p_T\f$ of the first particle
+ * @param pt_2 name of the column containing the \f$p_T\f$ of the second particle
+ * @param eta_1 name of the column containing the \f$\eta\f$ of the first particle
+ * @param eta_2 name of the column containing the \f$\eta\f$ of the second particle
+ * @param phi_1 name of the column containing the \f$\phi\f$ of the first particle
+ * @param phi_2 name of the column containing the \f$\phi\f$ of the second particle
+ * @param mass_1 name of the column containing the mass of the first particle
+ * @param mass_2 name of the column containing the mass of the second particle
+ * @param met_pt name of the column containing MET \f$p_T\f$
+ * @param met_phi name of the column containing MET \f$\phi\f$
+ * @param met_cov_xx name of the column containing the MET covariance XX
+ * @param met_cov_xy name of the column containing the MET covariance XY
+ * @param met_cov_yy name of the column containing the MET covariance YY
+ * @param decay_mode_1 name of the column containing the decay mode of the
  * first particle
- * @param decay_mode_2 the name of the column containing the decay mode of the
+ * @param decay_mode_2 name of the column containing the decay mode of the
  * second particle
- * @param finalstate the final state of the ditaudecay. Supported are "mt",
+ * @param finalstate definition of the di-tau final state decay, supported are "mt",
  * "et", "tt", "em"
  *
  * @return a new dataframe with the new column
@@ -409,8 +407,6 @@ FastMtt(ROOT::RDF::RNode df, const std::string &outputname,
             FastMTT FastMTTAlgo;
             ROOT::Math::PtEtaPhiMVector result =
                 FastMTTAlgo.run(measuredTauLeptons, met.X(), met.Y(), covMET);
-            // ROOT::Math::PtEtaPhiMVector result(_result.Pt(), _result.Eta(),
-            //                                    _result.Phi(), _result.M());
             Logger::get("FastMTT")->debug("FastMTT result: {}", result.M());
             return result;
         };
@@ -418,6 +414,79 @@ FastMtt(ROOT::RDF::RNode df, const std::string &outputname,
                      {pt_1, pt_2, eta_1, eta_2, phi_1, phi_2, mass_1, mass_2,
                       met_pt, met_phi, met_cov_xx, met_cov_xy, met_cov_yy,
                       decay_mode_1, decay_mode_2});
+}
+
+/** 
+ * @brief This function gets the gen. jet quantity for a given object. All objects
+ * are usually also reconstructed as jets. This function finds the corresponding jet 
+ * via indices that are present in nanoAODs.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column containing the jet quantity value
+ * @param jet_quantity name of the column containing the jet quantity vector
+ * @param object_jet_index name of the column containing the association (via index) 
+ * between the object and the jet collection
+ * @param object_index_vector name of the column containing the vector with the relevant
+ * object indices
+ * @param position position in the index vector that specifies which object in the 
+ * object vector should be used to get its associated jet quantity
+ *
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode MatchingJet(ROOT::RDF::RNode df,
+                            const std::string &outputname,
+                            const std::string &jet_quantity,
+                            const std::string &object_jet_index,
+                            const std::string &object_index_vector,
+                            const int &position) {
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<float> &quantity,
+                                const ROOT::RVec<int> &obj_jet_idx,
+                                const ROOT::RVec<int> &obj_indices) {
+                         const int obj_index = obj_indices.at(position);
+                         const int jet_index = obj_jet_idx.at(obj_index, -1);
+                         return quantity.at(jet_index, default_float);
+                     },
+                     {jet_quantity, object_jet_index, object_index_vector});
+}
+
+/** 
+ * @brief This function gets the gen. jet quantity for a given object. All objects
+ * are usually also reconstructed as jets. This function finds the corresponding jet
+ * and the associated gen. jet via indices that are present in nanoAODs.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column containing the gen. jet quantity value
+ * @param genjet_quantity name of the column containing the gen. jet quantity vector
+ * @param jet_genjet_index name of the column containing the association (via index) 
+ * between the jet and the gen. jet collection 
+ * @param object_jet_index name of the column containing the association (via index) 
+ * between the object and the jet collection
+ * @param object_index_vector name of the column containing the vector with the relevant
+ * object indices
+ * @param position position in the index vector that specifies which object in the 
+ * object vector should be used to get its associated gen. jet quantity
+ *
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode MatchingGenJet(ROOT::RDF::RNode df,
+                            const std::string &outputname,
+                            const std::string &genjet_quantity,
+                            const std::string &jet_genjet_index,
+                            const std::string &object_jet_index,
+                            const std::string &object_index_vector,
+                            const int &position) {
+    return df.Define(outputname,
+                     [position](const ROOT::RVec<float> &quantity,
+                                const ROOT::RVec<int> &jet_genjet_idx,
+                                const ROOT::RVec<int> &obj_jet_idx,
+                                const ROOT::RVec<int> &obj_indices) {
+                         const int obj_index = obj_indices.at(position);
+                         const int jet_index = obj_jet_idx.at(obj_index, -1);
+                         const int genjet_index = jet_genjet_idx.at(jet_index, -1);
+                         return quantity.at(genjet_index, default_float);
+                     },
+                     {genjet_quantity, jet_genjet_index, object_jet_index, object_index_vector});
 }
 
 /**
@@ -472,101 +541,5 @@ ROOT::RDF::RNode pt_W(ROOT::RDF::RNode df, const std::string &outputname,
         },
         vectors);
 }
-
-/// namespace for tau specific quantities
-namespace tau {
-
-/// Function to writeout the pt of the reco jet associated with the given
-/// tau.
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the new column containing the jet pt value
-/// \param position index of the position in the pair vector
-/// \param pairname name of the column containing the pair vector
-/// \param taujet_index name of the column containing the association
-/// between the tau and the reco jet \param jetpt_column name of the column
-/// containing the recojet pt values
-///
-/// \returns a dataframe with the new column
-ROOT::RDF::RNode matching_jet_pt(ROOT::RDF::RNode df,
-                                 const std::string &outputname,
-                                 const int &position,
-                                 const std::string &pairname,
-                                 const std::string &taujet_index,
-                                 const std::string &jetpt_column) {
-    return df.Define(outputname,
-                     [position](const ROOT::RVec<int> &pair,
-                                const ROOT::RVec<int> &taujets,
-                                const ROOT::RVec<float> &jetpt) {
-                         const int tauindex = pair.at(position);
-                         const int jetindex = taujets.at(tauindex, -1);
-                         return jetpt.at(jetindex, default_float);
-                     },
-                     {pairname, taujet_index, jetpt_column});
-}
-/// Function to writeout the pt of the gen jet associated with the reco jet,
-/// which is associated with the given tau. \code
-///  Tau --> recoJet --> GenJet
-///   \endcode
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the new column containing the jet pt value
-/// \param position index of the position in the pair vector
-/// \param pairname name of the column containing the pair vector
-/// \param taujet_index name of the column containing the association
-/// between the tau and the reco jet \param genjet_index name of the column
-/// containing the association between the reco jet and the gen jet \param
-/// genjetpt_column name of the column containing the genJet pt values
-///
-/// \returns a dataframe with the new column
-ROOT::RDF::RNode matching_genjet_pt(
-    ROOT::RDF::RNode df, const std::string &outputname, const int &position,
-    const std::string &pairname, const std::string &taujet_index,
-    const std::string &genjet_index, const std::string &genjetpt_column) {
-    return df.Define(outputname,
-                     [position](const ROOT::RVec<int> &pair,
-                                const ROOT::RVec<int> &taujets,
-                                const ROOT::RVec<int> &genjets,
-                                const ROOT::RVec<float> &genjetpt) {
-                         const int tauindex = pair.at(position);
-                         const int jetindex = taujets.at(tauindex, -1);
-                         const int genjetindex = genjets.at(jetindex, -1);
-                         return genjetpt.at(genjetindex, default_float);
-                     },
-                     {pairname, taujet_index, genjet_index, genjetpt_column});
-}
-/// Function to writeout a flag if a tau passes a specific tau id cut. The
-/// particle is identified via the index stored in the pair vector
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the new column containing the flag
-/// \param position index of the position in the pair vector
-/// \param pairname name of the column containing the pair vector
-/// \param nameID name of the ID column in the NanoAOD
-/// \param idxID bitvalue of the WP the has to be passed
-///
-/// \returns a dataframe with the new column
-
-ROOT::RDF::RNode TauIDFlag(ROOT::RDF::RNode df, const std::string &outputname,
-                           const int &position, const std::string &pairname,
-                           const std::string &nameID, const int &idxID) {
-    return df.Define(
-        outputname,
-        [position, idxID](const ROOT::RVec<int> &pair,
-                          const ROOT::RVec<UChar_t> &IDs) {
-            Logger::get("tauIDFlag")
-                ->debug(
-                    "position tau in pair {}, pair {}, id bit {}, vsjet ids {}",
-                    position, pair, idxID, IDs);
-            const int index = pair.at(position);
-            const int ID = IDs.at(index, default_int);
-            if (ID != default_int)
-                return std::min(1, int(ID & 1 << (idxID - 1)));
-            else
-                return int(ID);
-        },
-        {pairname, nameID});
-}
-} // end namespace tau
 } // end namespace quantities
 #endif /* GUARD_QUANTITIES_H */
