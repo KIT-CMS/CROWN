@@ -270,31 +270,31 @@ tau_gen_match_1 = Producer(
 )
 taujet_pt_1 = Producer(
     name="taujet_pt_1",
-    call="quantities::tau::matching_jet_pt({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_associatedJet, nanoAOD.Jet_pt],
+    call="quantities::MatchingJet({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Jet_pt, nanoAOD.Tau_associatedJet, q.dileptonpair],
     output=[q.taujet_pt_1],
     scopes=["tt"],
 )
 VsJetTauIDFlag_1 = ExtendedVectorProducer(
     name="VsJetTauIDFlag_1",
-    call="quantities::tau::TauIDFlag({df}, {output}, 0, {input}, {vsjet_tau_id_WPbit})",
-    input=[q.dileptonpair, nanoAOD.Tau_ID_vsJet],
+    call="physicsobject::tau::quantity::IDFlag({df}, {output}, {input}, 0, {vsjet_tau_id_WPbit})",
+    input=[nanoAOD.Tau_ID_vsJet, q.dileptonpair],
     output="tau_1_vsjet_id_outputname",
     scope=["tt"],
     vec_config="vsjet_tau_id",
 )
 VsEleTauIDFlag_1 = ExtendedVectorProducer(
     name="VsEleTauIDFlag_1",
-    call="quantities::tau::TauIDFlag({df}, {output}, 0, {input}, {vsele_tau_id_WPbit})",
-    input=[q.dileptonpair, nanoAOD.Tau_ID_vsEle],
+    call="physicsobject::tau::quantity::IDFlag({df}, {output}, {input}, 0, {vsele_tau_id_WPbit})",
+    input=[nanoAOD.Tau_ID_vsEle, q.dileptonpair],
     output="tau_1_vsele_id_outputname",
     scope=["tt"],
     vec_config="vsele_tau_id",
 )
 VsMuTauIDFlag_1 = ExtendedVectorProducer(
     name="VsMuTauIDFlag_1",
-    call="quantities::tau::TauIDFlag({df}, {output}, 0, {input}, {vsmu_tau_id_WPbit})",
-    input=[q.dileptonpair, nanoAOD.Tau_ID_vsMu],
+    call="physicsobject::tau::quantity::IDFlag({df}, {output}, {input}, 0, {vsmu_tau_id_WPbit})",
+    input=[nanoAOD.Tau_ID_vsMu, q.dileptonpair],
     output="tau_1_vsmu_id_outputname",
     scope=["tt"],
     vec_config="vsmu_tau_id",
@@ -323,31 +323,31 @@ tau_gen_match_2 = Producer(
 )
 taujet_pt_2 = Producer(
     name="taujet_pt_2",
-    call="quantities::tau::matching_jet_pt({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_associatedJet, nanoAOD.Jet_pt],
+    call="quantities::MatchingJet({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Jet_pt, nanoAOD.Tau_associatedJet, q.dileptonpair],
     output=[q.taujet_pt_2],
     scopes=["mt", "et", "tt"],
 )
 VsJetTauIDFlag_2 = ExtendedVectorProducer(
     name="VsJetTauIDFlag_2",
-    call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsjet_tau_id_WPbit})",
-    input=[q.dileptonpair, nanoAOD.Tau_ID_vsJet],
+    call="physicsobject::tau::quantity::IDFlag({df}, {output}, {input}, 1, {vsjet_tau_id_WPbit})",
+    input=[nanoAOD.Tau_ID_vsJet, q.dileptonpair],
     output="tau_2_vsjet_id_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsjet_tau_id",
 )
 VsEleTauIDFlag_2 = ExtendedVectorProducer(
     name="VsEleTauIDFlag_2",
-    call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsele_tau_id_WPbit})",
-    input=[q.dileptonpair, nanoAOD.Tau_ID_vsEle],
+    call="physicsobject::tau::quantity::IDFlag({df}, {output}, {input}, 1, {vsele_tau_id_WPbit})",
+    input=[nanoAOD.Tau_ID_vsEle, q.dileptonpair],
     output="tau_2_vsele_id_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsele_tau_id",
 )
 VsMuTauIDFlag_2 = ExtendedVectorProducer(
     name="VsMuTauIDFlag_2",
-    call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsmu_tau_id_WPbit})",
-    input=[q.dileptonpair, nanoAOD.Tau_ID_vsMu],
+    call="physicsobject::tau::quantity::IDFlag({df}, {output}, {input}, 1, {vsmu_tau_id_WPbit})",
+    input=[nanoAOD.Tau_ID_vsMu, q.dileptonpair],
     output="tau_2_vsmu_id_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsmu_tau_id",

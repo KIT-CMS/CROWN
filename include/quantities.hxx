@@ -40,26 +40,24 @@ FastMtt(ROOT::RDF::RNode df, const std::string &outputname,
            const std::string &met_cov_xx, const std::string &met_cov_xy,
            const std::string &met_cov_yy, const std::string &decay_mode_1,
            const std::string &decay_mode_2, const std::string &finalstate);
+ROOT::RDF::RNode MatchingJet(ROOT::RDF::RNode df,
+                            const std::string &outputname,
+                            const std::string &jet_quantity,
+                            const std::string &object_jet_index,
+                            const std::string &object_index_vector,
+                            const int &position);
+ROOT::RDF::RNode MatchingGenJet(ROOT::RDF::RNode df,
+                            const std::string &outputname,
+                            const std::string &genjet_quantity,
+                            const std::string &jet_genjet_index,
+                            const std::string &object_jet_index,
+                            const std::string &object_index_vector,
+                            const int &position);
 ROOT::RDF::RNode deltaPhi_WH(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &vector_1,
                              const std::string &vector_2,
                              const std::string &vector_3);
 ROOT::RDF::RNode pt_W(ROOT::RDF::RNode df, const std::string &outputname,
                       const std::vector<std::string> &vectors);
-namespace tau {
-ROOT::RDF::RNode matching_jet_pt(ROOT::RDF::RNode df,
-                                 const std::string &outputname,
-                                 const int &position,
-                                 const std::string &pairname,
-                                 const std::string &taujet_index,
-                                 const std::string &jetpt_column);
-ROOT::RDF::RNode matching_genjet_pt(
-    ROOT::RDF::RNode df, const std::string &outputname, const int &position,
-    const std::string &pairname, const std::string &taujet_index,
-    const std::string &genjet_index, const std::string &genjetpt_column);
-ROOT::RDF::RNode TauIDFlag(ROOT::RDF::RNode df, const std::string &outputname,
-                           const int &position, const std::string &pairname,
-                           const std::string &nameID, const int &idxID);
-} // end namespace tau
 } // end namespace quantities
 #endif /* GUARD_QUANTITIES_H */

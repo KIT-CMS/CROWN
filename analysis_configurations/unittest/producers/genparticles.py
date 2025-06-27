@@ -209,24 +209,24 @@ gen_match_2 = Producer(
 )
 gen_taujet_pt_1 = Producer(
     name="gen_taujet_pt_1",
-    call="quantities::tau::matching_genjet_pt({df}, {output}, 0, {input})",
+    call="quantities::MatchingGenJet({df}, {output}, {input}, 0)",
     input=[
-        q.dileptonpair,
-        nanoAOD.Tau_associatedJet,
-        nanoAOD.Jet_associatedGenJet,
         nanoAOD.GenJet_pt,
+        nanoAOD.Jet_associatedGenJet,
+        nanoAOD.Tau_associatedJet,
+        q.dileptonpair,
     ],
     output=[q.gen_taujet_pt_1],
     scopes=["tt"],
 )
 gen_taujet_pt_2 = Producer(
     name="gen_taujet_pt_2",
-    call="quantities::tau::matching_genjet_pt({df}, {output}, 1, {input})",
+    call="quantities::MatchingGenJet({df}, {output}, {input}, 1)",
     input=[
-        q.dileptonpair,
-        nanoAOD.Tau_associatedJet,
-        nanoAOD.Jet_associatedGenJet,
         nanoAOD.GenJet_pt,
+        nanoAOD.Jet_associatedGenJet,
+        nanoAOD.Tau_associatedJet,
+        q.dileptonpair,
     ],
     output=[q.gen_taujet_pt_2],
     scopes=["mt", "et", "tt"],
