@@ -64,6 +64,8 @@ The following list shows all currently available analyses that can be set up. If
      - https://github.com/KIT-CMS/BoostedHiggsTauTauAnalysis-CROWN
    * - ``s``
      - https://github.com/nfaltermann/CROWNs
+   * - ``XYHbbtautau``
+     - https://github.com/KIT-CMS/XYHBBTauTauAnalysis-CROWN
 
 Running the framework
 **********************
