@@ -109,7 +109,7 @@ In our case, the Producer will look like this:
 
     ElectronLV = Producer(
         name="ElectronLV",
-        call="lorentzvector::build({df}, {output}, {input}, {electron_index_to_use})",
+        call="lorentzvector::Build({df}, {output}, {input}, {electron_index_to_use})",
         input=[
             nanoAOD.Electron_pt,
             nanoAOD.Electron_eta,

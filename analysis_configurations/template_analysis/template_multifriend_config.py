@@ -41,8 +41,8 @@ def build_config(
     configuration.add_outputs(
         ["mm"],
         [
-            q.p4_mm,
-            q.gen_p4_mm,
+            q.p4_mm_pair,
+            q.gen_p4_mm_pair,
         ],
     )
 

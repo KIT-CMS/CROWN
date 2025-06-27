@@ -26,7 +26,7 @@ Python Producer Old
 
    PUweights = Producer(
     name="PUweights",
-    call='reweighting::puweights({df}, {output}, {input}, "{PU_reweighting_file}", "{PU_reweighting_era}", "{PU_reweighting_variation}")',
+    call='event::reweighting::Pileup({df}, {output}, {input}, "{PU_reweighting_file}", "{PU_reweighting_era}", "{PU_reweighting_variation}")',
     input=[nanoAOD.Pileup_nTrueInt],
     output=[q.puweight],
     scopes=["global"],
@@ -38,7 +38,7 @@ Python Producer New - note the additional argument `correctionManager`
 
     PUweights = Producer(
         name="PUweights",
-        call='reweighting::puweights({df}, correctionManager, {output}, {input}, "{PU_reweighting_file}", "{PU_reweighting_era}", "{PU_reweighting_variation}")',
+        call='event::reweighting::Pileup({df}, correctionManager, {output}, {input}, "{PU_reweighting_file}", "{PU_reweighting_era}", "{PU_reweighting_variation}")',
         input=[nanoAOD.Pileup_nTrueInt],
         output=[q.puweight],
         scopes=["global"],
@@ -51,21 +51,21 @@ Old Function
 
 .. code-block:: cpp
 
-    ROOT::RDF::RNode puweights(ROOT::RDF::RNode df, const std::string &weightname,
-                            const std::string &truePU,
-                            const std::string &filename,
-                            const std::string &eraname,
+    ROOT::RDF::RNode Pileup(ROOT::RDF::RNode df, const std::string &outputname,
+                            const std::string &true_pileup_number,
+                            const std::string &corr_file,
+                            const std::string &corr_name,
                             const std::string &variation) {
 
         auto evaluator =
-            correction::CorrectionSet::from_file(filename)->at(eraname); // old way of loading the correction file
+            correction::CorrectionSet::from_file(corr_file)->at(corr_name); // old way of loading the correction file
         auto df1 =
-            df.Define(weightname,
+            df.Define(outputname,
                     [evaluator, variation](const float &pu) {
                         double weight = evaluator->evaluate({pu, variation});
                         return weight;
                     },
-                    {truePU});
+                    {true_pileup_number});
         return df1;
     }
 
@@ -74,17 +74,17 @@ New Function
 .. code-block:: cpp
 
     ROOT::RDF::RNode
-    puweights(ROOT::RDF::RNode df, correctionManager::CorrectionManager &correctionManager,
-            const std::string &weightname, const std::string &truePU,
-            const std::string &filename, const std::string &eraname,
+    Pileup(ROOT::RDF::RNode df, correctionManager::CorrectionManager &correction_manager,
+            const std::string &weightname, const std::string &true_pileup_number,
+            const std::string &corr_file, const std::string &corr_name,
             const std::string &variation) {
-        auto evaluator = correctionManager.loadCorrection(filename, eraname); // new loading function
+        auto evaluator = correction_manager.loadCorrection(corr_file, corr_name); // new loading function
         auto df1 =
-            df.Define(weightname,
+            df.Define(outputname,
                     [evaluator, variation](const float &pu) {
                         double weight = evaluator->evaluate({pu, variation});
                         return weight;
                     },
-                    {truePU});
+                    {true_pileup_number});
         return df1;
     }
