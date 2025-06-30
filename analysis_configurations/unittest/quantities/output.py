@@ -134,6 +134,8 @@ gen_mass_2 = Quantity("gen_mass_2")
 gen_pdgid_2 = Quantity("gen_pdgid_2")
 gen_m_vis = Quantity("gen_m_vis")
 
+hadronic_gen_taus = Quantity("hadronic_gen_taus")
+
 topPtReweightWeight = Quantity("topPtReweightWeight")
 ZPtMassReweightWeight = Quantity("ZPtMassReweightWeight")
 
