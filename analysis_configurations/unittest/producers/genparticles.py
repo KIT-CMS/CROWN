@@ -420,7 +420,7 @@ GenMatchP1 = Producer(
         nanoAOD.GenParticle_pt,
         nanoAOD.GenParticle_eta,
         nanoAOD.GenParticle_phi,
-        nanoAOD.GenParticle_mass,        
+        nanoAOD.GenParticle_mass,
         q.p4_1,
     ],
     output=[q.gen_match_1],
