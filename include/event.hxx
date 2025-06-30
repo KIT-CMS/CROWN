@@ -115,14 +115,15 @@ inline ROOT::RDF::RNode Define(ROOT::RDF::RNode df,
  * vector
  * @param quantity name of the input column whose size determines the length of
  * the random vector
- * @param seed seed value for the random number generator
+ * @param seed seed value for the random number generator, if not set the answer 
+ * to everything is used as default `42`
  *
  * @return a dataframe with the new column
  */
 template <typename T>
 inline ROOT::RDF::RNode
 GenerateRandomVector(ROOT::RDF::RNode df, const std::string &outputname,
-                     const std::string &quantity, const int seed) {
+                     const std::string &quantity, const int seed = 42) {
     return df.Define(
         outputname,
         [rndm = TRandom3(seed)](const ROOT::RVec<T> &quantity) mutable {

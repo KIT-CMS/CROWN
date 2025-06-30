@@ -62,6 +62,9 @@ namespace jet {
  * should be reapplied
  * @param jes_shift JES shift variation (0 = nominal, +/-1 = up/down)
  * @param jer_shift JER shift variation ("nom", "up", or "down")
+ * @param jer_seed seed value for the random number generator that is used for 
+ * the jet energy resolution smearing, if not set the answer to everything is 
+ * used as default `42`
  *
  * @return a dataframe with a new column of corrected jet \f$p_T\f$'s
  *
@@ -80,7 +83,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &jec_algo, const std::string &jes_tag,
                const std::vector<std::string> &jes_shift_sources,
                const std::string &jer_tag, bool reapply_jes,
-               const int &jes_shift, const std::string &jer_shift) {
+               const int &jes_shift, const std::string &jer_shift,
+               const int jer_seed) {
     // identifying jet radius from algorithm
     float jet_radius = 0.4;
     if (jec_algo.find("AK8") != std::string::npos) {
@@ -123,7 +127,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     auto correction_lambda = [reapply_jes, jet_energy_scale_shifts,
                               jet_energy_scale_sf, jet_energy_resolution,
                               jet_energy_resolution_sf, jes_shift_sources,
-                              jes_shift, jer_shift,
+                              jes_shift, jer_shift, jer_seed,
                               jet_radius](const ROOT::RVec<float> &pts,
                                           const ROOT::RVec<float> &etas,
                                           const ROOT::RVec<float> &phis,
@@ -135,7 +139,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                                           const ROOT::RVec<float> &gen_phis,
                                           const float &rho) {
         // random value generator for jet smearing
-        TRandom3 randm = TRandom3(42);
+        TRandom3 randm = TRandom3(jer_seed);
 
         ROOT::RVec<float> corrected_pts;
         for (int i = 0; i < pts.size(); i++) {

@@ -174,11 +174,11 @@ ROOT::RDF::RNode PzetaMissVis(ROOT::RDF::RNode df,
 ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &vector_1, const std::string &vector_2) {
     auto calculate_MT = [](ROOT::Math::PtEtaPhiMVector &p4_1,
-                           ROOT::Math::PtEtaPhiMVector &p4_2) {
-        if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0)
+                           ROOT::Math::PtEtaPhiMVector &p4_met) {
+        if (p4_1.pt() < 0.0 || p4_met.pt() < 0.0)
             return default_float;
-        return (float)sqrt(2 * p4_1.Pt() * p4_2.Pt() *
-            (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(p4_1, p4_2))));
+        return (float)sqrt(2 * p4_1.Pt() * p4_met.Pt() *
+            (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(p4_1, p4_met))));
     };
     return df.Define(outputname, calculate_MT, {vector_1, vector_2});
 }
@@ -210,12 +210,12 @@ ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputna
                         const std::string &vector_3) {
     auto calculate_MT = [](ROOT::Math::PtEtaPhiMVector &p4_1,
                            ROOT::Math::PtEtaPhiMVector &p4_2,
-                           ROOT::Math::PtEtaPhiMVector &p4_3) {
-        if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0 || p4_3.pt() < 0.0)
+                           ROOT::Math::PtEtaPhiMVector &p4_met) {
+        if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0 || p4_met.pt() < 0.0)
             return default_float;
         ROOT::Math::PtEtaPhiMVector sum_p4 = p4_1 + p4_2;
-        return (float)sqrt(2 * sum_p4.Pt() * p4_3.Pt() *
-            (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(sum_p4, p4_3))));
+        return (float)sqrt(2 * sum_p4.Pt() * p4_met.Pt() *
+            (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(sum_p4, p4_met))));
     };
     return df.Define(outputname, calculate_MT, {vector_1, vector_2, vector_3});
 }
@@ -242,8 +242,8 @@ ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputna
  * @return a new dataframe with the new column
  */
 ROOT::RDF::RNode TotalTransverseMass(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::string &vector_1, const std::string &vector_2,
-                        const std::string &vector_3) {
+                    const std::string &vector_1, const std::string &vector_2,
+                    const std::string &vector_3) {
     auto calculate_mt_tot = [](ROOT::Math::PtEtaPhiMVector &p4_1,
                                ROOT::Math::PtEtaPhiMVector &p4_2,
                                ROOT::Math::PtEtaPhiMVector &p4_met) {
@@ -433,7 +433,7 @@ FastMtt(ROOT::RDF::RNode df, const std::string &outputname,
  *
  * @return a dataframe with the new column
  */
-ROOT::RDF::RNode MatchingJet(ROOT::RDF::RNode df,
+ROOT::RDF::RNode JetMatching(ROOT::RDF::RNode df,
                             const std::string &outputname,
                             const std::string &jet_quantity,
                             const std::string &object_jet_index,
@@ -469,7 +469,7 @@ ROOT::RDF::RNode MatchingJet(ROOT::RDF::RNode df,
  *
  * @return a dataframe with the new column
  */
-ROOT::RDF::RNode MatchingGenJet(ROOT::RDF::RNode df,
+ROOT::RDF::RNode GenJetMatching(ROOT::RDF::RNode df,
                             const std::string &outputname,
                             const std::string &genjet_quantity,
                             const std::string &jet_genjet_index,

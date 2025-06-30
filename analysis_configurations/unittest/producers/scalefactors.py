@@ -124,87 +124,6 @@ MuonIDIso_SF = ProducerGroup(
     },
 )
 
-Muon_1_ID_SF_RooWorkspace = Producer(
-    name="MuonID_SF_RooWorkspace",
-    call="""physicsobject::muon::scalefactor::Id_rooworkspace(
-        {df}, 
-        {input}, 
-        {output}, 
-        "{muon_sf_workspace}", 
-        "{muon_sf_id_name}", 
-        "{muon_sf_id_args}")
-        """,
-    input=[q.pt_1, q.eta_1],
-    output=[q.id_wgt_mu_1],
-    scopes=["mt", "mm"],
-)
-Muon_1_Iso_SF_RooWorkspace = Producer(
-    name="MuonIso_SF_RooWorkspace",
-    call="""physicsobject::muon::scalefactor::Iso_rooworkspace(
-        {df}, 
-        {input}, 
-        {output}, 
-        "{muon_sf_workspace}", 
-        "{muon_sf_iso_name}", 
-        "{muon_sf_iso_args}")
-        """,
-    input=[q.pt_1, q.eta_1, q.iso_1],
-    output=[q.iso_wgt_mu_1],
-    scopes=["mt", "mm"],
-)
-Muon_2_ID_SF_RooWorkspace = Producer(
-    name="MuonID_SF_RooWorkspace",
-    call="""physicsobject::muon::scalefactor::Id_rooworkspace(
-        {df}, 
-        {input}, 
-        {output}, 
-        "{muon_sf_workspace}", 
-        "{muon_sf_id_name}", 
-        "{muon_sf_id_args}")
-        """,
-    input=[q.pt_2, q.eta_2],
-    output=[q.id_wgt_mu_2],
-    scopes=["em", "mm"],
-)
-Muon_2_Iso_SF_RooWorkspace = Producer(
-    name="MuonIso_SF_RooWorkspace",
-    call="""physicsobject::muon::scalefactor::Iso_rooworkspace(
-        {df}, 
-        {input}, 
-        {output}, 
-        "{muon_sf_workspace}", 
-        "{muon_sf_iso_name}", 
-        "{muon_sf_iso_args}")
-        """,
-    input=[q.pt_2, q.eta_2, q.iso_2],
-    output=[q.iso_wgt_mu_2],
-    scopes=["em", "mm"],
-)
-MuonIDIso_SF_RooWorkspace = ProducerGroup(
-    name="MuonIDIso_SF_RooWorkspace",
-    call=None,
-    input=None,
-    output=None,
-    scopes=["mt", "em", "mm"],
-    subproducers={
-        "mt": [
-            Muon_1_ID_SF_RooWorkspace,
-            Muon_1_Iso_SF_RooWorkspace,
-        ],
-        "em": [
-            Muon_2_ID_SF_RooWorkspace,
-            Muon_2_Iso_SF_RooWorkspace,
-        ],
-        "mm": [
-            Muon_1_ID_SF_RooWorkspace,
-            Muon_1_Iso_SF_RooWorkspace,
-            Muon_2_ID_SF_RooWorkspace,
-            Muon_2_Iso_SF_RooWorkspace,
-        ],
-    },
-)
-
-
 ############################
 # Tau ID/ISO SF
 # The readout is done via correctionlib
@@ -218,7 +137,6 @@ Tau_1_VsJetTauID_SF = ExtendedVectorProducer(
         {input}, 
         "{tau_sf_file}", 
         "{tau_id_discriminator}",
-        {vec_open}{tau_dms}{vec_close}, 
         "{vsjet_tau_id_WP}", 
         "{tau_vsjet_vseleWP}",
         "{tau_vsjet_sf_dependence}",
@@ -227,7 +145,7 @@ Tau_1_VsJetTauID_SF = ExtendedVectorProducer(
         "{tau_sf_vsjet_tauDM10}", 
         "{tau_sf_vsjet_tauDM11}")
         """,
-    input=[q.pt_1, q.tau_decaymode_1, q.tau_gen_match_1],
+    input=[q.pt_1, q.tau_decaymode_1, q.gen_match_1],
     output="tau_1_vsjet_sf_outputname",
     scope=["tt"],
     vec_config="vsjet_tau_id",
@@ -245,7 +163,7 @@ Tau_1_VsEleTauID_SF = ExtendedVectorProducer(
         "{tau_sf_vsele_barrel}", 
         "{tau_sf_vsele_endcap}")
         """,
-    input=[q.eta_1, q.tau_gen_match_1],
+    input=[q.eta_1, q.gen_match_1],
     output="tau_1_vsele_sf_outputname",
     scope=["tt"],
     vec_config="vsele_tau_id",
@@ -266,7 +184,7 @@ Tau_1_VsMuTauID_SF = ExtendedVectorProducer(
         "{tau_sf_vsmu_wheel4}", 
         "{tau_sf_vsmu_wheel5}")
         """,
-    input=[q.eta_1, q.tau_gen_match_1],
+    input=[q.eta_1, q.gen_match_1],
     output="tau_1_vsmu_sf_outputname",
     scope=["tt"],
     vec_config="vsmu_tau_id",
@@ -290,7 +208,7 @@ Tau_2_VsJetTauID_lt_SF = ExtendedVectorProducer(
         "{tau_sf_vsjet_tau500to1000}", 
         "{tau_sf_vsjet_tau1000toinf}")
         """,
-    input=[q.pt_2, q.tau_decaymode_2, q.tau_gen_match_2],
+    input=[q.pt_2, q.tau_decaymode_2, q.gen_match_2],
     output="tau_2_vsjet_sf_outputname",
     scope=["et", "mt"],
     vec_config="vsjet_tau_id",
@@ -304,7 +222,6 @@ Tau_2_VsJetTauID_tt_SF = ExtendedVectorProducer(
         {input}, 
         "{tau_sf_file}", 
         "{tau_id_discriminator}",
-        {vec_open}{tau_dms}{vec_close}, 
         "{vsjet_tau_id_WP}", 
         "{tau_vsjet_vseleWP}",
         "{tau_vsjet_sf_dependence}",
@@ -313,7 +230,7 @@ Tau_2_VsJetTauID_tt_SF = ExtendedVectorProducer(
         "{tau_sf_vsjet_tauDM10}", 
         "{tau_sf_vsjet_tauDM11}")
         """,
-    input=[q.pt_2, q.tau_decaymode_2, q.tau_gen_match_2],
+    input=[q.pt_2, q.tau_decaymode_2, q.gen_match_2],
     output="tau_2_vsjet_sf_outputname",
     scope=["tt"],
     vec_config="vsjet_tau_id",
@@ -331,7 +248,7 @@ Tau_2_VsEleTauID_SF = ExtendedVectorProducer(
         "{tau_sf_vsele_barrel}", 
         "{tau_sf_vsele_endcap}")
         """,
-    input=[q.eta_2, q.tau_gen_match_2],
+    input=[q.eta_2, q.gen_match_2],
     output="tau_2_vsele_sf_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsele_tau_id",
@@ -352,7 +269,7 @@ Tau_2_VsMuTauID_SF = ExtendedVectorProducer(
         "{tau_sf_vsmu_wheel4}", 
         "{tau_sf_vsmu_wheel5}")
         """,
-    input=[q.eta_2, q.tau_gen_match_2],
+    input=[q.eta_2, q.gen_match_2],
     output="tau_2_vsmu_sf_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsmu_tau_id",

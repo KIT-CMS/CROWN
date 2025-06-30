@@ -261,16 +261,9 @@ tau_decaymode_1_notau = Producer(
     output=[q.tau_decaymode_1],
     scopes=["et", "mt", "em", "ee", "mm"],
 )
-tau_gen_match_1 = Producer(
-    name="gen_match_1",
-    call="event::quantity::Get<UChar_t>({df}, {output}, {input}, 0)",
-    input=[nanoAOD.Tau_genMatch, q.dileptonpair],
-    output=[q.tau_gen_match_1],
-    scopes=["tt"],
-)
 taujet_pt_1 = Producer(
     name="taujet_pt_1",
-    call="quantities::MatchingJet({df}, {output}, {input}, 0)",
+    call="quantities::JetMatching({df}, {output}, {input}, 0)",
     input=[nanoAOD.Jet_pt, nanoAOD.Tau_associatedJet, q.dileptonpair],
     output=[q.taujet_pt_1],
     scopes=["tt"],
@@ -314,16 +307,9 @@ tau_decaymode_2_notau = Producer(
     output=[q.tau_decaymode_2],
     scopes=["em", "ee", "mm"],
 )
-tau_gen_match_2 = Producer(
-    name="taugen_match_2",
-    call="event::quantity::Get<UChar_t>({df}, {output}, {input}, 1)",
-    input=[nanoAOD.Tau_genMatch, q.dileptonpair],
-    output=[q.tau_gen_match_2],
-    scopes=["mt", "et", "tt"],
-)
 taujet_pt_2 = Producer(
     name="taujet_pt_2",
-    call="quantities::MatchingJet({df}, {output}, {input}, 1)",
+    call="quantities::JetMatching({df}, {output}, {input}, 1)",
     input=[nanoAOD.Jet_pt, nanoAOD.Tau_associatedJet, q.dileptonpair],
     output=[q.taujet_pt_2],
     scopes=["mt", "et", "tt"],
@@ -437,7 +423,6 @@ UnrollTauLV1 = ProducerGroup(
         tau_q_1,
         tau_iso_1,
         tau_decaymode_1,
-        tau_gen_match_1,
         taujet_pt_1,
         VsJetTauIDFlag_1,
         VsEleTauIDFlag_1,
@@ -460,7 +445,6 @@ UnrollTauLV2 = ProducerGroup(
         tau_q_2,
         tau_iso_2,
         tau_decaymode_2,
-        tau_gen_match_2,
         taujet_pt_2,
         VsJetTauIDFlag_2,
         VsEleTauIDFlag_2,
