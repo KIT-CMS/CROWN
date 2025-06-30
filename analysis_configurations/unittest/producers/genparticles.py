@@ -200,16 +200,9 @@ gen_m_vis = Producer(
     output=[q.gen_m_vis],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
-gen_match_2 = Producer(
-    name="gen_match_2",
-    call="event::quantity::Get<UChar_t>({df}, {output}, {input}, 1)",
-    input=[nanoAOD.Tau_genMatch, q.dileptonpair],
-    output=[q.tau_gen_match_2],
-    scopes=["mt", "et", "tt"],
-)
 gen_taujet_pt_1 = Producer(
     name="gen_taujet_pt_1",
-    call="quantities::MatchingGenJet({df}, {output}, {input}, 0)",
+    call="quantities::GenJetMatching({df}, {output}, {input}, 0)",
     input=[
         nanoAOD.GenJet_pt,
         nanoAOD.Jet_associatedGenJet,
@@ -221,7 +214,7 @@ gen_taujet_pt_1 = Producer(
 )
 gen_taujet_pt_2 = Producer(
     name="gen_taujet_pt_2",
-    call="quantities::MatchingGenJet({df}, {output}, {input}, 1)",
+    call="quantities::GenJetMatching({df}, {output}, {input}, 1)",
     input=[
         nanoAOD.GenJet_pt,
         nanoAOD.Jet_associatedGenJet,
@@ -397,5 +390,70 @@ MMTrueGenDiTauPairQuantities = ProducerGroup(
         UnrollGenMuLV1,
         UnrollGenMuLV2,
         gen_m_vis,
+    ],
+)
+
+#######################
+# DiTau Genmatching
+#######################
+
+HadronicGenTaus = Producer(
+    name="HadronicGenTaus",
+    call="genparticles::tau::HadronicGenTaus({df}, {output}, {input})",
+    input=[
+        nanoAOD.GenParticle_pdgId,
+        nanoAOD.GenParticle_statusFlags,
+        nanoAOD.GenParticle_motherid,
+    ],
+    output=[q.hadronic_gen_taus],
+    scopes=["mt", "et", "tt", "em", "ee", "mm"],
+)
+
+GenMatchP1 = Producer(
+    name="GenMatchP1",
+    call="genparticles::tau::GenMatching({df}, {output}, {input})",
+    input=[
+        q.hadronic_gen_taus,
+        nanoAOD.GenParticle_pdgId,
+        nanoAOD.GenParticle_motherid,
+        nanoAOD.GenParticle_statusFlags,
+        nanoAOD.GenParticle_pt,
+        nanoAOD.GenParticle_eta,
+        nanoAOD.GenParticle_phi,
+        nanoAOD.GenParticle_mass,        
+        q.p4_1,
+    ],
+    output=[q.gen_match_1],
+    scopes=["mt", "et", "tt", "em", "ee", "mm"],
+)
+
+GenMatchP2 = Producer(
+    name="GenMatchP2",
+    call="genparticles::tau::GenMatching({df}, {output}, {input})",
+    input=[
+        q.hadronic_gen_taus,
+        nanoAOD.GenParticle_pdgId,
+        nanoAOD.GenParticle_motherid,
+        nanoAOD.GenParticle_statusFlags,
+        nanoAOD.GenParticle_pt,
+        nanoAOD.GenParticle_eta,
+        nanoAOD.GenParticle_phi,
+        nanoAOD.GenParticle_mass,
+        q.p4_2,
+    ],
+    output=[q.gen_match_2],
+    scopes=["mt", "et", "tt", "em", "ee", "mm"],
+)
+
+GenMatching = ProducerGroup(
+    name="GenMatching",
+    call=None,
+    input=None,
+    output=None,
+    scopes=["mt", "et", "tt", "em", "ee", "mm"],
+    subproducers=[
+        HadronicGenTaus,
+        GenMatchP1,
+        GenMatchP2,
     ],
 )

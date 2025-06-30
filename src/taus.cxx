@@ -6,6 +6,7 @@
 #include "../include/defaults.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "correction.h"
+#include <unordered_map>
 
 namespace physicsobject {
 namespace tau {
@@ -439,14 +440,20 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
             const std::string &variation_pt40to500,
             const std::string &variation_pt500to1000,
             const std::string &variation_pt1000toInf) {
-
+    
+    const std::map<float, std::string> variations = {
+        {30.0f,     variation_pt30to35},
+        {35.0f,     variation_pt35to40},
+        {40.0f,     variation_pt40to500},
+        {500.0f,    variation_pt500to1000},
+        {1000.0f,   variation_pt1000toInf},
+        {100000.0f, variation_pt1000toInf},
+    };
     Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")
         ->debug("Setting up function for tau id vsJet sf");
     Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")->debug("ID - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, wp, vsele_wp, variation_pt30to35,
-                            variation_pt35to40, variation_pt40to500,
-                            variation_pt500to1000, variation_pt1000toInf,
+    auto sf_calculator = [evaluator, wp, vsele_wp, variations,
                             sf_dependence, selected_dms,
                             sf_name](const float &pt, const int &decay_mode,
                                          const int &gen_match) {
@@ -457,36 +464,16 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
         double sf = 1.;
         if (std::find(selected_dms.begin(), selected_dms.end(), decay_mode) !=
             selected_dms.end()) {
-            Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")
+            auto it = variations.upper_bound(pt);
+            if (it != variations.begin()){
+                it = std::prev(it);
+                std::string variation = it->second;
+                Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")
                 ->debug("ID {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
-                        "vsele_wp {}"
-                        "variation_pt30to35 {}, variation_pt35to40 {}, "
-                        "variation_pt40to500{}, variation_pt500to1000 {}, "
-                        "variation_pt1000toInf {}, sf_dependence {}",
+                        "vsele_wp {}, variation {}, sf_dependence {}",
                         sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
-                        variation_pt30to35, variation_pt35to40,
-                        variation_pt40to500, variation_pt500to1000,
-                        variation_pt1000toInf, sf_dependence);
-            if (pt >= 30.0 && pt < 35.0) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_pt30to35, sf_dependence});
-            } else if (pt >= 35.0 && pt < 40.0) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_pt35to40, sf_dependence});
-            } else if (pt >= 40.0 && pt < 500.0) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_pt40to500, sf_dependence});
-            } else if (pt >= 500.0 && pt < 1000.0) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_pt500to1000, sf_dependence});
-            } else if (pt >= 1000.0 && pt < 10000.0) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_pt1000toInf, sf_dependence});
+                        variation, sf_dependence);
+                sf = evaluator->evaluate({pt, decay_mode, gen_match, wp, vsele_wp, variation, sf_dependence});
             } else {
                 sf = 1.;
             }
@@ -530,8 +517,6 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
  * 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
  * @param sf_file path to the file with the tau scale factors
  * @param sf_name name of the tau scale factor for the vsJet ID correction
- * @param selected_dms list of allowed decay modes for which a scale factor
- * should be calculated
  * @param wp working point of the vsJet ID
  * @param vsele_wp working point of the vsEle ID
  * @param sf_dependence variable dependence of the scale factor, opions are "pt" or "dm"
@@ -553,58 +538,41 @@ ROOT::RDF::RNode Id_vsJet_tt(
     const std::string &pt, const std::string &decay_mode,
     const std::string &gen_match, 
     const std::string &sf_file, const std::string &sf_name,
-    const std::vector<int> &selected_dms,
     const std::string &wp, const std::string &vsele_wp,
     const std::string &sf_dependence,
     const std::string &variation_dm0,
     const std::string &variation_dm1, 
     const std::string &variation_dm10,
     const std::string &variation_dm11) {
-
+    
+    const std::unordered_map<int, std::string> variations = {
+        {0,  variation_dm0},
+        {1,  variation_dm1},
+        {10, variation_dm10},
+        {11, variation_dm11},
+    };
     Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")
         ->debug("Setting up function for tau id vsJet sf");
     Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")->debug("ID - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, wp, vsele_wp, variation_dm0,
-                            variation_dm1, variation_dm10, variation_dm11,
-                            sf_dependence, selected_dms,
-                            sf_name](const float &pt, const int &decay_mode,
+    auto sf_calculator = [evaluator, wp, vsele_wp, variations,
+                            sf_dependence, sf_name](const float &pt, const int &decay_mode,
                                          const int &gen_match) {
         Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")->debug("ID - decayMode {}", decay_mode);
         // only calculate SFs for allowed tau decay modes (also excludes default
         // values due to tau energy correction shifts below good tau pt
         // selection)
         double sf = 1.;
-        if (std::find(selected_dms.begin(), selected_dms.end(), decay_mode) !=
-            selected_dms.end()) {
+        if (auto it = variations.find(decay_mode); it != variations.end()) {
+            std::string variation = it->second;
             Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")
                 ->debug("ID {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
-                        "vsele_wp {}, "
-                        "variation_dm0 {}, variation_dm1 {}, "
-                        "variation_dm10{}, "
-                        "variation_dm11 {}, sf_dependence {}",
+                        "vsele_wp {}, variation {}, sf_dependence {}",
                         sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
-                        variation_dm0, variation_dm1, variation_dm10,
-                        variation_dm11, sf_dependence);
-            if (decay_mode == 0) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_dm0, sf_dependence});
-            } else if (decay_mode == 1) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_dm1, sf_dependence});
-            } else if (decay_mode == 10) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_dm10, sf_dependence});
-            } else if (decay_mode == 11) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_dm11, sf_dependence});
-            } else {
-                sf = 1.;
-            }
+                        variation, sf_dependence);
+            sf = evaluator->evaluate(
+                {pt, decay_mode, gen_match, wp, vsele_wp, 
+                variation, sf_dependence});
         }
         Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")->debug("Scale Factor {}", sf);
         return sf;
@@ -751,41 +719,34 @@ Id_vsMu(ROOT::RDF::RNode df,
         const std::string &variation_wheel3,
         const std::string &variation_wheel4, 
         const std::string &variation_wheel5) {
-
+    
+    const std::map<float, std::string> variations = {
+        {0.0f, variation_wheel1},
+        {0.4f, variation_wheel2},
+        {0.8f, variation_wheel3},
+        {1.2f, variation_wheel4},
+        {1.7f, variation_wheel5},
+        {2.3f, variation_wheel5},
+    };
     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")->debug("Setting up function for tau id vsMu sf");
     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")->debug("ID - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, wp, variation_wheel1, variation_wheel2,
-                            variation_wheel3, variation_wheel4, variation_wheel5,
+    auto sf_calculator = [evaluator, wp, variations,
                             sf_name](const float &eta, const int &gen_match) {
         double sf = 1.;
         // exclude default values due to tau energy correction shifts below good tau
         // pt selection
         if (eta > -5.0) {
-            Logger::get("physicsobject::tau::scalefactor::Id_vsMu")
-                ->debug("ID {} - eta {}, gen_match {}, wp {}, variation_wheel1 "
-                        "{}, variation_wheel2 {}, variation_wheel3 {}, "
-                        "variation_wheel4 {}, variation_wheel5 {}",
-                        sf_name, eta, gen_match, wp, variation_wheel1,
-                        variation_wheel2, variation_wheel3, variation_wheel4,
-                        variation_wheel5);
-            if (std::abs(eta) < 0.4) {
-                sf = evaluator->evaluate(
-                    {eta, gen_match, wp, variation_wheel1});
-            } else if (std::abs(eta) >= 0.4 && std::abs(eta) < 0.8) {
-                sf = evaluator->evaluate(
-                    {eta, gen_match, wp, variation_wheel2});
-            } else if (std::abs(eta) >= 0.8 && std::abs(eta) < 1.2) {
-                sf = evaluator->evaluate(
-                    {eta, gen_match, wp, variation_wheel3});
-            } else if (std::abs(eta) >= 1.2 && std::abs(eta) < 1.7) {
-                sf = evaluator->evaluate(
-                    {eta, gen_match, wp, variation_wheel4});
-            } else if (std::abs(eta) >= 1.7 && std::abs(eta) < 2.3) {
-                sf = evaluator->evaluate(
-                    {eta, gen_match, wp, variation_wheel5});
+            auto it = variations.upper_bound(abs(eta));
+            if (it != variations.begin()){
+                it = std::prev(it);
+                std::string variation = it->second;
+                Logger::get("physicsobject::tau::scalefactor::Id_vsMu")
+                    ->debug("ID {} - eta {}, gen_match {}, wp {}, variation {}",
+                        sf_name, eta, gen_match, wp, variation);
+                sf = evaluator->evaluate({eta, gen_match, wp, variation});
             } else {
-                sf = 1.0;
+                sf = 1.;
             }
         }
         Logger::get("physicsobject::tau::scalefactor::Id_vsMu")->debug("Scale Factor {}", sf);

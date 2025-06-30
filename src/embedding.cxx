@@ -474,54 +474,40 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
             const std::string &variation_pt30to35,
             const std::string &variation_pt35to40,
             const std::string &variation_pt40toInf) {
-
+    
+    const std::map<float, std::string> variations = {
+        {20.0f,     variation_pt20to25},
+        {25.0f,     variation_pt25to30},
+        {30.0f,     variation_pt30to35},
+        {35.0f,     variation_pt35to40},
+        {40.0f,     variation_pt40toInf},
+        {100000.0f, variation_pt40toInf},
+    };
     Logger::get("embedding::tau::scalefactor::Id_vsJet_lt")
         ->debug("Setting up function for tau id vsJet sf");
     Logger::get("embedding::tau::scalefactor::Id_vsJet_lt")->debug("ID - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, wp, vsele_wp, variation_pt20to25,
-                            variation_pt25to30, variation_pt30to35,
-                            variation_pt35to40, variation_pt40toInf,
+    auto sf_calculator = [evaluator, wp, vsele_wp, variations,
                             sf_dependence, selected_dms,
                             sf_name](const float &pt, const int &decay_mode,
                                          const int &gen_match) {
-        Logger::get("phyembeddingsicsobject::tau::scalefactor::Id_vsJet_lt")->debug("ID - decayMode {}", decay_mode);
+        Logger::get("embedding::tau::scalefactor::Id_vsJet_lt")->debug("ID - decayMode {}", decay_mode);
         // only calculate SFs for allowed tau decay modes (also excludes default
         // values due to tau energy correction shifts below good tau pt
         // selection)
         double sf = 1.;
         if (std::find(selected_dms.begin(), selected_dms.end(), decay_mode) !=
             selected_dms.end()) {
-            Logger::get("embedding::tau::scalefactor::Id_vsJet_lt")
-                ->debug("ID {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
-                        "vsele_wp {}"
-                        "variation_pt20to25 {}, variation_pt25to30 {}, "
-                        "variation_pt30to35{}, variation_pt35to40 {}, "
-                        "variation_pt40toInf {}, sf_dependence {}",
+            auto it = variations.upper_bound(pt);
+            if (it != variations.begin()){
+                it = std::prev(it);
+                std::string variation = it->second;
+                Logger::get("embedding::tau::scalefactor::Id_vsJet_lt")
+                    ->debug("ID {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
+                        "vsele_wp {}, variation {}, sf_dependence {}",
                         sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
-                        variation_pt20to25, variation_pt25to30,
-                        variation_pt30to35, variation_pt35to40,
-                        variation_pt40toInf, sf_dependence);
-            if (pt >= 20.0 && pt < 25.0) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_pt20to25, sf_dependence});
-            } else if (pt >= 25.0 && pt < 30.0) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_pt25to30, sf_dependence});
-            } else if (pt >= 30.0 && pt < 35.0) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_pt30to35, sf_dependence});
-            } else if (pt >= 35.0 && pt < 40.0) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_pt35to40, sf_dependence});
-            } else if (pt >= 40.0 && pt < 10000.0) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, gen_match, wp, vsele_wp,
-                     variation_pt40toInf, sf_dependence});
+                        variation, sf_dependence);
+                sf = evaluator->evaluate({pt, decay_mode, gen_match, wp, vsele_wp, variation, sf_dependence});
             } else {
                 sf = 1.;
             }

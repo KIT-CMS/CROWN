@@ -42,20 +42,6 @@ Trigger(ROOT::RDF::RNode df,
         const std::string &outputname, const std::string &pt,
         const std::string &eta, const std::string &sf_file,
         const std::string &sf_name, const std::string &variation);
-// Deprecated functions
-ROOT::RDF::RNode Id_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
-                                 const std::string &eta,
-                                 const std::string &id_output,
-                                 const std::string &workspace_name,
-                                 const std::string &id_functor_name,
-                                 const std::string &id_arguments);
-ROOT::RDF::RNode Iso_rooworkspace(ROOT::RDF::RNode df, const std::string &pt,
-                                  const std::string &eta,
-                                  const std::string &iso,
-                                  const std::string &iso_output,
-                                  const std::string &workspace_name,
-                                  const std::string &iso_functor_name,
-                                  const std::string &iso_arguments);
 } // end namespace scalefactor
 } // end namespace muon
 } // end namespace physicsobject
