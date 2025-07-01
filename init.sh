@@ -81,5 +81,8 @@ else
     elif [[ "$1" == "s" && ! -d "${SCRIPT_DIR}/analysis_configurations/s" ]]; then
         echo "Cloning analysis s-channel into ${SCRIPT_DIR}/analysis_configurations/s"
         git clone git@github.com:nfaltermann/CROWNs.git "${SCRIPT_DIR}/analysis_configurations/s"
+    elif [[ "$1" == "xyh_bbtautau" && ! -d "${SCRIPT_DIR}/analysis_configurations/xyh_bbtautau" ]]; then
+        echo "Cloning analysis XYHbbtautau into ${SCRIPT_DIR}/analysis_configurations/xyh_bbtautau"
+        git clone git@github.com:KIT-CMS/XYHBBTauTauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/xyh_bbtautau"
     fi
 fi
