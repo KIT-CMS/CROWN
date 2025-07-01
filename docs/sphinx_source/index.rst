@@ -25,7 +25,7 @@ The following analysis configurations are currently available in CROWN. If you w
      - Repository
    * - H to TauTau
      - https://github.com/KIT-CMS/TauAnalysis-CROWN
-   * - BSM di-Higgs search X &rightarrow; YH &rightarrow; bb&tau;&tau;
+   * - BSM di-Higgs search (BBTauTau)
      - https://github.com/KIT-CMS/XYHBBTauTauAnalysis-CROWN
    * - W/Z early Run3
      - https://github.com/KIT-CMS/earlyRun3Analysis-CROWN
