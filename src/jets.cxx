@@ -376,6 +376,17 @@ ROOT::RDF::RNode CutPileupID(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &jet_pu_id,
                              const std::string &jet_pt, const int &pu_id_cut,
                              const float &pt_cut) {
+    // In nanoAODv12 the type of jet PU ID was changed to UChar_t
+    auto jet_pu_id_int = jet_pu_id;
+    auto df_int = df;
+    // Recasting to int if it is UChar_t
+    if (df.GetColumnType(jet_pu_id) == "ROOT::VecOps::RVec<UChar_t>") {
+        jet_pu_id_int = jet_pu_id + "_int";
+        df_int = df_int.Define(jet_pu_id_int, [](const ROOT::RVec<UChar_t>& v) {
+            return ROOT::RVec<int>(v.begin(), v.end());
+        }, {jet_pu_id});
+    }
+
     auto pass_pu_id = [pu_id_cut, pt_cut](const ROOT::RVec<int> &pu_ids,
                                           const ROOT::RVec<float> &jet_pts) {
         ROOT::RVec<int> id_mask = pu_ids >= pu_id_cut;
@@ -383,7 +394,7 @@ ROOT::RDF::RNode CutPileupID(ROOT::RDF::RNode df, const std::string &outputname,
         ROOT::RVec<int> mask = (id_mask + pt_mask) > 0;
         return mask;
     };
-    auto df1 = df.Define(outputname, pass_pu_id, {jet_pu_id, jet_pt});
+    auto df1 = df.Define(outputname, pass_pu_id, {jet_pu_id_int, jet_pt});
     return df1;
 }
 
@@ -670,6 +681,18 @@ Btagging(ROOT::RDF::RNode df,
     Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Correction algorithm - Name {}",
                                  sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+
+    // In nanoAODv12 the type of jet flavor was changed to UChar_t
+    auto flavor_int = flavor;
+    auto df_int = df;
+    // Recasting to int if it is UChar_t
+    if (df.GetColumnType(flavor) == "ROOT::VecOps::RVec<UChar_t>") {
+        flavor_int = flavor + "_int";
+        df_int = df_int.Define(flavor_int, [](const ROOT::RVec<UChar_t>& v) {
+            return ROOT::RVec<int>(v.begin(), v.end());
+        }, {flavor});
+    }
+
     auto btagSF_lambda = [evaluator,
                           variation](const ROOT::RVec<float> &pts,
                                      const ROOT::RVec<float> &etas,
@@ -736,9 +759,9 @@ Btagging(ROOT::RDF::RNode df,
         Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Event Scale Factor {}", sf);
         return sf;
     };
-    auto df1 = df.Define(
+    auto df1 = df_int.Define(
         outputname, btagSF_lambda,
-        {pt, eta, btag_value, flavor, jet_mask, bjet_mask, jet_veto_mask});
+        {pt, eta, btag_value, flavor_int, jet_mask, bjet_mask, jet_veto_mask});
     return df1;
 }
 } // end namespace scalefactor
