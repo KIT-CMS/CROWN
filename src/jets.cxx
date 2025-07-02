@@ -394,7 +394,7 @@ ROOT::RDF::RNode CutPileupID(ROOT::RDF::RNode df, const std::string &outputname,
         ROOT::RVec<int> mask = (id_mask + pt_mask) > 0;
         return mask;
     };
-    auto df1 = df.Define(outputname, pass_pu_id, {jet_pu_id_int, jet_pt});
+    auto df1 = df_int.Define(outputname, pass_pu_id, {jet_pu_id_int, jet_pt});
     return df1;
 }
 
