@@ -325,8 +325,10 @@ def build_config(
                     "2018": "data/jsonpog-integration/POG/MUO/2018_UL/muon_Z.json.gz",
                 }
             ),
+            "muon_reco_sf_name": "NUM_TrackerMuons_DEN_genTracks",
             "muon_id_sf_name": "NUM_MediumID_DEN_TrackerMuons",
             "muon_iso_sf_name": "NUM_TightRelIso_DEN_MediumID",
+            "muon_trg_sf_name": "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight",
             "muon_sf_varation": "nominal",
         },
     )
@@ -435,6 +437,7 @@ def build_config(
             met.MetCorrections,
             met.PFMetCorrections,
             pairquantities.DiTauPairMETQuantities,
+            genparticles.GenMatching,
         ],
     )
     configuration.add_producers(
@@ -528,11 +531,29 @@ def build_config(
         ],
     )
     configuration.add_modification_rule(
-        ["et", "mt", "tt"],
+        ["tt"],
         RemoveProducer(
             producers=[
                 scalefactors.Tau_1_VsMuTauID_SF,
                 scalefactors.Tau_2_VsMuTauID_SF,
+            ],
+            samples="data",
+        ),
+    )
+    configuration.add_modification_rule(
+        ["et", "mt"],
+        RemoveProducer(
+            producers=[
+                scalefactors.Tau_2_VsMuTauID_SF,
+            ],
+            samples="data",
+        ),
+    )
+    configuration.add_modification_rule(
+        scopes,
+        RemoveProducer(
+            producers=[
+                genparticles.GenMatching,
             ],
             samples="data",
         ),
@@ -719,12 +740,14 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
-            q.tau_gen_match_2,
+            q.gen_match_2,
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
+            q.reco_wgt_mu_1,
             q.id_wgt_mu_1,
             q.iso_wgt_mu_1,
+            q.trg_wgt_mu_1,
         ],
     )
     configuration.add_outputs(
@@ -740,7 +763,7 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_2,
             q.gen_taujet_pt_2,
-            q.tau_gen_match_2,
+            q.gen_match_2,
             q.muon_veto_flag,
             q.dimuon_veto,
             q.electron_veto_flag,
@@ -764,9 +787,8 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_1,
             q.taujet_pt_2,
-            q.decaymode_1,
-            q.tau_gen_match_1,
-            q.tau_gen_match_2,
+            q.gen_match_1,
+            q.gen_match_2,
         ],
     )
 

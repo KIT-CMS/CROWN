@@ -7,7 +7,6 @@
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/OnnxSessionManager.hxx"
 #include "../include/utility/utility.hxx"
-#include "../include/vectoroperations.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>

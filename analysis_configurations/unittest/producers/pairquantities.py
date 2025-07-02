@@ -8,70 +8,70 @@ from code_generation.producer import Producer, ProducerGroup, ExtendedVectorProd
 
 pt_1 = Producer(
     name="pt_1",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.pt_1],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 pt_2 = Producer(
     name="pt_2",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.pt_2],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 eta_1 = Producer(
     name="eta_1",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.eta_1],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 eta_2 = Producer(
     name="eta_2",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.eta_2],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 phi_1 = Producer(
     name="phi_1",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.phi_1],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 phi_2 = Producer(
     name="phi_2",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.phi_2],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 mass_1 = Producer(
     name="mass_1",
-    call="quantities::mass({df}, {output}, {input})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.mass_1],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 mass_2 = Producer(
     name="mass_2",
-    call="quantities::mass({df}, {output}, {input})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.mass_2],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 m_vis = Producer(
     name="m_vis",
-    call="quantities::m_vis({df}, {output}, {input_vec})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.p4_1, q.p4_2],
     output=[q.m_vis],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 pt_vis = Producer(
     name="pt_vis",
-    call="quantities::pt_vis({df}, {output}, {input_vec})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_1, q.p4_2],
     output=[q.pt_vis],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
@@ -81,176 +81,176 @@ pt_vis = Producer(
 ####################
 muon_dxy_1 = Producer(
     name="muon_dxy_1",
-    call="quantities::dxy({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_dxy],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Muon_dxy, q.dileptonpair],
     output=[q.dxy_1],
     scopes=["mt", "mm"],
 )
 muon_dxy_2 = Producer(
     name="muon_dxy_2",
-    call="quantities::dxy({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_dxy],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Muon_dxy, q.dileptonpair],
     output=[q.dxy_2],
     scopes=["em", "mm"],
 )
 electron_dxy_1 = Producer(
     name="electron_dxy_1",
-    call="quantities::dxy({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_dxy],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Electron_dxy, q.dileptonpair],
     output=[q.dxy_1],
     scopes=["et", "ee", "em"],
 )
 electron_dxy_2 = Producer(
     name="electron_dxy_2",
-    call="quantities::dxy({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_dxy],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Electron_dxy, q.dileptonpair],
     output=[q.dxy_2],
     scopes=["ee"],
 )
 tau_dxy_1 = Producer(
     name="tau_dxy_1",
-    call="quantities::dxy({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_dxy],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Tau_dxy, q.dileptonpair],
     output=[q.dxy_1],
     scopes=["tt"],
 )
 tau_dxy_2 = Producer(
     name="tau_dxy_2",
-    call="quantities::dxy({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_dxy],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Tau_dxy, q.dileptonpair],
     output=[q.dxy_2],
     scopes=["mt", "et", "tt"],
 )
 muon_dz_1 = Producer(
     name="muon_dz_1",
-    call="quantities::dz({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_dz],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Muon_dz, q.dileptonpair],
     output=[q.dz_1],
     scopes=["mt", "mm"],
 )
 muon_dz_2 = Producer(
     name="muon_dz_2",
-    call="quantities::dz({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_dz],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Muon_dz, q.dileptonpair],
     output=[q.dz_2],
     scopes=["em", "mm"],
 )
 electron_dz_1 = Producer(
     name="electron_dz_1",
-    call="quantities::dz({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_dz],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Electron_dz, q.dileptonpair],
     output=[q.dz_1],
     scopes=["et", "ee", "em"],
 )
 electron_dz_2 = Producer(
     name="electron_dz_2",
-    call="quantities::dz({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_dz],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Electron_dz, q.dileptonpair],
     output=[q.dz_2],
     scopes=["ee"],
 )
 tau_dz_1 = Producer(
     name="tau_dz_1",
-    call="quantities::dz({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_dz],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Tau_dz, q.dileptonpair],
     output=[q.dz_1],
     scopes=["tt"],
 )
 tau_dz_2 = Producer(
     name="tau_dz_2",
-    call="quantities::dz({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_dz],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Tau_dz, q.dileptonpair],
     output=[q.dz_2],
     scopes=["mt", "et", "tt"],
 )
 muon_q_1 = Producer(
     name="muon_q_1",
-    call="quantities::charge({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Muon_charge, q.dileptonpair],
     output=[q.q_1],
     scopes=["mt", "mm"],
 )
 muon_q_2 = Producer(
     name="muon_q_2",
-    call="quantities::charge({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Muon_charge, q.dileptonpair],
     output=[q.q_2],
     scopes=["em", "mm"],
 )
 electron_q_1 = Producer(
     name="electron_q_1",
-    call="quantities::charge({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Electron_charge, q.dileptonpair],
     output=[q.q_1],
     scopes=["et", "ee", "em"],
 )
 electron_q_2 = Producer(
     name="electron_q_2",
-    call="quantities::charge({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Electron_charge, q.dileptonpair],
     output=[q.q_2],
     scopes=["ee"],
 )
 tau_q_1 = Producer(
     name="tau_q_1",
-    call="quantities::charge({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Tau_charge, q.dileptonpair],
     output=[q.q_1],
     scopes=["tt"],
 )
 tau_q_2 = Producer(
     name="tau_q_2",
-    call="quantities::charge({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Tau_charge, q.dileptonpair],
     output=[q.q_2],
     scopes=["mt", "et", "tt"],
 )
 muon_iso_1 = Producer(
     name="muon_iso_1",
-    call="quantities::isolation({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_iso],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Muon_iso, q.dileptonpair],
     output=[q.iso_1],
     scopes=["mt", "mm"],
 )
 muon_iso_2 = Producer(
     name="muon_iso_2",
-    call="quantities::isolation({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_iso],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Muon_iso, q.dileptonpair],
     output=[q.iso_2],
     scopes=["em", "mm"],
 )
 electron_iso_1 = Producer(
     name="electron_iso_1",
-    call="quantities::isolation({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_iso],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Electron_iso, q.dileptonpair],
     output=[q.iso_1],
     scopes=["et", "ee", "em"],
 )
 electron_iso_2 = Producer(
     name="electron_iso_2",
-    call="quantities::isolation({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Electron_iso],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Electron_iso, q.dileptonpair],
     output=[q.iso_2],
     scopes=["ee"],
 )
 tau_iso_1 = Producer(
     name="tau_iso_1",
-    call="quantities::isolation({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_IDraw],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Tau_IDraw, q.dileptonpair],
     output=[q.iso_1],
     scopes=["tt"],
 )
 tau_iso_2 = Producer(
     name="tau_iso_2",
-    call="quantities::isolation({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_IDraw],
+    call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Tau_IDraw, q.dileptonpair],
     output=[q.iso_2],
     scopes=["mt", "et", "tt"],
 )
 tau_decaymode_1 = Producer(
     name="decaymode_1",
-    call="quantities::tau::decaymode({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_decayMode],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Tau_decayMode, q.dileptonpair],
     output=[q.tau_decaymode_1],
     scopes=["tt"],
 )
@@ -261,40 +261,33 @@ tau_decaymode_1_notau = Producer(
     output=[q.tau_decaymode_1],
     scopes=["et", "mt", "em", "ee", "mm"],
 )
-tau_gen_match_1 = Producer(
-    name="gen_match_1",
-    call="quantities::tau::genmatch({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_genMatch],
-    output=[q.tau_gen_match_1],
-    scopes=["tt"],
-)
 taujet_pt_1 = Producer(
     name="taujet_pt_1",
-    call="quantities::tau::matching_jet_pt({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_associatedJet, nanoAOD.Jet_pt],
+    call="quantities::JetMatching({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Jet_pt, nanoAOD.Tau_associatedJet, q.dileptonpair],
     output=[q.taujet_pt_1],
     scopes=["tt"],
 )
 VsJetTauIDFlag_1 = ExtendedVectorProducer(
     name="VsJetTauIDFlag_1",
-    call="quantities::tau::TauIDFlag({df}, {output}, 0, {input}, {vsjet_tau_id_WPbit})",
-    input=[q.dileptonpair, nanoAOD.Tau_ID_vsJet],
+    call="physicsobject::tau::quantity::IDFlag({df}, {output}, {input}, 0, {vsjet_tau_id_WPbit})",
+    input=[nanoAOD.Tau_ID_vsJet, q.dileptonpair],
     output="tau_1_vsjet_id_outputname",
     scope=["tt"],
     vec_config="vsjet_tau_id",
 )
 VsEleTauIDFlag_1 = ExtendedVectorProducer(
     name="VsEleTauIDFlag_1",
-    call="quantities::tau::TauIDFlag({df}, {output}, 0, {input}, {vsele_tau_id_WPbit})",
-    input=[q.dileptonpair, nanoAOD.Tau_ID_vsEle],
+    call="physicsobject::tau::quantity::IDFlag({df}, {output}, {input}, 0, {vsele_tau_id_WPbit})",
+    input=[nanoAOD.Tau_ID_vsEle, q.dileptonpair],
     output="tau_1_vsele_id_outputname",
     scope=["tt"],
     vec_config="vsele_tau_id",
 )
 VsMuTauIDFlag_1 = ExtendedVectorProducer(
     name="VsMuTauIDFlag_1",
-    call="quantities::tau::TauIDFlag({df}, {output}, 0, {input}, {vsmu_tau_id_WPbit})",
-    input=[q.dileptonpair, nanoAOD.Tau_ID_vsMu],
+    call="physicsobject::tau::quantity::IDFlag({df}, {output}, {input}, 0, {vsmu_tau_id_WPbit})",
+    input=[nanoAOD.Tau_ID_vsMu, q.dileptonpair],
     output="tau_1_vsmu_id_outputname",
     scope=["tt"],
     vec_config="vsmu_tau_id",
@@ -302,8 +295,8 @@ VsMuTauIDFlag_1 = ExtendedVectorProducer(
 
 tau_decaymode_2 = Producer(
     name="taudecaymode_2",
-    call="quantities::tau::decaymode({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_decayMode],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Tau_decayMode, q.dileptonpair],
     output=[q.tau_decaymode_2],
     scopes=["mt", "et", "tt"],
 )
@@ -314,40 +307,33 @@ tau_decaymode_2_notau = Producer(
     output=[q.tau_decaymode_2],
     scopes=["em", "ee", "mm"],
 )
-tau_gen_match_2 = Producer(
-    name="taugen_match_2",
-    call="quantities::tau::genmatch({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_genMatch],
-    output=[q.tau_gen_match_2],
-    scopes=["mt", "et", "tt"],
-)
 taujet_pt_2 = Producer(
     name="taujet_pt_2",
-    call="quantities::tau::matching_jet_pt({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Tau_associatedJet, nanoAOD.Jet_pt],
+    call="quantities::JetMatching({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Jet_pt, nanoAOD.Tau_associatedJet, q.dileptonpair],
     output=[q.taujet_pt_2],
     scopes=["mt", "et", "tt"],
 )
 VsJetTauIDFlag_2 = ExtendedVectorProducer(
     name="VsJetTauIDFlag_2",
-    call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsjet_tau_id_WPbit})",
-    input=[q.dileptonpair, nanoAOD.Tau_ID_vsJet],
+    call="physicsobject::tau::quantity::IDFlag({df}, {output}, {input}, 1, {vsjet_tau_id_WPbit})",
+    input=[nanoAOD.Tau_ID_vsJet, q.dileptonpair],
     output="tau_2_vsjet_id_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsjet_tau_id",
 )
 VsEleTauIDFlag_2 = ExtendedVectorProducer(
     name="VsEleTauIDFlag_2",
-    call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsele_tau_id_WPbit})",
-    input=[q.dileptonpair, nanoAOD.Tau_ID_vsEle],
+    call="physicsobject::tau::quantity::IDFlag({df}, {output}, {input}, 1, {vsele_tau_id_WPbit})",
+    input=[nanoAOD.Tau_ID_vsEle, q.dileptonpair],
     output="tau_2_vsele_id_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsele_tau_id",
 )
 VsMuTauIDFlag_2 = ExtendedVectorProducer(
     name="VsMuTauIDFlag_2",
-    call="quantities::tau::TauIDFlag({df}, {output}, 1, {input}, {vsmu_tau_id_WPbit})",
-    input=[q.dileptonpair, nanoAOD.Tau_ID_vsMu],
+    call="physicsobject::tau::quantity::IDFlag({df}, {output}, {input}, 1, {vsmu_tau_id_WPbit})",
+    input=[nanoAOD.Tau_ID_vsMu, q.dileptonpair],
     output="tau_2_vsmu_id_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsmu_tau_id",
@@ -437,7 +423,6 @@ UnrollTauLV1 = ProducerGroup(
         tau_q_1,
         tau_iso_1,
         tau_decaymode_1,
-        tau_gen_match_1,
         taujet_pt_1,
         VsJetTauIDFlag_1,
         VsEleTauIDFlag_1,
@@ -460,7 +445,6 @@ UnrollTauLV2 = ProducerGroup(
         tau_q_2,
         tau_iso_2,
         tau_decaymode_2,
-        tau_gen_match_2,
         taujet_pt_2,
         VsJetTauIDFlag_2,
         VsEleTauIDFlag_2,
@@ -524,51 +508,58 @@ EMDiTauPairQuantities = ProducerGroup(
 ## jets: good_jet_collection (if only the leading two are needed: q.jet_p4_1, q.jet_p4_2
 ## bjets: gen_bjet_collection
 
+LV_dilepton_pair = Producer(
+    name="LV_dilepton_pair",
+    call="lorentzvector::Sum({df}, {output}, {input})",
+    input=[q.p4_1, q.p4_2],
+    output=[q.p4_dilepton],
+    scopes=["mt", "et", "tt", "em", "ee", "mm"],
+)
 Pzetamissvis = Producer(
     name="Pzetamissvis",
-    call="quantities::pzetamissvis({df}, {output}, {input})",
+    call="quantities::PzetaMissVis({df}, {output}, {input})",
     input=[q.p4_1, q.p4_2, q.met_p4_recoilcorrected],
     output=[q.pzetamissvis],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 mTdileptonMET = Producer(
     name="mTdileptonMET",
-    call="quantities::mTdileptonMET({df}, {output}, {input})",
-    input=[q.p4_1, q.p4_2, q.met_p4_recoilcorrected],
+    call="quantities::TransverseMass({df}, {output}, {input})",
+    input=[q.p4_dilepton, q.met_p4_recoilcorrected],
     output=[q.mTdileptonMET],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 mt_1 = Producer(
     name="mt_1",
-    call="quantities::mT({df}, {output}, {input})",
+    call="quantities::TransverseMass({df}, {output}, {input})",
     input=[q.p4_1, q.met_p4_recoilcorrected],
     output=[q.mt_1],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 mt_2 = Producer(
     name="mt_2",
-    call="quantities::mT({df}, {output}, {input})",
+    call="quantities::TransverseMass({df}, {output}, {input})",
     input=[q.p4_2, q.met_p4_recoilcorrected],
     output=[q.mt_2],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 pt_tt = Producer(
     name="pt_tt",
-    call="quantities::pt_tt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_1, q.p4_2, q.met_p4_recoilcorrected],
     output=[q.pt_tt],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 pt_ttjj = Producer(
     name="pt_ttjj",
-    call="quantities::pt_ttjj({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_1, q.p4_2, q.jet_p4_1, q.jet_p4_2, q.met_p4_recoilcorrected],
     output=[q.pt_ttjj],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
 )
 mt_tot = Producer(
     name="mt_tot",
-    call="quantities::mt_tot({df}, {output}, {input})",
+    call="quantities::TransverseMass({df}, {output}, {input})",
     input=[q.p4_1, q.p4_2, q.met_p4_recoilcorrected],
     output=[q.mt_tot],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
@@ -579,11 +570,20 @@ DiTauPairMETQuantities = ProducerGroup(
     input=None,
     output=None,
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
-    subproducers=[Pzetamissvis, mTdileptonMET, mt_1, mt_2, pt_tt, pt_ttjj, mt_tot],
+    subproducers=[
+        LV_dilepton_pair,
+        Pzetamissvis,
+        mTdileptonMET,
+        mt_1,
+        mt_2,
+        pt_tt,
+        pt_ttjj,
+        mt_tot,
+    ],
 )
 p4_fastmtt_mt = Producer(
     name="p4_fastmtt_mt",
-    call='quantities::p4_fastmtt({df}, {output}, {input}, "mt")',
+    call='quantities::FastMtt({df}, {output}, {input}, "mt")',
     input=[
         q.pt_1,
         q.pt_2,
@@ -606,7 +606,7 @@ p4_fastmtt_mt = Producer(
 )
 p4_fastmtt_et = Producer(
     name="p4_fastmtt_et",
-    call='quantities::p4_fastmtt({df}, {output}, {input}, "et")',
+    call='quantities::FastMtt({df}, {output}, {input}, "et")',
     input=[
         q.pt_1,
         q.pt_2,
@@ -629,7 +629,7 @@ p4_fastmtt_et = Producer(
 )
 p4_fastmtt_tt = Producer(
     name="p4_fastmtt_tt",
-    call='quantities::p4_fastmtt({df}, {output}, {input}, "tt")',
+    call='quantities::FastMtt({df}, {output}, {input}, "tt")',
     input=[
         q.pt_1,
         q.pt_2,
@@ -652,7 +652,7 @@ p4_fastmtt_tt = Producer(
 )
 p4_fastmtt_em = Producer(
     name="p4_fastmtt_em",
-    call='quantities::p4_fastmtt({df}, {output}, {input}, "em")',
+    call='quantities::FastMtt({df}, {output}, {input}, "em")',
     input=[
         q.pt_1,
         q.pt_2,
@@ -676,28 +676,28 @@ p4_fastmtt_em = Producer(
 
 pt_fastmtt = Producer(
     name="pt_fastmtt",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_fastmtt],
     output=[q.pt_fastmtt],
     scopes=["mt", "et", "tt", "em"],
 )
 eta_fastmtt = Producer(
     name="eta_fastmtt",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.p4_fastmtt],
     output=[q.eta_fastmtt],
     scopes=["mt", "et", "tt", "em"],
 )
 phi_fastmtt = Producer(
     name="phi_fastmtt",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.p4_fastmtt],
     output=[q.phi_fastmtt],
     scopes=["mt", "et", "tt", "em"],
 )
 m_fastmtt = Producer(
     name="m_fastmtt",
-    call="quantities::mass({df}, {output}, {input})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.p4_fastmtt],
     output=[q.m_fastmtt],
     scopes=["mt", "et", "tt", "em"],

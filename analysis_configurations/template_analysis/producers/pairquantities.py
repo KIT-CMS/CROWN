@@ -8,71 +8,71 @@ from code_generation.producer import Producer, ProducerGroup
 
 pt_1 = Producer(
     name="pt_1",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.pt_1],
     scopes=["mm"],
 )
 pt_2 = Producer(
     name="pt_2",
-    call="quantities::pt({df}, {output}, {input})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.pt_2],
     scopes=["mm"],
 )
 eta_1 = Producer(
     name="eta_1",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.eta_1],
     scopes=["mm"],
 )
 eta_2 = Producer(
     name="eta_2",
-    call="quantities::eta({df}, {output}, {input})",
+    call="lorentzvector::GetEta({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.eta_2],
     scopes=["mm"],
 )
 phi_1 = Producer(
     name="phi_1",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.phi_1],
     scopes=["mm"],
 )
 phi_2 = Producer(
     name="phi_2",
-    call="quantities::phi({df}, {output}, {input})",
+    call="lorentzvector::GetPhi({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.phi_2],
     scopes=["mm"],
 )
 mass_1 = Producer(
     name="mass_1",
-    call="quantities::mass({df}, {output}, {input})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.p4_1],
     output=[q.mass_1],
     scopes=["mm"],
 )
 mass_2 = Producer(
     name="mass_2",
-    call="quantities::mass({df}, {output}, {input})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.p4_2],
     output=[q.mass_2],
     scopes=["mm"],
 )
 muon_q_1 = Producer(
     name="muon_q_1",
-    call="quantities::charge({df}, {output}, 0, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
+    input=[nanoAOD.Muon_charge, q.dileptonpair],
     output=[q.q_1],
     scopes=["mm"],
 )
 muon_q_2 = Producer(
     name="muon_q_2",
-    call="quantities::charge({df}, {output}, 1, {input})",
-    input=[q.dileptonpair, nanoAOD.Muon_charge],
+    call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
+    input=[nanoAOD.Muon_charge, q.dileptonpair],
     output=[q.q_2],
     scopes=["mm"],
 )
@@ -108,14 +108,14 @@ UnrollMuLV2 = ProducerGroup(
 
 mm_pair_mass = Producer(
     name="mm_pair_mass",
-    call="quantities::m_vis({df}, {output}, {input_vec})",
+    call="lorentzvector::GetMass({df}, {output}, {input})",
     input=[q.p4_1, q.p4_2],
     output=[q.mm_pair_mass],
     scopes=["mm"],
 )
 mm_pair_pt = Producer(
     name="mm_pair_pt",
-    call="quantities::pt_vis({df}, {output}, {input_vec})",
+    call="lorentzvector::GetPt({df}, {output}, {input})",
     input=[q.p4_1, q.p4_2],
     output=[q.mm_pair_pt],
     scopes=["mm"],
