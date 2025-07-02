@@ -24,9 +24,6 @@ ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputna
 ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &vector_1, const std::string &vector_2,
                         const std::string &vector_3);
-ROOT::RDF::RNode TotalTransverseMass(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::string &vector_1, const std::string &vector_2,
-                        const std::string &vector_3);
 ROOT::RDF::RNode CollinearApproxMtt(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &vector_1, const std::string &vector_2,
                         const std::string &vector_3);

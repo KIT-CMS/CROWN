@@ -787,7 +787,6 @@ def build_config(
             pairquantities.VsMuTauIDFlag_2.output_group,
             q.taujet_pt_1,
             q.taujet_pt_2,
-            q.decaymode_1,
             q.gen_match_1,
             q.gen_match_2,
         ],

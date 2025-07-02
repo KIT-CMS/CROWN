@@ -48,7 +48,7 @@ PrefireWeight = Producer(
 )
 
 is_data = Producer(
-    name="isData",
+    name="is_data",
     input=[],
     call="event::quantity::Define({df}, {output}, {is_data})",
     output=[q.is_data],

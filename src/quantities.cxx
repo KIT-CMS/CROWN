@@ -184,47 +184,10 @@ ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputna
 }
 
 /**
- * @brief This function calculates the transverse mass \f$m_T\f$ of a three 
- * particle system, where first the two first particles are summed up and 
- * used to calculate the transverse mass with the third particle. 
- * The transverse mass is defined as:
- *
- * \f[
- *    m_{T} = \sqrt{2 \cdot p_{T,1+2} \cdot p_{T,3} \cdot
- * (1-\cos(\Delta\phi))}
- * \f]
- *
- * where \f$\Delta\phi\f$ is the azimuthal angle between the third particle 
- * and the summed Lorentz vector of the first two particles.
- *
- * @param df input dataframe
- * @param outputname name of the output column containing the \f$m_T\f$ value
- * @param vector_1 name of the column containing the first Lorentz vector
- * @param vector_2 name of the column containing the second Lorentz vector
- * @param vector_3 name of the column containing the third Lorentz vector
- *
- * @return a new dataframe with the new column
- */
-ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::string &vector_1, const std::string &vector_2, 
-                        const std::string &vector_3) {
-    auto calculate_MT = [](ROOT::Math::PtEtaPhiMVector &p4_1,
-                           ROOT::Math::PtEtaPhiMVector &p4_2,
-                           ROOT::Math::PtEtaPhiMVector &p4_met) {
-        if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0 || p4_met.pt() < 0.0)
-            return default_float;
-        ROOT::Math::PtEtaPhiMVector sum_p4 = p4_1 + p4_2;
-        return (float)sqrt(2 * sum_p4.Pt() * p4_met.Pt() *
-            (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(sum_p4, p4_met))));
-    };
-    return df.Define(outputname, calculate_MT, {vector_1, vector_2, vector_3});
-}
-
-/**
- * @brief This function calculates the total transverse mass. This is usually
- * used to estimate the Higgs to \f$\tau\tau\f$ decay where multiple neutrinos
- * are involved and estimated via the MET vector. The total transverse mass is 
- * defined as:
+ * @brief This function calculates the total transverse mass for a dilepton 
+ * system plus MET. This is usually used to estimate the Higgs to \f$\tau\tau\f$ 
+ * decay where multiple neutrinos are involved and estimated via the MET vector. 
+ * The total transverse mass is defined as:
  * \f[
  *   m_{T}^{tot} = \sqrt{m_{T}^2(p_{1},E_{T}^{miss}) +
  *    m_{T}^2(p_{2},E_{T}^{miss}) + m_{T}^2(p_{1},p_2) } 
@@ -241,7 +204,7 @@ ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputna
  *
  * @return a new dataframe with the new column
  */
-ROOT::RDF::RNode TotalTransverseMass(ROOT::RDF::RNode df, const std::string &outputname,
+ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &vector_1, const std::string &vector_2,
                     const std::string &vector_3) {
     auto calculate_mt_tot = [](ROOT::Math::PtEtaPhiMVector &p4_1,

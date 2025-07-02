@@ -82,6 +82,7 @@ tau_decaymode_2 = Quantity("tau_decaymode_2")
 # Combined event quantities
 m_vis = Quantity("m_vis")
 pt_vis = Quantity("pt_vis")
+p4_dilepton = Quantity("p4_dilepton")
 pzetamissvis = Quantity("pzetamissvis")
 mTdileptonMET = Quantity("mTdileptonMET")
 mt_1 = Quantity("mt_1")

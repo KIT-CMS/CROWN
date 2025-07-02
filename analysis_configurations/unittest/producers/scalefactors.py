@@ -158,7 +158,7 @@ Tau_1_VsEleTauID_SF = ExtendedVectorProducer(
         {output}, 
         {input}, 
         "{tau_sf_file}", 
-        "{tau_id_discriminator}"
+        "{tau_id_discriminator}",
         "{vsele_tau_id_WP}", 
         "{tau_sf_vsele_barrel}", 
         "{tau_sf_vsele_endcap}")
