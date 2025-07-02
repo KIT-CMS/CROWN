@@ -570,7 +570,16 @@ DiTauPairMETQuantities = ProducerGroup(
     input=None,
     output=None,
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
-    subproducers=[LV_dilepton_pair, Pzetamissvis, mTdileptonMET, mt_1, mt_2, pt_tt, pt_ttjj, mt_tot],
+    subproducers=[
+        LV_dilepton_pair, 
+        Pzetamissvis, 
+        mTdileptonMET, 
+        mt_1, 
+        mt_2, 
+        pt_tt, 
+        pt_ttjj, 
+        mt_tot
+    ],
 )
 p4_fastmtt_mt = Producer(
     name="p4_fastmtt_mt",
