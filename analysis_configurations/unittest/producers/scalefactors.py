@@ -17,7 +17,7 @@ Muon_1_Reco_SF = Producer(
         {input},
         "{muon_sf_file}",
         "{muon_reco_sf_name}",
-        "{muon_sf_varation}")
+        "{muon_sf_variation}")
         """,
     input=[q.pt_1, q.eta_1],
     output=[q.reco_wgt_mu_1],
@@ -32,7 +32,7 @@ Muon_1_ID_SF = Producer(
         {input},
         "{muon_sf_file}",
         "{muon_id_sf_name}",
-        "{muon_sf_varation}")
+        "{muon_sf_variation}")
         """,
     input=[q.pt_1, q.eta_1],
     output=[q.id_wgt_mu_1],
@@ -47,7 +47,7 @@ Muon_1_Iso_SF = Producer(
         {input},
         "{muon_sf_file}",
         "{muon_id_sf_name}",
-        "{muon_sf_varation}")
+        "{muon_sf_variation}")
         """,
     input=[q.pt_1, q.eta_1],
     output=[q.iso_wgt_mu_1],
@@ -62,7 +62,7 @@ Muon_1_Trigger_SF = Producer(
         {input},
         "{muon_sf_file}",
         "{muon_trg_sf_name}",
-        "{muon_sf_varation}")
+        "{muon_sf_variation}")
         """,
     input=[q.pt_1, q.eta_1],
     output=[q.trg_wgt_mu_1],
@@ -77,7 +77,7 @@ Muon_2_ID_SF = Producer(
         {input},
         "{muon_sf_file}",
         "{muon_id_sf_name}",
-        "{muon_sf_varation}")
+        "{muon_sf_variation}")
         """,
     input=[q.pt_2, q.eta_2],
     output=[q.id_wgt_mu_2],
@@ -92,7 +92,7 @@ Muon_2_Iso_SF = Producer(
         {input},
         "{muon_sf_file}",
         "{muon_id_sf_name}",
-        "{muon_sf_varation}")
+        "{muon_sf_variation}")
         """,
     input=[q.pt_2, q.eta_2],
     output=[q.iso_wgt_mu_2],
@@ -316,7 +316,7 @@ Ele_1_IDWP90_SF = Producer(
         "wp90noiso", 
         "{ele_sf_file}", 
         "{ele_id_sf_name}",
-        "{ele_sf_varation}")
+        "{ele_sf_variation}")
         """,
     input=[q.pt_1, q.eta_1],
     output=[q.id_wgt_ele_wp90nonIso_1],
@@ -333,7 +333,7 @@ Ele_2_IDWP90_SF = Producer(
         "wp90noiso", 
         "{ele_sf_file}", 
         "{ele_id_sf_name}",
-        "{ele_sf_varation}")
+        "{ele_sf_variation}")
         """,
     input=[q.pt_2, q.eta_2],
     output=[q.id_wgt_ele_wp90nonIso_2],
@@ -350,7 +350,7 @@ Ele_1_IDWP80_SF = Producer(
         "wp80noiso", 
         "{ele_sf_file}", 
         "{ele_id_sf_name}",
-        "{ele_sf_varation}")
+        "{ele_sf_variation}")
         """,
     input=[q.pt_1, q.eta_1],
     output=[q.id_wgt_ele_wp80nonIso_1],
@@ -367,7 +367,7 @@ Ele_2_IDWP80_SF = Producer(
         "wp80noiso",  
         "{ele_sf_file}", 
         "{ele_id_sf_name}",
-        "{ele_sf_varation}")
+        "{ele_sf_variation}")
         """,
     input=[q.pt_2, q.eta_2],
     output=[q.id_wgt_ele_wp80nonIso_2],
