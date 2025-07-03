@@ -329,7 +329,7 @@ def build_config(
             "muon_id_sf_name": "NUM_MediumID_DEN_TrackerMuons",
             "muon_iso_sf_name": "NUM_TightRelIso_DEN_MediumID",
             "muon_trg_sf_name": "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight",
-            "muon_sf_varation": "nominal",
+            "muon_sf_variation": "nominal",
         },
     )
     # ET/EM scope electron selection

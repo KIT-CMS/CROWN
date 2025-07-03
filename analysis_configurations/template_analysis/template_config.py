@@ -130,7 +130,7 @@ def build_config(
             "muon_reco_sf_name": "NUM_TrackerMuons_DEN_genTracks",
             "muon_id_sf_name": "NUM_MediumID_DEN_TrackerMuons",
             "muon_iso_sf_name": "NUM_LooseRelIso_DEN_MediumID",
-            "muon_sf_varation": "nominal",  # "systup"/"systdown" are up/down variations
+            "muon_sf_variation": "nominal",  # "systup"/"systdown" are up/down variations
         },
     )
     ## all scopes settings: applied in all chosen final scopes the same way
@@ -232,7 +232,7 @@ def build_config(
     configuration.add_shift(
         SystematicShift(
             name="MuonIDUp",
-            shift_config={"mm": {"muon_sf_varation": "systup"}},
+            shift_config={"mm": {"muon_sf_variation": "systup"}},
             producers={
                 "mm": [
                     scalefactors.Muon_1_ID_SF,
@@ -244,7 +244,7 @@ def build_config(
     configuration.add_shift(
         SystematicShift(
             name="MuonIDDown",
-            shift_config={"mm": {"muon_sf_varation": "systdown"}},
+            shift_config={"mm": {"muon_sf_variation": "systdown"}},
             producers={
                 "mm": [
                     scalefactors.Muon_1_ID_SF,
