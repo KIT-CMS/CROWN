@@ -51,8 +51,8 @@ namespace tau {
 ROOT::RDF::RNode HadronicGenTaus(ROOT::RDF::RNode df,
                                  const std::string &outputname,
                                  const std::string &genparticles_pdg_id,
-                                 const std::string &genparticles_status_flags,
-                                 const std::string &genparticles_mother_index) {
+                                 const std::string &genparticles_mother_index,
+                                 const std::string &genparticles_status_flags) {
 
     auto gentaus = [](const ROOT::RVec<int> &pdg_ids,
                       const ROOT::RVec<int> &status_flags,
