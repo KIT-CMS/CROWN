@@ -402,8 +402,8 @@ HadronicGenTaus = Producer(
     call="genparticles::tau::HadronicGenTaus({df}, {output}, {input})",
     input=[
         nanoAOD.GenParticle_pdgId,
-        nanoAOD.GenParticle_motherid,
         nanoAOD.GenParticle_statusFlags,
+        nanoAOD.GenParticle_motherid,
     ],
     output=[q.hadronic_gen_taus],
     scopes=["mt", "et", "tt", "em", "ee", "mm"],
@@ -415,7 +415,6 @@ GenMatchP1 = Producer(
     input=[
         q.hadronic_gen_taus,
         nanoAOD.GenParticle_pdgId,
-        nanoAOD.GenParticle_motherid,
         nanoAOD.GenParticle_statusFlags,
         nanoAOD.GenParticle_pt,
         nanoAOD.GenParticle_eta,
@@ -433,7 +432,6 @@ GenMatchP2 = Producer(
     input=[
         q.hadronic_gen_taus,
         nanoAOD.GenParticle_pdgId,
-        nanoAOD.GenParticle_motherid,
         nanoAOD.GenParticle_statusFlags,
         nanoAOD.GenParticle_pt,
         nanoAOD.GenParticle_eta,
