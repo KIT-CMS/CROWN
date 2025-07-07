@@ -17,7 +17,7 @@ ROOT::RDF::RNode HadronicGenTaus(ROOT::RDF::RNode df,
                                  const std::string &outputname,
                                  const std::string &genparticles_pdg_id,
                                  const std::string &genparticles_status_flags,
-                                const std::string &genparticles_mother_index);
+                                 const std::string &genparticles_mother_index);
 ROOT::RDF::RNode GenMatching(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &hadronic_gen_taus,
                              const std::string &genparticles_pdg_id,
