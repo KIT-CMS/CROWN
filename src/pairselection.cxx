@@ -70,9 +70,18 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
                               const std::string &genindex_particle1,
                               const std::string &genindex_particle2,
                               const std::string &genpairname) {
+    // In nanoAODv12 the types of gen object indices were changed to Short_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, genindex_particle1_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df, genindex_particle1+"_v12", "ROOT::RVec<Short_t>", genindex_particle1);
+    auto [df2, genindex_particle2_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df1, genindex_particle2+"_v12", "ROOT::RVec<Short_t>", genindex_particle2);
+
     auto getGenPair = [](const ROOT::RVec<int> &recopair,
-                         const ROOT::RVec<int> &genindex_particle1,
-                         const ROOT::RVec<int> &genindex_particle2) {
+                         const ROOT::RVec<Short_t> &genindex_particle1_v12,
+                         const ROOT::RVec<Short_t> &genindex_particle2_v12) {
+        auto genindex_particle1 = static_cast<ROOT::RVec<int>>(genindex_particle1_v12);
+        auto genindex_particle2 = static_cast<ROOT::RVec<int>>(genindex_particle2_v12);
         ROOT::RVec<int> genpair = {-1, -1};
         Logger::get("buildgenpair")->debug("existing DiTauPair: {}", recopair);
         genpair[0] = genindex_particle1.at(recopair.at(0), -1);
@@ -81,8 +90,8 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
             ->debug("matching GenDiTauPair: {}", genpair);
         return genpair;
     };
-    return df.Define(genpairname, getGenPair,
-                     {recopair, genindex_particle1, genindex_particle2});
+    return df2.Define(genpairname, getGenPair,
+                     {recopair, genindex_particle1_column, genindex_particle2_column});
 }
 
 /**

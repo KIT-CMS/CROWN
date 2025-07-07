@@ -3,6 +3,7 @@
 
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
+#include "../include/utility/utility.hxx"
 #include "../include/defaults.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "correction.h"
@@ -77,14 +78,21 @@ PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
                        const std::string &variation_dm1_barrel,
                        const std::string &variation_dm0_endcap,
                        const std::string &variation_dm1_endcap) {
+    // In nanoAODv12 the type of tau decay mode was changed to UChar_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, decay_mode_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+            df, decay_mode+"_v12", "ROOT::RVec<UChar_t>", decay_mode);
+
     auto evaluator =
         correction_manager.loadCorrection(es_file, correction_name);
     auto correction_lambda =
         [evaluator, id_algorithm, variation_dm0_barrel, variation_dm1_barrel,
          variation_dm0_endcap, variation_dm1_endcap](
             const ROOT::RVec<float> &pts, const ROOT::RVec<float> &etas,
-            const ROOT::RVec<int> &decay_modes,
-            const ROOT::RVec<UChar_t> &gen_matches) {
+            const ROOT::RVec<UChar_t> &decay_modes_v12,
+            const ROOT::RVec<UChar_t> &gen_matches_char) {
+            auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
+            auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
             ROOT::RVec<float> corrected_pts(pts.size());
             const float barrel_end_cut = 1.5;
             const float endcap_end_cut = 2.5;
@@ -97,7 +105,7 @@ PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
                         std::abs(etas.at(i)) <= barrel_end_cut) {
                         auto correction_factor = evaluator->evaluate(
                             {pts.at(i), std::abs(etas.at(i)), decay_modes.at(i),
-                             static_cast<int>(gen_matches.at(i)), id_algorithm,
+                             gen_matches.at(i), id_algorithm,
                              variation_dm0_barrel});
                         corrected_pts[i] = pts.at(i) * correction_factor;
                     } else if (decay_modes.at(i) == dm0 &&
@@ -105,14 +113,14 @@ PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
                                std::abs(etas.at(i)) <= endcap_end_cut) {
                         auto correction_factor = evaluator->evaluate(
                             {pts.at(i), std::abs(etas.at(i)), decay_modes.at(i),
-                             static_cast<int>(gen_matches.at(i)), id_algorithm,
+                             gen_matches.at(i), id_algorithm,
                              variation_dm0_endcap});
                         corrected_pts[i] = pts.at(i) * correction_factor;
                     } else if (decay_modes.at(i) == dm1 &&
                                std::abs(etas.at(i)) <= barrel_end_cut) {
                         auto correction_factor = evaluator->evaluate(
                             {pts.at(i), std::abs(etas.at(i)), decay_modes.at(i),
-                             static_cast<int>(gen_matches.at(i)), id_algorithm,
+                             gen_matches.at(i), id_algorithm,
                              variation_dm1_barrel});
                         corrected_pts[i] = pts.at(i) * correction_factor;
                     } else if (decay_modes.at(i) == dm1 &&
@@ -120,7 +128,7 @@ PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
                                std::abs(etas.at(i)) <= endcap_end_cut) {
                         auto correction_factor = evaluator->evaluate(
                             {pts.at(i), std::abs(etas.at(i)), decay_modes.at(i),
-                             static_cast<int>(gen_matches.at(i)), id_algorithm,
+                             gen_matches.at(i), id_algorithm,
                              variation_dm1_endcap});
                         corrected_pts[i] = pts.at(i) * correction_factor;
                     }
@@ -133,9 +141,9 @@ PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
             }
             return corrected_pts;
         };
-    auto df1 = df.Define(outputname, correction_lambda,
-                         {pt, eta, decay_mode, gen_match});
-    return df1;
+    auto df2 = df1.Define(outputname, correction_lambda,
+                         {pt, eta, decay_mode_column, gen_match});
+    return df2;
 }
 
 /**
@@ -193,19 +201,26 @@ PtCorrectionMC_muFake(ROOT::RDF::RNode df,
                       const std::string &correction_name,
                       const std::string &id_algorithm,
                       const std::string &variation) {
+    // In nanoAODv12 the type of tau decay mode was changed to UChar_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, decay_mode_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+            df, decay_mode+"_v12", "ROOT::RVec<UChar_t>", decay_mode);
+
     auto evaluator =
         correction_manager.loadCorrection(es_file, correction_name);
     auto correction_lambda = [evaluator, id_algorithm, variation](
                                  const ROOT::RVec<float> &pts,
                                  const ROOT::RVec<float> &etas,
-                                 const ROOT::RVec<int> &decay_modes,
-                                 const ROOT::RVec<UChar_t> &gen_matches) {
+                                 const ROOT::RVec<UChar_t> &decay_modes_v12,
+                                 const ROOT::RVec<UChar_t> &gen_matches_char) {
+        auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
+        auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
         ROOT::RVec<float> corrected_pts(pts.size());
         for (int i = 0; i < pts.size(); i++) {
             if (gen_matches.at(i) == 2 || gen_matches.at(i) == 4) {
                 auto correction_factor = evaluator->evaluate(
                     {pts.at(i), std::abs(etas.at(i)), decay_modes.at(i),
-                     static_cast<int>(gen_matches.at(i)), id_algorithm,
+                     gen_matches.at(i), id_algorithm,
                      variation});
                 corrected_pts[i] = pts.at(i) * correction_factor;
             } else {
@@ -217,9 +232,9 @@ PtCorrectionMC_muFake(ROOT::RDF::RNode df,
         }
         return corrected_pts;
     };
-    auto df1 = df.Define(outputname, correction_lambda,
-                         {pt, eta, decay_mode, gen_match});
-    return df1;
+    auto df2 = df1.Define(outputname, correction_lambda,
+                         {pt, eta, decay_mode_column, gen_match});
+    return df2;
 }
 
 /**
@@ -282,39 +297,46 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
     const std::string &correction_name, const std::string &id_algorithm,
     const std::string &variation_dm0, const std::string &variation_dm1,
     const std::string &variation_dm10, const std::string &variation_dm11) {
+    // In nanoAODv12 the type of tau decay mode was changed to UChar_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, decay_mode_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+            df, decay_mode+"_v12", "ROOT::RVec<UChar_t>", decay_mode);
+
     auto evaluator =
         correction_manager.loadCorrection(es_file, correction_name);
     auto correction_lambda =
         [evaluator, id_algorithm, variation_dm0, variation_dm1, variation_dm10,
          variation_dm11](const ROOT::RVec<float> &pts,
                          const ROOT::RVec<float> &etas,
-                         const ROOT::RVec<int> &decay_modes,
-                         const ROOT::RVec<UChar_t> &gen_matches) {
+                         const ROOT::RVec<UChar_t> &decay_modes_v12,
+                         const ROOT::RVec<UChar_t> &gen_matches_char) {
+            auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
+            auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
             ROOT::RVec<float> corrected_pts(pts.size());
             for (int i = 0; i < pts.size(); i++) {
                 if (gen_matches.at(i) == 5) {
                     if (decay_modes.at(i) == 0) {
                         auto correction_factor = evaluator->evaluate(
                             {pts.at(i), std::abs(etas.at(i)), decay_modes.at(i),
-                             static_cast<int>(gen_matches.at(i)), id_algorithm,
+                             gen_matches.at(i), id_algorithm,
                              variation_dm0});
                         corrected_pts[i] = pts.at(i) * correction_factor;
                     } else if (decay_modes.at(i) == 1) {
                         auto correction_factor = evaluator->evaluate(
                             {pts.at(i), std::abs(etas.at(i)), decay_modes.at(i),
-                             static_cast<int>(gen_matches.at(i)), id_algorithm,
+                             gen_matches.at(i), id_algorithm,
                              variation_dm1});
                         corrected_pts[i] = pts.at(i) * correction_factor;
                     } else if (decay_modes.at(i) == 10) {
                         auto correction_factor = evaluator->evaluate(
                             {pts.at(i), std::abs(etas.at(i)), decay_modes.at(i),
-                             static_cast<int>(gen_matches.at(i)), id_algorithm,
+                             gen_matches.at(i), id_algorithm,
                              variation_dm10});
                         corrected_pts[i] = pts.at(i) * correction_factor;
                     } else if (decay_modes.at(i) == 11) {
                         auto correction_factor = evaluator->evaluate(
                             {pts.at(i), std::abs(etas.at(i)), decay_modes.at(i),
-                             static_cast<int>(gen_matches.at(i)), id_algorithm,
+                             gen_matches.at(i), id_algorithm,
                              variation_dm11});
                         corrected_pts[i] = pts.at(i) * correction_factor;
                     }
@@ -327,9 +349,9 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
             }
             return corrected_pts;
         };
-    auto df1 = df.Define(outputname, correction_lambda,
-                         {pt, eta, decay_mode, gen_match});
-    return df1;
+    auto df2 = df1.Define(outputname, correction_lambda,
+                         {pt, eta, decay_mode_column, gen_match});
+    return df2;
 }
 
 namespace quantity {

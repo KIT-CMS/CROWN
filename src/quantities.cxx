@@ -5,6 +5,7 @@
 #include "../include/SVFit/MeasuredTauLepton.hxx"
 #include "../include/defaults.hxx"
 #include "../include/utility/Logger.hxx"
+#include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>
@@ -99,9 +100,9 @@ ROOT::RDF::RNode PairHemisphere(ROOT::RDF::RNode df,
  * in the event and the MET vector. The variable is defined as:
  * \f[
  *    D_\zeta = p_\zeta^\text{miss} - 0.85 p_\zeta^\text{vis}
- *   \qquad;
+ *   \qquad
  *   p_\zeta^\text{miss} = \vec{p}_\text{T}^\text{miss} \cdot \hat{\zeta}
- *   \qquad;
+ *   \qquad
  *   p_\zeta^\text{vis} = (\vec{p}_\text{T}^{p_1} + \vec{p}_\text{T}^{p_2}) \cdot
  *   \hat{\zeta} 
  * \f] 
@@ -402,15 +403,20 @@ ROOT::RDF::RNode JetMatching(ROOT::RDF::RNode df,
                             const std::string &object_jet_index,
                             const std::string &object_index_vector,
                             const int &position) {
-    return df.Define(outputname,
+    // In nanoAODv12 the type ofs object to jet indices were changed to Short_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, object_jet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df, object_jet_index+"_v12", "ROOT::RVec<Short_t>", object_jet_index);
+    return df1.Define(outputname,
                      [position](const ROOT::RVec<float> &quantity,
-                                const ROOT::RVec<int> &obj_jet_idx,
+                                const ROOT::RVec<Short_t> &obj_jet_idx_v12,
                                 const ROOT::RVec<int> &obj_indices) {
+                         auto obj_jet_idx = static_cast<ROOT::RVec<int>>(obj_jet_idx_v12);
                          const int obj_index = obj_indices.at(position);
                          const int jet_index = obj_jet_idx.at(obj_index, -1);
                          return quantity.at(jet_index, default_float);
                      },
-                     {jet_quantity, object_jet_index, object_index_vector});
+                     {jet_quantity, object_jet_index_column, object_index_vector});
 }
 
 /** 
@@ -439,17 +445,25 @@ ROOT::RDF::RNode GenJetMatching(ROOT::RDF::RNode df,
                             const std::string &object_jet_index,
                             const std::string &object_index_vector,
                             const int &position) {
-    return df.Define(outputname,
+    // In nanoAODv12 the types of jet indices were changed to Short_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, jet_genjet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df, jet_genjet_index+"_v12", "ROOT::RVec<Short_t>", jet_genjet_index);
+    auto [df2, object_jet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df1, object_jet_index+"_v12", "ROOT::RVec<Short_t>", object_jet_index);
+    return df2.Define(outputname,
                      [position](const ROOT::RVec<float> &quantity,
-                                const ROOT::RVec<int> &jet_genjet_idx,
-                                const ROOT::RVec<int> &obj_jet_idx,
+                                const ROOT::RVec<Short_t> &jet_genjet_idx_v12,
+                                const ROOT::RVec<Short_t> &obj_jet_idx_v12,
                                 const ROOT::RVec<int> &obj_indices) {
+                         auto jet_genjet_idx = static_cast<ROOT::RVec<int>>(jet_genjet_idx_v12);
+                         auto obj_jet_idx = static_cast<ROOT::RVec<int>>(obj_jet_idx_v12);
                          const int obj_index = obj_indices.at(position);
                          const int jet_index = obj_jet_idx.at(obj_index, -1);
                          const int genjet_index = jet_genjet_idx.at(jet_index, -1);
                          return quantity.at(genjet_index, default_float);
                      },
-                     {genjet_quantity, jet_genjet_index, object_jet_index, object_index_vector});
+                     {genjet_quantity, jet_genjet_index_column, object_jet_index_column, object_index_vector});
 }
 
 /**
