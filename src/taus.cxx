@@ -359,7 +359,11 @@ namespace quantity {
 /**
  * @brief This function writes out a flag that is true if a tau passes a specific 
  * tau ID working point (`wp`). The working point is defined by the bit value. The
- * bit values can be found e.g. in the description of the tau ID scale factors. 
+ * bit values can be found e.g. in the description of the tau ID scale factors.
+ *
+ * @note This function should be used only for `nanoAODv9`. Starting with `nanoAODv12`
+ * `physicsobject::tau::quantity::IDFlag_v12` should be used instead because the content
+ * of the tau ID branches was changed.
  * 
  * @param df input dataframe
  * @param outputname name of the output column containing the flag
@@ -371,14 +375,14 @@ namespace quantity {
  *
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode IDFlag(ROOT::RDF::RNode df, const std::string &outputname,
+ROOT::RDF::RNode IDFlag_v9(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &ID, const std::string &index_vector,
                         const int &position, const int &wp) {
     return df.Define(
         outputname,
         [position, wp](const ROOT::RVec<int> &index_vector,
                           const ROOT::RVec<UChar_t> &IDs) {
-            Logger::get("physicsobject::tau::quantity::IDFlag")
+            Logger::get("physicsobject::tau::quantity::IDFlag_v9")
                 ->debug(
                     "position tau in pair {}, tau pair {}, id wp bit {}, vsjet ids {}",
                     position, index_vector, wp, IDs);
@@ -388,6 +392,48 @@ ROOT::RDF::RNode IDFlag(ROOT::RDF::RNode df, const std::string &outputname,
                 return std::min(1, int(id_value & 1 << (wp - 1)));
             else
                 return int(id_value);
+        },
+        {index_vector, ID});
+}
+
+/**
+ * @brief This function writes out a flag that is true if a tau passes a specific 
+ * tau ID working point (`wp`). The content of the tau ID branch changed in 
+ * `nanoAODv12`. The working points are defied in integer steps (still saved as 
+ * `UChar_t`).
+ * 
+ * For `vsJet` and `vsEle`: 1 = VVVLoose, 2 = VVLoose, 3 = VLoose, 4 = Loose, 
+ * 5 = Medium, 6 = Tight, 7 = VTight, 8 = VVTight
+ *
+ * For `vsMu`: 1 = VLoose, 2 = Loose, 3 = Medium, 4 = Tight
+ * 
+ * @param df input dataframe
+ * @param outputname name of the output column containing the flag
+ * @param ID name of the column containing the tau ID values 
+ * @param index_vector name of the column containing the vector with the relevant
+ * tau pair indices
+ * @param position position in the index vector of the relevant tau in the pair
+ * @param wp bit value of the WP that has to be passed
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode IDFlag_v12(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &ID, const std::string &index_vector,
+                        const int &position, const int &wp) {
+    return df.Define(
+        outputname,
+        [position, wp](const ROOT::RVec<int> &index_vector,
+                          const ROOT::RVec<UChar_t> &IDs) {
+            Logger::get("physicsobject::tau::quantity::IDFlag_v12")
+                ->debug(
+                    "position tau in pair {}, tau pair {}, id wp bit {}, vsjet ids {}",
+                    position, index_vector, wp, IDs);
+            const int index = index_vector.at(position);
+            const int id_value = static_cast<int>(IDs.at(index, default_int));
+            if (id_value != default_int)
+                return int(id_value >= wp);
+            else
+                return id_value;
         },
         {index_vector, ID});
 }
