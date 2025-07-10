@@ -2,6 +2,7 @@
 #define GUARD_GENPARTICLES_H
 
 #include "../include/utility/Logger.hxx"
+#include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "bitset"
@@ -53,10 +54,18 @@ ROOT::RDF::RNode HadronicGenTaus(ROOT::RDF::RNode df,
                                  const std::string &genparticles_pdg_id,
                                  const std::string &genparticles_status_flags,
                                  const std::string &genparticles_mother_index) {
+    // In nanoAODv12 the type of genparticle status flags / mother index were changed to UShort_t / Short_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, genparticles_status_flags+"_v12", "ROOT::RVec<UShort_t>", genparticles_status_flags);
+    auto [df2, genparticles_mother_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df1, genparticles_mother_index+"_v12", "ROOT::RVec<Short_t>", genparticles_mother_index);
 
     auto gentaus = [](const ROOT::RVec<int> &pdg_ids,
-                      const ROOT::RVec<int> &status_flags,
-                      const ROOT::RVec<int> &mother_indices) {
+                      const ROOT::RVec<UShort_t> &status_flags_v12,
+                      const ROOT::RVec<Short_t> &mother_indices_v12) {
+        auto status_flags = static_cast<ROOT::RVec<int>>(status_flags_v12);
+        auto mother_indices = static_cast<ROOT::RVec<int>>(mother_indices_v12);
         // set default values for the output
         std::vector<int> hadGenTaus;
         if (pdg_ids.size() == 0) {
@@ -141,10 +150,10 @@ ROOT::RDF::RNode HadronicGenTaus(ROOT::RDF::RNode df,
         }
         return hadGenTaus;
     };
-    auto df1 = df.Define(
+    auto df3 = df2.Define(
         outputname, gentaus,
-        {genparticles_pdg_id, genparticles_status_flags, genparticles_mother_index});
-    return df1;
+        {genparticles_pdg_id, genparticles_status_flags_column, genparticles_mother_index_column});
+    return df3;
 }
 
 /**
@@ -208,14 +217,20 @@ ROOT::RDF::RNode GenMatching(
     const std::string &genparticles_status_flags, const std::string &genparticles_pt, 
     const std::string &genparticles_eta, const std::string &genparticles_phi, 
     const std::string &genparticles_mass, const std::string &reco_had_tau) {
+    // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, genparticles_status_flags+"_v12", "ROOT::RVec<UShort_t>", genparticles_status_flags);
+
     auto match_tau = [](const std::vector<int> &had_gen_taus,
                            const ROOT::RVec<int> &pdg_ids,
-                           const ROOT::RVec<int> &status_flags,
+                           const ROOT::RVec<UShort_t> &status_flags_v12,
                            const ROOT::RVec<float> &pts,
                            const ROOT::RVec<float> &etas,
                            const ROOT::RVec<float> &phis,
                            const ROOT::RVec<float> &masses,
                            const ROOT::Math::PtEtaPhiMVector &reco_had_tau) {
+        auto status_flags = static_cast<ROOT::RVec<int>>(status_flags_v12);
         // find closest lepton fulfilling the requirements
         float min_delta_r = 9999;
         int closest_genparticle_index = 0;
@@ -314,11 +329,11 @@ ROOT::RDF::RNode GenMatching(
         Logger::get("genparticles::tau::GenMatching")->debug("IS_FAKE");
         return (int)MatchingGenTauCode::IS_FAKE;
     };
-    auto df1 = df.Define(
+    auto df2 = df1.Define(
         outputname, match_tau,
-        {hadronic_gen_taus, genparticles_pdg_id, genparticles_status_flags, 
+        {hadronic_gen_taus, genparticles_pdg_id, genparticles_status_flags_column, 
          genparticles_pt, genparticles_eta, genparticles_phi, genparticles_mass, reco_had_tau});
-    return df1;
+    return df2;
 }
 
 /**
@@ -391,15 +406,24 @@ ROOT::RDF::RNode GenMatching(
     const std::string &genparticles_pt, const std::string &genparticles_eta, 
     const std::string &genparticles_phi, const std::string &genparticles_mass, 
     const std::string &reco_had_tau) {
+    // In nanoAODv12 the type of genparticle status flags / mother index were changed to UShort_t / Short_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, genparticles_status_flags+"_v12", "ROOT::RVec<UShort_t>", genparticles_status_flags);
+    auto [df2, genparticles_mother_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df1, genparticles_mother_index+"_v12", "ROOT::RVec<Short_t>", genparticles_mother_index);
+
     auto match_tau = [](const std::vector<int> &had_gen_taus,
                            const ROOT::RVec<int> &pdg_ids,
-                           const ROOT::RVec<int> &status_flags,
-                           const ROOT::RVec<int> &mother_idx,
+                           const ROOT::RVec<UShort_t> &status_flags_v12,
+                           const ROOT::RVec<Short_t> &mother_indices_v12,
                            const ROOT::RVec<float> &pts,
                            const ROOT::RVec<float> &etas,
                            const ROOT::RVec<float> &phis,
                            const ROOT::RVec<float> &masses,
                            const ROOT::Math::PtEtaPhiMVector &reco_had_tau) {
+        auto status_flags = static_cast<ROOT::RVec<int>>(status_flags_v12);
+        auto mother_indices = static_cast<ROOT::RVec<int>>(mother_indices_v12);
         // find closest lepton fulfilling the requirements
         float min_delta_r = 9999;
         int closest_genparticle_index = 0;
@@ -407,8 +431,8 @@ ROOT::RDF::RNode GenMatching(
         int closest_genparticle_mother_statusFlag = 0;
 
         Logger::get("genparticles::tau::GenMatching")
-            ->debug("pdg_ids {}, status_flags {}, mother_idx {}",
-                    pdg_ids, status_flags, mother_idx);
+            ->debug("pdg_ids {}, status_flags {}, mother_indices {}",
+                    pdg_ids, status_flags, mother_indices);
 
         for (unsigned int i = 0; i < pdg_ids.size(); i++) {
             int pdgid = std::abs(pdg_ids.at(i));
@@ -426,9 +450,9 @@ ROOT::RDF::RNode GenMatching(
                     ROOT::Math::VectorUtil::DeltaR(probe_gen_tau, reco_had_tau);
                 if (delta_r < min_delta_r) {
                     Logger::get("genparticles::tau::GenMatching")
-                        ->debug("mother_idx {}, pdg_ids {}, status_flags {}",
-                                mother_idx.at(i), pdg_ids.at(i), status_flags.at(i));
-                    if (mother_idx.at(i) == -1) {
+                        ->debug("mother_index {}, pdg_id {}, status_flags {}",
+                                mother_indices.at(i), pdg_ids.at(i), status_flags.at(i));
+                    if (mother_indices.at(i) == -1) {
                         // mother index of -1 means that there is no mother particle
                         // usually this happens for the particles of the initial pp
                         // collision 
@@ -440,9 +464,9 @@ ROOT::RDF::RNode GenMatching(
                     } else {
                         closest_genparticle_index = i;
                         closest_genparticle_mother_pdgid =
-                            pdg_ids.at(mother_idx.at(i));
+                            pdg_ids.at(mother_indices.at(i));
                         closest_genparticle_mother_statusFlag =
-                            status_flags.at(mother_idx.at(i));
+                            status_flags.at(mother_indices.at(i));
                         min_delta_r = delta_r;
                     }
                 }
@@ -530,12 +554,12 @@ ROOT::RDF::RNode GenMatching(
         Logger::get("genparticles::tau::GenMatching")->debug("IS_FAKE");
         return (int)MatchingGenTauCode::IS_FAKE;
     };
-    auto df1 = df.Define(
+    auto df3 = df2.Define(
         outputname, match_tau,
-        {hadronic_gen_taus, genparticles_pdg_id, genparticles_status_flags,
-         genparticles_mother_index, genparticles_pt, genparticles_eta, 
+        {hadronic_gen_taus, genparticles_pdg_id, genparticles_status_flags_column,
+         genparticles_mother_index_column, genparticles_pt, genparticles_eta, 
          genparticles_phi, genparticles_mass, reco_had_tau});
-    return df1;
+    return df3;
 }
 } // end namespace tau
 } // end namespace genparticles

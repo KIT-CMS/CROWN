@@ -28,9 +28,9 @@ ROOT::RDF::RNode LHEalphaS(ROOT::RDF::RNode df,
                         const std::string &variation);
 ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df,
                         const std::string &outputname,
-                        const std::string &gen_pdg_id,
-                        const std::string &gen_status,
-                        const std::string &gen_pt);
+                        const std::string &genparticles_pdg_id,
+                        const std::string &genparticles_status_flags,
+                        const std::string &genparticles_pt);
 ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df,
                             const std::string &outputname,
                             const std::string &gen_boson,
