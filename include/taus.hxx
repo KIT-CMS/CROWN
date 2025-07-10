@@ -36,7 +36,10 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
     const std::string &variation_dm10, const std::string &variation_dm11);
 
 namespace quantity {
-ROOT::RDF::RNode IDFlag(ROOT::RDF::RNode df, const std::string &outputname,
+ROOT::RDF::RNode IDFlag_v9(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &ID, const std::string &index_vector,
+                        const int &position, const int &wp);
+ROOT::RDF::RNode IDFlag_v12(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &ID, const std::string &index_vector,
                         const int &position, const int &wp);
 } // end namespace quantity
