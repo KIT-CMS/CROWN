@@ -57,9 +57,9 @@ ROOT::RDF::RNode HadronicGenTaus(ROOT::RDF::RNode df,
     // In nanoAODv12 the type of genparticle status flags / mother index were changed to UShort_t / Short_t
     // For v9 compatibility a type casting is applied
     auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, genparticles_status_flags+"_v12", "ROOT::RVec<UShort_t>", genparticles_status_flags);
+            df, genparticles_status_flags+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticles_status_flags);
     auto [df2, genparticles_mother_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
-            df1, genparticles_mother_index+"_v12", "ROOT::RVec<Short_t>", genparticles_mother_index);
+            df1, genparticles_mother_index+"_v12", "ROOT::VecOps::RVec<Short_t>", genparticles_mother_index);
 
     auto gentaus = [](const ROOT::RVec<int> &pdg_ids,
                       const ROOT::RVec<UShort_t> &status_flags_v12,
@@ -220,7 +220,7 @@ ROOT::RDF::RNode GenMatching(
     // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, genparticles_status_flags+"_v12", "ROOT::RVec<UShort_t>", genparticles_status_flags);
+            df, genparticles_status_flags+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticles_status_flags);
 
     auto match_tau = [](const std::vector<int> &had_gen_taus,
                            const ROOT::RVec<int> &pdg_ids,
@@ -409,9 +409,9 @@ ROOT::RDF::RNode GenMatching(
     // In nanoAODv12 the type of genparticle status flags / mother index were changed to UShort_t / Short_t
     // For v9 compatibility a type casting is applied
     auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, genparticles_status_flags+"_v12", "ROOT::RVec<UShort_t>", genparticles_status_flags);
+            df, genparticles_status_flags+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticles_status_flags);
     auto [df2, genparticles_mother_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
-            df1, genparticles_mother_index+"_v12", "ROOT::RVec<Short_t>", genparticles_mother_index);
+            df1, genparticles_mother_index+"_v12", "ROOT::VecOps::RVec<Short_t>", genparticles_mother_index);
 
     auto match_tau = [](const std::vector<int> &had_gen_taus,
                            const ROOT::RVec<int> &pdg_ids,

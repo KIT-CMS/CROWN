@@ -380,7 +380,7 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &outputname,
     // In nanoAODv12 the type of tau decay mode was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, decay_mode_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
-            df, decay_mode+"_v12", "ROOT::RVec<UChar_t>", decay_mode);
+            df, decay_mode+"_v12", "ROOT::VecOps::RVec<UChar_t>", decay_mode);
 
     auto correction_lambda = [sf_dm0, sf_dm1, sf_dm10,
                               sf_dm11](const ROOT::RVec<float> &pts,

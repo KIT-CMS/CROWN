@@ -89,7 +89,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, jet_id_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
-            df, jet_id+"_v12", "ROOT::RVec<UChar_t>", jet_id);
+            df, jet_id+"_v12", "ROOT::VecOps::RVec<UChar_t>", jet_id);
 
     // identifying jet radius from algorithm
     float jet_radius = 0.4;
@@ -386,7 +386,7 @@ ROOT::RDF::RNode CutPileupID(ROOT::RDF::RNode df, const std::string &outputname,
     // In nanoAODv12 the type of jet PU ID was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, jet_pu_id_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
-            df, jet_pu_id+"_v12", "ROOT::RVec<UChar_t>", jet_pu_id);
+            df, jet_pu_id+"_v12", "ROOT::VecOps::RVec<UChar_t>", jet_pu_id);
 
     auto pass_pu_id = [pu_id_cut, pt_cut](const ROOT::RVec<UChar_t> &pu_ids_v12,
                                           const ROOT::RVec<float> &jet_pts) {
@@ -687,7 +687,7 @@ Btagging(ROOT::RDF::RNode df,
     // In nanoAODv12 the type of jet flavor was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, flavor_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
-            df, flavor+"_v12", "ROOT::RVec<UChar_t>", flavor);
+            df, flavor+"_v12", "ROOT::VecOps::RVec<UChar_t>", flavor);
 
     auto btagSF_lambda = [evaluator,
                           variation](const ROOT::RVec<float> &pts,

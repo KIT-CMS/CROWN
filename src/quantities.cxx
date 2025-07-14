@@ -406,7 +406,7 @@ ROOT::RDF::RNode JetMatching(ROOT::RDF::RNode df,
     // In nanoAODv12 the type ofs object to jet indices were changed to Short_t
     // For v9 compatibility a type casting is applied
     auto [df1, object_jet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
-            df, object_jet_index+"_v12", "ROOT::RVec<Short_t>", object_jet_index);
+            df, object_jet_index+"_v12", "ROOT::VecOps::RVec<Short_t>", object_jet_index);
     return df1.Define(outputname,
                      [position](const ROOT::RVec<float> &quantity,
                                 const ROOT::RVec<Short_t> &obj_jet_idx_v12,
@@ -448,9 +448,9 @@ ROOT::RDF::RNode GenJetMatching(ROOT::RDF::RNode df,
     // In nanoAODv12 the types of jet indices were changed to Short_t
     // For v9 compatibility a type casting is applied
     auto [df1, jet_genjet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
-            df, jet_genjet_index+"_v12", "ROOT::RVec<Short_t>", jet_genjet_index);
+            df, jet_genjet_index+"_v12", "ROOT::VecOps::RVec<Short_t>", jet_genjet_index);
     auto [df2, object_jet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
-            df1, object_jet_index+"_v12", "ROOT::RVec<Short_t>", object_jet_index);
+            df1, object_jet_index+"_v12", "ROOT::VecOps::RVec<Short_t>", object_jet_index);
     return df2.Define(outputname,
                      [position](const ROOT::RVec<float> &quantity,
                                 const ROOT::RVec<Short_t> &jet_genjet_idx_v12,

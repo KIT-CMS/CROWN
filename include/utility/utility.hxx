@@ -38,8 +38,9 @@ inline std::pair<ROOT::RDF::RNode, std::string> Cast(ROOT::RDF::RNode df,
                             const std::string &column) {
     auto new_df = df;
     auto new_col = column;
+    auto inputtype = df.GetColumnType(column);
     
-    if (df.GetColumnType(column) != std::string(outputtype)) {
+    if (inputtype != outputtype) {
         new_col = outputname;
         auto cols = df.GetColumnNames();
         // check if the column is already defined, this is relevant for systematic
@@ -47,12 +48,16 @@ inline std::pair<ROOT::RDF::RNode, std::string> Cast(ROOT::RDF::RNode df,
         if (std::find(cols.begin(), cols.end(), outputname) == cols.end()) {
             new_df = df.Define(
                 outputname,
-                [] (const I& column) {
-                    return static_cast<O>(column);
+                [] (const I& values) {
+                    return static_cast<O>(values);
                 },
                 {column});
         }
     }
+    Logger::get("utility::Cast")
+        ->debug("Casting type {} to type {} "
+                "for column {} to {}",
+                inputtype, outputtype, column, new_col);
 
     return {new_df, new_col};
 }

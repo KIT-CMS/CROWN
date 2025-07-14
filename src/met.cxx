@@ -67,7 +67,7 @@ ROOT::RDF::RNode calculateGenBosonVector(
     // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, genparticle_statusflag_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, genparticle_statusflag+"_v12", "ROOT::RVec<UShort_t>", genparticle_statusflag);
+            df, genparticle_statusflag+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticle_statusflag);
     auto calculateGenBosonVector =
         [](const ROOT::RVec<float> &genparticle_pt,
            const ROOT::RVec<float> &genparticle_eta,

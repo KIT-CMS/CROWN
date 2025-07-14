@@ -369,7 +369,7 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df,
     // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, genparticles_status_flags+"_v12", "ROOT::RVec<UShort_t>", genparticles_status_flags);
+            df, genparticles_status_flags+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticles_status_flags);
 
     auto ttbarreweightlambda = [](const ROOT::RVec<int> pdg_ids,
                                   const ROOT::RVec<UShort_t> status_flags_v12,
