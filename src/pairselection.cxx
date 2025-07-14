@@ -73,9 +73,9 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
     // In nanoAODv12 the types of gen object indices were changed to Short_t
     // For v9 compatibility a type casting is applied
     auto [df1, genindex_particle1_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
-            df, genindex_particle1+"_v12", "ROOT::RVec<Short_t>", genindex_particle1);
+            df, genindex_particle1+"_v12", "ROOT::VecOps::RVec<Short_t>", genindex_particle1);
     auto [df2, genindex_particle2_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
-            df1, genindex_particle2+"_v12", "ROOT::RVec<Short_t>", genindex_particle2);
+            df1, genindex_particle2+"_v12", "ROOT::VecOps::RVec<Short_t>", genindex_particle2);
 
     auto getGenPair = [](const ROOT::RVec<int> &recopair,
                          const ROOT::RVec<Short_t> &genindex_particle1_v12,
@@ -128,9 +128,9 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
     // In nanoAODv12 the type of genparticle status flags / mother index were changed to UShort_t / Short_t
     // For v9 compatibility a type casting is applied
     auto [df1, statusflags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, statusflags+"_v12", "ROOT::RVec<UShort_t>", statusflags);
+            df, statusflags+"_v12", "ROOT::VecOps::RVec<UShort_t>", statusflags);
     auto [df2, motherids_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
-            df1, motherids+"_v12", "ROOT::RVec<Short_t>", motherids);
+            df1, motherids+"_v12", "ROOT::VecOps::RVec<Short_t>", motherids);
 
     auto getTrueGenPair = [mother_pdgid, daughter_1_pdgid,
                            daughter_2_pdgid](const ROOT::RVec<UShort_t> &statusflags_v12,

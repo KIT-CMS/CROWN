@@ -232,7 +232,7 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, triggerobject_id+"_v12", "ROOT::RVec<UShort_t>", triggerobject_id);
+            df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
 
     auto triggermatch = [DeltaR_threshold, pt_cut, eta_cut,
                          trigger_particle_id_cut, triggerbit_cut, hltpath](
@@ -369,7 +369,7 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, triggerobject_id+"_v12", "ROOT::RVec<UShort_t>", triggerobject_id);
+            df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
 
     auto triggermatch = [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut,
                          p2_eta_cut, p1_trigger_particle_id_cut,
@@ -515,7 +515,7 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, triggerobject_id+"_v12", "ROOT::RVec<UShort_t>", triggerobject_id);
+            df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
 
     auto triggermatch =
         [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut, p2_eta_cut,
@@ -599,7 +599,7 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, triggerobject_id+"_v12", "ROOT::RVec<UShort_t>", triggerobject_id);
+            df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
 
     auto triggermatch = [DeltaR_threshold, pt_cut, eta_cut,
                          trigger_particle_id_cut, triggerbit_cut](
@@ -784,7 +784,7 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, triggerobject_id+"_v12", "ROOT::RVec<UShort_t>", triggerobject_id);
+            df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
 
     auto triggermatch = [DeltaR_threshold, pt_cut, eta_cut,
                          trigger_particle_id_cut, triggerbit_cut,
@@ -858,7 +858,7 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, triggerobject_id+"_v12", "ROOT::RVec<UShort_t>", triggerobject_id);
+            df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
 
     auto triggermatch =
         [DeltaR_threshold, pt_cut, eta_cut, trigger_particle_id_cut,
@@ -1000,7 +1000,7 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, triggerobject_id+"_v12", "ROOT::RVec<UShort_t>", triggerobject_id);
+            df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
 
     auto triggermatch = [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut,
                          p2_eta_cut, p1_trigger_particle_id_cut,
