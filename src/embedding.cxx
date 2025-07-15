@@ -384,8 +384,8 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &outputname,
 
     auto correction_lambda = [sf_dm0, sf_dm1, sf_dm10,
                               sf_dm11](const ROOT::RVec<float> &pts,
-                                       const ROOT::RVec<int> &decay_modes_v12) {
-        auto decay_modes = static_cast<ROOT::RVec<UChar_t>>(decay_modes_v12);
+                                       const ROOT::RVec<UChar_t> &decay_modes_v12) {
+        auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
         ROOT::RVec<float> corrected_pts(pts.size());
         for (int i = 0; i < pts.size(); i++) {
             if (decay_modes.at(i) == 0)
