@@ -64,10 +64,6 @@ ROOT::RDF::RNode calculateGenBosonVector(
     const std::string &genparticle_status,
     const std::string &genparticle_statusflag, const std::string outputname,
     bool is_data) {
-    // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
-    // For v9 compatibility a type casting is applied
-    auto [df1, genparticle_statusflag_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, genparticle_statusflag+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticle_statusflag);
     auto calculateGenBosonVector =
         [](const ROOT::RVec<float> &genparticle_pt,
            const ROOT::RVec<float> &genparticle_eta,
@@ -116,12 +112,16 @@ ROOT::RDF::RNode calculateGenBosonVector(
             return metpair;
         };
     if (!is_data) {
+        // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
+        // For v9 compatibility a type casting is applied
+        auto [df1, genparticle_statusflag_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+                df, genparticle_statusflag+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticle_statusflag);
         return df1.Define(outputname, calculateGenBosonVector,
                          {genparticle_pt, genparticle_eta, genparticle_phi,
                           genparticle_mass, genparticle_id, genparticle_status,
                           genparticle_statusflag_column});
     } else {
-        return df1.Define(outputname, []() {
+        return df.Define(outputname, []() {
             std::pair<ROOT::Math::PtEtaPhiMVector, ROOT::Math::PtEtaPhiMVector>
                 metpair = {default_lorentzvector, default_lorentzvector};
             return metpair;
