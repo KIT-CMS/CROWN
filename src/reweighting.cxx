@@ -350,11 +350,11 @@ ROOT::RDF::RNode LHEalphaS(ROOT::RDF::RNode df,
  *
  * @param df input dataframe
  * @param outputname name of the output column containing the derived event weight
- * @param gen_pdg_id name of the column containing the PDG IDs of the generator
+ * @param genparticles_pdg_id name of the column containing the PDG IDs of the generator
  * particles
- * @param gen_status name of the column containing the status flags of the
+ * @param genparticles_status_flags name of the column containing the status flags of the
  * generator particles, where bit 13 contains the isLastCopy flag
- * @param gen_pt name of the column containing the pt of the generator particles
+ * @param genparticles_pt name of the column containing the pt of the generator particles
  *
  * @return a new dataframe containing the new column
  *
@@ -363,16 +363,21 @@ ROOT::RDF::RNode LHEalphaS(ROOT::RDF::RNode df,
  */
 ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df,
                         const std::string &outputname,
-                        const std::string &gen_pdg_id,
-                        const std::string &gen_status,
-                        const std::string &gen_pt) {
+                        const std::string &genparticles_pdg_id,
+                        const std::string &genparticles_status_flags,
+                        const std::string &genparticles_pt) {
+    // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, genparticles_status_flags+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticles_status_flags);
 
     auto ttbarreweightlambda = [](const ROOT::RVec<int> pdg_ids,
-                                  const ROOT::RVec<int> status,
+                                  const ROOT::RVec<UShort_t> status_flags_v12,
                                   const ROOT::RVec<float> pts) {
+        auto status_flags = static_cast<ROOT::RVec<int>>(status_flags_v12);
         std::vector<float> top_pts;
         for (size_t i = 0; i < pdg_ids.size(); i++) {
-            if (std::abs(pdg_ids[i]) == 6 && ((status[i] >> 13) & 1) == 1)
+            if (std::abs(pdg_ids[i]) == 6 && ((status_flags[i] >> 13) & 1) == 1)
                 top_pts.push_back(pts[i]);
         }
         if (top_pts.size() != 2) {
@@ -394,9 +399,9 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df,
         return sqrt(exp(parameter_a + parameter_b * top_pts[0]) *
                     exp(parameter_a + parameter_b * top_pts[1]));
     };
-    auto df1 = df.Define(outputname, ttbarreweightlambda,
-                         {gen_pdg_id, gen_status, gen_pt});
-    return df1;
+    auto df2 = df1.Define(outputname, ttbarreweightlambda,
+                {genparticles_pdg_id, genparticles_status_flags_column, genparticles_pt});
+    return df2;
 }
 
 /**

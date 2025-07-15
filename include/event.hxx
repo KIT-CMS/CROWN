@@ -184,10 +184,10 @@ inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, const std::string &outputname,
                         // the static_cast is used because some types of nanoAOD 
                         // branches changed from Int_t to UChar_t for nanoAOD 
                         // versions > 9
-                        if constexpr (std::is_same<T, UChar_t>::value) {
+                        if constexpr (std::is_same<T, UChar_t>::value || std::is_same<T, Short_t>::value) {
                             int cast_result = static_cast<int>(result);
                             Logger::get("event::quantity::Get")
-                                ->debug("Returning UChar_t quantity as int: {}",
+                                ->debug("Returning UChar_t/Short_t quantity as int: {}",
                                         cast_result);
                             return cast_result;
                         } else {
@@ -234,10 +234,10 @@ inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, const std::string &outputname,
                         // the static_cast is used because some types of nanoAOD 
                         // branches changed from Int_t to UChar_t for nanoAOD 
                         // versions > 9
-                        if constexpr (std::is_same<T, UChar_t>::value) {
+                        if constexpr (std::is_same<T, UChar_t>::value || std::is_same<T, Short_t>::value) {
                             int cast_result = static_cast<int>(result);
                             Logger::get("event::quantity::Get")
-                                ->debug("Returning UChar_t quantity as int: {}",
+                                ->debug("Returning UChar_t/Short_t quantity as int: {}",
                                         cast_result);
                             return cast_result;
                         } else {

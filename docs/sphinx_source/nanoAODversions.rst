@@ -196,6 +196,12 @@ Below is a list of known differences between nanoAODv9 and nanoAODv12.
      - Int_t -> Short_t
    * - Tau_decayMode
      - Int_t -> UChar_t
+   * - Tau_idDeepTau2017v2p1VSe
+     - same type, content changed
+   * - Tau_idDeepTau2017v2p1VSjet
+     - same type, content changed
+   * - Tau_idDeepTau2017v2p1VSmu
+     - same type, content changed
    * - Tau_jetIdx
      - Int_t -> Short_t
    * - Tau_genPartIdx
@@ -208,6 +214,16 @@ Below is a list of known differences between nanoAODv9 and nanoAODv12.
      - Int_t -> Short_t
    * - nTrigObj
      - UInt_t -> Int_t
+   * - boostedTau_idAntiEle2018
+     - same type, content changed
+   * - boostedTau_idAntiMu
+     - same type, content changed
+   * - boostedTau_idMVAnewDM2017v2
+     - same type, content changed
+   * - boostedTau_idMVAoldDM2017v2
+     - same type, content changed
+   * - boostedTau_idMVAoldDMdR032017v2
+     - same type, content changed
    * - boostedTau_jetIdx
      - Int_t -> Short_t
    * - boostedTau_rawAntiEleCat2018

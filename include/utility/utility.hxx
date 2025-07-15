@@ -15,11 +15,60 @@
 namespace utility {
 
 /**
+ * @brief This function takes a column and casts it from type `I` to 
+ * another type `O`. 
+ *
+ * @note This functionality is mainly used to mitigate type changes 
+ * between nanoAOD versions.
+ *
+ * @tparam O type of the output column
+ * @tparam I type of the input column
+ * @param outputname name of the output column containing the recasted 
+ * column
+ * @param outputtype string with the type of the output column 
+ * @param column name of the column that should be recasted to another 
+ * type
+ *
+ * @return a new dataframe with the new column
+ */
+template<typename O, typename I>
+inline std::pair<ROOT::RDF::RNode, std::string> Cast(ROOT::RDF::RNode df,
+                            const std::string &outputname,
+                            const std::string &outputtype,
+                            const std::string &column) {
+    auto new_df = df;
+    auto new_col = column;
+    auto inputtype = df.GetColumnType(column);
+    
+    if (inputtype != outputtype) {
+        new_col = outputname;
+        auto cols = df.GetColumnNames();
+        // check if the column is already defined, this is relevant for systematic
+        // variations were this Define would be done multiple times
+        if (std::find(cols.begin(), cols.end(), outputname) == cols.end()) {
+            new_df = df.Define(
+                outputname,
+                [] (const I& values) {
+                    return static_cast<O>(values);
+                },
+                {column});
+        }
+    }
+    Logger::get("utility::Cast")
+        ->debug("Casting type {} to type {} "
+                "for column {} to {}",
+                inputtype, outputtype, column, new_col);
+
+    return {new_df, new_col};
+}
+
+/**
  * @brief Function to check if two double values are approximately equal
  *
  * @param value1 first double value to compare
  * @param value2 second double value to compare
  * @param maxDelta maximum difference between the two values
+ *
  * @return true or false
  */
 inline bool ApproxEqual(double value1, double value2, double maxDelta = 1e-5) {

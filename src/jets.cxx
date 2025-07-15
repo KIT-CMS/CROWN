@@ -4,6 +4,7 @@
 #include "../include/defaults.hxx"
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
+#include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "TRandom3.h"
@@ -85,6 +86,11 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
                const int jer_seed) {
+    // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, jet_id_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+            df, jet_id+"_v12", "ROOT::VecOps::RVec<UChar_t>", jet_id);
+
     // identifying jet radius from algorithm
     float jet_radius = 0.4;
     if (jec_algo.find("AK8") != std::string::npos) {
@@ -133,14 +139,15 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                                           const ROOT::RVec<float> &phis,
                                           const ROOT::RVec<float> &area,
                                           const ROOT::RVec<float> &raw_factors,
-                                          const ROOT::RVec<int> &ids,
+                                          const ROOT::RVec<UChar_t> &ids_v12,
                                           const ROOT::RVec<float> &gen_pts,
                                           const ROOT::RVec<float> &gen_etas,
                                           const ROOT::RVec<float> &gen_phis,
                                           const float &rho) {
         // random value generator for jet smearing
         TRandom3 randm = TRandom3(jer_seed);
-
+        
+        auto ids = static_cast<ROOT::RVec<int>>(ids_v12);
         ROOT::RVec<float> corrected_pts;
         for (int i = 0; i < pts.size(); i++) {
             float corr_pt = pts.at(i);
@@ -254,10 +261,10 @@ PtCorrectionMC(ROOT::RDF::RNode df,
         }
         return corrected_pts;
     };
-    auto df1 = df.Define(outputname, correction_lambda,
+    auto df2 = df1.Define(outputname, correction_lambda,
                          {jet_pt, jet_eta, jet_phi, jet_area, jet_raw_factor,
-                          jet_id, gen_jet_pt, gen_jet_eta, gen_jet_phi, rho});
-    return df1;
+                          jet_id_column, gen_jet_pt, gen_jet_eta, gen_jet_phi, rho});
+    return df2;
 }
 
 /**
@@ -376,15 +383,21 @@ ROOT::RDF::RNode CutPileupID(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &jet_pu_id,
                              const std::string &jet_pt, const int &pu_id_cut,
                              const float &pt_cut) {
-    auto pass_pu_id = [pu_id_cut, pt_cut](const ROOT::RVec<int> &pu_ids,
+    // In nanoAODv12 the type of jet PU ID was changed to UChar_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, jet_pu_id_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+            df, jet_pu_id+"_v12", "ROOT::VecOps::RVec<UChar_t>", jet_pu_id);
+
+    auto pass_pu_id = [pu_id_cut, pt_cut](const ROOT::RVec<UChar_t> &pu_ids_v12,
                                           const ROOT::RVec<float> &jet_pts) {
+        auto pu_ids = static_cast<ROOT::RVec<int>>(pu_ids_v12);
         ROOT::RVec<int> id_mask = pu_ids >= pu_id_cut;
         ROOT::RVec<int> pt_mask = jet_pts >= pt_cut;
         ROOT::RVec<int> mask = (id_mask + pt_mask) > 0;
         return mask;
     };
-    auto df1 = df.Define(outputname, pass_pu_id, {jet_pu_id, jet_pt});
-    return df1;
+    auto df2 = df1.Define(outputname, pass_pu_id, {jet_pu_id_column, jet_pt});
+    return df2;
 }
 
 /**
@@ -670,14 +683,21 @@ Btagging(ROOT::RDF::RNode df,
     Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Correction algorithm - Name {}",
                                  sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    
+    // In nanoAODv12 the type of jet flavor was changed to UChar_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, flavor_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+            df, flavor+"_v12", "ROOT::VecOps::RVec<UChar_t>", flavor);
+
     auto btagSF_lambda = [evaluator,
                           variation](const ROOT::RVec<float> &pts,
                                      const ROOT::RVec<float> &etas,
                                      const ROOT::RVec<float> &btag_values,
-                                     const ROOT::RVec<int> &flavors,
+                                     const ROOT::RVec<UChar_t> &flavors_v12,
                                      const ROOT::RVec<int> &jet_mask,
                                      const ROOT::RVec<int> &bjet_mask,
                                      const ROOT::RVec<int> &jet_veto_mask) {
+        auto flavors = static_cast<ROOT::RVec<int>>(flavors_v12);
         Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Vatiation - Name {}", variation);
         float sf = 1.;
         for (int i = 0; i < pts.size(); i++) {
@@ -736,10 +756,10 @@ Btagging(ROOT::RDF::RNode df,
         Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Event Scale Factor {}", sf);
         return sf;
     };
-    auto df1 = df.Define(
+    auto df2 = df1.Define(
         outputname, btagSF_lambda,
-        {pt, eta, btag_value, flavor, jet_mask, bjet_mask, jet_veto_mask});
-    return df1;
+        {pt, eta, btag_value, flavor_column, jet_mask, bjet_mask, jet_veto_mask});
+    return df2;
 }
 } // end namespace scalefactor
 } // end namespace jet

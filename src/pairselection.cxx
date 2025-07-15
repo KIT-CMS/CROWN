@@ -70,9 +70,18 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
                               const std::string &genindex_particle1,
                               const std::string &genindex_particle2,
                               const std::string &genpairname) {
+    // In nanoAODv12 the types of gen object indices were changed to Short_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, genindex_particle1_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df, genindex_particle1+"_v12", "ROOT::VecOps::RVec<Short_t>", genindex_particle1);
+    auto [df2, genindex_particle2_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df1, genindex_particle2+"_v12", "ROOT::VecOps::RVec<Short_t>", genindex_particle2);
+
     auto getGenPair = [](const ROOT::RVec<int> &recopair,
-                         const ROOT::RVec<int> &genindex_particle1,
-                         const ROOT::RVec<int> &genindex_particle2) {
+                         const ROOT::RVec<Short_t> &genindex_particle1_v12,
+                         const ROOT::RVec<Short_t> &genindex_particle2_v12) {
+        auto genindex_particle1 = static_cast<ROOT::RVec<int>>(genindex_particle1_v12);
+        auto genindex_particle2 = static_cast<ROOT::RVec<int>>(genindex_particle2_v12);
         ROOT::RVec<int> genpair = {-1, -1};
         Logger::get("buildgenpair")->debug("existing DiTauPair: {}", recopair);
         genpair[0] = genindex_particle1.at(recopair.at(0), -1);
@@ -81,8 +90,8 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
             ->debug("matching GenDiTauPair: {}", genpair);
         return genpair;
     };
-    return df.Define(genpairname, getGenPair,
-                     {recopair, genindex_particle1, genindex_particle2});
+    return df2.Define(genpairname, getGenPair,
+                     {recopair, genindex_particle1_column, genindex_particle2_column});
 }
 
 /**
@@ -116,13 +125,21 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
                  const std::string &motherids, const std::string &pts,
                  const std::string &genpair, const int mother_pdgid,
                  const int daughter_1_pdgid, const int daughter_2_pdgid) {
+    // In nanoAODv12 the type of genparticle status flags / mother index were changed to UShort_t / Short_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, statusflags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, statusflags+"_v12", "ROOT::VecOps::RVec<UShort_t>", statusflags);
+    auto [df2, motherids_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df1, motherids+"_v12", "ROOT::VecOps::RVec<Short_t>", motherids);
 
     auto getTrueGenPair = [mother_pdgid, daughter_1_pdgid,
-                           daughter_2_pdgid](const ROOT::RVec<int> &statusflags,
+                           daughter_2_pdgid](const ROOT::RVec<UShort_t> &statusflags_v12,
                                              const ROOT::RVec<int> &status,
                                              const ROOT::RVec<int> &pdgids,
-                                             const ROOT::RVec<int> &motherids,
+                                             const ROOT::RVec<Short_t> &motherids_v12,
                                              const ROOT::RVec<float> &pts) {
+        auto statusflags = static_cast<ROOT::RVec<int>>(statusflags_v12);
+        auto motherids = static_cast<ROOT::RVec<int>>(motherids_v12);
         ROOT::RVec<int> genpair = {-1, -1};
 
         // first we build structs, one for each genparticle
@@ -228,8 +245,8 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
 
         return genpair;
     };
-    return df.Define(genpair, getTrueGenPair,
-                     {statusflags, status, pdgids, motherids, pts});
+    return df2.Define(genpair, getTrueGenPair,
+                     {statusflags_column, status, pdgids, motherids_column, pts});
 }
 /// This function flags events, where a suitable particle pair is found.
 /// A pair is considered suitable, if a PairSelectionAlgo (like

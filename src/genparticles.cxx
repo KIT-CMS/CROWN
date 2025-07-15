@@ -2,6 +2,7 @@
 #define GUARD_GENPARTICLES_H
 
 #include "../include/utility/Logger.hxx"
+#include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "bitset"
@@ -53,10 +54,18 @@ ROOT::RDF::RNode HadronicGenTaus(ROOT::RDF::RNode df,
                                  const std::string &genparticles_pdg_id,
                                  const std::string &genparticles_status_flags,
                                  const std::string &genparticles_mother_index) {
+    // In nanoAODv12 the type of genparticle status flags / mother index were changed to UShort_t / Short_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, genparticles_status_flags+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticles_status_flags);
+    auto [df2, genparticles_mother_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df1, genparticles_mother_index+"_v12", "ROOT::VecOps::RVec<Short_t>", genparticles_mother_index);
 
     auto gentaus = [](const ROOT::RVec<int> &pdg_ids,
-                      const ROOT::RVec<int> &status_flags,
-                      const ROOT::RVec<int> &mother_indices) {
+                      const ROOT::RVec<UShort_t> &status_flags_v12,
+                      const ROOT::RVec<Short_t> &mother_indices_v12) {
+        auto status_flags = static_cast<ROOT::RVec<int>>(status_flags_v12);
+        auto mother_indices = static_cast<ROOT::RVec<int>>(mother_indices_v12);
         // set default values for the output
         std::vector<int> hadGenTaus;
         if (pdg_ids.size() == 0) {
@@ -141,10 +150,10 @@ ROOT::RDF::RNode HadronicGenTaus(ROOT::RDF::RNode df,
         }
         return hadGenTaus;
     };
-    auto df1 = df.Define(
+    auto df3 = df2.Define(
         outputname, gentaus,
-        {genparticles_pdg_id, genparticles_status_flags, genparticles_mother_index});
-    return df1;
+        {genparticles_pdg_id, genparticles_status_flags_column, genparticles_mother_index_column});
+    return df3;
 }
 
 /**
@@ -152,6 +161,188 @@ ROOT::RDF::RNode HadronicGenTaus(ROOT::RDF::RNode df,
  * by matching it to generator-level particles. The implementation is based on 
  * https://github.com/KIT-CMS/Artus/blob/dictchanges/KappaAnalysis/src/Utility/GeneratorInfo.cc
  * 
+ * The matching is represented by integer flags:
+ *   Decaytype             | Value
+ *   ----------------------|-------
+ *   IS_ELE_PROMPT         | 1
+ *   IS_MUON_PROMPT        | 2
+ *   IS_ELE_FROM_TAU       | 3
+ *   IS_MUON_FROM_TAU      | 4
+ *   IS_TAU_HAD_DECAY      | 5
+ *   IS_FAKE (not matched) | 6
+ *
+ * The matching logic is as follows:
+ * 1. For each reconstructed tau, first, the closest "prompt" or "from tau decay"
+ *    generator-level electron or muon with \f$p_T\f$ > 8 GeV is found. The distance 
+ *    (\f$\Delta R\f$) to this lepton is saved.
+ * 2. Next, an iteration is done through pre-identified generator-level hadronic taus. 
+ *    If a gen. tau with \f$p_T\f$ > 15 GeV is found within a cone of \f$\Delta R\f$ < 0.2 
+ *    of the reco. tau, and it is closer than the closest electron/muon found in step 1, 
+ *    the match is classified as `IS_TAU_HAD_DECAY` (value: 5).
+ * 3. If no such hadronic tau is found, it re-evaluates the closest electron/muon from 
+ *    step 1. If this lepton is within \f$\Delta R\f$ < 0.2 of the reco. tau, the match is 
+ *    classified based on the lepton's identity and origin:
+ *    - Prompt electron (other): `IS_ELE_PROMPT` (value: 1)
+ *    - Prompt muon (other): `IS_MUON_PROMPT` (value: 2)
+ *    - Electron from a tau decay: `IS_ELE_FROM_TAU` (value: 3)
+ *    - Muon from a tau decay: `IS_MUON_FROM_TAU` (value: 4)
+ * 4. If nothing of the above is matched, the reco. tau is classified as a `IS_FAKE` 
+ *    (value: 6).
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column containing the gen. matching value
+ * @param hadronic_gen_taus name of the column containing the hadronic gen. tau indices
+ * found with `genparticles::tau::HadronicGenTaus`
+ * @param genparticles_pdg_id name of the column containing the PDG IDs of the
+ * genparticles
+ * @param genparticles_status_flags name of the column containing the status 
+ * flags of the genparticles, e.g. isPrompt, isHardProcess, 
+ * isLastCopy, ...
+ * @param genparticles_pt name of the column containing the \f$p_T\f$ of the
+ * genparticles
+ * @param genparticles_eta name of the column containing the \f$\eta\f$ of the
+ * genparticles
+ * @param genparticles_phi name of the column containing the \f$\phi\f$ of the
+ * genparticles
+ * @param genparticles_mass name of the column containing the mass of the
+ * genparticles
+ * @param reco_had_tau name of the column containing the Lorentz vector of the 
+ * reconstructed hadronic tau lepton
+ *
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode GenMatching(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &hadronic_gen_taus, const std::string &genparticles_pdg_id,
+    const std::string &genparticles_status_flags, const std::string &genparticles_pt, 
+    const std::string &genparticles_eta, const std::string &genparticles_phi, 
+    const std::string &genparticles_mass, const std::string &reco_had_tau) {
+    // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, genparticles_status_flags+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticles_status_flags);
+
+    auto match_tau = [](const std::vector<int> &had_gen_taus,
+                           const ROOT::RVec<int> &pdg_ids,
+                           const ROOT::RVec<UShort_t> &status_flags_v12,
+                           const ROOT::RVec<float> &pts,
+                           const ROOT::RVec<float> &etas,
+                           const ROOT::RVec<float> &phis,
+                           const ROOT::RVec<float> &masses,
+                           const ROOT::Math::PtEtaPhiMVector &reco_had_tau) {
+        auto status_flags = static_cast<ROOT::RVec<int>>(status_flags_v12);
+        // find closest lepton fulfilling the requirements
+        float min_delta_r = 9999;
+        int closest_genparticle_index = 0;
+
+        Logger::get("genparticles::tau::GenMatching")
+            ->debug("pdg_ids {}, status_flags {}", pdg_ids, status_flags);
+
+        for (unsigned int i = 0; i < pdg_ids.size(); i++) {
+            int pdgid = std::abs(pdg_ids.at(i));
+            // check
+            // 1. if there is a gen electron or muon close to the lepton
+            // 2. that the genparticle pt is larger than 8 GeV
+            // 3. the genparticle is isPrompt (statusbit 0) or
+            // isDirectPromptTauDecayProduct (statusbit 5)
+            bool statusbit = (IntBits(status_flags.at(i)).test(0) ||
+                              IntBits(status_flags.at(i)).test(5));
+            if ((pdgid == 11 || pdgid == 13) && pts.at(i) > 8 && statusbit) {
+                ROOT::Math::PtEtaPhiMVector probe_gen_tau(pts.at(i), etas.at(i),
+                                                          phis.at(i), masses.at(i));
+                float delta_r =
+                    ROOT::Math::VectorUtil::DeltaR(probe_gen_tau, reco_had_tau);
+                if (delta_r < min_delta_r) {
+                    Logger::get("genparticles::tau::GenMatching")
+                        ->debug("pdg_ids {}, status_flags {}",
+                                pdg_ids.at(i), status_flags.at(i));
+                    closest_genparticle_index = i;
+                    min_delta_r = delta_r;
+                }
+            }
+        }
+        Logger::get("genparticles::tau::GenMatching")
+            ->debug("closest genlepton {} // DeltaR {}",
+                    closest_genparticle_index, min_delta_r);
+        // now loop through the gentaus and check, if they are closer to the
+        // lepton than the closest lepton genparticle
+        for (auto gen_tau : had_gen_taus) {
+            // check if the gen_tau is closer to the lepton than the
+            // closest lepton genparticle
+            ROOT::Math::PtEtaPhiMVector probe_gen_tau(
+                pts.at(gen_tau), etas.at(gen_tau),
+                phis.at(gen_tau), masses.at(gen_tau));
+            float gen_tau_delta_r =
+                ROOT::Math::VectorUtil::DeltaR(probe_gen_tau, reco_had_tau);
+            // the decay is considered a hadronic decay (statusbit 5) if
+            // 1. the hadronic gen. tau pt is larger than 15 GeV
+            // 2. the delta_r is smaller than 0.2
+            // 3. the delta_r is smaller than the closest lepton genparticle
+            // delta_r
+            if (probe_gen_tau.Pt() > 15 && gen_tau_delta_r < 0.2 &&
+                gen_tau_delta_r < min_delta_r) {
+                // statusbit 5 is hadronic tau decay
+                Logger::get("genparticles::tau::GenMatching")
+                    ->debug(
+                        "found hadronic gen. tau closer than closest lepton: {}",
+                        gen_tau_delta_r);
+                Logger::get("genparticles::tau::GenMatching")
+                    ->debug("IS_TAU_HAD_DECAY");
+                return (int)MatchingGenTauCode::IS_TAU_HAD_DECAY;
+            }
+        }
+        // if it is not a hadronic decay, check if the lepton is close
+        // enough (deltaR < 0.2)
+        int closest_pdgid = std::abs(pdg_ids.at(closest_genparticle_index));
+        if (min_delta_r < 0.2) {
+            bool prompt =
+                IntBits(status_flags.at(closest_genparticle_index)).test(0);
+            bool from_tau =
+                IntBits(status_flags.at(closest_genparticle_index)).test(5);
+            if (closest_pdgid == 11 && prompt) {
+                // statusbit 1 is prompt electron
+                Logger::get("genparticles::tau::GenMatching")
+                    ->debug("IS_ELE_PROMPT");
+                return (int)MatchingGenTauCode::IS_ELE_PROMPT;
+            }
+            if (closest_pdgid == 13 && prompt) {
+                // statusbit 2 is prompt muon
+                Logger::get("genparticles::tau::GenMatching")
+                    ->debug("IS_MUON_PROMPT");
+                return (int)MatchingGenTauCode::IS_MUON_PROMPT;
+            }
+            if (closest_pdgid == 11 && from_tau) {
+                // statusbit 3 is electron from tau
+                Logger::get("genparticles::tau::GenMatching")
+                    ->debug("IS_ELE_FROM_TAU");
+                return (int)MatchingGenTauCode::IS_ELE_FROM_TAU;
+            }
+            if (closest_pdgid == 13 && from_tau) {
+                // statusbit 4 is muon from tau
+                Logger::get("genparticles::tau::GenMatching")
+                    ->debug("IS_MUON_FROM_TAU");
+                return (int)MatchingGenTauCode::IS_MUON_FROM_TAU;
+            }
+        }
+        // if no genlepton was found within the deltaR < 0.2, return fake
+        // (statusbit 6)
+        Logger::get("genparticles::tau::GenMatching")->debug("IS_FAKE");
+        return (int)MatchingGenTauCode::IS_FAKE;
+    };
+    auto df2 = df1.Define(
+        outputname, match_tau,
+        {hadronic_gen_taus, genparticles_pdg_id, genparticles_status_flags_column, 
+         genparticles_pt, genparticles_eta, genparticles_phi, genparticles_mass, reco_had_tau});
+    return df2;
+}
+
+/**
+ * @brief This function determines the true origin of a reconstructed hadronic tau 
+ * by matching it to generator-level particles. The implementation is based on 
+ * https://github.com/KIT-CMS/Artus/blob/dictchanges/KappaAnalysis/src/Utility/GeneratorInfo.cc
+ * 
+ * @note This function additionally matches if the prompt electron/muon decayed from a W boson.
+ *
  * The matching is represented by integer flags:
  *   Decaytype             | Value
  *   ----------------------|-------
@@ -190,11 +381,11 @@ ROOT::RDF::RNode HadronicGenTaus(ROOT::RDF::RNode df,
  * found with `genparticles::tau::HadronicGenTaus`
  * @param genparticles_pdg_id name of the column containing the PDG IDs of the
  * genparticles
- * @param genparticles_mother_index name of the column containing the mother 
- * particle indices of the genparticles
  * @param genparticles_status_flags name of the column containing the status 
  * flags of the genparticles, e.g. isPrompt, isHardProcess, 
  * isLastCopy, ...
+ * @param genparticles_mother_index name of the column containing the mother 
+ * particle indices of the genparticles
  * @param genparticles_pt name of the column containing the \f$p_T\f$ of the
  * genparticles
  * @param genparticles_eta name of the column containing the \f$\eta\f$ of the
@@ -211,19 +402,28 @@ ROOT::RDF::RNode HadronicGenTaus(ROOT::RDF::RNode df,
 ROOT::RDF::RNode GenMatching(
     ROOT::RDF::RNode df, const std::string &outputname,
     const std::string &hadronic_gen_taus, const std::string &genparticles_pdg_id,
-    const std::string &genparticles_mother_index, const std::string &genparticles_status_flags,
+    const std::string &genparticles_status_flags, const std::string &genparticles_mother_index,
     const std::string &genparticles_pt, const std::string &genparticles_eta, 
     const std::string &genparticles_phi, const std::string &genparticles_mass, 
     const std::string &reco_had_tau) {
+    // In nanoAODv12 the type of genparticle status flags / mother index were changed to UShort_t / Short_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, genparticles_status_flags+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticles_status_flags);
+    auto [df2, genparticles_mother_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df1, genparticles_mother_index+"_v12", "ROOT::VecOps::RVec<Short_t>", genparticles_mother_index);
+
     auto match_tau = [](const std::vector<int> &had_gen_taus,
                            const ROOT::RVec<int> &pdg_ids,
-                           const ROOT::RVec<int> &mother_idx,
-                           const ROOT::RVec<int> &status_flags,
+                           const ROOT::RVec<UShort_t> &status_flags_v12,
+                           const ROOT::RVec<Short_t> &mother_indices_v12,
                            const ROOT::RVec<float> &pts,
                            const ROOT::RVec<float> &etas,
                            const ROOT::RVec<float> &phis,
                            const ROOT::RVec<float> &masses,
                            const ROOT::Math::PtEtaPhiMVector &reco_had_tau) {
+        auto status_flags = static_cast<ROOT::RVec<int>>(status_flags_v12);
+        auto mother_indices = static_cast<ROOT::RVec<int>>(mother_indices_v12);
         // find closest lepton fulfilling the requirements
         float min_delta_r = 9999;
         int closest_genparticle_index = 0;
@@ -231,8 +431,8 @@ ROOT::RDF::RNode GenMatching(
         int closest_genparticle_mother_statusFlag = 0;
 
         Logger::get("genparticles::tau::GenMatching")
-            ->debug("pdg_ids {}, status_flags {}, mother_idx {}",
-                    pdg_ids, status_flags, mother_idx);
+            ->debug("pdg_ids {}, status_flags {}, mother_indices {}",
+                    pdg_ids, status_flags, mother_indices);
 
         for (unsigned int i = 0; i < pdg_ids.size(); i++) {
             int pdgid = std::abs(pdg_ids.at(i));
@@ -250,9 +450,9 @@ ROOT::RDF::RNode GenMatching(
                     ROOT::Math::VectorUtil::DeltaR(probe_gen_tau, reco_had_tau);
                 if (delta_r < min_delta_r) {
                     Logger::get("genparticles::tau::GenMatching")
-                        ->debug("mother_idx {}, pdg_ids {}, status_flags {}",
-                                mother_idx.at(i), pdg_ids.at(i), status_flags.at(i));
-                    if (mother_idx.at(i) == -1) {
+                        ->debug("mother_index {}, pdg_id {}, status_flags {}",
+                                mother_indices.at(i), pdg_ids.at(i), status_flags.at(i));
+                    if (mother_indices.at(i) == -1) {
                         // mother index of -1 means that there is no mother particle
                         // usually this happens for the particles of the initial pp
                         // collision 
@@ -264,9 +464,9 @@ ROOT::RDF::RNode GenMatching(
                     } else {
                         closest_genparticle_index = i;
                         closest_genparticle_mother_pdgid =
-                            pdg_ids.at(mother_idx.at(i));
+                            pdg_ids.at(mother_indices.at(i));
                         closest_genparticle_mother_statusFlag =
-                            status_flags.at(mother_idx.at(i));
+                            status_flags.at(mother_indices.at(i));
                         min_delta_r = delta_r;
                     }
                 }
@@ -354,12 +554,12 @@ ROOT::RDF::RNode GenMatching(
         Logger::get("genparticles::tau::GenMatching")->debug("IS_FAKE");
         return (int)MatchingGenTauCode::IS_FAKE;
     };
-    auto df1 = df.Define(
+    auto df3 = df2.Define(
         outputname, match_tau,
-        {hadronic_gen_taus, genparticles_pdg_id, genparticles_mother_index,
-         genparticles_status_flags, genparticles_pt, genparticles_eta, 
+        {hadronic_gen_taus, genparticles_pdg_id, genparticles_status_flags_column,
+         genparticles_mother_index_column, genparticles_pt, genparticles_eta, 
          genparticles_phi, genparticles_mass, reco_had_tau});
-    return df1;
+    return df3;
 }
 } // end namespace tau
 } // end namespace genparticles
