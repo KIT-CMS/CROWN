@@ -5,6 +5,7 @@
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
+#include "TRandom3.h"
 #include "correction.h"
 
 namespace physicsobject {
@@ -43,7 +44,10 @@ namespace electron {
  *
  * @return a dataframe containing the varied electron transverse momenta
  *
- * @note TODO: This function should be extended to support Run3
+ * @note This function is intended for analyses working with Run 2 NanoAODv9
+ * samples. For the corresponding function that can be used with
+ * Run 3 NanoAODv12, look at
+ * ``physicsobject::electron::PtCorrectionMCFromCorrectionlib``.
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
