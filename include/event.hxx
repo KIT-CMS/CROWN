@@ -379,10 +379,13 @@ Unroll(ROOT::RDF::RNode df, const std::vector<std::string> &outputnames,
 }
 
 ROOT::RDF::RNode
-GenerateEventSeeds(
+GenerateEventSeed(
     ROOT::RDF::RNode df,
     const std::string &outputname,
-    const int seed = 42
+    const std::string &lumi,
+    const std::string &run,
+    const std::string &event,
+    const UInt_t &master_seed = 42
 );
 } // end namespace quantity
 
