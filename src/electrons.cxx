@@ -113,6 +113,146 @@ PtCorrectionMC(ROOT::RDF::RNode df,
 }
 
 /**
+ * @brief This function applies energy scale and resolution corrections to MC. The corrections are
+ * obtained from a dedicated correctionlib file.
+ * 
+ * For Run 3 samples, the electron energy scale correction is not available in the NanoAOD files
+ * and the corrections have to be evaluated using a centrally provided correctionlib file.
+ * This function should only be used  The documentation of the file content
+ * can be found here:
+ * 
+ * - [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22_electronSS_EtDependent.html)
+ * - [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22EE_electronSS_EtDependent.html)
+ * - [2023preBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23_electronSS_EtDependent.html)
+ * - [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23BPix_electronSS_EtDependent.html)
+ *
+ * An implementation recipe is provided here:
+ * [egmScaleAndSmearingExample.py](https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/blob/master/examples/egmScaleAndSmearingExample.py).
+ * 
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * correction scale uncertainty patch file
+ * @param outputname name of the output column for corrected \f$p_T\f$ values
+ * @param pt name of the column containing electron \f$p_T\f$ values
+ * @param eta name of the column containing electron pseudorapidities
+ * @param seed_gain name of the column containing electron gain values
+ * @param r9 name of the column containing the R9 value of the electron's
+ * supercluster
+ * @param event_seed name of the column containing the event seed for the
+ * smearing
+ * @param run name of the column containing the run number
+ * @param sf_file path to the correction file for the energy scale corrections
+ * and variations
+ * @param variation name of the energy correction variation that should be
+ * calculated (e.g., "resolutionUp", "resolutionDown", "scaleUp", "scaleDown"),
+ * for "nominal" nothing is done because energy correction is already applied
+ *
+ * @return a dataframe containing the varied electron transverse momenta
+ * 
+ * @note This function is intended for analyses working with Run 3 NanoAODv12
+ * or higher. In the Run 2 NanoAODv12 samples, the scale correction in data
+ * is already applied in the NanoAOD files. Look at
+ * ``physicsobject::electron::PtCorrectionMC`` for running on Run 2 samples.
+ */
+ROOT::RDF::RNode
+PtCorrectionMCFromCorrectionlib(ROOT::RDF::RNode df,
+               correctionManager::CorrectionManager &correction_manager,
+               const std::string &outputname, const std::string &pt,
+               const std::string &eta,
+               const std::string &delta_eta_sc,
+               const std::string &r9,
+               const std::string &event_seed,
+               const std::string &sf_file,
+               const std::string &sf_name,
+               const std::string &variation) {
+
+    // load corrections
+    auto evaluator =
+        correction_manager.loadCorrection(sf_file, sf_name);
+
+    // lambda function to apply the scale and smearing corrections
+    auto correction = [evaluator, variation] (
+        const ROOT::RVec<float> &pt,
+        const ROOT::RVec<float> &eta,
+        const ROOT::RVec<float> &delta_eta_sc,
+        const ROOT::RVec<float> &r9,
+        const unsigned int &event_seed
+    ) {
+        // initialize the random number generator with the event seed
+        TRandom3 rand_gen = TRandom3(event_seed);
+
+        // container for corrected pt values
+        auto pt_corrected = ROOT::RVec<float>(pt.size());
+        for (int i = 0; i < pt.size(); ++i) {
+            // calculate supercluster eta
+            float eta_sc = eta.at(i) + delta_eta_sc.at(i);
+
+            // calculate the nominal corrected pt by smearing the original pt
+            auto random_number = rand_gen.Gaus(0.0, 1.0);
+            auto smear_nom = evaluator->evaluate({
+                "smear",
+                pt.at(i),
+                r9.at(i),
+                abs(eta_sc)
+            });
+
+            // get the scale uncertainty
+            auto smear_unc = evaluator->evaluate({
+                "escale",
+                pt.at(i),
+                r9.at(i),
+                abs(eta_sc)
+            });
+
+            // get the resolution uncertainty
+            auto scale_unc = evaluator->evaluate({
+                "esmear",
+                pt.at(i),
+                r9.at(i),
+                abs(eta_sc)
+            });
+
+            // set the corrected pt based on the considered variation
+            float sf = 1.0;
+            if (variation == "nom") {
+                sf = std::max(0.0, 1.0 + smear_nom * random_number);
+                pt_corrected[i] = pt.at(i) * sf;
+            } else if (variation == "resolutionUp") {
+                sf = std::max(0.0, 1.0 + (smear_nom + smear_unc) * random_number);
+                pt_corrected[i] = pt.at(i) * sf;
+            } else if (variation == "resolutionDown") {
+                sf = std::max(0.0, 1.0 + (smear_nom - smear_unc) * random_number);
+                pt_corrected[i] = pt.at(i);
+            } else if (variation == "scaleUp") {
+                sf = 1.0 + scale_unc;
+                pt_corrected[i] = pt.at(i) * sf;
+            } else if (variation == "scaleDown") {
+                sf = 1.0 - scale_unc;
+                pt_corrected[i] = pt.at(i) * sf;
+            } else {
+                Logger::get("physicsobject::electron::PtCorrectionMC")
+                    ->debug("unknown variation {}", variation);
+                throw std::runtime_error("unknown variation");
+            }
+
+            // logging output
+            Logger::get("physicsobject::electron::PtCorrectionMC")
+                ->debug("ele pt before {}, ele pt after {}, sf {}, variation {}",
+                        pt.at(i), pt_corrected.at(i), sf, variation);
+
+        }
+
+        return pt_corrected;
+    };
+
+    return df.Define(
+        outputname,
+        correction,
+        {pt, eta, delta_eta_sc, r9, event_seed}
+    );
+}
+
+/**
  * @brief This function defines a boolean mask that identifies electrons
  * falling within the ECAL barrel-endcap transition gap. The mask is `true`
  * for electrons outside the gap and `false` for those inside.
