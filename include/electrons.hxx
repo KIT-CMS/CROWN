@@ -23,6 +23,15 @@ PtCorrectionMCFromCorrectionlib(ROOT::RDF::RNode df,
                const std::string &sf_file,
                const std::string &sf_name,
                const std::string &variation);
+ROOT::RDF::RNode
+PtCorrectionDataFromCorrectionlib(ROOT::RDF::RNode df,
+               correctionManager::CorrectionManager &correction_manager,
+               const std::string &outputname, const std::string &pt,
+               const std::string &eta, const std::string &delta_eta_sc,
+               const std::string &seed_gain,
+               const std::string &r9, const std::string &run,
+               const std::string &sf_file,
+               const std::string &sf_name);
 ROOT::RDF::RNode VetoECALGap(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &eta,
                              const std::string &delta_eta_sc,
