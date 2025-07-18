@@ -377,6 +377,13 @@ Unroll(ROOT::RDF::RNode df, const std::vector<std::string> &outputnames,
         {quantity});
     return Unroll<T>(df1, outputnames, quantity, index + 1);
 }
+
+ROOT::RDF::RNode
+GenerateEventSeeds(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const int seed = 42
+);
 } // end namespace quantity
 
 namespace filter {
