@@ -99,9 +99,9 @@ GenerateEventSeed(
 ) {
    
     auto generate_seed = [seed] (
-        const uint64_t &lumi,
-        const uint64_t &run,
-        const uint32_t &event
+        const unsigned int &lumi,
+        const unsigned int &run,
+        const unsigned long long &event
     ) {
         // string for setting the seed value
         const std::string seed_string = std::to_string(seed) + "_" + std::to_string(lumi) + "_" + std::to_string(run) + "_" + std::to_string(event);
@@ -111,12 +111,12 @@ GenerateEventSeed(
         SHA256(reinterpret_cast<const unsigned char*>(seed_string.c_str()), seed_string.size(), hash);
 
         // use the first for bits of the hash to create a 32-bit unsigned integer as seed
-        uint32_t seed = 0;
+        unsigned int event_seed = 0;
         for (int i = 0; i < 4; ++i) {
-            seed = (seed << 8) | hash[i];
+            event_seed = (event_seed << 8) | hash[i];
         }
 
-        return seed;
+        return event_seed;
     };
 
     return df.Define(
