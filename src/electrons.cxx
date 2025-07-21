@@ -46,8 +46,7 @@ namespace electron {
  *
  * @note This function is intended for analyses working with Run 2 NanoAODv9
  * samples. For the corresponding function that can be used with
- * Run 3 NanoAODv12, look at
- * ``physicsobject::electron::PtCorrectionMCFromCorrectionlib``.
+ * Run 3 NanoAODv12 or higher, look at the overloaded version of this function.
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
@@ -117,13 +116,12 @@ PtCorrectionMC(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief This function applies energy scale and resolution corrections to MC. The corrections are
- * obtained from a dedicated correctionlib file.
+ * @brief This function applies energy scale and resolution corrections to MC.
+ * The corrections are obtained from a dedicated correctionlib file.
  * 
- * For Run 3 samples, the electron energy scale correction is not available in the NanoAOD files
- * and the corrections have to be evaluated using a centrally provided correctionlib file.
- * This function should only be used  The documentation of the file content
- * can be found here:
+ * For Run 3 samples, the electron energy scale correction has to be evaluated
+ * using a centrally provided correctionlib file. The documentation of the file
+ * content can be found here:
  * 
  * - [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22_electronSS_EtDependent.html)
  * - [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22EE_electronSS_EtDependent.html)
@@ -284,17 +282,14 @@ PtCorrectionMCFromCorrectionlib(ROOT::RDF::RNode df,
  * supercluster
  * @param run name of the column containing the run number
  * @param sf_file path to the correction file for the energy scale corrections
- * and variations
- * @param variation name of the energy correction variation that should be
+ * @param sf_name name of the correction to be accessed.
  * calculated (e.g., "resolutionUp", "resolutionDown", "scaleUp", "scaleDown"),
  * for "nominal" nothing is done because energy correction is already applied
  *
  * @return a dataframe containing the varied electron transverse momenta
  * 
  * @note This function is intended for analyses working with Run 3 NanoAODv12
- * or higher. In the Run 2 NanoAODv12 samples, the scale correction in data
- * is already applied in the NanoAOD files. Look at
- * ``physicsobject::electron::PtCorrectionMC`` for running on Run 2 samples.
+ * or higher. For Run 2 analyses, use the overloaded version of this function.
  */
 ROOT::RDF::RNode
 PtCorrectionDataFromCorrectionlib(ROOT::RDF::RNode df,
@@ -515,7 +510,7 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
  * @param eta name of the column containing the pseudorapidity of an electron
  * @param era string with the era name of a data taking period, e.g.
  * "2016preVFP"
- * @param path_id_name string that serves as an identifer for the used
+ * @param path_id_name string that serves as an identifier for the used
  * combination of trigger path and electron ID, e.g. "HLT_SF_Ele30_TightID",
  * "HLT_SF_Ele30_MVAiso90ID", ...
  * @param sf_file path to the file with the electron scale factors
