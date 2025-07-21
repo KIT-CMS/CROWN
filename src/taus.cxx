@@ -7,6 +7,7 @@
 #include "../include/defaults.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "correction.h"
+#include <stdexcept>
 #include <unordered_map>
 
 namespace physicsobject {
@@ -345,7 +346,7 @@ PtCorrectionMC(
  * two tau decay modes (dm0 and dm1) and depends on the barrel and endcap region
  * of the detector. This configuration corresponds to the officially provided
  * scale factors in Run 2.
- *
+ * 
  * The correction procedure is taken from the officially recommendation of the
  * TauPOG:
  *
@@ -1024,6 +1025,10 @@ ROOT::RDF::RNode Id_vsJet_tt(
  * (\f$1.558 \leq |\eta| <2.3\f$), "nom" for nominal and "up"/"down" the up/down variation
  *
  * @return a new dataframe containing the new column
+ * 
+ * @note This function is intended to be used with Run 2 analyses. The scale factor additionally
+ * depends on the decay mode of the tau in Run 3. For Run 3 analyses, use the overloaded version
+ * of this function.
  */
 ROOT::RDF::RNode
 Id_vsEle(ROOT::RDF::RNode df,
@@ -1074,6 +1079,102 @@ Id_vsEle(ROOT::RDF::RNode df,
     };
     auto df1 =
         df.Define(outputname, sf_calculator, {eta, gen_match});
+    return df1;
+}
+
+/**
+ * @brief This function calculates scale factors (SFs) for tau identification (ID) 
+ * against electrons (`vsEle`). The scale factors are loaded from a correctionlib file 
+ * using a specified scale factor name and variation. The variation and the scale 
+ * factor itself is binned in pseudorapidities of hadronic taus for this function. This
+ * function is intended to be used with Run 3 analyses.
+ *
+ * Description of the bit map used to define the tau ID against electrons working points of the
+ * DeepTau v2.5 tagger.
+ * vsElectrons                         | Value | Bit (value used in the config)
+ * ------------------------------------|-------|-------
+ * no ID selection (takes every tau)   |  0    | -
+ * VVVLoose                            |  1    | 1
+ * VVLoose                             |  2    | 2
+ * VLoose                              |  4    | 3
+ * Loose                               |  8    | 4
+ * Medium                              |  16   | 5
+ * Tight                               |  32   | 6
+ * VTight                              |  64   | 7
+ * VVTight                             |  128  | 8
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * tau scale factor file
+ * @param outputname name of the output column containing the vsEle ID scale factor
+ * @param eta name of the column containing the pseudorapidity of a tau
+ * @param gen_match name of the column with the matching information of the
+ * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt mu,
+ * 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
+ * @param sf_file path to the file with the tau scale factors
+ * @param sf_name name of the tau scale factor for the vsEle ID correction
+ * @param wp working point of the vsEle ID
+ * @param variation_barrel name of the scale factor variation for the barrel region
+ * (\f$|\eta| <1.46\f$), "nom" for nominal and "up"/"down" the up/down variation
+ * @param variation_endcap name of the scale factor variation for the endcap region
+ * (\f$1.558 \leq |\eta| <2.3\f$), "nom" for nominal and "up"/"down" the up/down variation
+ *
+ * @return a new dataframe containing the new column
+ * 
+ * @note This function is intended to be used with Run 3 analyses. The scale factor additionally
+ * depends on the decay mode of the tau. For Run 2 analyses, use the overloaded version of this
+ * function.
+ */
+ROOT::RDF::RNode
+Id_vsEle(ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname,
+    const std::string &eta,
+    const std::string &decay_mode,
+    const std::string &gen_match, 
+    const std::string &sf_file, const std::string &sf_name,
+    const std::string &wp, 
+    const std::string &variation_barrel,
+    const std::string &variation_endcap
+) {
+    Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
+        ->debug("Setting up function for tau id vsEle sf");
+    Logger::get("physicsobject::tau::scalefactor::Id_vsEle")->debug("ID - Name {}", sf_name);
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    auto sf_calculator = [evaluator, wp, variation_barrel, variation_endcap,
+                            sf_name](const float &eta, const int &dm, const int &gen_match) {
+        double sf = 1.;
+
+        // set edges of barrel and endcap region
+        double max_abs_eta_barrel = 1.46;
+        double min_abs_eta_endcap = 1.558;
+        double max_abs_eta_endcap = 2.5;
+
+        // exclude default values due to tau energy correction shifts below good tau
+        // pt selection
+        if (eta > -5.0) {
+            Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
+                ->debug("ID {} - eta {}, dm {}, gen_match {}, wp {}, variation_barrel "
+                        "{}, variation_endcap {}",
+                        sf_name, eta, dm, gen_match, wp, variation_barrel,
+                        variation_endcap);
+            // the eta cuts are taken from the correctionlib json file to define 
+            // barrel and endcap
+            if (std::abs(eta) < max_abs_eta_barrel) {
+                sf = evaluator->evaluate(
+                    {eta, dm, gen_match, wp, variation_barrel});
+            } else if (std::abs(eta) >= min_abs_eta_endcap && std::abs(eta) < max_abs_eta_endcap) {
+                sf = evaluator->evaluate(
+                    {eta, dm, gen_match, wp, variation_endcap});
+            } else {
+                sf = 1.;
+            }
+        }
+        Logger::get("physicsobject::tau::scalefactor::Id_vsEle")->debug("Scale Factor {}", sf);
+        return sf;
+    };
+    auto df1 =
+        df.Define(outputname, sf_calculator, {eta, decay_mode, gen_match});
     return df1;
 }
 
