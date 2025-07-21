@@ -1043,6 +1043,12 @@ Id_vsEle(ROOT::RDF::RNode df,
     auto sf_calculator = [evaluator, wp, variation_barrel, variation_endcap,
                             sf_name](const float &eta, const int &gen_match) {
         double sf = 1.;
+
+        // set edges of barrel and endcap region
+        double max_abs_eta_barrel = 1.46;
+        double min_abs_eta_endcap = 1.558;
+        double max_abs_eta_endcap = 2.3;
+
         // exclude default values due to tau energy correction shifts below good tau
         // pt selection
         if (eta > -5.0) {
@@ -1053,10 +1059,10 @@ Id_vsEle(ROOT::RDF::RNode df,
                         variation_endcap);
             // the eta cuts are taken from the correctionlib json file to define 
             // barrel and endcap
-            if (std::abs(eta) < 1.46) {
+            if (std::abs(eta) < max_abs_eta_barrel) {
                 sf = evaluator->evaluate(
                     {eta, gen_match, wp, variation_barrel});
-            } else if (std::abs(eta) >= 1.558 && std::abs(eta) < 2.3) {
+            } else if (std::abs(eta) >= min_abs_eta_endcap && std::abs(eta) < max_abs_eta_endcap) {
                 sf = evaluator->evaluate(
                     {eta, gen_match, wp, variation_endcap});
             } else {
