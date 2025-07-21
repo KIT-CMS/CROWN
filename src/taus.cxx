@@ -121,7 +121,7 @@ std::string get_tes_variation(
  * points of the `DeepTau` algorithm, regarding the identification against
  * jets and against electrons. This is not the case for Run 2 analyses. This
  * function can be used for both Run 2 and Run 3 analyses. For Run 2 analyses,
- * the values of `id_vs_jet_wp` and `id_vs_ele_wp` can be set to `nullptr`
+ * the values of `id_vs_jet_wp` and `id_vs_ele_wp` can be set to `""`
  * to obtain the corrections.
  * 
  * The uncertainty scheme is split into nine different uncertainty sources:
@@ -165,8 +165,8 @@ std::string get_tes_variation(
  * @param es_file path to the correction file for the energy scale correction
  * @param correction_name name of the correction in `es_file`
  * @param id_algorithm identification algorithm used for hadronic tau ID
- * @param id_vs_jet_wp working point for the identification against jets; set to `nullptr` if the corrections do not depend on this parameter
- * @param id_vs_ele_wp working point for the identification against electrons; set to `nullptr` if the corrections do not depend on this parameter
+ * @param id_vs_jet_wp working point for the identification against jets; set to `""` if the corrections do not depend on this parameter
+ * @param id_vs_ele_wp working point for the identification against electrons; set to `""` if the corrections do not depend on this parameter
  * @param variation_efake_dm0_barrel variation for electron faking a tau for decay mode 0 in the barrel region,
  * options are "nom", "up", "down"
  * @param variation_efake_dm1_barrel variation for electron faking a tau for decay mode 1 in the barrel region,
@@ -284,7 +284,7 @@ PtCorrectionMC(
                     || (decay_mode == 10)
                     || (decay_mode == 11)
                 ) {
-                    if ((id_vs_jet_wp == nullptr) && (id_vs_ele_wp == nullptr)) {
+                    if ((id_vs_jet_wp == "") && (id_vs_ele_wp == "")) {
                         correction_factor = evaluator->evaluate(
                             {
                                 pt,
