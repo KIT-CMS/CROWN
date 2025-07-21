@@ -316,7 +316,7 @@ PtCorrectionDataFromCorrectionlib(ROOT::RDF::RNode df,
         const ROOT::RVec<float> &delta_eta_sc,
         const ROOT::RVec<UChar_t> &seed_gain,
         const ROOT::RVec<float> &r9,
-        const ROOT::RVec<unsigned int> &run
+        const unsigned int &run
     ) {
         // for the data correction, we just need to multiply the original pt with the scale factor
         ROOT::RVec<float> corrected_pt(pt.size());
@@ -327,12 +327,12 @@ PtCorrectionDataFromCorrectionlib(ROOT::RDF::RNode df,
             // evaluate the nominal correction scale factor from correctionlib
             auto sf = evaluator->evaluate({
                 "scale",
-                static_cast<double>(run.at(i)),
+                static_cast<int>(run),
                 eta_sc,
                 r9.at(i),
                 abs(eta_sc),
                 pt.at(i),
-                static_cast<double>(seed_gain.at(i))
+                static_cast<int>(seed_gain.at(i))
             });
             corrected_pt[i] = sf * pt.at(i);
             Logger::get("physicsobject::electron::PtScaleCorrectionData")
