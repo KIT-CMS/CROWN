@@ -85,7 +85,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::vector<std::string> &jes_shift_sources,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
-               const int jer_seed) {
+               const int jer_seed, const int& lhc_run = 2) {
     // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, jet_id_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
@@ -125,16 +125,13 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     // loading JER scale factor function
     auto jer_sf_evaluator = correction_manager.loadCorrection(
         jec_file, jer_tag + "_ScaleFactor_" + jec_algo);
-    auto jet_energy_resolution_sf =
-        [jer_sf_evaluator](const float eta, const std::string jer_shift) {
-            return jer_sf_evaluator->evaluate({eta, jer_shift});
-        };
+
     // lambda run with dataframe
     auto correction_lambda = [reapply_jes, jet_energy_scale_shifts,
                               jet_energy_scale_sf, jet_energy_resolution,
-                              jet_energy_resolution_sf, jes_shift_sources,
+                              jer_sf_evaluator, jes_shift_sources,
                               jes_shift, jer_shift, jer_seed,
-                              jet_radius](const ROOT::RVec<float> &pts,
+                              jet_radius, lhc_run](const ROOT::RVec<float> &pts,
                                           const ROOT::RVec<float> &etas,
                                           const ROOT::RVec<float> &phis,
                                           const ROOT::RVec<float> &area,
@@ -167,7 +164,12 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             // apply jet energy smearing
             float reso =
                 jet_energy_resolution(etas.at(i), corrected_pts.at(i), rho);
-            float reso_sf = jet_energy_resolution_sf(etas.at(i), jer_shift);
+            float reso_sf = 1.0;
+            if (lhc_run == 2) {
+                jer_sf_evaluator->evaluate({etas.at(i), jer_shift});
+            } else if (lhc_run == 3) {
+                jer_sf_evaluator->evaluate({etas.at(i), corrected_pts.at(i), jer_shift});
+            }
             Logger::get("physicsobject::jet::PtCorrectionMC")
                 ->debug("Calculate JER {}: SF: {} resolution: {} ", jer_shift,
                         reso_sf, reso);

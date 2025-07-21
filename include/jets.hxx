@@ -17,7 +17,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::vector<std::string> &jes_shift_sources,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
-               const int jer_seed = 42);
+               const int jer_seed = 42, const int& lhc_run = 2);
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
                  correctionManager::CorrectionManager &correction_manager,
