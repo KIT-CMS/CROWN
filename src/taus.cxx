@@ -271,13 +271,9 @@ PtCorrectionMC(
                 // ensure that the tau fulfills the selection criteria for application of the correction,
                 // set the correction factor to 1 otherwise
                 float correction_factor = 1.0;
-                if (
-                    (decay_mode == 0)
-                    || (decay_mode == 1)
-                    || (decay_mode == 2)
-                    || (decay_mode == 10)
-                    || (decay_mode == 11)
-                ) {
+                const std::unordered_set<int> valid_modes = {0, 1, 2, 10, 11};
+
+                if (valid_modes.count(decay_mode)) {
                     if ((id_vs_jet_wp == "") && (id_vs_ele_wp == "")) {
                         correction_factor = evaluator->evaluate(
                             {
