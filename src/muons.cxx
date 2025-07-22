@@ -375,6 +375,78 @@ Trigger(ROOT::RDF::RNode df,
         {pt, eta});
     return df1;
 }
+
+/**
+ * @brief This function calculates muon trigger scale factors (SFs) for a single
+ * muon dependening on its pseudorapidity (\f$\eta\f$) and transverse momentum
+ * (\f$p_T\f$). The scale factors are loaded from a correctionlib file using a
+ * specified scale factor name and variation. This function only uses the scale
+ * factor from the correctionlib evaluation if the corresponding trigger flag
+ * is set to `true`. Otherwise, it returns a scale factor of 1.0.
+ *
+ * Recommendations by MuonPOG:
+ * - [Run2](https://muon-wiki.docs.cern.ch/guidelines/corrections/#__tabbed_8_1)
+ * - [Run3](https://muon-wiki.docs.cern.ch/guidelines/corrections/#__tabbed_8_2)
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * muon scale factor file
+ * @param outputname name of the output column containing the trigger scale
+ * factor
+ * @param pt name of the column containing the transverse momentum of a muon
+ * @param eta name of the column containing the pseudorapidity of a muon
+ * @param trigger_flag name of the column containing the trigger flag
+ * @param sf_file path to the file with the muon scale factors
+ * @param sf_name name of the muon scale factor for the trigger correction,
+ * e.g. "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight"
+ * @param variation name the scale factor variation, "nominal" for the nominal
+ * scale factor and "systup"/"systdown" for the up/down variation
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+Trigger(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname, const std::string &pt,
+        const std::string &eta, const std::string &trigger_flag,
+        const std::string &sf_file, const std::string &sf_name,
+        const std::string &variation) {
+    Logger::get("physicsobject::muon::scalefactor::Trigger")
+        ->debug("Setting up functions for muon trigger sf");
+    Logger::get("physicsobject::muon::scalefactor::Trigger")
+        ->debug("Trigger - Name {}", sf_name);
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    auto df1 = df.Define(
+        outputname,
+        [evaluator, variation, sf_name](const float &pt,
+                                        const float &eta,
+                                        const bool &trigger_flag) {
+            Logger::get("physicsobject::muon::scalefactor::Trigger")
+                ->debug(
+                    "Trigger - pt {}, eta {}, trigger flag {}",
+                    pt,
+                    eta,
+                    trigger_flag
+                );
+            double sf = 1.;
+            // check to prevent muons with default values due to tau energy
+            // correction shifts below good tau pt selection
+            try {
+                if (trigger_flag) {
+                    sf = evaluator->evaluate({std::abs(eta), pt, variation});
+                }
+            } catch (const std::runtime_error &e) {
+                // this error can occur because the pt range starts at different
+                // values for different triggers
+                Logger::get("physicsobject::muon::scalefactor::Trigger")
+                    ->debug("SF evaluation for {} failed for pt {}", sf_name,
+                            pt);
+            }
+            return sf;
+        },
+        {pt, eta, trigger_flag});
+    return df1;
+}
 } // end namespace scalefactor
 } // end namespace muon
 } // end namespace physicsobject
