@@ -89,7 +89,7 @@ namespace quantity {
  * @return a dataframe with the new column
  */
 ROOT::RDF::RNode
-GenerateEventSeed(
+GenerateSeed(
     ROOT::RDF::RNode df,
     const std::string &outputname,
     const std::string &lumi,

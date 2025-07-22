@@ -379,7 +379,7 @@ Unroll(ROOT::RDF::RNode df, const std::vector<std::string> &outputnames,
 }
 
 ROOT::RDF::RNode
-GenerateEventSeed(
+GenerateSeed(
     ROOT::RDF::RNode df,
     const std::string &outputname,
     const std::string &lumi,
