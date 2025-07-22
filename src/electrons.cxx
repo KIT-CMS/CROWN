@@ -326,12 +326,12 @@ PtCorrectionData(ROOT::RDF::RNode df,
             // evaluate the nominal correction scale factor from correctionlib
             auto sf = evaluator->evaluate({
                 "scale",
-                static_cast<int>(run),
+                static_cast<float>(run),
                 eta_sc,
                 r9.at(i),
                 abs(eta_sc),
                 pt.at(i),
-                static_cast<int>(seed_gain.at(i))
+                static_cast<float>(seed_gain.at(i))
             });
             corrected_pt[i] = sf * pt.at(i);
             Logger::get("physicsobject::electron::PtCorrectionData")
