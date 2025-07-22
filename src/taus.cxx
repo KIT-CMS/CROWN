@@ -224,29 +224,21 @@ PtCorrectionMC(
     auto evaluator =
         correction_manager.loadCorrection(es_file, correction_name);
 
-    // set the variation depending on the gen match, decay mode, and barrel/endcap region
-    std::string variation = get_tes_variation(
-        abs_eta,
-        decay_mode,
-        gen_match,
-        variation_efake_dm0_barrel,
-        variation_efake_dm1_barrel,
-        variation_efake_dm0_endcap,
-        variation_efake_dm1_endcap,
-        variation_mufake,
-        variation_gentau_dm0,
-        variation_gentau_dm1,
-        variation_gentau_dm10,
-        variation_gentau_dm11
-    );
-
     auto correction_lambda =
         [
             evaluator,
             id_algorithm,
             id_vs_jet_wp,
             id_vs_ele_wp,
-            variation
+            variation_efake_dm0_barrel,
+            variation_efake_dm1_barrel,
+            variation_efake_dm0_endcap,
+            variation_efake_dm1_endcap,
+            variation_mufake,
+            variation_gentau_dm0,
+            variation_gentau_dm1,
+            variation_gentau_dm10,
+            variation_gentau_dm11
         ] (
             const ROOT::RVec<float> &pts,
             const ROOT::RVec<float> &etas,
@@ -266,6 +258,22 @@ PtCorrectionMC(
                 auto abs_eta = etas.at(i);
                 auto decay_mode = decay_modes.at(i);
                 auto gen_match = gen_matches.at(i);
+
+                // set the variation depending on the gen match, decay mode, and barrel/endcap region
+                std::string variation = get_tes_variation(
+                    abs_eta,
+                    decay_mode,
+                    gen_match,
+                    variation_efake_dm0_barrel,
+                    variation_efake_dm1_barrel,
+                    variation_efake_dm0_endcap,
+                    variation_efake_dm1_endcap,
+                    variation_mufake,
+                    variation_gentau_dm0,
+                    variation_gentau_dm1,
+                    variation_gentau_dm10,
+                    variation_gentau_dm11
+                );
 
                 // evaluate the correction factor
                 // ensure that the tau fulfills the selection criteria for application of the correction,
