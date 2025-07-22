@@ -66,7 +66,8 @@ namespace jet {
  * @param jer_seed seed value for the random number generator that is used for 
  * the jet energy resolution smearing, if not set the answer to everything is 
  * used as default `42`
- *
+ * @param lhc_run LHC Run number, `2` for 2016-2018 and `3` for 2022-2026
+ * 
  * @return a dataframe with a new column of corrected jet \f$p_T\f$'s
  *
  * @note If jets with \f$p_T\f$ > 15 GeV are corrected, this change should be
@@ -85,7 +86,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::vector<std::string> &jes_shift_sources,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
-               const int jer_seed, const int& lhc_run = 2) {
+               const int jer_seed = 42, const int& lhc_run = 2) {
     // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, jet_id_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
