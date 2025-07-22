@@ -134,6 +134,16 @@ GenerateRandomVector(ROOT::RDF::RNode df, const std::string &outputname,
         {quantity});
 }
 
+ROOT::RDF::RNode
+GenerateSeed(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &lumi,
+    const std::string &run,
+    const std::string &event,
+    const UInt_t &master_seed = 42
+);
+
 /**
  * @brief This function creates a new column in the dataframe by applying
  * element-wise negation to an existing `quantity` column.
@@ -378,15 +388,6 @@ Unroll(ROOT::RDF::RNode df, const std::vector<std::string> &outputnames,
     return Unroll<T>(df1, outputnames, quantity, index + 1);
 }
 
-ROOT::RDF::RNode
-GenerateSeed(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &lumi,
-    const std::string &run,
-    const std::string &event,
-    const UInt_t &master_seed = 42
-);
 } // end namespace quantity
 
 namespace filter {

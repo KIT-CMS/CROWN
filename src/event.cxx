@@ -95,7 +95,7 @@ GenerateSeed(
     const std::string &lumi,
     const std::string &run,
     const std::string &event,
-    const UInt_t &seed = 42
+    const UInt_t &master_seed = 42
 ) {
    
     auto generate_seed = [seed] (
