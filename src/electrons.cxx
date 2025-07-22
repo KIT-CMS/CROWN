@@ -142,9 +142,10 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * supercluster
  * @param event_seed name of the column containing the event seed for the
  * smearing
- * @param run name of the column containing the run number
  * @param sf_file path to the correction file for the energy scale corrections
  * and variations
+ * @param sf_name path to the correction and the uncertainty shifts to be
+ * accessed.
  * @param variation name of the energy correction variation that should be
  * calculated (e.g., "resolutionUp", "resolutionDown", "scaleUp", "scaleDown"),
  * for "nominal" nothing is done because energy correction is already applied
