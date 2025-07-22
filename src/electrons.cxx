@@ -225,7 +225,7 @@ PtCorrectionMCFromCorrectionlib(ROOT::RDF::RNode df,
                 pt_corrected[i] = pt.at(i) * sf;
             } else if (variation == "resolutionDown") {
                 sf = std::max(0.0, 1.0 + (smear_nom - smear_unc) * random_number);
-                pt_corrected[i] = pt.at(i);
+                pt_corrected[i] = pt.at(i) * sf;
             } else if (variation == "scaleUp") {
                 sf = 1.0 + scale_unc;
                 pt_corrected[i] = pt.at(i) * sf;
