@@ -548,7 +548,7 @@ ROOT::RDF::RNode Trigger(ROOT::RDF::RNode df,
             if (pt >= 0.0) {
                 sf = evaluator->evaluate({era, variation, path_id_name, eta, pt});
             }
-            Logger::get("physicsobject::electron::scalefactor::Id")
+            Logger::get("physicsobject::electron::scalefactor::Trigger")
                 ->debug("Scale Factor {}", sf);
             return sf;
         },
