@@ -46,7 +46,8 @@ namespace electron {
  *
  * @note This function is intended for analyses working with Run 2 NanoAODv9
  * samples. For the corresponding function that can be used with
- * Run 3 NanoAODv12 or higher, look at the overloaded version of this function.
+ * Run 3 NanoAODv12 or higher, look at
+ * ``physicsobject::electron::PtCorrectionMCFromCorrectionlib``.
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
@@ -233,13 +234,13 @@ PtCorrectionMCFromCorrectionlib(ROOT::RDF::RNode df,
                 sf = 1.0 - scale_unc;
                 pt_corrected[i] = pt.at(i) * sf;
             } else {
-                Logger::get("physicsobject::electron::PtCorrectionMC")
+                Logger::get("physicsobject::electron::PtCorrectionMCFromCorrectionlib")
                     ->debug("unknown variation {}", variation);
                 throw std::runtime_error("unknown variation");
             }
 
             // logging output
-            Logger::get("physicsobject::electron::PtCorrectionMC")
+            Logger::get("physicsobject::electron::PtCorrectionMCFromCorrectionlib")
                 ->debug("ele pt before {}, ele pt after {}, sf {}, variation {}",
                         pt.at(i), pt_corrected.at(i), sf, variation);
 
@@ -331,7 +332,7 @@ PtCorrectionDataFromCorrectionlib(ROOT::RDF::RNode df,
                 static_cast<int>(seed_gain.at(i))
             });
             corrected_pt[i] = sf * pt.at(i);
-            Logger::get("physicsobject::electron::PtScaleCorrectionData")
+            Logger::get("physicsobject::electron::PtCorrectionDataFromCorrectionlib")
                 ->debug("ele pt before {}, ele pt after {}, sf {}",
                         pt.at(i), corrected_pt.at(i), sf);
         }
