@@ -11,7 +11,9 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &eta, const std::string &gain,
                const std::string &es_resolution_up,
                const std::string &es_resolution_down,
-               const std::string &es_file, const std::string &era,
+               const std::string &es_file,
+               const std::string &es_name,
+               const std::string &era,
                const std::string &variation);
 ROOT::RDF::RNode
 PtCorrectionMCFromCorrectionlib(ROOT::RDF::RNode df,

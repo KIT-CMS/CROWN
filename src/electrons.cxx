@@ -37,7 +37,8 @@ namespace electron {
  * downward energy smearing uncertainties
  * @param es_file path to the correction file for the energy scale uncertainties
  * @param era data-taking period of Run2, possible options are "2018", "2017",
- * "2016postVFP", "2016preVFP"
+ * "2016postVFP", "2016preVFP"q
+ * @param es_name name of the correction in the `es_file`
  * @param variation name of the energy correction variation that should be
  * calculated (e.g., "resolutionUp", "resolutionDown", "scaleUp", "scaleDown"),
  * for "nominal" nothing is done because energy correction is already applied
@@ -56,10 +57,12 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &eta, const std::string &gain,
                const std::string &es_resolution_up,
                const std::string &es_resolution_down,
-               const std::string &es_file, const std::string &era,
+               const std::string &es_file,
+               const std::string &es_name,
+               const std::string &era,
                const std::string &variation) {
     auto evaluator =
-        correction_manager.loadCorrection(es_file, "UL-EGM_ScaleUnc");
+        correction_manager.loadCorrection(es_file, es_name);
     auto electron_pt_correction_lambda =
         [evaluator, era, variation](const ROOT::RVec<float> &pts,
                                     const ROOT::RVec<float> &etas,
