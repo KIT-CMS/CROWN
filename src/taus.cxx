@@ -204,8 +204,6 @@ PtCorrectionMC(
     const std::string &es_file,
     const std::string &correction_name,
     const std::string &id_algorithm,
-    const std::string &id_vs_jet_wp,
-    const std::string &id_vs_ele_wp,
     const std::string &variation_efake_dm0_barrel,
     const std::string &variation_efake_dm1_barrel,
     const std::string &variation_efake_dm0_endcap,
@@ -214,7 +212,9 @@ PtCorrectionMC(
     const std::string &variation_gentau_dm0,
     const std::string &variation_gentau_dm1,
     const std::string &variation_gentau_dm10,
-    const std::string &variation_gentau_dm11
+    const std::string &variation_gentau_dm11,
+    const std::string &id_vs_jet_wp = "",
+    const std::string &id_vs_ele_wp = ""
 ) {
     // In nanoAODv12 the type of tau decay mode was changed to UChar_t
     // For v9 compatibility a type casting is applied

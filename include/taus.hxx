@@ -27,8 +27,6 @@ PtCorrectionMC(
     const std::string &gen_match, const std::string &es_file,
     const std::string &correction_name,
     const std::string &id_algorithm,
-    const std::string &id_vs_jet_wp,
-    const std::string &id_vs_ele_wp,
     const std::string &variation_efake_dm0_barrel,
     const std::string &variation_efake_dm1_barrel,
     const std::string &variation_efake_dm0_endcap,
@@ -37,7 +35,9 @@ PtCorrectionMC(
     const std::string &variation_gentau_dm0,
     const std::string &variation_gentau_dm1,
     const std::string &variation_gentau_dm10,
-    const std::string &variation_gentau_dm11
+    const std::string &variation_gentau_dm11,
+    const std::string &id_vs_jet_wp = "",
+    const std::string &id_vs_ele_wp = ""
 );
 ROOT::RDF::RNode
 PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
@@ -150,6 +150,16 @@ Trigger(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
         const std::string &outputname,
         const std::string &pt, const std::string &decay_mode, 
+        const std::string &sf_file,
+        const std::string &sf_name,
+        const std::string &trigger_name, const std::string &wp,
+        const std::string &corr_type, const std::string &variation);
+ROOT::RDF::RNode
+Trigger(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname,
+        const std::string &pt, const std::string &decay_mode, 
+        const std::string &trigger_flag,
         const std::string &sf_file,
         const std::string &sf_name,
         const std::string &trigger_name, const std::string &wp,
