@@ -14,9 +14,9 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &es_file,
                const std::string &es_name,
                const std::string &era,
-               const std::string &variation);
+               const std::string &variation);  // for Run 2
 ROOT::RDF::RNode
-PtCorrectionMCFromCorrectionlib(ROOT::RDF::RNode df,
+PtCorrectionMC(ROOT::RDF::RNode df,
                correctionManager::CorrectionManager &correction_manager,
                const std::string &outputname, const std::string &pt,
                const std::string &eta,
@@ -25,16 +25,16 @@ PtCorrectionMCFromCorrectionlib(ROOT::RDF::RNode df,
                const std::string &event_seed,
                const std::string &sf_file,
                const std::string &sf_name,
-               const std::string &variation);
+               const std::string &variation);  // for Run 3
 ROOT::RDF::RNode
-PtCorrectionDataFromCorrectionlib(ROOT::RDF::RNode df,
+PtCorrectionData(ROOT::RDF::RNode df,
                correctionManager::CorrectionManager &correction_manager,
                const std::string &outputname, const std::string &pt,
                const std::string &eta, const std::string &delta_eta_sc,
                const std::string &seed_gain,
                const std::string &r9, const std::string &run,
                const std::string &sf_file,
-               const std::string &sf_name);
+               const std::string &sf_name);  // for Run 3
 ROOT::RDF::RNode VetoECALGap(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &eta,
                              const std::string &delta_eta_sc,
