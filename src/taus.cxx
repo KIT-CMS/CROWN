@@ -17,7 +17,7 @@ namespace tau {
  * @brief Helper to get the variation of the tau pt scale correction to use in
  * the correctionlib evaluator, depending on the absolute pseudorapidity, decay
  * mode, and gen match of the tau. If no criterion for any of the variations is
- * matched,, the nominal shift "nom" is returned.
+ * matched, the nominal shift "nom" is returned.
  * 
  * @param abs_eta absolute pseudorapidity of the tau
  * @param decay_mode decay mode of the tau
@@ -35,6 +35,7 @@ namespace tau {
  * @param variation_gentau_dm1 variation for genuine tau with decay mode 1
  * @param variation_gentau_dm10 variation for genuine tau with decay mode 10
  * @param variation_gentau_dm11 variation for genuine tau with decay mode 11
+ * 
  * @return the variation to use in the correctionlib evaluator
  */
 std::string get_tes_variation(
@@ -104,7 +105,6 @@ std::string get_tes_variation(
             decay_mode,
             gen_match,
             variation
-   
         );
 
     return variation;
@@ -184,6 +184,7 @@ std::string get_tes_variation(
  * "down"
  * @param variation_gentau_dm11 variation for genuine tau for decay mode 11, options are "nom", "up",
  * "down"
+ * 
  * @return a dataframe containing the corrected transverse momenta
  *
  * @note This function is intended to be used for Run 3 analyses. In Run 3,
@@ -396,7 +397,8 @@ PtCorrectionMC(
  * 
  * @note This function is intended to be used for Run 2 analyses. In Run 3,
  * the tau energy scale corrections also depend on the DeepTau working points
- * for ID vs. electrons and vs. jets. Use `TauCorrectionMC` instead.
+ * for ID vs. electrons and vs. jets. Use
+ * `physicsobject::tau::TauCorrectionMC` instead.
  */
 ROOT::RDF::RNode
 PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
@@ -521,12 +523,12 @@ PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
  *
  * @note This correction is only applied to misidentified hadronic taus
  * originating from prompt muons (`gen_match=2`) and muons that decayed from a
- * tau lepton
- * (`gem_match=4`).
- *  * 
+ * tau lepton (`gen_match=4`).
+ *
  * @note This function is intended to be used for Run 2 analyses. In Run 3,
  * the tau energy scale corrections also depend on the DeepTau working points
- * for ID vs. electrons and vs. jets. Use `TauCorrectionMC` instead.
+ * for ID vs. electrons and vs. jets. Use 
+ * `physicsobject::tau::TauCorrectionMC` instead.
  */
 ROOT::RDF::RNode
 PtCorrectionMC_muFake(ROOT::RDF::RNode df,
@@ -623,9 +625,6 @@ PtCorrectionMC_muFake(ROOT::RDF::RNode df,
  *
  * @note This correction is only applied to genuine hadronic taus
  * (`gen_match=5`).
- * 
- * 
- * 
  */
 ROOT::RDF::RNode PtCorrectionMC_genuineTau(
     ROOT::RDF::RNode df,
@@ -1091,17 +1090,17 @@ Id_vsEle(ROOT::RDF::RNode df,
  *
  * Description of the bit map used to define the tau ID against electrons working points of the
  * DeepTau v2.5 tagger.
- * vsElectrons                         | Value | Bit (value used in the config)
- * ------------------------------------|-------|-------
- * no ID selection (takes every tau)   |  0    | -
- * VVVLoose                            |  1    | 1
- * VVLoose                             |  2    | 2
- * VLoose                              |  4    | 3
- * Loose                               |  8    | 4
- * Medium                              |  16   | 5
- * Tight                               |  32   | 6
- * VTight                              |  64   | 7
- * VVTight                             |  128  | 8
+ * vsElectrons                         |  ID value (value used in the config)
+ * ------------------------------------|--------
+ * no ID selection (takes every tau)   |  -
+ * VVVLoose                            |  1
+ * VVLoose                             |  2
+ * VLoose                              |  3
+ * Loose                               |  4
+ * Medium                              |  5
+ * Tight                               |  6
+ * VTight                              |  7
+ * VVTight                             |  8
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
@@ -1111,6 +1110,7 @@ Id_vsEle(ROOT::RDF::RNode df,
  * @param gen_match name of the column with the matching information of the
  * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt mu,
  * 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
+ * @param decay_mode name of the column containing the decay mode of the tau
  * @param sf_file path to the file with the tau scale factors
  * @param sf_name name of the tau scale factor for the vsEle ID correction
  * @param wp working point of the vsEle ID
@@ -1328,6 +1328,73 @@ Trigger(ROOT::RDF::RNode df,
         return sf;
     };
     auto df1 = df.Define(outputname, sf_calculator, {pt, decay_mode});
+    return df1;
+}
+
+/**
+ * @brief This function calculates scale factors (SFs) for tau triggers. The scale factors 
+ * are loaded from a correctionlib file using a specified scale factor name and variation. 
+ * The scale factor is binned in \f$p_T\f$ and decay modes of hadronic taus for this function.
+ * This function only uses the scale factor from the correctionlib evaluation if the
+ * corresponding trigger flag is set to `true`. Otherwise, it returns a scale factor of
+ * 1.0.
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * tau scale factor file
+ * @param outputname name of the output column containing the trigger scale factor
+ * @param pt name of the column containing the transverse momentum of a tau
+ * @param decay_mode name of the column containing the decay mode of the tau
+ * @param trigger_flag name of the column containing the trigger flag
+ * @param sf_file path to the file with the tau scale factors
+ * @param sf_name name of the tau scale factor for the trigger correction
+ * @param trigger_name name of the trigger, e.g. "ditau", "etau", "mutau"
+ * @param wp working point of the vsJet ID
+ * @param corr_type type of the value to be read out, options are "sf" (for 
+ * scale factors), "eff_data", "eff_mc"
+ * @param variation name the scale factor variation, "nom" for the nominal
+ * scale factor and "up"/"down" for the up/down variation
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+Trigger(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname,
+        const std::string &pt, const std::string &decay_mode, 
+        const std::string &trigger_flag,
+        const std::string &sf_file,
+        const std::string &sf_name,
+        const std::string &trigger_name, const std::string &wp,
+        const std::string &corr_type, const std::string &variation) {
+
+    Logger::get("physicsobject::tau::scalefactor::Trigger")
+        ->debug("Setting up function for tau trigger sf");
+    Logger::get("physicsobject::tau::scalefactor::Trigger")
+        ->debug("ID - Name {}, file {}", sf_name, sf_file);
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    Logger::get("physicsobject::tau::scalefactor::Trigger")->debug("WP {} - type {}", wp, corr_type);
+    auto sf_calculator = [evaluator, trigger_name, wp, corr_type, variation, sf_name](
+                                     const float &pt, const int &decay_mode,
+                                     const bool &trigger_flag) {
+        float sf = 1.;
+        Logger::get("physicsobject::tau::scalefactor::Trigger")
+            ->debug("ID {} - decaymode {}, wp {} "
+                "pt {}, trigger_flag {}, type {}, variation {}",
+                sf_name, decay_mode, wp, pt, trigger_flag, corr_type, variation);
+        if (trigger_flag) {
+            if (decay_mode == 0 || decay_mode == 1 || decay_mode == 10 ||
+                decay_mode == 11) {
+                sf = evaluator->evaluate(
+                    {pt, decay_mode, trigger_name, wp, corr_type, variation});
+            } else {
+                sf = evaluator->evaluate({pt, -1, trigger_name, wp, corr_type, variation});
+            }
+        }
+        Logger::get("physicsobject::tau::scalefactor::Trigger")->debug("Scale Factor {}", sf);
+        return sf;
+    };
+    auto df1 = df.Define(outputname, sf_calculator, {pt, decay_mode, trigger_flag});
     return df1;
 }
 } // end namespace scalefactor
