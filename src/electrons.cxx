@@ -30,15 +30,15 @@ namespace electron {
  * @param outputname name of the output column for corrected \f$p_T\f$ values
  * @param pt name of the column containing electron \f$p_T\f$ values
  * @param eta name of the column containing electron pseudorapidities
- * @param gain name of the column containing electron gain values
+ * @param seed_gain name of the column containing electron gain values
  * @param es_resolution_up name of the column containing the one sigma upward
  * energy smearing uncertainties
  * @param es_resolution_down name of the column containing the one sigma
  * downward energy smearing uncertainties
  * @param es_file path to the correction file for the energy scale uncertainties
- * @param era data-taking period of Run2, possible options are "2018", "2017",
- * "2016postVFP", "2016preVFP"q
  * @param es_name name of the correction in the `es_file`
+ * @param era data-taking period of Run2, possible options are "2018", "2017",
+ * "2016postVFP", "2016preVFP"
  * @param variation name of the energy correction variation that should be
  * calculated (e.g., "resolutionUp", "resolutionDown", "scaleUp", "scaleDown"),
  * for "nominal" nothing is done because energy correction is already applied
@@ -53,7 +53,7 @@ ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
                correctionManager::CorrectionManager &correction_manager,
                const std::string &outputname, const std::string &pt,
-               const std::string &eta, const std::string &gain,
+               const std::string &eta, const std::string &seed_gain,
                const std::string &es_resolution_up,
                const std::string &es_resolution_down,
                const std::string &es_file,
@@ -65,7 +65,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     auto electron_pt_correction_lambda =
         [evaluator, era, variation](const ROOT::RVec<float> &pts,
                                     const ROOT::RVec<float> &etas,
-                                    const ROOT::RVec<UChar_t> &gains,
+                                    const ROOT::RVec<UChar_t> &seed_gains,
                                     const ROOT::RVec<float> &es_reso_up,
                                     const ROOT::RVec<float> &es_reso_down) {
             ROOT::RVec<float> corrected_pts(pts.size());
@@ -84,22 +84,22 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                                 pts.at(i), corrected_pts.at(i), dpt);
                 } else if (variation == "scaleUp") {
                     Logger::get("physicsobject::electron::PtCorrectionMC")
-                        ->debug("inputs: era {}, eta {}, gain {}", era,
-                                etas.at(i), static_cast<int>(gains.at(i)));
+                        ->debug("inputs: era {}, eta {}, seed gain {}", era,
+                                etas.at(i), static_cast<int>(seed_gains.at(i)));
                     auto sf =
                         evaluator->evaluate({era, "scaleup", etas.at(i),
-                                             static_cast<int>(gains.at(i))});
+                                             static_cast<int>(seed_gains.at(i))});
                     corrected_pts[i] = pts.at(i) * sf;
                     Logger::get("physicsobject::electron::PtCorrectionMC")
                         ->debug("ele pt before {}, ele pt after {}, sf {}",
                                 pts.at(i), corrected_pts.at(i), sf);
                 } else if (variation == "scaleDown") {
                     Logger::get("physicsobject::electron::PtCorrectionMC")
-                        ->debug("inputs: era {}, eta {}, gain {}", era,
-                                etas.at(i), static_cast<int>(gains.at(i)));
+                        ->debug("inputs: era {}, eta {}, seed gain {}", era,
+                                etas.at(i), static_cast<int>(seed_gains.at(i)));
                     auto sf =
                         evaluator->evaluate({era, "scaledown", etas.at(i),
-                                             static_cast<int>(gains.at(i))});
+                                             static_cast<int>(seed_gains.at(i))});
                     corrected_pts[i] = pts.at(i) * sf;
                     Logger::get("physicsobject::electron::PtCorrectionMC")
                         ->debug("ele pt before {}, ele pt after {}, sf {}",
@@ -114,7 +114,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             return corrected_pts;
         };
     auto df1 = df.Define(outputname, electron_pt_correction_lambda,
-                         {pt, eta, gain, es_resolution_up, es_resolution_down});
+                         {pt, eta, seed_gain, es_resolution_up, es_resolution_down});
     return df1;
 }
 

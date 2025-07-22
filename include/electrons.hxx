@@ -8,7 +8,7 @@ ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
                correctionManager::CorrectionManager &correction_manager,
                const std::string &outputname, const std::string &pt,
-               const std::string &eta, const std::string &gain,
+               const std::string &eta, const std::string &seed_gain,
                const std::string &es_resolution_up,
                const std::string &es_resolution_down,
                const std::string &es_file,
