@@ -98,13 +98,13 @@ GenerateSeed(
     const UInt_t &master_seed = 42
 ) {
    
-    auto generate_seed = [seed] (
+    auto generate_seed = [master_seed] (
         const unsigned int &lumi,
         const unsigned int &run,
         const unsigned long long &event
     ) {
         // string for setting the seed value
-        const std::string seed_string = std::to_string(seed) + "_" + std::to_string(lumi) + "_" + std::to_string(run) + "_" + std::to_string(event);
+        const std::string seed_string = std::to_string(master_seed) + "_" + std::to_string(lumi) + "_" + std::to_string(run) + "_" + std::to_string(event);
 
         // create a SHA256 has from the seed string
         unsigned char hash[SHA256_DIGEST_LENGTH];
