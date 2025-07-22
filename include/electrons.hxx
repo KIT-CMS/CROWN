@@ -61,6 +61,13 @@ ROOT::RDF::RNode Trigger(ROOT::RDF::RNode df,
                     const std::string &eta, const std::string &era,
                     const std::string &path_id_name, const std::string &sf_file,
                     const std::string &sf_name, const std::string &variation);
+ROOT::RDF::RNode Trigger(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correction_manager,
+                    const std::string &outputname, const std::string &pt,
+                    const std::string &eta, const std::string &trigger_flag,
+                    const std::string &era, const std::string &path_id_name,
+                    const std::string &sf_file, const std::string &sf_name,
+                    const std::string &variation);
 } // end namespace scalefactor
 } // end namespace electron
 } // end namespace physicsobject
