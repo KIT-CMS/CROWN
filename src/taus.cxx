@@ -1287,6 +1287,9 @@ Id_vsMu(ROOT::RDF::RNode df,
  * scale factor and "up"/"down" for the up/down variation
  *
  * @return a new dataframe containing the new column
+ *
+ * @warning This function is deprecated. Use the overloaded function with the additional
+ * parameter `trigger_flag` instead.
  */
 ROOT::RDF::RNode
 Trigger(ROOT::RDF::RNode df,
@@ -1297,7 +1300,8 @@ Trigger(ROOT::RDF::RNode df,
         const std::string &sf_name,
         const std::string &trigger_name, const std::string &wp,
         const std::string &corr_type, const std::string &variation) {
-
+    Logger::get("physicsobject::tau::scalefactor::Trigger")
+        ->warn("Function is deprecated, use the overloaded version instead");
     Logger::get("physicsobject::tau::scalefactor::Trigger")
         ->debug("Setting up function for tau trigger sf");
     Logger::get("physicsobject::tau::scalefactor::Trigger")
