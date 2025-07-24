@@ -339,6 +339,9 @@ ROOT::RDF::RNode Iso(ROOT::RDF::RNode df,
  * scale factor and "systup"/"systdown" for the up/down variation
  *
  * @return a new dataframe containing the new column
+ *
+ * @warning This function is deprecated. Use the overloaded function with the additional
+ * parameter `trigger_flag` instead.
  */
 ROOT::RDF::RNode
 Trigger(ROOT::RDF::RNode df,
@@ -346,6 +349,8 @@ Trigger(ROOT::RDF::RNode df,
         const std::string &outputname, const std::string &pt,
         const std::string &eta, const std::string &sf_file,
         const std::string &sf_name, const std::string &variation) {
+    Logger::get("physicsobject::muon::scalefactor::Trigger")
+        ->warn("Function is deprecated, use the overloaded version instead");
     Logger::get("physicsobject::muon::scalefactor::Trigger")
         ->debug("Setting up functions for muon trigger sf");
     Logger::get("physicsobject::muon::scalefactor::Trigger")
