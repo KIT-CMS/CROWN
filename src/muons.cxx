@@ -383,7 +383,7 @@ Trigger(ROOT::RDF::RNode df,
 
 /**
  * @brief This function calculates muon trigger scale factors (SFs) for a single
- * muon dependening on its pseudorapidity (\f$\eta\f$) and transverse momentum
+ * muon depending on its pseudorapidity (\f$\eta\f$) and transverse momentum
  * (\f$p_T\f$). The scale factors are loaded from a correctionlib file using a
  * specified scale factor name and variation. This function only uses the scale
  * factor from the correctionlib evaluation if the corresponding trigger flag
