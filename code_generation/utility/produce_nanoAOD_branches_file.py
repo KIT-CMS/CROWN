@@ -68,6 +68,7 @@ def add_branch_to_lines(branch, used, lines):
     lines.append((left, comment))
     used.add(name)
 
+
 def dump_nanoaod_collections(input_file, output_file):
     """
     Process a NanoAOD ROOT file and writes a Python file containing the definitions of branches.
