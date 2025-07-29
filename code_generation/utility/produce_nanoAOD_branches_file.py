@@ -13,6 +13,7 @@ import ROOT
 import sys
 from collections import defaultdict
 
+
 def get_collection(branches):
     """
     Group branches into collections based on their names.
@@ -46,6 +47,7 @@ def get_collection(branches):
             collections["__other__"].append(branch)
     return collections, nbranches
 
+
 def dump_nanoaod_collections(input_file, output_file):
     """
     Process a NanoAOD ROOT file and writes a Python file containing the definitions of branches.
@@ -74,7 +76,9 @@ def dump_nanoaod_collections(input_file, output_file):
         if nbranch:
             name = nbranch.GetName()
             leaf = nbranch.GetLeaf(name)
-            btype = nbranch.GetClassName() or (leaf.GetTypeName() if leaf else "unknown")
+            btype = nbranch.GetClassName() or (
+                leaf.GetTypeName() if leaf else "unknown"
+            )
             btitle = nbranch.GetTitle()
             left = f'{name} = NanoAODQuantity("{name}")'
             # The documentation string that will appear on hover in the IDE.
@@ -118,6 +122,7 @@ def dump_nanoaod_collections(input_file, output_file):
                 out.write("\n")
             else:
                 out.write(f"{left.ljust(maxlen)}  {comment}\n")
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
