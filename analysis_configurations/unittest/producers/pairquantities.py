@@ -208,7 +208,7 @@ tau_q_2 = Producer(
 muon_iso_1 = Producer(
     name="muon_iso_1",
     call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
-    input=[nanoAOD.MuonMuon_pfRelIso04_all_iso, q.dileptonpair],
+    input=[nanoAOD.Muon_pfRelIso04_all, q.dileptonpair],
     output=[q.iso_1],
     scopes=["mt", "mm"],
 )
