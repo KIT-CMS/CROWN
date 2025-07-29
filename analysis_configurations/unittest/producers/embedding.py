@@ -70,7 +70,7 @@ TauEmbeddingIsTightTrailingMuon = Producer(
 TauEmbeddingnInitialPairCandidates = Producer(
     name="TauEmbeddingInitialPairCandidates",
     call="event::quantity::Rename<Float_t>({df}, {output}, {input})",
-    input=[nanoAOD.TauEmbedding_InitialPairCandidates],
+    input=[nanoAOD.TauEmbedding_nInitialPairCandidates],
     output=[q.emb_InitialPairCandidates],
     scopes=["global"],
 )
