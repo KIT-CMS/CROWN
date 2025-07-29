@@ -48,6 +48,26 @@ def get_collection(branches):
     return collections, nbranches
 
 
+def add_branch_to_lines(branch, used, lines):
+    """
+    Add a branch definition to the lines list if it hasn't been used yet.
+
+    Args:
+        branch (ROOT.TBranch): The branch to add.
+        used (set): Set of already used branch names.
+        lines (list): List to append the branch definition to.
+    """
+    name = branch.GetName()
+    if name in used:
+        return
+    leaf = branch.GetLeaf(name)
+    btype = branch.GetClassName() or (leaf.GetTypeName() if leaf else "unknown")
+    btitle = branch.GetTitle()
+    left = f'{name} = NanoAODQuantity("{name}")'
+    comment = f'\n"""dtype: {btype}; description: {btitle}"""'
+    lines.append((left, comment))
+    used.add(name)
+
 def dump_nanoaod_collections(input_file, output_file):
     """
     Process a NanoAOD ROOT file and writes a Python file containing the definitions of branches.
@@ -74,42 +94,15 @@ def dump_nanoaod_collections(input_file, output_file):
         # Add nCOLLECTIONNAME variable at the top if it exists
         nbranch = nbranches.get(collection)
         if nbranch:
-            name = nbranch.GetName()
-            leaf = nbranch.GetLeaf(name)
-            btype = nbranch.GetClassName() or (
-                leaf.GetTypeName() if leaf else "unknown"
-            )
-            btitle = nbranch.GetTitle()
-            left = f'{name} = NanoAODQuantity("{name}")'
-            # The documentation string that will appear on hover in the IDE.
-            comment = f'\n"""dtype: {btype}; description: {btitle}"""'
-            lines.append((left, comment))
-            used.add(name)
+            add_branch_to_lines(nbranch, used, lines)
         # Add collection branches (excluding the nCOLLECTIONNAME branch, if already added).
         for branch in sorted(collections[collection], key=lambda b: b.GetName()):
-            name = branch.GetName()
-            if name in used:
-                continue
-            leaf = branch.GetLeaf(name)
-            btype = branch.GetClassName() or (leaf.GetTypeName() if leaf else "unknown")
-            btitle = branch.GetTitle()
-            left = f'{name} = NanoAODQuantity("{name}")'
-            comment = f'\n"""dtype: {btype}; description: {btitle}"""'
-            lines.append((left, comment))
-            used.add(name)
+            add_branch_to_lines(branch, used, lines)
         lines.append(("", ""))  # Insert a blank line between collections
 
     # Process branches not assigned to any collection.
     for branch in branches:
-        name = branch.GetName()
-        if name in used:
-            continue
-        leaf = branch.GetLeaf(name)
-        btype = branch.GetClassName() or (leaf.GetTypeName() if leaf else "unknown")
-        btitle = branch.GetTitle()
-        left = f'{name} = NanoAODQuantity("{name}")'
-        comment = f'\n"""dtype: {btype}; description: {btitle}"""'
-        lines.append((left, comment))
+        add_branch_to_lines(branch, used, lines)
 
     # Compute maximum left-hand side length for alignment
     maxlen = max(len(left) for left, _ in lines if left)
