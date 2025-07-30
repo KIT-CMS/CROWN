@@ -32,7 +32,9 @@ def get_all_unique_branch_info(input_files):
             name = branch.GetName()
             if name not in branch_info:
                 leaf = branch.GetLeaf(name)
-                btype = branch.GetClassName() or (leaf.GetTypeName() if leaf else "unknown")
+                btype = branch.GetClassName() or (
+                    leaf.GetTypeName() if leaf else "unknown"
+                )
                 btitle = branch.GetTitle()
                 branch_info[name] = (btype, btitle)
         f.Close()
@@ -62,6 +64,7 @@ def get_collection(branch_names):
             collections["__other__"].append(name)
     return collections, nbranches
 
+
 def add_branch_to_lines(name, branch_info, used, lines):
     """
     Add a branch definition to the lines list if it hasn't been used yet.
@@ -79,6 +82,7 @@ def add_branch_to_lines(name, branch_info, used, lines):
     comment = f'\n"""dtype: {btype}; description: {btitle}"""'
     lines.append((left, comment))
     used.add(name)
+
 
 def dump_nanoaod_collections(branch_info, output_file):
     """
@@ -114,6 +118,7 @@ def dump_nanoaod_collections(branch_info, output_file):
             else:
                 out.write(f"{left.ljust(maxlen)}  {comment}\n")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Produce a Python file with all unique NanoAOD branches from multiple ROOT files."
@@ -121,12 +126,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "input_files",
         nargs="+",
-        help="Input NanoAOD ROOT files (space separated list)."
+        help="Input NanoAOD ROOT files (space separated list).",
     )
-    parser.add_argument(
-        "output_file",
-        help="Output Python file."
-    )
+    parser.add_argument("output_file", help="Output Python file.")
     args = parser.parse_args()
 
     branch_info = get_all_unique_branch_info(args.input_files)
