@@ -1,1 +1,3 @@
-from analysis_configurations.nanoAOD_quantities import v9_run2 as nanoAOD
+from analysis_configurations.quantities import nanoAODv9_run2 as nanoAOD
+
+__all__ = ["nanoAOD"]
