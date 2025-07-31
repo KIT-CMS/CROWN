@@ -18,6 +18,103 @@ namespace physicsobject {
 namespace jet {
 
 /**
+ * @brief Applies jet identification criteria based on JSON-defined jet ID corrections.
+ *
+ * This function loads jet ID definitions from correctionlib JSON files for the specified
+ * jet collection and evaluates two sets of criteria:
+ *  - Tight ID
+ *  - Tight Lepton Veto ID
+ *
+ * It uses these evaluations to assign a jet ID code to each jet in the input dataframe:
+ *  - 6 : passes Tight and Tight Lepton Veto IDs
+ *  - 2 : passes Tight ID but fails Tight Lepton Veto ID
+ *  - 0 : fails Tight ID
+ * (Ref. https://twiki.cern.ch/twiki/bin/view/CMS/JetID13p6TeV#Recommendations_for_the_13_6_AN1)
+ *
+ * The jet ID is returned as a vector of unsigned chars (UChar_t), compatible with NanoAOD v12 conventions.
+ *
+ * @param df Input ROOT RDataFrame containing jet variables
+ * @param correction_manager correction manager responsible for loading the
+ * correction scale uncertainty patch file
+ * @param outputname Name of the new column to hold the computed jet ID flags
+ * @param jet_eta Name of the branch for jet pseudorapidity
+ * @param jet_chHEF Name of the branch for charged hadron energy fraction
+ * @param jet_neHEF Name of the branch for neutral hadron energy fraction
+ * @param jet_chEmEF Name of the branch for charged electromagnetic energy fraction
+ * @param jet_neEmEF Name of the branch for neutral electromagnetic energy fraction
+ * @param jet_muEF Name of the branch for muon energy fraction
+ * @param jet_chMult Name of the branch for charged multiplicity
+ * @param jet_neMult Name of the branch for neutral multiplicity
+ * @param jet_id_file Path to the jet ID JSON file containing correction definitions
+ * @param jet_name Prefix of the jet collection used to select the appropriate corrections
+ *
+ * @return Modified ROOT RDataFrame with the new jet ID column appended
+ */
+
+ROOT::RDF::RNode 
+JetID(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname,
+        const std::string &jet_eta,
+        const std::string &jet_chHEF,
+        const std::string &jet_neHEF,
+        const std::string &jet_chEmEF,
+        const std::string &jet_neEmEF,
+        const std::string &jet_muEF,
+        const std::string &jet_chMult,
+        const std::string &jet_neMult,
+        const std::string &jet_id_file,
+        const std::string &jet_name) {
+
+    // Load the jet ID correction file with Tight criteria
+    auto tightID = 
+        correction_manager.loadCorrection(jet_id_file, jet_name + "_Tight"); //AK4PUPPI o AK4CHS
+    
+    // Load the jet ID correction file with TightLeptonVeto criteria
+    auto tightLepVetoID = 
+        correction_manager.loadCorrection(jet_id_file, jet_name + "_TightLeptonVeto"); //AK4PUPPI o AK4CHS
+
+    auto compute_jet_id = [tightID, tightLepVetoID](const ROOT::RVec<float> &eta,
+                                                    const ROOT::RVec<float> &chHEF,
+                                                    const ROOT::RVec<float> &neHEF,
+                                                    const ROOT::RVec<float> &chEmEF,
+                                                    const ROOT::RVec<float> &neEmEF,
+                                                    const ROOT::RVec<float> &muEF,
+                                                    const ROOT::RVec<UChar_t> &chMult,
+                                                    const ROOT::RVec<UChar_t> &neMult) {
+
+        size_t nJets = eta.size();
+        ROOT::RVec<UChar_t> jetId(nJets); //to agree with v12 type
+        for (size_t i = 0; i < nJets; ++i) {
+            UChar_t mult = chMult.at(i) + neMult.at(i);
+            bool passTight = false, passTightLepVeto = false;
+
+            // Order and number of inputs must match JSON definition!
+            passTight = (tightID->evaluate(
+                {eta.at(i), chHEF.at(i), neHEF.at(i), chEmEF.at(i),
+                neEmEF.at(i), muEF.at(i), chMult.at(i), neMult.at(i), mult}
+            ) == 1);
+
+            passTightLepVeto = (tightLepVetoID->evaluate(
+                {eta.at(i), chHEF.at(i), neHEF.at(i), chEmEF.at(i),
+                neEmEF.at(i), muEF.at(i), chMult.at(i), neMult.at(i), mult}
+            ) == 1);
+
+            if (passTight && passTightLepVeto) jetId[i] = static_cast<UChar_t>(6);
+            else if (passTight && !passTightLepVeto) jetId[i] = static_cast<UChar_t>(2);
+            else jetId[i] = static_cast<UChar_t>(0);
+        }
+        return jetId;
+    };
+
+    auto df1 = df.Define(outputname, compute_jet_id,
+                     {jet_eta, jet_chHEF, jet_neHEF,
+                      jet_chEmEF, jet_neEmEF, jet_muEF,
+                      jet_chMult, jet_neMult});
+    return df1;
+}
+
+/**
  * @brief This function applies jet energy scale corrections (JES) and jet
  * energy resolution (JER) smearing to simulated jets using correction factors.
  * In nanoAOD the JES corrections are already applied to jets, however, if new
