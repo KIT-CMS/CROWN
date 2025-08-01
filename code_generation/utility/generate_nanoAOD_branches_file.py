@@ -185,7 +185,7 @@ def dump_nanoaod_collections(
         add_branch_to_lines(name, branch_info, used, lines)
 
     print(f"--- Writing output to analysis_configurations/quantities/{output_file} ---")
-    with open("analysis_configurations/quantities/"+output_file, "w") as out:
+    with open("analysis_configurations/quantities/" + output_file, "w") as out:
         out.write("from code_generation.quantity import NanoAODQuantity\n\n")
         for quantity, comment in lines:
             if quantity == "" and comment == "":
