@@ -83,7 +83,7 @@ namespace quantity {
  * @param lumi name of the column containing the luminosity block number
  * @param run name of the column containing the run number
  * @param event name of the column containing the event number
- * @param seed master seed value to be added to the hash used for event seed
+ * @param master_seed master seed value to be added to the hash used for event seed
  * generation
  *
  * @return a dataframe with the new column

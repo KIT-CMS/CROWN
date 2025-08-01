@@ -140,7 +140,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * @param outputname name of the output column for corrected \f$p_T\f$ values
  * @param pt name of the column containing electron \f$p_T\f$ values
  * @param eta name of the column containing electron pseudorapidities
- * @param seed_gain name of the column containing electron gain values
+ * @param delta_eta_sc name of the column containing the distance in
+ * pseudorapidity between supercluster and electron
  * @param r9 name of the column containing the R9 value of the electron's
  * supercluster
  * @param event_seed name of the column containing the event seed for the
@@ -281,7 +282,9 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * @param outputname name of the output column for corrected \f$p_T\f$ values
  * @param pt name of the column containing electron \f$p_T\f$ values
  * @param eta name of the column containing electron pseudorapidities
- * @param gain name of the column containing electron gain values
+ * @param delta_eta_sc name of the column containing the distance in
+ * pseudorapidity between supercluster and electron
+ * @param seed_gain name of the column containing electron gain values
  * @param r9 name of the column containing the R9 value of the electron's
  * supercluster
  * @param run name of the column containing the run number

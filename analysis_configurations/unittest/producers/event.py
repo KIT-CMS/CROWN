@@ -42,7 +42,7 @@ JSONFilter = BaseFilter(
 PrefireWeight = Producer(
     name="PrefireWeight",
     call="event::quantity::Rename<float>({df}, {output}, {input})",
-    input=[nanoAOD.prefireWeight],
+    input=[nanoAOD.L1PreFiringWeight_Nom],
     output=[q.prefireweight],
     scopes=["global"],
 )
@@ -185,9 +185,9 @@ TopPtReweighting = Producer(
     name="TopPtReweighting",
     call="event::reweighting::TopPt({df}, {output}, {input})",
     input=[
-        nanoAOD.GenParticle_pdgId,
-        nanoAOD.GenParticle_statusFlags,
-        nanoAOD.GenParticle_pt,
+        nanoAOD.GenPart_pdgId,
+        nanoAOD.GenPart_statusFlags,
+        nanoAOD.GenPart_pt,
     ],
     output=[q.topPtReweightWeight],
     scopes=["global", "em", "et", "mt", "tt", "mm"],

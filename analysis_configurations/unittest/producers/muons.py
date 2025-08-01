@@ -44,7 +44,7 @@ MuonIDCut = Producer(
 MuonIsoCut = Producer(
     name="MuonIsoCut",
     call="physicsobject::CutMax<float>({df}, {output}, {input}, {muon_iso_cut})",
-    input=[nanoAOD.Muon_iso],
+    input=[nanoAOD.Muon_pfRelIso04_all],
     output=[],
     scopes=["global"],
 )
@@ -85,7 +85,7 @@ GoodMuonEtaCut = Producer(
 GoodMuonIsoCut = Producer(
     name="GoodMuonIsoCut",
     call="physicsobject::CutMax<float>({df}, {output}, {input}, {muon_iso_cut})",
-    input=[nanoAOD.Muon_iso],
+    input=[nanoAOD.Muon_pfRelIso04_all],
     output=[],
     scopes=["em", "mt", "mm"],
 )

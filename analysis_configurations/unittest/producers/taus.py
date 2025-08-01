@@ -10,21 +10,21 @@ from code_generation.producer import Producer, ProducerGroup
 VsJetTauIDCut = Producer(
     name="VsJetTauIDCut",
     call="physicsobject::CutBitmask({df}, {output}, {input}, {vsjet_tau_id_bit})",
-    input=[nanoAOD.Tau_ID_vsJet],
+    input=[nanoAOD.Tau_idDeepTau2017v2p1VSjet],
     output=[],
     scopes=["et", "mt", "tt"],
 )
 VsElectronTauIDCut = Producer(
     name="VsElectronTauIDCut",
     call="physicsobject::CutBitmask({df}, {output}, {input}, {vsele_tau_id_bit})",
-    input=[nanoAOD.Tau_ID_vsEle],
+    input=[nanoAOD.Tau_idDeepTau2017v2p1VSe],
     output=[],
     scopes=["et", "mt", "tt"],
 )
 VsMuonTauIDCut = Producer(
     name="VsMuonTauIDCut",
     call="physicsobject::CutBitmask({df}, {output}, {input}, {vsmu_tau_id_bit})",
-    input=[nanoAOD.Tau_ID_vsMu],
+    input=[nanoAOD.Tau_idDeepTau2017v2p1VSmu],
     output=[],
     scopes=["et", "mt", "tt"],
 )
@@ -70,7 +70,7 @@ TauPtCorrection_eleFake = Producer(
         nanoAOD.Tau_pt,
         nanoAOD.Tau_eta,
         nanoAOD.Tau_decayMode,
-        nanoAOD.Tau_genMatch,
+        nanoAOD.Tau_genPartFlav,
     ],
     output=[q.Tau_pt_ele_corrected],
     scopes=["et", "mt", "tt"],
@@ -91,7 +91,7 @@ TauPtCorrection_muFake = Producer(
         q.Tau_pt_ele_corrected,
         nanoAOD.Tau_eta,
         nanoAOD.Tau_decayMode,
-        nanoAOD.Tau_genMatch,
+        nanoAOD.Tau_genPartFlav,
     ],
     output=[q.Tau_pt_ele_mu_corrected],
     scopes=["et", "mt", "tt"],
@@ -115,7 +115,7 @@ TauPtCorrection_genTau = Producer(
         q.Tau_pt_ele_mu_corrected,
         nanoAOD.Tau_eta,
         nanoAOD.Tau_decayMode,
-        nanoAOD.Tau_genMatch,
+        nanoAOD.Tau_genPartFlav,
     ],
     output=[q.Tau_pt_corrected],
     scopes=["et", "mt", "tt"],

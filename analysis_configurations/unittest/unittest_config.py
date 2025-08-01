@@ -890,8 +890,8 @@ def build_config(
         SystematicShiftByQuantity(
             name="metUnclusteredEnUp",
             quantity_change={
-                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredUp",
-                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredUp",
+                nanoAOD.PuppiMET_pt: "PuppiMET_ptUnclusteredUp",
+                nanoAOD.PuppiMET_phi: "PuppiMET_phiUnclusteredUp",
             },
             scopes=["global"],
         ),
@@ -901,8 +901,8 @@ def build_config(
         SystematicShiftByQuantity(
             name="metUnclusteredEnDown",
             quantity_change={
-                nanoAOD.MET_pt: "PuppiMET_ptUnclusteredDown",
-                nanoAOD.MET_phi: "PuppiMET_phiUnclusteredDown",
+                nanoAOD.PuppiMET_pt: "PuppiMET_ptUnclusteredDown",
+                nanoAOD.PuppiMET_phi: "PuppiMET_phiUnclusteredDown",
             },
             scopes=["global"],
         ),

@@ -37,14 +37,14 @@ ElectronDzCut = Producer(
 ElectronIDCut = Producer(
     name="ElectronIDCut",
     call="physicsobject::CutEqual<bool>({df}, {output}, {input}, true)",
-    input=[nanoAOD.Electron_IDWP90],
+    input=[nanoAOD.Electron_mvaFall17V2noIso_WP90],
     output=[],
     scopes=["global"],
 )
 ElectronIsoCut = Producer(
     name="ElectronIsoCut",
     call="physicsobject::CutMax<float>({df}, {output}, {input}, {max_ele_iso})",
-    input=[nanoAOD.Electron_iso],
+    input=[nanoAOD.Electron_pfRelIso03_all],
     output=[],
     scopes=["global"],
 )
@@ -85,7 +85,7 @@ GoodElectronEtaCut = Producer(
 GoodElectronIsoCut = Producer(
     name="GoodElectronIsoCut",
     call="physicsobject::CutMax<float>({df}, {output}, {input}, {electron_iso_cut})",
-    input=[nanoAOD.Electron_iso],
+    input=[nanoAOD.Electron_pfRelIso03_all],
     output=[],
     scopes=["em", "et", "ee"],
 )
