@@ -21,7 +21,7 @@ parse the input files, extract all available branches and their metadata, and wr
 file for use in CROWN.
 
 The generated file becomes a single source of truth for a given NanoAOD version, and your 
-analysis can be configured to use it. The generated file should be placed in ``analysis_configurations/quantities/``. 
+analysis can be configured to use it. The generated file is saved in ``analysis_configurations/quantities/``. 
 The naming convention should be clear, e.g., ``nanoAODv9_run2.py``, ``nanoAODv12_run3.py``, etc.
 
 Within your specific analysis, you create a nanoAOD quantities module that points to the desired 

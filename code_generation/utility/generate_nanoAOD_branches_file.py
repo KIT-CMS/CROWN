@@ -46,7 +46,7 @@ def get_all_unique_branch_info(input_files: List[str]) -> Dict[str, Tuple[str, s
                 bdescription = branch.GetTitle()
                 branch_info[name] = (btype, bdescription)
         f.Close()
-    print(f"✅ Found {len(branch_info)} unique branches.\n")
+    print(f"Found {len(branch_info)} unique branches.\n")
     return branch_info
 
 
@@ -184,8 +184,8 @@ def dump_nanoaod_collections(
     for name in branch_info:
         add_branch_to_lines(name, branch_info, used, lines)
 
-    print(f"--- Writing output to {output_file} ---")
-    with open(output_file, "w") as out:
+    print(f"--- Writing output to analysis_configurations/quantities/{output_file} ---")
+    with open("analysis_configurations/quantities/"+output_file, "w") as out:
         out.write("from code_generation.quantity import NanoAODQuantity\n\n")
         for quantity, comment in lines:
             if quantity == "" and comment == "":
@@ -193,7 +193,7 @@ def dump_nanoaod_collections(
             else:
                 out.write(f"{quantity}")
                 out.write(f"{comment}\n")
-    print("✅ Done.")
+    print("Done.")
 
 
 if __name__ == "__main__":
@@ -212,7 +212,7 @@ if __name__ == "__main__":
         "-o",
         "--output-file",
         required=True,
-        help="Path to the output Python file.",
+        help="Name of the output Python file. The file is saved in 'analysis_configurations/quantities/'",
         metavar="OUT_FILE",
     )
 
