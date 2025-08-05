@@ -8,7 +8,7 @@ However, these version updates also bring changes to branch data types in the na
 these changes can cause compatibility issues. 
 Below is a list of known differences between nanoAODv9 and nanoAODv12, and between nanoAODv12 and nanoAODv15.
 
-.. list-table:: ## Changes from nanoAOD v9 to v12
+.. list-table:: Changes from nanoAOD v9 to v12
    :widths: 75 100
    :header-rows: 1
 
