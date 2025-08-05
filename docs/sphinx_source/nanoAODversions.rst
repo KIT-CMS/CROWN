@@ -1,6 +1,42 @@
 NanoAOD versions
 =================
 
+Using nanoAOD branches in CROWN
+-------------------------------
+
+When a new NanoAOD version is released or a custom version is produced for an analysis, the 
+list of available branches (quantities) can change. There is a script (``code_generation/utility/generate_nanoaod_branches.py``) 
+that automates the process of discovering all available branches and their metadata (like data 
+type and description) and codifies them into a Python file.
+
+To use the script, run:
+
+.. code-block:: bash
+
+  python code_generation/utility/generate_nanoaod_branches.py -i <input_root_file(s)> -o <output_python_file>
+
+Replace ``<input_root_file(s)>`` with one or more NanoAOD ROOT files (comma-separated) of the wanted 
+nanoAOD version, and ``<output_python_file>`` with the desired output Python file. The script will 
+parse the input files, extract all available branches and their metadata, and write them to the output 
+file for use in CROWN.
+
+The generated file becomes a single source of truth for a given NanoAOD version, and your 
+analysis can be configured to use it. The generated file is saved in ``analysis_configurations/quantities/``. 
+The naming convention should be clear, e.g., ``nanoAODv9_run2.py``, ``nanoAODv12_run3.py``, etc.
+
+Within your specific analysis, you create a nanoAOD quantities module that points to the desired 
+NanoAOD version. This is done in the ``quantities/__init__.py`` file of your analysis directory.
+To use e.g. the NanoAOD v9 branches, the file should contain:
+
+.. code-block:: python
+
+  from analysis_configurations.quantities import nanoAODv9_run2 as nanoAOD
+
+  __all__ = ["nanoAOD"]
+
+Version differences
+-------------------
+
 CMS has different versions of the nanoAOD format, with each data-taking run typically introducing a new version that includes updates, bug fixes, or new features. 
 For Run-2, the UL datasets were fully reprocessed using nanoAODv9. In Run-3, a new nanoAOD version is introduced each year, starting with nanoAODv12. 
 The expected "final" version for both Run-2 and Run-3 will be nanoAODv15. 

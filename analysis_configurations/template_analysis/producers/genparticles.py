@@ -22,10 +22,10 @@ LVGenParticle1 = Producer(
     name="LVGenParticle1",
     call="lorentzvector::Build({df}, {output}, {input}, 0)",
     input=[
-        nanoAOD.GenParticle_pt,
-        nanoAOD.GenParticle_eta,
-        nanoAOD.GenParticle_phi,
-        nanoAOD.GenParticle_mass,
+        nanoAOD.GenPart_pt,
+        nanoAOD.GenPart_eta,
+        nanoAOD.GenPart_phi,
+        nanoAOD.GenPart_mass,
         q.gen_dileptonpair,
     ],
     output=[q.gen_p4_1],
@@ -35,10 +35,10 @@ LVGenParticle2 = Producer(
     name="LVGenParticle2",
     call="lorentzvector::Build({df}, {output}, {input}, 1)",
     input=[
-        nanoAOD.GenParticle_pt,
-        nanoAOD.GenParticle_eta,
-        nanoAOD.GenParticle_phi,
-        nanoAOD.GenParticle_mass,
+        nanoAOD.GenPart_pt,
+        nanoAOD.GenPart_eta,
+        nanoAOD.GenPart_phi,
+        nanoAOD.GenPart_mass,
         q.gen_dileptonpair,
     ],
     output=[q.gen_p4_2],
@@ -104,14 +104,14 @@ gen_mass_2 = Producer(
 gen_pdgid_1 = Producer(
     name="gen_pdgid_1",
     call="event::quantity::Get<int>({df}, {output}, {input}, 0)",
-    input=[nanoAOD.GenParticle_pdgId, q.gen_dileptonpair],
+    input=[nanoAOD.GenPart_pdgId, q.gen_dileptonpair],
     output=[q.gen_pdgid_1],
     scopes=["mm"],
 )
 gen_pdgid_2 = Producer(
     name="gen_pdgid_2",
     call="event::quantity::Get<int>({df}, {output}, {input}, 1)",
-    input=[nanoAOD.GenParticle_pdgId, q.gen_dileptonpair],
+    input=[nanoAOD.GenPart_pdgId, q.gen_dileptonpair],
     output=[q.gen_pdgid_2],
     scopes=["mm"],
 )

@@ -27,11 +27,11 @@ JetPtCorrection = Producer(
         nanoAOD.Jet_phi,
         nanoAOD.Jet_area,
         nanoAOD.Jet_rawFactor,
-        nanoAOD.Jet_ID,
+        nanoAOD.Jet_jetId,
         nanoAOD.GenJet_pt,
         nanoAOD.GenJet_eta,
         nanoAOD.GenJet_phi,
-        nanoAOD.rho,
+        nanoAOD.fixedGridRhoFastjetAll,
     ],
     output=[q.Jet_pt_corrected],
     scopes=["global"],
@@ -109,21 +109,21 @@ BJetEtaCut = Producer(
 JetIDCut = Producer(
     name="JetIDCut",
     call="physicsobject::CutMin<int>({df}, {output}, {input}, {jet_id})",
-    input=[nanoAOD.Jet_ID],
+    input=[nanoAOD.Jet_jetId],
     output=[q.jet_id_mask],
     scopes=["global"],
 )
 JetPUIDCut = Producer(
     name="JetPUIDCut",
     call="physicsobject::jet::CutPileupID({df}, {output}, {input}, {jet_puid}, {jet_puid_max_pt})",
-    input=[nanoAOD.Jet_PUID, q.Jet_pt_corrected],
+    input=[nanoAOD.Jet_puId, q.Jet_pt_corrected],
     output=[q.jet_puid_mask],
     scopes=["global"],
 )
 BTagCut = Producer(
     name="BTagCut",
     call="physicsobject::CutMin<float>({df}, {output}, {input}, {btag_cut})",
-    input=[nanoAOD.BJet_discriminator],
+    input=[nanoAOD.Jet_btagDeepFlavB],
     output=[],
     scopes=["global"],
 )
@@ -279,14 +279,14 @@ jphi_2 = Producer(
 jtag_value_1 = Producer(
     name="jtag_value_1",
     call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
-    input=[nanoAOD.BJet_discriminator, q.good_jet_collection],
+    input=[nanoAOD.Jet_btagDeepFlavB, q.good_jet_collection],
     output=[q.jtag_value_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 jtag_value_2 = Producer(
     name="jtag_value_2",
     call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
-    input=[nanoAOD.BJet_discriminator, q.good_jet_collection],
+    input=[nanoAOD.Jet_btagDeepFlavB, q.good_jet_collection],
     output=[q.jtag_value_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
@@ -402,14 +402,14 @@ bphi_2 = Producer(
 btag_value_1 = Producer(
     name="btag_value_1",
     call="event::quantity::Get<float>({df}, {output}, {input}, 0)",
-    input=[nanoAOD.BJet_discriminator, q.good_bjet_collection],
+    input=[nanoAOD.Jet_btagDeepFlavB, q.good_bjet_collection],
     output=[q.btag_value_1],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )
 btag_value_2 = Producer(
     name="btag_value_2",
     call="event::quantity::Get<float>({df}, {output}, {input}, 1)",
-    input=[nanoAOD.BJet_discriminator, q.good_bjet_collection],
+    input=[nanoAOD.Jet_btagDeepFlavB, q.good_bjet_collection],
     output=[q.btag_value_2],
     scopes=["mt", "et", "tt", "em", "mm", "ee"],
 )

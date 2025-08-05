@@ -11,13 +11,13 @@ In the following, an introduction about how to add a new producer is given. As a
 Writing a new C++ function
 **************************
 
-For a new C++ function, both a definition in the header file and the implementation in the source file are required. As good practice, we will add the function to a namespace called ``lorentzvector``, and call the function ``build``.
+For a new C++ function, both a definition in the header file and the implementation in the source file are required. As good practice, we will add the function to a namespace called ``lorentzvector``, and call the function ``Build``.
 The return type of any function in CROWN should always be ``ROOT::RDF::RNode``, and the first argument of the function should always be the RDataframe, where we want to Define our new quantity. This means the basic definition of the function should look like this:
 
 .. code-block:: cpp
 
     namespace lorentzvector {
-        ROOT::RDF::RNode build(ROOT::RDF::RNode df, ...);
+        ROOT::RDF::RNode Build(ROOT::RDF::RNode df, ...);
     }
 
 This will go into the corresponding header file located within the ``include`` folder, and the implementation will go into the source file in the ``src`` folder.
@@ -26,7 +26,7 @@ The C++ functions used in CROWN always act as wrapper functions surrounding the 
 
 .. code-block:: cpp
 
-    ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &outputname,
+    ROOT::RDF::RNode Build(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &pts, const std::string &etas,
                         const std::string &phis, const std::string &masses,
                         const int &index);
@@ -35,7 +35,7 @@ Note, that we can add these arguments as ``const string &``, since we do not nee
 
 .. code-block:: cpp
 
-    ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &outputname,
+    ROOT::RDF::RNode Build(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &pts, const std::string &etas,
                         const std::string &phis, const std::string &masses,
                         const int &index) {
@@ -51,7 +51,7 @@ In our example, the lambda function is straightforward. We use our input values 
 
 .. code-block:: cpp
 
-    ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &outputname,
+    ROOT::RDF::RNode Build(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &pts, const std::string &etas,
                         const std::string &phis, const std::string &masses,
                         const int &index) {
@@ -67,7 +67,7 @@ We define the lambda function with the type ``auto`` and pass it all our input c
 
 .. code-block:: cpp
 
-    ROOT::RDF::RNode build(ROOT::RDF::RNode df, const std::string &outputname,
+    ROOT::RDF::RNode Build(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &pts, const std::string &etas,
                         const std::string &phis, const std::string &masses,
                         const int &index) {
@@ -75,9 +75,9 @@ We define the lambda function with the type ``auto`` and pass it all our input c
                                     ROOT::RVec<float> phis,
                                     ROOT::RVec<float> masses) {
             // Create the Lorentz vector for each object in the event
-            Logger::get("build")->debug("size of pt {}, eta {}, phi {}, mass {}",
-                                    pts.size(), etas.size(), phis.size(),
-                                    masses.size());
+            Logger::get("lorentzvector::Build")
+                ->debug("size of pt {}, eta {}, phi {}, mass {}",
+                    pts.size(), etas.size(), phis.size(), masses.size());
             auto fourVec = ROOT::Math::PtEtaPhiMVector(
                 pts.at(index, -10.), etas.at(index, -10.), phis.at(index, -10.),
                 masses.at(index, -10.));
@@ -152,6 +152,7 @@ The quantities themselves that are used also have to be defined. Within CROWN, s
     Electron_p4s = Quantity("Electron_p4")
 
 The only argument here is the column name of the quantity. The same goes for our new output quantity, however, since it is a new quantity it should be of type :py:class:`~code_generation.quantity.Quantity`, not :py:class:`~code_generation.quantity.NanoAODQuantity`. The quantities are defined in the files found in the ``analysis_configurations/YOUR_ANALYSIS/quantities`` directory.
+The definition of NanoAOD quantities can be automatized by loading one of the available NanoAOD quantity files in ``analysis_configurations/quantities`` in your analysis directory ``analysis_configurations/YOUR_ANALYSIS/quantities/__init__.py``.
 
 After this, our new producer is now ready to be added to the configuration. To get the producer running, we have to add it to the set of producers, and we have to add the output quantity to the set of required outputs. To learn more about writing a configuration check out :ref:`Writing a CROWN Configuration<Writing a CROWN Configuration>`.
 
