@@ -31,7 +31,7 @@ namespace jet {
  *  - 0 : fails Tight ID
  * (Ref. https://twiki.cern.ch/twiki/bin/view/CMS/JetID13p6TeV#Recommendations_for_the_13_6_AN1)
  *
- * The jet ID is returned as a vector of unsigned chars (UChar_t), compatible with NanoAOD v12 conventions.
+ * The jet ID is returned as a vector of int, compatible with NanoAOD v9 conventions.
  *
  * @param df Input ROOT RDataFrame containing jet variables
  * @param correction_manager correction manager responsible for loading the
@@ -48,7 +48,7 @@ namespace jet {
  * @param jet_id_file Path to the jet ID JSON file containing correction definitions
  * @param jet_name Prefix of the jet collection used to select the appropriate corrections
  *
- * @return Modified ROOT RDataFrame with the new jet ID column appended
+ * @return a RDataFrame with the new jet ID column appended
  */
 
 ROOT::RDF::RNode 
@@ -68,11 +68,11 @@ JetID(ROOT::RDF::RNode df,
 
     // Load the jet ID correction file with Tight criteria
     auto tightID = 
-        correction_manager.loadCorrection(jet_id_file, jet_name + "_Tight"); //AK4PUPPI o AK4CHS
+        correction_manager.loadCorrection(jet_id_file, jet_name + "_Tight");  
     
     // Load the jet ID correction file with TightLeptonVeto criteria
     auto tightLepVetoID = 
-        correction_manager.loadCorrection(jet_id_file, jet_name + "_TightLeptonVeto"); //AK4PUPPI o AK4CHS
+        correction_manager.loadCorrection(jet_id_file, jet_name + "_TightLeptonVeto"); 
 
     auto compute_jet_id = [tightID, tightLepVetoID](const ROOT::RVec<float> &eta,
                                                     const ROOT::RVec<float> &chHEF,
@@ -84,12 +84,11 @@ JetID(ROOT::RDF::RNode df,
                                                     const ROOT::RVec<UChar_t> &neMult) {
 
         size_t nJets = eta.size();
-        ROOT::RVec<UChar_t> jetId(nJets); //to agree with v12 type
+        ROOT::RVec<int> jetId(nJets); 
         for (size_t i = 0; i < nJets; ++i) {
             UChar_t mult = chMult.at(i) + neMult.at(i);
             bool passTight = false, passTightLepVeto = false;
 
-            // Order and number of inputs must match JSON definition!
             passTight = (tightID->evaluate(
                 {eta.at(i), chHEF.at(i), neHEF.at(i), chEmEF.at(i),
                 neEmEF.at(i), muEF.at(i), chMult.at(i), neMult.at(i), mult}
@@ -100,9 +99,9 @@ JetID(ROOT::RDF::RNode df,
                 neEmEF.at(i), muEF.at(i), chMult.at(i), neMult.at(i), mult}
             ) == 1);
 
-            if (passTight && passTightLepVeto) jetId[i] = static_cast<UChar_t>(6);
-            else if (passTight && !passTightLepVeto) jetId[i] = static_cast<UChar_t>(2);
-            else jetId[i] = static_cast<UChar_t>(0);
+            if (passTight && passTightLepVeto) jetId[i] = 6;
+            else if (passTight && !passTightLepVeto) jetId[i] = 2;
+            else jetId[i] = 0;
         }
         return jetId;
     };
