@@ -92,12 +92,12 @@ JetID(ROOT::RDF::RNode df,
             passTight = (tightID->evaluate(
                 {eta.at(i), chHEF.at(i), neHEF.at(i), chEmEF.at(i),
                 neEmEF.at(i), muEF.at(i), chMult.at(i), neMult.at(i), mult}
-            ) == 1);
+            ) > 0.5);
 
             passTightLepVeto = (tightLepVetoID->evaluate(
                 {eta.at(i), chHEF.at(i), neHEF.at(i), chEmEF.at(i),
                 neEmEF.at(i), muEF.at(i), chMult.at(i), neMult.at(i), mult}
-            ) == 1);
+            ) > 0.5);
 
             if (passTight && passTightLepVeto) jetId[i] = 6;
             else if (passTight && !passTightLepVeto) jetId[i] = 2;
