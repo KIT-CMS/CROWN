@@ -4,21 +4,6 @@
 namespace physicsobject {
 namespace jet {
 
-
-ROOT::RDF::RNode 
-JetID(ROOT::RDF::RNode df,
-              correctionManager::CorrectionManager &correction_manager,
-              const std::string &outputname,
-              const std::string &jet_eta,
-              const std::string &jet_chHEF,
-              const std::string &jet_neHEF,
-              const std::string &jet_chEmEF,
-              const std::string &jet_neEmEF,
-              const std::string &jet_muEF,
-              const std::string &jet_chMult,
-              const std::string &jet_neMult,
-              const std::string &jet_id_file,
-              const std::string &jet_name);
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
                correctionManager::CorrectionManager &correction_manager,
@@ -66,6 +51,23 @@ ROOT::RDF::RNode VetoOverlappingJetsWithIsoLepton(ROOT::RDF::RNode df,
                                                   const std::string &lepton_p4,
                                                   const std::string &lepton_iso,
                                                   const float &min_delta_r);
+
+namespace quantity {
+ROOT::RDF::RNode 
+ID(ROOT::RDF::RNode df,
+              correctionManager::CorrectionManager &correction_manager,
+              const std::string &outputname,
+              const std::string &jet_eta,
+              const std::string &jet_chHEF,
+              const std::string &jet_neHEF,
+              const std::string &jet_chEmEF,
+              const std::string &jet_neEmEF,
+              const std::string &jet_muEF,
+              const std::string &jet_chMult,
+              const std::string &jet_neMult,
+              const std::string &jet_id_file,
+              const std::string &jet_name);
+} // end namespace quantity
 
 namespace scalefactor {
 

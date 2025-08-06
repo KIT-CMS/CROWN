@@ -1272,8 +1272,8 @@ namespace eltau {
     - electron_phi
     - electron_mass
     - electron_iso
-    - tau_mask containing the flags whether the tau is a good tau or not
     - electron_mask containing the flags whether the electron is a good electron
+    - tau_mask containing the flags whether the tau is a good tau or not
  or not
  * @param pairname name of the new column containing the pair index
  * @param mindeltaR the seperation between the electron at the tau has to be
