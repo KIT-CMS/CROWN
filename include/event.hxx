@@ -180,8 +180,12 @@ inline ROOT::RDF::RNode Negate(ROOT::RDF::RNode df,
  * The column `collection_index` must contain the indices for which values
  * should be extracted, and the `quantity` column must contain the values
  * of the quantity.
+ * 
+ * Note that `T` is the type of the values stored in the `RVec` containers in
+ * the `quantity` column, e.g., if the column has type `RVec<float>`, you
+ * must use `T = float`.
  *
- * @tparam T type of the input column values
+ * @tparam T underlying type of the input column values
  * @param df input dataframe
  * @param outputname name of the new column containing the extracted value
  * @param quantity name of the column from which the value is retrieved
