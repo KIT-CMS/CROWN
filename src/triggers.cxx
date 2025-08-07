@@ -233,17 +233,22 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
             df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
-
+    // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
+    // For v9 and v12 compatibility a type casting is applied
+    auto [df2, triggerobject_bits_column] = utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_bits + "_v15", "ROOT::VecOps::RVec<ULong64_t>", triggerobject_bits);
+    
     auto triggermatch = [DeltaR_threshold, pt_cut, eta_cut,
                          trigger_particle_id_cut, triggerbit_cut, hltpath](
                             bool hltpath_match,
                             const ROOT::Math::PtEtaPhiMVector &particle_p4,
-                            ROOT::RVec<int> triggerobject_bits,
+                            ROOT::RVec<ULong64_t> triggerobject_bits_v15,
                             ROOT::RVec<UShort_t> triggerobject_ids_v12,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
         auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+        auto triggerobject_bits_cast = static_cast<ROOT::RVec<int>>(triggerobject_bits_v15);
         Logger::get("GenerateSingleTriggerFlag")->debug("Checking Trigger");
         Logger::get("CheckTriggerMatch")
             ->debug("Selected trigger: {}", hltpath);
@@ -254,7 +259,7 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
                 ->debug("Checking Triggerobject match with particles ....");
             match_result = matchParticle(
                 particle_p4, triggerobject_pts, triggerobject_etas,
-                triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                triggerobject_phis, triggerobject_bits_cast, triggerobject_ids,
                 DeltaR_threshold, pt_cut, eta_cut, trigger_particle_id_cut,
                 triggerbit_cut);
         }
@@ -285,8 +290,8 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
             ->info("No matching trigger for {} found, returning false for "
                    "trigger flag {}",
                    hltpath, triggerflag_name);
-        auto df1 = df.Define(triggerflag_name, []() { return false; });
-        return df1;
+        auto df2 = df.Define(triggerflag_name, []() { return false; });
+        return df2;
     } else if (matched_trigger_names.size() > 1) {
         Logger::get("GenerateSingleTriggerFlag")
             ->debug(
@@ -296,12 +301,12 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
     } else {
         Logger::get("GenerateSingleTriggerFlag")
             ->debug("Found matching trigger: {}", matched_trigger_names[0]);
-        auto df2 =
-            df1.Define(triggerflag_name, triggermatch,
+        auto df3 =
+            df2.Define(triggerflag_name, triggermatch,
                       {matched_trigger_names[0], particle_p4,
-                       triggerobject_bits, triggerobject_id_column, triggerobject_pt,
+                       triggerobject_bits_column, triggerobject_id_column, triggerobject_pt,
                        triggerobject_eta, triggerobject_phi});
-        return df2;
+        return df3;
     }
 }
 
@@ -370,6 +375,10 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
             df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
+    // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
+    // For v9 and v12 compatibility a type casting is applied
+    auto [df2, triggerobject_bits_column] = utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_bits + "_v15", "ROOT::VecOps::RVec<ULong64_t>", triggerobject_bits);
 
     auto triggermatch = [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut,
                          p2_eta_cut, p1_trigger_particle_id_cut,
@@ -378,12 +387,13 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
                             bool hltpath_match,
                             const ROOT::Math::PtEtaPhiMVector &particle1_p4,
                             const ROOT::Math::PtEtaPhiMVector &particle2_p4,
-                            ROOT::RVec<int> triggerobject_bits,
+                            ROOT::RVec<ULong64_t> triggerobject_bits_v15,
                             ROOT::RVec<UShort_t> triggerobject_ids_v12,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
         auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+        auto triggerobject_bits_cast = static_cast<ROOT::RVec<int>>(triggerobject_bits_v15);
         Logger::get("GenerateDoubleTriggerFlag")->debug("Checking Trigger");
         Logger::get("CheckTriggerMatch")
             ->debug("Selected trigger: {}", hltpath);
@@ -396,13 +406,13 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
             Logger::get("GenerateDoubleTriggerFlag")->debug("First particle");
             match_result_p1 = matchParticle(
                 particle1_p4, triggerobject_pts, triggerobject_etas,
-                triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                triggerobject_phis, triggerobject_bits_cast, triggerobject_ids,
                 DeltaR_threshold, p1_pt_cut, p1_eta_cut,
                 p1_trigger_particle_id_cut, p1_triggerbit_cut);
             Logger::get("GenerateDoubleTriggerFlag")->debug("Second particle");
             match_result_p2 = matchParticle(
                 particle2_p4, triggerobject_pts, triggerobject_etas,
-                triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                triggerobject_phis, triggerobject_bits_cast, triggerobject_ids,
                 DeltaR_threshold, p2_pt_cut, p2_eta_cut,
                 p2_trigger_particle_id_cut, p2_triggerbit_cut);
         }
@@ -435,8 +445,8 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
             ->info("No matching trigger for {} found, returning false for "
                    "trigger flag {}",
                    hltpath, triggerflag_name);
-        auto df1 = df.Define(triggerflag_name, []() { return false; });
-        return df1;
+        auto df2 = df.Define(triggerflag_name, []() { return false; });
+        return df2;
     } else if (matched_trigger_names.size() > 1) {
         Logger::get("GenerateDoubleTriggerFlag")
             ->debug(
@@ -446,12 +456,12 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
     } else {
         Logger::get("GenerateDoubleTriggerFlag")
             ->debug("Found matching trigger: {}", matched_trigger_names[0]);
-        auto df2 =
-            df1.Define(triggerflag_name, triggermatch,
+        auto df3 =
+            df2.Define(triggerflag_name, triggermatch,
                       {matched_trigger_names[0], particle1_p4, particle2_p4,
-                       triggerobject_bits, triggerobject_id_column, triggerobject_pt,
+                       triggerobject_bits_column, triggerobject_id_column, triggerobject_pt,
                        triggerobject_eta, triggerobject_phi});
-        return df2;
+        return df3;
     }
 }
 
@@ -516,6 +526,10 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
             df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
+    // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
+    // For v9 and v12 compatibility a type casting is applied
+    auto [df2, triggerobject_bits_column] = utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_bits + "_v15", "ROOT::VecOps::RVec<ULong64_t>", triggerobject_bits);
 
     auto triggermatch =
         [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut, p2_eta_cut,
@@ -523,12 +537,13 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
          p1_triggerbit_cut,
          p2_triggerbit_cut](const ROOT::Math::PtEtaPhiMVector &particle1_p4,
                             const ROOT::Math::PtEtaPhiMVector &particle2_p4,
-                            ROOT::RVec<int> triggerobject_bits,
+                            ROOT::RVec<ULong64_t> triggerobject_bits_v15,
                             ROOT::RVec<UShort_t> triggerobject_ids_v12,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
             auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+            auto triggerobject_bits_cast = static_cast<ROOT::RVec<int>>(triggerobject_bits_v15);
             bool match_result_p1 = false;
             bool match_result_p2 = false;
             Logger::get("MatchDoubleTriggerObject")
@@ -536,13 +551,13 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
             Logger::get("MatchDoubleTriggerObject")->debug("First particle");
             match_result_p1 = matchParticle(
                 particle1_p4, triggerobject_pts, triggerobject_etas,
-                triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                triggerobject_phis, triggerobject_bits_cast, triggerobject_ids,
                 DeltaR_threshold, p1_pt_cut, p1_eta_cut,
                 p1_trigger_particle_id_cut, p1_triggerbit_cut);
             Logger::get("MatchDoubleTriggerObject")->debug("Second particle");
             match_result_p2 = matchParticle(
                 particle2_p4, triggerobject_pts, triggerobject_etas,
-                triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                triggerobject_phis, triggerobject_bits_cast, triggerobject_ids,
                 DeltaR_threshold, p2_pt_cut, p2_eta_cut,
                 p2_trigger_particle_id_cut, p2_triggerbit_cut);
             bool result = match_result_p1 & match_result_p2;
@@ -554,11 +569,11 @@ ROOT::RDF::RNode MatchDoubleTriggerObject(
                 ->debug("--->>>> result: {}", result);
             return result;
         };
-    auto df2 = df1.Define(triggerflag_name, triggermatch,
-                         {particle1_p4, particle2_p4, triggerobject_bits,
+    auto df3 = df2.Define(triggerflag_name, triggermatch,
+                         {particle1_p4, particle2_p4, triggerobject_bits_column,
                           triggerobject_id_column, triggerobject_pt, triggerobject_eta,
                           triggerobject_phi});
-    return df2;
+    return df3;
 }
 
 /**
@@ -600,33 +615,38 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
             df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
+    // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
+    // For v9 and v12 compatibility a type casting is applied
+    auto [df2, triggerobject_bits_column] = utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_bits + "_v15", "ROOT::VecOps::RVec<ULong64_t>", triggerobject_bits);
 
     auto triggermatch = [DeltaR_threshold, pt_cut, eta_cut,
                          trigger_particle_id_cut, triggerbit_cut](
                             const ROOT::Math::PtEtaPhiMVector &particle_p4,
-                            ROOT::RVec<int> triggerobject_bits,
+                            ROOT::RVec<ULong64_t> triggerobject_bits_v15,
                             ROOT::RVec<UShort_t> triggerobject_ids_v12,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
         auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+        auto triggerobject_bits_cast = static_cast<ROOT::RVec<int>>(triggerobject_bits_v15);
         Logger::get("MatchSingleTriggerObject")->debug("Checking Trigger");
         Logger::get("MatchSingleTriggerObject")
             ->debug("Checking Triggerobject match with particles ....");
         bool match_result =
             matchParticle(particle_p4, triggerobject_pts, triggerobject_etas,
-                          triggerobject_phis, triggerobject_bits,
+                          triggerobject_phis, triggerobject_bits_cast,
                           triggerobject_ids, DeltaR_threshold, pt_cut, eta_cut,
                           trigger_particle_id_cut, triggerbit_cut);
         Logger::get("MatchSingleTriggerObject")
             ->debug("--->>>> match_result: {}", match_result);
         return match_result;
     };
-    auto df2 =
-        df1.Define(triggerflag_name, triggermatch,
-                  {particle_p4, triggerobject_bits, triggerobject_id_column,
+    auto df3 =
+        df2.Define(triggerflag_name, triggermatch,
+                  {particle_p4, triggerobject_bits_column, triggerobject_id_column,
                    triggerobject_pt, triggerobject_eta, triggerobject_phi});
-    return df2;
+    return df3;
 }
 
 namespace tagandprobe {
@@ -785,34 +805,39 @@ ROOT::RDF::RNode MatchSingleTriggerObject(
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
             df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
-
+    // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
+    // For v9 and v12 compatibility a type casting is applied
+    auto [df2, triggerobject_bits_column] = utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_bits + "_v15", "ROOT::VecOps::RVec<ULong64_t>", triggerobject_bits);
+    
     auto triggermatch = [DeltaR_threshold, pt_cut, eta_cut,
                          trigger_particle_id_cut, triggerbit_cut,
                          trigger_particle_pt_cut](
                             const ROOT::Math::PtEtaPhiMVector &particle_p4,
-                            ROOT::RVec<int> triggerobject_bits,
+                            ROOT::RVec<ULong64_t> triggerobject_bits_v15,
                             ROOT::RVec<UShort_t> triggerobject_ids_v12,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
         auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+        auto triggerobject_bits_cast = static_cast<ROOT::RVec<int>>(triggerobject_bits_v15);
         Logger::get("MatchSingleTriggerObject")->debug("Checking Trigger");
         Logger::get("MatchSingleTriggerObject")
             ->debug("Checking Triggerobject match with particles ....");
         bool match_result = matchParticle(
             particle_p4, triggerobject_pts, triggerobject_etas,
-            triggerobject_phis, triggerobject_bits, triggerobject_ids,
+            triggerobject_phis, triggerobject_bits_cast, triggerobject_ids,
             DeltaR_threshold, pt_cut, eta_cut, trigger_particle_id_cut,
             triggerbit_cut, trigger_particle_pt_cut);
         Logger::get("MatchSingleTriggerObject")
             ->debug("--->>>> match_result: {}", match_result);
         return match_result;
     };
-    auto df2 =
-        df1.Define(triggerflag_name, triggermatch,
-                  {particle_p4, triggerobject_bits, triggerobject_id_column,
+    auto df3 =
+        df2.Define(triggerflag_name, triggermatch,
+                  {particle_p4, triggerobject_bits_column, triggerobject_id_column,
                    triggerobject_pt, triggerobject_eta, triggerobject_phi});
-    return df2;
+    return df3;
 }
 
 /**
@@ -859,17 +884,22 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
             df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
-
+    // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
+    // For v9 and v12 compatibility a type casting is applied
+    auto [df2, triggerobject_bits_column] = utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_bits + "_v15", "ROOT::VecOps::RVec<ULong64_t>", triggerobject_bits);
+    
     auto triggermatch =
         [DeltaR_threshold, pt_cut, eta_cut, trigger_particle_id_cut,
          triggerbit_cut, trigger_particle_pt_cut, hltpath](
             bool hltpath_match, const ROOT::Math::PtEtaPhiMVector &particle_p4,
-            ROOT::RVec<int> triggerobject_bits,
+            ROOT::RVec<ULong64_t> triggerobject_bits_v15,
             ROOT::RVec<UShort_t> triggerobject_ids_v12,
             ROOT::RVec<float> triggerobject_pts,
             ROOT::RVec<float> triggerobject_etas,
             ROOT::RVec<float> triggerobject_phis) {
             auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+            auto triggerobject_bits_cast = static_cast<ROOT::RVec<int>>(triggerobject_bits_v15);
             Logger::get("GenerateSingleTriggerFlag")->debug("Checking Trigger");
             Logger::get("CheckTriggerMatch")
                 ->debug("Selected trigger: {}", hltpath);
@@ -880,7 +910,7 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
                     ->debug("Checking Triggerobject match with particles ....");
                 match_result = matchParticle(
                     particle_p4, triggerobject_pts, triggerobject_etas,
-                    triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                    triggerobject_phis, triggerobject_bits_cast, triggerobject_ids,
                     DeltaR_threshold, pt_cut, eta_cut, trigger_particle_id_cut,
                     triggerbit_cut, trigger_particle_pt_cut);
             }
@@ -911,8 +941,8 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
             ->info("No matching trigger for {} found, returning false for "
                    "trigger flag {}",
                    hltpath, triggerflag_name);
-        auto df1 = df.Define(triggerflag_name, []() { return false; });
-        return df1;
+        auto df2 = df.Define(triggerflag_name, []() { return false; });
+        return df2;
     } else if (matched_trigger_names.size() > 1) {
         Logger::get("GenerateSingleTriggerFlag")
             ->debug(
@@ -922,12 +952,12 @@ ROOT::RDF::RNode GenerateSingleTriggerFlag(
     } else {
         Logger::get("GenerateSingleTriggerFlag")
             ->debug("Found matching trigger: {}", matched_trigger_names[0]);
-        auto df2 =
-            df1.Define(triggerflag_name, triggermatch,
+        auto df3 =
+            df2.Define(triggerflag_name, triggermatch,
                       {matched_trigger_names[0], particle_p4,
-                       triggerobject_bits, triggerobject_id_column, triggerobject_pt,
+                       triggerobject_bits_column, triggerobject_id_column, triggerobject_pt,
                        triggerobject_eta, triggerobject_phi});
-        return df2;
+        return df3;
     }
 }
 /**
@@ -1001,7 +1031,11 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
             df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
-
+    // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
+    // For v9 and v12 compatibility a type casting is applied
+    auto [df2, triggerobject_bits_column] = utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_bits + "_v15", "ROOT::VecOps::RVec<ULong64_t>", triggerobject_bits);
+    
     auto triggermatch = [DeltaR_threshold, p1_pt_cut, p2_pt_cut, p1_eta_cut,
                          p2_eta_cut, p1_trigger_particle_id_cut,
                          p2_trigger_particle_id_cut, p1_triggerbit_cut,
@@ -1010,12 +1044,13 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
                             bool hltpath_match,
                             const ROOT::Math::PtEtaPhiMVector &particle1_p4,
                             const ROOT::Math::PtEtaPhiMVector &particle2_p4,
-                            ROOT::RVec<int> triggerobject_bits,
+                            ROOT::RVec<ULong64_t> triggerobject_bits_v15,
                             ROOT::RVec<UShort_t> triggerobject_ids_v12,
                             ROOT::RVec<float> triggerobject_pts,
                             ROOT::RVec<float> triggerobject_etas,
                             ROOT::RVec<float> triggerobject_phis) {
         auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+        auto triggerobject_bits_cast = static_cast<ROOT::RVec<int>>(triggerobject_bits_v15);
         Logger::get("GenerateDoubleTriggerFlag")->debug("Checking Trigger");
         Logger::get("CheckTriggerMatch")
             ->debug("Selected trigger: {}", hltpath);
@@ -1028,14 +1063,14 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
             Logger::get("GenerateDoubleTriggerFlag")->debug("First particle");
             match_result_p1 = matchParticle(
                 particle1_p4, triggerobject_pts, triggerobject_etas,
-                triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                triggerobject_phis, triggerobject_bits_cast, triggerobject_ids,
                 DeltaR_threshold, p1_pt_cut, p1_eta_cut,
                 p1_trigger_particle_id_cut, p1_triggerbit_cut,
                 p1_trigger_particle_pt_cut);
             Logger::get("GenerateDoubleTriggerFlag")->debug("Second particle");
             match_result_p2 = matchParticle(
                 particle2_p4, triggerobject_pts, triggerobject_etas,
-                triggerobject_phis, triggerobject_bits, triggerobject_ids,
+                triggerobject_phis, triggerobject_bits_cast, triggerobject_ids,
                 DeltaR_threshold, p2_pt_cut, p2_eta_cut,
                 p2_trigger_particle_id_cut, p2_triggerbit_cut,
                 p2_trigger_particle_pt_cut);
@@ -1080,12 +1115,12 @@ ROOT::RDF::RNode GenerateDoubleTriggerFlag(
     } else {
         Logger::get("GenerateDoubleTriggerFlag")
             ->debug("Found matching trigger: {}", matched_trigger_names[0]);
-        auto df2 =
-            df1.Define(triggerflag_name, triggermatch,
+        auto df3 =
+            df2.Define(triggerflag_name, triggermatch,
                       {matched_trigger_names[0], particle1_p4, particle2_p4,
-                       triggerobject_bits, triggerobject_id_column, triggerobject_pt,
+                       triggerobject_bits_column, triggerobject_id_column, triggerobject_pt,
                        triggerobject_eta, triggerobject_phi});
-        return df2;
+        return df3;
     }
 }
 
