@@ -10,7 +10,7 @@
 #include <TObjString.h>
 #include <TTree.h>
 #include <TVector.h>
-#include "onnxruntime_cxx_api.h"
+#include "onnxruntime/onnxruntime_cxx_api.h"
 #include <regex>
 #include <string>
 #include "include/utility/OnnxSessionManager.hxx"
@@ -42,9 +42,9 @@ int main(int argc, char *argv[]) {
     // {DEBUGLEVEL}
     // ROOT logging
     if (debug) {
-        auto verbosity = ROOT::Experimental::RLogScopedVerbosity(
+        auto verbosity = ROOT::RLogScopedVerbosity(
             ROOT::Detail::RDF::RDFLogChannel(),
-            ROOT::Experimental::ELogLevel::kInfo);
+            ROOT::ELogLevel::kInfo);
         RooTrace::verbose(kTRUE);
         Logger::setLevel(Logger::LogLevel::DEBUG);
     } else {
