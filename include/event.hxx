@@ -164,6 +164,65 @@ inline ROOT::RDF::RNode Negate(ROOT::RDF::RNode df,
 }
 
 /**
+ * @brief This function extracts values from the given quantity at the indices
+ * specified in a collection index. The order of the output values reflects the
+ * order of the indices. The function uses `ROOT::VecOps::Take` internally,
+ * leading to the following behavior:
+ * 
+ * ```C++
+ * auto values = ROOT::RVec<float>({0.1, 0.2, 0.3, 0.4});
+ * auto index = ROOT::RVec<int>({2, 3, 1});
+ * auto result = ROOT::VecOps::Take(values, index);
+ * result
+ * // (ROOT::VecOps::RVec<float>) {0.3, 0.4, 0.2}
+ * ```
+ * 
+ * The column `index_vector` must contain the indices for which values
+ * should be extracted, and the `quantity` column must contain the values
+ * of the quantity.
+ * 
+ * Note that `T` is the type of the values stored in the `RVec` containers in
+ * the `quantity` column, e.g., if the column has type `RVec<float>`, you
+ * must use `T = float`.
+ *
+ * @tparam T underlying type of the input column values
+ * @param df input dataframe
+ * @param outputname name of the new column containing the extracted value
+ * @param quantity name of the column from which the value is retrieved
+ * @param index_vector index list for values to be extracted
+ *
+ * @return a dataframe with the new column
+ *
+ * @note If the index is out of range, a default value of type `T` is returned.
+ */
+template <typename T>
+inline ROOT::RDF::RNode Take(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &quantity,
+    const std::string &index_vector
+) {
+    auto take = [] (
+        const ROOT::RVec<T> &quantity,
+        const ROOT::RVec<int> &index_vector
+    ) {
+        Logger::get("event::quantity::Take")
+            ->debug("Taking quantity {} at indices {}", quantity, index_vector);
+        auto result = ROOT::VecOps::Take(quantity, index_vector);
+        Logger::get("event::quantity::Take")
+            ->debug("Result {}", result);
+
+        return result;
+    };
+
+    return df.Define(
+        outputname,
+        take,
+        {quantity, index_vector}
+    );
+}
+
+/**
  * @brief This function extracts a value from the given column at a specified
  * index. If the index is out of range, a default value of type `T` is returned.
  *
