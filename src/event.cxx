@@ -127,6 +127,40 @@ GenerateSeed(
 }
 
 } // end namespace quantity
+
+
+namespace lhe {
+
+
+ROOT::RDF::RNode DrellYanDecayFlavor(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &lhe_pdg_id,
+    const std::string &lhe_status
+) {
+    auto flavor_flag = [] (
+        const ROOT::RVec<int> &lhe_pdgid,
+        const ROOT::RVec<int> &lhe_status
+    ) {
+        int decay_flavor_pdgid = -1; 
+        const std::vector<int> decay_flavors = {11, 13, 15};
+        for (const auto &decay_flavor : decay_flavors) {
+            if (ROOT::VecOps::Sum((lhe_status == 1) && (abs(lhe_pdgid) == decay_flavor)) == 2) {
+                decay_flavor_pdgid = decay_flavor;
+                break;
+            }
+        }
+        return decay_flavor_pdgid;
+    };
+
+    return df.Define(
+        outputname,
+        flavor_flag,
+        {lhe_pdg_id, lhe_status}
+    );
+}
+
+} // end namespace lhe
 } // end namespace event
 
 #endif /* GUARD_EVENT_H */
