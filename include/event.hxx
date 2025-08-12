@@ -177,7 +177,7 @@ inline ROOT::RDF::RNode Negate(ROOT::RDF::RNode df,
  * // (ROOT::VecOps::RVec<float>) {0.3, 0.4, 0.2}
  * ```
  * 
- * The column `collection_index` must contain the indices for which values
+ * The column `index_vector` must contain the indices for which values
  * should be extracted, and the `quantity` column must contain the values
  * of the quantity.
  * 
@@ -189,7 +189,7 @@ inline ROOT::RDF::RNode Negate(ROOT::RDF::RNode df,
  * @param df input dataframe
  * @param outputname name of the new column containing the extracted value
  * @param quantity name of the column from which the value is retrieved
- * @param collection_index index list for values to be extracted
+ * @param index_vector index list for values to be extracted
  *
  * @return a dataframe with the new column
  *
@@ -200,20 +200,15 @@ inline ROOT::RDF::RNode Take(
     ROOT::RDF::RNode df,
     const std::string &outputname,
     const std::string &quantity,
-    const std::string &collection_index
+    const std::string &index_vector
 ) {
     auto take = [] (
         const ROOT::RVec<T> &quantity,
-        const ROOT::RVec<int> &collection_index
+        const ROOT::RVec<int> &index_vector
     ) {
-        // debug output before operation
         Logger::get("event::quantity::Take")
-            ->debug("Taking quantity {} at indices {}", quantity, collection_index);
-
-        // use ROOT::VecOps::Take to extract the values
-        auto result = ROOT::VecOps::Take(quantity, collection_index);
-
-        // debug output after successful operation
+            ->debug("Taking quantity {} at indices {}", quantity, index_vector);
+        auto result = ROOT::VecOps::Take(quantity, index_vector);
         Logger::get("event::quantity::Take")
             ->debug("Result {}", result);
 
@@ -223,7 +218,7 @@ inline ROOT::RDF::RNode Take(
     return df.Define(
         outputname,
         take,
-        {quantity, collection_index}
+        {quantity, index_vector}
     );
 }
 
