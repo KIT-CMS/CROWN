@@ -569,7 +569,7 @@ namespace drell_yan {
  * @brief Extract the flavor of a leptonic Drell-Yan process from the LHE information.
  * This function checks if exactly two final-state LHE leptons (electron, muon, tau) of
  * the same flavor are present in the event. If so, the PDG ID of the lepton that the
- * Z boson or the boson decays into is returned. If no such pair is found, the function
+ * Z boson or the photon decays into is returned. If no such pair is found, the function
  * returns -1.
  * 
  * Possible values of the returned PDG ID are:
