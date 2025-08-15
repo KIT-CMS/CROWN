@@ -579,7 +579,7 @@ namespace drell_yan {
  * 
  * @param df input dataframe
  * @param outputname name of the new column containing the PDG ID of the decay particles
- * @param lhe_pdgid name of the column containing the PDG ID values of the LHE particles
+ * @param lhe_pdg_id name of the column containing the PDG ID values of the LHE particles
  * @param lhe_status name of the column containing the status of the LHE particles
  * 
  * @return a new dataframe with the decay flavor column added.
@@ -587,17 +587,17 @@ namespace drell_yan {
 ROOT::RDF::RNode DecayFlavor(
     ROOT::RDF::RNode df,
     const std::string &outputname,
-    const std::string &lhe_pdgid,
+    const std::string &lhe_pdg_id,
     const std::string &lhe_status
 ) {
     auto flavor_flag = [] (
-        const ROOT::RVec<int> &lhe_pdgid,
+        const ROOT::RVec<int> &lhe_pdg_id,
         const ROOT::RVec<int> &lhe_status
     ) {
         int decay_flavor_pdgid = -1; 
         const std::vector<int> decay_flavors = {11, 13, 15};
         for (const auto &decay_flavor : decay_flavors) {
-            if (ROOT::VecOps::Sum((lhe_status == 1) && (abs(lhe_pdgid) == decay_flavor)) == 2) {
+            if (ROOT::VecOps::Sum((lhe_status == 1) && (abs(lhe_pdg_id) == decay_flavor)) == 2) {
                 decay_flavor_pdgid = decay_flavor;
                 break;
             }
@@ -608,7 +608,7 @@ ROOT::RDF::RNode DecayFlavor(
     return df.Define(
         outputname,
         flavor_flag,
-        {lhe_pdgid, lhe_status}
+        {lhe_pdg_id, lhe_status}
     );
 }
 
