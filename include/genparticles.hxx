@@ -40,7 +40,7 @@ namespace drell_yan{
 ROOT::RDF::RNode DecayFlavor(
     ROOT::RDF::RNode df,
     const std::string &outputname,
-    const std::string &lhe_pdg_id,
+    const std::string &lhe_pdgid,
     const std::string &lhe_status
 );
 } // end namespace drell_yan
