@@ -557,18 +557,6 @@ GoldenJSON(ROOT::RDF::RNode df,
            const std::string &filtername, const std::string &run,
            const std::string &luminosity, const std::string &json_path);
 } // end namespace filter
-
-
-namespace lhe {
-
-ROOT::RDF::RNode DrellYanDecayFlavor(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &lhe_pdg_id,
-    const std::string &lhe_status
-);
-
-} // end namespace lhe
 } // end namespace event
 
 #endif /* GUARD_EVENT_H */
