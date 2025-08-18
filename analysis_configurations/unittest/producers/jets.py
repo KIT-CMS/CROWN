@@ -5,7 +5,18 @@ from code_generation.producer import Producer, ProducerGroup
 ####################
 # Set of producers used for selection possible good jets
 ####################
-JetPtCorrection = Producer(
+JetPtSmearingSeed = Producer(
+    name="JetPtSmearingSeed",
+    call="event::quantity::GenerateSeed({df}, {output}, {input}, {jet_jer_master_seed})",
+    input=[
+        nanoAOD.luminosityBlock,
+        nanoAOD.run,
+        nanoAOD.event,
+    ],
+    output=[],
+    scopes=["global"],
+)
+JetPtCorrection = ProducerGroup(
     name="JetPtCorrection",
     call="""physicsobject::jet::PtCorrectionMC(
         {df}, 
@@ -35,6 +46,7 @@ JetPtCorrection = Producer(
     ],
     output=[q.Jet_pt_corrected],
     scopes=["global"],
+    subproducers=[JetPtSmearingSeed],
 )
 JetMassCorrection = Producer(
     name="JetMassCorrection",

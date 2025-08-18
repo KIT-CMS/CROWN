@@ -50,6 +50,8 @@ namespace jet {
  * @param gen_jet_eta name of the column containing generator-level jet etas
  * @param gen_jet_phi name of the column containing generator-level jet phis
  * @param rho name of the column containing the event energy density
+ * @param jer_seed seed value for the random number generator that is used for
+ * the jet energy resolution smearing
  * @param jec_file path to the JEC correction file
  * @param jec_algo name of the jet reconstruction algorithm (e.g., "AK4PFchs" or
  * "AK8PFPuppi")
@@ -63,9 +65,6 @@ namespace jet {
  * should be reapplied
  * @param jes_shift JES shift variation (0 = nominal, +/-1 = up/down)
  * @param jer_shift JER shift variation ("nom", "up", or "down")
- * @param jer_seed seed value for the random number generator that is used for 
- * the jet energy resolution smearing, if not set the answer to everything is 
- * used as default `42`
  * @param lhc_run LHC Run number, `2` for 2016-2018 and `3` for 2022-2026
  * 
  * @return a dataframe with a new column of corrected jet \f$p_T\f$'s
@@ -81,12 +80,12 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &jet_area, const std::string &jet_raw_factor,
                const std::string &jet_id, const std::string &gen_jet_pt,
                const std::string &gen_jet_eta, const std::string &gen_jet_phi,
-               const std::string &rho, const std::string &jec_file,
-               const std::string &jec_algo, const std::string &jes_tag,
-               const std::vector<std::string> &jes_shift_sources,
+               const std::string &rho, const std::string &jer_seed,
+               const std::string &jec_file, const std::string &jec_algo,
+               const std::string &jes_tag, const std::vector<std::string> &jes_shift_sources,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
-               const int jer_seed = 42, const int& lhc_run = 2) {
+               const int& lhc_run = 2) {
     // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, jet_id_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
@@ -131,19 +130,19 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     auto correction_lambda = [reapply_jes, jet_energy_scale_shifts,
                               jet_energy_scale_sf, jet_energy_resolution,
                               jer_sf_evaluator, jes_shift_sources,
-                              jes_shift, jer_shift, jer_seed,
-                              jet_radius, lhc_run](const ROOT::RVec<float> &pts,
-                                          const ROOT::RVec<float> &etas,
-                                          const ROOT::RVec<float> &phis,
-                                          const ROOT::RVec<float> &area,
-                                          const ROOT::RVec<float> &raw_factors,
-                                          const ROOT::RVec<UChar_t> &ids_v12,
-                                          const ROOT::RVec<float> &gen_pts,
-                                          const ROOT::RVec<float> &gen_etas,
-                                          const ROOT::RVec<float> &gen_phis,
-                                          const float &rho) {
+                              jes_shift, jer_shift, jet_radius, 
+                              lhc_run](const ROOT::RVec<float> &pts,
+                                       const ROOT::RVec<float> &etas,
+                                       const ROOT::RVec<float> &phis,
+                                       const ROOT::RVec<float> &area,
+                                       const ROOT::RVec<float> &raw_factors,
+                                       const ROOT::RVec<UChar_t> &ids_v12,
+                                       const ROOT::RVec<float> &gen_pts,
+                                       const ROOT::RVec<float> &gen_etas,
+                                       const ROOT::RVec<float> &gen_phis,
+                                       const float &rho, const unsigned int &seed) {
         // random value generator for jet smearing
-        TRandom3 randm = TRandom3(jer_seed);
+        TRandom3 randm = TRandom3(seed);
         
         auto ids = static_cast<ROOT::RVec<int>>(ids_v12);
         ROOT::RVec<float> corrected_pts;
@@ -265,8 +264,9 @@ PtCorrectionMC(ROOT::RDF::RNode df,
         return corrected_pts;
     };
     auto df2 = df1.Define(outputname, correction_lambda,
-                         {jet_pt, jet_eta, jet_phi, jet_area, jet_raw_factor,
-                          jet_id_column, gen_jet_pt, gen_jet_eta, gen_jet_phi, rho});
+                         {jet_pt, jet_eta, jet_phi, jet_area, 
+                          jet_raw_factor, jet_id_column, gen_jet_pt, 
+                          gen_jet_eta, gen_jet_phi, rho, jer_seed});
     return df2;
 }
 

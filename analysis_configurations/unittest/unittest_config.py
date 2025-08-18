@@ -136,6 +136,7 @@ def build_config(
             "jet_jes_sources": '{""}',
             "jet_jes_shift": 0,
             "jet_jer_shift": '"nom"',  # or '"up"', '"down"'
+            "jet_jer_master_seed": 42,
             "jet_jec_file": EraModifier(
                 {
                     "2016preVFP": '"data/jsonpog-integration/POG/JME/2016preVFP_UL/jet_jerc.json.gz"',
