@@ -214,7 +214,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 corrected_pts.at(i) *= std::max(0.0, 1.0 + shift);
             }
             Logger::get("physicsobject::jet::PtCorrectionMC")
-                ->debug("Shifting jet pt from {} to {} ", corr_pt,
+                ->debug("JER shift of jet pt from {} to {} ", corr_pt,
                         corrected_pts.at(i));
 
             float pt_scale_sf = 1.0;
@@ -228,7 +228,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                             jes_shift * jet_energy_scale_shifts.at(0)->evaluate(
                                             {etas.at(i), corrected_pts.at(i)});
                         Logger::get("physicsobject::jet::PtCorrectionMC")
-                            ->debug("Shifting jet pt by {} for single source "
+                            ->debug("JES shift of jet pt by {} for single source "
                                     "with SF {}",
                                     jes_shift, pt_scale_sf);
                     } else {
@@ -241,7 +241,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                         }
                         pt_scale_sf = 1. + jes_shift * std::sqrt(quad_sum);
                         Logger::get("physicsobject::jet::PtCorrectionMC")
-                            ->debug("Shifting jet pt by {} for multiple "
+                            ->debug("JES shift of jet pt by {} for multiple "
                                     "sources with SF {}",
                                     jes_shift, pt_scale_sf);
                     }
@@ -258,7 +258,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             }
             corrected_pts.at(i) *= pt_scale_sf;
             Logger::get("physicsobject::jet::PtCorrectionMC")
-                ->debug("Shifting jet pt from {} to {} ",
+                ->debug("JES shift of jet pt from {} to {} ",
                         corrected_pts.at(i) / pt_scale_sf, corrected_pts.at(i));
         }
         return corrected_pts;
