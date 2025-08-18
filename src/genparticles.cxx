@@ -562,5 +562,56 @@ ROOT::RDF::RNode GenMatching(
     return df3;
 }
 } // end namespace tau
+
+namespace drell_yan {
+
+/**
+ * @brief Extract the flavor of a leptonic Drell-Yan process from the LHE information.
+ * This function checks if exactly two final-state LHE leptons (electron, muon, tau) of
+ * the same flavor are present in the event. If so, the PDG ID of the lepton that the
+ * Z boson or the photon decays into is returned. If no such pair is found, the function
+ * returns -1.
+ * 
+ * Possible values of the returned PDG ID are:
+ * - 11 for a decay into an electron pair,
+ * - 13 for a decay into a muon pair,
+ * - 15 for a decay into a tau pair.
+ * 
+ * @param df input dataframe
+ * @param outputname name of the new column containing the PDG ID of the decay particles
+ * @param lhe_pdg_id name of the column containing the PDG ID values of the LHE particles
+ * @param lhe_status name of the column containing the status of the LHE particles
+ * 
+ * @return a new dataframe with the decay flavor column added.
+ */
+ROOT::RDF::RNode DecayFlavor(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &lhe_pdg_id,
+    const std::string &lhe_status
+) {
+    auto flavor_flag = [] (
+        const ROOT::RVec<int> &lhe_pdg_id,
+        const ROOT::RVec<int> &lhe_status
+    ) {
+        int decay_flavor_pdgid = -1; 
+        const std::vector<int> decay_flavors = {11, 13, 15};
+        for (const auto &decay_flavor : decay_flavors) {
+            if (ROOT::VecOps::Sum((lhe_status == 1) && (abs(lhe_pdg_id) == decay_flavor)) == 2) {
+                decay_flavor_pdgid = decay_flavor;
+                break;
+            }
+        }
+        return decay_flavor_pdgid;
+    };
+
+    return df.Define(
+        outputname,
+        flavor_flag,
+        {lhe_pdg_id, lhe_status}
+    );
+}
+
+} // end namespace drell_yan
 } // end namespace genparticles
 #endif /* GUARD_GENPARTICLES_H */

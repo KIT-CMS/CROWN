@@ -35,5 +35,14 @@ ROOT::RDF::RNode GenMatching(
     const std::string &genparticles_phi, const std::string &genparticles_mass, 
     const std::string &reco_had_tau);
 } // end namespace tau
+
+namespace drell_yan{
+ROOT::RDF::RNode DecayFlavor(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &lhe_pdg_id,
+    const std::string &lhe_status
+);
+} // end namespace drell_yan
 } // end namespace genparticles
 #endif /* GUARD_GENPARTICLES_H */
