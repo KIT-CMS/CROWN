@@ -12,12 +12,12 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &jet_area, const std::string &jet_raw_factor,
                const std::string &jet_id, const std::string &gen_jet_pt,
                const std::string &gen_jet_eta, const std::string &gen_jet_phi,
-               const std::string &rho, const std::string &jec_file,
-               const std::string &jec_algo, const std::string &jes_tag,
-               const std::vector<std::string> &jes_shift_sources,
+               const std::string &rho, const std::string &jer_seed,
+               const std::string &jec_file, const std::string &jec_algo,
+               const std::string &jes_tag, const std::vector<std::string> &jes_shift_sources,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
-               const int jer_seed = 42, const int& lhc_run = 2);
+               const int& lhc_run = 2);
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
                  correctionManager::CorrectionManager &correction_manager,
