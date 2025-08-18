@@ -166,9 +166,9 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 jet_energy_resolution(etas.at(i), corrected_pts.at(i), rho);
             float reso_sf = 1.0;
             if (lhc_run == 2) {
-                jer_sf_evaluator->evaluate({etas.at(i), jer_shift});
+                reso_sf = jer_sf_evaluator->evaluate({etas.at(i), jer_shift});
             } else if (lhc_run == 3) {
-                jer_sf_evaluator->evaluate({etas.at(i), corrected_pts.at(i), jer_shift});
+                reso_sf = jer_sf_evaluator->evaluate({etas.at(i), corrected_pts.at(i), jer_shift});
             }
             Logger::get("physicsobject::jet::PtCorrectionMC")
                 ->debug("Calculate JER {}: SF: {} resolution: {} ", jer_shift,
