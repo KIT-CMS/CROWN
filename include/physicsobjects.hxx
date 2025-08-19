@@ -302,6 +302,28 @@ CutQuantity(ROOT::RDF::RNode df, const std::string &outputname,
         {quantity});
 }
 
+/**
+ * @brief This function returns the length of the vector containers in columns
+ * that contain `ROOT::VecOps::RVec<T>` objects. The function is templated
+ * with `T`, which must be set to the underlying type of the vector object.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column storing the object count
+ * @param vector_quantity name of the quantity stored in vector structures
+ *
+ * @return a dataframe with a new column
+ */
+template <typename T>
+ROOT::RDF::RNode Size(ROOT::RDF::RNode df, const std::string &outputname,
+                       const std::string &vector_quantity) {
+    return df.Define(outputname,
+                     [](const ROOT::RVec<T> &quantity) {
+                         int length = quantity.size();
+                         return length;
+                     },
+                     {vector_quantity});
+}
+
 ROOT::RDF::RNode CutQuantityBarrelEndcap(
     ROOT::RDF::RNode df, const std::string &outputname, const std::string &eta,
     const std::string &quantity, const float &barrel_endcap_boundary,
