@@ -314,7 +314,7 @@ CutQuantity(ROOT::RDF::RNode df, const std::string &outputname,
  * @return a dataframe with a new column
  */
 template <typename T>
-ROOT::RDF::RNode Size(ROOT::RDF::RNode df, const std::string &outputname,
+inline ROOT::RDF::RNode Size(ROOT::RDF::RNode df, const std::string &outputname,
                        const std::string &vector_quantity) {
     return df.Define(outputname,
                      [](const ROOT::RVec<T> &quantity) {
