@@ -360,6 +360,53 @@ PtCorrectionData(ROOT::RDF::RNode df,
     }
 }
 
+/** 
+ * @brief This function applies a b-jet energy regression. The \f$p_T\f$ correction 
+ * is applied to all b-jets identified with a b-tagging algorithm, e.g. DeepJet.
+ * The correction is determined with a neural network that was trained to simultaneously
+ * estimate the b-jet energy and resolution. Ref. http://cds.cern.ch/record/2690804
+ *
+ * @note This function should only be used for Run2 since it is not present in Run3.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column for corrected b-jet \f$p_T\f$'s
+ * @param jet_pt name of the column containing the jet \f$p_T\f$'s
+ * @param scale_factor name of the column containing the scale factors for the 
+ * b-jet \f$p_T\f$
+ * @param bjet_mask name of the column containing the jet mask with identified 
+ * b-jets
+ *
+ * @return a dataframe with a new column
+ */
+ROOT::RDF::RNode PtCorrectionBJets(ROOT::RDF::RNode df, 
+                            const std::string &outputname,
+                            const std::string &jet_pt, 
+                            const std::string &scale_factor,
+                            const std::string &bjet_mask) {
+    return df.Define(outputname,
+            [](const ROOT::RVec<float> &jet_pt, 
+               const ROOT::RVec<float> &scale_factor,
+               const ROOT::RVec<int> &bjet_mask) {
+            ROOT::RVec<float> pt_values_corrected;
+            for (int i = 0; i < jet_pt.size(); i++) {
+                float corr_pt = jet_pt.at(i);
+                if (bjet_mask.at(i)) {
+                    // applying b jet energy correction
+                    corr_pt = jet_pt.at(i) * scale_factor.at(i);
+
+                    Logger::get("physicsobject::jet::PtCorrectionBJets")
+                        ->debug("applying b jet energy correction: orig. jet "
+                                "pt {} to corrected "
+                                "jet pt {} with correction factor {}",
+                                jet_pt.at(i), corr_pt, scale_factor.at(i));
+                }
+                pt_values_corrected.push_back(corr_pt);
+            }
+            return pt_values_corrected;
+            },
+            {jet_pt, scale_factor, bjet_mask});
+}
+
 /**
  * @brief This function applies a jet pileup ID cut to jets. The pileup ID
  * is recommended to be applied in addition to the usual jet ID and only for
@@ -864,7 +911,6 @@ Btagging(ROOT::RDF::RNode df,
     return df2;
 }
 } // end namespace scalefactor
-
 } // end namespace jet
 } // end namespace physicsobject
 #endif /* GUARD_JETS_H */
