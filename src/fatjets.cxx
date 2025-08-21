@@ -25,6 +25,9 @@ namespace quantity {
  * Score = \frac{P(X)}{P(X) + P(QCD)}
  * \f]
  *
+ * @note This function is mainly needed when working with `nanoAODv9`, in newer 
+ * versions this ratio is already included as a branch.
+ *
  * @param df input dataframe
  * @param outputname name of the new column containing the XvsQCD score
  * @param pNet_X_decay name of the column containing the ParticleNet score for 

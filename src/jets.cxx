@@ -363,10 +363,15 @@ PtCorrectionData(ROOT::RDF::RNode df,
 /** 
  * @brief This function applies a b-jet energy regression. The \f$p_T\f$ correction 
  * is applied to all b-jets identified with a b-tagging algorithm, e.g. DeepJet.
+ * The goal of the regression is to better estimate the energy of b-jets because 
+ * compared to other jet flavors, b-jets have a significantly higher rate of leptons
+ * and therefore also neutrinos in the decay, which leads to a lower reconstructed energy.
  * The correction is determined with a neural network that was trained to simultaneously
- * estimate the b-jet energy and resolution. Ref. http://cds.cern.ch/record/2690804
+ * estimate the b-jet energy and resolution. The application can be done on top of the
+ * general jet energy scale corrections. Ref. http://cds.cern.ch/record/2690804
  *
- * @note This function should only be used for Run2 since it is not present in Run3.
+ * @note This function should only be used for Run2 since the regression was not further
+ * developed for Run3 and is also not present in the nanoAODs anymore.
  *
  * @param df input dataframe
  * @param outputname name of the output column for corrected b-jet \f$p_T\f$'s
