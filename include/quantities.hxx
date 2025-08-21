@@ -8,6 +8,8 @@
 namespace quantities {
 ROOT::RDF::RNode DeltaPhi(ROOT::RDF::RNode df, const std::string &outputname,
                           const std::string &vector_1, const std::string &vector_2);
+ROOT::RDF::RNode DeltaEta(ROOT::RDF::RNode df, const std::string &outputname,
+                          const std::string &vector_1, const std::string &vector_2);
 ROOT::RDF::RNode DeltaR(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &vector_1, const std::string &vector_2);
 ROOT::RDF::RNode PairHemisphere(ROOT::RDF::RNode df,

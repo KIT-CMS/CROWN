@@ -43,6 +43,33 @@ ROOT::RDF::RNode DeltaPhi(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
+ * @brief This function calculates the difference in pseudorapidity 
+ * (\f$\Delta\eta\f$) between two Lorentz vectors.
+ *
+ * @note The calculation is a simple subtraction of the eta components: 
+ * \f$\eta_1 - \eta_2\f$.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column containing the \f$\Delta\eta\f$ 
+ * value
+ * @param vector_1 name of the column containing the first Lorentz vector
+ * @param vector_2 name of the column containing the second Lorentz vector
+ *
+ * @return a new dataframe with the new column
+ */
+ROOT::RDF::RNode DeltaEta(ROOT::RDF::RNode df, const std::string &outputname,
+                          const std::string &vector_1,
+                          const std::string &vector_2) {
+    auto calculate_deltaEta = [](ROOT::Math::PtEtaPhiMVector &p4_1,
+                                 ROOT::Math::PtEtaPhiMVector &p4_2) {
+        if (p4_1.pt() < 0.0 || p4_2.pt() < 0.0)
+            return default_float;
+        return (float)(p4_1.Eta() - p4_2.Eta());
+    };
+    return df.Define(outputname, calculate_deltaEta, {vector_1, vector_2});
+}
+
+/**
  * @brief This function calculates the spatial distance in the 
  * \f$\eta\f$-\f$\phi\f$-plane (\f$\Delta R\f$) between two Lorentz vectors.
  * It is defined as
