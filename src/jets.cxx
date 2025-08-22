@@ -388,28 +388,29 @@ ROOT::RDF::RNode PtCorrectionBJets(ROOT::RDF::RNode df,
                             const std::string &jet_pt, 
                             const std::string &scale_factor,
                             const std::string &bjet_mask) {
-    return df.Define(outputname,
-            [](const ROOT::RVec<float> &jet_pt, 
-               const ROOT::RVec<float> &scale_factor,
-               const ROOT::RVec<int> &bjet_mask) {
-            ROOT::RVec<float> pt_values_corrected;
-            for (int i = 0; i < jet_pt.size(); i++) {
-                float corr_pt = jet_pt.at(i);
+    auto bjet_pt_correction = [](const ROOT::RVec<float> &pts, 
+                                 const ROOT::RVec<float> &scale_factors,
+                                 const ROOT::RVec<int> &bjet_mask) {
+            ROOT::RVec<float> corrected_pts;
+            for (int i = 0; i < pts.size(); i++) {
+                float corr_pt = pts.at(i);
                 if (bjet_mask.at(i)) {
                     // applying b jet energy correction
-                    corr_pt = jet_pt.at(i) * scale_factor.at(i);
-
+                    corr_pt = pts.at(i) * scale_factors.at(i);
                     Logger::get("physicsobject::jet::PtCorrectionBJets")
                         ->debug("applying b jet energy correction: orig. jet "
                                 "pt {} to corrected "
                                 "jet pt {} with correction factor {}",
-                                jet_pt.at(i), corr_pt, scale_factor.at(i));
+                                pts.at(i), corr_pt, scale_factors.at(i));
                 }
-                pt_values_corrected.push_back(corr_pt);
+                corrected_pts.push_back(corr_pt);
             }
-            return pt_values_corrected;
-            },
-            {jet_pt, scale_factor, bjet_mask});
+            return corrected_pts;
+            };
+
+    auto df1 = df.Define(outputname, bjet_pt_correction,
+                         {jet_pt, scale_factor, bjet_mask});
+    return df1;
 }
 
 /**
