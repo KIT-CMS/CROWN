@@ -26,6 +26,12 @@ PtCorrectionData(ROOT::RDF::RNode df,
                  const std::string &jet_raw_factor, const std::string &rho,
                  const std::string &jec_file, const std::string &jec_algo,
                  const std::string &jes_tag);
+ROOT::RDF::RNode
+PtCorrectionBJets(ROOT::RDF::RNode df,
+                  const std::string &outputname,
+                  const std::string &jet_pt,
+                  const std::string &scale_factor,
+                  const std::string &bjet_mask);
 ROOT::RDF::RNode CutPileupID(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &jet_pu_id,
                              const std::string &jet_pt, const int &pu_id_cut,

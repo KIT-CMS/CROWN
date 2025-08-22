@@ -360,6 +360,59 @@ PtCorrectionData(ROOT::RDF::RNode df,
     }
 }
 
+/** 
+ * @brief This function applies a b-jet energy regression. The \f$p_T\f$ correction 
+ * is applied to all b-jets identified with a b-tagging algorithm, e.g. DeepJet.
+ * The goal of the regression is to better estimate the energy of b-jets because 
+ * compared to other jet flavors, b-jets have a significantly higher rate of leptons
+ * and therefore also neutrinos in the decay, which leads to a lower reconstructed energy.
+ * The correction is determined with a neural network that was trained to simultaneously
+ * estimate the b-jet energy and resolution. The application can be done on top of the
+ * general jet energy scale corrections. Ref. http://cds.cern.ch/record/2690804
+ *
+ * @note This function should only be used for Run2 since the regression was not further
+ * developed for Run3 and is also not present in the nanoAODs anymore.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column for corrected b-jet \f$p_T\f$'s
+ * @param jet_pt name of the column containing the jet \f$p_T\f$'s
+ * @param scale_factor name of the column containing the scale factors for the 
+ * b-jet \f$p_T\f$
+ * @param bjet_mask name of the column containing the jet mask with identified 
+ * b-jets
+ *
+ * @return a dataframe with a new column
+ */
+ROOT::RDF::RNode PtCorrectionBJets(ROOT::RDF::RNode df, 
+                            const std::string &outputname,
+                            const std::string &jet_pt, 
+                            const std::string &scale_factor,
+                            const std::string &bjet_mask) {
+    auto bjet_pt_correction = [](const ROOT::RVec<float> &pts, 
+                                 const ROOT::RVec<float> &scale_factors,
+                                 const ROOT::RVec<int> &bjet_mask) {
+            ROOT::RVec<float> corrected_pts;
+            for (int i = 0; i < pts.size(); i++) {
+                float corr_pt = pts.at(i);
+                if (bjet_mask.at(i)) {
+                    // applying b jet energy correction
+                    corr_pt = pts.at(i) * scale_factors.at(i);
+                    Logger::get("physicsobject::jet::PtCorrectionBJets")
+                        ->debug("applying b jet energy correction: orig. jet "
+                                "pt {} to corrected "
+                                "jet pt {} with correction factor {}",
+                                pts.at(i), corr_pt, scale_factors.at(i));
+                }
+                corrected_pts.push_back(corr_pt);
+            }
+            return corrected_pts;
+            };
+
+    auto df1 = df.Define(outputname, bjet_pt_correction,
+                         {jet_pt, scale_factor, bjet_mask});
+    return df1;
+}
+
 /**
  * @brief This function applies a jet pileup ID cut to jets. The pileup ID
  * is recommended to be applied in addition to the usual jet ID and only for
@@ -864,7 +917,6 @@ Btagging(ROOT::RDF::RNode df,
     return df2;
 }
 } // end namespace scalefactor
-
 } // end namespace jet
 } // end namespace physicsobject
 #endif /* GUARD_JETS_H */
