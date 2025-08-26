@@ -144,7 +144,9 @@ Id_vsMu(ROOT::RDF::RNode df,
         const std::string &sf_vsmu_wheel2, 
         const std::string &sf_vsmu_wheel3,
         const std::string &sf_vsmu_wheel4, 
-        const std::string &sf_vsmu_wheel5);
+        const std::string &sf_vsmu_wheel5,
+        const float &max_abs_eta = 2.3
+);
 ROOT::RDF::RNode
 Trigger(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,

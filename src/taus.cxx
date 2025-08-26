@@ -1211,6 +1211,8 @@ Id_vsEle(ROOT::RDF::RNode df,
  * (\f$1.2 \leq |\eta| <1.7\f$), "nom" for nominal and "up"/"down" the up/down variation
  * @param variation_wheel5 name of the scale factor variation for the muon wheel
  * (\f$1.7 \leq |\eta| <2.3\f$), "nom" for nominal and "up"/"down" the up/down variation
+ * @param max_abs_eta maximum absolute pseudorapidity of a tau to obtain a meaningful scale factor.
+ * Default is 2.3, which is the recommended hadronic tau accepance in Run 2 analyses.
  *
  * @return a new dataframe containing the new column
  */
@@ -1227,7 +1229,9 @@ Id_vsMu(ROOT::RDF::RNode df,
         const std::string &variation_wheel2, 
         const std::string &variation_wheel3,
         const std::string &variation_wheel4, 
-        const std::string &variation_wheel5) {
+        const std::string &variation_wheel5,
+        const float &max_abs_eta = 2.3
+) {
     
     const std::map<float, std::string> variations = {
         {0.0f, variation_wheel1},
@@ -1235,7 +1239,7 @@ Id_vsMu(ROOT::RDF::RNode df,
         {0.8f, variation_wheel3},
         {1.2f, variation_wheel4},
         {1.7f, variation_wheel5},
-        {2.3f, variation_wheel5},
+        {float(max_abs_eta), variation_wheel5},
     };
     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")->debug("Setting up function for tau id vsMu sf");
     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")->debug("ID - Name {}", sf_name);
