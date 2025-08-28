@@ -1229,8 +1229,7 @@ Id_vsMu(ROOT::RDF::RNode df,
         const std::string &variation_wheel2, 
         const std::string &variation_wheel3,
         const std::string &variation_wheel4, 
-        const std::string &variation_wheel5,
-        const float &max_abs_eta = 2.3
+        const std::string &variation_wheel5
 ) {
     
     const std::map<float, std::string> variations = {
@@ -1239,7 +1238,8 @@ Id_vsMu(ROOT::RDF::RNode df,
         {0.8f, variation_wheel3},
         {1.2f, variation_wheel4},
         {1.7f, variation_wheel5},
-        {float(max_abs_eta), variation_wheel5},
+        {2.4f, variation_wheel5},  // 2.4 to cover full muon system acceptance for Run 3 taus
+                                   // should not affect Run 2 analyses, which cut on |eta| < 2.3
     };
     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")->debug("Setting up function for tau id vsMu sf");
     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")->debug("ID - Name {}", sf_name);
