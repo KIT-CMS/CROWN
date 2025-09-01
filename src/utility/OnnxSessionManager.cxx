@@ -2,7 +2,7 @@
 #include "../../include/utility/utility.hxx"
 #include <memory>
 #include <numeric>
-#include <onnxruntime_cxx_api.h>
+#include <onnxruntime/onnxruntime_cxx_api.h>
 #include <string>
 #include <unordered_map>
 
