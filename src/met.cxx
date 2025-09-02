@@ -58,11 +58,12 @@ value is returned
 GenBosonVector, second is the visibleGenBosonVector
  */
 ROOT::RDF::RNode calculateGenBosonVector(
-    ROOT::RDF::RNode df, const std::string &genparticle_pt,
+    ROOT::RDF::RNode df, const std::string outputname,
+    const std::string &genparticle_pt,
     const std::string &genparticle_eta, const std::string &genparticle_phi,
     const std::string &genparticle_mass, const std::string &genparticle_id,
     const std::string &genparticle_status,
-    const std::string &genparticle_statusflag, const std::string outputname,
+    const std::string &genparticle_statusflag,
     bool is_data) {
     auto calculateGenBosonVector =
         [](const ROOT::RVec<float> &genparticle_pt,
@@ -125,6 +126,83 @@ ROOT::RDF::RNode calculateGenBosonVector(
             std::pair<ROOT::Math::PtEtaPhiMVector, ROOT::Math::PtEtaPhiMVector>
                 metpair = {default_lorentzvector, default_lorentzvector};
             return metpair;
+        });
+    }
+}
+
+/**
+ * @brief function used to calculate the GenBosonPt used for the Zpt recoil correction,
+ * using the defintion from https://cms-higgs-leprare.docs.cern.ch/htt-common/DY_reweight/#dy_ptll_reweighting.
+ *
+ * @param df the input dataframe
+ * @param genparticle_pt genparticle pt
+ * @param genparticle_eta genparticle eta
+ * @param genparticle_phi genparticle phi
+ * @param genparticle_mass genparticle mass
+ * @param genparticle_id genparticle PDG ID
+ * @param genparticle_status genparticle status
+ * @param genparticle_statusflag genparticle statusflag bit (see above)
+ * @param outputname name of the new column containing the corrected met
+ * @param is_data for data we cant calculate a genBoson vector, so a default
+value is returned
+ * @return a new dataframe containing a pair of lorentz vectors, first is the
+GenBosonVector, second is the visibleGenBosonVector
+*
+* @note This function is intended to be used for Run3 analyses, for Run2
+* use the appropriate function above. This is necessary as the definition of
+* the status flags has changed.
+ */
+ROOT::RDF::RNode calculateGenBosonPt(
+    ROOT::RDF::RNode df, const std::string &outputname, 
+    const std::string &genparticle_pt,
+    const std::string &genparticle_eta, const std::string &genparticle_phi,
+    const std::string &genparticle_mass, const std::string &genparticle_id,
+    const std::string &genparticle_status,
+    const std::string &genparticle_statusflag,
+    bool is_data) {
+    auto calculateGenBosonPt =
+        [](const ROOT::RVec<float> &genparticle_pt,
+           const ROOT::RVec<float> &genparticle_eta,
+           const ROOT::RVec<float> &genparticle_phi,
+           const ROOT::RVec<float> &genparticle_mass,
+           const ROOT::RVec<int> &genparticle_id,
+           const ROOT::RVec<int> &genparticle_status,
+           const ROOT::RVec<UShort_t> &genparticle_statusflag_v12) {
+            auto genparticle_statusflag = static_cast<ROOT::RVec<int>>(genparticle_statusflag_v12);
+            ROOT::Math::PtEtaPhiMVector genBoson;
+            ROOT::Math::PtEtaPhiMVector visgenBoson;
+            ROOT::Math::PtEtaPhiMVector genparticle;
+            // now loop though all genparticles in the event
+            for (std::size_t index = 0; index < genparticle_id.size();
+                 ++index) {
+                if ((((abs(genparticle_id.at(index)) == 11 ||
+                     abs(genparticle_id.at(index)) == 13) &&
+                     genparticle_status.at(index) == 1) ||
+                     (abs(genparticle_id.at(index)) == 15 &&
+                     genparticle_status.at(index) == 2)) && 
+                     (IntBits(genparticle_statusflag.at(index)).test(8))) {
+                    genparticle = ROOT::Math::PtEtaPhiMVector(
+                        genparticle_pt.at(index), genparticle_eta.at(index),
+                        genparticle_phi.at(index), genparticle_mass.at(index));
+                    genBoson = genBoson + genparticle;
+                }
+            }
+
+            return static_cast<float>(genBoson.Pt());
+        };
+    if (!is_data) {
+        // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
+        // For v9 compatibility a type casting is applied
+        auto [df1, genparticle_statusflag_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+                df, genparticle_statusflag+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticle_statusflag);
+        return df1.Define(outputname, calculateGenBosonPt,
+                         {genparticle_pt, genparticle_eta, genparticle_phi,
+                          genparticle_mass, genparticle_id, genparticle_status,
+                          genparticle_statusflag_column});
+    } else {
+        return df.Define(outputname, []() {
+            ROOT::Math::PtEtaPhiMVector genBoson;
+            return static_cast<float>(genBoson.Pt());
         });
     }
 }
@@ -405,11 +483,12 @@ ROOT::RDF::RNode genBosonRapidity(ROOT::RDF::RNode df,
  * @return a new df containing the corrected met lorentz vector
  */
 ROOT::RDF::RNode propagateLeptonsToMet(
-    ROOT::RDF::RNode df, const std::string &met,
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &met,
     const std::string &p4_1_uncorrected, const std::string &p4_2_uncorrected,
     const std::string &p4_3_uncorrected, const std::string &p4_1,
     const std::string &p4_2, const std::string &p4_3,
-    const std::string &outputname, bool apply_propagation) {
+    bool apply_propagation) {
     auto scaleMet = [](const ROOT::Math::PtEtaPhiMVector &met,
                        const ROOT::Math::PtEtaPhiMVector &uncorrected_object,
                        const ROOT::Math::PtEtaPhiMVector &corrected_object) {
@@ -500,11 +579,12 @@ ROOT::RDF::RNode propagateLeptonsToMet(
  * @return a new df containing the corrected met lorentz vector
  */
 ROOT::RDF::RNode
-propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
+propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &outputname,
+                      const std::string &met,
                       const std::string &p4_1_uncorrected,
                       const std::string &p4_2_uncorrected,
                       const std::string &p4_1, const std::string &p4_2,
-                      const std::string &outputname, bool apply_propagation) {
+                      bool apply_propagation) {
     auto scaleMet = [](const ROOT::Math::PtEtaPhiMVector &met,
                        const ROOT::Math::PtEtaPhiMVector &uncorrected_object,
                        const ROOT::Math::PtEtaPhiMVector &corrected_object) {
@@ -580,10 +660,10 @@ propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
  * @return a new df containing the corrected met lorentz vector
  */
 ROOT::RDF::RNode propagateLeptonsToMet(ROOT::RDF::RNode df,
+                                       const std::string &outputname,
                                        const std::string &met,
                                        const std::string &p4_1_uncorrected,
                                        const std::string &p4_1,
-                                       const std::string &outputname,
                                        bool apply_propagation) {
     auto scaleMet = [](const ROOT::Math::PtEtaPhiMVector &met,
                        const ROOT::Math::PtEtaPhiMVector &uncorrected_object,
@@ -661,12 +741,12 @@ ROOT::RDF::RNode propagateLeptonsToMet(ROOT::RDF::RNode df,
  * @return a new df containing the corrected met lorentz vector
  */
 ROOT::RDF::RNode propagateJetsToMet(
-    ROOT::RDF::RNode df, const std::string &met,
+    ROOT::RDF::RNode df, const std::string &outputname, const std::string &met,
     const std::string &jet_pt_corrected, const std::string &jet_eta_corrected,
     const std::string &jet_phi_corrected, const std::string &jet_mass_corrected,
     const std::string &jet_pt, const std::string &jet_eta,
     const std::string &jet_phi, const std::string &jet_mass,
-    const std::string &outputname, bool apply_propagation, float min_jet_pt) {
+    bool apply_propagation, float min_jet_pt) {
     // propagate jet corrections to met, since we can have an arbitrary
     // amount of jets, this has to be done per event
     auto scaleMet = [min_jet_pt](const ROOT::Math::PtEtaPhiMVector &met,
@@ -750,9 +830,12 @@ is only needed for WJets samples)
  * @return a new dataframe containing the new met column
  */
 ROOT::RDF::RNode applyRecoilCorrections(
-    ROOT::RDF::RNode df, const std::string &met, const std::string &genboson,
-    const std::string &jet_pt, const std::string &outputname,
-    const std::string &recoilfile, const std::string &systematicsfile,
+    ROOT::RDF::RNode df, const std::string &outputname, 
+    const std::string &met, 
+    const std::string &genboson,
+    const std::string &jet_pt, 
+    const std::string &recoilfile, 
+    const std::string &systematicsfile,
     bool applyRecoilCorrections, bool resolution, bool response, bool shiftUp,
     bool shiftDown, bool isWjets) {
     if (applyRecoilCorrections) {
@@ -830,6 +913,154 @@ ROOT::RDF::RNode applyRecoilCorrections(
         };
         return df.Define(outputname, RecoilCorrections,
                          {met, genboson, jet_pt});
+    } else {
+        // if we do not apply the recoil corrections, just rename the met
+        // column to the new outputname and dont change anything else
+        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
+    }
+}
+
+/**
+ * @brief function used to apply Recoil corrections on a given sample. For
+more information on recoil corrections for Run3, check [this
+presentation](https://indico.cern.ch/event/1495537/contributions/6359516/attachments/3014424/5315938/HLepRare_25.02.14.pdf). 
+ * and [here](https://cms-higgs-leprare.docs.cern.ch/htt-common/V_recoil/#example-snippet).
+ *
+ * @param df the input dataframe
+ * @param outputname name of the new column containing the corrected met
+ * @param met the input met
+ * @param genboson the genboson vector, this is a std::pair where the first
+value is the genboson vector and the seconds value is the visible genboson
+vector
+ * @param nJets number of jets
+ * @param recoilfile path to the recoil corrections json file
+ * @param order order of the samples - "LO", "NLO", etc.
+ * @param method method to be used to apply the corrections
+ * @param variation variation to be used for the shifts
+ * @param applyRecoilCorrections if bool is set, the recoil correction is
+applied, if not, the outputcolumn contains the original met value
+ * @param isWjets bool - if set, the number of jets is incrased by one (this
+is only needed for WJets samples)
+ * @return a new dataframe containing the new met column
+ *
+ * @note This function is intended to be used in Run3 where recoil corrections are provided in json files
+ * to be read by correctionlib. For Run 2 recoil correction see the function above.
+ */
+ROOT::RDF::RNode applyRecoilCorrections(
+    ROOT::RDF::RNode df, correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname,
+    const std::string &met, 
+    const std::string &genboson,
+    const std::string &njets,
+    const std::string &recoilfile, 
+    const std::string &order,
+    const std::string &method,
+    const std::string &variation,
+    bool applyRecoilCorrections, bool isWjets) {
+    if (applyRecoilCorrections) {
+        Logger::get("RecoilCorrections")->debug("Will run recoil corrections");
+        
+        // Quantile Map with a fit fucntion is not implemented as it's not recommended for powheg and NLO samples
+        // Load correction file for the quantile map with histograms method
+        auto QuantileFitCorr = correction_manager.loadCorrection(recoilfile, "Recoil_correction_QuantileMapHist");
+        // Load correction file for rescaling method
+        auto RescalingCorr = correction_manager.loadCorrection(recoilfile, "Recoil_correction_Rescaling");
+        // Load correction file for uncertainties
+        auto RecoilUnc = correction_manager.loadCorrection(recoilfile, "Recoil_correction_Uncertainty");
+
+        auto RecoilCorrections = [ QuantileFitCorr, RescalingCorr, RecoilUnc,
+                                    order, method, variation, isWjets](
+                                     ROOT::Math::PtEtaPhiMVector &met,
+                                     std::pair<ROOT::Math::PtEtaPhiMVector,
+                                               ROOT::Math::PtEtaPhiMVector>
+                                         &genboson,
+                                     const Int_t &njets) {
+            // jets with pt>30 gev and |eta|<2.5 or pt>50 gev outside the tracker region
+            // for now, keeping the number of jets from the analysis selection which is close enough
+            //auto jets_above30 = 
+            //    Filter(jet_pt, jet_eta, [](float pt, float eta) { return pt > 30 && std::abs(eta) < 2.5; });
+            //auto jets_above50 = Filter(jet_pt, [](float pt) { return pt > 50; });
+            //float nJets = jet_pt.size();
+            //type of njets needs to be a float for the correctionlib evaluation
+            float nJets = static_cast<float>(njets);
+            //if (isWjets) nJets = njets + 1.;
+            float MetX = met.Px();
+            float MetY = met.Py();
+            float genPx = genboson.first.Px();  // generator Z(W) px
+            float genPy = genboson.first.Py();  // generator Z(W) py
+            float genPt = genboson.first.Pt();  // generator Z(W) pt
+            float visPx = genboson.second.Px(); // visible (generator) Z(W) px
+            float visPy = genboson.second.Py(); // visible (generator) Z(W) py
+            
+            Double_t Upara = 0.;
+            Double_t Uperp = 0.;
+            Double_t Upara_new = 0.;
+            Double_t Uperp_new = 0.;
+            Double_t metUpara = 0.; //needed to apply the function to extract Upara and Uperp, not used otherwise
+            Double_t metUperp = 0.; //needed to apply the function to extract Upara and Uperp, not used otherwise
+            float METX_new = 0.;
+            float METY_new = 0.;
+            float Hpara = 0.;
+            float Hperp = 0.;
+            float Hpara_new = 0.;
+            float Hperp_new = 0.;
+ 
+            // calculate U
+            RecoilCorrector::CalculateU1U2FromMet(MetX, MetY, genPx, genPy, visPx, visPy,  //inputs
+                Upara, Uperp, metUpara, metUperp); //outputs
+            // calculate H
+            MetSystematic::ComputeHadRecoilFromMet(MetX, MetY, genPx, genPy, visPx, visPy, Hpara, Hperp);
+            
+            Logger::get("RecoilCorrections")->debug("Corrector Inputs");
+            Logger::get("RecoilCorrections")->debug("nJets {} ", nJets);
+            Logger::get("RecoilCorrections")->debug("genPx {} ", genPx);
+            Logger::get("RecoilCorrections")->debug("genPy {} ", genPy);
+            Logger::get("RecoilCorrections")->debug("visPx {} ", visPx);
+            Logger::get("RecoilCorrections")->debug("visPy {} ", visPy);
+            Logger::get("RecoilCorrections")->debug("MetX {} ", MetX);
+            Logger::get("RecoilCorrections")->debug("MetY {} ", MetY);
+            Logger::get("RecoilCorrections")->debug("old met {} ", met.Pt());
+
+            // apply the corrections/shifts
+            if (method == "Quantile") {
+                // for -150GeV<UPar or UPerp<150 GeV this method is not valid but the correctionlib data
+                // will automatically give the rescaling method
+                Upara_new = QuantileFitCorr->evaluate({order, nJets, genPt, std::string("Upara"), float(Upara)});
+                Uperp_new = QuantileFitCorr->evaluate({order, nJets, genPt, std::string("Uperp"), float(Uperp)});
+                RecoilCorrector::CalculateMetFromU1U2(Upara_new, Uperp_new, genPx, genPy, visPx, visPy,  //inputs
+                                                     METX_new, METY_new); //outputs
+            }
+            else if (method == "Rescaling") {
+                Upara_new = RescalingCorr->evaluate({order, nJets, genPt, std::string("Upara"), float(Upara)});
+                Uperp_new = RescalingCorr->evaluate({order, nJets, genPt, std::string("Uperp"), float(Uperp)});
+                RecoilCorrector::CalculateMetFromU1U2(Upara_new, Uperp_new, genPx, genPy, visPx, visPy,  //inputs
+                                                     METX_new, METY_new); //outputs
+            }
+            else if (method == "shift") {
+                if (variation=="RespUP" || variation=="RespDown" || variation=="ResolUp" || variation=="ResolDown") {
+                    Hpara_new = RecoilUnc->evaluate({order, nJets, genPt, std::string("Hpara"), Hpara, variation});
+                    Hperp_new = RecoilUnc->evaluate({order, nJets, genPt, std::string("Hperp"), Hperp, variation});
+                }
+                else Logger::get("RecoilCorrections")->error("Variation not known. Choose either 'RespUP', 'RespDown', 'ResolUp' or 'ResolDown'");
+
+                MetSystematic::ComputeMetFromHadRecoil(Hpara_new, Hperp_new, genPx, genPy, visPx, visPy, //inputs
+                                                        METX_new, METY_new); //outputs
+            }
+            else Logger::get("RecoilCorrections")->error("Method not known. Choose either 'Quantile', 'Rescaling' or 'shift'");
+            
+            //compute MET vector
+            ROOT::Math::PtEtaPhiMVector MET_new;
+            MET_new.SetPxPyPzE(METX_new, METY_new, 0,
+                                std::sqrt(METX_new * METX_new + METY_new * METY_new));
+
+            Logger::get("RecoilCorrections")
+                ->debug("Shifted and corrected met {} ", MET_new.Pt());
+
+            return MET_new;
+        };
+
+        return df.Define(outputname, RecoilCorrections,
+                         {met, genboson, njets});
     } else {
         // if we do not apply the recoil corrections, just rename the met
         // column to the new outputname and dont change anything else
