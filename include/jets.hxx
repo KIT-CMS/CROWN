@@ -86,6 +86,16 @@ Btagging(ROOT::RDF::RNode df,
        const std::string &bjet_mask, const std::string &jet_veto_mask, 
        const std::string &sf_file, const std::string &sf_name, 
        const std::string &variation);  
+ROOT::RDF::RNode
+BtaggingWP(ROOT::RDF::RNode df,
+       correctionManager::CorrectionManager &correction_manager,
+       const std::string &outputname, const std::string &pt, 
+       const std::string &eta,  
+       const std::string &flavor,
+       const std::string &jet_mask, 
+       const std::string &bjet_mask, const std::string &jet_veto_mask, 
+       const std::string &sf_file, const std::string &sf_name, 
+       const std::string &variation, const std::string &btag_wp);  
 } // end namespace scalefactor
 } // end namespace jet
 } // end namespace physicsobject
