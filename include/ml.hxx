@@ -107,33 +107,28 @@ inline ROOT::RDF::RNode GenericOnnxEvaluator(
 // Moving the implementation to the source file will result in a linker error.
 // Why, I don't know...
 template <std::size_t nParameters>
-inline ROOT::RDF::RNode PNNEvaluate_ORT(
+inline ROOT::RDF::RNode NNEvaluate_ORT(
     ROOT::RDF::RNode df, OnnxSessionManager &onnxSessionManager,
     const std::string &outputname_vector, const std::string &outputname_class,
-    const std::string &outputname_max_value, const std::string &model_file,
-    const std::string &massX_parameter, const std::string &massY_parameter,
+    const std::string &outputname_max_value, 
+    const std::string &model_file_path_even, const std::string &model_file_path_odd,
     const std::vector<std::string> &input_vec) {
 
-    Logger::get("NMSSMEvaluate")
-        ->debug("mass hypothesis: mX={}, mY={}", massX_parameter,
-                massY_parameter);
+    df = df.Define("nbtag_float", [](int nbtag) { return static_cast<float>(nbtag); }, {"nbtag"});
+    df = df.Define("njets_float", [](int njets) { return static_cast<float>(njets); }, {"njets"});
+
 
     std::vector<std::string> InputList;
     // convert input_vec to std::vector<std::string>
     for (auto i = 0; i < input_vec.size(); i++) {
-        InputList.push_back(std::string(input_vec[i]));
+        if (input_vec[i] == "nbtag") {
+            InputList.push_back("nbtag_float");
+        } else if (input_vec[i] == "njets") {
+            InputList.push_back("njets_float");
+        } else {
+            InputList.push_back(std::string(input_vec[i]));
+        }
     }
-
-    if (outputname_vector.find("boosted") != std::string::npos) {
-        InputList.push_back(std::string("massX_") + massX_parameter + std::string("_boosted"));
-        InputList.push_back(std::string("massY_") + massY_parameter + std::string("_boosted"));
-    } else {
-        InputList.push_back(std::string("massX_") + massX_parameter);
-        InputList.push_back(std::string("massY_") + massY_parameter);
-    }
-
-    // InputList.push_back(std::string("massX_") + massX_parameter);
-    // InputList.push_back(std::string("massY_") + massY_parameter);
     
     // print content of InputList
     for (auto i = 0; i < InputList.size(); ++i) {
@@ -142,22 +137,12 @@ inline ROOT::RDF::RNode PNNEvaluate_ORT(
     }
 
     if (nParameters != InputList.size()) {
-        Logger::get("NMSSMEvaluate")
+        Logger::get("Evaluate")
             ->error("Number of input parameters does not match the number of "
                     "input variables: {} vs {}",
                     nParameters, InputList.size());
         throw std::runtime_error("Number of input parameters does not match");
     }
-
-    std::string replace_str = std::string("EVTID");
-    std::string model_file_path_odd =
-        std::string(model_file)
-            .replace(model_file.find(replace_str), replace_str.length(),
-                     std::string("odd"));
-    std::string model_file_path_even =
-        std::string(model_file)
-            .replace(model_file.find(replace_str), replace_str.length(),
-                     std::string("even"));
 
     // Load the model and create InferenceSession
     std::vector<int64_t> input_node_dims;
@@ -166,8 +151,8 @@ inline ROOT::RDF::RNode PNNEvaluate_ORT(
     int num_output_nodes;
     Ort::AllocatorWithDefaultOptions allocator;
 
-    auto session_odd = onnxSessionManager.getSession(model_file_path_odd);
     auto session_even = onnxSessionManager.getSession(model_file_path_even);
+    auto session_odd = onnxSessionManager.getSession(model_file_path_odd);
 
     // for even/odd splitting
     auto col_names = df.GetColumnNames();
@@ -234,20 +219,5 @@ inline ROOT::RDF::RNode PNNEvaluate_ORT(
     return df4;
 }
 
-// namespace sofie {
-
-// void CompileModelForRDF(const std::string &headerModelFile,
-//                         unsigned int ninputs, unsigned int nslots = 0);
-
-// std::string SOFIEGenerator(std::vector<std::string> input_vec,
-//                            const std::string &model_file);
-
-// ROOT::RDF::RNode NMSSMEvaluate_ONNX(
-//     ROOT::RDF::RNode df, const std::vector<std::string> &input_vec,
-//     const std::string &outputname_vector, const std::string &outputname_class,
-//     const std::string &outputname_max_value, const std::string &model_file,
-//     const std::string &massX_parameter, const std::string &massY_parameter);
-
-// } // end namespace sofie
 } // end namespace ml
 #endif /* GUARD_ML_H */
