@@ -424,6 +424,9 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df,
  * @param argset additional arguments that are needed for the function
  *
  * @return a new dataframe containing the new column
+ *
+ * @note The function is intended for Run 2 analysis. In Run 3 Zpt corrections are
+ * handled through correctionlib, see the function below.
  */
 ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df,
                          const std::string &outputname,
@@ -461,6 +464,69 @@ ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df,
         gen_boson + "_pt");
     return df3;
 }
+
+/**
+ * @brief This function is used to calculate and event weight based on Z boson 
+ * \f$p_T\f$ correction. These corrections are recommended especially 
+ * for LO Drell-Yan samples, where the \f$p_T\f$ and mass of the Z boson are
+ * mismodeled compared to data.  The description can be found here:
+ * https://cms-higgs-leprare.docs.cern.ch/htt-common/DY_reweight/#correctionlib-file
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column containing the derived event weight
+ * @param gen_boson_pt name of the column that containing a pair of Lorentzvectors,
+ * where the first entry is the one of the gen. boson
+ * @param order order of generation of the samples, i.e. LO, NLO
+ * @param file json file containing the corrections
+ * @param variation name of the variation that should be used, options are "nom", "up", "down"
+ *
+ * @return a new dataframe containing the new column
+ *
+ * @note The function is intended for Run 3 analysis. For Run2 see the function  above.
+ */
+ROOT::RDF::RNode
+ZPtWeight(ROOT::RDF::RNode df,
+          correctionManager::CorrectionManager &correction_manager,
+          const std::string &outputname,
+          const std::string &gen_boson_pt,
+          const std::string &order,
+          const std::string &file,
+          const std::string &variation) {
+
+    auto corrDY = correction_manager.loadCorrection(file, "DY_pTll_reweighting");
+    auto corrDYunc = correction_manager.loadCorrection(file, "DY_pTll_reweighting_N_uncertainty");
+
+    // Define number of uncertainties
+    auto n_unc = [corrDYunc](const std::string &order) {
+                return static_cast<int>(corrDYunc->evaluate({order}));
+            };
+
+    // Define output depending on variation
+    auto corr = [corrDY, order, variation, n_unc](const float &gen_boson_pt) {
+        ROOT::RVec<float> weight_col;
+        int nUnc = n_unc(order);
+        if (variation == "nom") {
+            float weight = corrDY->evaluate({order, gen_boson_pt, variation});
+            weight_col.push_back({weight});
+        }
+        else if (variation == "up" || variation == "down") {
+            for (int j = 0; j < nUnc; ++j) {
+                std::string var = variation + std::to_string(j+1);
+                float weight = corrDY->evaluate({order, gen_boson_pt, var});
+                weight_col.push_back(weight);
+            }
+        }
+        else {
+            weight_col.push_back({1.});
+        }
+        return weight_col;
+    };
+    
+    auto df1 = df.Define(outputname, corr, {gen_boson_pt});
+
+    return df1;
+}
+
 } // end namespace reweighting
 } // end namespace event
 #endif /* GUARD_REWEIGHTING_H */

@@ -10,6 +10,14 @@ ROOT::RDF::RNode calculateGenBosonVector(
     const std::string &genparticle_status,
     const std::string &genparticle_statusflag, const std::string outputname,
     bool is_data);
+ROOT::RDF::RNode calculateGenBosonPt(
+    ROOT::RDF::RNode df,  const std::string &outputname,
+    const std::string &genparticle_pt,
+    const std::string &genparticle_eta, const std::string &genparticle_phi,
+    const std::string &genparticle_mass, const std::string &genparticle_id,
+    const std::string &genparticle_status,
+    const std::string &genparticle_statusflag, 
+    bool is_data);
 ROOT::RDF::RNode genBosonMass(ROOT::RDF::RNode df,
                               const std::string &outputname,
                               const std::string &inputvector);
@@ -58,12 +66,20 @@ ROOT::RDF::RNode propagateJetsToMet(
     const std::string &jet_pt, const std::string &jet_eta,
     const std::string &jet_phi, const std::string &jet_mass,
     const std::string &outputname, bool apply_propagation, float min_jet_pt);
-ROOT::RDF::RNode applyRecoilCorrections(
+ROOT::RDF::RNode applyRecoilCorrections( //Run 2
     ROOT::RDF::RNode df, const std::string &met, const std::string &genmet,
     const std::string &jet_pt, const std::string &outputname,
     const std::string &recoilfile, const std::string &systematicsfile,
     bool applyRecoilCorrections, bool resolution, bool response, bool shiftUp,
     bool shiftDown, bool isWjets);
+ROOT::RDF::RNode applyRecoilCorrections( //Run 3
+    ROOT::RDF::RNode df, correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname,
+    const std::string &met, const std::string &genZ,
+    const std::string &njets,
+    const std::string &recoilfile, const std::string &order,
+    const std::string &method, const std::string &variation,
+    bool applyRecoilCorrections, bool isWjets);
 ROOT::RDF::RNode applyMetXYCorrections(ROOT::RDF::RNode df,
                                        const std::string &input_p4,
                                        const std::string &npv,
