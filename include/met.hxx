@@ -4,12 +4,11 @@
 namespace met {
 
 ROOT::RDF::RNode calculateGenBosonVector(
-    ROOT::RDF::RNode df, const std::string &outputname,
-    const std::string &genparticle_pt,
+    ROOT::RDF::RNode df, const std::string &genparticle_pt,
     const std::string &genparticle_eta, const std::string &genparticle_phi,
     const std::string &genparticle_mass, const std::string &genparticle_id,
     const std::string &genparticle_status,
-    const std::string &genparticle_statusflag,
+    const std::string &genparticle_statusflag, const std::string outputname,
     bool is_data);
 ROOT::RDF::RNode calculateGenBosonPt(
     ROOT::RDF::RNode df,  const std::string &outputname,
