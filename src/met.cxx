@@ -1031,11 +1031,11 @@ ROOT::RDF::RNode applyRecoilCorrections(
                                                      METX_new, METY_new); //outputs
             }
             else if (method == "shift") {
-                if (variation=="RespUP" || variation=="RespDown" || variation=="ResolUp" || variation=="ResolDown") {
+                if (variation=="RespUp" || variation=="RespDown" || variation=="ResolUp" || variation=="ResolDown") {
                     Hpara_new = RecoilUnc->evaluate({order, nJets, genPt, std::string("Hpara"), Hpara, variation});
                     Hperp_new = RecoilUnc->evaluate({order, nJets, genPt, std::string("Hperp"), Hperp, variation});
                 }
-                else Logger::get("RecoilCorrections")->error("Variation not known. Choose either 'RespUP', 'RespDown', 'ResolUp' or 'ResolDown'");
+                else Logger::get("RecoilCorrections")->error("Variation not known. Choose either 'RespUp', 'RespDown', 'ResolUp' or 'ResolDown'");
 
                 MetSystematic::ComputeMetFromHadRecoil(Hpara_new, Hperp_new, genPx, genPy, visPx, visPy, //inputs
                                                         METX_new, METY_new); //outputs
