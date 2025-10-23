@@ -503,23 +503,11 @@ ZPtWeight(ROOT::RDF::RNode df,
 
     // Define output depending on variation
     auto corr = [corrDY, order, variation, n_unc](const float &gen_boson_pt) {
-        ROOT::RVec<float> weight_col;
-        int nUnc = n_unc(order);
-        if (variation == "nom") {
-            float weight = corrDY->evaluate({order, gen_boson_pt, variation});
-            weight_col.push_back({weight});
+        float weight=1.0;
+        if (variation == "nom" || variation.find("up") != std::string::npos || variation.find("down") != std::string::npos) {
+            weight = corrDY->evaluate({order, gen_boson_pt, variation});
         }
-        else if (variation == "up" || variation == "down") {
-            for (int j = 0; j < nUnc; ++j) {
-                std::string var = variation + std::to_string(j+1);
-                float weight = corrDY->evaluate({order, gen_boson_pt, var});
-                weight_col.push_back(weight);
-            }
-        }
-        else {
-            weight_col.push_back({1.});
-        }
-        return weight_col;
+        return weight;
     };
     
     auto df1 = df.Define(outputname, corr, {gen_boson_pt});
