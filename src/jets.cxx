@@ -76,7 +76,9 @@ namespace jet {
  *
  * @note The option `no_jer_for_unmatched_forward_jets` is introduced to
  * mitigate jet horns appearing in the eta distribution of jets at
- * \f$|\eta| \sim 2-3\f$ in Run 3 analyses. This option should only set to
+ * \f$|\eta| \sim 2-3\f$ in Run 3 analyses. If the option is set to `true`,
+ * no jet energy resolution smearing is applied to jets without a matching
+ * generator-level jet for \f$|\eta| > 2.5\f$. Only use this option set to
  * `true` if the recipe to mitigate jet horns is implemented in the analysis.
  */
 ROOT::RDF::RNode
