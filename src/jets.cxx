@@ -67,7 +67,8 @@ namespace jet {
  * @param jer_shift JER shift variation ("nom", "up", or "down")
  * @param lhc_run LHC Run number, `2` for 2016-2018 and `3` for 2022-2026
  * @param no_jer_for_unmatched_forward_jets if true, no jet energy resolution
- * smearing is applied to jets in the forward region (|eta| > 2.5).
+ * smearing is applied to unmatched jets in the forward region
+ * (\f$|\eta| > 2.5\f$).
  * 
  * @return a dataframe with a new column of corrected jet \f$p_T\f$'s
  *
