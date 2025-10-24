@@ -588,7 +588,8 @@ ROOT::RDF::RNode DecayFlavor(
     ROOT::RDF::RNode df,
     const std::string &outputname,
     const std::string &lhe_pdg_id,
-    const std::string &lhe_status
+    const std::string &lhe_status,
+    int filter_pdgid // New parameter to specify the pdg id to filter on
 ) {
     auto flavor_flag = [] (
         const ROOT::RVec<int> &lhe_pdg_id,
@@ -605,11 +606,21 @@ ROOT::RDF::RNode DecayFlavor(
         return decay_flavor_pdgid;
     };
 
-    return df.Define(
+    auto df_with_flavor = df.Define(
         outputname,
         flavor_flag,
         {lhe_pdg_id, lhe_status}
     );
+
+    // Filter the dataframe based on the specified pdg id
+    auto filtered_df = df_with_flavor.Filter(
+        [filter_pdgid, outputname](int flavor) {
+            return flavor < filter_pdgid;
+        },
+        {outputname}
+    );
+
+    return filtered_df;
 }
 
 } // end namespace drell_yan

@@ -41,7 +41,8 @@ ROOT::RDF::RNode DecayFlavor(
     ROOT::RDF::RNode df,
     const std::string &outputname,
     const std::string &lhe_pdg_id,
-    const std::string &lhe_status
+    const std::string &lhe_status,
+    int filter_pdgid
 );
 } // end namespace drell_yan
 } // end namespace genparticles
