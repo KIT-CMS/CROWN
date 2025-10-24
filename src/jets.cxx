@@ -66,11 +66,18 @@ namespace jet {
  * @param jes_shift JES shift variation (0 = nominal, +/-1 = up/down)
  * @param jer_shift JER shift variation ("nom", "up", or "down")
  * @param lhc_run LHC Run number, `2` for 2016-2018 and `3` for 2022-2026
+ * @param no_jer_for_unmatched_forward_jets if true, no jet energy resolution
+ * smearing is applied to jets in the forward region (|eta| > 2.5).
  * 
  * @return a dataframe with a new column of corrected jet \f$p_T\f$'s
  *
  * @note If jets with \f$p_T\f$ > 15 GeV are corrected, this change should be
  * propagated to the missing transverse momentum.
+ *
+ * @note The option `no_jer_for_unmatched_forward_jets` is introduced to
+ * mitigate jet horns appearing in the eta distribution of jets at
+ * \f$|\eta| \sim 2-3\f$ in Run 3 analyses. This option should only set to
+ * `true` if the recipe to mitigate jet horns is implemented in the analysis.
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
@@ -85,7 +92,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &jes_tag, const std::vector<std::string> &jes_shift_sources,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
-               const int& lhc_run = 2) {
+               const int& lhc_run = 2, const bool &no_jer_for_unmatched_forward_jets = false) {
     // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, jet_id_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
@@ -131,7 +138,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                               jet_energy_scale_sf, jet_energy_resolution,
                               jer_sf_evaluator, jes_shift_sources,
                               jes_shift, jer_shift, jet_radius, 
-                              lhc_run](const ROOT::RVec<float> &pts,
+                              lhc_run, no_jer_for_unmatched_forward_jets](
+                                       const ROOT::RVec<float> &pts,
                                        const ROOT::RVec<float> &etas,
                                        const ROOT::RVec<float> &phis,
                                        const ROOT::RVec<float> &area,
@@ -209,8 +217,18 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             } else {
                 Logger::get("physicsobject::jet::PtCorrectionMC")
                     ->debug("No gen jet found. Applying stochastic smearing.");
-                double shift = randm.Gaus(0, reso) *
-                               std::sqrt(std::max(reso_sf * reso_sf - 1., 0.0));
+                double shift = 0.0;
+                if (no_jer_for_unmatched_forward_jets && abs(etas.at(i)) > 2.5) {
+                    Logger::get("physicsobject::jet::PtCorrectionMC")
+                        ->debug(
+                            "Jet has eta > 2.5, and no JER applied to "
+                            "unmatched forward jets turned on."
+                        );
+                    shift = 0.0;
+                } else {
+                    shift = randm.Gaus(0, reso) *
+                            std::sqrt(std::max(reso_sf * reso_sf - 1., 0.0));
+                }
                 corrected_pts.at(i) *= std::max(0.0, 1.0 + shift);
             }
             Logger::get("physicsobject::jet::PtCorrectionMC")
