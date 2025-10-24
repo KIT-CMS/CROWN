@@ -156,8 +156,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  *
  * @return a dataframe containing the varied electron transverse momenta
  * 
- * @note This function is intended for analyses working with Run 3 NanoAODv12. 
- * In the Run 2 NanoAODv12 samples, the scale correction in data
+ * @note This function is intended for analyses working with Run 3 NanoAODv12
+ * or higher. In the Run 2 NanoAODv12 samples, the scale correction in data
  * is already applied in the NanoAOD files. Look at the overloaded version of
  * this function for Run 2 analyses.
  */
@@ -200,7 +200,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 "smear",
                 pt.at(i),
                 r9.at(i),
-                abs(eta_sc)
+                eta_sc
             });
 
             // get the scale uncertainty
@@ -208,7 +208,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 "escale",
                 pt.at(i),
                 r9.at(i),
-                abs(eta_sc)
+                eta_sc
             });
 
             // get the resolution uncertainty
@@ -216,7 +216,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 "esmear",
                 pt.at(i),
                 r9.at(i),
-                abs(eta_sc)
+                eta_sc
             });
 
             // set the corrected pt based on the considered variation
@@ -260,144 +260,6 @@ PtCorrectionMC(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief This function applies energy scale and resolution corrections to MC.
- * The corrections are obtained from a dedicated correctionlib file.
- * 
- * For Run 3 samples, the electron energy scale correction has to be evaluated
- * using a centrally provided correctionlib file. The documentation of the file
- * content can be found here:
- * 
- * - [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22_electronSS_EtDependent.html)
- * - [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22EE_electronSS_EtDependent.html)
- * - [2023preBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23_electronSS_EtDependent.html)
- * - [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23BPix_electronSS_EtDependent.html)
- *
- * An implementation recipe is provided here:
- * [egmScaleAndSmearingExample.py](https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/blob/master/examples/egmScaleAndSmearingExample.py).
- * 
- * @param df input dataframe
- * @param correction_manager correction manager responsible for loading the
- * correction scale uncertainty patch file
- * @param outputname name of the output column for corrected \f$p_T\f$ values
- * @param pt name of the column containing electron \f$p_T\f$ values
- * @param eta name of the column containing electron pseudorapidities
- * @param delta_eta_sc name of the column containing the distance in
- * pseudorapidity between supercluster and electron
- * @param r9 name of the column containing the R9 value of the electron's
- * supercluster
- * @param event_seed name of the column containing the event seed for the
- * smearing
- * @param sf_file path to the correction file for the energy scale corrections
- * and variations
- * @param sf_name path to the correction and the uncertainty shifts to be
- * accessed.
- * @param variation name of the energy correction variation that should be
- * calculated (e.g., "resolutionUp", "resolutionDown", "scaleUp", "scaleDown"),
- * for "nominal" nothing is done because energy correction is already applied
- *
- * @return a dataframe containing the varied electron transverse momenta
- * 
- * @note This function is intended for analyses working with Run 3 NanoAODv15
- * In the Run 3 NanoAODv15 samples, the scale correction in data
- * is already applied in the NanoAOD files. Look at the overloaded version of
- * this function for Run 2 analyses. Here the supercluster eta is already a column
- * in the input NanoAODs and the correction is accessed without the absolute value.
- */
-ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correction_manager,
-               const std::string &outputname, const std::string &pt,
-               const std::string &eta_sc,
-               const std::string &r9,
-               const std::string &event_seed,
-               const std::string &sf_file,
-               const std::string &sf_name,
-               const std::string &variation) {
-
-    // load corrections
-    auto evaluator =
-        correction_manager.loadCorrection(sf_file, sf_name);
-
-    // lambda function to apply the scale and smearing corrections
-    auto correction = [evaluator, variation] (
-        const ROOT::RVec<float> &pt,
-        const ROOT::RVec<float> &eta_sc,
-        const ROOT::RVec<float> &r9,
-        const unsigned int &event_seed
-    ) {
-        // initialize the random number generator with the event seed
-        TRandom3 rand_gen = TRandom3(event_seed);
-
-        // container for corrected pt values
-        auto pt_corrected = ROOT::RVec<float>(pt.size());
-        for (int i = 0; i < pt.size(); ++i) {
-
-            // calculate the nominal corrected pt by smearing the original pt
-            auto random_number = rand_gen.Gaus(0.0, 1.0);
-            auto smear_nom = evaluator->evaluate({
-                "smear",
-                pt.at(i),
-                r9.at(i),
-                eta_sc.at(i)
-            });
-
-            // get the scale uncertainty
-            auto smear_unc = evaluator->evaluate({
-                "escale",
-                pt.at(i),
-                r9.at(i),
-                eta_sc.at(i)
-            });
-
-            // get the resolution uncertainty
-            auto scale_unc = evaluator->evaluate({
-                "esmear",
-                pt.at(i),
-                r9.at(i),
-                eta_sc.at(i)
-            });
-
-            // set the corrected pt based on the considered variation
-            float sf = 1.0;
-            if (variation == "nom") {
-                sf = std::max(0.0, 1.0 + smear_nom * random_number);
-                pt_corrected[i] = pt.at(i) * sf;
-            } else if (variation == "resolutionUp") {
-                sf = std::max(0.0, 1.0 + (smear_nom + smear_unc) * random_number);
-                pt_corrected[i] = pt.at(i) * sf;
-            } else if (variation == "resolutionDown") {
-                sf = std::max(0.0, 1.0 + (smear_nom - smear_unc) * random_number);
-                pt_corrected[i] = pt.at(i) * sf;
-            } else if (variation == "scaleUp") {
-                sf = 1.0 + scale_unc;
-                pt_corrected[i] = pt.at(i) * sf;
-            } else if (variation == "scaleDown") {
-                sf = 1.0 - scale_unc;
-                pt_corrected[i] = pt.at(i) * sf;
-            } else {
-                Logger::get("physicsobject::electron::PtCorrectionMC")
-                    ->debug("unknown variation {}", variation);
-                throw std::runtime_error("unknown variation");
-            }
-
-            // logging output
-            Logger::get("physicsobject::electron::PtCorrectionMC")
-                ->debug("ele pt before {}, ele pt after {}, sf {}, variation {}",
-                        pt.at(i), pt_corrected.at(i), sf, variation);
-
-        }
-
-        return pt_corrected;
-    };
-
-    return df.Define(
-        outputname,
-        correction,
-        {pt, eta_sc, r9, event_seed}
-    );
-}
-
-/**
  * @brief This function applies energy scale corrections to data. The corrections are
  * obtained from a dedicated correctionlib file.
  * 
@@ -433,7 +295,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  *
  * @return a dataframe containing the varied electron transverse momenta
  * 
- * @note This function is intended for analyses working with Run 3 NanoAODv12.
+ * @note This function is intended for analyses working with Run 3 NanoAODv12
+ * or higher.
  */
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
@@ -469,7 +332,7 @@ PtCorrectionData(ROOT::RDF::RNode df,
                 static_cast<float>(run),
                 eta_sc,
                 r9.at(i),
-                abs(eta_sc),
+                eta_sc,
                 pt.at(i),
                 static_cast<float>(seed_gain.at(i))
             });
@@ -485,90 +348,6 @@ PtCorrectionData(ROOT::RDF::RNode df,
         outputname,
         correction,
         {pt, eta, delta_eta_sc, seed_gain, r9, run}
-    );
-}
-
-/**
- * @brief This function applies energy scale corrections to data. The corrections are
- * obtained from a dedicated correctionlib file.
- * 
- * For Run 3 samples, the electron scale correction is not available in the NanoAOD files
- * and the corrections have to be evaluated using a centrally provided correctionlib file.
- * This function should only be used  The documentation of the file content
- * can be found here:
- *
- * - [2024](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2024_Summer24_electronSS_EtDependent_v1.html)
- *
- * An implementation recipe is provided here:
- * [egmScaleAndSmearingExample.py](https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/blob/master/examples/egmScaleAndSmearingExample.py).
- * 
- * @param df input dataframe
- * @param correction_manager correction manager responsible for loading the
- * correction scale uncertainty patch file
- * @param outputname name of the output column for corrected \f$p_T\f$ values
- * @param pt name of the column containing electron \f$p_T\f$ values
- * @param eta_sc name of the column containing electron supercluster pseudorapidities
- * @param seed_gain name of the column containing electron gain values
- * @param r9 name of the column containing the R9 value of the electron's
- * supercluster
- * @param run name of the column containing the run number
- * @param sf_file path to the correction file for the energy scale corrections
- * @param sf_name name of the correction to be accessed.
- * calculated (e.g., "resolutionUp", "resolutionDown", "scaleUp", "scaleDown"),
- * for "nominal" nothing is done because energy correction is already applied
- *
- * @return a dataframe containing the varied electron transverse momenta
- * 
- * @note This function is intended for analyses working with Run 3 NanoAODv15.
- * Here the difference is in having a column for eta_Sc in the NanoAODs already,
- * plus the correction does not need abs(eta_sc) as input anymore.
- */
-ROOT::RDF::RNode
-PtCorrectionData(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correction_manager,
-               const std::string &outputname, const std::string &pt,
-               const std::string &eta_sc,
-               const std::string &seed_gain,
-               const std::string &r9, const std::string &run,
-               const std::string &sf_file,
-               const std::string &sf_name) {
-    // load the correctionlib evaluator
-    auto evaluator =
-        correction_manager.loadCompoundCorrection(sf_file, sf_name);
-
-    // lambda function to apply the scale correction
-    auto correction = [evaluator] (
-        const ROOT::RVec<float> &pt,
-        const ROOT::RVec<float> &eta_sc,
-        const ROOT::RVec<UChar_t> &seed_gain,
-        const ROOT::RVec<float> &r9,
-        const unsigned int &run
-    ) {
-        // for the data correction, we just need to multiply the original pt with the scale factor
-        ROOT::RVec<float> corrected_pt(pt.size());
-        for (int i = 0; i < pt.size(); ++i) {
-
-            // evaluate the nominal correction scale factor from correctionlib
-            auto sf = evaluator->evaluate({
-                "scale",
-                static_cast<float>(run),
-                eta_sc.at(i),
-                r9.at(i),
-                pt.at(i),
-                static_cast<float>(seed_gain.at(i))
-            });
-            corrected_pt[i] = sf * pt.at(i);
-            Logger::get("physicsobject::electron::PtCorrectionData")
-                ->debug("ele pt before {}, ele pt after {}, sf {}",
-                        pt.at(i), corrected_pt.at(i), sf);
-        }
-        return corrected_pt;
-    };
-
-    return df.Define(
-        outputname,
-        correction,
-        {pt, eta_sc, seed_gain, r9, run}
     );
 }
 

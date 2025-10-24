@@ -25,7 +25,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &event_seed,
                const std::string &sf_file,
                const std::string &sf_name,
-               const std::string &variation);  // for Run 3 NanoAODv12
+               const std::string &variation);  // for Run 3
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
                correctionManager::CorrectionManager &correction_manager,
@@ -34,26 +34,7 @@ PtCorrectionData(ROOT::RDF::RNode df,
                const std::string &seed_gain,
                const std::string &r9, const std::string &run,
                const std::string &sf_file,
-               const std::string &sf_name);  // for Run 3 NanoAODv12
-ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correction_manager,
-               const std::string &outputname, const std::string &pt,
-               const std::string &eta_sc,
-               const std::string &r9,
-               const std::string &event_seed,
-               const std::string &sf_file,
-               const std::string &sf_name,
-               const std::string &variation);  // for Run 3 NanoAODv15
-ROOT::RDF::RNode
-PtCorrectionData(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correction_manager,
-               const std::string &outputname, const std::string &pt,
-               const std::string &eta_sc,
-               const std::string &seed_gain,
-               const std::string &r9, const std::string &run,
-               const std::string &sf_file,
-               const std::string &sf_name);  // for Run 3 NanoAODv15
+               const std::string &sf_name);  // for Run 3
 ROOT::RDF::RNode VetoECALGap(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &eta,
                              const std::string &delta_eta_sc,
@@ -71,7 +52,8 @@ namespace scalefactor {
 ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
                     correctionManager::CorrectionManager &correctionManager,
                     const std::string &outputname, const std::string &pt,
-                    const std::string &eta, const std::string &era,
+                    const std::string &eta, const std::string &phi, 
+                    const std::string &era,
                     const std::string &wp, const std::string &sf_file,
                     const std::string &sf_name, const std::string &variation);
 ROOT::RDF::RNode Trigger(ROOT::RDF::RNode df,
