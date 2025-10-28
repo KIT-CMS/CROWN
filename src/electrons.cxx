@@ -332,7 +332,6 @@ PtCorrectionData(ROOT::RDF::RNode df,
                 static_cast<float>(run),
                 eta_sc,
                 r9.at(i),
-                eta_sc,
                 pt.at(i),
                 static_cast<float>(seed_gain.at(i))
             });
