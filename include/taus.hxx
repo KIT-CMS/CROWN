@@ -70,6 +70,29 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
     const std::string &variation_dm0, const std::string &variation_dm1,
     const std::string &variation_dm10, const std::string &variation_dm11);
 
+ROOT::RDF::RNode PtCorrectionMC_genuineTau(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname, const std::string &pt,
+    const std::string &eta, const std::string &decay_mode,
+    const std::string &gen_match, const std::string &es_file,
+    const std::string &correction_name, const std::string &id_algorithm,
+    const std::string &wp, const std::string &vsele_wp,
+    const std::string &variation_dm0, const std::string &variation_dm1,
+    const std::string &variation_dm10, const std::string &variation_dm11);
+
+ROOT::RDF::RNode PtCorrectionMC_genuineTau(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname, const std::string &pt,
+    const std::string &eta, const std::string &decay_mode,
+    const std::string &gen_match, const std::string &es_file,
+    const std::string &correction_name, const std::string &id_algorithm,
+    const std::string &wp, const std::string &vsele_wp,
+    const std::string &variation_dm0_20to40, const std::string &variation_dm1_20to40,
+    const std::string &variation_dm10_20to40, const std::string &variation_dm11_20to40,
+    const std::string &variation_dm0_40toInf, const std::string &variation_dm1_40toInf,
+    const std::string &variation_dm10_40toInf, const std::string &variation_dm11_40toInf);
 namespace quantity {
 ROOT::RDF::RNode IDFlag_v9(ROOT::RDF::RNode df, const std::string &outputname,
                         const std::string &ID, const std::string &index_vector,
