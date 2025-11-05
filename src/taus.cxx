@@ -1285,6 +1285,175 @@ ROOT::RDF::RNode Id_vsJet_tt(
 
 /**
  * @brief This function calculates scale factors (SFs) for tau identification (ID) 
+ * against jets (`vsJet`). The scale factors are loaded from a correctionlib file 
+ * using a specified scale factor name and variation. The variation and the scale 
+ * factor itself is binned in decay modes of hadronic taus for this function. This 
+ * dependence is usually used in the fully hadronic channel (\f$\tau_h\tau_h\f$).
+ *
+ * Description of the bit map used to define the tau ID against jets working points of the
+ * DeepTau v2.1 tagger.
+ * vsJets                              | Value | Bit (value used in the config)
+ * ------------------------------------|-------|-------
+ * no ID selection (takes every tau)   |  0    | -
+ * VVVLoose                            |  1    | 1
+ * VVLoose                             |  2    | 2
+ * VLoose                              |  4    | 3
+ * Loose                               |  8    | 4
+ * Medium                              |  16   | 5
+ * Tight                               |  32   | 6
+ * VTight                              |  64   | 7
+ * VVTight                             |  128  | 8
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * tau scale factor file
+ * @param outputname name of the output column containing the vsJets ID scale factor
+ * @param pt name of the column containing the transverse momentum of a tau
+ * @param decay_mode name of the column containing the decay mode of the tau
+ * @param gen_match name of the column with the matching information of the
+ * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt mu,
+ * 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
+ * @param sf_file path to the file with the tau scale factors
+ * @param sf_name name of the tau scale factor for the vsJet ID correction
+ * @param wp working point of the vsJet ID
+ * @param vsele_wp working point of the vsEle ID
+ * @param sf_dependence variable dependence of the scale factor, opions are "pt" or "dm"
+ * @param variation_dm0 name of the scale factor variation for decay mode 0, "nom" for nominal
+ * and "up"/"down" the up/down variation
+ * @param variation_dm1 name of the scale factor variation for decay mode 1, "nom" for nominal
+ * and "up"/"down" the up/down variation
+ * @param variation_dm10 name of the scale factor variation for decay mode 10, "nom" for nominal
+ * and "up"/"down" the up/down variation
+ * @param variation_dm11 name of the scale factor variation for decay mode 11, "nom" for nominal
+ * and "up"/"down" the up/down variation
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode Id_vsJet_tt(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname, 
+    const std::string &pt, const std::string &decay_mode,
+    const std::string &gen_match, 
+    const std::string &sf_file, const std::string &sf_name,
+    const std::string &wp, const std::string &vsele_wp,
+    const std::string &sf_dependence,
+    const std::string &variation_dm0_20to40, const std::string &variation_dm1_20to40,
+    const std::string &variation_dm10_20to40, const std::string &variation_dm11_20to40,
+    const std::string &variation_dm0_40toInf, const std::string &variation_dm1_40toInf,
+    const std::string &variation_dm10_40toInf, const std::string &variation_dm11_40toInf) {
+    
+    // const std::unordered_map<int, std::string> variations = {
+    const std::map<float, std::string> variations_dm0 = {
+        {20.0f,     variation_dm0_20to40},
+        {40.0f,     variation_dm0_40toInf},
+        {100000.0f, variation_dm0_40toInf},
+    };
+    const std::map<float, std::string> variations_dm1 = {
+        {20.0f,     variation_dm1_20to40},
+        {40.0f,     variation_dm1_40toInf},
+        {100000.0f, variation_dm1_40toInf},
+    };
+    const std::map<float, std::string> variations_dm10 = {
+        {20.0f,     variation_dm10_20to40},
+        {40.0f,     variation_dm10_40toInf},
+        {100000.0f, variation_dm10_40toInf},
+    };
+    const std::map<float, std::string> variations_dm11 = {
+        {20.0f,     variation_dm11_20to40},
+        {40.0f,     variation_dm11_40toInf},
+        {100000.0f, variation_dm11_40toInf},
+    };
+    Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")
+        ->debug("Setting up function for tau id vsJet sf");
+    Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")->debug("ID - Name {}", sf_name);
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    auto sf_calculator = [evaluator, wp, vsele_wp, variations_dm0, variations_dm1, variations_dm10, variations_dm11,
+                            sf_dependence, sf_name](const float &pt, const int &decay_mode,
+                                         const int &gen_match) {
+        Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")->debug("ID - decayMode {}", decay_mode);
+        // only calculate SFs for allowed tau decay modes (also excludes default
+        // values due to tau energy correction shifts below good tau pt
+        // selection)
+        double sf = 1.;
+        if (decay_mode == 0) {
+            auto it = variations_dm0.upper_bound(pt);
+            if (it != variations_dm0.begin()){
+                it = std::prev(it);
+                std::string variation_dm0 = it->second;
+                Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")
+                ->debug("ID {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
+                        "vsele_wp {}, variation {}, sf_dependence {}",
+                        sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
+                        variation_dm0, sf_dependence);
+            sf = evaluator->evaluate(
+                {pt, decay_mode, gen_match, wp, vsele_wp, 
+                variation_dm0, sf_dependence});
+            }
+        } else if (decay_mode == 1) {
+            auto it = variations_dm1.upper_bound(pt);
+            if (it != variations_dm1.begin()){
+                it = std::prev(it);
+                std::string variation_dm1 = it->second;
+                Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")
+                ->debug("ID {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
+                        "vsele_wp {}, variation {}, sf_dependence {}",
+                        sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
+                        variation_dm1, sf_dependence);
+            sf = evaluator->evaluate(
+                {pt, decay_mode, gen_match, wp, vsele_wp, 
+                variation_dm1, sf_dependence});
+            }
+        } else if (decay_mode == 10) {
+            auto it = variations_dm10.upper_bound(pt);
+            if (it != variations_dm10.begin()){
+                it = std::prev(it);
+                std::string variation_dm10 = it->second;
+                Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")
+                ->debug("ID {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
+                        "vsele_wp {}, variation {}, sf_dependence {}",
+                        sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
+                        variation_dm10, sf_dependence);
+            sf = evaluator->evaluate(
+                {pt, decay_mode, gen_match, wp, vsele_wp, 
+                variation_dm10, sf_dependence});
+            }
+        } else if (decay_mode == 11) {
+            auto it = variations_dm11.upper_bound(pt);
+            if (it != variations_dm11.begin()){
+                it = std::prev(it);
+                std::string variation_dm11 = it->second;
+                Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")
+                ->debug("ID {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
+                        "vsele_wp {}, variation {}, sf_dependence {}",
+                        sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
+                        variation_dm11, sf_dependence);
+            sf = evaluator->evaluate(
+                {pt, decay_mode, gen_match, wp, vsele_wp, 
+                variation_dm11, sf_dependence});
+            }
+        }
+        // if (auto it = variations.find(decay_mode); it != variations.end()) {
+        //     std::string variation = it->second;
+        //     Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")
+        //         ->debug("ID {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
+        //                 "vsele_wp {}, variation {}, sf_dependence {}",
+        //                 sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
+        //                 variation, sf_dependence);
+        //     sf = evaluator->evaluate(
+        //         {pt, decay_mode, gen_match, wp, vsele_wp, 
+        //         variation, sf_dependence});
+        // }
+        Logger::get("physicsobject::tau::scalefactor::Id_vsJet_tt")->debug("Scale Factor {}", sf);
+        return sf;
+    };
+    auto df1 = df.Define(outputname, sf_calculator, {pt, decay_mode, gen_match});
+    return df1;
+}
+
+
+/**
+ * @brief This function calculates scale factors (SFs) for tau identification (ID) 
  * against electrons (`vsEle`). The scale factors are loaded from a correctionlib file 
  * using a specified scale factor name and variation. The variation and the scale 
  * factor itself is binned in pseudorapidities of hadronic taus for this function.

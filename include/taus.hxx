@@ -129,20 +129,33 @@ ROOT::RDF::RNode Id_vsJet_tt(
     const std::string &sf_file, const std::string &sf_name,
     const std::string &wp, const std::string &vsele_wp,
     const std::string &sf_dependence,
-    const std::string &sf_vsjet_tauDM0,
-    const std::string &sf_vsjet_tauDM1, 
-    const std::string &sf_vsjet_tauDM10,
-    const std::string &sf_vsjet_tauDM11);
-ROOT::RDF::RNode
-Id_vsEle(ROOT::RDF::RNode df,
-         correctionManager::CorrectionManager &correction_manager,
-         const std::string &outputname,
-         const std::string &eta,
-         const std::string &gen_match, 
-         const std::string &sf_file, const std::string &sf_name,
-         const std::string &wp, 
-         const std::string &sf_vsele_barrel,
-         const std::string &sf_vsele_endcap);
+    const std::string &variation_dm0,
+    const std::string &variation_dm1, 
+    const std::string &variation_dm10,
+    const std::string &variation_dm11);
+ROOT::RDF::RNode Id_vsJet_tt(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname, 
+    const std::string &pt, const std::string &decay_mode,
+    const std::string &gen_match, 
+    const std::string &sf_file, const std::string &sf_name,
+    const std::string &wp, const std::string &vsele_wp,
+    const std::string &sf_dependence,
+    const std::string &variation_dm0_20to40, const std::string &variation_dm1_20to40,
+    const std::string &variation_dm10_20to40, const std::string &variation_dm11_20to40,
+    const std::string &variation_dm0_40toInf, const std::string &variation_dm1_40toInf,
+    const std::string &variation_dm10_40toInf, const std::string &variation_dm11_40toInf);
+ROOT::RDF::RNode Id_vsEle(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname,
+    const std::string &eta,
+    const std::string &gen_match, 
+    const std::string &sf_file, const std::string &sf_name,
+    const std::string &wp, 
+    const std::string &sf_vsele_barrel,
+    const std::string &sf_vsele_endcap);
 ROOT::RDF::RNode
 Id_vsEle(ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correction_manager,
