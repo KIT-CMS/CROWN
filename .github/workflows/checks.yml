@@ -141,7 +141,7 @@ jobs:
         run: apt-get -y update
 
       - name: Install missing software
-        run: apt-get install -y git python3-pip && pip install black==23.3.0
+        run: apt-get install -y git python3-pip && pip install black==23.3.0 --break-system-packages
 
       - uses: actions/checkout@v2
 
@@ -160,7 +160,7 @@ jobs:
         run: apt-get -y update
 
       - name: Install missing software
-        run: apt-get install -y git python3-pip && pip install clang-format
+        run: apt-get install -y git python3-pip && pip install clang-format --break-system-packages
 
       - uses: actions/checkout@v2
 
@@ -182,7 +182,7 @@ jobs:
         run: apt-get install -y git cmake make doxygen python3-pip
 
       - name: install docs related packages
-        run: pip install breathe==4.31 sphinx_rtd_theme==0.5
+        run: pip install breathe==4.31 sphinx_rtd_theme==0.5 --break-system-packages
 
       - uses: actions/checkout@v2
 
