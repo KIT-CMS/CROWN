@@ -29,7 +29,7 @@ jobs:
   build_project:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:latest
+      image: ghcr.io/kit-cms/crown-crown-unittest:pr-334
       options: --user 0 # run as root
 
     steps:
@@ -63,7 +63,7 @@ jobs:
   build_single_friend:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:latest
+      image: ghcr.io/kit-cms/crown-crown-unittest:pr-334
       options: --user 0 # run as root
 
     steps:
@@ -98,7 +98,7 @@ jobs:
   build_two_friends:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:latest
+      image: ghcr.io/kit-cms/crown-crown-unittest:pr-334
       options: --user 0 # run as root
 
     steps:
@@ -133,7 +133,7 @@ jobs:
   python_format:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:latest
+      image: ghcr.io/kit-cms/crown-crown-unittest:pr-334
       options: --user 0 # run as root
 
     steps:
@@ -152,7 +152,7 @@ jobs:
   cpp_format:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:latest
+      image: ghcr.io/kit-cms/crown-crown-unittest:pr-334
       options: --user 0 # run as root
 
     steps:
@@ -171,7 +171,7 @@ jobs:
   docs:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:latest
+      image: ghcr.io/kit-cms/crown-crown-unittest:pr-334
       options: --user 0 # run as root
 
     steps:
