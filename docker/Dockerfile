@@ -15,9 +15,14 @@ apt-get update -y && \
 apt-get install -y cmake
 
 # Install onnxruntime
-RUN mkdir onnxruntime && cd onnxruntime
-RUN git clone --recursive https://github.com/microsoft/onnxruntime.git
-RUN cd onnxruntime && ./build.sh --config Release --update --build --build_shared_lib --parallel --allow_running_as_root
+WORKDIR /deps
+RUN git clone --recursive https://github.com/microsoft/onnxruntime.git && \
+    cd onnxruntime && ./build.sh --config Release --update --build --build_shared_lib --parallel \
+    --allow_running_as_root --cmake_extra_defines CMAKE_INSTALL_PREFIX=/usr/local \
+    --build_dir /deps/onnxruntime/build/
+RUN cmake --build /deps/onnxruntime/build/Release --config Release --target install
+RUN rm -rf /deps
+WORKDIR /
 
 # Install tini
 RUN apt-get install -y tini
