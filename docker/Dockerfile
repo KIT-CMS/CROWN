@@ -15,9 +15,8 @@ apt-get update -y && \
 apt-get install -y cmake
 
 # Install onnxruntime
-WORKDIR /opt/onnxruntime
 RUN git clone --recursive https://github.com/microsoft/onnxruntime.git
-WORKDIR /opt/onnxruntime/onnxruntime
+WORKDIR /opt/onnxruntime
 RUN ./build.sh --config Release --update --build --build_shared_lib --parallel --allow_running_as_root
 WORKDIR /
 
