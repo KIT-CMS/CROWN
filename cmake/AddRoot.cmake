@@ -1,4 +1,4 @@
-find_package(ROOT 6.36 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit GenVector Minuit)
+find_package(ROOT 6.36 REQUIRED COMPONENTS ROOTVecOps ROOTDataFrame RooFit GenVector Minuit TMVA)
 
 message(STATUS "")
 message(STATUS "Found ROOT with following settings:")

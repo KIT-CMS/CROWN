@@ -57,6 +57,7 @@ foreach(FILENAME ${FILELIST})
     ROOT::RooFit
     ROOT::GenVector
     ROOT::Minuit
+    ROOT::TMVA
     logging
     correctionlib
     nlohmann_json::nlohmann_json
