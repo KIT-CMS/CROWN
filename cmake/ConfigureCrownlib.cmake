@@ -29,7 +29,8 @@ if(BUILD_CROWNLIB_ONLY)
     logging
     correctionlib
     nlohmann_json::nlohmann_json
-    ${ONNX_RUNTIME_LIB_PATH})
+    #${ONNX_RUNTIME_LIB_PATH}
+    onnxruntime::onnxruntime)
   install(TARGETS CROWNLIB DESTINATION ${INSTALLDIR}/lib)
   return()
 endif()
@@ -52,7 +53,8 @@ if(NOT CROWNLIB_FOUND OR REBUILD_CROWN_LIB)
     logging
     correctionlib
     nlohmann_json::nlohmann_json
-    ${ONNX_RUNTIME_LIB_PATH})
+    #${ONNX_RUNTIME_LIB_PATH}
+    onnxruntime::onnxruntime)
   install(TARGETS CROWNLIB DESTINATION ${INSTALLDIR}/lib)
   # needed if compiling with ninja
   set(CMAKE_BUILD_RPATH ${INSTALLDIR}/lib)
