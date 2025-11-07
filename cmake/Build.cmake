@@ -61,8 +61,7 @@ foreach(FILENAME ${FILELIST})
     correctionlib
     nlohmann_json::nlohmann_json
     CROWNLIB
-    #${ONNX_RUNTIME_LIB_PATH}
-    onnxruntime::onnxruntime)
+    ${ONNX_RUNTIME_LIB_PATH})
   add_custom_command(
     TARGET ${TARGET_NAME}
     PRE_BUILD
