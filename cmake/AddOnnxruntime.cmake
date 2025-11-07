@@ -18,23 +18,17 @@ if(DEFINED ENV{LCG_VERSION})
   endif()
   message(STATUS "ONNXRuntime library path: ${ONNX_RUNTIME_LIB_PATH}")
 else()
-  find_package(onnxruntime REQUIRED)
-  message(STATUS "Found ONNX Runtime version: ${onnxruntime_VERSION}")
-  message(STATUS "ONNX Runtime library: ${onnxruntime_LIBRARIES}")
-  message(STATUS "ONNX Runtime includes: ${onnxruntime_INCLUDE_DIRS}")
-  include_directories(${onnxruntime_INCLUDE_DIRS})
-  
-  #set(ONNXRUNTIME_INCLUDE_DIR "" CACHE FILEPATH "Path to ONNXRUNTIME includes")
-  #message(STATUS "Running in CI, take Onnxruntime from pre-build")
-  #if(NOT EXISTS ${ONNXRUNTIME_INCLUDE_DIR}/include/onnxruntime/core/session/onnxruntime_cxx_api.h)
-  #  message(SEND_ERROR "Can't find onnxruntime_cxx_api.h in ${ONNXRUNTIME_INCLUDE_DIR}/include/onnxruntime/core/session")
-  #else()
-  #  message(STATUS "ONNXRuntime include path: ${ONNXRUNTIME_INCLUDE_DIR}/include/onnxruntime/core/session")
-  #  include_directories("${ONNXRUNTIME_INCLUDE_DIR}/include/onnxruntime/core/session")
-  #  # lib file is found in ${ONNXRUNTIME_INCLUDE_DIR}/build/Linux/Release
-  #  find_library(
-  #    ONNX_RUNTIME_LIB_PATH
-  #    NAMES onnxruntime
-  #    HINTS ${ONNXRUNTIME_INCLUDE_DIR}/build/Linux/Release)
-  #endif()
+  set(ONNXRUNTIME_INCLUDE_DIR "" CACHE FILEPATH "Path to ONNXRUNTIME includes")
+  message(STATUS "Running in CI, take Onnxruntime from pre-build")
+  if(NOT EXISTS ${ONNXRUNTIME_INCLUDE_DIR}/include/onnxruntime/core/session/onnxruntime_cxx_api.h)
+   message(SEND_ERROR "Can't find onnxruntime_cxx_api.h in ${ONNXRUNTIME_INCLUDE_DIR}/include")
+  else()
+   message(STATUS "ONNXRuntime include path: ${ONNXRUNTIME_INCLUDE_DIR}/include")
+   include_directories("${ONNXRUNTIME_INCLUDE_DIR}/include")
+   # lib file is found in ${ONNXRUNTIME_INCLUDE_DIR}/build/Linux/Release
+   find_library(
+     ONNX_RUNTIME_LIB_PATH
+     NAMES onnxruntime
+     HINTS ${ONNXRUNTIME_INCLUDE_DIR}/build/Linux/Release)
+  endif()
 endif()
