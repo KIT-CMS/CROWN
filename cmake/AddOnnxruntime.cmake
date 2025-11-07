@@ -23,7 +23,6 @@ else()
   message(STATUS "ONNX Runtime library: ${onnxruntime_LIBRARIES}")
   message(STATUS "ONNX Runtime includes: ${onnxruntime_INCLUDE_DIRS}")
   include_directories(${onnxruntime_INCLUDE_DIRS})
-  set
   
   #set(ONNXRUNTIME_INCLUDE_DIR "" CACHE FILEPATH "Path to ONNXRUNTIME includes")
   #message(STATUS "Running in CI, take Onnxruntime from pre-build")
