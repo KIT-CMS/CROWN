@@ -38,13 +38,20 @@
 
 // {INCLUDES}
 
+// Choose correct namespace for logging (ROOT 6.34 uses Experimental, 6.36+ does not)
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,36,0)
+namespace ROOTLogNS = ROOT;
+#else
+namespace ROOTLogNS = ROOT::Experimental;
+#endif
+
 int main(int argc, char *argv[]) {
     // {DEBUGLEVEL}
     // ROOT logging
     if (debug) {
-        auto verbosity = ROOT::RLogScopedVerbosity(
+        auto verbosity = ROOTLogNS::RLogScopedVerbosity(
             ROOT::Detail::RDF::RDFLogChannel(),
-            ROOT::ELogLevel::kInfo);
+            ROOTLogNS::ELogLevel::kInfo);
         RooTrace::verbose(kTRUE);
         Logger::setLevel(Logger::LogLevel::DEBUG);
     } else {
