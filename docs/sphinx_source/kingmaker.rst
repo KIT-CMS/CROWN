@@ -230,7 +230,7 @@ The resulting folder structure for the command listed above will be
 
 To perform the generation of friend trees locally, use
 
-- ``--CROWNFriends-workflow local --CROWNRun-workflow local``: This option can be used to run the production locally. This is useful for debugging purposes if the batch system is currently not available. However, be aware, that this option should only run with a limited amount of workers and samples since it is very easy to overload the local machine.
+- ``--CROWNFriends-workflow local``: This option can be used to run the production locally. This is useful for debugging purposes if the batch system is currently not available. However, be aware, that this option should only run with a limited amount of workers and samples since it is very easy to overload the local machine.
 
 
 Production of friend trees with additional friends as input
