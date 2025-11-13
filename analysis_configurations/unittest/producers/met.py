@@ -128,7 +128,7 @@ CalculateVisGenBosonVector = Producer(
     ],
     output=[q.recoil_vis_genboson_p4],
     scopes=["global"],
-    )
+)
 GenBosonMass = Producer(
     name="GenBosonMass",
     call="lorentzvector::GetMass({df}, {output}, {input})",
