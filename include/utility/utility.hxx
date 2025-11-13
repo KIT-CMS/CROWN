@@ -102,6 +102,26 @@ constexpr auto extractLastArgument(const std::tuple<Args...>& args) {
 }
 
 /**
+ * @brief This function extracts and returns all elements except the last
+ * one from a tuple containing a variable number of arguments. The function
+ * uses `std::get` to access the elements of the tuple, returning them as a
+ * vector of strings.
+ *
+ * @param args input tuple containing the arguments
+ *
+ * @return vector of strings with all elements except the last one
+ */
+template <typename... Args>
+constexpr auto popLastArgument(const std::tuple<Args...>& args) {
+    constexpr size_t N = sizeof...(Args);
+    auto buildVector = [&]<std::size_t... Is>(std::index_sequence<Is...>) {
+        return std::vector<std::string>{std::get<Is>(args)...};
+    };
+    // Extract indices 0 to N-2
+    return buildVector(std::make_index_sequence<N - 1>{});
+}
+
+/**
  * @brief Function to append a parameter pack to a vector
  *
  * @param v the vector to append to
@@ -120,7 +140,7 @@ inline void appendParameterPackToVector(std::vector<std::string> &v,
  * @param parameter the string to append
  * @param pack the parameter pack to append
  */
-template <class... ParameterPack>
+template <typename... ParameterPack>
 inline void appendParameterPackToVector(std::vector<std::string> &v,
                                         const std::string &parameter,
                                         const ParameterPack &...pack) {
@@ -163,7 +183,7 @@ auto PassAsVec(F &&f) -> PassAsVecHelper<std::make_index_sequence<N>, T, F> {
  *
  * @return a dataframe with the new column
  */
-template <class... Inputs>
+template <typename... Inputs>
 inline ROOT::RDF::RNode
 EvaluateWorkspaceFunction(ROOT::RDF::RNode df, const std::string &outputname,
                           const std::shared_ptr<RooFunctorThreadsafe> &function,
