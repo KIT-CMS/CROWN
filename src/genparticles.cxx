@@ -3,6 +3,7 @@
 
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/utility.hxx"
+#include "../include/defaults.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "bitset"
@@ -10,6 +11,7 @@
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include <cmath>
+
 typedef std::bitset<20> IntBits;
 
 enum class MatchingGenTauCode : int {
@@ -25,6 +27,229 @@ enum class MatchingGenTauCode : int {
 };
 
 namespace genparticles {
+
+/**
+ * @brief This function reconstructs the Lorentz vector of a generator-level
+ * boson (e.g., W, Z, H). The reconstruction is performed by looping over all
+ * genparticles in an event and selecting final-state leptons that originate from
+ * the hard process.
+ *
+ * The particle selection criteria are:
+ * 1. The particle is a lepton (PDG ID 11-16) with status=1 (stable) and the
+ * 'fromHardProcessFinalState' (bit 8) status flag
+ * OR
+ * 2. The particle has the `isDirectHardProcessTauDecayProduct` (bit 10) status flag
+ *
+ * For real data (when `is_data` is true), a default Lorentz vector is returned, as
+ * no generator-level information is available.
+ *
+ * The meaning of the genparticle status flag codes is listed in the table below.
+ *
+ * Meaning                             | Value | Bit (value used in the config)
+ * ------------------------------------|-------|-------
+ * isPrompt                            | 1     | 0
+ * isDecayedLeptonHadron               | 2     | 1
+ * isTauDecayProduct                   | 4     | 2
+ * isPromptTauDecayProduct             | 8     | 3
+ * isDirectTauDecayProduct             | 16    | 4
+ * isDirectPromptTauDecayProduct       | 32    | 5
+ * isDirectHadronDecayProduct          | 64    | 6
+ * isHardProcess                       | 128   | 7
+ * fromHardProcess                     | 256   | 8
+ * isHardProcessTauDecayProduct        | 512   | 9
+ * isDirectHardProcessTauDecayProduct  | 1024  | 10
+ * fromHardProcessBeforeFSR            | 2048  | 11
+ * isFirstCopy                         | 4096  | 12
+ * isLastCopy                          | 8192  | 13
+ * isLastCopyBeforeFSR                 | 16384 | 14
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the reconstructed gen. boson
+ * @param genparticles_pt name of the column containing the \f$p_T\f$ of the
+ * genparticles
+ * @param genparticles_eta name of the column containing the \f$\eta\f$ of the
+ * genparticles
+ * @param genparticles_phi name of the column containing the \f$\phi\f$ of the
+ * genparticles
+ * @param genparticles_mass name of the column containing the mass of the
+ * genparticles
+ * @param genparticles_pdg_id name of the column containing the PDG IDs of the
+ * genparticles
+ * @param genparticles_status name of the column containing the status of the
+ * genparticles
+ * @param genparticles_status_flags name of the column containing the status
+ * flags of the genparticles, e.g. isPrompt, isHardProcess, isLastCopy, ...
+ * @param is_data boolean flag to indicate if real data (true) or simulation (false)
+ * is processed
+ *
+ * @return a new dataframe containing the gen. boson Lorentz vector
+ */
+ROOT::RDF::RNode GetBoson(
+    ROOT::RDF::RNode df, const std::string outputname,
+    const std::string &genparticles_pt, const std::string &genparticles_eta,
+    const std::string &genparticles_phi, const std::string &genparticles_mass,
+    const std::string &genparticles_pdg_id, const std::string &genparticles_status,
+    const std::string &genparticles_status_flags, bool is_data) {
+
+    auto calculateGenBosonVector =
+        [](const ROOT::RVec<float> &pts,
+           const ROOT::RVec<float> &etas,
+           const ROOT::RVec<float> &phis,
+           const ROOT::RVec<float> &masses,
+           const ROOT::RVec<int> &pdg_ids,
+           const ROOT::RVec<int> &status,
+           const ROOT::RVec<UShort_t> &status_flags_v12) {
+            auto status_flags = static_cast<ROOT::RVec<int>>(status_flags_v12);
+            ROOT::Math::PtEtaPhiMVector genBoson;
+            ROOT::Math::PtEtaPhiMVector genparticle;
+            // now loop though all genparticles in the event
+            for (std::size_t index = 0; index < pdg_ids.size();
+                 ++index) {
+                // consider a genparticle if
+                // 1. if it is:
+                //    * a lepton
+                //    * fromHardProcessFinalState --> bit 8 (status flag)
+                //    * status 1
+                // or
+                // 2. if it is
+                //    * isDirectHardProcessTauDecayProduct --> bit 10 (status flag)
+                Logger::get("genparticles::GetBoson")
+                    ->debug("Checking particle {} ", pdg_ids.at(index));
+                if ((abs(pdg_ids.at(index)) >= 11 && abs(pdg_ids.at(index)) <= 16 &&
+                     (IntBits(status_flags.at(index)).test(8)) && status.at(index) == 1) ||
+                    (IntBits(status_flags.at(index)).test(10))) {
+                    Logger::get("genparticles::GetBoson")
+                        ->debug("Adding {} to gen boson vector", pdg_ids.at(index));
+                    genparticle = ROOT::Math::PtEtaPhiMVector(
+                        pts.at(index), etas.at(index), phis.at(index), masses.at(index));
+                    genBoson = genBoson + genparticle;
+                }
+            }
+            return genBoson;
+        };
+
+    if (!is_data) {
+        // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
+        // For v9 compatibility a type casting is applied
+        auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+                df, genparticles_status_flags+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticles_status_flags);
+        return df1.Define(outputname, calculateGenBosonVector,
+                         {genparticles_pt, genparticles_eta, genparticles_phi,
+                          genparticles_mass, genparticles_pdg_id, genparticles_status,
+                          genparticles_status_flags_column});
+    } else {
+        return df.Define(outputname, []() {
+            return default_lorentzvector;
+        });
+    }
+}
+
+/**
+ * @brief This function reconstructs the Lorentz vector of a generator-level
+ * boson (e.g., W, Z, H), explicitly excluding neutrinos to represent only the
+ * visible energy and momentum. The reconstruction is performed by looping over
+ * all genparticles in an event and selecting final-state leptons (except neutrinos)
+ * that originate from the hard process.
+ *
+ * The particle selection criteria are:
+ * 1. The particle is a lepton (PDG ID 11-16) with status=1 (stable) and the
+ * 'fromHardProcessFinalState' (bit 8) status flag
+ * OR
+ * 2. The particle has the `isDirectHardProcessTauDecayProduct` (bit 10) status flag
+ *
+ * Further, particles identified as neutrinos (PDG IDs 12, 14, 16) that pass these
+ * initial checks are then excluded from the final four-vector sum.
+ *
+ * For real data (when `is_data` is true), a default Lorentz vector is returned, as
+ * no generator-level information is available.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the reconstructed gen. boson
+ * @param genparticles_pt name of the column containing the \f$p_T\f$ of the
+ * genparticles
+ * @param genparticles_eta name of the column containing the \f$\eta\f$ of the
+ * genparticles
+ * @param genparticles_phi name of the column containing the \f$\phi\f$ of the
+ * genparticles
+ * @param genparticles_mass name of the column containing the mass of the
+ * genparticles
+ * @param genparticles_pdg_id name of the column containing the PDG IDs of the
+ * genparticles
+ * @param genparticles_status name of the column containing the status of the
+ * genparticles
+ * @param genparticles_status_flags name of the column containing the status
+ * flags of the genparticles, e.g. isPrompt, isHardProcess, isLastCopy, ...
+ * @param is_data boolean flag to indicate if real data (true) or simulation (false)
+ * is processed
+ *
+ * @return a new dataframe containing the visible gen. boson Lorentz vector
+ */
+ROOT::RDF::RNode GetVisibleBoson(
+    ROOT::RDF::RNode df, const std::string outputname,
+    const std::string &genparticles_pt, const std::string &genparticles_eta,
+    const std::string &genparticles_phi, const std::string &genparticles_mass,
+    const std::string &genparticles_pdg_id, const std::string &genparticles_status,
+    const std::string &genparticles_status_flags, bool is_data) {
+
+    auto calculateGenVisBosonVector =
+        [](const ROOT::RVec<float> &pts,
+           const ROOT::RVec<float> &etas,
+           const ROOT::RVec<float> &phis,
+           const ROOT::RVec<float> &masses,
+           const ROOT::RVec<int> &pdg_ids,
+           const ROOT::RVec<int> &status,
+           const ROOT::RVec<UShort_t> &status_flags_v12) {
+            auto status_flags = static_cast<ROOT::RVec<int>>(status_flags_v12);
+            ROOT::Math::PtEtaPhiMVector genVisBoson;
+            ROOT::Math::PtEtaPhiMVector genparticle;
+            // now loop though all genparticles in the event
+            for (std::size_t index = 0; index < pdg_ids.size();
+                 ++index) {
+                // consider a genparticle if
+                // 1. if it is:
+                //    * a lepton
+                //    * fromHardProcessFinalState --> bit 8 (status flag)
+                //    * status 1
+                // or
+                // 2. if it is
+                //    * isDirectHardProcessTauDecayProduct --> bit 10 (status flag)
+                Logger::get("genparticles::GetVisibleBoson")
+                    ->debug("Checking particle {} ", pdg_ids.at(index));
+                if ((abs(pdg_ids.at(index)) >= 11 && abs(pdg_ids.at(index)) <= 16 &&
+                     (IntBits(status_flags.at(index)).test(8)) && status.at(index) == 1) ||
+                    (IntBits(status_flags.at(index)).test(10))) {
+                    // if the genparticle is not a neutrino, we add it to the visible
+                    // gen boson vector
+                    if (abs(pdg_ids.at(index)) != 12 &&
+                        abs(pdg_ids.at(index)) != 14 &&
+                        abs(pdg_ids.at(index)) != 16) {
+                        Logger::get("genparticles::GetBoson")
+                            ->debug("Adding {} to visible gen boson vector", pdg_ids.at(index));
+                        genparticle = ROOT::Math::PtEtaPhiMVector(
+                            pts.at(index), etas.at(index), phis.at(index), masses.at(index));
+                        genVisBoson = genVisBoson + genparticle;
+                    }
+                }
+            }
+            return genVisBoson;
+        };
+
+    if (!is_data) {
+        // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
+        // For v9 compatibility a type casting is applied
+        auto [df1, genparticles_status_flags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+                df, genparticles_status_flags+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticles_status_flags);
+        return df1.Define(outputname, calculateGenVisBosonVector,
+                         {genparticles_pt, genparticles_eta, genparticles_phi,
+                          genparticles_mass, genparticles_pdg_id, genparticles_status,
+                          genparticles_status_flags_column});
+    } else {
+        return df.Define(outputname, []() {
+            return default_lorentzvector;
+        });
+    }
+}
+
 namespace tau {
 
 /**

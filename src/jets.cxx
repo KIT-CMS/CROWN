@@ -71,6 +71,7 @@ namespace jet {
  *
  * @note If jets with \f$p_T\f$ > 15 GeV are corrected, this change should be
  * propagated to the missing transverse momentum.
+ * (see `physicsobject::PropagateToMET`)
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
@@ -303,6 +304,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  *
  * @note If jets with \f$p_T\f$ > 15 GeV are corrected, this change should be
  * propagated to the missing transverse momentum.
+ * (see `physicsobject::PropagateToMET`)
  */
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
