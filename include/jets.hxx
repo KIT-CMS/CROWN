@@ -17,7 +17,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &jes_tag, const std::vector<std::string> &jes_shift_sources,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
-               const int& lhc_run = 2);
+               const int& lhc_run = 2, const bool &no_jer_for_unmatched_forward_jets = false);
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
                  correctionManager::CorrectionManager &correction_manager,
@@ -26,6 +26,12 @@ PtCorrectionData(ROOT::RDF::RNode df,
                  const std::string &jet_raw_factor, const std::string &rho,
                  const std::string &jec_file, const std::string &jec_algo,
                  const std::string &jes_tag);
+ROOT::RDF::RNode
+PtCorrectionBJets(ROOT::RDF::RNode df,
+                  const std::string &outputname,
+                  const std::string &jet_pt,
+                  const std::string &scale_factor,
+                  const std::string &bjet_mask);
 ROOT::RDF::RNode CutPileupID(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &jet_pu_id,
                              const std::string &jet_pt, const int &pu_id_cut,

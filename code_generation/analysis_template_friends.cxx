@@ -18,6 +18,7 @@
 #include "include/genparticles.hxx"
 #include "include/htxs.hxx"
 #include "include/jets.hxx"
+#include "include/fatjets.hxx"
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"
 #include "include/ml.hxx"
@@ -36,6 +37,13 @@
 // {INCLUDE_ANALYSISADDONS}
 
 // {INCLUDES}
+
+// Choose correct namespace for logging (ROOT 6.34 uses Experimental, 6.36+ does not)
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,36,0)
+namespace ROOTLogNS = ROOT;
+#else
+namespace ROOTLogNS = ROOT::Experimental;
+#endif
 
 int validate_rootfile(std::string file, std::string &basetree) {
     int nevents = 0;
@@ -81,9 +89,9 @@ int main(int argc, char *argv[]) {
     // {DEBUGLEVEL}
     // ROOT logging
     if (debug) {
-        auto verbosity = ROOT::Experimental::RLogScopedVerbosity(
+        auto verbosity = ROOTLogNS::RLogScopedVerbosity(
             ROOT::Detail::RDF::RDFLogChannel(),
-            ROOT::Experimental::ELogLevel::kInfo);
+            ROOTLogNS::ELogLevel::kInfo);
         RooTrace::verbose(kTRUE);
         Logger::setLevel(Logger::LogLevel::DEBUG);
     } else {
