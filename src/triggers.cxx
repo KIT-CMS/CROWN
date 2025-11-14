@@ -639,7 +639,13 @@ ROOT::RDF::RNode DoubleObjectFlag(
 
 /**
  * @brief This function generates a new column containing the prescale value
- * for a trigger given run and lumiblock. read from an external JSON file
+ * for a trigger given run and lumiblock. It is read from an external JSON file
+ * containing prescale values for a specific trigger.
+ *
+ * @note The JSON files can be produced with the `brilcalc` tool from LUM POG
+ * which needs to be run on lxplus. More details can be found here in the
+ * [documentation](https://cms-service-lumi.web.cern.ch/cms-service-lumi/brilwsdoc.html#brilcalctrg)
+ * of `brilcalc`.
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading
