@@ -47,7 +47,7 @@ namespace electron {
  *
  * @note This function is intended for analyses working with Run 2 NanoAODv9
  * samples. For the corresponding function that can be used with
- * Run 3 NanoAODv12 or higher, look at the overloaded version of this function.
+ * Run 3 NanoAODv12, look at the overloaded version of this function.
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
@@ -200,7 +200,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 "smear",
                 pt.at(i),
                 r9.at(i),
-                abs(eta_sc)
+                eta_sc
             });
 
             // get the scale uncertainty
@@ -208,7 +208,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 "escale",
                 pt.at(i),
                 r9.at(i),
-                abs(eta_sc)
+                eta_sc
             });
 
             // get the resolution uncertainty
@@ -216,7 +216,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 "esmear",
                 pt.at(i),
                 r9.at(i),
-                abs(eta_sc)
+                eta_sc
             });
 
             // set the corrected pt based on the considered variation
@@ -332,7 +332,6 @@ PtCorrectionData(ROOT::RDF::RNode df,
                 static_cast<float>(run),
                 eta_sc,
                 r9.at(i),
-                abs(eta_sc),
                 pt.at(i),
                 static_cast<float>(seed_gain.at(i))
             });
@@ -460,11 +459,14 @@ namespace scalefactor {
  * scale factor and "sfup"/"sfdown" for the up/down variation
  *
  * @return a new dataframe containing the new column
+ *
+ * @note This overloaded version of the function also takes phi for 2023 only
  */
 ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
                     correctionManager::CorrectionManager &correction_manager,
                     const std::string &outputname, const std::string &pt,
-                    const std::string &eta, const std::string &era,
+                    const std::string &eta, const std::string &phi,
+                    const std::string &era,
                     const std::string &wp, const std::string &sf_file,
                     const std::string &sf_name, const std::string &variation) {
     Logger::get("physicsobject::electron::scalefactor::Id")
@@ -475,20 +477,25 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
     auto df1 = df.Define(
         outputname,
         [evaluator, era, sf_name, wp, variation](const float &pt,
-                                                 const float &eta) {
+                                                 const float &eta,
+                                                 const float &phi) {
             Logger::get("physicsobject::electron::scalefactor::Id")
                 ->debug("Era {}, Variation {}, WP {}", era, variation, wp);
             Logger::get("physicsobject::electron::scalefactor::Id")
-                ->debug("ID - pt {}, eta {}", pt, eta);
+                ->debug("ID - pt {}, eta {}, phi {}", pt, eta, phi);
             double sf = 1.;
             if (pt >= 0.0) {
-                sf = evaluator->evaluate({era, variation, wp, eta, pt});
+                if (era.find("2023") != std::string::npos) {
+                    // for 2023, phi is needed as input
+                    sf = evaluator->evaluate({era, variation, wp, eta, pt, phi});
+                } 
+                else sf = evaluator->evaluate({era, variation, wp, eta, pt});
             }
             Logger::get("physicsobject::electron::scalefactor::Id")
                 ->debug("Scale Factor {}", sf);
             return sf;
         },
-        {pt, eta});
+        {pt, eta, phi});
     return df1;
 }
 
@@ -539,25 +546,33 @@ ROOT::RDF::RNode Trigger(ROOT::RDF::RNode df,
                     const std::string &era, const std::string &path_id_name,
                     const std::string &sf_file, const std::string &sf_name,
                     const std::string &variation) {
-    Logger::get("physicsobject::electron::scalefactor::Trigger")
-        ->debug("Setting up functions for electron trigger sf with correctionlib");
-    Logger::get("physicsobject::electron::scalefactor::Trigger")
-        ->debug("Scale factor - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     auto df1 = df.Define(
         outputname,
         [evaluator, era, sf_name, path_id_name, variation](
             const float &pt, const float &eta, const bool &trigger_flag) {
             Logger::get("physicsobject::electron::scalefactor::Trigger")
+                ->debug("Setting up functions for electron trigger sf with correctionlib");
+            Logger::get("physicsobject::electron::scalefactor::Trigger")
+                ->debug("Scale factor - Name {}", sf_name);
+            Logger::get("physicsobject::electron::scalefactor::Trigger")
                 ->debug("Era {}, Variation {}, Trigger at electron ID {}", era, variation, path_id_name);
             Logger::get("physicsobject::electron::scalefactor::Trigger")
                 ->debug("ID - pt {}, eta {}, trigger flag {}", pt, eta, trigger_flag);
             double sf = 1.;
-            if (trigger_flag) {
-                sf = evaluator->evaluate({era, variation, path_id_name, eta, pt});
+            // check to prevent electrons with default values due to tau energy
+            // correction shifts below good tau pt selection
+            try {
+                if (pt >= 0.0 && std::abs(eta) >= 0.0 && trigger_flag) {
+                    sf = evaluator->evaluate({era, variation, path_id_name, eta, pt});
+                }
+            } catch (const std::runtime_error &e) {
+                // this error can occur because the pt range starts at different
+                // values for different triggers
+                Logger::get("physicsobject::electron::scalefactor::Trigger")
+                    ->debug("SF evaluation for {} failed for pt {}", sf_name,
+                            pt);
             }
-            Logger::get("physicsobject::electron::scalefactor::Trigger")
-                ->debug("Scale Factor {}", sf);
             return sf;
         },
         {pt, eta, trigger_flag});
