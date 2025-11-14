@@ -2,6 +2,7 @@
 #define GUARD_MET_H
 
 #include "../include/utility/utility.hxx"
+#include "../include/event.hxx"
 
 namespace met {
 
