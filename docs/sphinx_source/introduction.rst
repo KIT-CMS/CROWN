@@ -66,6 +66,8 @@ The following list shows all currently available analyses that can be set up. If
      - https://github.com/nfaltermann/CROWNs
    * - ``xyh_bbtautau``
      - https://github.com/KIT-CMS/XYHBBTauTauAnalysis-CROWN
+   * - ``haa``
+     - https://github.com/KIT-CMS/HaaAnalysis-CROWN
 
 Running the framework
 **********************
