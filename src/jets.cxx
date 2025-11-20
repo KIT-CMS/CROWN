@@ -891,7 +891,7 @@ Btagging(ROOT::RDF::RNode df,
                 // considering only phase space where the scale factors are
                 // defined
                 if (pts.at(i) >= 20.0 && pts.at(i) < 10000.0 &&
-                    std::abs(etas.at(i)) < 2.5) {
+                    std::abs(etas.at(i)) < 2.5 && !std::isnan(btag_values.at(i))) {
                     // for c-jet related uncertainties only scale factors of
                     // c-jets are varied, the rest is nominal/central
                     if (variation.find("cferr") != std::string::npos) {
