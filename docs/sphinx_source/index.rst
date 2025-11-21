@@ -35,6 +35,8 @@ The following analysis configurations are currently available in CROWN. If you w
      - https://github.com/KIT-CMS/BoostedHiggsTauTauAnalysis-CROWN
    * - Single top
      - https://github.com/nfaltermann/CROWNs
+   * - H to aa to 4Kaons
+     - https://github.com/KIT-CMS/HaaAnalysis-CROWN
 
 
 Documentation Content
