@@ -1,5 +1,5 @@
-#ifndef GUARD_LORENTZVECTOR_H
-#define GUARD_LORENTZVECTOR_H
+#ifndef GUARD_LORENTZVECTORS_H
+#define GUARD_LORENTZVECTORS_H
 
 #include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
@@ -24,7 +24,7 @@ namespace lorentzvector {
  *
  * @return a dataframe containing the new column
  */
-template <class... Lorentzvectors>
+template <typename... Lorentzvectors>
 ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, const std::string &outputname,
                             const Lorentzvectors &...LVs) {
     std::vector<std::string> LV_list;
@@ -100,7 +100,7 @@ ROOT::RDF::RNode Scale(ROOT::RDF::RNode df, const std::string &outputname,
  *
  * @return a dataframe containing the new column
  */
-template <class... Lorentzvectors>
+template <typename... Lorentzvectors>
 ROOT::RDF::RNode GetPt(ROOT::RDF::RNode df, const std::string &outputname,
                             const Lorentzvectors &...LVs) {
     std::vector<std::string> LV_list;
@@ -139,7 +139,7 @@ ROOT::RDF::RNode GetPt(ROOT::RDF::RNode df, const std::string &outputname,
  *
  * @return a dataframe containing the new column
  */
-template <class... Lorentzvectors>
+template <typename... Lorentzvectors>
 ROOT::RDF::RNode GetEta(ROOT::RDF::RNode df, const std::string &outputname,
                             const Lorentzvectors &...LVs) {
     std::vector<std::string> LV_list;
@@ -178,7 +178,7 @@ ROOT::RDF::RNode GetEta(ROOT::RDF::RNode df, const std::string &outputname,
  *
  * @return a dataframe containing the new column
  */
-template <class... Lorentzvectors>
+template <typename... Lorentzvectors>
 ROOT::RDF::RNode GetPhi(ROOT::RDF::RNode df, const std::string &outputname,
                             const Lorentzvectors &...LVs) {
     std::vector<std::string> LV_list;
@@ -217,7 +217,7 @@ ROOT::RDF::RNode GetPhi(ROOT::RDF::RNode df, const std::string &outputname,
  *
  * @return a dataframe containing the new column
  */
-template <class... Lorentzvectors>
+template <typename... Lorentzvectors>
 ROOT::RDF::RNode GetMass(ROOT::RDF::RNode df, const std::string &outputname,
                             const Lorentzvectors &...LVs) {
     std::vector<std::string> LV_list;
@@ -256,7 +256,7 @@ ROOT::RDF::RNode GetMass(ROOT::RDF::RNode df, const std::string &outputname,
  *
  * @return a dataframe containing the new column
  */
-template <class... Lorentzvectors>
+template <typename... Lorentzvectors>
 ROOT::RDF::RNode GetEnergy(ROOT::RDF::RNode df, const std::string &outputname,
                             const Lorentzvectors &...LVs) {
     std::vector<std::string> LV_list;
@@ -278,5 +278,44 @@ ROOT::RDF::RNode GetEnergy(ROOT::RDF::RNode df, const std::string &outputname,
             }),
         LV_list);
 }
+
+/**
+ * @brief This function constructs a vectorial sum of an arbitrary number of 
+ * Lorentz vectors (can also be only one) and returns its rapidity \f$y\f$. 
+ * If one of the Lorentz vectors is not well defined (has default values), the
+ * function returns a default value.
+ *
+ * @tparam Lorentzvectors variadic template parameter pack representing the 
+ * Lorentz vector columns
+ * @param df input dataframe
+ * @param outputname name of the output column containing the rapidity \f$y\f$ 
+ * of the summed Lorentz vectors
+ * @param LVs Parameter pack of column names that contain the considered
+ * Lorentz vectors, must be of type `ROOT::Math::PtEtaPhiMVector`
+ *
+ * @return a dataframe containing the new column
+ */
+template <typename... Lorentzvectors>
+ROOT::RDF::RNode GetRapidity(ROOT::RDF::RNode df, const std::string &outputname,
+                            const Lorentzvectors &...LVs) {
+    std::vector<std::string> LV_list;
+    utility::appendParameterPackToVector(LV_list, LVs...);
+    const auto n_LVs = sizeof...(Lorentzvectors);
+    using namespace ROOT::VecOps;
+    return df.Define(
+        outputname,
+        utility::PassAsVec<n_LVs, ROOT::Math::PtEtaPhiMVector>(
+            [](const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &LVs) {
+                for (int i = 0; i < LVs.size(); i++) {
+                    auto vector = LVs.at(i);
+                    if (vector.pt() < 0.) {
+                        return default_float;
+                    }
+                }
+                ROOT::Math::PtEtaPhiMVector new_LV = Sum(LVs, ROOT::Math::PtEtaPhiMVector());
+                return (float)new_LV.Rapidity();
+            }),
+        LV_list);
+}
 } // end namespace lorentzvector
-#endif /* GUARD_LORENTZVECTOR_H */
+#endif /* GUARD_LORENTZVECTORS_H */

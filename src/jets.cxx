@@ -74,6 +74,7 @@ namespace jet {
  *
  * @note If jets with \f$p_T\f$ > 15 GeV are corrected, this change should be
  * propagated to the missing transverse momentum.
+ * (see `physicsobject::PropagateToMET`)
  *
  * @note The option `no_jer_for_unmatched_forward_jets` is introduced to
  * mitigate jet horns appearing in the eta distribution of jets at
@@ -324,6 +325,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  *
  * @note If jets with \f$p_T\f$ > 15 GeV are corrected, this change should be
  * propagated to the missing transverse momentum.
+ * (see `physicsobject::PropagateToMET`)
  */
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,

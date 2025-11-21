@@ -678,8 +678,8 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
                     corrected_pts[i] = pts.at(i);
                 }
                 Logger::get("physicsobject::tau::PtCorrection_genuineTau")
-                    ->debug("tau pt before {}, tau pt after {}, decaymode {}",
-                            pts.at(i), corrected_pts.at(i), decay_modes.at(i));
+                    ->debug("tau pt before {}, tau pt after {}, decaymode {}, gen match {}",
+                            pts.at(i), corrected_pts.at(i), decay_modes.at(i), gen_matches.at(i));
             }
             return corrected_pts;
         };

@@ -11,6 +11,20 @@
 #include <cmath>
 
 namespace genparticles {
+
+ROOT::RDF::RNode GetBoson(
+    ROOT::RDF::RNode df, const std::string outputname,
+    const std::string &genparticles_pt, const std::string &genparticles_eta,
+    const std::string &genparticles_phi, const std::string &genparticles_mass,
+    const std::string &genparticles_pdg_id, const std::string &genparticles_status,
+    const std::string &genparticles_status_flags, bool is_data);
+ROOT::RDF::RNode GetVisibleBoson(
+    ROOT::RDF::RNode df, const std::string outputname,
+    const std::string &genparticles_pt, const std::string &genparticles_eta,
+    const std::string &genparticles_phi, const std::string &genparticles_mass,
+    const std::string &genparticles_pdg_id, const std::string &genparticles_status,
+    const std::string &genparticles_status_flags, bool is_data);
+
 namespace tau {
 
 ROOT::RDF::RNode HadronicGenTaus(ROOT::RDF::RNode df,

@@ -1,7 +1,7 @@
 #ifndef GUARD_TRIGGERS_H
 #define GUARD_TRIGGERS_H
 
-typedef std::bitset<20> IntBits;
+typedef std::bitset<30> IntBits;
 
 namespace trigger {
 
@@ -9,111 +9,56 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
                    ROOT::RVec<float> &triggerobject_pts,
                    ROOT::RVec<float> &triggerobject_etas,
                    ROOT::RVec<float> &triggerobject_phis,
-                   ROOT::RVec<int> &triggerobject_bits,
-                   ROOT::RVec<int> &triggerobject_ids, const float &matchDeltaR,
-                   const float &pt_cut, const float &eta_cut,
-                   const int &trigger_particle_id_cut,
-                   const int &triggerbit_cut);
+                   ROOT::RVec<int> &triggerobject_ids,
+                   ROOT::RVec<int> &triggerobject_filterbits,
+                   const float &pt_threshold, const float &eta_threshold,
+                   const int &trigger_particle_id_value, const int &trigger_bit_value,
+                   const float &deltaR_threshold);
 
-ROOT::RDF::RNode GenerateSingleTriggerFlag(
-    ROOT::RDF::RNode df, const std::string &triggerflag_name,
-    const std::string &particle_p4, const std::string &triggerobject_bits,
-    const std::string &triggerobject_id, const std::string &triggerobject_pt,
+ROOT::RDF::RNode SingleObjectFlag(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &particle, const std::string &triggerobject_pt,
     const std::string &triggerobject_eta, const std::string &triggerobject_phi,
-    const std::string &hltpath, const float &pt_cut, const float &eta_cut,
-    const int &trigger_particle_id_cut, const int &triggerbit_cut,
-    const float &DeltaR_threshold);
-
-ROOT::RDF::RNode GenerateDoubleTriggerFlag(
-    ROOT::RDF::RNode df, const std::string &triggerflag_name,
-    const std::string &particle1_p4, const std::string &particle2_p4,
-    const std::string &triggerobject_bits, const std::string &triggerobject_id,
-    const std::string &triggerobject_pt, const std::string &triggerobject_eta,
-    const std::string &triggerobject_phi, const std::string &hltpath,
-    const float &p1_pt_cut, const float &p2_pt_cut, const float &p1_eta_cut,
-    const float &p2_eta_cut, const int &p1_trigger_particle_id_cut,
-    const int &p2_trigger_particle_id_cut, const int &p1_triggerbit_cut,
-    const int &p2_triggerbit_cut, const float &DeltaR_threshold);
-
-ROOT::RDF::RNode MatchSingleTriggerObject(
-    ROOT::RDF::RNode df, const std::string &triggerflag_name,
-    const std::string &particle_p4, const std::string &triggerobject_bits,
-    const std::string &triggerobject_id, const std::string &triggerobject_pt,
+    const std::string &triggerobject_id, const std::string &triggerobject_filterbit,
+    const std::string &hlt_path, const float &pt_threshold, const float &eta_threshold,
+    const int &trigger_particle_id_value, const int &trigger_bit_value,
+    const float &deltaR_threshold);
+ROOT::RDF::RNode SingleObjectFlag(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &particle, const std::string &triggerobject_pt,
     const std::string &triggerobject_eta, const std::string &triggerobject_phi,
-    const float &pt_cut, const float &eta_cut,
-    const int &trigger_particle_id_cut, const int &triggerbit_cut,
-    const float &DeltaR_threshold);
-
-ROOT::RDF::RNode MatchDoubleTriggerObject(
-    ROOT::RDF::RNode df, const std::string &triggerflag_name,
-    const std::string &particle1_p4, const std::string &particle2_p4,
-    const std::string &triggerobject_bits, const std::string &triggerobject_id,
+    const std::string &triggerobject_id, const std::string &triggerobject_filterbit,
+    const float &pt_threshold, const float &eta_threshold,
+    const int &trigger_particle_id_value, const int &trigger_bit_value,
+    const float &deltaR_threshold);
+ROOT::RDF::RNode DoubleObjectFlag(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &particle_1, const std::string &particle_2,
     const std::string &triggerobject_pt, const std::string &triggerobject_eta,
-    const std::string &triggerobject_phi, const float &p1_pt_cut,
-    const float &p2_pt_cut, const float &p1_eta_cut, const float &p2_eta_cut,
-    const int &p1_trigger_particle_id_cut,
-    const int &p2_trigger_particle_id_cut, const int &p1_triggerbit_cut,
-    const int &p2_triggerbit_cut, const float &DeltaR_threshold);
-
-ROOT::RDF::RNode GetPrescaleValues(ROOT::RDF::RNode df,
-                                   const std::string &prescale_columnname,
-                                   const std::string &hlt_columnname,
-                                   const std::string &run_columnname,
-                                   const std::string &lumiblock_columnname,
-                                   const std::string &prescale_json_file);
+    const std::string &triggerobject_phi, const std::string &triggerobject_id,
+    const std::string &triggerobject_filterbit, const std::string &hlt_path,
+    const float &pt_threshold_1, const float &pt_threshold_2,
+    const float &eta_threshold_1, const float &eta_threshold_2,
+    const int &trigger_particle_id_value_1, const int &trigger_particle_id_value_2,
+    const int &trigger_bit_value_1, const int &trigger_bit_value_2,
+    const float &deltaR_threshold);
+ROOT::RDF::RNode DoubleObjectFlag(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &particle_1, const std::string &particle_2,
+    const std::string &triggerobject_pt, const std::string &triggerobject_eta,
+    const std::string &triggerobject_phi, const std::string &triggerobject_id,
+    const std::string &triggerobject_filterbit,
+    const float &pt_threshold_1, const float &pt_threshold_2,
+    const float &eta_threshold_1, const float &eta_threshold_2,
+    const int &trigger_particle_id_value_1, const int &trigger_particle_id_value_2,
+    const int &trigger_bit_value_1, const int &trigger_bit_value_2,
+    const float &deltaR_threshold);
 
 ROOT::RDF::RNode GetPrescaleValues(
     ROOT::RDF::RNode df,
-    correctionManager::CorrectionManager &correctionManager,
-    const std::string &prescale_columnname, const std::string &hlt_columnname,
-    const std::string &run_columnname, const std::string &lumiblock_columnname,
-    const std::string &prescale_json_file);
-
-namespace tagandprobe {
-
-bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
-                   ROOT::RVec<float> &triggerobject_pts,
-                   ROOT::RVec<float> &triggerobject_etas,
-                   ROOT::RVec<float> &triggerobject_phis,
-                   ROOT::RVec<int> &triggerobject_bits,
-                   ROOT::RVec<int> &triggerobject_ids, const float &matchDeltaR,
-                   const float &pt_cut, const float &eta_cut,
-                   const int &trigger_particle_id_cut,
-                   const int &triggerbit_cut,
-                   const float &trigger_particle_pt_cut);
-
-ROOT::RDF::RNode MatchSingleTriggerObject(
-    ROOT::RDF::RNode df, const std::string &triggerflag_name,
-    const std::string &particle_p4, const std::string &triggerobject_bits,
-    const std::string &triggerobject_id, const std::string &triggerobject_pt,
-    const std::string &triggerobject_eta, const std::string &triggerobject_phi,
-    const float &pt_cut, const float &eta_cut,
-    const int &trigger_particle_id_cut, const int &triggerbit_cut,
-    const float &DeltaR_threshold, const float &trigger_particle_pt_cut);
-
-ROOT::RDF::RNode GenerateSingleTriggerFlag(
-    ROOT::RDF::RNode df, const std::string &triggerflag_name,
-    const std::string &particle_p4, const std::string &triggerobject_bits,
-    const std::string &triggerobject_id, const std::string &triggerobject_pt,
-    const std::string &triggerobject_eta, const std::string &triggerobject_phi,
-    const std::string &hltpath, const float &pt_cut, const float &eta_cut,
-    const int &trigger_particle_id_cut, const int &triggerbit_cut,
-    const float &DeltaR_threshold, const float &trigger_particle_pt_cut);
-
-ROOT::RDF::RNode GenerateDoubleTriggerFlag(
-    ROOT::RDF::RNode df, const std::string &triggerflag_name,
-    const std::string &particle1_p4, const std::string &particle2_p4,
-    const std::string &triggerobject_bits, const std::string &triggerobject_id,
-    const std::string &triggerobject_pt, const std::string &triggerobject_eta,
-    const std::string &triggerobject_phi, const std::string &hltpath,
-    const float &p1_pt_cut, const float &p2_pt_cut, const float &p1_eta_cut,
-    const float &p2_eta_cut, const int &p1_trigger_particle_id_cut,
-    const int &p2_trigger_particle_id_cut, const int &p1_triggerbit_cut,
-    const int &p2_triggerbit_cut, const float &DeltaR_threshold,
-    const float &p1_trigger_particle_pt_cut,
-    const float &p2_trigger_particle_pt_cut);
-
-} // end namespace tagandprobe
-
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname, const std::string &hlt_path,
+    const std::string &run, const std::string &lumiblock,
+    const std::string &prescale_file);
 } // end namespace trigger
 #endif /* GUARD_TRIGGERS_H */

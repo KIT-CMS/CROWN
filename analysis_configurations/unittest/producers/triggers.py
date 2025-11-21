@@ -8,7 +8,7 @@ from code_generation.producer import ExtendedVectorProducer
 
 MMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
     name="MMGenerateSingleMuonTriggerFlags",
-    call="""trigger::GenerateSingleTriggerFlag(
+    call="""trigger::SingleObjectFlag(
         {df}, 
         {output}, 
         {input}, 
@@ -20,11 +20,11 @@ MMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
         """,
     input=[
         q.p4_1,
-        nanoAOD.TrigObj_filterBits,
-        nanoAOD.TrigObj_id,
         nanoAOD.TrigObj_pt,
         nanoAOD.TrigObj_eta,
         nanoAOD.TrigObj_phi,
+        nanoAOD.TrigObj_id,
+        nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
     scope=["mm"],
@@ -32,7 +32,7 @@ MMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
 )
 MTGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
     name="MTGenerateSingleMuonTriggerFlags",
-    call="""trigger::GenerateSingleTriggerFlag(
+    call="""trigger::SingleObjectFlag(
         {df}, 
         {output}, 
         {input}, 
@@ -45,11 +45,11 @@ MTGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
         """,
     input=[
         q.p4_1,
-        nanoAOD.TrigObj_filterBits,
-        nanoAOD.TrigObj_id,
         nanoAOD.TrigObj_pt,
         nanoAOD.TrigObj_eta,
         nanoAOD.TrigObj_phi,
+        nanoAOD.TrigObj_id,
+        nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
     scope=["mt"],
@@ -57,7 +57,7 @@ MTGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
 )
 ETGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
     name="ETGenerateSingleElectronTriggerFlags",
-    call="""trigger::GenerateSingleTriggerFlag(
+    call="""trigger::SingleObjectFlag(
         {df}, 
         {output}, 
         {input}, 
@@ -70,11 +70,11 @@ ETGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
         """,
     input=[
         q.p4_1,
-        nanoAOD.TrigObj_filterBits,
-        nanoAOD.TrigObj_id,
         nanoAOD.TrigObj_pt,
         nanoAOD.TrigObj_eta,
         nanoAOD.TrigObj_phi,
+        nanoAOD.TrigObj_id,
+        nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
     scope=["et"],
@@ -82,7 +82,7 @@ ETGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
 )
 EMGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
     name="EMGenerateSingleElectronTriggerFlags",
-    call="""trigger::GenerateSingleTriggerFlag(
+    call="""trigger::SingleObjectFlag(
         {df}, 
         {output}, 
         {input}, 
@@ -95,11 +95,11 @@ EMGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
         """,
     input=[
         q.p4_1,
-        nanoAOD.TrigObj_filterBits,
-        nanoAOD.TrigObj_id,
         nanoAOD.TrigObj_pt,
         nanoAOD.TrigObj_eta,
         nanoAOD.TrigObj_phi,
+        nanoAOD.TrigObj_id,
+        nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
     scope=["em"],
@@ -107,7 +107,7 @@ EMGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
 )
 GenerateSingleLeadingTauTriggerFlags = ExtendedVectorProducer(
     name="GenerateSingleLeadingTauTriggerFlags",
-    call="""trigger::GenerateSingleTriggerFlag(
+    call="""trigger::SingleObjectFlag(
         {df}, 
         {output}, 
         {input}, 
@@ -120,11 +120,11 @@ GenerateSingleLeadingTauTriggerFlags = ExtendedVectorProducer(
         """,
     input=[
         q.p4_1,
-        nanoAOD.TrigObj_filterBits,
-        nanoAOD.TrigObj_id,
         nanoAOD.TrigObj_pt,
         nanoAOD.TrigObj_eta,
         nanoAOD.TrigObj_phi,
+        nanoAOD.TrigObj_id,
+        nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
     scope=["tt"],
@@ -132,7 +132,7 @@ GenerateSingleLeadingTauTriggerFlags = ExtendedVectorProducer(
 )
 GenerateSingleTrailingTauTriggerFlags = ExtendedVectorProducer(
     name="GenerateSingleTrailingTauTriggerFlags",
-    call="""trigger::GenerateSingleTriggerFlag(
+    call="""trigger::SingleObjectFlag(
         {df}, 
         {output}, 
         {input}, 
@@ -145,11 +145,11 @@ GenerateSingleTrailingTauTriggerFlags = ExtendedVectorProducer(
         """,
     input=[
         q.p4_2,
-        nanoAOD.TrigObj_filterBits,
-        nanoAOD.TrigObj_id,
         nanoAOD.TrigObj_pt,
         nanoAOD.TrigObj_eta,
         nanoAOD.TrigObj_phi,
+        nanoAOD.TrigObj_id,
+        nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
     scope=["et", "mt", "tt"],
@@ -157,7 +157,7 @@ GenerateSingleTrailingTauTriggerFlags = ExtendedVectorProducer(
 )
 EMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
     name="EMGenerateSingleMuonTriggerFlags",
-    call="""trigger::GenerateSingleTriggerFlag(
+    call="""trigger::SingleObjectFlag(
         {df}, 
         {output}, 
         {input}, 
@@ -170,11 +170,11 @@ EMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
         """,
     input=[
         q.p4_2,
-        nanoAOD.TrigObj_filterBits,
-        nanoAOD.TrigObj_id,
         nanoAOD.TrigObj_pt,
         nanoAOD.TrigObj_eta,
         nanoAOD.TrigObj_phi,
+        nanoAOD.TrigObj_id,
+        nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
     scope=["em"],
@@ -182,7 +182,7 @@ EMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
 )
 MTGenerateCrossTriggerFlags = ExtendedVectorProducer(
     name="GenerateCrossTriggerFlags",
-    call="""trigger::GenerateDoubleTriggerFlag(
+    call="""trigger::DoubleObjectFlag(
         {df}, 
         {output}, 
         {input}, 
@@ -200,11 +200,11 @@ MTGenerateCrossTriggerFlags = ExtendedVectorProducer(
     input=[
         q.p4_1,
         q.p4_2,
-        nanoAOD.TrigObj_filterBits,
-        nanoAOD.TrigObj_id,
         nanoAOD.TrigObj_pt,
         nanoAOD.TrigObj_eta,
         nanoAOD.TrigObj_phi,
+        nanoAOD.TrigObj_id,
+        nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
     scope=["mt"],
@@ -212,7 +212,7 @@ MTGenerateCrossTriggerFlags = ExtendedVectorProducer(
 )
 ETGenerateCrossTriggerFlags = ExtendedVectorProducer(
     name="GenerateCrossTriggerFlags",
-    call="""trigger::GenerateDoubleTriggerFlag(
+    call="""trigger::DoubleObjectFlag(
         {df}, 
         {output}, 
         {input}, 
@@ -230,11 +230,11 @@ ETGenerateCrossTriggerFlags = ExtendedVectorProducer(
     input=[
         q.p4_1,
         q.p4_2,
-        nanoAOD.TrigObj_filterBits,
-        nanoAOD.TrigObj_id,
         nanoAOD.TrigObj_pt,
         nanoAOD.TrigObj_eta,
         nanoAOD.TrigObj_phi,
+        nanoAOD.TrigObj_id,
+        nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
     scope=["et"],
@@ -242,7 +242,7 @@ ETGenerateCrossTriggerFlags = ExtendedVectorProducer(
 )
 TTGenerateDoubleTriggerFlags = ExtendedVectorProducer(
     name="TTGenerateDoubleTriggerFlags",
-    call="""trigger::GenerateDoubleTriggerFlag(
+    call="""trigger::DoubleObjectFlag(
         {df}, 
         {output}, 
         {input}, 
@@ -260,11 +260,11 @@ TTGenerateDoubleTriggerFlags = ExtendedVectorProducer(
     input=[
         q.p4_1,
         q.p4_2,
-        nanoAOD.TrigObj_filterBits,
-        nanoAOD.TrigObj_id,
         nanoAOD.TrigObj_pt,
         nanoAOD.TrigObj_eta,
         nanoAOD.TrigObj_phi,
+        nanoAOD.TrigObj_id,
+        nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
     scope=["tt"],
@@ -272,7 +272,7 @@ TTGenerateDoubleTriggerFlags = ExtendedVectorProducer(
 )
 EMGenerateCrossTriggerFlags = ExtendedVectorProducer(
     name="EMGenerateCrossTriggerFlags",
-    call="""trigger::GenerateDoubleTriggerFlag(
+    call="""trigger::DoubleObjectFlag(
         {df}, 
         {output}, 
         {input}, 
@@ -290,11 +290,11 @@ EMGenerateCrossTriggerFlags = ExtendedVectorProducer(
     input=[
         q.p4_1,
         q.p4_2,
-        nanoAOD.TrigObj_filterBits,
-        nanoAOD.TrigObj_id,
         nanoAOD.TrigObj_pt,
         nanoAOD.TrigObj_eta,
         nanoAOD.TrigObj_phi,
+        nanoAOD.TrigObj_id,
+        nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
     scope=["em"],

@@ -221,7 +221,7 @@ ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df, const std::string &outputna
  *    m_{T}^2(p_{2},E_{T}^{miss}) + m_{T}^2(p_{1},p_2) } 
  * \f]
  * where \f$ m_{T}^2 \f$ is the transverse mass, \f$ p_{1}\f$ and \f$ p_{2}\f$ 
- * are the lepton Lorentzvectors and \f$E_{T}^{miss}\f$ is the missing energy.
+ * are the lepton Lorentz vectors and \f$E_{T}^{miss}\f$ is the missing energy.
  *
  * @param df input dataframe
  * @param outputname name of the output column containing the total transverse mass
