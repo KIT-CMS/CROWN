@@ -688,6 +688,99 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
     return df2;
 }
 
+
+ROOT::RDF::RNode PtCorrectionMC_genuineTau(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname, const std::string &pt,
+    const std::string &eta, const std::string &decay_mode,
+    const std::string &gen_match, const std::string &es_file,
+    const std::string &correction_name, const std::string &id_algorithm,
+    // New: 8 arguments for DM/Pt splitting
+    const std::string &variation_dm0_pt20to40,
+    const std::string &variation_dm0_pt40toInf,
+    const std::string &variation_dm1_pt20to40,
+    const std::string &variation_dm1_pt40toInf,
+    const std::string &variation_dm10_pt20to40,
+    const std::string &variation_dm10_pt40toInf,
+    const std::string &variation_dm11_pt20to40,
+    const std::string &variation_dm11_pt40toInf) {
+
+    // 1. Define the variation map structure
+    // This map acts as both the variation lookup AND the "Allowed Decay Modes" list
+    const std::unordered_map<int, std::map<float, std::string>> variations = {
+        {0,  {{20.0f, variation_dm0_pt20to40},  {40.0f, variation_dm0_pt40toInf}}},
+        {1,  {{20.0f, variation_dm1_pt20to40},  {40.0f, variation_dm1_pt40toInf}}},
+        {10, {{20.0f, variation_dm10_pt20to40}, {40.0f, variation_dm10_pt40toInf}}},
+        {11, {{20.0f, variation_dm11_pt20to40}, {40.0f, variation_dm11_pt40toInf}}},
+    };
+
+    // 2. Setup
+    auto [df1, decay_mode_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+            df, decay_mode+"_v12", "ROOT::VecOps::RVec<UChar_t>", decay_mode);
+
+    auto evaluator = correction_manager.loadCorrection(es_file, correction_name);
+
+    // 3. Calculation Lambda
+    auto correction_lambda =
+        [evaluator, id_algorithm, variations](const ROOT::RVec<float> &pts,
+                         const ROOT::RVec<float> &etas,
+                         const ROOT::RVec<UChar_t> &decay_modes_v12,
+                         const ROOT::RVec<UChar_t> &gen_matches_char) {
+            
+            auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
+            auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
+            ROOT::RVec<float> corrected_pts(pts.size());
+            
+            for (size_t i = 0; i < pts.size(); i++) {
+                float current_pt = pts.at(i);
+                int current_dm = decay_modes.at(i);
+                int current_gen = gen_matches.at(i);
+                
+                // Default: No correction
+                corrected_pts[i] = current_pt;
+                std::string variation_to_use = "nom"; 
+
+                // Only correct if GenMatch is 5 (Genuine Tau)
+                if (current_gen == 5) {
+                    // Look for DM in our allowed map
+                    auto dm_it = variations.find(current_dm);
+                    
+                    // CRITICAL FIX: Only call evaluate if DM is supported (0, 1, 10, 11)
+                    if (dm_it != variations.end()) {
+                        const auto &pt_map = dm_it->second;
+                        
+                        // Determine variation based on Pt
+                        auto pt_it = pt_map.upper_bound(current_pt);
+                        if (pt_it != pt_map.begin()) {
+                            variation_to_use = std::prev(pt_it)->second;
+                        }
+
+                        // Evaluate now safe because current_dm is guaranteed valid
+                        auto correction_factor = evaluator->evaluate(
+                            {current_pt, std::abs(etas.at(i)), current_dm,
+                             current_gen, id_algorithm,
+                             variation_to_use});
+                        
+                        corrected_pts[i] = current_pt * correction_factor;
+                    }
+                }
+
+                // Logging
+                Logger::get("physicsobject::tau::PtCorrection_genuineTau")
+                    ->debug("tau pt before {}, tau pt after {}, decaymode {}, var {}",
+                            current_pt, corrected_pts.at(i), current_dm, variation_to_use);
+            }
+            return corrected_pts;
+        };
+
+    auto df2 = df1.Define(outputname, correction_lambda,
+                         {pt, eta, decay_mode_column, gen_match});
+    return df2;
+}
+
+
+
 /**
  * @brief This function corrects the transverse momentum (\f$p_T\f$) in MC
  * simulations of genuine hadronic taus. The energy scale correction for these
@@ -1186,6 +1279,101 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
     auto df1 = df.Define(outputname, sf_calculator, {pt, decay_mode, gen_match});
     return df1;
 }
+
+
+
+ROOT::RDF::RNode
+Id_vsJet_lt(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname,
+        const std::string &pt, const std::string &decay_mode,
+        const std::string &gen_match, 
+        const std::string &sf_file,
+        const std::string &sf_name,
+        const std::vector<int> &selected_dms,
+        const std::string &wp, const std::string &vsele_wp,
+        const std::string &sf_dependence,
+        // DM + pT split
+        const std::string &variation_dm0_pt20to40,
+        const std::string &variation_dm0_pt40toInf,
+        const std::string &variation_dm1_pt20to40,
+        const std::string &variation_dm1_pt40toInf,
+        const std::string &variation_dm10_pt20to40,
+        const std::string &variation_dm10_pt40toInf,
+        const std::string &variation_dm11_pt20to40,
+        const std::string &variation_dm11_pt40toInf) {
+
+    const std::unordered_map<int, std::map<float, std::string>> variations = {
+        {0,  {{20.0f, variation_dm0_pt20to40},  {40.0f, variation_dm0_pt40toInf}}},
+        {1,  {{20.0f, variation_dm1_pt20to40},  {40.0f, variation_dm1_pt40toInf}}},
+        {10, {{20.0f, variation_dm10_pt20to40}, {40.0f, variation_dm10_pt40toInf}}},
+        {11, {{20.0f, variation_dm11_pt20to40}, {40.0f, variation_dm11_pt40toInf}}},
+    };
+
+    Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")
+        ->debug("Setting up function for tau id vsJet sf (DM & Pt binned)");
+    Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")->debug("ID - Name {}", sf_name);
+    
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    
+    auto sf_calculator = [evaluator, wp, vsele_wp, variations,
+                            sf_dependence, selected_dms,
+                            sf_name](const float &pt, const int &decay_mode,
+                                         const int &gen_match) {
+        Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")->debug("ID - decayMode {}", decay_mode);
+        
+        double sf = 1.;
+        
+        if (std::find(selected_dms.begin(), selected_dms.end(), decay_mode) != selected_dms.end()) {
+            auto dm_it = variations.find(decay_mode);  // specific map for this Decay Mode
+            if (dm_it != variations.end()) {
+                const auto &pt_map = dm_it->second;
+                
+                auto pt_it = pt_map.upper_bound(pt);
+                
+                if (pt_it != pt_map.begin()){
+                    pt_it = std::prev(pt_it); // Move back to the lower bound key
+                    std::string variation = pt_it->second;
+                    
+                    Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")
+                    ->debug("ID {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
+                            "vsele_wp {}, variation {}, sf_dependence {}",
+                            sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
+                            variation, sf_dependence);
+                    
+                    sf = evaluator->evaluate({pt, decay_mode, gen_match, wp, vsele_wp, variation, sf_dependence});
+                }
+                // If pt_it == pt_map.begin(), it means pt < 20.0f (the first key), so sf remains 1.
+            }
+        }
+        
+        Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")->debug("Scale Factor {}", sf);
+        return sf;
+    };
+
+    bool all_nominal = true;
+    for (const auto& [dm, pt_map] : variations) {
+        for (const auto& [pt_val, var_name] : pt_map) {
+            if (var_name != "nom") {
+                all_nominal = false;
+                break;
+            }
+        }
+        if (!all_nominal) break;
+    }
+
+    if (all_nominal) {
+        Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")
+            ->debug("All variations are 'nom'. Skipping definition of {} to avoid collision.", outputname);
+        return df;
+    }
+
+    auto df1 = df.Define(outputname, sf_calculator, {pt, decay_mode, gen_match});
+    return df1;
+}
+
+
+
 
 /**
  * @brief This function calculates scale factors (SFs) for tau identification (ID) 
