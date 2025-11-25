@@ -1343,7 +1343,6 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
                     
                     sf = evaluator->evaluate({pt, decay_mode, gen_match, wp, vsele_wp, variation, sf_dependence});
                 }
-                // If pt_it == pt_map.begin(), it means pt < 20.0f (the first key), so sf remains 1.
             }
         }
         
@@ -1351,22 +1350,65 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
         return sf;
     };
 
-    bool all_nominal = true;
-    for (const auto& [dm, pt_map] : variations) {
-        for (const auto& [pt_val, var_name] : pt_map) {
-            if (var_name != "nom") {
-                all_nominal = false;
-                break;
+    auto df1 = df.Define(outputname, sf_calculator, {pt, decay_mode, gen_match});
+    return df1;
+}
+
+ROOT::RDF::RNode
+Id_vsJet_lt(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname,
+        const std::string &pt, const std::string &decay_mode,
+        const std::string &gen_match, 
+        const std::string &sf_file,
+        const std::string &sf_name,
+        const std::vector<int> &selected_dms,
+        const std::string &wp, const std::string &vsele_wp,
+        const std::string &sf_dependence,
+        // DM split
+        const std::string &variation_dm0,
+        const std::string &variation_dm1,
+        const std::string &variation_dm10,
+        const std::string &variation_dm11) {
+    const std::unordered_map<int, std::string> variations = {
+        {0,  variation_dm0},
+        {1,  variation_dm1},
+        {10, variation_dm10},
+        {11, variation_dm11},
+    };
+    Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")
+        ->debug("Setting up function for tau id vsJet sf (DM binned only)");
+    Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")->debug("ID - Name {}", sf_name);
+    
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+
+    auto sf_calculator = [evaluator, wp, vsele_wp, variations,
+                            sf_dependence, selected_dms,
+                            sf_name](const float &pt, const int &decay_mode,
+                                         const int &gen_match) {
+        Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")->debug("ID - decayMode {}", decay_mode);
+        
+        double sf = 1.;
+        
+        if (std::find(selected_dms.begin(), selected_dms.end(), decay_mode) != selected_dms.end()) {
+
+            auto it = variations.find(decay_mode);
+            if (it != variations.end()) {
+                std::string variation = it->second;
+                
+                Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")
+                ->debug("ID {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
+                        "vsele_wp {}, variation {}, sf_dependence {}",
+                        sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
+                        variation, sf_dependence);
+                
+                sf = evaluator->evaluate({pt, decay_mode, gen_match, wp, vsele_wp, variation, sf_dependence});
             }
         }
-        if (!all_nominal) break;
-    }
-
-    if (all_nominal) {
-        Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")
-            ->debug("All variations are 'nom'. Skipping definition of {} to avoid collision.", outputname);
-        return df;
-    }
+        
+        Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")->debug("Scale Factor {}", sf);
+        return sf;
+    };
 
     auto df1 = df.Define(outputname, sf_calculator, {pt, decay_mode, gen_match});
     return df1;
