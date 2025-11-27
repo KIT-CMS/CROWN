@@ -448,6 +448,7 @@ namespace scalefactor {
  * @param pt name of the column containing the transverse momentum of an
  * electron
  * @param eta name of the column containing the pseudorapidity of an electron
+ * @param phi name of the column containing the azimuthal angle of an electron
  * @param era string with the era name of a data taking period, e.g.
  * "2016preVFP"
  * @param wp working point of the electron id that should be used, e.g.
@@ -460,7 +461,8 @@ namespace scalefactor {
  *
  * @return a new dataframe containing the new column
  *
- * @note This overloaded version of the function also takes phi for 2023 only
+ * @note This function needs the dependence on phi only in case of 2023 data
+ * because for whatever reason EGM POG intoduced it only in that era. 
  */
 ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
                     correctionManager::CorrectionManager &correction_manager,
@@ -546,15 +548,15 @@ ROOT::RDF::RNode Trigger(ROOT::RDF::RNode df,
                     const std::string &era, const std::string &path_id_name,
                     const std::string &sf_file, const std::string &sf_name,
                     const std::string &variation) {
+    Logger::get("physicsobject::electron::scalefactor::Trigger")
+        ->debug("Setting up functions for electron trigger sf with correctionlib");
+    Logger::get("physicsobject::electron::scalefactor::Trigger")
+        ->debug("Scale factor - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     auto df1 = df.Define(
         outputname,
         [evaluator, era, sf_name, path_id_name, variation](
             const float &pt, const float &eta, const bool &trigger_flag) {
-            Logger::get("physicsobject::electron::scalefactor::Trigger")
-                ->debug("Setting up functions for electron trigger sf with correctionlib");
-            Logger::get("physicsobject::electron::scalefactor::Trigger")
-                ->debug("Scale factor - Name {}", sf_name);
             Logger::get("physicsobject::electron::scalefactor::Trigger")
                 ->debug("Era {}, Variation {}, Trigger at electron ID {}", era, variation, path_id_name);
             Logger::get("physicsobject::electron::scalefactor::Trigger")
@@ -565,6 +567,8 @@ ROOT::RDF::RNode Trigger(ROOT::RDF::RNode df,
             try {
                 if (pt >= 0.0 && std::abs(eta) >= 0.0 && trigger_flag) {
                     sf = evaluator->evaluate({era, variation, path_id_name, eta, pt});
+                    Logger::get("physicsobject::electron::scalefactor::Trigger")
+                        ->debug("Scale Factor {}", sf);
                 }
             } catch (const std::runtime_error &e) {
                 // this error can occur because the pt range starts at different
