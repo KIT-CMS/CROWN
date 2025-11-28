@@ -47,7 +47,7 @@ namespace electron {
  *
  * @note This function is intended for analyses working with Run 2 NanoAODv9
  * samples. For the corresponding function that can be used with
- * Run 3 NanoAODv12, look at the overloaded version of this function.
+ * Run 3, look at the overloaded version of this function.
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
@@ -157,7 +157,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * @return a dataframe containing the varied electron transverse momenta
  * 
  * @note This function is intended for analyses working with Run 3 NanoAODv12
- * or higher. In the Run 2 NanoAODv12 samples, the scale correction in data
+ * or higher. In the Run 2 samples, the scale correction in data
  * is already applied in the NanoAOD files. Look at the overloaded version of
  * this function for Run 2 analyses.
  */
@@ -295,8 +295,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  *
  * @return a dataframe containing the varied electron transverse momenta
  * 
- * @note This function is intended for analyses working with Run 3 NanoAODv12
- * or higher.
+ * @note This function is intended for analyses working with Run 3.
  */
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
