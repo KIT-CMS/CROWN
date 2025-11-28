@@ -204,7 +204,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             });
 
             // get the scale uncertainty
-            auto smear_unc = evaluator->evaluate({
+            auto scale_unc = evaluator->evaluate({
                 "escale",
                 pt.at(i),
                 r9.at(i),
@@ -212,7 +212,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             });
 
             // get the resolution uncertainty
-            auto scale_unc = evaluator->evaluate({
+            auto smear_unc = evaluator->evaluate({
                 "esmear",
                 pt.at(i),
                 r9.at(i),
