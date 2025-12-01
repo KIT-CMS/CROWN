@@ -829,7 +829,7 @@ namespace scalefactor {
  * @param outputname name of the output column containing the b-tagging scale factor
  * @param pt name of the column containing the transverse momenta of jets
  * @param eta name of the column containing the pseudorapidity of jets
- * @param btag_value name of the column containing the btag values of jetd 
+ * @param btag_value name of the column containing the btag values of jets
  * based on a b-jet tagger (e.g. DeepJet)
  * @param flavor name of the column containing the flavors of jets, usually used
  * flavors are: 5=b-jet, 4=c-jet, 0=light jet (g, u, d, s)
@@ -848,7 +848,7 @@ namespace scalefactor {
  * based scale factors.
  */
 ROOT::RDF::RNode
-Btagging(ROOT::RDF::RNode df,
+BtaggingShape(ROOT::RDF::RNode df,
        correctionManager::CorrectionManager &correction_manager,
        const std::string &outputname, const std::string &pt, 
        const std::string &eta, const std::string &btag_value, 
@@ -856,9 +856,9 @@ Btagging(ROOT::RDF::RNode df,
        const std::string &bjet_mask, const std::string &jet_veto_mask, 
        const std::string &sf_file, const std::string &sf_name,
        const std::string &variation) {
-    Logger::get("physicsobject::jet::scalefactor::Btagging")->debug(
+    Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug(
         "Setting up functions for b-tag sf with correctionlib");
-    Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Correction algorithm - Name {}",
+    Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug("Correction algorithm - Name {}",
                                  sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     
@@ -876,16 +876,16 @@ Btagging(ROOT::RDF::RNode df,
                                      const ROOT::RVec<int> &bjet_mask,
                                      const ROOT::RVec<int> &jet_veto_mask) {
         auto flavors = static_cast<ROOT::RVec<int>>(flavors_v12);
-        Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Vatiation - Name {}", variation);
+        Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug("Vatiation - Name {}", variation);
         float sf = 1.;
         for (int i = 0; i < pts.size(); i++) {
-            Logger::get("physicsobject::jet::scalefactor::Btagging")->debug(
+            Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug(
                 "jet masks - jet {}, b-jet {}, jet veto {}", jet_mask.at(i),
                 bjet_mask.at(i), jet_veto_mask.at(i));
             // considering only good jets/b-jets, this is needed since jets and
             // bjets might have different quality cuts depending on the analysis
             if ((jet_mask.at(i) || bjet_mask.at(i)) && jet_veto_mask.at(i)) {
-                Logger::get("physicsobject::jet::scalefactor::Btagging")->debug(
+                Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug(
                     "SF - pt {}, eta {}, btag value {}, flavor {}",
                     pts.at(i), etas.at(i), btag_values.at(i),
                     flavors.at(i));
@@ -927,11 +927,11 @@ Btagging(ROOT::RDF::RNode df,
                         }
                     }
                 }
-                Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Jet Scale Factor {}", jet_sf);
+                Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug("Jet Scale Factor {}", jet_sf);
                 sf *= jet_sf;
             }
         };
-        Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Event Scale Factor {}", sf);
+        Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug("Event Scale Factor {}", sf);
         return sf;
     };
     auto df2 = df1.Define(
@@ -946,8 +946,10 @@ Btagging(ROOT::RDF::RNode df,
  * simulation. The scale factors are loaded from a correctionlib file 
  * using a specified scale factor name and variation.
  *
- * This producer is optimized working point based scale factors,
- * relevant for Run3 2024.
+ * This producer can be used to evaluate working point based scale factors. It is
+ * defined based on scale factors provided by BTV POG for Run3 2024.
+ *
+ * More information from BTV POG can be found here https://btv-wiki.docs.cern.ch/ScaleFactors/
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
@@ -955,8 +957,6 @@ Btagging(ROOT::RDF::RNode df,
  * @param outputname name of the output column containing the b-tagging scale factor
  * @param pt name of the column containing the transverse momenta of jets
  * @param eta name of the column containing the pseudorapidity of jets
- * @param btag_value name of the column containing the btag values of jetd 
- * based on a b-jet tagger (e.g. DeepJet)
  * @param flavor name of the column containing the flavors of jets, usually used
  * flavors are: 5=b-jet, 4=c-jet, 0=light jet (g, u, d, s)
  * @param jet_mask name of the column containing the mask for good/selected jets
@@ -967,6 +967,8 @@ Btagging(ROOT::RDF::RNode df,
  * @param sf_name name of the b-tagging scale factor correction e.g. "deepJet_shape"
  * @param variation name the scale factor variation, available values:
  * central, down_*, up_* (* name of specific variation)
+ * @param btag_wp string that specifies the b-tagging working point used in an
+ * analysis e.g. "L", "M", "T", ...
  *
  * @return a new dataframe containing the new column
  */
@@ -979,9 +981,9 @@ BtaggingWP(ROOT::RDF::RNode df,
        const std::string &bjet_mask, const std::string &jet_veto_mask, 
        const std::string &sf_file, const std::string &sf_name,
        const std::string &variation, const std::string &btag_wp) {
-    Logger::get("physicsobject::jet::scalefactor::Btagging")->debug(
+    Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug(
         "Setting up functions for wp based b-tag sf with correctionlib");
-    Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Correction algorithm - Name {}",
+    Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug("Correction algorithm - Name {}",
                                  sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
 
@@ -999,16 +1001,16 @@ BtaggingWP(ROOT::RDF::RNode df,
                                     const ROOT::RVec<int> &bjet_mask,
                                     const ROOT::RVec<int> &jet_veto_mask) {
         auto flavors = static_cast<ROOT::RVec<int>>(flavors_v12);
-        Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Vatiation - Name {}", variation);
+        Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug("Vatiation - Name {}", variation);
         float sf = 1.;
         for (int i = 0; i < pts.size(); i++) {
-            Logger::get("physicsobject::jet::scalefactor::Btagging")->debug(
+            Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug(
                 "jet masks - jet {}, b-jet {}, jet veto {}", jet_mask.at(i),
                 bjet_mask.at(i), jet_veto_mask.at(i));
             // considering only good jets/b-jets, this is needed since jets and
             // bjets might have different quality cuts depending on the analysis
             if ((jet_mask.at(i) || bjet_mask.at(i)) && jet_veto_mask.at(i)) {
-                Logger::get("physicsobject::jet::scalefactor::Btagging")->debug(
+                Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug(
                     "SF - pt {}, eta {}, btag wp {}, flavor {}",
                     pts.at(i), etas.at(i), btag_wp,
                     flavors.at(i));
@@ -1021,11 +1023,11 @@ BtaggingWP(ROOT::RDF::RNode df,
                                 {variation, btag_wp, flavors.at(i),
                                  std::abs(etas.at(i)), pts.at(i)});
                 }
-                Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Jet Scale Factor {}", jet_sf);
+                Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug("Jet Scale Factor {}", jet_sf);
                 sf *= jet_sf;
             }
         };
-        Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Event Scale Factor {}", sf);
+        Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug("Event Scale Factor {}", sf);
         return sf;
     };
     auto df2 = df1.Define(
