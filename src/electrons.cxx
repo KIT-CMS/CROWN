@@ -461,7 +461,7 @@ namespace scalefactor {
  * @return a new dataframe containing the new column
  *
  * @note This function needs the dependence on phi only in case of 2023 data
- * because for whatever reason EGM POG intoduced it only in that era. 
+ * because for whatever reason EGM POG introduced it only in that era. 
  */
 ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
                     correctionManager::CorrectionManager &correction_manager,

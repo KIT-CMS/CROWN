@@ -876,7 +876,7 @@ BtaggingShape(ROOT::RDF::RNode df,
                                      const ROOT::RVec<int> &bjet_mask,
                                      const ROOT::RVec<int> &jet_veto_mask) {
         auto flavors = static_cast<ROOT::RVec<int>>(flavors_v12);
-        Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug("Vatiation - Name {}", variation);
+        Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug("Variation - Name {}", variation);
         float sf = 1.;
         for (int i = 0; i < pts.size(); i++) {
             Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug(
@@ -964,7 +964,7 @@ BtaggingShape(ROOT::RDF::RNode df,
  * @param flavor name of the column containing the flavors of jets, usually used
  * flavors are: 5=b-jet, 4=c-jet, 0=light jet (g, u, d, s)
  * @param jet_mask name of the column containing the mask for good/selected jets
- * @param bjet_mask name of the column containing themask for good/selected b-jets
+ * @param bjet_mask name of the column containing the mask for good/selected b-jets
  * @param jet_veto_mask name of the column containing the veto mask for 
  * overlapping jets (e.g. with selected lepton pairs)
  * @param sf_file path to the file with the b-tagging scale factors
@@ -1005,7 +1005,7 @@ BtaggingWP(ROOT::RDF::RNode df,
                                     const ROOT::RVec<int> &bjet_mask,
                                     const ROOT::RVec<int> &jet_veto_mask) {
         auto flavors = static_cast<ROOT::RVec<int>>(flavors_v12);
-        Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug("Vatiation - Name {}", variation);
+        Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug("Variation - Name {}", variation);
         float sf = 1.;
         for (int i = 0; i < pts.size(); i++) {
             Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug(
