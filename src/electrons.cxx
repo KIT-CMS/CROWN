@@ -47,7 +47,7 @@ namespace electron {
  *
  * @note This function is intended for analyses working with Run 2 NanoAODv9
  * samples. For the corresponding function that can be used with
- * Run 3 NanoAODv12 or higher, look at the overloaded version of this function.
+ * Run 3, look at the overloaded version of this function.
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
@@ -157,7 +157,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * @return a dataframe containing the varied electron transverse momenta
  * 
  * @note This function is intended for analyses working with Run 3 NanoAODv12
- * or higher. In the Run 2 NanoAODv12 samples, the scale correction in data
+ * or higher. In the Run 2 samples, the scale correction in data
  * is already applied in the NanoAOD files. Look at the overloaded version of
  * this function for Run 2 analyses.
  */
@@ -200,23 +200,23 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 "smear",
                 pt.at(i),
                 r9.at(i),
-                abs(eta_sc)
+                eta_sc
             });
 
             // get the scale uncertainty
-            auto smear_unc = evaluator->evaluate({
+            auto scale_unc = evaluator->evaluate({
                 "escale",
                 pt.at(i),
                 r9.at(i),
-                abs(eta_sc)
+                eta_sc
             });
 
             // get the resolution uncertainty
-            auto scale_unc = evaluator->evaluate({
+            auto smear_unc = evaluator->evaluate({
                 "esmear",
                 pt.at(i),
                 r9.at(i),
-                abs(eta_sc)
+                eta_sc
             });
 
             // set the corrected pt based on the considered variation
@@ -295,8 +295,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  *
  * @return a dataframe containing the varied electron transverse momenta
  * 
- * @note This function is intended for analyses working with Run 3 NanoAODv12
- * or higher.
+ * @note This function is intended for analyses working with Run 3.
  */
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
@@ -332,7 +331,6 @@ PtCorrectionData(ROOT::RDF::RNode df,
                 static_cast<float>(run),
                 eta_sc,
                 r9.at(i),
-                abs(eta_sc),
                 pt.at(i),
                 static_cast<float>(seed_gain.at(i))
             });
@@ -449,6 +447,7 @@ namespace scalefactor {
  * @param pt name of the column containing the transverse momentum of an
  * electron
  * @param eta name of the column containing the pseudorapidity of an electron
+ * @param phi name of the column containing the azimuthal angle of an electron
  * @param era string with the era name of a data taking period, e.g.
  * "2016preVFP"
  * @param wp working point of the electron id that should be used, e.g.
@@ -460,11 +459,15 @@ namespace scalefactor {
  * scale factor and "sfup"/"sfdown" for the up/down variation
  *
  * @return a new dataframe containing the new column
+ *
+ * @note This function needs the dependence on phi only in case of 2023 data
+ * because for whatever reason EGM POG introduced it only in that era. 
  */
 ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
                     correctionManager::CorrectionManager &correction_manager,
                     const std::string &outputname, const std::string &pt,
-                    const std::string &eta, const std::string &era,
+                    const std::string &eta, const std::string &phi,
+                    const std::string &era,
                     const std::string &wp, const std::string &sf_file,
                     const std::string &sf_name, const std::string &variation) {
     Logger::get("physicsobject::electron::scalefactor::Id")
@@ -475,20 +478,25 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
     auto df1 = df.Define(
         outputname,
         [evaluator, era, sf_name, wp, variation](const float &pt,
-                                                 const float &eta) {
+                                                 const float &eta,
+                                                 const float &phi) {
             Logger::get("physicsobject::electron::scalefactor::Id")
                 ->debug("Era {}, Variation {}, WP {}", era, variation, wp);
             Logger::get("physicsobject::electron::scalefactor::Id")
-                ->debug("ID - pt {}, eta {}", pt, eta);
+                ->debug("ID - pt {}, eta {}, phi {}", pt, eta, phi);
             double sf = 1.;
             if (pt >= 0.0) {
-                sf = evaluator->evaluate({era, variation, wp, eta, pt});
+                if (era.find("2023") != std::string::npos) {
+                    // for 2023, phi is needed as input
+                    sf = evaluator->evaluate({era, variation, wp, eta, pt, phi});
+                } 
+                else sf = evaluator->evaluate({era, variation, wp, eta, pt});
             }
             Logger::get("physicsobject::electron::scalefactor::Id")
                 ->debug("Scale Factor {}", sf);
             return sf;
         },
-        {pt, eta});
+        {pt, eta, phi});
     return df1;
 }
 
@@ -553,11 +561,21 @@ ROOT::RDF::RNode Trigger(ROOT::RDF::RNode df,
             Logger::get("physicsobject::electron::scalefactor::Trigger")
                 ->debug("ID - pt {}, eta {}, trigger flag {}", pt, eta, trigger_flag);
             double sf = 1.;
-            if (trigger_flag) {
-                sf = evaluator->evaluate({era, variation, path_id_name, eta, pt});
+            // check to prevent electrons with default values due to tau energy
+            // correction shifts below good tau pt selection
+            try {
+                if (pt >= 0.0 && std::abs(eta) >= 0.0 && trigger_flag) {
+                    sf = evaluator->evaluate({era, variation, path_id_name, eta, pt});
+                    Logger::get("physicsobject::electron::scalefactor::Trigger")
+                        ->debug("Scale Factor {}", sf);
+                }
+            } catch (const std::runtime_error &e) {
+                // this error can occur because the pt range starts at different
+                // values for different triggers
+                Logger::get("physicsobject::electron::scalefactor::Trigger")
+                    ->debug("SF evaluation for {} failed for pt {}", sf_name,
+                            pt);
             }
-            Logger::get("physicsobject::electron::scalefactor::Trigger")
-                ->debug("Scale Factor {}", sf);
             return sf;
         },
         {pt, eta, trigger_flag});

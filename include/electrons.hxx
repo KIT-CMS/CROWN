@@ -52,7 +52,8 @@ namespace scalefactor {
 ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
                     correctionManager::CorrectionManager &correctionManager,
                     const std::string &outputname, const std::string &pt,
-                    const std::string &eta, const std::string &era,
+                    const std::string &eta, const std::string &phi, 
+                    const std::string &era,
                     const std::string &wp, const std::string &sf_file,
                     const std::string &sf_name, const std::string &variation);
 ROOT::RDF::RNode Trigger(ROOT::RDF::RNode df,

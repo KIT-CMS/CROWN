@@ -1312,18 +1312,23 @@ Trigger(ROOT::RDF::RNode df,
     auto sf_calculator = [evaluator, trigger_name, wp, corr_type, variation, sf_name](
                                      const float &pt, const int &decay_mode) {
         float sf = 1.;
-        if (pt > 0.) {
+        try {
             Logger::get("physicsobject::tau::scalefactor::Trigger")
                 ->debug("ID {} - decaymode {}, wp {} "
                     "pt {}, type {}, variation {}",
                     sf_name, decay_mode, wp, pt, corr_type, variation);
-            if (decay_mode == 0 || decay_mode == 1 || decay_mode == 10 ||
-                decay_mode == 11) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, trigger_name, wp, corr_type, variation});
-            } else {
-                sf = evaluator->evaluate({pt, -1, trigger_name, wp, corr_type, variation});
+            if (pt >= 0.) {
+                if (decay_mode == 0 || decay_mode == 1 || decay_mode == 10 ||
+                    decay_mode == 11) {
+                    sf = evaluator->evaluate(
+                        {pt, decay_mode, trigger_name, wp, corr_type, variation});
+                } else {
+                    sf = evaluator->evaluate({pt, -1, trigger_name, wp, corr_type, variation});
+                }
             }
+        } catch (const std::runtime_error &e) {
+            Logger::get("physicsobject::tau::scalefactor::Trigger")
+                ->debug("SF evaluation for {} failed for pt {}", sf_name, pt);
         }
         Logger::get("physicsobject::tau::scalefactor::Trigger")->debug("Scale Factor {}", sf);
         return sf;
@@ -1379,18 +1384,23 @@ Trigger(ROOT::RDF::RNode df,
                                      const float &pt, const int &decay_mode,
                                      const bool &trigger_flag) {
         float sf = 1.;
-        Logger::get("physicsobject::tau::scalefactor::Trigger")
+        try {
+            Logger::get("physicsobject::tau::scalefactor::Trigger")
             ->debug("ID {} - decaymode {}, wp {} "
                 "pt {}, trigger_flag {}, type {}, variation {}",
                 sf_name, decay_mode, wp, pt, trigger_flag, corr_type, variation);
-        if (trigger_flag) {
-            if (decay_mode == 0 || decay_mode == 1 || decay_mode == 10 ||
-                decay_mode == 11) {
-                sf = evaluator->evaluate(
-                    {pt, decay_mode, trigger_name, wp, corr_type, variation});
-            } else {
-                sf = evaluator->evaluate({pt, -1, trigger_name, wp, corr_type, variation});
+            if (pt >= 0. && trigger_flag) {
+                if (decay_mode == 0 || decay_mode == 1 || decay_mode == 10 ||
+                    decay_mode == 11) {
+                    sf = evaluator->evaluate(
+                        {pt, decay_mode, trigger_name, wp, corr_type, variation});
+                } else {
+                    sf = evaluator->evaluate({pt, -1, trigger_name, wp, corr_type, variation});
+                }
             }
+        } catch (const std::runtime_error &e) {
+            Logger::get("physicsobject::tau::scalefactor::Trigger")
+                ->debug("SF evaluation for {} failed for pt {}", sf_name, pt);
         }
         Logger::get("physicsobject::tau::scalefactor::Trigger")->debug("Scale Factor {}", sf);
         return sf;
