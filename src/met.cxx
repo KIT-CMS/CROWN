@@ -58,12 +58,11 @@ value is returned
 GenBosonVector, second is the visibleGenBosonVector
  */
 ROOT::RDF::RNode calculateGenBosonVector(
-    ROOT::RDF::RNode df, const std::string outputname,
-    const std::string &genparticle_pt,
+    ROOT::RDF::RNode df, const std::string &genparticle_pt,
     const std::string &genparticle_eta, const std::string &genparticle_phi,
     const std::string &genparticle_mass, const std::string &genparticle_id,
     const std::string &genparticle_status,
-    const std::string &genparticle_statusflag,
+    const std::string &genparticle_statusflag, const std::string outputname,
     bool is_data) {
     auto calculateGenBosonVector =
         [](const ROOT::RVec<float> &genparticle_pt,
@@ -483,12 +482,11 @@ ROOT::RDF::RNode genBosonRapidity(ROOT::RDF::RNode df,
  * @return a new df containing the corrected met lorentz vector
  */
 ROOT::RDF::RNode propagateLeptonsToMet(
-    ROOT::RDF::RNode df, const std::string &outputname,
-    const std::string &met,
+    ROOT::RDF::RNode df, const std::string &met,
     const std::string &p4_1_uncorrected, const std::string &p4_2_uncorrected,
     const std::string &p4_3_uncorrected, const std::string &p4_1,
     const std::string &p4_2, const std::string &p4_3,
-    bool apply_propagation) {
+    const std::string &outputname, bool apply_propagation) {
     auto scaleMet = [](const ROOT::Math::PtEtaPhiMVector &met,
                        const ROOT::Math::PtEtaPhiMVector &uncorrected_object,
                        const ROOT::Math::PtEtaPhiMVector &corrected_object) {
@@ -579,12 +577,11 @@ ROOT::RDF::RNode propagateLeptonsToMet(
  * @return a new df containing the corrected met lorentz vector
  */
 ROOT::RDF::RNode
-propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &outputname,
-                      const std::string &met,
+propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &met,
                       const std::string &p4_1_uncorrected,
                       const std::string &p4_2_uncorrected,
                       const std::string &p4_1, const std::string &p4_2,
-                      bool apply_propagation) {
+                      const std::string &outputname, bool apply_propagation) {
     auto scaleMet = [](const ROOT::Math::PtEtaPhiMVector &met,
                        const ROOT::Math::PtEtaPhiMVector &uncorrected_object,
                        const ROOT::Math::PtEtaPhiMVector &corrected_object) {
@@ -660,10 +657,10 @@ propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &outputname,
  * @return a new df containing the corrected met lorentz vector
  */
 ROOT::RDF::RNode propagateLeptonsToMet(ROOT::RDF::RNode df,
-                                       const std::string &outputname,
                                        const std::string &met,
                                        const std::string &p4_1_uncorrected,
                                        const std::string &p4_1,
+                                       const std::string &outputname,
                                        bool apply_propagation) {
     auto scaleMet = [](const ROOT::Math::PtEtaPhiMVector &met,
                        const ROOT::Math::PtEtaPhiMVector &uncorrected_object,
@@ -741,12 +738,12 @@ ROOT::RDF::RNode propagateLeptonsToMet(ROOT::RDF::RNode df,
  * @return a new df containing the corrected met lorentz vector
  */
 ROOT::RDF::RNode propagateJetsToMet(
-    ROOT::RDF::RNode df, const std::string &outputname, const std::string &met,
+    ROOT::RDF::RNode df, const std::string &met,
     const std::string &jet_pt_corrected, const std::string &jet_eta_corrected,
     const std::string &jet_phi_corrected, const std::string &jet_mass_corrected,
     const std::string &jet_pt, const std::string &jet_eta,
     const std::string &jet_phi, const std::string &jet_mass,
-    bool apply_propagation, float min_jet_pt) {
+    const std::string &outputname, bool apply_propagation, float min_jet_pt) {
     // propagate jet corrections to met, since we can have an arbitrary
     // amount of jets, this has to be done per event
     auto scaleMet = [min_jet_pt](const ROOT::Math::PtEtaPhiMVector &met,
@@ -830,12 +827,9 @@ is only needed for WJets samples)
  * @return a new dataframe containing the new met column
  */
 ROOT::RDF::RNode applyRecoilCorrections(
-    ROOT::RDF::RNode df, const std::string &outputname, 
-    const std::string &met, 
-    const std::string &genboson,
-    const std::string &jet_pt, 
-    const std::string &recoilfile, 
-    const std::string &systematicsfile,
+    ROOT::RDF::RNode df, const std::string &met, const std::string &genboson,
+    const std::string &jet_pt, const std::string &outputname,
+    const std::string &recoilfile, const std::string &systematicsfile,
     bool applyRecoilCorrections, bool resolution, bool response, bool shiftUp,
     bool shiftDown, bool isWjets) {
     if (applyRecoilCorrections) {

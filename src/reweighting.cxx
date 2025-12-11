@@ -424,9 +424,6 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df,
  * @param argset additional arguments that are needed for the function
  *
  * @return a new dataframe containing the new column
- *
- * @note The function is intended for Run 2 analysis. In Run 3 Zpt corrections are
- * handled through correctionlib, see the function below.
  */
 ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df,
                          const std::string &outputname,
