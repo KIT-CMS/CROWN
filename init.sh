@@ -35,7 +35,7 @@ elif [[ "$distro" == "RedHatEnterprise" || "$distro" == "Alma" || "$distro" == "
         echo "Unsupported CentOS version, exiting..."
         return 0
     elif [[ ${os_version:0:1} == "9" ]]; then # elif uname -a | grep -E 'el8' -q
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-el9-gcc13-opt/setup.sh
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_108/x86_64-el9-gcc15-opt/setup.sh
     else
         echo "Unsupported CentOS version, exiting..."
         return 0
@@ -84,5 +84,8 @@ else
     elif [[ "$1" == "xyh_bbtautau" && ! -d "${SCRIPT_DIR}/analysis_configurations/xyh_bbtautau" ]]; then
         echo "Cloning analysis XYHbbtautau into ${SCRIPT_DIR}/analysis_configurations/xyh_bbtautau"
         git clone git@github.com:KIT-CMS/XYHBBTauTauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/xyh_bbtautau"
+    elif [[ "$1" == "haa" && ! -d "${SCRIPT_DIR}/analysis_configurations/haa" ]]; then
+        echo "Cloning analysis Haa into ${SCRIPT_DIR}/analysis_configurations/haa"
+        git clone git@github.com:KIT-CMS/HaaAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/haa"
     fi
 fi

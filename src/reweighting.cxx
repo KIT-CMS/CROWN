@@ -416,7 +416,7 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df,
  *
  * @param df input dataframe
  * @param outputname name of the output column containing the derived event weight
- * @param gen_boson name of the column that containing a pair of Lorentzvectors,
+ * @param gen_boson name of the column that containing a pair of Lorentz vectors,
  * where the first entry is the one of the gen. boson
  * @param workspace_file path to the file which contains the workspace that should be
  * used
@@ -435,15 +435,13 @@ ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df,
     // recoil corrections; resulting quantities are only for the purpose of this
     // method
     auto df1 = df.Define(gen_boson + "_pt",
-                         [](const std::pair<ROOT::Math::PtEtaPhiMVector,
-                                            ROOT::Math::PtEtaPhiMVector> &p4) {
-                             return (float)p4.first.pt();
+                         [](const ROOT::Math::PtEtaPhiMVector &p4) {
+                             return (float)p4.pt();
                          },
                          {gen_boson});
     auto df2 = df1.Define(gen_boson + "_mass",
-                          [](const std::pair<ROOT::Math::PtEtaPhiMVector,
-                                             ROOT::Math::PtEtaPhiMVector> &p4) {
-                              return (float)p4.first.mass();
+                          [](const ROOT::Math::PtEtaPhiMVector &p4) {
+                              return (float)p4.mass();
                           },
                           {gen_boson});
 

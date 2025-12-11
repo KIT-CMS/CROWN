@@ -175,7 +175,7 @@ ZPtMassReweighting = Producer(
         "{zptmass_arguments}")
         """,
     input=[
-        q.recoil_genboson_p4_vec,
+        q.recoil_genboson_p4,
     ],
     output=[q.ZPtMassReweightWeight],
     scopes=["global", "em", "et", "mt", "tt", "mm"],

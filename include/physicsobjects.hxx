@@ -31,7 +31,7 @@ namespace physicsobject {
  * @note The masks must have the same size, as element-wise operations are
  * performed.
  */
-template <class... Args>
+template <typename... Args>
 inline ROOT::RDF::RNode CombineMasks(ROOT::RDF::RNode df,
                                      const std::string &outputname,
                                      const Args... args) {

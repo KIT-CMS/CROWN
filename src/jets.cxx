@@ -66,11 +66,22 @@ namespace jet {
  * @param jes_shift JES shift variation (0 = nominal, +/-1 = up/down)
  * @param jer_shift JER shift variation ("nom", "up", or "down")
  * @param lhc_run LHC Run number, `2` for 2016-2018 and `3` for 2022-2026
+ * @param no_jer_for_unmatched_forward_jets if true, no jet energy resolution
+ * smearing is applied to unmatched jets in the forward region
+ * (\f$|\eta| > 2.5\f$).
  * 
  * @return a dataframe with a new column of corrected jet \f$p_T\f$'s
  *
  * @note If jets with \f$p_T\f$ > 15 GeV are corrected, this change should be
  * propagated to the missing transverse momentum.
+ * (see `physicsobject::PropagateToMET`)
+ *
+ * @note The option `no_jer_for_unmatched_forward_jets` is introduced to
+ * mitigate jet horns appearing in the eta distribution of jets at
+ * \f$|\eta| \sim 2-3\f$ in Run 3 analyses. If the option is set to `true`,
+ * no jet energy resolution smearing is applied to jets without a matching
+ * generator-level jet for \f$|\eta| > 2.5\f$. Only use this option set to
+ * `true` if the recipe to mitigate jet horns is implemented in the analysis.
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
@@ -85,7 +96,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &jes_tag, const std::vector<std::string> &jes_shift_sources,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
-               const int& lhc_run = 2) {
+               const int& lhc_run = 2, const bool &no_jer_for_unmatched_forward_jets = false) {
     // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, jet_id_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
@@ -131,7 +142,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                               jet_energy_scale_sf, jet_energy_resolution,
                               jer_sf_evaluator, jes_shift_sources,
                               jes_shift, jer_shift, jet_radius, 
-                              lhc_run](const ROOT::RVec<float> &pts,
+                              lhc_run, no_jer_for_unmatched_forward_jets](
+                                       const ROOT::RVec<float> &pts,
                                        const ROOT::RVec<float> &etas,
                                        const ROOT::RVec<float> &phis,
                                        const ROOT::RVec<float> &area,
@@ -209,8 +221,18 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             } else {
                 Logger::get("physicsobject::jet::PtCorrectionMC")
                     ->debug("No gen jet found. Applying stochastic smearing.");
-                double shift = randm.Gaus(0, reso) *
-                               std::sqrt(std::max(reso_sf * reso_sf - 1., 0.0));
+                double shift = 0.0;
+                if (no_jer_for_unmatched_forward_jets && abs(etas.at(i)) > 2.5) {
+                    Logger::get("physicsobject::jet::PtCorrectionMC")
+                        ->debug(
+                            "Jet has eta > 2.5, and no JER applied to "
+                            "unmatched forward jets turned on."
+                        );
+                    shift = 0.0;
+                } else {
+                    shift = randm.Gaus(0, reso) *
+                            std::sqrt(std::max(reso_sf * reso_sf - 1., 0.0));
+                }
                 corrected_pts.at(i) *= std::max(0.0, 1.0 + shift);
             }
             Logger::get("physicsobject::jet::PtCorrectionMC")
@@ -303,6 +325,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  *
  * @note If jets with \f$p_T\f$ > 15 GeV are corrected, this change should be
  * propagated to the missing transverse momentum.
+ * (see `physicsobject::PropagateToMET`)
  */
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
@@ -806,7 +829,7 @@ namespace scalefactor {
  * @param outputname name of the output column containing the b-tagging scale factor
  * @param pt name of the column containing the transverse momenta of jets
  * @param eta name of the column containing the pseudorapidity of jets
- * @param btag_value name of the column containing the btag values of jetd 
+ * @param btag_value name of the column containing the btag values of jets
  * based on a b-jet tagger (e.g. DeepJet)
  * @param flavor name of the column containing the flavors of jets, usually used
  * flavors are: 5=b-jet, 4=c-jet, 0=light jet (g, u, d, s)
@@ -825,7 +848,7 @@ namespace scalefactor {
  * based scale factors.
  */
 ROOT::RDF::RNode
-Btagging(ROOT::RDF::RNode df,
+BtaggingShape(ROOT::RDF::RNode df,
        correctionManager::CorrectionManager &correction_manager,
        const std::string &outputname, const std::string &pt, 
        const std::string &eta, const std::string &btag_value, 
@@ -833,9 +856,9 @@ Btagging(ROOT::RDF::RNode df,
        const std::string &bjet_mask, const std::string &jet_veto_mask, 
        const std::string &sf_file, const std::string &sf_name,
        const std::string &variation) {
-    Logger::get("physicsobject::jet::scalefactor::Btagging")->debug(
+    Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug(
         "Setting up functions for b-tag sf with correctionlib");
-    Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Correction algorithm - Name {}",
+    Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug("Correction algorithm - Name {}",
                                  sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     
@@ -853,24 +876,28 @@ Btagging(ROOT::RDF::RNode df,
                                      const ROOT::RVec<int> &bjet_mask,
                                      const ROOT::RVec<int> &jet_veto_mask) {
         auto flavors = static_cast<ROOT::RVec<int>>(flavors_v12);
-        Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Vatiation - Name {}", variation);
+        Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug("Variation - Name {}", variation);
         float sf = 1.;
         for (int i = 0; i < pts.size(); i++) {
-            Logger::get("physicsobject::jet::scalefactor::Btagging")->debug(
+            Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug(
                 "jet masks - jet {}, b-jet {}, jet veto {}", jet_mask.at(i),
                 bjet_mask.at(i), jet_veto_mask.at(i));
             // considering only good jets/b-jets, this is needed since jets and
             // bjets might have different quality cuts depending on the analysis
             if ((jet_mask.at(i) || bjet_mask.at(i)) && jet_veto_mask.at(i)) {
-                Logger::get("physicsobject::jet::scalefactor::Btagging")->debug(
+                Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug(
                     "SF - pt {}, eta {}, btag value {}, flavor {}",
                     pts.at(i), etas.at(i), btag_values.at(i),
                     flavors.at(i));
                 float jet_sf = 1.;
                 // considering only phase space where the scale factors are
                 // defined
-                if (pts.at(i) >= 20.0 && pts.at(i) < 10000.0 &&
-                    std::abs(etas.at(i)) < 2.5) {
+                if (
+                    pts.at(i) >= 20.0
+                    && pts.at(i) < 10000.0
+                    && std::abs(etas.at(i)) < 2.5
+                    && !(std::isnan(btag_values.at(i)) || btag_values.at(i) == -1.0)
+                ) {
                     // for c-jet related uncertainties only scale factors of
                     // c-jets are varied, the rest is nominal/central
                     if (variation.find("cferr") != std::string::npos) {
@@ -904,11 +931,11 @@ Btagging(ROOT::RDF::RNode df,
                         }
                     }
                 }
-                Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Jet Scale Factor {}", jet_sf);
+                Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug("Jet Scale Factor {}", jet_sf);
                 sf *= jet_sf;
             }
         };
-        Logger::get("physicsobject::jet::scalefactor::Btagging")->debug("Event Scale Factor {}", sf);
+        Logger::get("physicsobject::jet::scalefactor::BtaggingShape")->debug("Event Scale Factor {}", sf);
         return sf;
     };
     auto df2 = df1.Define(
@@ -916,6 +943,103 @@ Btagging(ROOT::RDF::RNode df,
         {pt, eta, btag_value, flavor_column, jet_mask, bjet_mask, jet_veto_mask});
     return df2;
 }
+
+/**
+ * @brief This function calculates the b-tagging scale factor. The scale 
+ * factor corrects inconsistencies in the b-tagging efficiency between data and
+ * simulation. The scale factors are loaded from a correctionlib file 
+ * using a specified scale factor name and variation.
+ *
+ * This producer can be used to evaluate working point based scale factors. It is
+ * defined based on scale factors provided by BTV POG for Run3 2024.
+ *
+ * More information from BTV POG can be found here https://btv-wiki.docs.cern.ch/ScaleFactors/
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * correction file
+ * @param outputname name of the output column containing the b-tagging scale factor
+ * @param pt name of the column containing the transverse momenta of jets
+ * @param eta name of the column containing the pseudorapidity of jets
+ * @param flavor name of the column containing the flavors of jets, usually used
+ * flavors are: 5=b-jet, 4=c-jet, 0=light jet (g, u, d, s)
+ * @param jet_mask name of the column containing the mask for good/selected jets
+ * @param bjet_mask name of the column containing the mask for good/selected b-jets
+ * @param jet_veto_mask name of the column containing the veto mask for 
+ * overlapping jets (e.g. with selected lepton pairs)
+ * @param sf_file path to the file with the b-tagging scale factors
+ * @param sf_name name of the b-tagging scale factor correction e.g. "deepJet_shape"
+ * @param variation name the scale factor variation, available values:
+ * central, down_*, up_* (* name of specific variation)
+ * @param btag_wp string that specifies the b-tagging working point used in an
+ * analysis e.g. "L", "M", "T", ...
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+BtaggingWP(ROOT::RDF::RNode df,
+       correctionManager::CorrectionManager &correction_manager,
+       const std::string &outputname, const std::string &pt, 
+       const std::string &eta, const std::string &flavor,
+       const std::string &jet_mask, 
+       const std::string &bjet_mask, const std::string &jet_veto_mask, 
+       const std::string &sf_file, const std::string &sf_name,
+       const std::string &variation, const std::string &btag_wp) {
+    Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug(
+        "Setting up functions for wp based b-tag sf with correctionlib");
+    Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug("Correction algorithm - Name {}",
+                                 sf_name);
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+
+    // In nanoAODv12 the type of jet flavor was changed to UChar_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, flavor_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+            df, flavor+"_v12", "ROOT::VecOps::RVec<UChar_t>", flavor);
+
+    auto btagSF_lambda = [evaluator,
+                          variation, btag_wp](
+                                    const ROOT::RVec<float> &etas,
+                                    const ROOT::RVec<float> &pts,
+                                    const ROOT::RVec<UChar_t> &flavors_v12,
+                                    const ROOT::RVec<int> &jet_mask,
+                                    const ROOT::RVec<int> &bjet_mask,
+                                    const ROOT::RVec<int> &jet_veto_mask) {
+        auto flavors = static_cast<ROOT::RVec<int>>(flavors_v12);
+        Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug("Variation - Name {}", variation);
+        float sf = 1.;
+        for (int i = 0; i < pts.size(); i++) {
+            Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug(
+                "jet masks - jet {}, b-jet {}, jet veto {}", jet_mask.at(i),
+                bjet_mask.at(i), jet_veto_mask.at(i));
+            // considering only good jets/b-jets, this is needed since jets and
+            // bjets might have different quality cuts depending on the analysis
+            if ((jet_mask.at(i) || bjet_mask.at(i)) && jet_veto_mask.at(i)) {
+                Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug(
+                    "SF - pt {}, eta {}, btag wp {}, flavor {}",
+                    pts.at(i), etas.at(i), btag_wp,
+                    flavors.at(i));
+                float jet_sf = 1.;
+                // considering only phase space where the scale factors are
+                // defined
+                if (pts.at(i) >= 20.0 && pts.at(i) < 10000.0 &&
+                    std::abs(etas.at(i)) < 2.5) {
+                        jet_sf = evaluator->evaluate(
+                                {variation, btag_wp, flavors.at(i),
+                                 std::abs(etas.at(i)), pts.at(i)});
+                }
+                Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug("Jet Scale Factor {}", jet_sf);
+                sf *= jet_sf;
+            }
+        };
+        Logger::get("physicsobject::jet::scalefactor::BtaggingWP")->debug("Event Scale Factor {}", sf);
+        return sf;
+    };
+    auto df2 = df1.Define(
+        outputname, btagSF_lambda,
+        {pt, eta, flavor_column, jet_mask, bjet_mask, jet_veto_mask});
+    return df2;
+}
+
 } // end namespace scalefactor
 } // end namespace jet
 } // end namespace physicsobject

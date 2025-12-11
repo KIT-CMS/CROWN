@@ -386,8 +386,9 @@ inline ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, const std::string &outputname,
  * @return a dataframe with a new column
  */
 template <typename... Quantities>
-inline auto ScalarSum(ROOT::RDF::RNode df, const std::string &outputname,
-                         Quantities... quantities) {
+inline ROOT::RDF::RNode 
+ScalarSum(ROOT::RDF::RNode df, const std::string &outputname,
+          Quantities... quantities) {
     auto argTuple = std::make_tuple(quantities...);
     std::vector<std::string> QuantityList{quantities...};
     const auto nQuantities = sizeof...(Quantities);
