@@ -104,14 +104,22 @@ ROOT::RDF::RNode RecoilCorrection(
                     float dPhi_U = U.Phi() - gen_boson.Phi();
                     float Upara = U.Pt() * std::cos(dPhi_U);
                     float Uperp = U.Pt() * std::sin(dPhi_U);
+                    Logger::get("met::RecoilCorrection")->debug("dPhi_U {} ", dPhi_U);
+                    Logger::get("met::RecoilCorrection")->debug("Upara {} ", Upara);
+                    Logger::get("met::RecoilCorrection")->debug("Uperp {} ", Uperp);
 
-                    float Upara_new = RecoilCorr->evaluate({order, nJets, genPt, std::string("Upara"), Upara});
-                    float Uperp_new = RecoilCorr->evaluate({order, nJets, genPt, std::string("Uperp"), Uperp});
+                    float Upara_new = RecoilCorr->evaluate({order, nJets, genPt, "Upara", Upara});
+                    float Uperp_new = RecoilCorr->evaluate({order, nJets, genPt, "Uperp", Uperp});
+                    Logger::get("met::RecoilCorrection")->debug("Upara_new {} ", Upara_new);
+                    Logger::get("met::RecoilCorrection")->debug("Uperp_new {} ", Uperp_new);
                     
                     float Upt_new = std::sqrt(Upara_new*Upara_new + Uperp_new*Uperp_new);
                     float Uphi_new = std::atan2(Uperp_new, Upara_new) + gen_boson.Phi();
+                    Logger::get("met::RecoilCorrection")->debug("Upt_new {} ", Upt_new);
+                    Logger::get("met::RecoilCorrection")->debug("Uphi_new {} ", Uphi_new);
+
                     ROOT::Math::PtEtaPhiMVector U_new = ROOT::Math::PtEtaPhiMVector(Upt_new, 0., Uphi_new, 0.);
-                    ROOT::Math::PtEtaPhiMVector met_new = U_new - vis_gen_boson + gen_boson;
+                    met_new = U_new - vis_gen_boson + gen_boson;
                 }
                 else if (method == "Uncertainty") {
                     if (std::set<std::string>{"RespUp", "RespDown", "ResolUp", "ResolDown"}.count(variation)) {
@@ -120,15 +128,15 @@ ROOT::RDF::RNode RecoilCorrection(
                         float Hpara = H.Pt() * std::cos(dPhi_H);
                         float Hperp = H.Pt() * std::sin(dPhi_H);
 
-                        float Hpara_new = RecoilCorr->evaluate({order, nJets, genPt, std::string("Hpara"), Hpara, variation});
-                        float Hperp_new = RecoilCorr->evaluate({order, nJets, genPt, std::string("Hperp"), Hperp, variation});
+                        float Hpara_new = RecoilCorr->evaluate({order, nJets, genPt, "Hpara", Hpara, variation});
+                        float Hperp_new = RecoilCorr->evaluate({order, nJets, genPt, "Hperp", Hperp, variation});
 
                         float Hpt_new = std::sqrt(Hpara_new*Hpara_new + Hperp_new*Hperp_new);
                         float Hphi_new = std::atan2(Hperp_new, Hpara_new) + gen_boson.Phi();
                         if (Hphi_new > M_PI) Hphi_new -= 2*M_PI;
                         if (Hphi_new < -M_PI) Hphi_new += 2*M_PI;
                         ROOT::Math::PtEtaPhiMVector H_new = ROOT::Math::PtEtaPhiMVector(Hpt_new, 0., Hphi_new, 0.);
-                        ROOT::Math::PtEtaPhiMVector met_new = - H_new - vis_gen_boson;
+                        met_new = - H_new - vis_gen_boson;
                     }
                     else {
                         Logger::get("met::RecoilCorrection")
