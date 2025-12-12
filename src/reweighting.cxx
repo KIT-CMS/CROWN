@@ -405,7 +405,78 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief This function is used to calculate and event weight based on Z boson 
+ * @brief This function is used to calculate an event weight to correct the Z boson 
+ * \f$p_T\f$. These corrections are recommended especially
+ * for LO Drell-Yan samples, where the \f$p_T\f$ and mass of the Z boson are
+ * mismodeled compared to data. This function is defined for the corrections provided
+ * by the CMS HLepRare group. More details can be found here:
+ * https://cms-higgs-leprare.docs.cern.ch/htt-common/DY_reweight/
+ *
+ * @note HLepRare only provides corrections for Run3. For Run2 see
+ *`event::reweighting::ZPtMass`.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column containing the derived event weight
+ * @param gen_boson name of the column containing the Lorentz vector of the
+ * generator-level boson
+ * @param corr_file path to the correction file containing the Z boson \f$p_T\f$
+ * corrections
+ * @param corr_name name of the correction in the json file
+ * @param order order of the used DY samples: "LO" for madgraph, "NLO" for amc@nlo,
+ * "NNLO" for powheg
+ * @param variation name of the variation that should be evaluated, options are
+ * "nom", "up", "down" or "upX", "downX". For "up" and "down" the uncertainty is
+ * calculated by quadratic summation of all provided uncertainty sources in the
+ * correction file. Othervise the specific uncertainty source "X" is used (where X
+ * is a number e.g. 1,2,3,...).
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+ZBosonPt(ROOT::RDF::RNode df,
+         correctionManager::CorrectionManager &correction_manager,
+         const std::string &outputname,
+         const std::string &gen_boson,
+         const std::string &corr_file,
+         const std::string &corr_name,
+         const std::string &order,
+         const std::string &variation) {
+
+    auto corrDY = correction_manager.loadCorrection(corr_file, corr_name);
+    auto corrDYunc = correction_manager.loadCorrection(corr_file, corr_name + "_N_uncertainty");
+
+    // Get number of uncertainties
+    auto n_unc = corrDYunc->evaluate({order});
+
+    // Get weight depending on variation
+    auto corr = [corrDY, order, variation, n_unc](const ROOT::Math::PtEtaPhiMVector &gen_boson) {
+        float weight = 1.0;
+        if (variation == "up" || variation == "down") {
+            float weight_nom = corrDY->evaluate({order, (float)gen_boson.pt(), "nom"});
+            float accumulate_unc = 0.0;
+            for (int i = 0; i < n_unc; i++) {
+                float unc = corrDY->evaluate({order, (float)gen_boson.pt(), variation + std::to_string(i)});
+                accumulate_unc += (unc - weight_nom) * (unc - weight_nom);
+            }
+            weight = weight_nom + std::sqrt(accumulate_unc);
+        }
+        else if (variation == "nom" || variation.rfind("up") != std::string::npos || 
+                 variation.rfind("down") != std::string::npos) {
+            weight = corrDY->evaluate({order, (float)gen_boson.pt(), variation});
+        }
+        else {
+            Logger::get("event::reweighting::ZBosonPt")
+                ->error("Invalid variation: {}", variation);
+            throw std::runtime_error("Invalid variation for Z boson pT weight");
+        }
+        return weight;
+    };
+    auto df1 = df.Define(outputname, corr, {gen_boson});
+    return df1;
+}
+
+/**
+ * @brief This function is used to calculate an event weight based on Z boson 
  * \f$p_T\f$ and mass corrections. These corrections are recommended especially 
  * for LO Drell-Yan samples, where the \f$p_T\f$ and mass of the Z boson are
  * mismodeled compared to data. 
@@ -416,8 +487,8 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df,
  *
  * @param df input dataframe
  * @param outputname name of the output column containing the derived event weight
- * @param gen_boson name of the column that containing a pair of Lorentz vectors,
- * where the first entry is the one of the gen. boson
+ * @param gen_boson name of the column containing the Lorentz vector of the 
+ * generator-level boson
  * @param workspace_file path to the file which contains the workspace that should be
  * used
  * @param functor_name name of the function in the workspace that should be used
@@ -459,57 +530,6 @@ ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df,
         gen_boson + "_pt");
     return df3;
 }
-
-/**
- * @brief This function is used to calculate and event weight based on Z boson 
- * \f$p_T\f$ correction. These corrections are recommended especially 
- * for LO Drell-Yan samples, where the \f$p_T\f$ and mass of the Z boson are
- * mismodeled compared to data.  The description can be found here:
- * https://cms-higgs-leprare.docs.cern.ch/htt-common/DY_reweight/#correctionlib-file
- *
- * @param df input dataframe
- * @param outputname name of the output column containing the derived event weight
- * @param gen_boson_pt name of the column that containing a pair of Lorentzvectors,
- * where the first entry is the one of the gen. boson
- * @param order order of generation of the samples, i.e. LO, NLO
- * @param file json file containing the corrections
- * @param variation name of the variation that should be used, options are "nom", "up", "down"
- *
- * @return a new dataframe containing the new column
- *
- * @note The function is intended for Run 3 analysis. For Run2 see the function  above.
- */
-ROOT::RDF::RNode
-ZPtWeight(ROOT::RDF::RNode df,
-          correctionManager::CorrectionManager &correction_manager,
-          const std::string &outputname,
-          const std::string &gen_boson_pt,
-          const std::string &order,
-          const std::string &file,
-          const std::string &variation) {
-
-    auto corrDY = correction_manager.loadCorrection(file, "DY_pTll_reweighting");
-    auto corrDYunc = correction_manager.loadCorrection(file, "DY_pTll_reweighting_N_uncertainty");
-
-    // Define number of uncertainties
-    auto n_unc = [corrDYunc](const std::string &order) {
-                return static_cast<int>(corrDYunc->evaluate({order}));
-            };
-
-    // Define output depending on variation
-    auto corr = [corrDY, order, variation, n_unc](const float &gen_boson_pt) {
-        float weight=1.0;
-        if (variation == "nom" || variation.find("up") != std::string::npos || variation.find("down") != std::string::npos) {
-            weight = corrDY->evaluate({order, gen_boson_pt, variation});
-        }
-        return weight;
-    };
-    
-    auto df1 = df.Define(outputname, corr, {gen_boson_pt});
-
-    return df1;
-}
-
 } // end namespace reweighting
 } // end namespace event
 #endif /* GUARD_REWEIGHTING_H */
