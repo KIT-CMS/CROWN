@@ -36,17 +36,16 @@ class MetSystematic {
 
     enum SysType { Response = 0, Resolution = 1, None = -1 };
     enum SysShift { Up = 0, Down = 1, Nominal = -1 };
-
-    static void ComputeHadRecoilFromMet(float metX, float metY, float genVPx,
+  
+  private:
+    void ComputeHadRecoilFromMet(float metX, float metY, float genVPx,
                                  float genVPy, float visVPx, float visVPy,
                                  float &Hparal, float &Hperp);
 
-    static void ComputeMetFromHadRecoil(float Hparal, float Hperp, float genVPx,
+    void ComputeMetFromHadRecoil(float Hparal, float Hperp, float genVPx,
                                  float genVPy, float visVPx, float visVPy,
                                  float &metX, float &metY);
 
-  private:
-  
     int nJetBins;
     TString fileName;
     TH1D *responseHist[3];

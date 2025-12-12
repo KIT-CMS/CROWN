@@ -86,14 +86,14 @@ ROOT::RDF::RNode GetHadronicRecoil(ROOT::RDF::RNode df,
                      utility::PassAsVec<nLVs, ROOT::Math::PtEtaPhiMVector>(calc_recoil),
                      {p4_met, LorentzvectorList});
 };
-ROOT::RDF::RNode calculateGenBosonPt(
-    ROOT::RDF::RNode df,  const std::string &outputname,
-    const std::string &genparticle_pt,
-    const std::string &genparticle_eta, const std::string &genparticle_phi,
-    const std::string &genparticle_mass, const std::string &genparticle_id,
-    const std::string &genparticle_status,
-    const std::string &genparticle_statusflag, 
-    bool is_data);
+ROOT::RDF::RNode RecoilCorrection(
+    ROOT::RDF::RNode df, correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname,
+    const std::string &p4_met, const std::string &p4_gen_boson,
+    const std::string &p4_vis_gen_boson, const std::string &n_jets,
+    const std::string &corr_file, const std::string &corr_name,
+    const std::string &method, const std::string &order,
+    const std::string &variation, const bool apply_correction);
 ROOT::RDF::RNode RecoilCorrection(
     ROOT::RDF::RNode df, const std::string &outputname,
     const std::string &p4_met, const std::string &p4_gen_boson,
