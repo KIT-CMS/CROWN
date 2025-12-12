@@ -416,19 +416,21 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df,
  *`event::reweighting::ZPtMass`.
  *
  * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * correction file
  * @param outputname name of the output column containing the derived event weight
  * @param gen_boson name of the column containing the Lorentz vector of the
  * generator-level boson
  * @param corr_file path to the correction file containing the Z boson \f$p_T\f$
  * corrections
  * @param corr_name name of the correction in the json file
- * @param order order of the used DY samples: "LO" for madgraph, "NLO" for amc@nlo,
+ * @param order order of the used DY samples: "LO" for madgraph, "NLO" for amcatnlo,
  * "NNLO" for powheg
  * @param variation name of the variation that should be evaluated, options are
  * "nom", "up", "down" or "upX", "downX". For "up" and "down" the uncertainty is
- * calculated by quadratic summation of all provided uncertainty sources in the
- * correction file. Othervise the specific uncertainty source "X" is used (where X
- * is a number e.g. 1,2,3,...).
+ * defined by the envelope of all provided uncertainty sources in the correction
+ * file. Otherwise the specific uncertainty source "X" is used (where X is a number
+ * e.g. 1,2,3,...).
  *
  * @return a new dataframe containing the new column
  */
@@ -452,17 +454,27 @@ ZBosonPt(ROOT::RDF::RNode df,
     auto corr = [corrDY, order, variation, n_unc](const ROOT::Math::PtEtaPhiMVector &gen_boson) {
         float weight = 1.0;
         if (variation == "up" || variation == "down") {
-            float weight_nom = corrDY->evaluate({order, (float)gen_boson.pt(), "nom"});
-            float accumulate_unc = 0.0;
+            float weight_nom = corrDY->evaluate({order, (float)gen_boson.Pt(), "nom"});
+            weight = weight_nom;
+
             for (int i = 0; i < n_unc; i++) {
-                float unc = corrDY->evaluate({order, (float)gen_boson.pt(), variation + std::to_string(i)});
-                accumulate_unc += (unc - weight_nom) * (unc - weight_nom);
+                float unc_up = corrDY->evaluate({order, (float)gen_boson.Pt(), "up" + std::to_string(i)});
+                float unc_down = corrDY->evaluate({order, (float)gen_boson.Pt(), "down" + std::to_string(i)});
+
+                if (variation == "up" && unc_up > weight_nom && unc_up > weight) {
+                    weight = unc_up;
+                } else if (variation == "up" && unc_down > weight_nom && unc_down > weight) {
+                    weight = unc_down;
+                } else if (variation == "down" && unc_down < weight_nom && unc_down < weight) {
+                    weight = unc_down;
+                } else if (variation == "down" && unc_up < weight_nom && unc_up < weight) {
+                    weight = unc_up;
+                }
             }
-            weight = weight_nom + std::sqrt(accumulate_unc);
-        }
+        } 
         else if (variation == "nom" || variation.rfind("up") != std::string::npos || 
                  variation.rfind("down") != std::string::npos) {
-            weight = corrDY->evaluate({order, (float)gen_boson.pt(), variation});
+            weight = corrDY->evaluate({order, (float)gen_boson.Pt(), variation});
         }
         else {
             Logger::get("event::reweighting::ZBosonPt")
