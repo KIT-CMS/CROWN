@@ -36,7 +36,7 @@ class MetSystematic {
 
     enum SysType { Response = 0, Resolution = 1, None = -1 };
     enum SysShift { Up = 0, Down = 1, Nominal = -1 };
-  
+
   private:
     void ComputeHadRecoilFromMet(float metX, float metY, float genVPx,
                                  float genVPy, float visVPx, float visVPy,
