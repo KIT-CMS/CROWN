@@ -10,6 +10,11 @@ Pileup(ROOT::RDF::RNode df,
           const std::string &outputname, const std::string &true_pileup_number,
           const std::string &corr_file, const std::string &corr_name,
           const std::string &variation);
+ROOT::RDF::RNode puweights(ROOT::RDF::RNode df, const std::string &weightname,
+                           const std::string &truePUMean,
+                           const std::string &datafilename,
+                           const std::string &mcfilename,
+                           const std::string &histname);
 ROOT::RDF::RNode PartonShower(ROOT::RDF::RNode df,
                             const std::string &outputname,
                             const std::string &ps_weights,
@@ -37,6 +42,13 @@ ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df,
                             const std::string &workspace_file,
                             const std::string &functor_name,
                             const std::string &argset);
+ROOT::RDF::RNode ZPtWeight(ROOT::RDF::RNode df,
+                            correctionManager::CorrectionManager &correction_manager,
+                            const std::string &outputname,
+                            const std::string &gen_boson,
+                            const std::string &order,
+                            const std::string &file,
+                            const std::string &variation);
 } // end namespace reweighting
 } // end namespace event
 #endif /* GUARD_REWEIGHTING_H */

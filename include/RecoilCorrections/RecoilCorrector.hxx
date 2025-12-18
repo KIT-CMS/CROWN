@@ -23,7 +23,6 @@ class RecoilCorrector {
                          float diLepPx, float diLepPy, int njets,
                          float &MetCorrPx, float &MetCorrPy);
 
-  private:
     int binNumber(float x, const std::vector<float> bins) const {
         for (size_t iB = 0; iB < bins.size(); ++iB)
             if (x >= bins[iB] && x < bins[iB + 1])
@@ -42,8 +41,6 @@ class RecoilCorrector {
         return binN;
     }
 
-    TString fileName;
-
     void InitMEtWeights(TFile *file, TString _perpZStr, TString _paralZStr,
                         int nZPtBins, float *ZPtBins, TString *_ZPtStr,
                         int nJetsBins, TString *_nJetsStr);
@@ -54,15 +51,18 @@ class RecoilCorrector {
                         const std::vector<std::string> &_ZPtStr,
                         const std::vector<std::string> &_nJetsStr);
 
-    void CalculateU1U2FromMet(float MetPx, float MetPy, float genZPx,
+    static void CalculateU1U2FromMet(float MetPx, float MetPy, float genZPx,
                               float genZPy, float diLepPx, float diLepPy,
                               Double_t &U1, Double_t &U2, Double_t &metU1,
                               Double_t &metU2);
 
-    void CalculateMetFromU1U2(float U1, float U2, float genZPx, float genZPy,
+    static void CalculateMetFromU1U2(float U1, float U2, float genZPx, float genZPy,
                               float diLepPx, float diLepPy, float &metPx,
                               float &metPy);
 
+  private:
+
+    TString fileName;
     // float * _ZPtBins;
     std::vector<float> _ZPtBins;
 
