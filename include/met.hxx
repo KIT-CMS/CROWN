@@ -78,14 +78,14 @@ ROOT::RDF::RNode applyRecoilCorrections( //Run 2
     const std::string &recoilfile, const std::string &systematicsfile,
     bool applyRecoilCorrections, bool resolution, bool response, bool shiftUp,
     bool shiftDown, bool isWjets);
-ROOT::RDF::RNode applyRecoilCorrections( //Run 3
+ROOT::RDF::RNode applyRecoilCorrections(
     ROOT::RDF::RNode df, correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname,
-    const std::string &met, const std::string &genZ,
-    const std::string &njets,
-    const std::string &recoilfile, const std::string &order,
-    const std::string &method, const std::string &variation,
-    bool applyRecoilCorrections, bool isWjets);
+    const std::string &p4_met, const std::string &p4_gen_boson,
+    const std::string &p4_vis_gen_boson, const std::string &n_jets,
+    const std::string &corr_file, const std::string &corr_name,
+    const std::string &method, const std::string &order,
+    const std::string &variation, bool apply_correction);
 ROOT::RDF::RNode applyMetXYCorrections(ROOT::RDF::RNode df,
                                        const std::string &input_p4,
                                        const std::string &npv,

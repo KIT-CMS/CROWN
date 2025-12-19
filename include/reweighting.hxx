@@ -43,12 +43,13 @@ ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df,
                             const std::string &functor_name,
                             const std::string &argset);
 ROOT::RDF::RNode ZPtWeight(ROOT::RDF::RNode df,
-                            correctionManager::CorrectionManager &correction_manager,
-                            const std::string &outputname,
-                            const std::string &gen_boson,
-                            const std::string &order,
-                            const std::string &file,
-                            const std::string &variation);
+         correctionManager::CorrectionManager &correction_manager,
+         const std::string &outputname,
+         const std::string &gen_boson,
+         const std::string &corr_file,
+         const std::string &corr_name,
+         const std::string &order,
+         const std::string &variation);
 } // end namespace reweighting
 } // end namespace event
 #endif /* GUARD_REWEIGHTING_H */

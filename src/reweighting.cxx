@@ -534,45 +534,54 @@ ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df,
  */
 ROOT::RDF::RNode
 ZPtWeight(ROOT::RDF::RNode df,
-          correctionManager::CorrectionManager &correction_manager,
-          const std::string &outputname,
-          const std::string &gen_boson_pt,
-          const std::string &order,
-          const std::string &file,
-          const std::string &variation) {
+         correctionManager::CorrectionManager &correction_manager,
+         const std::string &outputname,
+         const std::string &gen_boson,
+         const std::string &corr_file,
+         const std::string &corr_name,
+         const std::string &order,
+         const std::string &variation) {
 
-    auto corrDY = correction_manager.loadCorrection(file, "DY_pTll_reweighting");
-    auto corrDYunc = correction_manager.loadCorrection(file, "DY_pTll_reweighting_N_uncertainty");
+    auto corrDY = correction_manager.loadCorrection(corr_file, corr_name);
+    auto corrDYunc = correction_manager.loadCorrection(corr_file, corr_name + "_N_uncertainty");
 
-    // Define number of uncertainties
-    auto n_unc = [corrDYunc](const std::string &order) {
-                return static_cast<int>(corrDYunc->evaluate({order}));
-            };
+    // Get number of uncertainties
+    auto n_unc = corrDYunc->evaluate({order});
 
-    // Define output depending on variation
-    auto corr = [corrDY, order, variation, n_unc](const float &gen_boson_pt) {
-        /*ROOT::RVec<float> weight_col;
-        int nUnc = n_unc(order);
-        if (variation == "nom") {
-            float weight = corrDY->evaluate({order, gen_boson_pt, variation});
-            weight_col.push_back({weight});
-        }
-        else if (variation == "up" || variation == "down") {
-            for (int j = 0; j < nUnc; ++j) {
-                std::string var = variation + std::to_string(j+1);
-                float weight = corrDY->evaluate({order, gen_boson_pt, var});
-                weight_col.push_back(weight);
+    // Get weight depending on variation
+    auto corr = [corrDY, order, variation, n_unc](const ROOT::Math::PtEtaPhiMVector &gen_boson) {
+        float weight = 1.0;
+        if (variation == "up" || variation == "down") {
+            float weight_nom = corrDY->evaluate({order, (float)gen_boson.Pt(), "nom"});
+            weight = weight_nom;
+
+            for (int i = 0; i < n_unc; i++) {
+                float unc_up = corrDY->evaluate({order, (float)gen_boson.Pt(), "up" + std::to_string(i)});
+                float unc_down = corrDY->evaluate({order, (float)gen_boson.Pt(), "down" + std::to_string(i)});
+
+                if (variation == "up" && unc_up > weight_nom && unc_up > weight) {
+                    weight = unc_up;
+                } else if (variation == "up" && unc_down > weight_nom && unc_down > weight) {
+                    weight = unc_down;
+                } else if (variation == "down" && unc_down < weight_nom && unc_down < weight) {
+                    weight = unc_down;
+                } else if (variation == "down" && unc_up < weight_nom && unc_up < weight) {
+                    weight = unc_up;
+                }
             }
-        }*/
-        float weight=1.0;
-        if (variation == "nom" || variation.find("up") != std::string::npos || variation.find("down") != std::string::npos) {
-            weight = corrDY->evaluate({order, gen_boson_pt, variation});
+        } 
+        else if (variation == "nom" || variation.rfind("up") != std::string::npos || 
+                 variation.rfind("down") != std::string::npos) {
+            weight = corrDY->evaluate({order, (float)gen_boson.Pt(), variation});
+        }
+        else {
+            Logger::get("event::reweighting::ZBosonPt")
+                ->error("Invalid variation: {}", variation);
+            throw std::runtime_error("Invalid variation for Z boson pT weight");
         }
         return weight;
     };
-    
-    auto df1 = df.Define(outputname, corr, {gen_boson_pt});
-
+    auto df1 = df.Define(outputname, corr, {gen_boson});
     return df1;
 }
 
