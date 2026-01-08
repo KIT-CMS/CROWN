@@ -131,43 +131,7 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
             const std::string &sf_vsjet_tau40to500,
             const std::string &sf_vsjet_tau500to1000,
             const std::string &sf_vsjet_tau1000toinf);
-ROOT::RDF::RNode
-Id_vsJet_lt(ROOT::RDF::RNode df,
-        correctionManager::CorrectionManager &correction_manager,
-        const std::string &outputname,
-        const std::string &pt, const std::string &decay_mode,
-        const std::string &gen_match, 
-        const std::string &sf_file,
-        const std::string &sf_name,
-        const std::vector<int> &selected_dms,
-        const std::string &wp, const std::string &vsele_wp,
-        const std::string &sf_dependence,
-        // DM + pT split
-        const std::string &variation_dm0_pt20to40,
-        const std::string &variation_dm0_pt40toInf,
-        const std::string &variation_dm1_pt20to40,
-        const std::string &variation_dm1_pt40toInf,
-        const std::string &variation_dm10_pt20to40,
-        const std::string &variation_dm10_pt40toInf,
-        const std::string &variation_dm11_pt20to40,
-        const std::string &variation_dm11_pt40toInf);
-ROOT::RDF::RNode
-Id_vsJet_lt(ROOT::RDF::RNode df,
-        correctionManager::CorrectionManager &correction_manager,
-        const std::string &outputname,
-        const std::string &pt, const std::string &decay_mode,
-        const std::string &gen_match, 
-        const std::string &sf_file,
-        const std::string &sf_name,
-        const std::vector<int> &selected_dms,
-        const std::string &wp, const std::string &vsele_wp,
-        const std::string &sf_dependence,
-        // DM split
-        const std::string &variation_dm0,
-        const std::string &variation_dm1,
-        const std::string &variation_dm10,
-        const std::string &variation_dm11);
-ROOT::RDF::RNode Id_vsJet_tt(
+ROOT::RDF::RNode Id_vsJet(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname, 
@@ -180,7 +144,7 @@ ROOT::RDF::RNode Id_vsJet_tt(
     const std::string &variation_dm1, 
     const std::string &variation_dm10,
     const std::string &variation_dm11);
-ROOT::RDF::RNode Id_vsJet_tt(
+ROOT::RDF::RNode Id_vsJet(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname, 
@@ -189,10 +153,10 @@ ROOT::RDF::RNode Id_vsJet_tt(
     const std::string &sf_file, const std::string &sf_name,
     const std::string &wp, const std::string &vsele_wp,
     const std::string &sf_dependence,
-    const std::string &variation_dm0_20to40, const std::string &variation_dm1_20to40,
-    const std::string &variation_dm10_20to40, const std::string &variation_dm11_20to40,
-    const std::string &variation_dm0_40toInf, const std::string &variation_dm1_40toInf,
-    const std::string &variation_dm10_40toInf, const std::string &variation_dm11_40toInf);
+    const std::string &variation_dm0_pt20to40, const std::string &variation_dm0_pt40toInf,
+    const std::string &variation_dm1_pt20to40, const std::string &variation_dm1_pt40toInf,
+    const std::string &variation_dm10_pt20to40, const std::string &variation_dm10_pt40toInf,
+    const std::string &variation_dm11_pt20to40, const std::string &variation_dm11_pt40toInf);
 ROOT::RDF::RNode Id_vsEle(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correction_manager,

@@ -130,7 +130,7 @@ MuonIDIso_SF = ProducerGroup(
 ############################
 Tau_1_VsJetTauID_SF = ExtendedVectorProducer(
     name="Tau_1_VsJetTauID_SF",
-    call="""physicsobject::tau::scalefactor::Id_vsJet_tt(
+    call="""physicsobject::tau::scalefactor::Id_vsJet(
         {df}, 
         correctionManager, 
         {output},
@@ -215,7 +215,7 @@ Tau_2_VsJetTauID_lt_SF = ExtendedVectorProducer(
 )
 Tau_2_VsJetTauID_tt_SF = ExtendedVectorProducer(
     name="Tau_2_VsJetTauID_tt_SF",
-    call="""physicsobject::tau::scalefactor::Id_vsJet_tt(
+    call="""physicsobject::tau::scalefactor::Id_vsJet(
         {df}, 
         correctionManager, 
         {output},
