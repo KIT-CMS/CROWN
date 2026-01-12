@@ -1172,7 +1172,7 @@ namespace scalefactor {
  * should be calculated
  * @param wp working point of the vsJet ID
  * @param vsele_wp working point of the vsEle ID
- * @param sf_dependence variable dependence of the scale factor, opions are "pt" or "dm"
+ * @param sf_dependence variable dependence of the scale factor, options are "pt" or "dm"
  * @param variation_pt30to35 name of the scale factor variation for \f$30 \leq p_T <35\f$ GeV,
  * "nom" for nominal and "up"/"down" the up/down variation
  * @param variation_pt35to40 name of the scale factor variation for \f$35 \leq p_T <40\f$ GeV,
@@ -1283,7 +1283,8 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
  * @param sf_name name of the tau scale factor for the vsJet ID correction
  * @param wp working point of the vsJet ID
  * @param vsele_wp working point of the vsEle ID
- * @param sf_dependence variable dependence of the scale factor, opions are "pt" or "dm"
+ * @param sf_dependence variable dependence of the scale factor, options are "pt"
+ * (which is dm+pt) or "dm" (which is dm only)
  * @param variation_dm0 name of the scale factor variation for decay mode 0, "nom" for nominal
  * and "up"/"down" the up/down variation
  * @param variation_dm1 name of the scale factor variation for decay mode 1, "nom" for nominal
@@ -1378,7 +1379,8 @@ ROOT::RDF::RNode Id_vsJet(
  * @param sf_name name of the tau scale factor for the vsJet ID correction
  * @param wp working point of the vsJet ID
  * @param vsele_wp working point of the vsEle ID
- * @param sf_dependence variable dependence of the scale factor, opions are "pt" or "dm"
+ * @param sf_dependence variable dependence of the scale factor, options are "pt"
+ * (which is dm+pt) or "dm" (which is dm only)
  * @param variation_dm0_pt20to40 variation for decay mode 0 and
  * \f$20 \leq p_T <40\f$ GeV, options are "nom", "up", "down"
  * @param variation_dm0_pt40toInf variation for decay mode 0 and
