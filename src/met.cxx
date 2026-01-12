@@ -20,6 +20,157 @@ typedef std::bitset<20> IntBits;
 namespace met {
 
 /**
+ * @brief This function is used to apply recoil corrections on a given sample.
+ * It is only recommented to apply it to single boson samples, like Z, W or
+ * Higgs boson. The corrections are provided by the HLepRare group. For more
+ * information on how the recoil corrections were calculated and have to be used,
+ * check out [this presentation](https://indico.cern.ch/event/1583951/contributions/6751916/attachments/3159171/5612627/HLepRare_25.10.22.pdf). 
+ * and the HLepRare group [documentation](https://cms-higgs-leprare.docs.cern.ch/htt-common/V_recoil/).
+ *
+ * @note This function is intended to be used in Run3 where recoil corrections are
+ * provided in json files to be read by correctionlib. For Run2 recoil correction
+ * see the overloaded version of this function.
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * recoil corrections file
+ * @param outputname name of the new column containing the corrected MET Lorentz
+ * vector
+ * @param p4_met initial/uncorrected MET Lorentz vector
+ * @param p4_gen_boson name of the column containing the generator-level boson
+ * Lorentz vector
+ * @param p4_vis_gen_boson name of the column containing the visible part of
+ * the generator-level boson Lorentz vector
+ * @param n_jets name of the column containing the number of good jets in an event 
+ * @param corr_file path to the json file with the recoil corrections
+ * @param corr_name name of the recoil correction, this is the first part of the
+ * correction string in the json file (e.g. "Recoil_correction")
+ * @param method method to be used to apply the corrections, possible options are
+ * "Rescaling", "QuantileMapHist" and "Uncertainty" (second part of the correction string)
+ * @param order order of the used DY samples: "LO" for madgraph, "NLO" for amc@nlo,
+ * "NNLO" for powheg
+ * @param variation name of the variation that should be evaluated, options are
+ * "nom", "RespUp", "RespDown", "ResolUp", "ResolDown". This is only used if
+ * `method` is set to "Uncertainty".
+ * @param apply_correction if bool is set to true, the recoil correction is
+ * applied, if not, the output column contains the original MET vector
+ *
+ * @return a new dataframe containing the new MET column
+ */
+ROOT::RDF::RNode RecoilCorrection(
+    ROOT::RDF::RNode df, correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname,
+    const std::string &p4_met, const std::string &p4_gen_boson,
+    const std::string &p4_vis_gen_boson, const std::string &n_jets,
+    const std::string &corr_file, const std::string &corr_name,
+    const std::string &method, const std::string &order,
+    const std::string &variation, bool apply_correction) {
+    if (apply_correction) {
+        Logger::get("met::RecoilCorrection")->debug("Will run recoil corrections with correctionlib");
+        
+        // Rescaling method is the only recommended method for outside
+        // -150 GeV < UPara, UPerp < 150 GeV
+        auto RecoilCorr = correction_manager.loadCorrection(corr_file, corr_name + "_" + method);
+
+        auto Correction = [RecoilCorr, order, method, variation](
+                            ROOT::Math::PtEtaPhiMVector &met,
+                            ROOT::Math::PtEtaPhiMVector &gen_boson,
+                            ROOT::Math::PtEtaPhiMVector &vis_gen_boson,
+                            const int &n_jets) {
+            // For Run3 jets with pT > 30 GeV and |eta| < 2.5 or pT > 50 GeV outside the tracker region
+            // need to be considered (avoid jet horn region)
+            // type of n_jets needs to be a float for the correctionlib evaluation
+            float nJets = static_cast<float>(n_jets);
+            float genPt = gen_boson.Pt();  // generator Z(W) pT
+            ROOT::Math::PtEtaPhiMVector met_new;
+
+            Logger::get("met::RecoilCorrection")->debug("Corrector Inputs");
+            Logger::get("met::RecoilCorrection")->debug("N jets {} ", nJets);
+            Logger::get("met::RecoilCorrection")->debug("gen. boson Px {} ", gen_boson.Px());
+            Logger::get("met::RecoilCorrection")->debug("gen. boson Py {} ", gen_boson.Py());
+            Logger::get("met::RecoilCorrection")->debug("vis. gen. boson Px {} ", vis_gen_boson.Px());
+            Logger::get("met::RecoilCorrection")->debug("vis. gen. boson Py {} ", vis_gen_boson.Py());
+            Logger::get("met::RecoilCorrection")->debug("old MET X {} ", met.Px());
+            Logger::get("met::RecoilCorrection")->debug("old MET Y {} ", met.Py());
+            Logger::get("met::RecoilCorrection")->debug("old MET {} ", met.Pt());
+
+            if (std::isnan(met.Px()) || std::isnan(met.Py())) {
+                Logger::get("met::RecoilCorrection")->debug("NaN detected in MET, returning uncorrected MET");
+                return met;
+            } 
+            else {
+                if (method == "Rescaling" || method == "QuantileMapHist") {
+                    ROOT::Math::PtEtaPhiMVector U = met + vis_gen_boson - gen_boson;
+                    float dPhi_U = U.Phi() - gen_boson.Phi();
+                    float Upara = U.Pt() * std::cos(dPhi_U);
+                    float Uperp = U.Pt() * std::sin(dPhi_U);
+                    Logger::get("met::RecoilCorrection")->debug("dPhi_U {} ", dPhi_U);
+                    Logger::get("met::RecoilCorrection")->debug("Upara {} ", Upara);
+                    Logger::get("met::RecoilCorrection")->debug("Uperp {} ", Uperp);
+
+                    float Upara_new = RecoilCorr->evaluate({order, nJets, genPt, "Upara", Upara});
+                    float Uperp_new = RecoilCorr->evaluate({order, nJets, genPt, "Uperp", Uperp});
+                    Logger::get("met::RecoilCorrection")->debug("Upara_new {} ", Upara_new);
+                    Logger::get("met::RecoilCorrection")->debug("Uperp_new {} ", Uperp_new);
+                    
+                    float Upt_new = std::sqrt(Upara_new*Upara_new + Uperp_new*Uperp_new);
+                    float Uphi_new = std::atan2(Uperp_new, Upara_new) + gen_boson.Phi();
+                    Logger::get("met::RecoilCorrection")->debug("Upt_new {} ", Upt_new);
+                    Logger::get("met::RecoilCorrection")->debug("Uphi_new {} ", Uphi_new);
+
+                    ROOT::Math::PtEtaPhiMVector U_new = ROOT::Math::PtEtaPhiMVector(Upt_new, 0., Uphi_new, 0.);
+                    met_new = U_new - vis_gen_boson + gen_boson;
+                }
+                else if (method == "Uncertainty") {
+                    if (std::set<std::string>{"RespUp", "RespDown", "ResolUp", "ResolDown"}.count(variation)) {
+                        ROOT::Math::PtEtaPhiMVector H = - met - vis_gen_boson;
+                        float dPhi_H = H.Phi() - gen_boson.Phi();
+                        float Hpara = H.Pt() * std::cos(dPhi_H);
+                        float Hperp = H.Pt() * std::sin(dPhi_H);
+
+                        float Hpara_new = RecoilCorr->evaluate({order, nJets, genPt, "Hpara", Hpara, variation});
+                        float Hperp_new = RecoilCorr->evaluate({order, nJets, genPt, "Hperp", Hperp, variation});
+
+                        float Hpt_new = std::sqrt(Hpara_new*Hpara_new + Hperp_new*Hperp_new);
+                        float Hphi_new = std::atan2(Hperp_new, Hpara_new) + gen_boson.Phi();
+                        if (Hphi_new > M_PI) Hphi_new -= 2*M_PI;
+                        if (Hphi_new < -M_PI) Hphi_new += 2*M_PI;
+                        ROOT::Math::PtEtaPhiMVector H_new = ROOT::Math::PtEtaPhiMVector(Hpt_new, 0., Hphi_new, 0.);
+                        met_new = - H_new - vis_gen_boson;
+                    }
+                    else {
+                        Logger::get("met::RecoilCorrection")
+                            ->error("Variation {} not known. Choose either 'RespUp', 'RespDown', 'ResolUp' or 'ResolDown'", variation);
+                        throw std::runtime_error("Invalid variation for Recoil corrections");
+                    }
+                }
+                else if (method == "QuantileMapFit") {
+                    Logger::get("met::RecoilCorrection")
+                        ->debug("QuantileMapFit method not yet implemented, returning uncorrected MET");
+                    return met;
+                }
+                else {
+                    Logger::get("met::RecoilCorrection")
+                        ->error("Method {} not known. Choose either 'Rescaling', 'QuantileMapHist' or 'Uncertainty'", method);
+                    throw std::runtime_error("Invalid method for Recoil corrections");
+                }
+                
+                Logger::get("met::RecoilCorrection")->debug("corrected MET X {} ", met_new.Px());
+                Logger::get("met::RecoilCorrection")->debug("corrected MET Y {} ", met_new.Py());
+                Logger::get("met::RecoilCorrection")->debug("corrected MET {} ", met_new.Pt());
+                return met_new;
+            }
+        };
+        return df.Define(outputname, Correction,
+                         {p4_met, p4_gen_boson, p4_vis_gen_boson, n_jets});
+    } else {
+        // if we do not apply the recoil corrections, just rename the met
+        // column to the new outputname and dont change anything else
+        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, p4_met);
+    }
+}
+
+/**
  * @brief This function applies Recoil corrections on a given sample. For
  * more information on recoil corrections, check [this
  * repo](https://github.com/KIT-CMS/RecoilCorrections/). The code for the

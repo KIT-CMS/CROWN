@@ -87,6 +87,14 @@ ROOT::RDF::RNode GetHadronicRecoil(ROOT::RDF::RNode df,
                      {p4_met, LorentzvectorList});
 };
 ROOT::RDF::RNode RecoilCorrection(
+    ROOT::RDF::RNode df, correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname,
+    const std::string &p4_met, const std::string &p4_gen_boson,
+    const std::string &p4_vis_gen_boson, const std::string &n_jets,
+    const std::string &corr_file, const std::string &corr_name,
+    const std::string &method, const std::string &order,
+    const std::string &variation, const bool apply_correction);
+ROOT::RDF::RNode RecoilCorrection(
     ROOT::RDF::RNode df, const std::string &outputname,
     const std::string &p4_met, const std::string &p4_gen_boson,
     const std::string &p4_vis_gen_boson, const std::string &jet_pt,
