@@ -707,14 +707,14 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
  * @param variation_dm0_pt20to40 variation for decay mode 0 and
  * \f$20 \leq p_T <40\f$ GeV, options are "nom", "up", "down"
  * @param variation_dm0_pt40toInf variation for decay mode 0 and
- * 40 GeV \f$\leq p_{T,\tau}\f$, options are "nom", "up", "down"
+ * \f$40 \leq p_{T,\tau} <\infty\f$ GeV, options are "nom", "up", "down"
  * @param variation_dm1_pt20to40 variation for decay mode 1 and
  * \f$20 \leq p_T <40\f$ GeV, options are "nom", "up", "down"
  * @param variation_dm1_pt40toInf variation for decay mode 1 and
  * 40 GeV \f$\leq p_{T,\tau}\f$, options are "nom", "up", "down"
  * @param variation_dm10_pt20to40 variation for decay mode 10 and
  * \f$20 \leq p_T <40\f$ GeV, options are "nom", "up", "down"
- * @param variation_dm10_pt40toInf variation for decay mode 10 and 
+ * @param variation_dm10_pt40toInf variation for decay mode 10 and
  * 40 GeV \f$\leq p_{T,\tau}\f$, options are "nom", "up", "down"
  * @param variation_dm11_pt20to40 variation for decay mode 11 and
  * \f$20 \leq p_T <40\f$ GeV, options are "nom", "up", "down"
@@ -949,21 +949,21 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
  * @param id_algorithm identification algorithm used for hadronic tau ID
  * @param wp working point of the vsJet ID
  * @param vsele_wp working point of the vsEle ID
- * @param variation_dm0_20to40 variation for decay mode 0 and
+ * @param variation_dm0_pt20to40 variation for decay mode 0 and
  * \f$20 \leq p_T <40\f$ GeV, options are "nom", "up", "down"
- * @param variation_dm0_40toInf variation for decay mode 0 and
+ * @param variation_dm0_pt40toInf variation for decay mode 0 and
  * 40 GeV \f$\leq p_{T,\tau}\f$, options are "nom", "up", "down"
- * @param variation_dm1_20to40 variation for decay mode 1 and
+ * @param variation_dm1_pt20to40 variation for decay mode 1 and
  * \f$20 \leq p_T <40\f$ GeV, options are "nom", "up", "down"
- * @param variation_dm1_40toInf variation for decay mode 1 and
+ * @param variation_dm1_pt40toInf variation for decay mode 1 and
  * 40 GeV \f$\leq p_{T,\tau}\f$, options are "nom", "up", "down"
- * @param variation_dm10_20to40 variation for decay mode 10 and
+ * @param variation_dm10_pt20to40 variation for decay mode 10 and
  * \f$20 \leq p_T <40\f$ GeV, options are "nom", "up", "down"
- * @param variation_dm10_40toInf variation for decay mode 10 and 
+ * @param variation_dm10_pt40toInf variation for decay mode 10 and
  * 40 GeV \f$\leq p_{T,\tau}\f$, options are "nom", "up", "down"
- * @param variation_dm11_20to40 variation for decay mode 11 and
+ * @param variation_dm11_pt20to40 variation for decay mode 11 and
  * \f$20 \leq p_T <40\f$ GeV, options are "nom", "up", "down"
- * @param variation_dm11_40toInf variation for decay mode 11 and
+ * @param variation_dm11_pt40toInf variation for decay mode 11 and
  * 40 GeV \f$\leq p_{T,\tau}\f$, options are "nom", "up", "down"
  *
  * @return a dataframe containing the corrected transverse momenta
@@ -1173,16 +1173,16 @@ namespace scalefactor {
  * @param wp working point of the vsJet ID
  * @param vsele_wp working point of the vsEle ID
  * @param sf_dependence variable dependence of the scale factor, opions are "pt" or "dm"
- * @param variation_pt30to35 name of the scale factor variation for \f$30 \leq p_T <35\f$ GeV, "nom" for nominal
- * and "up"/"down" the up/down variation
- * @param variation_pt35to40 name of the scale factor variation for \f$35 \leq p_T <40\f$ GeV, "nom" for nominal
- * and "up"/"down" the up/down variation
- * @param variation_pt40to500 name of the scale factor variation for \f$40 \leq p_T <500\f$ GeV, "nom" for nominal
- * and "up"/"down" the up/down variation
- * @param variation_pt500to1000 name of the scale factor variation for \f$500 \leq p_T <1000\f$ GeV, "nom" for nominal
- * and "up"/"down" the up/down variation
- * @param variation_pt1000toInf name of the scale factor variation for \f$1000 \leq p_T < \infty \f$ GeV, "nom" for nominal
- * and "up"/"down" the up/down variation
+ * @param variation_pt30to35 name of the scale factor variation for \f$30 \leq p_T <35\f$ GeV,
+ * "nom" for nominal and "up"/"down" the up/down variation
+ * @param variation_pt35to40 name of the scale factor variation for \f$35 \leq p_T <40\f$ GeV,
+ * "nom" for nominal and "up"/"down" the up/down variation
+ * @param variation_pt40to500 name of the scale factor variation for \f$40 \leq p_T <500\f$ GeV,
+ * "nom" for nominal and "up"/"down" the up/down variation
+ * @param variation_pt500to1000 name of the scale factor variation for \f$500 \leq p_T <1000\f$ GeV,
+ * "nom" for nominal and "up"/"down" the up/down variation
+ * @param variation_pt1000toInf name of the scale factor variation for \f$1000 \leq p_T < \infty \f$ GeV,
+ * "nom" for nominal and "up"/"down" the up/down variation
  *
  * @return a new dataframe containing the new column
  *
