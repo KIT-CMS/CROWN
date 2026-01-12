@@ -448,7 +448,7 @@ namespace scalefactor {
  * should be calculated
  * @param wp working point of the vsJet ID
  * @param vsele_wp working point of the vsEle ID
- * @param sf_dependence variable dependence of the scale factor, opions are "pt" or "dm"
+ * @param sf_dependence variable dependence of the scale factor, options are "pt" or "dm"
  * @param variation_pt20to25 name of the scale factor variation for \f$20 \leq p_T <25\f$ GeV, "nom" for nominal
  * and "up"/"down" the up/down variation
  * @param variation_pt25to30 name of the scale factor variation for \f$25 \leq p_T <30\f$ GeV, "nom" for nominal
@@ -462,8 +462,8 @@ namespace scalefactor {
  *
  * @return a new dataframe containing the new column
  *
- * @note The only differnce to the `physicsobject::tau::scalefactor::Id_vsJet_lt` function,
- * which is used for simulated samples, is the \f$p_T\f$ binning of the variations.
+ * @warning This function is depricated (used for legacy H(tt) analysis). It is
+ * recommended to use `physicsobject::tau::scalefactor::Id_vsJet` instead.
  */
 ROOT::RDF::RNode
 Id_vsJet_lt(ROOT::RDF::RNode df,
