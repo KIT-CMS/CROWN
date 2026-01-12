@@ -65,26 +65,6 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &outputname,
                      const std::string &pt, const std::string &decay_mode,
                      const float &sf_dm0, const float &sf_dm1,
                      const float &sf_dm10, const float &sf_dm11);
-
-namespace scalefactor {
-
-ROOT::RDF::RNode
-Id_vsJet_lt(ROOT::RDF::RNode df,
-            correctionManager::CorrectionManager &correction_manager,
-            const std::string &outputname,
-            const std::string &pt, const std::string &decay_mode,
-            const std::string &gen_match, 
-            const std::string &sf_file,
-            const std::string &sf_name,
-            const std::vector<int> &selected_dms,
-            const std::string &wp, const std::string &vsele_wp,
-            const std::string &sf_dependence,
-            const std::string &sf_vsjet_tau20to25,
-            const std::string &sf_vsjet_tau25to30,
-            const std::string &sf_vsjet_tau30to35,
-            const std::string &sf_vsjet_tau35to40,
-            const std::string &sf_vsjet_tau40toInf);
-} // end namespace scalefactor
 } // end namespace tau
 } // end namespace embedding
 #endif /* GUARD_EMBEDDING_H */
