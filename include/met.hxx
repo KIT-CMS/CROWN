@@ -6,73 +6,119 @@
 
 namespace met {
 
-ROOT::RDF::RNode genBosonPt(ROOT::RDF::RNode df, const std::string &outputname,
-                            const std::string &inputvector);
-ROOT::RDF::RNode genBosonEta(ROOT::RDF::RNode df, const std::string &outputname,
-                             const std::string &inputvector);
-ROOT::RDF::RNode genBosonPhi(ROOT::RDF::RNode df, const std::string &outputname,
-                             const std::string &inputvector);
-ROOT::RDF::RNode genBosonRapidity(ROOT::RDF::RNode df,
-                                  const std::string &outputname,
-                                  const std::string &inputvector);
-ROOT::RDF::RNode DefineRecoilsDilep(ROOT::RDF::RNode df,
-                                    const std::string &paralell_outputname,
-                                    const std::string &perpendicular_outputname,
-                                    const std::string &lepton1,
-                                    const std::string &lepton2,
-                                    const std::string &met_p4);
-ROOT::RDF::RNode
-DefineRecoilsSinglelep(ROOT::RDF::RNode df,
-                       const std::string &paralell_outputname,
-                       const std::string &perpendicular_outputname,
-                       const std::string &lepton1, const std::string &met_p4);
-ROOT::RDF::RNode
-propagateLeptonsToMet(ROOT::RDF::RNode df, const std::string &outputname,
-                      const std::string &met,
-                      const std::string &p4_1_uncorrected,
-                      const std::string &p4_2_uncorrected,
-                      const std::string &p4_1, const std::string &p4_2,
-                      bool apply_propagation);
-ROOT::RDF::RNode propagateLeptonsToMet(
-    ROOT::RDF::RNode df, const std::string &outputname, const std::string &met,
-    const std::string &p4_1_uncorrected, const std::string &p4_2_uncorrected,
-    const std::string &p4_3_uncorrected, const std::string &p4_1,
-    const std::string &p4_2, const std::string &p4_3,
-    bool apply_propagation);
-ROOT::RDF::RNode propagateLeptonsToMet(ROOT::RDF::RNode df,
-                                       const std::string &outputname,
-                                       const std::string &met,
-                                       const std::string &p4_1_uncorrected,
-                                       const std::string &p4_1,
-                                       bool apply_propagation);
-ROOT::RDF::RNode propagateJetsToMet(
-    ROOT::RDF::RNode df, const std::string &outputname, const std::string &met,
-    const std::string &jet_pt_corrected, const std::string &jet_eta_corrected,
-    const std::string &jet_phi_corrected, const std::string &jet_mass_corrected,
-    const std::string &jet_pt, const std::string &jet_eta,
-    const std::string &jet_phi, const std::string &jet_mass,
-    bool apply_propagation, float min_jet_pt);
-ROOT::RDF::RNode applyRecoilCorrections( //Run 2
-    ROOT::RDF::RNode df, const std::string &outputname,
-    const std::string &met, const std::string &genmet,
-    const std::string &jet_pt, 
-    const std::string &recoilfile, const std::string &systematicsfile,
-    bool applyRecoilCorrections, bool resolution, bool response, bool shiftUp,
-    bool shiftDown, bool isWjets);
-ROOT::RDF::RNode applyRecoilCorrectionsRun3(
+/**
+ * @brief Calculates the hadronic recoil and its components parallel and perpendicular
+ * to a visible system's momentum. The recoil is a crucial observable in analyses with
+ * invisible particles (like neutrinos).
+ *
+ * The hadronic recoil (\f$\vec{u}_T\f$) is defined as the vector sum of the transverse
+ * momenta of all hadronic particles in the event. By momentum conservation in the
+ * transverse plane, it must balance the momentum of the hard-scatter system (visible
+ * leptons/photons and invisible MET).
+ *
+ * It is calculated as:
+ * \f[
+ * \vec{u}_T = -(\vec{p}_T^{\text{visible}} + \vec{p}_T^{\text{miss}})
+ * \f]
+ * where \f$\vec{p}_T^{\text{visible}}\f$ is the vector sum of the transverse momenta
+ * of the specified input Lorentz vectors (e.g., \f$\vec{p}_{T, \ell\ell}\f$ for a
+ * Z boson event). The function then projects this recoil vector onto the axis defined
+ * by the direction of the visible system's transverse momentum,
+ * \f$\hat{q}_T = \frac{\vec{p}_T^{\text{visible}}}{|\vec{p}_T^{\text{visible}}|}\f$.
+ *
+ * - **Parallel Component (\f$u_\parallel\f$)**: The projection of the recoil onto the
+ *   visible system's axis. It is a measure of the recoil's response.
+ *   \f[ u_\parallel = \vec{u}_T \cdot \hat{q}_T \f]
+ * - **Perpendicular Component (\f$u_\perp\f$)**: The component of the recoil orthogonal
+ *   to the visible system's axis. It is a measure of the recoil's resolution.
+ *   \f[ u_\perp = |\vec{u}_T \times \hat{q}_T| \f] (calculated with a sign).
+ *
+ * The function returns a vector of two doubles: `{u_parallel, u_perp}`.
+ *
+ * @tparam Lorentzvectors variadic template parameter pack representing Lorentz vectors
+ * @param df input dataframe
+ * @param outputname name of the new column containing a `std::vector<double>` with the
+ * parallel and perpendicular recoil components
+ * @param p4_met name of the column containing the MET Lorentz vector
+ * @param lorentzvectors parameter pack of column names containing Lorentz vectors of
+ * visible particles (e.g., "Lepton_p4_1", "Lepton_p4_2").
+ *
+ * @return a dataframe with the new column containing parallel and perpendicular
+ * recoil components
+ *
+ * @warning Implemented calculation was not cross checked.
+ */
+template <typename... Lorentzvectors>
+ROOT::RDF::RNode GetHadronicRecoil(ROOT::RDF::RNode df,
+                           const std::string &outputname,
+                           const std::string &p4_met,
+                           Lorentzvectors... lorentzvectors) {
+    auto argTuple = std::make_tuple(lorentzvectors...);
+    std::vector<std::string> LorentzvectorList{lorentzvectors...};
+    const auto nLVs = sizeof...(Lorentzvectors);
+
+    using namespace ROOT::VecOps;
+    auto calc_recoil = [](const ROOT::Math::PtEtaPhiMVector &p4_met,
+                          const ROOT::RVec<ROOT::Math::PtEtaPhiMVector> &LVs) {
+            // Calculate the multilepton vector
+            ROOT::Math::PtEtaPhiMVector vis_recoil_vector;
+            for (const auto &vector : LVs) {
+                vis_recoil_vector += vector;
+            }
+            double met = p4_met.Et();
+            double met_phi = p4_met.Phi();
+
+            double pUX = -met * cos(met_phi) -
+                         vis_recoil_vector.Pt() * cos(vis_recoil_vector.Phi());
+            double pUY = -met * sin(met_phi) -
+                         vis_recoil_vector.Pt() * sin(vis_recoil_vector.Phi());
+            double pU = sqrt(pUX * pUX + pUY * pUY);
+            double pCos = (pUX * cos(vis_recoil_vector.Phi()) +
+                           pUY * sin(vis_recoil_vector.Phi())) /
+                          pU;
+            double pSin = -(pUX * sin(vis_recoil_vector.Phi()) -
+                           pUY * cos(vis_recoil_vector.Phi())) /
+                          pU;
+            // Return the vector of parallel and perpendicular components
+            return std::vector<double>{pU * pCos, pU * pSin};
+        };
+    return df.Define(outputname,
+                     utility::PassAsVec<nLVs, ROOT::Math::PtEtaPhiMVector>(calc_recoil),
+                     {p4_met, LorentzvectorList});
+};
+ROOT::RDF::RNode RecoilCorrection(
     ROOT::RDF::RNode df, correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname,
     const std::string &p4_met, const std::string &p4_gen_boson,
     const std::string &p4_vis_gen_boson, const std::string &n_jets,
     const std::string &corr_file, const std::string &corr_name,
     const std::string &method, const std::string &order,
-    const std::string &variation, bool apply_correction);
-ROOT::RDF::RNode applyMetXYCorrections(ROOT::RDF::RNode df,
-                                       const std::string &input_p4,
-                                       const std::string &npv,
-                                       const std::string &run,
-                                       const std::string &output_p4,
-                                       const std::string &corr_file, bool isMC);
+    const std::string &variation, const bool apply_correction);
+ROOT::RDF::RNode RecoilCorrection(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &p4_met, const std::string &p4_gen_boson,
+    const std::string &p4_vis_gen_boson, const std::string &jet_pt,
+    const std::string &corr_file, const std::string &syst_file,
+    const bool apply_correction, const bool resolution, const bool response,
+    const bool shift_up, const bool shift_down, const bool is_Wjets);
+ROOT::RDF::RNode METPhiCorrection(ROOT::RDF::RNode df,
+                        const std::string &outputname,
+                        const std::string &p4_met,
+                        const std::string &n_pv,
+                        const std::string &run,
+                        const std::string &corr_file,
+                        const std::string &corr_name);
+ROOT::RDF::RNode METPhiCorrection(ROOT::RDF::RNode df,
+                        const std::string &outputname,
+                        const std::string &p4_met,
+                        const std::string &n_pv,
+                        const std::string &corr_file,
+                        const std::string &corr_name,
+                        const std::string &met_type,
+                        const std::string &era,
+                        const bool is_mc,
+                        const std::string &stat_variation,
+                        const std::string &pileup_variation);
 } // end namespace met
 
 namespace lorentzvector {
