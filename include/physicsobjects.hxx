@@ -102,6 +102,33 @@ CutMin(ROOT::RDF::RNode df, const std::string &outputname,
                      {quantity});
 }
 
+/*
+ * @brief This function defines a mask for objects that satisfy a minimum
+ * threshold requirement. The mask is created by comparing the values in the
+ * specified column with the given threshold, marking elements as `1` if they
+ * pass the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the object column in the NanoAOD for which the
+ * cut should be applied, expected to be of type `ROOT::RVec<T>`
+ * @param threshold minimum threshold value of type `T`
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+CutMinSingle(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &values) {
+                         int mask = values >= threshold;
+                         return mask;
+                     },
+                     {quantity});
+}
+
 /**
  * @brief This function defines a mask for objects that satisfy a minimum
  * threshold requirement. The mask is created by comparing the absolute values
