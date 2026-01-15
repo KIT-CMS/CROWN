@@ -48,10 +48,7 @@ def build_config(
         {
             "era": EraModifier(
                 {
-                    **{
-                        _era: _era
-                        for _era in available_eras
-                    },
+                    **{_era: _era for _era in available_eras},
                 }
             )
         },
