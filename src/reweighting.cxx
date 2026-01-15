@@ -57,7 +57,7 @@ Pileup(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief Function used to read out pileup weights
+ * @brief Function used to read out pileup weights from root files
  *
  * @param df The input dataframe
  * @param weightname name of the derived weight
@@ -67,7 +67,7 @@ Pileup(ROOT::RDF::RNode df,
  * @param histogramname name of the histogram stored in the rootfile
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode puweights(ROOT::RDF::RNode df, const std::string &weightname,
+ROOT::RDF::RNode PUWeightROOT(ROOT::RDF::RNode df, const std::string &weightname,
                            const std::string &truePUMean,
                            const std::string &datafilename,
                            const std::string &mcfilename,
@@ -594,78 +594,6 @@ ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df,
         df2, outputname, weight_function, gen_boson + "_mass",
         gen_boson + "_pt");
     return df3;
-}
-
-/**
- * @brief This function is used to calculate and event weight based on Z boson 
- * \f$p_T\f$ correction. These corrections are recommended especially 
- * for LO Drell-Yan samples, where the \f$p_T\f$ and mass of the Z boson are
- * mismodeled compared to data.  The description can be found here:
- * https://cms-higgs-leprare.docs.cern.ch/htt-common/DY_reweight/#correctionlib-file
- *
- * @param df input dataframe
- * @param outputname name of the output column containing the derived event weight
- * @param gen_boson_pt name of the column that containing a pair of Lorentzvectors,
- * where the first entry is the one of the gen. boson
- * @param order order of generation of the samples, i.e. LO, NLO
- * @param file json file containing the corrections
- * @param variation name of the variation that should be used, options are "nom", "up", "down"
- *
- * @return a new dataframe containing the new column
- *
- * @note The function is intended for Run 3 analysis. For Run2 see the function  above.
- */
-ROOT::RDF::RNode
-ZPtWeight(ROOT::RDF::RNode df,
-         correctionManager::CorrectionManager &correction_manager,
-         const std::string &outputname,
-         const std::string &gen_boson,
-         const std::string &corr_file,
-         const std::string &corr_name,
-         const std::string &order,
-         const std::string &variation) {
-
-    auto corrDY = correction_manager.loadCorrection(corr_file, corr_name);
-    auto corrDYunc = correction_manager.loadCorrection(corr_file, corr_name + "_N_uncertainty");
-
-    // Get number of uncertainties
-    auto n_unc = corrDYunc->evaluate({order});
-
-    // Get weight depending on variation
-    auto corr = [corrDY, order, variation, n_unc](const ROOT::Math::PtEtaPhiMVector &gen_boson) {
-        float weight = 1.0;
-        if (variation == "up" || variation == "down") {
-            float weight_nom = corrDY->evaluate({order, (float)gen_boson.Pt(), "nom"});
-            weight = weight_nom;
-
-            for (int i = 0; i < n_unc; i++) {
-                float unc_up = corrDY->evaluate({order, (float)gen_boson.Pt(), "up" + std::to_string(i)});
-                float unc_down = corrDY->evaluate({order, (float)gen_boson.Pt(), "down" + std::to_string(i)});
-
-                if (variation == "up" && unc_up > weight_nom && unc_up > weight) {
-                    weight = unc_up;
-                } else if (variation == "up" && unc_down > weight_nom && unc_down > weight) {
-                    weight = unc_down;
-                } else if (variation == "down" && unc_down < weight_nom && unc_down < weight) {
-                    weight = unc_down;
-                } else if (variation == "down" && unc_up < weight_nom && unc_up < weight) {
-                    weight = unc_up;
-                }
-            }
-        } 
-        else if (variation == "nom" || variation.rfind("up") != std::string::npos || 
-                 variation.rfind("down") != std::string::npos) {
-            weight = corrDY->evaluate({order, (float)gen_boson.Pt(), variation});
-        }
-        else {
-            Logger::get("event::reweighting::ZBosonPt")
-                ->error("Invalid variation: {}", variation);
-            throw std::runtime_error("Invalid variation for Z boson pT weight");
-        }
-        return weight;
-    };
-    auto df1 = df.Define(outputname, corr, {gen_boson});
-    return df1;
 }
 
 } // end namespace reweighting
