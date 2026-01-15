@@ -547,15 +547,15 @@ ROOT::RDF::RNode Trigger(ROOT::RDF::RNode df,
                     const std::string &era, const std::string &path_id_name,
                     const std::string &sf_file, const std::string &sf_name,
                     const std::string &variation) {
+    Logger::get("physicsobject::electron::scalefactor::Trigger")
+        ->debug("Setting up functions for electron trigger sf with correctionlib");
+    Logger::get("physicsobject::electron::scalefactor::Trigger")
+        ->debug("Scale factor - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     auto df1 = df.Define(
         outputname,
         [evaluator, era, sf_name, path_id_name, variation](
             const float &pt, const float &eta, const bool &trigger_flag) {
-            Logger::get("physicsobject::electron::scalefactor::Trigger")
-                ->debug("Setting up functions for electron trigger sf with correctionlib");
-            Logger::get("physicsobject::electron::scalefactor::Trigger")
-                ->debug("Scale factor - Name {}", sf_name);
             Logger::get("physicsobject::electron::scalefactor::Trigger")
                 ->debug("Era {}, Variation {}, Trigger at electron ID {}", era, variation, path_id_name);
             Logger::get("physicsobject::electron::scalefactor::Trigger")
