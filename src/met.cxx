@@ -19,177 +19,6 @@ typedef std::bitset<20> IntBits;
 
 namespace met {
 
-/**
- * @brief This function applies Recoil corrections on a given sample. For
- * more information on recoil corrections, check [this
- * repo](https://github.com/KIT-CMS/RecoilCorrections/). The code for the
- * application of these corrections can be found in `src/RecoilCorrections`.
- * This correction is applicable for processes involving W and Z bosons.
- *
- * @param df the input dataframe
- * @param genparticle_pt genparticle pt
- * @param genparticle_eta genparticle eta
- * @param genparticle_phi genparticle phi
- * @param genparticle_mass genparticle mass
- * @param genparticle_id genparticle PDG ID
- * @param genparticle_status genparticle status
- * @param genparticle_statusflag genparticle statusflag bit (see above)
- * @param outputname name of the new column containing the corrected met
- * @param is_data for data we cant calculate a genBoson vector, so a default
-value is returned
- * @return a new dataframe containing a pair of lorentz vectors, first is the
-GenBosonVector, second is the visibleGenBosonVector
- */
-ROOT::RDF::RNode calculateGenBosonVector(
-    ROOT::RDF::RNode df, const std::string outputname,
-    const std::string &genparticle_pt,
-    const std::string &genparticle_eta, const std::string &genparticle_phi,
-    const std::string &genparticle_mass, const std::string &genparticle_id,
-    const std::string &genparticle_status,
-    const std::string &genparticle_statusflag,
-    bool is_data) {
-    auto calculateGenBosonVector =
-        [](const ROOT::RVec<float> &genparticle_pt,
-           const ROOT::RVec<float> &genparticle_eta,
-           const ROOT::RVec<float> &genparticle_phi,
-           const ROOT::RVec<float> &genparticle_mass,
-           const ROOT::RVec<int> &genparticle_id,
-           const ROOT::RVec<int> &genparticle_status,
-           const ROOT::RVec<UShort_t> &genparticle_statusflag_v12) {
-            auto genparticle_statusflag = static_cast<ROOT::RVec<int>>(genparticle_statusflag_v12);
-            ROOT::Math::PtEtaPhiMVector genBoson;
-            ROOT::Math::PtEtaPhiMVector visgenBoson;
-            ROOT::Math::PtEtaPhiMVector genparticle;
-            // now loop though all genparticles in the event
-            for (std::size_t index = 0; index < genparticle_id.size();
-                 ++index) {
-                // consider a genparticle,
-                // 1. if it is a lepton and fromHardProcessFinalState -->
-                // bit 8 from statusflag and 1 from status
-                // 2. if it is isDirectHardProcessTauDecayProduct --> bit 10
-                // in statusflag
-                Logger::get("getGenMet")
-                    ->debug("Checking particle {} ", genparticle_id.at(index));
-                if ((abs(genparticle_id.at(index)) >= 11 &&
-                     abs(genparticle_id.at(index)) <= 16 &&
-                     (IntBits(genparticle_statusflag.at(index)).test(8)) &&
-                     genparticle_status.at(index) == 1) ||
-                    (IntBits(genparticle_statusflag.at(index)).test(10))) {
-                    Logger::get("getGenMet")->debug("Adding to gen p*");
-                    genparticle = ROOT::Math::PtEtaPhiMVector(
-                        genparticle_pt.at(index), genparticle_eta.at(index),
-                        genparticle_phi.at(index), genparticle_mass.at(index));
-                    genBoson = genBoson + genparticle;
-                    // if the genparticle is no neutrino, we add the x and y
-                    // component to the visible generator component as well
-                    if (abs(genparticle_id.at(index)) != 12 &&
-                        abs(genparticle_id.at(index)) != 14 &&
-                        abs(genparticle_id.at(index)) != 16) {
-                        Logger::get("getGenMet")->debug("Adding to vis p*");
-                        visgenBoson = visgenBoson + genparticle;
-                    }
-                }
-            }
-
-            std::pair<ROOT::Math::PtEtaPhiMVector, ROOT::Math::PtEtaPhiMVector>
-                metpair = {genBoson, visgenBoson};
-            return metpair;
-        };
-    if (!is_data) {
-        // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
-        // For v9 compatibility a type casting is applied
-        auto [df1, genparticle_statusflag_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-                df, genparticle_statusflag+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticle_statusflag);
-        return df1.Define(outputname, calculateGenBosonVector,
-                         {genparticle_pt, genparticle_eta, genparticle_phi,
-                          genparticle_mass, genparticle_id, genparticle_status,
-                          genparticle_statusflag_column});
-    } else {
-        return df.Define(outputname, []() {
-            std::pair<ROOT::Math::PtEtaPhiMVector, ROOT::Math::PtEtaPhiMVector>
-                metpair = {default_lorentzvector, default_lorentzvector};
-            return metpair;
-        });
-    }
-}
-
-/**
- * @brief function used to calculate the GenBosonPt used for the Zpt recoil correction,
- * using the defintion from https://cms-higgs-leprare.docs.cern.ch/htt-common/DY_reweight/#dy_ptll_reweighting.
- *
- * @param df the input dataframe
- * @param genparticle_pt genparticle pt
- * @param genparticle_eta genparticle eta
- * @param genparticle_phi genparticle phi
- * @param genparticle_mass genparticle mass
- * @param genparticle_id genparticle PDG ID
- * @param genparticle_status genparticle status
- * @param genparticle_statusflag genparticle statusflag bit (see above)
- * @param outputname name of the new column containing the corrected met
- * @param is_data for data we cant calculate a genBoson vector, so a default
-value is returned
- * @return a new dataframe containing a pair of lorentz vectors, first is the
-GenBosonVector, second is the visibleGenBosonVector
-*
-* @note This function is intended to be used for Run3 analyses, for Run2
-* use the appropriate function above. This is necessary as the definition of
-* the status flags has changed.
- */
-ROOT::RDF::RNode calculateGenBosonPt(
-    ROOT::RDF::RNode df, const std::string &outputname, 
-    const std::string &genparticle_pt,
-    const std::string &genparticle_eta, const std::string &genparticle_phi,
-    const std::string &genparticle_mass, const std::string &genparticle_id,
-    const std::string &genparticle_status,
-    const std::string &genparticle_statusflag,
-    bool is_data) {
-    auto calculateGenBosonPt =
-        [](const ROOT::RVec<float> &genparticle_pt,
-           const ROOT::RVec<float> &genparticle_eta,
-           const ROOT::RVec<float> &genparticle_phi,
-           const ROOT::RVec<float> &genparticle_mass,
-           const ROOT::RVec<int> &genparticle_id,
-           const ROOT::RVec<int> &genparticle_status,
-           const ROOT::RVec<UShort_t> &genparticle_statusflag_v12) {
-            auto genparticle_statusflag = static_cast<ROOT::RVec<int>>(genparticle_statusflag_v12);
-            ROOT::Math::PtEtaPhiMVector genBoson;
-            ROOT::Math::PtEtaPhiMVector visgenBoson;
-            ROOT::Math::PtEtaPhiMVector genparticle;
-            // now loop though all genparticles in the event
-            for (std::size_t index = 0; index < genparticle_id.size();
-                 ++index) {
-                if ((((abs(genparticle_id.at(index)) == 11 ||
-                     abs(genparticle_id.at(index)) == 13) &&
-                     genparticle_status.at(index) == 1) ||
-                     (abs(genparticle_id.at(index)) == 15 &&
-                     genparticle_status.at(index) == 2)) && 
-                     (IntBits(genparticle_statusflag.at(index)).test(8))) {
-                    genparticle = ROOT::Math::PtEtaPhiMVector(
-                        genparticle_pt.at(index), genparticle_eta.at(index),
-                        genparticle_phi.at(index), genparticle_mass.at(index));
-                    genBoson = genBoson + genparticle;
-                }
-            }
-
-            return static_cast<float>(genBoson.Pt());
-        };
-    if (!is_data) {
-        // In nanoAODv12 the type of genparticle status flags was changed to UShort_t
-        // For v9 compatibility a type casting is applied
-        auto [df1, genparticle_statusflag_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-                df, genparticle_statusflag+"_v12", "ROOT::VecOps::RVec<UShort_t>", genparticle_statusflag);
-        return df1.Define(outputname, calculateGenBosonPt,
-                         {genparticle_pt, genparticle_eta, genparticle_phi,
-                          genparticle_mass, genparticle_id, genparticle_status,
-                          genparticle_statusflag_column});
-    } else {
-        return df.Define(outputname, []() {
-            ROOT::Math::PtEtaPhiMVector genBoson;
-            return static_cast<float>(genBoson.Pt());
-        });
-    }
-}
-
 /// Function to calculate the recoil component for dilepton channels and add it
 /// to the dataframe
 ///
@@ -327,28 +156,6 @@ DefineRecoilsSinglelep(ROOT::RDF::RNode df,
         {lepton1, met_p4});
 }
 
-/// Function to calculate the mass from the genboson double vector and add it to
-/// the dataframe
-///
-/// \param df the dataframe to add the quantity to
-/// \param outputname name of the new column containing the mass value
-/// \param inputvector name of the column containing the genboson vector
-///
-/// \returns a dataframe with the new column
-
-ROOT::RDF::RNode genBosonMass(ROOT::RDF::RNode df,
-                              const std::string &outputname,
-                              const std::string &inputvector) {
-    return df.Define(outputname,
-                     [](const std::pair<ROOT::Math::PtEtaPhiMVector,
-                                        ROOT::Math::PtEtaPhiMVector> &metpair) {
-                         if (metpair.first.pt() <
-                             0.0) // negative pt is used to mark invalid LVs
-                             return default_float;
-                         return (float)metpair.first.mass();
-                     },
-                     {inputvector});
-}
 /// Function to calculate the pt from the genboson double vector and add it to
 /// the dataframe
 ///
@@ -825,15 +632,15 @@ ROOT::RDF::RNode applyRecoilCorrections(
     const std::string &recoilfile, 
     const std::string &systematicsfile,
     bool applyRecoilCorrections, bool resolution, bool response, bool shiftUp,
-    bool shiftDown, bool isWjets) {
+    bool shiftDown, bool is_Wjets) {
     if (applyRecoilCorrections) {
         Logger::get("RecoilCorrections")->debug("Will run recoil corrections");
         const auto corrector = new RecoilCorrector(recoilfile);
         const auto systematics = new MetSystematic(systematicsfile);
         auto shiftType = MetSystematic::SysShift::Nominal;
-        if (shift_up) {
+        if (shiftUp) {
             shiftType = MetSystematic::SysShift::Up;
-        } else if (shift_down) {
+        } else if (shiftDown) {
             shiftType = MetSystematic::SysShift::Down;
         }
         auto sysType = MetSystematic::SysType::None;
@@ -898,11 +705,11 @@ ROOT::RDF::RNode applyRecoilCorrections(
             return corrected_met;
         };
         return df.Define(outputname, RecoilCorrections,
-                         {p4_met, p4_gen_boson, p4_vis_gen_boson, jet_pt});
+                         {met, genboson, jet_pt});
     } else {
         // if we do not apply the recoil corrections, just rename the met
         // column to the new outputname and dont change anything else
-        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, p4_met);
+        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, met);
     }
 }
 
@@ -932,7 +739,7 @@ is only needed for WJets samples)
  * @note This function is intended to be used in Run3 where recoil corrections are provided in json files
  * to be read by correctionlib. For Run 2 recoil correction see the function above.
  */
-ROOT::RDF::RNode applyRecoilCorrections(
+ROOT::RDF::RNode applyRecoilCorrectionsRun3(
     ROOT::RDF::RNode df, correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname,
     const std::string &p4_met, const std::string &p4_gen_boson,

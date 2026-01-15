@@ -6,25 +6,6 @@
 
 namespace met {
 
-ROOT::RDF::RNode calculateGenBosonVector(
-    ROOT::RDF::RNode df, const std::string outputname,
-    const std::string &genparticle_pt,
-    const std::string &genparticle_eta, const std::string &genparticle_phi,
-    const std::string &genparticle_mass, const std::string &genparticle_id,
-    const std::string &genparticle_status,
-    const std::string &genparticle_statusflag, 
-    bool is_data);
-ROOT::RDF::RNode calculateGenBosonPt(
-    ROOT::RDF::RNode df,  const std::string &outputname,
-    const std::string &genparticle_pt,
-    const std::string &genparticle_eta, const std::string &genparticle_phi,
-    const std::string &genparticle_mass, const std::string &genparticle_id,
-    const std::string &genparticle_status,
-    const std::string &genparticle_statusflag, 
-    bool is_data);
-ROOT::RDF::RNode genBosonMass(ROOT::RDF::RNode df,
-                              const std::string &outputname,
-                              const std::string &inputvector);
 ROOT::RDF::RNode genBosonPt(ROOT::RDF::RNode df, const std::string &outputname,
                             const std::string &inputvector);
 ROOT::RDF::RNode genBosonEta(ROOT::RDF::RNode df, const std::string &outputname,
@@ -78,7 +59,7 @@ ROOT::RDF::RNode applyRecoilCorrections( //Run 2
     const std::string &recoilfile, const std::string &systematicsfile,
     bool applyRecoilCorrections, bool resolution, bool response, bool shiftUp,
     bool shiftDown, bool isWjets);
-ROOT::RDF::RNode applyRecoilCorrections(
+ROOT::RDF::RNode applyRecoilCorrectionsRun3(
     ROOT::RDF::RNode df, correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname,
     const std::string &p4_met, const std::string &p4_gen_boson,

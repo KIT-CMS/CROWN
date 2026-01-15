@@ -240,8 +240,8 @@ ETGenerateCrossTriggerFlags = ExtendedVectorProducer(
     scope=["et"],
     vec_config="eltau_cross_trigger",
 )
-TTGenerateDoubleTriggerFlags = ExtendedVectorProducer(
-    name="TTGenerateDoubleTriggerFlags",
+TTGenerateDoubleTauFlags = ExtendedVectorProducer(
+    name="TTGenerateDoubleTauFlags",
     call="""trigger::DoubleObjectFlag(
         {df}, 
         {output}, 
