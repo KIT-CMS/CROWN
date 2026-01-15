@@ -43,6 +43,19 @@ def build_config(
         available_eras,
         available_scopes,
     )
+    configuration.add_config_parameters(
+        scopes,
+        {
+            "era": EraModifier(
+                {
+                    **{
+                        _era: _era
+                        for _era in available_eras
+                    },
+                }
+            )
+        },
+    )
     # first add default parameters necessary for all scopes
     configuration.add_config_parameters(
         "global",
@@ -272,6 +285,8 @@ def build_config(
             "tau_sf_vsjet_tau1000toinf": "nom",
             "tau_vsjet_sf_dependence": "pt",  # or "dm", "eta"
             "tau_vsjet_vseleWP": "VVLoose",
+            "tau_vsmu_vseleWP": "VVLoose",
+            "tau_vsmu_vsjetWP": "Medium",
         },
     )
     # TT tau id sf variations
@@ -284,6 +299,8 @@ def build_config(
             "tau_sf_vsjet_tauDM11": "nom",
             "tau_vsjet_sf_dependence": "dm",  # or "dm", "eta"
             "tau_vsjet_vseleWP": "VVLoose",
+            "tau_vsmu_vseleWP": "VVLoose",
+            "tau_vsmu_vsjetWP": "Medium",
         },
     )
     # MT / ET tau selection

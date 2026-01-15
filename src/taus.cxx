@@ -1678,6 +1678,10 @@ Id_vsEle(ROOT::RDF::RNode df,
  * @param sf_file path to the file with the tau scale factors
  * @param sf_name name of the tau scale factor for the vsMu ID correction
  * @param wp working point of the vsMu ID
+ * @param wp_ele working point of the vsEle ID
+ * @param wp_jet working point of the vsJet ID
+ * @param era string defining the currently processed era, needed due to different
+ * kind of scale factor dependencies introduced by TAU POG for different eras
  * @param variation_wheel1 name of the scale factor variation for the muon wheel
  * (\f$|\eta| <0.4\f$), "nom" for nominal and "up"/"down" the up/down variation
  * @param variation_wheel2 name of the scale factor variation for the muon wheel
@@ -1696,17 +1700,17 @@ Id_vsMu(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
         const std::string &outputname,
         const std::string &eta,
-        const std::string &gen_match, 
+        const std::string &gen_match,
         const std::string &sf_file,
         const std::string &sf_name,
-        const std::string &era,
-        const std::string &wp,  
+        const std::string &wp,
         const std::string &wp_ele,
         const std::string &wp_jet,
+        const std::string &era,
         const std::string &variation_wheel1,
-        const std::string &variation_wheel2, 
+        const std::string &variation_wheel2,
         const std::string &variation_wheel3,
-        const std::string &variation_wheel4, 
+        const std::string &variation_wheel4,
         const std::string &variation_wheel5) {
     
     const std::map<float, std::string> variations = {
@@ -1721,7 +1725,7 @@ Id_vsMu(ROOT::RDF::RNode df,
     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")->debug("Setting up function for tau id vsMu sf");
     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")->debug("ID - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, era, wp, wp_ele, wp_jet, variations,
+    auto sf_calculator = [evaluator, wp, wp_ele, wp_jet, era, variations,
                             sf_name](const float &eta, const int &gen_match) {
         double sf = 1.;
         // exclude default values due to tau energy correction shifts below good tau
@@ -1731,13 +1735,12 @@ Id_vsMu(ROOT::RDF::RNode df,
             if (it != variations.begin()){
                 it = std::prev(it);
                 std::string variation = it->second;
-                if (era=="2024" || era=="2025") {
+                if (era == "2024" || era == "2025") {
                     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")
                         ->debug("ID {} - eta {}, gen_match {}, wp {}, wp ele {}, wp jet {}, variation {}",
                             sf_name, eta, gen_match, wp, wp_ele, wp_jet, variation);
                     sf = evaluator->evaluate({eta, gen_match, wp, wp_ele, wp_jet, variation});
-                    }
-                else {
+                } else {
                     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")
                         ->debug("ID {} - eta {}, gen_match {}, wp {}, variation {}",
                             sf_name, eta, gen_match, wp, variation);
