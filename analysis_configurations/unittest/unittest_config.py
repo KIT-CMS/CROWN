@@ -43,16 +43,6 @@ def build_config(
         available_eras,
         available_scopes,
     )
-    configuration.add_config_parameters(
-        ["global"] + scopes,
-        {
-            "era": EraModifier(
-                {
-                    **{_era: _era for _era in available_eras},
-                }
-            )
-        },
-    )
     # first add default parameters necessary for all scopes
     configuration.add_config_parameters(
         "global",

@@ -162,6 +162,27 @@ class Configuration(object):
         for scope in self.scopes:
             self.config_parameters[scope].update(sample_parameters)
 
+    def _set_era_parameters(self) -> None:
+        """
+        Helper function to add era variables to the configuration.
+        The variables look like ``${era}`` and can be used in all producer
+        calls to check the era of the sample.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        era_parameters: Dict[str, str] = {}
+        for era in self.available_eras:
+            if self.era == era:
+                era_parameters["era"] = era
+            else:
+                continue
+        for scope in self.scopes:
+            self.config_parameters[scope].update(era_parameters)
+
     def setup_defaults(self) -> None:
         """
         Function used to add some defaults to the configuration. This function is called by the ``__init__`` function.
@@ -191,6 +212,7 @@ class Configuration(object):
             self.config_parameters[scope] = {}
             self.available_shifts[scope] = set()
         self._set_sample_parameters()
+        self._set_era_parameters()
 
     def add_config_parameters(
         self, scopes: Union[str, List[str]], parameters: TConfiguration
