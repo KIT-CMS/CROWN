@@ -44,7 +44,7 @@ def build_config(
         available_scopes,
     )
     configuration.add_config_parameters(
-        scopes,
+        ["global"] + scopes,
         {
             "era": EraModifier(
                 {
