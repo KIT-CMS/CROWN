@@ -218,7 +218,7 @@ CutEqual(ROOT::RDF::RNode df, const std::string &outputname,
  */
 template <typename T>
 inline ROOT::RDF::RNode
-CutEqual(ROOT::RDF::RNode df, const std::string &outputname,
+CutAbsEqual(ROOT::RDF::RNode df, const std::string &outputname,
          const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
