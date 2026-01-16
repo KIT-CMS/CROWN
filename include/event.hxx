@@ -67,10 +67,10 @@ inline auto CombineFlags(ROOT::RDF::RNode df, const std::string &outputname,
 namespace quantity {
 
 /**
- * @brief This function defines a flag for events that satisfy a minimum
- * threshold requirement. The flag is created by comparing the value in the
- * specified quantity column with the given threshold, marking elements as
- * `1` if they pass the cut and `0` otherwise.
+ * @brief This function defines a flag for event quantities that satisfy a
+ * minimum threshold requirement. The flag is created by comparing the value
+ * in the specified quantity column with the given threshold, marking elements
+ * as `1` if they pass the cut and `0` otherwise.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
@@ -83,7 +83,7 @@ namespace quantity {
  */
 template <typename T>
 inline ROOT::RDF::RNode
-CutMin(ROOT::RDF::RNode df, const std::string &outputname,
+MinFlag(ROOT::RDF::RNode df, const std::string &outputname,
        const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
@@ -94,8 +94,8 @@ CutMin(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief This function defines a flag for events that satisfy a minimum
- * threshold requirement. The flag is created by comparing the absolute
+ * @brief This function defines a flag for event quantities that satisfy a
+ * minimum threshold requirement. The flag is created by comparing the absolute
  * value in the specified quantity column with the given threshold, marking
  * elements as `1` if they pass the cut and `0` otherwise.
  *
@@ -110,7 +110,7 @@ CutMin(ROOT::RDF::RNode df, const std::string &outputname,
  */
 template <typename T>
 inline ROOT::RDF::RNode
-CutAbsMin(ROOT::RDF::RNode df, const std::string &outputname,
+AbsMinFlag(ROOT::RDF::RNode df, const std::string &outputname,
        const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
@@ -121,10 +121,10 @@ CutAbsMin(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief This function defines a flag for events that satisfy a maximum
- * threshold requirement. The flag is created by comparing the value in the
- * specified quantity column with the given threshold, marking elements as
- * `1` if they pass the cut and `0` otherwise.
+ * @brief This function defines a flag for event quantities that satisfy a
+ * maximum threshold requirement. The flag is created by comparing the value
+ * in the specified quantity column with the given threshold, marking elements
+ * as `1` if they pass the cut and `0` otherwise.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
@@ -137,7 +137,7 @@ CutAbsMin(ROOT::RDF::RNode df, const std::string &outputname,
  */
 template <typename T>
 inline ROOT::RDF::RNode
-CutMax(ROOT::RDF::RNode df, const std::string &outputname,
+MaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
        const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
@@ -148,8 +148,8 @@ CutMax(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief This function defines a flag for events that satisfy a maximum
- * threshold requirement. The flag is created by comparing the absolute
+ * @brief This function defines a flag for event quantities that satisfy a
+ * maximum threshold requirement. The flag is created by comparing the absolute
  * value in the specified quantity column with the given threshold, marking
  * elements as `1` if they pass the cut and `0` otherwise.
  *
@@ -164,7 +164,7 @@ CutMax(ROOT::RDF::RNode df, const std::string &outputname,
  */
 template <typename T>
 inline ROOT::RDF::RNode
-CutAbsMax(ROOT::RDF::RNode df, const std::string &outputname,
+AbsMaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
        const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
@@ -175,9 +175,9 @@ CutAbsMax(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief This function defines a flag for events that satisfy an exact
- * threshold requirement. The flag is created by comparing the value in the
- * specified quantity column with the given threshold, marking elements as
+ * @brief This function defines a flag for event quantities that satisfy an
+ * exact threshold requirement. The flag is created by comparing the value in
+ * the specified quantity column with the given threshold, marking elements as
  * `1` if they pass the cut and `0` otherwise.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
@@ -191,7 +191,7 @@ CutAbsMax(ROOT::RDF::RNode df, const std::string &outputname,
  */
 template <typename T>
 inline ROOT::RDF::RNode
-CutEqual(ROOT::RDF::RNode df, const std::string &outputname,
+EqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
          const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
@@ -202,8 +202,8 @@ CutEqual(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief This function defines a flag for events that satisfy an exact
- * threshold requirement. The flag is created by comparing the absolute
+ * @brief This function defines a flag for event quantities that satisfy an
+ * exact threshold requirement. The flag is created by comparing the absolute
  * value in the specified quantity column with the given threshold, marking
  * elements as `1` if they pass the cut and `0` otherwise.
  *
@@ -218,7 +218,7 @@ CutEqual(ROOT::RDF::RNode df, const std::string &outputname,
  */
 template <typename T>
 inline ROOT::RDF::RNode
-CutAbsEqual(ROOT::RDF::RNode df, const std::string &outputname,
+AbsEqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
          const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
