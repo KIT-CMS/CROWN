@@ -31,7 +31,7 @@ JetPtCorrection = ProducerGroup(
         {jet_reapplyJES}, 
         {jet_jes_shift}, 
         {jet_jer_shift},
-        {era})
+        "{era}")
         """,
     input=[
         nanoAOD.Jet_pt,
