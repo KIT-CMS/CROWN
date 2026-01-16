@@ -67,6 +67,168 @@ inline auto CombineFlags(ROOT::RDF::RNode df, const std::string &outputname,
 namespace quantity {
 
 /**
+ * @brief This function defines a flag for events that satisfy a minimum
+ * threshold requirement. The flag is created by comparing the value in the
+ * specified quantity column with the given threshold, marking elements as
+ * `1` if they pass the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param threshold minimum threshold value of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+CutMin(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &value) {
+                         int flag = value >= threshold;
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a flag for events that satisfy a minimum
+ * threshold requirement. The flag is created by comparing the absolute
+ * value in the specified quantity column with the given threshold, marking
+ * elements as `1` if they pass the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param threshold minimum threshold value of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+CutAbsMin(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &value) {
+                         int flag = abs(value) >= threshold;
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a flag for events that satisfy a maximum
+ * threshold requirement. The flag is created by comparing the value in the
+ * specified quantity column with the given threshold, marking elements as
+ * `1` if they pass the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param threshold maximum threshold value of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+CutMax(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &value) {
+                         int flag = value < threshold;
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a flag for events that satisfy a maximum
+ * threshold requirement. The flag is created by comparing the absolute
+ * value in the specified quantity column with the given threshold, marking
+ * elements as `1` if they pass the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param threshold maximum threshold value of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+CutAbsMax(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &value) {
+                         int flag = abs(value) < threshold;
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a flag for events that satisfy an exact
+ * threshold requirement. The flag is created by comparing the value in the
+ * specified quantity column with the given threshold, marking elements as
+ * `1` if they pass the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param threshold exact threshold value of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+CutEqual(ROOT::RDF::RNode df, const std::string &outputname,
+         const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &value) {
+                         int flag = value == threshold;
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a flag for events that satisfy an exact
+ * threshold requirement. The flag is created by comparing the absolute
+ * value in the specified quantity column with the given threshold, marking
+ * elements as `1` if they pass the cut and `0` otherwise.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param threshold exact threshold value of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+CutEqual(ROOT::RDF::RNode df, const std::string &outputname,
+         const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &value) {
+                         int flag = abs(value) == threshold;
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
  * @brief This function creates a new column in the dataframe with the specified
  * `outputname`, copying the values from an existing `quantity` column. The
  * original column remains unchanged.
