@@ -18,6 +18,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
                const std::string &era, const bool &no_jer_for_unmatched_forward_jets = false);
+ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
                  correctionManager::CorrectionManager &correction_manager,
                  const std::string &outputname, const std::string &jet_pt,
