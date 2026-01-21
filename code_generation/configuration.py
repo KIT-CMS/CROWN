@@ -155,22 +155,10 @@ class Configuration(object):
         """
         sample_parameters: Dict[str, bool] = {}
         for sampletype in self.available_sample_types:
-            if self.sample == sampletype:
+            if self.sample == sampletype or self.sample.startswith(sampletype + "_"):
                 sample_parameters["is_{}".format(sampletype)] = True
             else:
                 sample_parameters["is_{}".format(sampletype)] = False
-        if "data" in self.sample:
-            sample_parameters["is_data"] = True
-        else:
-            sample_parameters["is_data"] = False
-        if "dyjets" in self.sample:
-            sample_parameters["is_dyjets"] = True
-        else: 
-            sample_parameters["is_dyjets"] = False
-        if "wjets" in self.sample:
-            sample_parameters["is_wjets"] = True
-        else:
-            sample_parameters["is_wjets"] = False
         for scope in self.scopes:
             self.config_parameters[scope].update(sample_parameters)
 
