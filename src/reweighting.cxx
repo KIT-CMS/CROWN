@@ -507,7 +507,7 @@ ZBosonPt(ROOT::RDF::RNode df,
             float weight_nom = corrDY->evaluate({order, (float)gen_boson.Pt(), "nom"});
             weight = weight_nom;
 
-            for (int i = 0; i < n_unc; i++) {
+            for (int i = 1; i <= n_unc; i++) {
                 float unc_up = corrDY->evaluate({order, (float)gen_boson.Pt(), "up" + std::to_string(i)});
                 float unc_down = corrDY->evaluate({order, (float)gen_boson.Pt(), "down" + std::to_string(i)});
 
