@@ -57,56 +57,6 @@ Pileup(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief Function used to read out pileup weights from root files
- *
- * @param df The input dataframe
- * @param weightname name of the derived weight
- * @param truePUMean name of the column containing the true PU mean of simulated
- * events
- * @param filename path to the rootfile
- * @param histogramname name of the histogram stored in the rootfile
- * @return a new dataframe containing the new column
- */
-ROOT::RDF::RNode PUWeightROOT(ROOT::RDF::RNode df, const std::string &weightname,
-                           const std::string &truePUMean,
-                           const std::string &datafilename,
-                           const std::string &mcfilename,
-                           const std::string &histname) {
-    // Open files and get histograms
-    TFile* datafile = TFile::Open(datafilename.c_str(), "READ");
-    TFile* mcfile = TFile::Open(mcfilename.c_str(), "READ");
-    TH1D* datahist = (TH1D*)datafile->Get(histname.c_str());
-    TH1D* mchist = (TH1D*)mcfile->Get(histname.c_str());
-    datahist->SetDirectory(0);
-    mchist->SetDirectory(0);
-    datahist->Scale(1.0 / datahist->Integral());
-    mchist->Scale(1.0 / mchist->Integral());
-    datafile->Close();
-    mcfile->Close();
-    delete datafile;
-    delete mcfile;
-
-    // Define lambda for event weight
-    auto puweightlambda = [datahist, mchist](const float truePUMean) {
-        int dataBin = datahist->GetXaxis()->FindBin(truePUMean);
-        int mcBin = mchist->GetXaxis()->FindBin(truePUMean);
-        float data = datahist->GetBinContent(dataBin);
-        float mc = mchist->GetBinContent(mcBin);
-        if (mc > 0.0) {
-            float ratio = data / mc;
-            if (ratio > 5.0) return 5.0f;
-            return ratio;
-        } else {
-            return 1.0f;
-        }
-    };
-
-    // Add new column to DataFrame
-    auto df1 = df.Define(weightname, puweightlambda, {truePUMean});
-    return df1;
-}
-
-/**
  * @brief This function is used to evaluate the parton shower (PS) weight of an event. 
  * The weights are stored in the nanoAOD files and defined as 
  * \f$w_{variation}\f$ / \f$w_{nominal}\f$. The nominal weight is already applied, 
@@ -557,9 +507,6 @@ ZBosonPt(ROOT::RDF::RNode df,
  * @param argset additional arguments that are needed for the function
  *
  * @return a new dataframe containing the new column
- *
- * @note The function is intended for Run 2 analysis. In Run 3 Zpt corrections are
- * handled through correctionlib, see the function below.
  */
 ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df,
                          const std::string &outputname,
@@ -595,7 +542,6 @@ ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df,
         gen_boson + "_pt");
     return df3;
 }
-
 } // end namespace reweighting
 } // end namespace event
 #endif /* GUARD_REWEIGHTING_H */
