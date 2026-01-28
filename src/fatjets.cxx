@@ -2,12 +2,10 @@
 #define GUARD_FATJETS_H
 
 #include "../include/defaults.hxx"
-#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
-#include "correction.h"
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
@@ -16,6 +14,7 @@
 namespace physicsobject {
 namespace fatjet {
 namespace quantity {
+
 /**
  * @brief This function calculates a discriminator score from two ParticleNet 
  * tagger outputs (a signal X and the QCD background). The signal can e.g. be 

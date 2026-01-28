@@ -4,6 +4,7 @@
 namespace physicsobject {
 namespace fatjet {
 namespace quantity {
+
 ROOT::RDF::RNode
 ParticleNet_XvsQCD(ROOT::RDF::RNode df,
     const std::string &outputname,
