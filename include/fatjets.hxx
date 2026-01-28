@@ -4,21 +4,6 @@
 namespace physicsobject {
 namespace fatjet {
 namespace quantity {
-
-
-ROOT::RDF::RNode
-ID(ROOT::RDF::RNode df,
-        correctionManager::CorrectionManager &correction_manager,
-        const std::string &outputname,
-        const std::string &jet_eta,
-        const std::string &jet_chHEF,
-        const std::string &jet_neHEF,
-        const std::string &jet_chEmEF,
-        const std::string &jet_neEmEF,
-        const std::string &jet_chMult,
-        const std::string &jet_neMult,
-        const std::string &jet_id_file,
-        const std::string &jet_name);
 ROOT::RDF::RNode
 ParticleNet_XvsQCD(ROOT::RDF::RNode df,
     const std::string &outputname,
