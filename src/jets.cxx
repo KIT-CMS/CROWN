@@ -769,7 +769,7 @@ ID(ROOT::RDF::RNode df,
                                                     const ROOT::RVec<UChar_t> &neMult) {
 
         size_t nJets = eta.size();
-        ROOT::RVec<UChar_t> jetId(nJets);
+        ROOT::RVec<int> jetId(nJets); 
         for (size_t i = 0; i < nJets; ++i) {
             UChar_t mult = chMult.at(i) + neMult.at(i);
             bool passTight = false, passTightLepVeto = false;
