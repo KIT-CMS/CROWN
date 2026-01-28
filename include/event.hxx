@@ -375,7 +375,7 @@ ROOT::RDF::RNode GetFromGenObject(
     auto get_gen_quantity = [genobj_idx, gen_quantity, index_vector, position] (
         const ROOT::RVec<Short_t> &genobj_idx_val,
         const ROOT::RVec<T> &gen_quantity_val,
-        const ROOT::RVec<int> &index_vector_val,
+        const ROOT::RVec<int> &index_vector_val
     ) {
         // Log column names and respective values in debug mode
         Logger::get("event::quantity::GetFromGenObject")->debug(
