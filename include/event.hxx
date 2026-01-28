@@ -382,17 +382,17 @@ ROOT::RDF::RNode GetFromGenObject(
             "Trying to access value of matched generator-level object"
         );
         Logger::get("event::quantity::GetFromGenObject")->debug(
-            "    genobj_idx '{}': {}"
+            "    genobj_idx '{}': {}",
             genobj_idx,
             genobj_idx_val
         );
         Logger::get("event::quantity::GetFromGenObject")->debug(
-            "    gen_quantity '{}': {}"
+            "    gen_quantity '{}': {}",
             gen_quantity,
             gen_quantity_val
         );
         Logger::get("event::quantity::GetFromGenObject")->debug(
-            "    index_vector '{}': {}"
+            "    index_vector '{}': {}",
             index_vector,
             index_vector_val
         );
@@ -409,8 +409,8 @@ ROOT::RDF::RNode GetFromGenObject(
                     index,
                     position
                 );
-            if (index >= 0 && index < genjet_idx_val.size()) {
-                auto gen_index = genjet_idx_val.at(index);
+            if (index >= 0 && index < genobj_idx_val.size()) {
+                auto gen_index = genobj_idx_val.at(index);
                 Logger::get("event::quantity::GetFromGenObject")->debug(
                     "    Gen object index {}",
                     gen_index
@@ -423,7 +423,7 @@ ROOT::RDF::RNode GetFromGenObject(
             }
         } else {
             Logger::get("event::quantity::GetFromGenObject")->debug(
-                "Index not found, returning dummy value!"
+                "    Index not found, returning dummy value!"
             );
         }
 
@@ -433,7 +433,7 @@ ROOT::RDF::RNode GetFromGenObject(
     return df.Define(
         output_name,
         get_gen_quantity,
-        {genjet_idx, gen_quantity, index_vector}
+        {genobj_idx, gen_quantity, index_vector}
     );
 }
 
