@@ -317,6 +317,127 @@ inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
+ * @brief Get the value of a generator-level quantity associated with a
+ * reconstructed object.
+ *
+ * The function operates as follows:
+ *
+ * - The reconstructed object under consideration is chosen by providing its
+ *   `"position"` within an `"index_list"`.
+ *
+ * - The `"genobj_index"` column of the reconstructed collection must contain
+ *   the index of the matched object in the associated generator-level
+ *   collection.
+ *
+ * - The aforementioned `"genobj_index"` is used to access the generator-level
+ *   object. From this object, the value of the `"gen_quantity"` column is
+ *   taken.
+ *
+ * If the generator-level object cannot be accessed, the function returns a
+ * default value.
+ *
+ * _Example:_ Let the column `"good_jet_indices"` contain the indices of
+ * selected AK4 jets. For the `Jet` collection, the column `"Jet_genJetIdx"`
+ * contains the index of the matched generator-level jet in the `"GenJet"`
+ * collection. To define the generator-level p<sub>T</sub> of the leading
+ * reconstructed AK4 jet, one needs to call:
+ *
+ * ```c++
+ * event::quantity::GetFromGenObject(
+ *     df,
+ *     "jet_gen_pt_1",
+ *     "Jet_genJetIdx",
+ *     "GenJet_pt",
+ *     "good_jet_indices",
+ *     0
+ *  )
+ * ```
+ *
+ * @param df the input dataframe
+ * @param output_name the name of the produced column
+ * @param genobj_idx column that holds the index of the associated generator-level object
+ * @param gen_quantity name of the quantity of the generator-level object
+ * @param index_vector name of the column containing index values
+ * @param position position within the index vector used to retrieve the index 
+ *
+ * @return a dataframe with the new column
+ */
+template <typename T>
+ROOT::RDF::RNode GetFromGenObject(
+    ROOT::RDF::RNode df,
+    const std::string &output_name,
+    const std::string &genobj_idx,
+    const std::string &gen_quantity,
+    const std::string &index_vector,
+    const int &position
+) {
+
+    auto get_gen_quantity = [genobj_idx, gen_quantity, index_vector, position] (
+        const ROOT::RVec<Short_t> &genobj_idx_val,
+        const ROOT::RVec<T> &gen_quantity_val,
+        const ROOT::RVec<int> &index_vector_val,
+    ) {
+        // Log column names and respective values in debug mode
+        Logger::get("event::quantity::GetFromGenObject")->debug(
+            "Trying to access value of matched generator-level object"
+        );
+        Logger::get("event::quantity::GetFromGenObject")->debug(
+            "    genobj_idx '{}': {}"
+            genobj_idx,
+            genobj_idx_val
+        );
+        Logger::get("event::quantity::GetFromGenObject")->debug(
+            "    gen_quantity '{}': {}"
+            gen_quantity,
+            gen_quantity_val
+        );
+        Logger::get("event::quantity::GetFromGenObject")->debug(
+            "    index_vector '{}': {}"
+            index_vector,
+            index_vector_val
+        );
+
+        // Define the result with the default value, which is returned when
+        // accessing the entries in the vectors fails
+        T result = default_value<T>();
+
+        // Get the index to access in the fatjet list
+        if (position >= 0 && position < index_vector_val.size()) {
+            auto index = index_vector_val.at(position);
+                Logger::get("event::quantity::GetFromGenObject")->debug(
+                    "    Reco object index {} at position {}",
+                    index,
+                    position
+                );
+            if (index >= 0 && index < genjet_idx_val.size()) {
+                auto gen_index = genjet_idx_val.at(index);
+                Logger::get("event::quantity::GetFromGenObject")->debug(
+                    "    Gen object index {}",
+                    gen_index
+                );
+                result = gen_quantity_val.at(gen_index);
+                Logger::get("event::quantity::GetFromGenObject")->debug(
+                    "    Retrieved quantity value {}",
+                    result
+                );
+            }
+        } else {
+            Logger::get("event::quantity::GetFromGenObject")->debug(
+                "Index not found, returning dummy value!"
+            );
+        }
+
+        return result;
+    };
+
+    return df.Define(
+        output_name,
+        get_gen_quantity,
+        {genjet_idx, gen_quantity, index_vector}
+    );
+}
+
+/**
  * @brief This function computes the sum of the elements in the `quantity`
  * column for each event. If no elements are selected, a default value (provided
  * by `zero`) is used as the sum for that event.
