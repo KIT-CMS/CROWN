@@ -47,8 +47,7 @@ namespace quantity {
  *
  * @return a RDataFrame with the new jet ID column appended
  */
-
-ROOT::RDF::RNode 
+ROOT::RDF::RNode
 ID(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
         const std::string &outputname,
@@ -68,7 +67,7 @@ ID(ROOT::RDF::RNode df,
 
     // Load the jet ID correction file with TightLeptonVeto criteria
     auto tightLepVetoID = 
-        correction_manager.loadCorrection(jet_id_file, jet_name + "_TightLeptonVeto"); 
+        correction_manager.loadCorrection(jet_id_file, jet_name + "_TightLeptonVeto");
 
     auto compute_jet_id = [tightID, tightLepVetoID](const ROOT::RVec<float> &eta,
                                                     const ROOT::RVec<float> &chHEF,
