@@ -415,11 +415,13 @@ ROOT::RDF::RNode GetFromGenObject(
                     "    Gen object index {}",
                     gen_index
                 );
-                result = gen_quantity_val.at(gen_index);
-                Logger::get("event::quantity::GetFromGenObject")->debug(
-                    "    Retrieved quantity value {}",
-                    result
-                );
+                if (gen_index >= 0 && gen_index < gen_quantity_val.size()) {
+                    result = gen_quantity_val.at(gen_index);
+                    Logger::get("event::quantity::GetFromGenObject")->debug(
+                        "    Retrieved quantity value {}",
+                        result
+                    );
+                }
             }
         } else {
             Logger::get("event::quantity::GetFromGenObject")->debug(
