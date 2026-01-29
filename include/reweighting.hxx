@@ -10,6 +10,11 @@ Pileup(ROOT::RDF::RNode df,
           const std::string &outputname, const std::string &true_pileup_number,
           const std::string &corr_file, const std::string &corr_name,
           const std::string &variation);
+ROOT::RDF::RNode PUWeightROOT(ROOT::RDF::RNode df, const std::string &weightname,
+                           const std::string &truePUMean,
+                           const std::string &datafilename,
+                           const std::string &mcfilename,
+                           const std::string &histname);
 ROOT::RDF::RNode PartonShower(ROOT::RDF::RNode df,
                             const std::string &outputname,
                             const std::string &ps_weights,
