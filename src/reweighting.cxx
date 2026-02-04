@@ -405,7 +405,90 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief This function is used to calculate and event weight based on Z boson 
+ * @brief This function is used to calculate an event weight to correct the Z boson 
+ * \f$p_T\f$. These corrections are recommended especially
+ * for LO Drell-Yan samples, where the \f$p_T\f$ and mass of the Z boson are
+ * mismodeled compared to data. This function is defined for the corrections provided
+ * by the CMS HLepRare group. More details can be found here:
+ * https://cms-higgs-leprare.docs.cern.ch/htt-common/DY_reweight/
+ *
+ * @note HLepRare only provides corrections for Run3. For Run2 see
+ *`event::reweighting::ZPtMass`.
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * correction file
+ * @param outputname name of the output column containing the derived event weight
+ * @param gen_boson name of the column containing the Lorentz vector of the
+ * generator-level boson
+ * @param corr_file path to the correction file containing the Z boson \f$p_T\f$
+ * corrections
+ * @param corr_name name of the correction in the json file
+ * @param order order of the used DY samples: "LO" for madgraph, "NLO" for amcatnlo,
+ * "NNLO" for powheg
+ * @param variation name of the variation that should be evaluated, options are
+ * "nom", "up", "down" or "upX", "downX". For "up" and "down" the uncertainty is
+ * defined by the envelope of all provided uncertainty sources in the correction
+ * file. Otherwise the specific uncertainty source "X" is used (where X is a number
+ * e.g. 1,2,3,...).
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+ZBosonPt(ROOT::RDF::RNode df,
+         correctionManager::CorrectionManager &correction_manager,
+         const std::string &outputname,
+         const std::string &gen_boson,
+         const std::string &corr_file,
+         const std::string &corr_name,
+         const std::string &order,
+         const std::string &variation) {
+
+    auto corrDY = correction_manager.loadCorrection(corr_file, corr_name);
+    auto corrDYunc = correction_manager.loadCorrection(corr_file, corr_name + "_N_uncertainty");
+
+    // Get number of uncertainties
+    auto n_unc = corrDYunc->evaluate({order});
+
+    // Get weight depending on variation
+    auto corr = [corrDY, order, variation, n_unc](const ROOT::Math::PtEtaPhiMVector &gen_boson) {
+        float weight = 1.0;
+        if (variation == "up" || variation == "down") {
+            float weight_nom = corrDY->evaluate({order, (float)gen_boson.Pt(), "nom"});
+            weight = weight_nom;
+
+            for (int i = 1; i <= n_unc; i++) {
+                float unc_up = corrDY->evaluate({order, (float)gen_boson.Pt(), "up" + std::to_string(i)});
+                float unc_down = corrDY->evaluate({order, (float)gen_boson.Pt(), "down" + std::to_string(i)});
+
+                if (variation == "up" && unc_up > weight_nom && unc_up > weight) {
+                    weight = unc_up;
+                } else if (variation == "up" && unc_down > weight_nom && unc_down > weight) {
+                    weight = unc_down;
+                } else if (variation == "down" && unc_down < weight_nom && unc_down < weight) {
+                    weight = unc_down;
+                } else if (variation == "down" && unc_up < weight_nom && unc_up < weight) {
+                    weight = unc_up;
+                }
+            }
+        } 
+        else if (variation == "nom" || variation.rfind("up") != std::string::npos || 
+                 variation.rfind("down") != std::string::npos) {
+            weight = corrDY->evaluate({order, (float)gen_boson.Pt(), variation});
+        }
+        else {
+            Logger::get("event::reweighting::ZBosonPt")
+                ->error("Invalid variation: {}", variation);
+            throw std::runtime_error("Invalid variation for Z boson pT weight");
+        }
+        return weight;
+    };
+    auto df1 = df.Define(outputname, corr, {gen_boson});
+    return df1;
+}
+
+/**
+ * @brief This function is used to calculate an event weight based on Z boson 
  * \f$p_T\f$ and mass corrections. These corrections are recommended especially 
  * for LO Drell-Yan samples, where the \f$p_T\f$ and mass of the Z boson are
  * mismodeled compared to data. 
@@ -416,8 +499,8 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df,
  *
  * @param df input dataframe
  * @param outputname name of the output column containing the derived event weight
- * @param gen_boson name of the column that containing a pair of Lorentz vectors,
- * where the first entry is the one of the gen. boson
+ * @param gen_boson name of the column containing the Lorentz vector of the 
+ * generator-level boson
  * @param workspace_file path to the file which contains the workspace that should be
  * used
  * @param functor_name name of the function in the workspace that should be used

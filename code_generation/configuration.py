@@ -155,7 +155,7 @@ class Configuration(object):
         """
         sample_parameters: Dict[str, bool] = {}
         for sampletype in self.available_sample_types:
-            if self.sample == sampletype:
+            if self.sample == sampletype or self.sample.startswith(sampletype + "_"):
                 sample_parameters["is_{}".format(sampletype)] = True
             else:
                 sample_parameters["is_{}".format(sampletype)] = False
