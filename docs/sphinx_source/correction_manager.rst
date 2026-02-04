@@ -28,7 +28,7 @@ The easiest way to access these correction files in CROWN is to use ``cvmfs``.
 All POGs provide their correction files on cvmfs under the path: ``/cvmfs/cms-griddata.cern.ch/cat/metadata/*``.
 The exact paths for each correction can be found in the CMS Analysis Corrections Wiki linked above.
 
-The old way of accessing the correction files via the ``jsonPOG-integration`` repository is depricated and will be removed in future versions of CROWN.
+The old way of accessing the correction files via the ``jsonPOG-integration`` repository is deprecated and will be removed in future versions of CROWN.
 
 Required Changes
 ******************

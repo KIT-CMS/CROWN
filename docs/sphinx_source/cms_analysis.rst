@@ -48,6 +48,6 @@ evaluate them using ``correctionlib``. This tool is used in CROWN.
    | CMS Wiki (corrections): https://cms-analysis-corrections.docs.cern.ch/
    | Correctionlib docs: https://cms-nanoaod.github.io/correctionlib/
 
-Further, common analysis recommendations, which is not specifically relevant for
+Further, common analysis recommendations, which are not specifically relevant for
 CROWN but for the subsequent analysis steps like CMS plotting style, naming of systematic
 uncertainties or statistical tools, can be found here: https://cms-analysis.docs.cern.ch/
