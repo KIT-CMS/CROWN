@@ -280,15 +280,15 @@ ROOT::RDF::RNode GetEnergy(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief This function constructs a vectorial sum of an arbitrary number of 
- * Lorentz vectors (can also be only one) and returns its rapidity \f$y\f$. 
+ * @brief This function constructs a vectorial sum of an arbitrary number of
+ * Lorentz vectors (can also be only one) and returns its rapidity \f$y\f$.
  * If one of the Lorentz vectors is not well defined (has default values), the
  * function returns a default value.
  *
- * @tparam Lorentzvectors variadic template parameter pack representing the 
+ * @tparam Lorentzvectors variadic template parameter pack representing the
  * Lorentz vector columns
  * @param df input dataframe
- * @param outputname name of the output column containing the rapidity \f$y\f$ 
+ * @param outputname name of the output column containing the rapidity \f$y\f$
  * of the summed Lorentz vectors
  * @param LVs Parameter pack of column names that contain the considered
  * Lorentz vectors, must be of type `ROOT::Math::PtEtaPhiMVector`
