@@ -157,24 +157,16 @@ ROOT::RDF::RNode Id_vsJet(
     const std::string &variation_dm1_pt20to40, const std::string &variation_dm1_pt40toInf,
     const std::string &variation_dm10_pt20to40, const std::string &variation_dm10_pt40toInf,
     const std::string &variation_dm11_pt20to40, const std::string &variation_dm11_pt40toInf);
-ROOT::RDF::RNode Id_vsEle(
-    ROOT::RDF::RNode df,
-    correctionManager::CorrectionManager &correction_manager,
-    const std::string &outputname,
-    const std::string &eta,
-    const std::string &gen_match, 
-    const std::string &sf_file, const std::string &sf_name,
-    const std::string &wp, 
-    const std::string &sf_vsele_barrel,
-    const std::string &sf_vsele_endcap);
-ROOT::RDF::RNode
+ROOT::RDF::RNode 
 Id_vsEle(ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname,
     const std::string &eta,
     const std::string &decay_mode,
     const std::string &gen_match, 
-    const std::string &sf_file, const std::string &sf_name,
+    const std::string &era,
+    const std::string &sf_file, 
+    const std::string &sf_name,
     const std::string &wp, 
     const std::string &variation_barrel,
     const std::string &variation_endcap);
