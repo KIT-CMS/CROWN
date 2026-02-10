@@ -14,7 +14,7 @@
 
 #include "TInterpreter.h"
 #include "TMVA/RModel.hxx"
-#include "TMVA/RModelParser_ONNX.hxx"
+// #include "TMVA/RModelParser_ONNX.hxx"
 #include "TSystem.h"
 #include <assert.h>
 #include <filesystem>
@@ -22,7 +22,7 @@
 #include <iostream>
 #include <memory>
 #include <nlohmann/json.hpp>
-#include <onnxruntime_cxx_api.h>
+#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

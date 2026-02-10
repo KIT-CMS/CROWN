@@ -1,34 +1,65 @@
-# Find ONNXRuntime first check if we have an LCG stack via LCG_VERSION
-# environment variable
+# Find ONNXRuntime
 if(DEFINED ENV{LCG_VERSION})
   string(REPLACE ":" ";" RUNTIME_PATH "$ENV{LD_LIBRARY_PATH}")
   message(STATUS "Found LCG stack, using it to find ONNXRuntime")
+
   find_library(
     ONNX_RUNTIME_LIB_PATH
     NAMES onnxruntime
     HINTS ${RUNTIME_PATH})
+
   if(ONNX_RUNTIME_LIB_PATH)
-    # get the real path of the library to find the include directory
-    get_filename_component(ONNX_RUNTIME_LIB_PATH ${ONNX_RUNTIME_LIB_PATH}
-                           REALPATH)
-    get_filename_component(ONNX_RUNTIME_INCLUDE_PATH
-                           ${ONNX_RUNTIME_LIB_PATH}/../../include REALPATH)
-    message(STATUS "ONNXRuntime include path: ${ONNX_RUNTIME_INCLUDE_PATH}/onnxruntime")
+    get_filename_component(ONNX_RUNTIME_LIB_PATH ${ONNX_RUNTIME_LIB_PATH} REALPATH)
+    get_filename_component(
+      ONNX_RUNTIME_INCLUDE_PATH
+      ${ONNX_RUNTIME_LIB_PATH}/../../include
+      REALPATH)
+
     include_directories("${ONNX_RUNTIME_INCLUDE_PATH}/onnxruntime")
   endif()
+
   message(STATUS "ONNXRuntime library path: ${ONNX_RUNTIME_LIB_PATH}")
+
+# Conda environment (pip-installed onnxruntime)
 else()
-  set(ONNXRUNTIME_INCLUDE_DIR "" CACHE FILEPATH "Path to ONNXRUNTIME includes")
-  message(STATUS "Running in CI, take Onnxruntime from pre-build")
-  if(NOT EXISTS ${ONNXRUNTIME_INCLUDE_DIR}/include/onnxruntime/core/session/onnxruntime_cxx_api.h)
-    message(SEND_ERROR "Can't find onnxruntime_cxx_api.h in ${ONNXRUNTIME_INCLUDE_DIR}/include/onnxruntime/core/session")
-  else()
-    message(STATUS "ONNXRuntime include path: ${ONNXRUNTIME_INCLUDE_DIR}/include/onnxruntime/core/session")
-    include_directories("${ONNXRUNTIME_INCLUDE_DIR}/include/onnxruntime/core/session")
-    # lib file is found in ${ONNXRUNTIME_INCLUDE_DIR}/build/Linux/Release
-    find_library(
-      ONNX_RUNTIME_LIB_PATH
-      NAMES onnxruntime
-      HINTS ${ONNXRUNTIME_INCLUDE_DIR}/build/Linux/Release)
+  if(NOT DEFINED ENV{CONDA_PREFIX})
+    message(FATAL_ERROR "Neither LCG stack nor Conda environment detected")
   endif()
+
+  message(STATUS "Using Conda environment at $ENV{CONDA_PREFIX}")
+
+  # Library is always in conda lib
+  find_library(
+    ONNX_RUNTIME_LIB_PATH
+    NAMES onnxruntime
+    HINTS $ENV{CONDA_PREFIX}/lib)
+
+  if(NOT ONNX_RUNTIME_LIB_PATH)
+    message(FATAL_ERROR "onnxruntime shared library not found in Conda env")
+  endif()
+
+  # Try Conda-style headers first
+  set(ONNX_RUNTIME_INCLUDE_PATH
+      $ENV{CONDA_PREFIX}/include)
+
+  if(EXISTS ${ONNX_RUNTIME_INCLUDE_PATH}/onnxruntime/core/session/onnxruntime_cxx_api.h)
+    message(STATUS "Found Conda-style ONNXRuntime headers")
+  else()
+    # Fallback: pip-installed headers in site-packages
+    file(GLOB _ORT_PIP_INCLUDE
+      $ENV{CONDA_PREFIX}/lib/python*/site-packages/onnxruntime/include)
+
+    if(NOT _ORT_PIP_INCLUDE)
+      message(FATAL_ERROR
+        "onnxruntime headers not found (neither Conda nor pip layout)")
+    endif()
+
+    list(GET _ORT_PIP_INCLUDE 0 ONNX_RUNTIME_INCLUDE_PATH)
+    message(STATUS "Found pip-installed ONNXRuntime headers")
+  endif()
+
+  include_directories(${ONNX_RUNTIME_INCLUDE_PATH})
+
+  message(STATUS "ONNXRuntime include path: ${ONNX_RUNTIME_INCLUDE_PATH}")
+  message(STATUS "ONNXRuntime library path: ${ONNX_RUNTIME_LIB_PATH}")
 endif()
