@@ -830,6 +830,105 @@ ROOT::RDF::RNode VetoOverlappingJetsWithIsoLepton(ROOT::RDF::RNode df,
 namespace quantity {
 
 /**
+ * @brief Patch for wrong Jet ID values in Run3 NanoAOD v12 samples.
+ *
+ * The implementation follows the recipe by the [JME POG](https://twiki.cern.ch/twiki/bin/view/CMS/JetID13p6TeV#nanoAOD_Flags).
+ *
+ * @param df the input dataframe
+ * @param outputname the name of the produced column
+ * @param jet_pt name of the column with jet pt values
+ * @param jet_eta name of the column with jet eta values
+ * @param jet_id name of the column with (broken) jet ID values 
+ * @param jet_ne_hef name of the column with neutral hadron energy fraction
+ * @param jet_ne_em_ef name of the column with neutral EM energy fraction
+ * @param jet_mu_ef name of the column with muon energy fraction
+ * @param jet_ch_em_ef name of the column with charged EM energy fraction
+ *
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode PatchedIDNanoV12(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &jet_pt,
+    const std::string &jet_eta,
+    const std::string &jet_id,
+    const std::string &jet_ne_hef,
+    const std::string &jet_ne_em_ef,
+    const std::string &jet_mu_ef,
+    const std::string &jet_ch_em_ef
+) {
+
+    // we do not need to ensure the correct casting for NanoAOD v9 samples here as this fix applies to NanoAOD v12 samples only
+
+    auto correction = [] (
+        const ROOT::RVec<float> &jet_pt,
+        const ROOT::RVec<float> &jet_eta,
+        const ROOT::RVec<UChar_t> &jet_id_v12,
+        const ROOT::RVec<float> &jet_ne_hef,
+        const ROOT::RVec<float> &jet_ne_em_ef,
+        const ROOT::RVec<float> &jet_mu_ef,
+        const ROOT::RVec<float> &jet_ch_em_ef
+    ) {
+        // cast jet_id to integer
+        auto jet_id = static_cast<ROOT::RVec<int>>(jet_id_v12);
+
+        // apply the JME POG recipe
+        auto jet_id_corrected = ROOT::RVec<int>(jet_id.size(), 0);
+        for (int i = 0; i < jet_pt.size(); ++i) {
+            // evaluate if the jet passes the tight WP
+            bool pass_tight = false;
+            if (abs(jet_eta.at(i)) <= 2.7) {
+                pass_tight = jet_id.at(i) & (1 << 1);
+            } else if (abs(jet_eta.at(i)) > 2.7 && abs(jet_eta.at(i)) <= 3.0) {
+                pass_tight = (jet_id.at(i) & (1 << 1)) && (jet_ne_hef.at(i) < 0.99);
+            } else if (abs(jet_eta.at(i)) > 3.0) {
+                pass_tight = (jet_id.at(i) & (1 << 1)) && (jet_ne_em_ef.at(i) < 0.4);
+            }
+
+            // evaluate if the jet passes the tight WP and fulfills the lepton veto
+            bool pass_tight_lep_veto = false;
+            if (abs(jet_eta.at(i)) <= 2.7) {
+                pass_tight_lep_veto = pass_tight && (jet_mu_ef.at(i) < 0.8) && (jet_ch_em_ef.at(i) < 0.8);
+            } else {
+                pass_tight_lep_veto = pass_tight;
+            }
+
+            // return value of the working point that is passed
+            // - 0 == fail
+            // - 2 == pass tight & fail tightlepveto
+            // - 6 == pass tight & pass tightlepveto
+            if (pass_tight && !pass_tight_lep_veto) {
+                jet_id_corrected[i] = 2;
+            } else if (pass_tight && pass_tight_lep_veto) {
+                jet_id_corrected[i] = 6;
+            } else {
+                jet_id_corrected[i] = 0;
+            }
+        }
+
+        // convert the data type to default in NanoAOD v12 (UChar_t)
+        auto jet_id_corrected_v12 = static_cast<ROOT::RVec<UChar_t>>(jet_id_corrected);
+
+        return jet_id_corrected_v12;
+    };
+
+    // redefine the data type of the Jet ID mask
+    return df.Define(
+        outputname,
+        correction,
+        {
+            jet_pt,
+            jet_eta,
+            jet_id,
+            jet_ne_hef,
+            jet_ne_em_ef,
+            jet_mu_ef,
+            jet_ch_em_ef
+        }
+    );
+}
+
+/**
  * @brief Applies jet identification criteria based on JSON-defined jet ID corrections.
  *
  * This function loads jet ID definitions from correctionlib JSON files for the specified
