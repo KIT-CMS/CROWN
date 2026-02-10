@@ -42,6 +42,24 @@ ApplyVetoMap(ROOT::RDF::RNode df, const std::string &outputname,
              const std::string &vetomap_file, const std::string &vetomap_name,
              const std::string &vetomap_type);
 ROOT::RDF::RNode
+JetVetomap(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
+    const std::string &output_mask,
+    const std::string &jet_pt,
+    const std::string &jet_eta,
+    const std::string &jet_phi,
+    const std::string &jet_id,
+    const std::string &jet_ch_em_ef,
+    const std::string &jet_n_em_ef,
+    const std::string &jet_vetomap_file,
+    const std::string &jet_vetomap_name,
+    const std::string &jet_vetomap_type,
+    const float &min_pt,
+    const int &id_wp,
+    const float &max_em_frac
+);
+ROOT::RDF::RNode
 VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &jet_eta, const std::string &jet_phi,
                     const std::string &target_p4_1,

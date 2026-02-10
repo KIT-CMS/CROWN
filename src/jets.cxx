@@ -534,6 +534,133 @@ ApplyVetoMap(ROOT::RDF::RNode df,
 }
 
 /**
+ * @brief Create a veto flag for events with jets in regions, which are known to produce wrong measurements.
+ * The function checks for jets which pass the base selection criteria if they are in a eta-phi region with
+ * "hot" and/or "cold" towers. Events with any jet in such a region are vetoed in data and simulation.
+ * If the event is vetoed, a value of `true` is stored in the new column, otherwise `false`.
+ * The locations are provided by a `correctionlib` file and depend on the data-taking era. This procedure
+ * follows the official [JME POG recommendations](https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps).
+ *
+ * @param df The input data frame.
+ * @param correctionManager The CorrectionManager object
+ * @param output_mask The output mask column.
+ * @param jet_pt The tranverse momentum column of the jets.
+ * @param jet_eta The pseudorapidity column of the jets.
+ * @param jet_phi The azimuthal angle column of the jets.
+ * @param jet_id The jet identification bitmask column of the jets.
+ * @param jet_ch_em_ef The charged electromagnetic energy fraction column of the jets.
+ * @param jet_n_em_ef The neutral electromagnetic energy fraction column of the jets.
+ * @param jet_vetomap_file The file path to the correctionlib jet veto map.
+ * @param jet_vetomap_name The name of the correction to access jet veto map.
+ * @param jet_vetomap_type The jet veto map type; for analyses, this name should be `"jetvetomap"`.
+ * @param min_pt The minimum transverse momentum for selected jets.
+ * @param id_wp The working point for the jet identification.
+ * @param max_em_frac The maximum charged and neutral electromagnetic energy fraction for selected jets.
+ *
+ * @return A new data frame with the selection mask column.
+ *
+ * @note The veto map selection is mandatory for Run 3 analyses and can also be applied to Run 2 analyses.
+ */
+ROOT::RDF::RNode JetVetomap(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
+    const std::string &output_mask,
+    const std::string &jet_pt,
+    const std::string &jet_eta,
+    const std::string &jet_phi,
+    const std::string &jet_id,
+    const std::string &jet_ch_em_ef,
+    const std::string &jet_n_em_ef,
+    const std::string &jet_vetomap_file,
+    const std::string &jet_vetomap_name,
+    const std::string &jet_vetomap_type,
+    const float &min_pt,
+    const int &id_wp,
+    const float &max_em_frac
+) {
+    // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, jet_id_v12] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+        df, jet_id+"_v12", "ROOT::VecOps::RVec<UChar_t>", jet_id
+    );
+
+    // load the veto map evaluator
+    auto evaluator = correctionManager.loadCorrection(jet_vetomap_file, jet_vetomap_name);
+
+    auto select = [
+        evaluator, min_pt, id_wp, max_em_frac, jet_vetomap_type
+    ] (
+        const ROOT::RVec<float> &jet_pt,
+        const ROOT::RVec<float> &jet_eta,
+        const ROOT::RVec<float> &jet_phi,
+        const ROOT::RVec<UChar_t> &jet_id,
+        const ROOT::RVec<float> &jet_ch_em_ef,
+        const ROOT::RVec<float> &jet_n_em_ef
+    ) {
+        // debug output for selection criteria and jet observables
+        Logger::get("physicsobject::jet::JetVetomap")->debug("Create selection masks for jets");
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    min_pt {}, id_wp {}, max_em_fraction {}", min_pt, id_wp, max_em_frac);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    pt {}", jet_pt);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    eta {}", jet_eta);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    phi {}", jet_phi);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    id {}", jet_id);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    ch_em_ef {}", jet_ch_em_ef);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    n_em_ef {}", jet_n_em_ef);
+
+        // create the index of selected jets
+        auto jet_index = ROOT::VecOps::Nonzero(
+            (jet_pt > min_pt)
+            && (jet_id >= id_wp)
+            && ((jet_ch_em_ef + jet_n_em_ef) < max_em_frac)
+        );
+
+        // create container with indices for vetoed jets
+        auto jet_index_vetoed = ROOT::RVec<int>(0);
+
+        for (const auto &i : jet_index) {
+            // evaluate the jet veto map value
+            auto jet_vetoed = evaluator->evaluate({
+                jet_vetomap_type,
+                jet_eta.at(i),
+                jet_phi.at(i)
+            });
+
+            // if the jet is vetoed, add it to the vetoed jet index
+            if (jet_vetoed) {
+                jet_index_vetoed.push_back(i);
+            };
+        }
+
+        // check if any jet has been vetoed
+        bool event_veto = false;
+        if (!jet_index_vetoed.empty()) {
+            event_veto = true;
+        }
+
+        // debug output for vetoes
+        Logger::get("physicsobject::jet::JetVetomap")->debug("Vetoes");
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    jet_index_vetoed {}", jet_index_vetoed);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    event_veto {}", event_veto);
+
+        return event_veto;
+    };
+
+    return df1.Define(
+        output_mask,
+        select,
+        {
+            jet_pt,
+            jet_eta,
+            jet_phi,
+            jet_id_v12,
+            jet_ch_em_ef,
+            jet_n_em_ef
+        }
+    );
+}
+
+
+/**
  * @brief This function checks the separation (deltaR) between each jet and
  * the given four-momentum vectors which can be for example a selected lepton
  * pair. If the deltaR is below `min_delta_r`, the jet is vetoed.
