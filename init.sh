@@ -21,38 +21,38 @@ distro="${distro//Linux/}"
 distro="${distro//linux/}"
 echo "Setting up CROWN for $distro Version $os_version"
 # check if the distro is centos
-if [[ "$distro" == "CentOS" ]]; then
-    # if the first number of os_version is a 7, we are on centOS 7
-    if [[ ${os_version:0:1} == "7" ]]; then # if uname -a | grep -E 'el7' -q
-        echo "CentOS 7 is EOL, running on LCG 105, support will be dropped soon"
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-centos7-gcc11-opt/setup.sh
-    else
-        echo "Unsupported CentOS version, exiting..."
-        return 0
-    fi
-elif [[ "$distro" == "RedHatEnterprise" || "$distro" == "Alma" || "$distro" == "Rocky" ]]; then
-    if [[ ${os_version:0:1} == "8" ]]; then # elif uname -a | grep -E 'el8' -q
-        echo "Unsupported CentOS version, exiting..."
-        return 0
-    elif [[ ${os_version:0:1} == "9" ]]; then # elif uname -a | grep -E 'el8' -q
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_108/x86_64-el9-gcc15-opt/setup.sh
-    else
-        echo "Unsupported CentOS version, exiting..."
-        return 0
-    fi
-elif [[ "$distro" == "Ubuntu" ]]; then
-    if [[ ${os_version:0:2} == "20" ]]; then
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-ubuntu2004-gcc9-opt/setup.sh
-    elif [[ ${os_version:0:2} == "22" ]]; then
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-ubuntu2204-gcc11-opt/setup.sh
-    else
-        echo "Unsupported Ubuntu version, exiting..."
-        return 0
-    fi
-else
-    echo "You are not running on CentOS or Ubuntu, exiting..."
-    return 0
-fi
+# if [[ "$distro" == "CentOS" ]]; then
+#     # if the first number of os_version is a 7, we are on centOS 7
+#     if [[ ${os_version:0:1} == "7" ]]; then # if uname -a | grep -E 'el7' -q
+#         echo "CentOS 7 is EOL, running on LCG 105, support will be dropped soon"
+#         source /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-centos7-gcc11-opt/setup.sh
+#     else
+#         echo "Unsupported CentOS version, exiting..."
+#         return 0
+#     fi
+# elif [[ "$distro" == "RedHatEnterprise" || "$distro" == "Alma" || "$distro" == "Rocky" ]]; then
+#     if [[ ${os_version:0:1} == "8" ]]; then # elif uname -a | grep -E 'el8' -q
+#         echo "Unsupported CentOS version, exiting..."
+#         return 0
+#     elif [[ ${os_version:0:1} == "9" ]]; then # elif uname -a | grep -E 'el8' -q
+#         source /cvmfs/sft.cern.ch/lcg/views/LCG_108/x86_64-el9-gcc15-opt/setup.sh
+#     else
+#         echo "Unsupported CentOS version, exiting..."
+#         return 0
+#     fi
+# elif [[ "$distro" == "Ubuntu" ]]; then
+#     if [[ ${os_version:0:2} == "20" ]]; then
+#         source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-ubuntu2004-gcc9-opt/setup.sh
+#     elif [[ ${os_version:0:2} == "22" ]]; then
+#         source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-ubuntu2204-gcc11-opt/setup.sh
+#     else
+#         echo "Unsupported Ubuntu version, exiting..."
+#         return 0
+#     fi
+# else
+#     echo "You are not running on CentOS or Ubuntu, exiting..."
+#     return 0
+# fi
 # add ~/.local/bin to path if it is not already there
 pathadd "${HOME}/.local/bin/"
 # set the cmake generator to Ninja

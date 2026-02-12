@@ -10,9 +10,10 @@
 #include <TObjString.h>
 #include <TTree.h>
 #include <TVector.h>
-#include "onnxruntime_cxx_api.h"
+#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
 #include <regex>
 #include <string>
+#include <TInterpreter.h>
 #include "include/utility/OnnxSessionManager.hxx"
 #include "include/utility/CorrectionManager.hxx"
 #include "include/genparticles.hxx"
@@ -159,6 +160,8 @@ int main(int argc, char *argv[]) {
     const std::string analysis_commit_hash = {ANALYSIS_COMMITHASH};
     bool analysis_setup_clean = {ANALYSIS_IS_CLEAN};
     int scope_counter = 0;
+    gInterpreter->GenerateDictionary("std::map<std::string, std::vector<std::string>>", "map;string;vector");
+    gInterpreter->GenerateDictionary("std::map<std::string, std::map<std::string, std::vector<std::string>>>", "map;string;vector");
     for (auto const &output : output_quantities) {
         // output.first is the output file name
         // output.second is the list of quantities
