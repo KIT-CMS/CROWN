@@ -10,9 +10,10 @@
 #include <TObjString.h>
 #include <TTree.h>
 #include <TVector.h>
-#include "onnxruntime_cxx_api.h"
+#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
 #include <regex>
 #include <string>
+#include <TInterpreter.h>
 #include "include/utility/OnnxSessionManager.hxx"
 #include "include/utility/CorrectionManager.hxx"
 #include "include/genparticles.hxx"

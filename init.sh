@@ -1,91 +1,78 @@
 #!/bin/bash
-pathadd() {
-    if [[ ":$PATH:" != *":$1:"* ]]; then
-        PATH="${PATH:+"$PATH:"}$1"
-        export PATH
-    fi
-}
-# get the directory of the script
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &>/dev/null && pwd 2>/dev/null)"
-if ! command -v lsb_release &> /dev/null
-then
-    source /etc/os-release
-    distro=$NAME
-    os_version=$VERSION_ID
-else
-    distro=$(lsb_release -i | cut -f2)
-    os_version=$(lsb_release -r | cut -f2)
-fi
-distro=${distro//[[:space:]]/}
-distro="${distro//Linux/}"
-distro="${distro//linux/}"
-echo "Setting up CROWN for $distro Version $os_version"
-# check if the distro is centos
-if [[ "$distro" == "CentOS" ]]; then
-    # if the first number of os_version is a 7, we are on centOS 7
-    if [[ ${os_version:0:1} == "7" ]]; then # if uname -a | grep -E 'el7' -q
-        echo "CentOS 7 is EOL, running on LCG 105, support will be dropped soon"
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-centos7-gcc11-opt/setup.sh
-    else
-        echo "Unsupported CentOS version, exiting..."
-        return 0
-    fi
-elif [[ "$distro" == "RedHatEnterprise" || "$distro" == "Alma" || "$distro" == "Rocky" ]]; then
-    if [[ ${os_version:0:1} == "8" ]]; then # elif uname -a | grep -E 'el8' -q
-        echo "Unsupported CentOS version, exiting..."
-        return 0
-    elif [[ ${os_version:0:1} == "9" ]]; then # elif uname -a | grep -E 'el8' -q
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_108/x86_64-el9-gcc15-opt/setup.sh
-    else
-        echo "Unsupported CentOS version, exiting..."
-        return 0
-    fi
-elif [[ "$distro" == "Ubuntu" ]]; then
-    if [[ ${os_version:0:2} == "20" ]]; then
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-ubuntu2004-gcc9-opt/setup.sh
-    elif [[ ${os_version:0:2} == "22" ]]; then
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_106/x86_64-ubuntu2204-gcc11-opt/setup.sh
-    else
-        echo "Unsupported Ubuntu version, exiting..."
-        return 0
-    fi
-else
-    echo "You are not running on CentOS or Ubuntu, exiting..."
-    return 0
-fi
-# add ~/.local/bin to path if it is not already there
-pathadd "${HOME}/.local/bin/"
-# set the cmake generator to Ninja
-# export CMAKE_GENERATOR="Ninja"
-export CMAKE_GENERATOR="Unix Makefiles"
-# set the compiler optimization for cling to O2, this
-# will result in about 20% faster JIT for the snapshot generation
-export EXTRA_CLING_ARGS='-O2'
 
-# clone a given analysis if an argument is given
-if [ -z "$1" ]; then
-    echo "No configuration clone"
+# --- Usage Check ---
+if [[ $# -lt 1 ]]; then
+    echo "Usage: source $0 <container_path_or_url|--dry-run> [analysis_name]"
+    echo "Example (Full): source $0 docker://tvoigtlaender/kingmaker_standalone:V1.3 tau"
+    echo "Example (Dry):  source $0 --dry-run tau"
+    return 1 2>/dev/null || exit 1
+fi
+
+# --- Argument Parsing ---
+if [[ "$1" == "--dry-run" || "$1" == "-d" ]]; then
+    DRY_RUN=true
+    ANA_NAME="$2"
 else
-    if [[ "$1" == "tau" && ! -d "${SCRIPT_DIR}/analysis_configurations/tau" ]]; then
-        echo "Cloning analysis tau into ${SCRIPT_DIR}/analysis_configurations/tau"
-        git clone git@github.com:KIT-CMS/TauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/tau"
-    elif [[ "$1" == "earlyrun3" && ! -d "${SCRIPT_DIR}/analysis_configurations/earlyrun3" ]]; then
-        echo "Cloning analysis earlyrun3 into ${SCRIPT_DIR}/analysis_configurations/earlyrun3"
-        git clone https://github.com/KIT-CMS/earlyRun3Analysis-CROWN "${SCRIPT_DIR}/analysis_configurations/earlyrun3"
-    elif [[ "$1" == "whtautau" && ! -d "${SCRIPT_DIR}/analysis_configurations/whtautau" ]]; then
-        echo "Cloning analysis whtautau into ${SCRIPT_DIR}/analysis_configurations/whtautau"
-        git clone git@github.com:KIT-CMS/WHTauTauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/whtautau"
-    elif [[ "$1" == "boosted_h_tautau" && ! -d "${SCRIPT_DIR}/analysis_configurations/boosted_h_tautau" ]]; then
-        echo "Cloning analysis boosted_h_tautau into ${SCRIPT_DIR}/analysis_configurations/boosted_h_tautau"
-        git clone git@github.com:KIT-CMS/BoostedHiggsTauTauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/boosted_h_tautau"
-    elif [[ "$1" == "s" && ! -d "${SCRIPT_DIR}/analysis_configurations/s" ]]; then
-        echo "Cloning analysis s-channel into ${SCRIPT_DIR}/analysis_configurations/s"
-        git clone git@github.com:nfaltermann/CROWNs.git "${SCRIPT_DIR}/analysis_configurations/s"
-    elif [[ "$1" == "xyh_bbtautau" && ! -d "${SCRIPT_DIR}/analysis_configurations/xyh_bbtautau" ]]; then
-        echo "Cloning analysis XYHbbtautau into ${SCRIPT_DIR}/analysis_configurations/xyh_bbtautau"
-        git clone git@github.com:KIT-CMS/XYHBBTauTauAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/xyh_bbtautau"
-    elif [[ "$1" == "haa" && ! -d "${SCRIPT_DIR}/analysis_configurations/haa" ]]; then
-        echo "Cloning analysis Haa into ${SCRIPT_DIR}/analysis_configurations/haa"
-        git clone git@github.com:KIT-CMS/HaaAnalysis-CROWN.git "${SCRIPT_DIR}/analysis_configurations/haa"
+    DRY_RUN=false
+    CONTAINER_IMG="$1"
+    ANA_NAME="$2"
+fi
+
+# --- Local Path Setup ---
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &>/dev/null && pwd 2>/dev/null)"
+ANALYSIS_PATH="${SCRIPT_DIR}"
+
+# --- Clone Analysis Logic (if second arg is provided) ---
+if [ -n "$ANA_NAME" ]; then
+    case "$ANA_NAME" in
+        tau)              REPO="git@github.com:KIT-CMS/TauAnalysis-CROWN.git" ;;
+        earlyrun3)        REPO="git@github.com:KIT-CMS/earlyRun3Analysis-CROWN" ;;
+        whtautau)         REPO="git@github.com:KIT-CMS/WHTauTauAnalysis-CROWN.git" ;;
+        boosted_h_tautau) REPO="git@github.com:KIT-CMS/BoostedHiggsTauTauAnalysis-CROWN.git" ;;
+        s)                REPO="git@github.com:nfaltermann/CROWNs.git" ;;
+        xyh_bbtautau)     REPO="git@github.com:KIT-CMS/XYHBBTauTauAnalysis-CROWN.git" ;;
+        haa)              REPO="git@github.com:KIT-CMS/HaaAnalysis-CROWN.git" ;;
+    esac
+
+    if [ -n "$REPO" ] && [ ! -d "${SCRIPT_DIR}/analysis_configurations/$ANA_NAME" ]; then
+        echo "--> Cloning analysis $ANA_NAME..."
+        git clone "$REPO" "${SCRIPT_DIR}/analysis_configurations/$ANA_NAME"
+    else
+        echo "--> Analysis configuration '$ANA_NAME' already exists or no repo defined."
     fi
 fi
+
+# --- Dry Run Exit Point ---
+if [ "$DRY_RUN" = true ]; then
+    echo "--> Dry run complete. Analysis configs are ready."
+    return 0 2>/dev/null || exit 0
+fi
+
+# --- VOMS Proxy Check ---
+if ! voms-proxy-info -exists -file "$X509_USER_PROXY" >/dev/null 2>&1; then
+    echo "Warning: No valid VOMS proxy found. Grid storage may be inaccessible."
+fi
+
+# --- Define the Internal Environment ---
+# This string is executed once the container starts
+INT_CMD="
+    echo '--- Initializing Conda Environment ---';
+    source /opt/conda/bin/activate env;
+    export ANALYSIS_PATH=${ANALYSIS_PATH};
+    export ANA_NAME=${ANA_NAME};
+    export CMAKE_GENERATOR='Unix Makefiles';
+    export EXTRA_CLING_ARGS='-O2';
+    export X509_USER_PROXY=${X509_USER_PROXY};
+    cd ${ANALYSIS_PATH};
+    echo '--- Container Ready. Analysis: ${ANA_NAME} ---';
+    exec bash -i
+"
+
+# --- Execute Singularity ---
+echo "--> Launching Container: ${CONTAINER_IMG}"
+singularity exec -e \
+    -B /etc/grid-security/certificates \
+    -B "${SCRIPT_DIR}:${SCRIPT_DIR}" \
+    -B "${HOME}:${HOME}" \
+    "${CONTAINER_IMG}" \
+    bash -c "${INT_CMD}"
