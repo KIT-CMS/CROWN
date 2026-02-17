@@ -120,7 +120,6 @@ action() {
         export CMAKE_GENERATOR='Unix Makefiles';
         export EXTRA_CLING_ARGS='-O2';
         export X509_USER_PROXY=${X509_USER_PROXY};
-        cd ${ANALYSIS_PATH};
         echo '--- Container Ready. Analysis: ${CROWN_ANALYSIS} ---';
         exec bash -i
     "

@@ -122,9 +122,6 @@ Compile the executable using
 
    make install -j 8
 
-The recommended build system is using regular UNIX build files, however, as an additional option, the ninja build system (https://ninja-build.org/) can be used for CROWN. To use ninja, set :code:`export CMAKE_GENERATOR="Ninja"` in the :code:`init.sh` as env variable, and then use the :code:`ninja install -j 8` command to compile the executable. Since CROWN profits from the parallelization of the build process, the number of threads can and should be set using the :code:`-j` option.
-
-
 After the compilation, the CROWN executable can be found in the :code:`build/bin` folder. The executable can be used via a single output file followed by an arbitrary number of input files.
 
 .. code-block:: console
