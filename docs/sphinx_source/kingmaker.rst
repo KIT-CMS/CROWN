@@ -1,4 +1,4 @@
-Workflow Management
+Kingmaker Workflow Management
 ===================
 
 KingMaker is a workflow management for producing ntuples with the CROWN framework. The workflow management is based on law (https://github.com/riga/law), which uses luigi (https://github.com/spotify/luigi) as the backend. Kingmaker is used to orchestrate the production of ntuples and friend trees for the CROWN framework. The workflow is designed to be flexible and can be adapted to different analyses. Kingmaker takes care of building all required CROWN executables, submitting jobs to a batch system and writing the output to a remote storage. On top of that, Kingmaker can be used to generate FriendTrees, which can be used to store additional information to extend the ntuples. A sample manager is provided to manage the samples and keep track of the individual input files that have to be processed.
@@ -21,7 +21,7 @@ This should install all required packages and set up the environment. In additio
 The setup script has also additional options:
 
 .. code-block:: bash
-    
+
     Usage: source setup.sh [options]
 
     Options:
@@ -343,7 +343,7 @@ For a more complete description of the different options, please refer to the ov
 Local debugging
 -----------------------
 
-The compiled executables that are used in the submitted jobs can be found in the ``tarballs/<production_tag>/`` directories. 
+The compiled executables that are used in the submitted jobs can be found in the ``tarballs/<production_tag>/`` directories.
 All executables can be tested locally:
 
 1. Change to the directory with the executable (`tarballs/<production_tag>/CROWN*/`, depending on which step you are running).
@@ -370,7 +370,7 @@ The executables work with remote input paths/files, but the path to the output f
     cd tarballs/<production_tag>/CROWNFriends_<analysis_name>_<friend_config_name>_<mapped_friend_name>_<sample_type>_<era>
     # Where `mapped_friend_name` is either directly set via `--friend-name`, or set in the `--friend-mapping` for the `friend_config`.
     source init.sh
-    ./<friend_config_name>_<data_type>_<era>_<scope> <output_file> <Ntuple_file> 
+    ./<friend_config_name>_<data_type>_<era>_<scope> <output_file> <Ntuple_file>
 
 
     # MultiFriends (Friends with Friends as inputs)
@@ -398,5 +398,5 @@ For the command provided in :ref:`Production of friend trees with additional fri
     source init.sh
     ./template_multifriend_config_data_2018_mm <MultiFriend_file> <Ntuple_file> <Friend_file>
 
-If further investigation is needed, a local compilation of the CROWN config is recommended as described in :ref:`Running the framework` 
+If further investigation is needed, a local compilation of the CROWN config is recommended as described in :ref:`Running the framework`
 with optionally activating `-DDEBUG`.

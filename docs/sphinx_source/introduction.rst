@@ -34,19 +34,19 @@ First, clone the Repository
 
    git clone --recurse-submodules git@github.com:KIT-CMS/CROWN.git
 
-and source the current LCG stack
+and set up the container environment
 
 .. code-block:: console
 
    source init.sh
 
-After this, the framework is installed, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the name of the analysis to your ``init.sh`` command. So e.g. to set up the `tau` Analysis, you can do so by running
+After this, the framework is ready to use, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the ``-a`` argument and the name of the analysis to your ``init.sh`` command. So e.g. to set up the `tau` Analysis, you can do so by running
 
 .. code-block:: console
 
-   source init.sh tau
+   source init.sh -a tau
 
-The following list shows all currently available analyses that can be set up. If you want to include your own analysis, it needs to be added to the ``init.sh`` script. 
+The following list shows all currently available analyses that can be set up.
 
 .. list-table:: Available Analyses Configurations for CROWN
    :widths: 25 150
@@ -68,6 +68,17 @@ The following list shows all currently available analyses that can be set up. If
      - https://github.com/KIT-CMS/XYHBBTauTauAnalysis-CROWN
    * - ``haa``
      - https://github.com/KIT-CMS/HaaAnalysis-CROWN
+
+The same list is also provided by the ``--list`` argument of the ``init.sh`` script.
+If you want to include your own analysis, it needs to be added to the ``init.sh`` script.
+
+It is also possible to use an alternative container instead of the default (``/cvmfs/unpacked.cern.ch/registry.hub.docker.com/tvoigtlaender/kingmaker_standalone:V1.3``), by using the ``-c`` argument.
+
+.. code-block:: console
+
+   source init.sh -c "<container>"
+
+Finally, with the ``--dry-run`` argument the analysis configuration is cloned, but the container is not started.
 
 Running the framework
 **********************
