@@ -1,78 +1,137 @@
 #!/bin/bash
 
-# --- Usage Check ---
-if [[ $# -lt 1 ]]; then
-    echo "Usage: source $0 <container_path_or_url|--dry-run> [analysis_name]"
-    echo "Example (Full): source $0 docker://tvoigtlaender/kingmaker_standalone:V1.3 tau"
-    echo "Example (Dry):  source $0 --dry-run tau"
-    return 1 2>/dev/null || exit 1
-fi
+action() {
 
-# --- Argument Parsing ---
-if [[ "$1" == "--dry-run" || "$1" == "-d" ]]; then
-    DRY_RUN=true
-    ANA_NAME="$2"
-else
-    DRY_RUN=false
-    CONTAINER_IMG="$1"
-    ANA_NAME="$2"
-fi
+    # --- Define list of available analyses ---
+    ANALYSIS_LIST=("tau" "earlyrun3" "whtautau" "boosted_h_tautau" "s" "xyh_bbtautau" "haa")
 
-# --- Local Path Setup ---
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &>/dev/null && pwd 2>/dev/null)"
-ANALYSIS_PATH="${SCRIPT_DIR}"
+    # --- Define defaults ---
+    DEFAULT_CROWN_ANALYSIS=""
+    DEFAULT_CONTAINER="/cvmfs/unpacked.cern.ch/registry.hub.docker.com/tvoigtlaender/kingmaker_standalone:V1.3/"
+    DEFAULT_DRY_RUN=false
+    CROWN_ANALYSIS=${DEFAULT_CROWN_ANALYSIS}
+    CONTAINER=${DEFAULT_CONTAINER}
+    DRY_RUN=${DEFAULT_DRY_RUN}
 
-# --- Clone Analysis Logic (if second arg is provided) ---
-if [ -n "$ANA_NAME" ]; then
-    case "$ANA_NAME" in
-        tau)              REPO="git@github.com:KIT-CMS/TauAnalysis-CROWN.git" ;;
-        earlyrun3)        REPO="git@github.com:KIT-CMS/earlyRun3Analysis-CROWN" ;;
-        whtautau)         REPO="git@github.com:KIT-CMS/WHTauTauAnalysis-CROWN.git" ;;
-        boosted_h_tautau) REPO="git@github.com:KIT-CMS/BoostedHiggsTauTauAnalysis-CROWN.git" ;;
-        s)                REPO="git@github.com:nfaltermann/CROWNs.git" ;;
-        xyh_bbtautau)     REPO="git@github.com:KIT-CMS/XYHBBTauTauAnalysis-CROWN.git" ;;
-        haa)              REPO="git@github.com:KIT-CMS/HaaAnalysis-CROWN.git" ;;
-    esac
-
-    if [ -n "$REPO" ] && [ ! -d "${SCRIPT_DIR}/analysis_configurations/$ANA_NAME" ]; then
-        echo "--> Cloning analysis $ANA_NAME..."
-        git clone "$REPO" "${SCRIPT_DIR}/analysis_configurations/$ANA_NAME"
-    else
-        echo "--> Analysis configuration '$ANA_NAME' already exists or no repo defined."
+    # --- Parse arguments ---
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -a|--analysis)
+                if [[ -z "$2" || "$2" == -* ]]; then
+                    echo "Error: --analysis requires a non-option argument."
+                    return 1
+                fi
+                CROWN_ANALYSIS="$2"
+                shift 2
+                ;;
+            -c|--container)
+                if [[ -z "$2" || "$2" == -* ]]; then
+                    echo "Error: --container requires a non-option argument."
+                    return 1
+                fi
+                CONTAINER="$2"
+                shift 2
+                ;;
+            -d|--dry-run)
+                DRY_RUN=true
+                shift 1
+                ;;
+            -l|--list)
+                echo "Available CROWN analyses:"
+                echo "-------------------"
+                for workflow in "${ANALYSIS_LIST[@]}"; do
+                    echo "* ${workflow}"
+                done
+                return 1
+                ;;
+            -h|--help)
+                echo "Usage: source setup.sh [options]"
+                echo ""
+                echo "Options:"
+                echo "  -a, --analysis ANALYSIS    The CROWN analysis configs to use"
+                echo "  -l, --list                 List available CROWN analyses"
+                echo "  -c, --container CONTAINER  The container to use as environment"
+                echo "                             [default: ${DEFAULT_CONTAINER}]"
+                echo "  -h, --help                 Show this help message"
+                echo ""
+                return 1
+                ;;
+            *)
+                echo "Error: Unknown option $1"
+                echo "Use --help to see available options"
+                return 1
+                ;;
+        esac
+    done
+    if [[ $? -eq "1" ]]; then
+        return 1
     fi
-fi
 
-# --- Dry Run Exit Point ---
-if [ "$DRY_RUN" = true ]; then
-    echo "--> Dry run complete. Analysis configs are ready."
-    return 0 2>/dev/null || exit 0
-fi
+    # --- Local Path Setup ---
+    SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &>/dev/null && pwd 2>/dev/null)"
+    ANALYSIS_PATH="${SCRIPT_DIR}"
 
-# --- VOMS Proxy Check ---
-if ! voms-proxy-info -exists -file "$X509_USER_PROXY" >/dev/null 2>&1; then
-    echo "Warning: No valid VOMS proxy found. Grid storage may be inaccessible."
-fi
+    # --- Clone Analysis Logic (if second arg is provided) ---
+    if [ -n "${CROWN_ANALYSIS}" ]; then
+        case "${CROWN_ANALYSIS}" in
+            tau)              REPO="git@github.com:KIT-CMS/TauAnalysis-CROWN.git" ;;
+            earlyrun3)        REPO="git@github.com:KIT-CMS/earlyRun3Analysis-CROWN" ;;
+            whtautau)         REPO="git@github.com:KIT-CMS/WHTauTauAnalysis-CROWN.git" ;;
+            boosted_h_tautau) REPO="git@github.com:KIT-CMS/BoostedHiggsTauTauAnalysis-CROWN.git" ;;
+            s)                REPO="git@github.com:nfaltermann/CROWNs.git" ;;
+            xyh_bbtautau)     REPO="git@github.com:KIT-CMS/XYHBBTauTauAnalysis-CROWN.git" ;;
+            haa)              REPO="git@github.com:KIT-CMS/HaaAnalysis-CROWN.git" ;;
+            *)                echo "Error: '${CROWN_ANALYSIS}' is not a valid analysis name."
+                              echo "See --list argument for available analyses."
+                              return 1
+            ;;
+        esac
 
-# --- Define the Internal Environment ---
-# This string is executed once the container starts
-INT_CMD="
-    echo '--- Initializing Conda Environment ---';
-    source /opt/conda/bin/activate env;
-    export ANALYSIS_PATH=${ANALYSIS_PATH};
-    export ANA_NAME=${ANA_NAME};
-    export CMAKE_GENERATOR='Unix Makefiles';
-    export EXTRA_CLING_ARGS='-O2';
-    export X509_USER_PROXY=${X509_USER_PROXY};
-    cd ${ANALYSIS_PATH};
-    echo '--- Container Ready. Analysis: ${ANA_NAME} ---';
-    exec bash -i
-"
+        if [ -n "${REPO}" ] && [ ! -d "${SCRIPT_DIR}/analysis_configurations/${CROWN_ANALYSIS}" ]; then
+            echo "--> Cloning analysis ${CROWN_ANALYSIS}..."
+            git clone "${REPO}" "${SCRIPT_DIR}/analysis_configurations/${CROWN_ANALYSIS}"
+        else
+            echo "--> Analysis configuration '${CROWN_ANALYSIS}' already exists."
+        fi
+    fi
 
-# --- Execute Singularity ---
-echo "--> Launching Container: ${CONTAINER_IMG}"
-singularity exec -e \
-    -B /etc/grid-security/certificates \
-    -B "${SCRIPT_DIR}:${SCRIPT_DIR}" \
-    -B "${HOME}:${HOME}" \
-    "${CONTAINER_IMG}" \
-    bash -c "${INT_CMD}"
+    # --- Dry Run Exit Point ---
+    if [ "${DRY_RUN}" = true ]; then
+        echo "--> Dry run complete. Analysis configs are ready."
+        return 0 2>/dev/null || exit 0
+    fi
+
+    # --- VOMS Proxy Check ---
+    if ! voms-proxy-info -exists -file "${X509_USER_PROXY}" >/dev/null 2>&1; then
+        echo "Warning: No valid VOMS proxy found. Grid storage may be inaccessible."
+    fi
+
+    # --- Get the absolute path of the parent git repository ---
+    # checks/git-status.sh fails if top level git directory is not mounted in
+    GIT_ROOT=$(git -C "${SCRIPT_DIR}" rev-parse --show-superproject-working-tree)
+
+    # --- Define the Internal Environment ---
+    # This string is executed once the container starts
+    INT_CMD="
+        echo '--- Initializing Conda Environment ---';
+        source /opt/conda/bin/activate env;
+        export ANALYSIS_PATH=${ANALYSIS_PATH};
+        export CROWN_ANALYSIS=${CROWN_ANALYSIS};
+        export CMAKE_GENERATOR='Unix Makefiles';
+        export EXTRA_CLING_ARGS='-O2';
+        export X509_USER_PROXY=${X509_USER_PROXY};
+        cd ${ANALYSIS_PATH};
+        echo '--- Container Ready. Analysis: ${CROWN_ANALYSIS} ---';
+        exec bash -i
+    "
+
+    # --- Execute Singularity ---
+    echo "--> Launching Container: ${CONTAINER}"
+    singularity exec -e \
+        -B /etc/grid-security/certificates \
+        -B "${GIT_ROOT}:${GIT_ROOT}" \
+        -B "${HOME}:${HOME}" \
+        "${CONTAINER}" \
+        bash -c "${INT_CMD}"
+}
+action "$@"
