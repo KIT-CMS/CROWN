@@ -38,13 +38,13 @@ and set up the container environment
 
 .. code-block:: console
 
-   source init.sh
+   bash init.sh
 
 After this, the framework is ready to use, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the ``-a`` argument and the name of the analysis to your ``init.sh`` command. So e.g. to set up the `tau` Analysis, you can do so by running
 
 .. code-block:: console
 
-   source init.sh -a tau
+   bash init.sh -a tau
 
 The following list shows all currently available analyses that can be set up.
 
@@ -76,7 +76,7 @@ It is also possible to use an alternative container instead of the default (``/c
 
 .. code-block:: console
 
-   source init.sh -c "<container>"
+   bash init.sh -c "<container>"
 
 Finally, with the ``--dry-run`` argument the analysis configuration is cloned, but the container is not started.
 
