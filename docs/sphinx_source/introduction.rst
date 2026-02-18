@@ -40,7 +40,7 @@ and set up the container environment
 
    bash init.sh
 
-After this, the framework is ready to use, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the ``-a`` argument and the name of the analysis to your ``init.sh`` command. So e.g. to set up the `tau` Analysis, you can do so by running
+After this, the framework is ready to use, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the ``-a``/``--analysis`` argument and the name of the analysis to your ``init.sh`` command. So e.g. to set up the `tau` Analysis, you can do so by running
 
 .. code-block:: console
 
@@ -69,16 +69,16 @@ The following list shows all currently available analyses that can be set up.
    * - ``haa``
      - https://github.com/KIT-CMS/HaaAnalysis-CROWN
 
-The same list is also provided by the ``--list`` argument of the ``init.sh`` script.
+The same list is also provided by the ``-l``/``--list`` argument of the ``init.sh`` script.
 If you want to include your own analysis, it needs to be added to the ``init.sh`` script.
 
-It is also possible to use an alternative container instead of the default (``/cvmfs/unpacked.cern.ch/registry.hub.docker.com/tvoigtlaender/kingmaker_standalone:V1.3``), by using the ``-c`` argument.
+It is also possible to use an alternative container instead of the default (``/cvmfs/unpacked.cern.ch/registry.hub.docker.com/tvoigtlaender/kingmaker_standalone:V1.3``), by using the ``-c``/``--container`` argument.
 
 .. code-block:: console
 
    bash init.sh -c "<container>"
 
-Finally, with the ``--dry-run`` argument the analysis configuration is cloned, but the container is not started.
+Finally, with the ``-d``/``--dry-run`` argument the analysis configuration is cloned, but the container is not started.
 
 Running the framework
 **********************
