@@ -8,7 +8,7 @@ from code_generation.producer import Producer, ProducerGroup
 
 MMGenPair = Producer(
     name="MMGenPair",
-    call="ditau_pairselection::buildgenpair({df}, {input}, {output})",
+    call="ditau_pairselection::buildgenpair({df}, {output}, {input})",
     input=[q.dileptonpair, nanoAOD.Muon_genPartIdx, nanoAOD.Muon_genPartIdx],
     output=[q.gen_dileptonpair],
     scopes=["mm"],
