@@ -33,6 +33,7 @@ message(STATUS "Finding Packages")
 # add the different dependencies
 include(AddBaseDependencies)
 include(AddRoot)
+include(AddDicts)
 include(AddLogging)
 include(AddCorrectionlib)
 include(AddOnnxruntime)
@@ -57,6 +58,7 @@ endif()
 # run the code generation
 include(CodeGeneration)
 
+message(STATUS "Next is Build")
 # run the build
 include(Build)
 

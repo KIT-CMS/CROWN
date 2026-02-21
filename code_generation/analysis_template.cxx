@@ -160,8 +160,6 @@ int main(int argc, char *argv[]) {
     const std::string analysis_commit_hash = {ANALYSIS_COMMITHASH};
     bool analysis_setup_clean = {ANALYSIS_IS_CLEAN};
     int scope_counter = 0;
-    gInterpreter->GenerateDictionary("std::map<std::string, std::vector<std::string>>", "map;string;vector");
-    gInterpreter->GenerateDictionary("std::map<std::string, std::map<std::string, std::vector<std::string>>>", "map;string;vector");
     for (auto const &output : output_quantities) {
         // output.first is the output file name
         // output.second is the list of quantities

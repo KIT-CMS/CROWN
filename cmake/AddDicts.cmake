@@ -1,0 +1,67 @@
+# 1. Define Paths
+set(CACHE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.cache")
+set(PERSISTENT_LIB "${CACHE_DIR}/libMyDicts.so")
+set(PERSISTENT_PCM "${CACHE_DIR}/libMyDicts_dict_rdict.pcm")
+set(PERSISTENT_CC  "${CACHE_DIR}/libMyDicts_dict.cc")
+
+set(SRC_HEADER  "${CMAKE_CURRENT_SOURCE_DIR}/include/dictionaries/MyDicts.h")
+set(SRC_LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/include/dictionaries/LinkDef.h")
+
+if(NOT EXISTS "${CACHE_DIR}")
+    file(MAKE_DIRECTORY "${CACHE_DIR}")
+endif()
+
+# 2. Check if Rebuild is Needed
+set(NEEDS_REBUILD FALSE)
+if(NOT EXISTS "${PERSISTENT_LIB}" OR NOT EXISTS "${PERSISTENT_PCM}" OR NOT EXISTS "${PERSISTENT_CC}")
+    set(NEEDS_REBUILD TRUE)
+else()
+    file(TIMESTAMP "${SRC_HEADER}" SRC_TIME "%s")
+    file(TIMESTAMP "${PERSISTENT_LIB}" BIN_TIME "%s")
+    if(${SRC_TIME} GREATER ${BIN_TIME})
+        set(NEEDS_REBUILD TRUE)
+    endif()
+endif()
+
+# 3. Build only if necessary
+if(NEEDS_REBUILD)
+    message(STATUS "Cache miss: Regenerating ROOT Dictionary and Bootstrap Lib...")
+
+    execute_process(COMMAND root-config --cflags OUTPUT_VARIABLE ROOT_C_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND root-config --libs OUTPUT_VARIABLE ROOT_L_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
+    separate_arguments(C_FLAGS_LIST NATIVE_COMMAND "${ROOT_C_FLAGS}")
+    separate_arguments(L_FLAGS_LIST NATIVE_COMMAND "${ROOT_L_FLAGS}")
+
+    # Generate directly into the cache directory
+    execute_process(
+        COMMAND rootcling -f ${PERSISTENT_CC} -c ${SRC_HEADER} ${SRC_LINKDEF}
+        WORKING_DIRECTORY ${CACHE_DIR}
+    )
+
+    # Compile the bootstrap .so using the cached .cc
+    execute_process(
+        COMMAND g++ -shared -fPIC -o ${PERSISTENT_LIB} ${PERSISTENT_CC} 
+                -I${CMAKE_CURRENT_SOURCE_DIR}/include ${C_FLAGS_LIST} ${L_FLAGS_LIST}
+    )
+
+    # rootcling generates the PCM in the same folder as the output (-f) file
+    # Ensure it's named correctly if rootcling used a default
+    if(EXISTS "${CACHE_DIR}/libMyDicts_dict_rdict.pcm")
+        # Already in place
+    endif()
+
+    message(STATUS "Dictionary assets cached in .cache/")
+else()
+    message(STATUS "Using cached ROOT Dictionary assets")
+endif()
+
+# 4. Deployment to Build Directory
+# Copy the .so and .pcm so the current CMake/Python process can load them
+file(COPY "${PERSISTENT_LIB}" DESTINATION "${CMAKE_BINARY_DIR}")
+file(COPY "${PERSISTENT_PCM}" DESTINATION "${CMAKE_BINARY_DIR}")
+
+# 5. Integration: Define the Object Library using the CACHED .cc
+# This ensures the final CROWNlib.so is built from the same source
+add_library(DictObjects OBJECT ${PERSISTENT_CC})
+target_include_directories(DictObjects PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_link_libraries(DictObjects PUBLIC ROOT::Core ROOT::RIO)

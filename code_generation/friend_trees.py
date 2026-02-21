@@ -201,7 +201,11 @@ class FriendTreeConfiguration(Configuration):
 
         start = time()
         log.debug(f"Reading quantities information from {input_file}")
-        ROOT.gSystem.Load(os.path.abspath(__file__), "/maplib.so")  # type: ignore
+        lib_path = os.path.abspath("build/libMyDicts.so")
+        if os.path.exists(lib_path):
+            ROOT.gSystem.Load(lib_path)
+        else:
+            raise ImportError(f"Dictionary library not found at {lib_path}. Ensure CMake AddDicts step completed.")
         f = ROOT.TFile.Open(input_file)  # type: ignore
         name = "shift_quantities_map"
         m = f.Get(name)
