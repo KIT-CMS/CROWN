@@ -15,56 +15,45 @@ file(GLOB SOURCES_2
 
 set(SOURCES ${SOURCES_1} ${SOURCES_2})
 
+# Function to configure CROWNLIB to avoid code duplication in your if/else
+macro(configure_crownlib_target)
+    add_library(CROWNLIB SHARED ${SOURCES})
+    target_include_directories(CROWNLIB PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
+    target_link_libraries(
+        CROWNLIB
+        "-Wl,--no-as-needed"
+        MyDicts
+        "-Wl,--as-needed"
+        ROOT::Core
+        ROOT::RIO
+        ROOT::ROOTVecOps
+        ROOT::ROOTDataFrame
+        ROOT::RooFit
+        ROOT::GenVector
+        logging
+        correctionlib
+        nlohmann_json::nlohmann_json
+        ${ONNX_RUNTIME_LIB_PATH}
+    )
+endmacro()
+
 if(BUILD_CROWNLIB_ONLY)
-  message(STATUS "Building only the CROWNLIB library")
-  add_library(CROWNLIB SHARED ${SOURCES} $<TARGET_OBJECTS:DictObjects>)
-  target_include_directories(CROWNLIB PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
-  target_link_libraries(
-    CROWNLIB
-    ROOT::Core
-    ROOT::RIO
-    ROOT::ROOTVecOps
-    ROOT::ROOTDataFrame
-    ROOT::RooFit
-    ROOT::GenVector
-    logging
-    correctionlib
-    nlohmann_json::nlohmann_json
-    ${ONNX_RUNTIME_LIB_PATH})
-  install(FILES "${CMAKE_BINARY_DIR}/libMyDicts_dict_rdict.pcm" 
-          DESTINATION ${INSTALLDIR}/lib)
-  install(TARGETS CROWNLIB DESTINATION ${INSTALLDIR}/lib)
-  return()
+    message(STATUS "Building only the CROWNLIB library")
+    configure_crownlib_target()
+    install(TARGETS CROWNLIB DESTINATION ${INSTALLDIR}/lib)
+    return()
 endif()
-# check if CROWNLIB is already installed
-find_library(
-  CROWNLIB_FOUND CROWNLIB HINTS ${INSTALLDIR}/lib ${CMAKE_CURRENT_BINARY_DIR}
-                                ${CMAKE_CURRENT_BINARY_DIR}/lib)
+
+# Check for existing CROWNLIB
+find_library(CROWNLIB_FOUND CROWNLIB HINTS ${INSTALLDIR}/lib ${CMAKE_CURRENT_BINARY_DIR})
+
 if(NOT CROWNLIB_FOUND OR REBUILD_CROWN_LIB)
-  message(STATUS "CROWNLIB not found, building it")
-  # CROWNLIB not found, build it
-  add_library(CROWNLIB SHARED ${SOURCES} $<TARGET_OBJECTS:DictObjects>)
-  target_include_directories(CROWNLIB PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
-  target_link_libraries(
-    CROWNLIB
-    ROOT::Core
-    ROOT::RIO
-    ROOT::ROOTVecOps
-    ROOT::ROOTDataFrame
-    ROOT::RooFit
-    ROOT::GenVector
-    logging
-    correctionlib
-    nlohmann_json::nlohmann_json
-    ${ONNX_RUNTIME_LIB_PATH})
-  install(FILES "${CMAKE_BINARY_DIR}/libMyDicts_dict_rdict.pcm" 
-        DESTINATION ${INSTALLDIR}/lib)
-  install(TARGETS CROWNLIB DESTINATION ${INSTALLDIR}/lib)
-  # needed if compiling with ninja
-  set(CMAKE_BUILD_RPATH ${INSTALLDIR}/lib)
+    message(STATUS "CROWNLIB not found or rebuild requested, building it")
+    configure_crownlib_target()
+    install(TARGETS CROWNLIB DESTINATION ${INSTALLDIR}/lib)
+    set(CMAKE_BUILD_RPATH ${INSTALLDIR}/lib)
 else()
-  message(STATUS "Found CROWNLIB in ${CROWNLIB_FOUND}")
-  install(FILES ${CROWNLIB_FOUND} DESTINATION ${INSTALLDIR}/lib)
-  link_directories(${INSTALLDIR}/lib ${CMAKE_CURRENT_BINARY_DIR}
-                   ${CMAKE_CURRENT_BINARY_DIR}/lib)
+    message(STATUS "Found CROWNLIB in ${CROWNLIB_FOUND}")
+    install(FILES ${CROWNLIB_FOUND} DESTINATION ${INSTALLDIR}/lib)
+    link_directories(${INSTALLDIR}/lib ${CMAKE_CURRENT_BINARY_DIR})
 endif()

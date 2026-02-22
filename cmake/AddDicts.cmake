@@ -34,7 +34,10 @@ if(NEEDS_REBUILD)
 
     # Generate directly into the cache directory
     execute_process(
-        COMMAND rootcling -f ${PERSISTENT_CC} -c ${SRC_HEADER} ${SRC_LINKDEF}
+        COMMAND rootcling -f ${PERSISTENT_CC} 
+                -I${CMAKE_CURRENT_SOURCE_DIR}        # Add this
+                -I${CMAKE_CURRENT_SOURCE_DIR}/include # Add this
+                -c ${SRC_HEADER} ${SRC_LINKDEF}
         WORKING_DIRECTORY ${CACHE_DIR}
     )
 
@@ -43,12 +46,6 @@ if(NEEDS_REBUILD)
         COMMAND g++ -shared -fPIC -o ${PERSISTENT_LIB} ${PERSISTENT_CC} 
                 -I${CMAKE_CURRENT_SOURCE_DIR}/include ${C_FLAGS_LIST} ${L_FLAGS_LIST}
     )
-
-    # rootcling generates the PCM in the same folder as the output (-f) file
-    # Ensure it's named correctly if rootcling used a default
-    if(EXISTS "${CACHE_DIR}/libMyDicts_dict_rdict.pcm")
-        # Already in place
-    endif()
 
     message(STATUS "Dictionary assets cached in .cache/")
 else()
@@ -60,8 +57,12 @@ endif()
 file(COPY "${PERSISTENT_LIB}" DESTINATION "${CMAKE_BINARY_DIR}")
 file(COPY "${PERSISTENT_PCM}" DESTINATION "${CMAKE_BINARY_DIR}")
 
-# 5. Integration: Define the Object Library using the CACHED .cc
-# This ensures the final CROWNlib.so is built from the same source
-add_library(DictObjects OBJECT ${PERSISTENT_CC})
-target_include_directories(DictObjects PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_link_libraries(DictObjects PUBLIC ROOT::Core ROOT::RIO)
+# --- Build MyDicts library independently ---
+# This uses the cached .cc file generated earlier in your script
+add_library(MyDicts SHARED ${PERSISTENT_CC})
+target_include_directories(MyDicts PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_link_libraries(MyDicts PUBLIC ROOT::Core ROOT::RIO)
+
+# Install dictionary and its PCM
+install(TARGETS MyDicts DESTINATION ${INSTALLDIR}/lib)
+install(FILES "${PERSISTENT_PCM}" DESTINATION ${INSTALLDIR}/lib)
