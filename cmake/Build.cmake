@@ -48,12 +48,9 @@ foreach(FILENAME ${FILELIST})
   # Adds a pre-build event to the Target copying the correctionlib.so file into
   # the /lib folder in the install directory
   target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
-  #target_include_directories(
-  #  ${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS}
-  #                         $ORIGIN/lib/ lib/)
   target_link_libraries(
       ${TARGET_NAME}
-      "-Wl,--no-as-needed"
+      "-Wl,--no-as-needed" # Needed to ensure MyDicts is not 'optimized' away
       MyDicts
       "-Wl,--as-needed"
       ROOT::ROOTVecOps

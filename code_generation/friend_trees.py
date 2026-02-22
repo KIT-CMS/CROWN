@@ -201,11 +201,17 @@ class FriendTreeConfiguration(Configuration):
 
         start = time()
         log.debug(f"Reading quantities information from {input_file}")
+        # Load dict parsing lib
         lib_path = os.path.abspath("build/libMyDicts.so")
-        if os.path.exists(lib_path):
-            ROOT.gSystem.Load(lib_path)
-        else:
-            raise ImportError(f"Dictionary library not found at {lib_path}. Ensure CMake AddDicts step completed.")
+        # Physical file check
+        if not os.path.exists(lib_path):
+            log.error(f"Missing library: {lib_path}")
+        # Evaluate ROOT-specific return codes
+        result = ROOT.gSystem.Load(lib_path)
+        if result < 0:
+            err_type = "Version mismatch" if result == -2 else "Linker error/Missing dependency"
+            log.error(f"Load failed ({result}): {err_type} for {lib_path}")
+
         f = ROOT.TFile.Open(input_file)  # type: ignore
         name = "shift_quantities_map"
         m = f.Get(name)

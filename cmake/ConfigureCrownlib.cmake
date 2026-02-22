@@ -21,7 +21,7 @@ macro(configure_crownlib_target)
     target_include_directories(CROWNLIB PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
     target_link_libraries(
         CROWNLIB
-        "-Wl,--no-as-needed"
+        "-Wl,--no-as-needed" # Needed to ensure MyDicts is not 'optimized' away
         MyDicts
         "-Wl,--as-needed"
         ROOT::Core
