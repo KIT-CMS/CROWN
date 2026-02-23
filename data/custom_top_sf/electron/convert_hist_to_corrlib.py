@@ -14,9 +14,9 @@ corrs["2016preVFP"]["trigger_filename"] = "2016preVFP_UL/trig_2016preVFP.root".r
 )
 
 corrs["2016postVFP"] = {}
-corrs["2016postVFP"][
-    "trigger_filename"
-] = "2016postVFP_UL/trig_2016postVFP.root".replace(".root", syst + ".root")
+corrs["2016postVFP"]["trigger_filename"] = (
+    "2016postVFP_UL/trig_2016postVFP.root".replace(".root", syst + ".root")
+)
 
 corrs["2017"] = {}
 corrs["2017"]["trigger_filename"] = "2017_UL/trig_2017.root".replace(
