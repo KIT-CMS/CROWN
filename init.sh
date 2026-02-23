@@ -117,6 +117,7 @@ action() {
         source /opt/conda/bin/activate env;
         export ANALYSIS_PATH=${ANALYSIS_PATH};
         export CROWN_ANALYSIS=${CROWN_ANALYSIS};
+        export CCACHE_DIR=${CROWN_ANALYSIS}/.cache/ccache;
         export CMAKE_GENERATOR='Unix Makefiles';
         export EXTRA_CLING_ARGS='-O2';
         export X509_USER_PROXY=${X509_USER_PROXY};
