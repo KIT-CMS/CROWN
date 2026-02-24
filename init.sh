@@ -7,7 +7,7 @@ action() {
 
     # --- Define defaults ---
     DEFAULT_CROWN_ANALYSIS=""
-    DEFAULT_CONTAINER="/cvmfs/unpacked.cern.ch/registry.hub.docker.com/tvoigtlaender/kingmaker_standalone:V1.3/"
+    DEFAULT_CONTAINER="docker://tvoigtlaender/kingmaker_standalone:V1.4e"
     DEFAULT_DRY_RUN=false
     CROWN_ANALYSIS=${DEFAULT_CROWN_ANALYSIS}
     CONTAINER=${DEFAULT_CONTAINER}
@@ -114,7 +114,6 @@ action() {
     # This string is executed once the container starts
     INT_CMD="
         echo '--- Initializing Conda Environment ---';
-        source /opt/conda/bin/activate env;
         export ANALYSIS_PATH=${ANALYSIS_PATH};
         export CROWN_ANALYSIS=${CROWN_ANALYSIS};
         export CCACHE_DIR=${CROWN_ANALYSIS}/.cache/ccache;
@@ -122,7 +121,7 @@ action() {
         export EXTRA_CLING_ARGS='-O2';
         export X509_USER_PROXY=${X509_USER_PROXY};
         echo '--- Container Ready. Analysis: ${CROWN_ANALYSIS} ---';
-        exec bash -i
+        bash --rcfile /etc/bashrc -i
     "
 
     # --- Execute Singularity ---

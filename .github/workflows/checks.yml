@@ -1,8 +1,6 @@
 name: Checks
 
 on:
-  # workflow_run:
-  #   workflows: ["build_unittest_container"]
   push:
     branches:
       - main
@@ -29,19 +27,12 @@ jobs:
   build_project:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4a
+      image: tvoigtlaender/kingmaker_standalone:V1.4d
       options: --user 0 # run as root
 
-    defaults:
-      run:
-        shell: bash -l {0}
-
     steps:
-      - name: Initialize Conda for Shell
-        run: echo "source /opt/conda/bin/activate env" >> $HOME/.bashrc
-
       - name: Clone project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
           submodules: "recursive"
@@ -60,7 +51,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$SHIFTS -DOPTIMIZED=false -DONNXRUNTIME_INCLUDE_DIR=/opt/onnxruntime
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$SHIFTS -DOPTIMIZED=false
 
       - name: Build
         shell: bash
@@ -73,18 +64,12 @@ jobs:
   build_single_friend:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4a
+      image: tvoigtlaender/kingmaker_standalone:V1.4d
       options: --user 0 # run as root
 
-    defaults:
-      run:
-        shell: bash -l {0}
-
     steps:
-      - name: Initialize Conda for Shell
-        run: echo "source /opt/conda/bin/activate env" >> $HOME/.bashrc
       - name: Clone project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
           submodules: "recursive"
@@ -103,7 +88,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$SINGLE_FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SINGLE_FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy" -DONNXRUNTIME_INCLUDE_DIR=/opt/onnxruntime
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$SINGLE_FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SINGLE_FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy"
 
       - name: Build
         shell: bash
@@ -116,19 +101,12 @@ jobs:
   build_two_friends:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4a
+      image: tvoigtlaender/kingmaker_standalone:V1.4d
       options: --user 0 # run as root
 
-
-    defaults:
-      run:
-        shell: bash -l {0}
-
     steps:
-      - name: Initialize Conda for Shell
-        run: echo "source /opt/conda/bin/activate env" >> $HOME/.bashrc
       - name: Clone project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
           submodules: "recursive"
@@ -147,7 +125,7 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$TWO_FRIENDS_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$TWO_FRIENDS_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy" -DONNXRUNTIME_INCLUDE_DIR=/opt/onnxruntime
+        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$TWO_FRIENDS_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$TWO_FRIENDS_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy"
 
       - name: Build
         shell: bash
@@ -161,17 +139,11 @@ jobs:
   python_format:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4a
+      image: tvoigtlaender/kingmaker_standalone:V1.4d
       options: --user 0 # run as root
 
     steps:
-      - name: dnf update
-        run: dnf -y update
-
-      - name: Install missing software
-        run: dnf install -y git python3-pip && pip install black==23.3.0 --break-system-packages
-
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Check Python formatting
         shell: bash
@@ -180,17 +152,11 @@ jobs:
   cpp_format:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4a
+      image: tvoigtlaender/kingmaker_standalone:V1.4d
       options: --user 0 # run as root
 
     steps:
-      - name: dnf update
-        run: dnf -y update
-
-      - name: Install missing software
-        run: dnf install -y git python3-pip && pip install clang-format --break-system-packages
-
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Check C++ formatting
         shell: bash
@@ -199,20 +165,11 @@ jobs:
   docs:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4a
+      image: tvoigtlaender/kingmaker_standalone:V1.4d
       options: --user 0 # run as root
 
     steps:
-      - name: apt update
-        run: apt-get -y update
-
-      - name: Install missing software
-        run: apt-get install -y git cmake make doxygen python3-pip
-
-      - name: install docs related packages
-        run: pip install breathe==4.36 sphinx==8.1.3 sphinx_rtd_theme==3.0.2 --break-system-packages
-
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Create Build Environment
         shell: bash
