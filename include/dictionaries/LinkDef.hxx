@@ -4,6 +4,8 @@
 #pragma link off all functions;
 #pragma link C++ nestedclasses;
 
-#pragma link C++ class std::map<std::string, std::vector<std::string>>+;
-#pragma link C++ class std::map<std::string, std::map<std::string, std::vector<std::string>>>+;
+#pragma link C++ class std::map < std::string, std::vector < std::string>> + ;
+#pragma link C++ class std::map < std::string, std::map < std::string,         \
+    std::vector < std::string>>> +                                             \
+    ;
 #endif

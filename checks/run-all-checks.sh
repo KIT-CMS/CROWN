@@ -5,10 +5,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 EXIT_CODE=0
 
-APPLY_FIXES=false
+APPLY_FIXES=""
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        --apply) APPLY_FIXES=true ;;
+        --apply) APPLY_FIXES=$1;;
         *) echo "Unknown parameter: $1"; exit 1 ;;
     esac
     shift
