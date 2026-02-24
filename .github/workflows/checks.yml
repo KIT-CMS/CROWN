@@ -29,7 +29,7 @@ jobs:
   build_project:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4
+      image: tvoigtlaender/kingmaker_standalone:V1.4a
       options: --user 0 # run as root
 
     defaults:
@@ -73,7 +73,7 @@ jobs:
   build_single_friend:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4
+      image: tvoigtlaender/kingmaker_standalone:V1.4a
       options: --user 0 # run as root
 
     defaults:
@@ -116,7 +116,7 @@ jobs:
   build_two_friends:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4
+      image: tvoigtlaender/kingmaker_standalone:V1.4a
       options: --user 0 # run as root
 
 
@@ -161,7 +161,7 @@ jobs:
   python_format:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4
+      image: tvoigtlaender/kingmaker_standalone:V1.4a
       options: --user 0 # run as root
 
     steps:
@@ -180,7 +180,7 @@ jobs:
   cpp_format:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4
+      image: tvoigtlaender/kingmaker_standalone:V1.4a
       options: --user 0 # run as root
 
     steps:
@@ -199,7 +199,7 @@ jobs:
   docs:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4
+      image: tvoigtlaender/kingmaker_standalone:V1.4a
       options: --user 0 # run as root
 
     steps:
