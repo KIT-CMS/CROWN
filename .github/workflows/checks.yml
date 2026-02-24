@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Clone project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
           submodules: "recursive"
@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - name: Clone project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
           submodules: "recursive"
@@ -106,7 +106,7 @@ jobs:
 
     steps:
       - name: Clone project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
           submodules: "recursive"
@@ -143,7 +143,7 @@ jobs:
       options: --user 0 # run as root
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
 
       - name: Check Python formatting
         shell: bash
@@ -156,7 +156,7 @@ jobs:
       options: --user 0 # run as root
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
 
       - name: Check CMake formatting
         shell: bash
@@ -169,7 +169,7 @@ jobs:
       options: --user 0 # run as root
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
 
       - name: Check C++ formatting
         shell: bash
@@ -182,7 +182,7 @@ jobs:
       options: --user 0 # run as root
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
 
       - name: Create Build Environment
         shell: bash
