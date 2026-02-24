@@ -27,7 +27,7 @@ jobs:
   build_project:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4d
+      image: tvoigtlaender/kingmaker_standalone:V1.4g
       options: --user 0 # run as root
 
     steps:
@@ -64,7 +64,7 @@ jobs:
   build_single_friend:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4d
+      image: tvoigtlaender/kingmaker_standalone:V1.4g
       options: --user 0 # run as root
 
     steps:
@@ -101,7 +101,7 @@ jobs:
   build_two_friends:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4d
+      image: tvoigtlaender/kingmaker_standalone:V1.4g
       options: --user 0 # run as root
 
     steps:
@@ -139,7 +139,7 @@ jobs:
   python_format:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4d
+      image: tvoigtlaender/kingmaker_standalone:V1.4g
       options: --user 0 # run as root
 
     steps:
@@ -152,7 +152,7 @@ jobs:
   cpp_format:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4d
+      image: tvoigtlaender/kingmaker_standalone:V1.4g
       options: --user 0 # run as root
 
     steps:
@@ -165,7 +165,7 @@ jobs:
   docs:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4d
+      image: tvoigtlaender/kingmaker_standalone:V1.4g
       options: --user 0 # run as root
 
     steps:
