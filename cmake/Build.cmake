@@ -47,24 +47,24 @@ foreach(FILENAME ${FILELIST})
   add_executable(${TARGET_NAME} ${FULL_PATH} ${GENERATED_CXX_FILES})
   # Adds a pre-build event to the Target copying the correctionlib.so file into
   # the /lib folder in the install directory
-  target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
+  target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
+                                                    ${ROOT_INCLUDE_DIRS})
   target_link_libraries(
-      ${TARGET_NAME}
-      "-Wl,--no-as-needed" # Needed to ensure MyDicts is not 'optimized' away
-      MyDicts
-      "-Wl,--as-needed"
-      ROOT::ROOTVecOps
-      ROOT::ROOTDataFrame
-      ROOT::RooFit
-      ROOT::GenVector
-      ROOT::Minuit
-      ROOT::TMVA
-      logging
-      correctionlib
-      nlohmann_json::nlohmann_json
-      CROWNLIB
-      ${ONNX_RUNTIME_LIB_PATH}
-    )
+    ${TARGET_NAME}
+    "-Wl,--no-as-needed" # Needed to ensure MyDicts is not 'optimized' away
+    MyDicts
+    "-Wl,--as-needed"
+    ROOT::ROOTVecOps
+    ROOT::ROOTDataFrame
+    ROOT::RooFit
+    ROOT::GenVector
+    ROOT::Minuit
+    ROOT::TMVA
+    logging
+    correctionlib
+    nlohmann_json::nlohmann_json
+    CROWNLIB
+    ${ONNX_RUNTIME_LIB_PATH})
   add_custom_command(
     TARGET ${TARGET_NAME}
     PRE_BUILD
@@ -72,28 +72,25 @@ foreach(FILENAME ${FILELIST})
             ${INSTALLDIR}/lib/libcorrectionlib.so)
   # Find shared libraries next to the executable in the /lib folder
 
-  set_target_properties(${TARGET_NAME} PROPERTIES
-      # Allow CMake to manage RPATH for the build and install phases
-      SKIP_BUILD_RPATH FALSE
-      BUILD_WITH_INSTALL_RPATH FALSE
-      
-      # Use $ORIGIN so the binary looks in the 'lib' folder relative to itself
-      # Note: We use \$ORIGIN to prevent CMake from trying to evaluate it as a variable
-      INSTALL_RPATH "\$ORIGIN/lib"
-      
-      # Also tell the binary where to look while still in the build directory
-      BUILD_RPATH "${CMAKE_BINARY_DIR}/lib"
-  )
+  set_target_properties(
+    ${TARGET_NAME}
+    PROPERTIES # Allow CMake to manage RPATH for the build and install phases
+               SKIP_BUILD_RPATH FALSE
+               BUILD_WITH_INSTALL_RPATH FALSE
+               # Use $ORIGIN so the binary looks in the 'lib' folder relative to
+               # itself
+               # Note: We use \$ORIGIN to prevent CMake from trying to evaluate
+               # it as a variable
+               INSTALL_RPATH "\$ORIGIN/lib"
+               # Also tell the binary where to look while still in the build
+               # directory
+               BUILD_RPATH "${CMAKE_BINARY_DIR}/lib")
 
-  #set_target_properties(
-  #  ${TARGET_NAME} PROPERTIES BUILD_WITH_INSTALL_RPATH FALSE
-  #                            LINK_FLAGS "-Wl,-rpath,$ORIGIN/lib")
-  #set_target_properties(${TARGET_NAME} PROPERTIES
-  #  BUILD_WITH_INSTALL_RPATH TRUE
-  #  INSTALL_RPATH "${INSTALLDIR}/lib"
-  #)
-  # Add install target, basically just copying the executable around relative to
-  # CMAKE_INSTALL_PREFIX
+  # set_target_properties( ${TARGET_NAME} PROPERTIES BUILD_WITH_INSTALL_RPATH
+  # FALSE LINK_FLAGS "-Wl,-rpath,$ORIGIN/lib")
+  # set_target_properties(${TARGET_NAME} PROPERTIES BUILD_WITH_INSTALL_RPATH
+  # TRUE INSTALL_RPATH "${INSTALLDIR}/lib" ) Add install target, basically just
+  # copying the executable around relative to CMAKE_INSTALL_PREFIX
   install(TARGETS ${TARGET_NAME} DESTINATION ${INSTALLDIR})
   install(
     CODE "execute_process(COMMAND ${CMAKE_SOURCE_DIR}/checks/get-diff.sh ${CMAKE_SOURCE_DIR} ${ANALYSIS} ${INSTALLDIR}/diff )"

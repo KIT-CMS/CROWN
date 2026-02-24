@@ -51,7 +51,7 @@ include(ConfigurePython)
 
 # crownlib setup
 include(ConfigureCrownlib)
-if (BUILD_CROWNLIB_ONLY)
+if(BUILD_CROWNLIB_ONLY)
   # exit if only crownlib is being built
   return()
 endif()
