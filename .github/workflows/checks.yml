@@ -10,6 +10,7 @@ on:
 
 # Settings go here!
 env:
+  ENV_NAME: env
   BUILD_TYPE: Release
   ANALYSIS: unittest
   CONFIG: unittest_config
@@ -22,6 +23,11 @@ env:
   TWO_FRIENDS_SCOPES: "mt"
   TWO_FRIENDS_CONFIG: unittest_friends_2
   FRIEND_SHIFTS: "nominal,jesUncTotalUp,jesUncTotalDown,tauMuFakeEsDown"
+
+# This ensures every step runs in a login shell, automatically activating conda
+defaults:
+  run:
+    shell: bash -el {0}
 
 jobs:
   build_project:
@@ -43,23 +49,25 @@ jobs:
         run: git config --global --add safe.directory ${{github.workspace}}
 
       - name: Create Build Environment
-        shell: bash
         run: cmake -E make_directory ${{github.workspace}}/build
 
       - name: adding a system path
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Configure CMake
-        shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$SHIFTS -DOPTIMIZED=false
+        run: |
+          cd ${{github.workspace}}/build
+          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$SHIFTS -DOPTIMIZED=false
 
       - name: Build
-        shell: bash
-        run: cd ${{github.workspace}}/build && make install -j 2
+        run: |
+          cd ${{github.workspace}}/build
+          make install -j 2
 
       - name: Test
-        shell: bash
-        run: cd ${{github.workspace}}/build && ctest -V --label-regex "ntuple.*."
+        run: |
+          cd ${{github.workspace}}/build
+          ctest -V --label-regex "ntuple.*."
 
   build_single_friend:
     runs-on: ubuntu-24.04
@@ -80,23 +88,25 @@ jobs:
         run: git config --global --add safe.directory ${{github.workspace}}
 
       - name: Create Build Environment
-        shell: bash
         run: cmake -E make_directory ${{github.workspace}}/build
 
       - name: adding a system path
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Configure CMake
-        shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$SINGLE_FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SINGLE_FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy"
+        run: |
+          cd ${{github.workspace}}/build
+          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$SINGLE_FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SINGLE_FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy"
 
       - name: Build
-        shell: bash
-        run: cd ${{github.workspace}}/build && make install -j 2
+        run: |
+          cd ${{github.workspace}}/build
+          make install -j 2
 
       - name: Test
-        shell: bash
-        run: cd ${{github.workspace}}/build && ctest -V --label-regex "single_friend.*."
+        run: |
+          cd ${{github.workspace}}/build
+          ctest -V --label-regex "single_friend.*."
 
   build_two_friends:
     runs-on: ubuntu-24.04
@@ -117,85 +127,62 @@ jobs:
         run: git config --global --add safe.directory ${{github.workspace}}
 
       - name: Create Build Environment
-        shell: bash
         run: cmake -E make_directory ${{github.workspace}}/build
 
       - name: adding a system path
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Configure CMake
-        shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$TWO_FRIENDS_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$TWO_FRIENDS_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy"
+        run: |
+          cd ${{github.workspace}}/build
+          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$TWO_FRIENDS_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$TWO_FRIENDS_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy"
 
       - name: Build
-        shell: bash
-        run: cd ${{github.workspace}}/build && make install -j 2
+        run: |
+          cd ${{github.workspace}}/build
+          make install -j 2
 
       - name: Test
-        shell: bash
-        run: cd ${{github.workspace}}/build && ctest -V --label-regex "two_friends.*."
+        run: |
+          cd ${{github.workspace}}/build
+          ctest -V --label-regex "two_friends.*."
 
-
-  python_format:
+  code_formatting:
     runs-on: ubuntu-24.04
     container:
       image: tvoigtlaender/kingmaker_standalone:V1.4j
-      options: --user 0 # run as root
-
+      options: --user 0
     steps:
-      - uses: actions/checkout@v4
+      - name: Clone project
+        uses: actions/checkout@v4
 
-      - name: Check Python formatting
-        shell: bash
-        run: cd $GITHUB_WORKSPACE && bash checks/python-formatting.sh
+      - name: Mark git directory as safe
+        run: git config --global --add safe.directory ${{github.workspace}}
 
-  cmake_format:
-    runs-on: ubuntu-24.04
-    container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4j
-      options: --user 0 # run as root
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check CMake formatting
-        shell: bash
-        run: cd $GITHUB_WORKSPACE && bash checks/cmake-formatting.sh
-
-  cpp_format:
-    runs-on: ubuntu-24.04
-    container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4j
-      options: --user 0 # run as root
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check C++ formatting
-        shell: bash
-        run: cd $GITHUB_WORKSPACE && bash checks/cpp-formatting.sh
+      - name: Run all formatting checks
+        run: bash ./checks/run-all-checks.sh
 
   docs:
     runs-on: ubuntu-24.04
     container:
       image: tvoigtlaender/kingmaker_standalone:V1.4j
-      options: --user 0 # run as root
-
+      options: --user 0
     steps:
-      - uses: actions/checkout@v4
+      - name: Clone project
+        uses: actions/checkout@v4
 
       - name: Create Build Environment
-        shell: bash
         run: cmake -E make_directory ${{github.workspace}}/build
 
       - name: Configure CMake
-        shell: bash
-        run: cd ${{github.workspace}}/build && cmake $GITHUB_WORKSPACE/docs
+        run: |
+          cd ${{github.workspace}}/build
+          cmake $GITHUB_WORKSPACE/docs
 
       - name: Build docs
-        shell: bash
-        run: cd ${{github.workspace}}/build && make
+        run: |
+          cd ${{github.workspace}}/build
+          make
 
       - name: Publish
-        shell: bash
         run: echo "TODO"
