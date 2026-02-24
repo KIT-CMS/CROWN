@@ -1,14 +1,16 @@
 name: Checks
 
 on:
-  workflow_run:
-    workflows: ["build_unittest_container"]
+  # workflow_run:
+  #   workflows: ["build_unittest_container"]
   push:
     branches:
       - main
+      - Kingmaker_sandboxing
   pull_request:
     branches:
       - main
+      - Kingmaker_sandboxing
 
 # Settings go here!
 env:
@@ -29,10 +31,17 @@ jobs:
   build_project:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:pr-334
+      image: tvoigtlaender/kingmaker_standalone:V1.3
       options: --user 0 # run as root
 
+    defaults:
+      run:
+        shell: bash -l {0}
+
     steps:
+      - name: Initialize Conda for Shell
+        run: echo "source /opt/conda/bin/activate env" >> $HOME/.bashrc
+
       - name: Clone project
         uses: actions/checkout@v3
         with:
@@ -66,11 +75,16 @@ jobs:
   build_single_friend:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:pr-334
+      image: tvoigtlaender/kingmaker_standalone:V1.3
       options: --user 0 # run as root
 
-    steps:
+    defaults:
+      run:
+        shell: bash -l {0}
 
+    steps:
+      - name: Initialize Conda for Shell
+        run: echo "source /opt/conda/bin/activate env" >> $HOME/.bashrc
       - name: Clone project
         uses: actions/checkout@v3
         with:
@@ -104,10 +118,17 @@ jobs:
   build_two_friends:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:pr-334
+      image: tvoigtlaender/kingmaker_standalone:V1.3
       options: --user 0 # run as root
 
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
     steps:
+      - name: Initialize Conda for Shell
+        run: echo "source /opt/conda/bin/activate env" >> $HOME/.bashrc
       - name: Clone project
         uses: actions/checkout@v3
         with:
@@ -142,15 +163,15 @@ jobs:
   python_format:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:pr-334
+      image: tvoigtlaender/kingmaker_standalone:V1.3
       options: --user 0 # run as root
 
     steps:
-      - name: apt update
-        run: apt-get -y update
+      - name: dnf update
+        run: dnf -y update
 
       - name: Install missing software
-        run: apt-get install -y git python3-pip && pip install black==23.3.0 --break-system-packages
+        run: dnf install -y git python3-pip && pip install black==23.3.0 --break-system-packages
 
       - uses: actions/checkout@v2
 
@@ -161,15 +182,15 @@ jobs:
   cpp_format:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:pr-334
+      image: tvoigtlaender/kingmaker_standalone:V1.3
       options: --user 0 # run as root
 
     steps:
-      - name: apt update
-        run: apt-get -y update
+      - name: dnf update
+        run: dnf -y update
 
       - name: Install missing software
-        run: apt-get install -y git python3-pip && pip install clang-format --break-system-packages
+        run: dnf install -y git python3-pip && pip install clang-format --break-system-packages
 
       - uses: actions/checkout@v2
 
@@ -180,7 +201,7 @@ jobs:
   docs:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/kit-cms/crown-crown-unittest:pr-334
+      image: tvoigtlaender/kingmaker_standalone:V1.3
       options: --user 0 # run as root
 
     steps:
