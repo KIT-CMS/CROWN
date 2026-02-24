@@ -27,12 +27,12 @@ jobs:
   build_project:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4g
+      image: tvoigtlaender/kingmaker_standalone:V1.4h
       options: --user 0 # run as root
 
     steps:
       - name: Clone project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
           submodules: "recursive"
@@ -64,12 +64,12 @@ jobs:
   build_single_friend:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4g
+      image: tvoigtlaender/kingmaker_standalone:V1.4h
       options: --user 0 # run as root
 
     steps:
       - name: Clone project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
           submodules: "recursive"
@@ -101,12 +101,12 @@ jobs:
   build_two_friends:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4g
+      image: tvoigtlaender/kingmaker_standalone:V1.4h
       options: --user 0 # run as root
 
     steps:
       - name: Clone project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.CERN_GITLAB_PRIVATE_KEY }}
           submodules: "recursive"
@@ -139,11 +139,11 @@ jobs:
   python_format:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4g
+      image: tvoigtlaender/kingmaker_standalone:V1.4h
       options: --user 0 # run as root
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Check Python formatting
         shell: bash
@@ -152,11 +152,11 @@ jobs:
   cmake_format:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4g
+      image: tvoigtlaender/kingmaker_standalone:V1.4h
       options: --user 0 # run as root
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Check CMake formatting
         shell: bash
@@ -165,11 +165,11 @@ jobs:
   cpp_format:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4g
+      image: tvoigtlaender/kingmaker_standalone:V1.4h
       options: --user 0 # run as root
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Check C++ formatting
         shell: bash
@@ -178,11 +178,11 @@ jobs:
   docs:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.4g
+      image: tvoigtlaender/kingmaker_standalone:V1.4h
       options: --user 0 # run as root
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Create Build Environment
         shell: bash
