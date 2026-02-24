@@ -7,7 +7,7 @@ action() {
 
     # --- Define defaults ---
     DEFAULT_CROWN_ANALYSIS=""
-    DEFAULT_CONTAINER="docker://tvoigtlaender/kingmaker_standalone:V1.4g"
+    DEFAULT_CONTAINER="docker://tvoigtlaender/kingmaker_standalone:V1.4j"
     DEFAULT_DRY_RUN=false
     CROWN_ANALYSIS=${DEFAULT_CROWN_ANALYSIS}
     CONTAINER=${DEFAULT_CONTAINER}
