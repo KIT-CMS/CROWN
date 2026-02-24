@@ -6,11 +6,9 @@ on:
   push:
     branches:
       - main
-      - Kingmaker_sandboxing
   pull_request:
     branches:
       - main
-      - Kingmaker_sandboxing
 
 # Settings go here!
 env:
@@ -31,7 +29,7 @@ jobs:
   build_project:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.3
+      image: tvoigtlaender/kingmaker_standalone:V1.4
       options: --user 0 # run as root
 
     defaults:
@@ -75,7 +73,7 @@ jobs:
   build_single_friend:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.3
+      image: tvoigtlaender/kingmaker_standalone:V1.4
       options: --user 0 # run as root
 
     defaults:
@@ -118,7 +116,7 @@ jobs:
   build_two_friends:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.3
+      image: tvoigtlaender/kingmaker_standalone:V1.4
       options: --user 0 # run as root
 
 
@@ -139,7 +137,7 @@ jobs:
 
       - name: Mark git directory as safe
         run: git config --global --add safe.directory ${{github.workspace}}
-        
+
       - name: Create Build Environment
         shell: bash
         run: cmake -E make_directory ${{github.workspace}}/build
@@ -163,7 +161,7 @@ jobs:
   python_format:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.3
+      image: tvoigtlaender/kingmaker_standalone:V1.4
       options: --user 0 # run as root
 
     steps:
@@ -182,7 +180,7 @@ jobs:
   cpp_format:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.3
+      image: tvoigtlaender/kingmaker_standalone:V1.4
       options: --user 0 # run as root
 
     steps:
@@ -201,7 +199,7 @@ jobs:
   docs:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:V1.3
+      image: tvoigtlaender/kingmaker_standalone:V1.4
       options: --user 0 # run as root
 
     steps:
