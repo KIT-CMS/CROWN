@@ -7,19 +7,17 @@ namespace scalefactor {
 
 ROOT::RDF::RNode
 SelectionTrigger(ROOT::RDF::RNode df,
-                  correctionManager::CorrectionManager &correction_manager,
-                  const std::string &outputname,
-                  const std::string &pt_1, const std::string &eta_1,
-                  const std::string &pt_2, const std::string &eta_2,
-                  const std::string &sf_file,
-                  const std::string &sf_name);
+                 correctionManager::CorrectionManager &correction_manager,
+                 const std::string &outputname, const std::string &pt_1,
+                 const std::string &eta_1, const std::string &pt_2,
+                 const std::string &eta_2, const std::string &sf_file,
+                 const std::string &sf_name);
 ROOT::RDF::RNode
 SelectionId(ROOT::RDF::RNode df,
-             correctionManager::CorrectionManager &correction_manager,
-             const std::string &outputname, 
-             const std::string &pt, const std::string &eta,
-             const std::string &sf_file,
-             const std::string &sf_name);
+            correctionManager::CorrectionManager &correction_manager,
+            const std::string &outputname, const std::string &pt,
+            const std::string &eta, const std::string &sf_file,
+            const std::string &sf_name);
 } // end namespace scalefactor
 
 namespace muon {
@@ -27,10 +25,9 @@ namespace muon {
 ROOT::RDF::RNode
 Scalefactor(ROOT::RDF::RNode df,
             correctionManager::CorrectionManager &correction_manager,
-            const std::string &output,
-            const std::string &pt, const std::string &eta,
-            const std::string &sf_file, const std::string &sf_name,
-            const std::string correction_type,
+            const std::string &output, const std::string &pt,
+            const std::string &eta, const std::string &sf_file,
+            const std::string &sf_name, const std::string correction_type,
             const float &extrapolation_factor = 1.0);
 } // end namespace muon
 
@@ -51,10 +48,9 @@ PtCorrection(ROOT::RDF::RNode df,
 ROOT::RDF::RNode
 Scalefactor(ROOT::RDF::RNode df,
             correctionManager::CorrectionManager &correction_manager,
-            const std::string &output,
-            const std::string &pt, const std::string &eta,
-            const std::string &sf_file, const std::string &sf_name,
-            const std::string correction_type,
+            const std::string &output, const std::string &pt,
+            const std::string &eta, const std::string &sf_file,
+            const std::string &sf_name, const std::string correction_type,
             const float &extrapolation_factor = 1.0);
 } // end namespace electron
 
@@ -71,14 +67,11 @@ namespace scalefactor {
 ROOT::RDF::RNode
 Id_vsJet_lt(ROOT::RDF::RNode df,
             correctionManager::CorrectionManager &correction_manager,
-            const std::string &outputname,
-            const std::string &pt, const std::string &decay_mode,
-            const std::string &gen_match, 
-            const std::string &sf_file,
-            const std::string &sf_name,
-            const std::vector<int> &selected_dms,
-            const std::string &wp, const std::string &vsele_wp,
-            const std::string &sf_dependence,
+            const std::string &outputname, const std::string &pt,
+            const std::string &decay_mode, const std::string &gen_match,
+            const std::string &sf_file, const std::string &sf_name,
+            const std::vector<int> &selected_dms, const std::string &wp,
+            const std::string &vsele_wp, const std::string &sf_dependence,
             const std::string &sf_vsjet_tau20to25,
             const std::string &sf_vsjet_tau25to30,
             const std::string &sf_vsjet_tau30to35,

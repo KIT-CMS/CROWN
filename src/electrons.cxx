@@ -56,12 +56,9 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &eta, const std::string &seed_gain,
                const std::string &es_resolution_up,
                const std::string &es_resolution_down,
-               const std::string &es_file,
-               const std::string &es_name,
-               const std::string &era,
-               const std::string &variation) {
-    auto evaluator =
-        correction_manager.loadCorrection(es_file, es_name);
+               const std::string &es_file, const std::string &es_name,
+               const std::string &era, const std::string &variation) {
+    auto evaluator = correction_manager.loadCorrection(es_file, es_name);
     auto electron_pt_correction_lambda =
         [evaluator, era, variation](const ROOT::RVec<float> &pts,
                                     const ROOT::RVec<float> &etas,
@@ -86,9 +83,9 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                     Logger::get("physicsobject::electron::PtCorrectionMC")
                         ->debug("inputs: era {}, eta {}, seed gain {}", era,
                                 etas.at(i), static_cast<int>(seed_gains.at(i)));
-                    auto sf =
-                        evaluator->evaluate({era, "scaleup", etas.at(i),
-                                             static_cast<int>(seed_gains.at(i))});
+                    auto sf = evaluator->evaluate(
+                        {era, "scaleup", etas.at(i),
+                         static_cast<int>(seed_gains.at(i))});
                     corrected_pts[i] = pts.at(i) * sf;
                     Logger::get("physicsobject::electron::PtCorrectionMC")
                         ->debug("ele pt before {}, ele pt after {}, sf {}",
@@ -97,9 +94,9 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                     Logger::get("physicsobject::electron::PtCorrectionMC")
                         ->debug("inputs: era {}, eta {}, seed gain {}", era,
                                 etas.at(i), static_cast<int>(seed_gains.at(i)));
-                    auto sf =
-                        evaluator->evaluate({era, "scaledown", etas.at(i),
-                                             static_cast<int>(seed_gains.at(i))});
+                    auto sf = evaluator->evaluate(
+                        {era, "scaledown", etas.at(i),
+                         static_cast<int>(seed_gains.at(i))});
                     corrected_pts[i] = pts.at(i) * sf;
                     Logger::get("physicsobject::electron::PtCorrectionMC")
                         ->debug("ele pt before {}, ele pt after {}, sf {}",
@@ -113,27 +110,32 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             }
             return corrected_pts;
         };
-    auto df1 = df.Define(outputname, electron_pt_correction_lambda,
-                         {pt, eta, seed_gain, es_resolution_up, es_resolution_down});
+    auto df1 =
+        df.Define(outputname, electron_pt_correction_lambda,
+                  {pt, eta, seed_gain, es_resolution_up, es_resolution_down});
     return df1;
 }
 
 /**
  * @brief This function applies energy scale and resolution corrections to MC.
  * The corrections are obtained from a dedicated correctionlib file.
- * 
+ *
  * For Run 3 samples, the electron energy scale correction has to be evaluated
  * using a centrally provided correctionlib file. The documentation of the file
  * content can be found here:
- * 
- * - [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22_electronSS_EtDependent.html)
- * - [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22EE_electronSS_EtDependent.html)
- * - [2023preBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23_electronSS_EtDependent.html)
- * - [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23BPix_electronSS_EtDependent.html)
+ *
+ * -
+ * [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22_electronSS_EtDependent.html)
+ * -
+ * [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22EE_electronSS_EtDependent.html)
+ * -
+ * [2023preBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23_electronSS_EtDependent.html)
+ * -
+ * [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23BPix_electronSS_EtDependent.html)
  *
  * An implementation recipe is provided here:
  * [egmScaleAndSmearingExample.py](https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/blob/master/examples/egmScaleAndSmearingExample.py).
- * 
+ *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
  * correction scale uncertainty patch file
@@ -155,7 +157,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * for "nominal" nothing is done because energy correction is already applied
  *
  * @return a dataframe containing the varied electron transverse momenta
- * 
+ *
  * @note This function is intended for analyses working with Run 3 NanoAODv12
  * or higher. In the Run 2 samples, the scale correction in data
  * is already applied in the NanoAOD files. Look at the overloaded version of
@@ -165,26 +167,21 @@ ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
                correctionManager::CorrectionManager &correction_manager,
                const std::string &outputname, const std::string &pt,
-               const std::string &eta,
-               const std::string &delta_eta_sc,
-               const std::string &r9,
-               const std::string &event_seed,
-               const std::string &sf_file,
-               const std::string &sf_name,
+               const std::string &eta, const std::string &delta_eta_sc,
+               const std::string &r9, const std::string &event_seed,
+               const std::string &sf_file, const std::string &sf_name,
                const std::string &variation) {
 
     // load corrections
-    auto evaluator =
-        correction_manager.loadCorrection(sf_file, sf_name);
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
 
     // lambda function to apply the scale and smearing corrections
-    auto correction = [evaluator, variation] (
-        const ROOT::RVec<float> &pt,
-        const ROOT::RVec<float> &eta,
-        const ROOT::RVec<float> &delta_eta_sc,
-        const ROOT::RVec<float> &r9,
-        const unsigned int &event_seed
-    ) {
+    auto correction = [evaluator,
+                       variation](const ROOT::RVec<float> &pt,
+                                  const ROOT::RVec<float> &eta,
+                                  const ROOT::RVec<float> &delta_eta_sc,
+                                  const ROOT::RVec<float> &r9,
+                                  const unsigned int &event_seed) {
         // initialize the random number generator with the event seed
         TRandom3 rand_gen = TRandom3(event_seed);
 
@@ -196,28 +193,16 @@ PtCorrectionMC(ROOT::RDF::RNode df,
 
             // calculate the nominal corrected pt by smearing the original pt
             auto random_number = rand_gen.Gaus(0.0, 1.0);
-            auto smear_nom = evaluator->evaluate({
-                "smear",
-                pt.at(i),
-                r9.at(i),
-                eta_sc
-            });
+            auto smear_nom =
+                evaluator->evaluate({"smear", pt.at(i), r9.at(i), eta_sc});
 
             // get the scale uncertainty
-            auto scale_unc = evaluator->evaluate({
-                "escale",
-                pt.at(i),
-                r9.at(i),
-                eta_sc
-            });
+            auto scale_unc =
+                evaluator->evaluate({"escale", pt.at(i), r9.at(i), eta_sc});
 
             // get the resolution uncertainty
-            auto smear_unc = evaluator->evaluate({
-                "esmear",
-                pt.at(i),
-                r9.at(i),
-                eta_sc
-            });
+            auto smear_unc =
+                evaluator->evaluate({"esmear", pt.at(i), r9.at(i), eta_sc});
 
             // set the corrected pt based on the considered variation
             float sf = 1.0;
@@ -225,10 +210,12 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 sf = std::max(0.0, 1.0 + smear_nom * random_number);
                 pt_corrected[i] = pt.at(i) * sf;
             } else if (variation == "resolutionUp") {
-                sf = std::max(0.0, 1.0 + (smear_nom + smear_unc) * random_number);
+                sf = std::max(0.0,
+                              1.0 + (smear_nom + smear_unc) * random_number);
                 pt_corrected[i] = pt.at(i) * sf;
             } else if (variation == "resolutionDown") {
-                sf = std::max(0.0, 1.0 + (smear_nom - smear_unc) * random_number);
+                sf = std::max(0.0,
+                              1.0 + (smear_nom - smear_unc) * random_number);
                 pt_corrected[i] = pt.at(i) * sf;
             } else if (variation == "scaleUp") {
                 sf = 1.0 + scale_unc;
@@ -244,38 +231,39 @@ PtCorrectionMC(ROOT::RDF::RNode df,
 
             // logging output
             Logger::get("physicsobject::electron::PtCorrectionMC")
-                ->debug("ele pt before {}, ele pt after {}, sf {}, variation {}",
-                        pt.at(i), pt_corrected.at(i), sf, variation);
-
+                ->debug(
+                    "ele pt before {}, ele pt after {}, sf {}, variation {}",
+                    pt.at(i), pt_corrected.at(i), sf, variation);
         }
 
         return pt_corrected;
     };
 
-    return df.Define(
-        outputname,
-        correction,
-        {pt, eta, delta_eta_sc, r9, event_seed}
-    );
+    return df.Define(outputname, correction,
+                     {pt, eta, delta_eta_sc, r9, event_seed});
 }
 
 /**
- * @brief This function applies energy scale corrections to data. The corrections are
- * obtained from a dedicated correctionlib file.
- * 
- * For Run 3 samples, the electron scale correction is not available in the NanoAOD files
- * and the corrections have to be evaluated using a centrally provided correctionlib file.
- * This function should only be used  The documentation of the file content
- * can be found here:
- * 
- * - [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22_electronSS_EtDependent.html)
- * - [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22EE_electronSS_EtDependent.html)
- * - [2023preBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23_electronSS_EtDependent.html)
- * - [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23BPix_electronSS_EtDependent.html)
+ * @brief This function applies energy scale corrections to data. The
+ * corrections are obtained from a dedicated correctionlib file.
+ *
+ * For Run 3 samples, the electron scale correction is not available in the
+ * NanoAOD files and the corrections have to be evaluated using a centrally
+ * provided correctionlib file. This function should only be used  The
+ * documentation of the file content can be found here:
+ *
+ * -
+ * [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22_electronSS_EtDependent.html)
+ * -
+ * [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22EE_electronSS_EtDependent.html)
+ * -
+ * [2023preBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23_electronSS_EtDependent.html)
+ * -
+ * [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23BPix_electronSS_EtDependent.html)
  *
  * An implementation recipe is provided here:
  * [egmScaleAndSmearingExample.py](https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/blob/master/examples/egmScaleAndSmearingExample.py).
- * 
+ *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
  * correction scale uncertainty patch file
@@ -294,59 +282,49 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * for "nominal" nothing is done because energy correction is already applied
  *
  * @return a dataframe containing the varied electron transverse momenta
- * 
+ *
  * @note This function is intended for analyses working with Run 3.
  */
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correction_manager,
-               const std::string &outputname, const std::string &pt,
-               const std::string &eta, const std::string &delta_eta_sc,
-               const std::string &seed_gain,
-               const std::string &r9, const std::string &run,
-               const std::string &sf_file,
-               const std::string &sf_name) {
+                 correctionManager::CorrectionManager &correction_manager,
+                 const std::string &outputname, const std::string &pt,
+                 const std::string &eta, const std::string &delta_eta_sc,
+                 const std::string &seed_gain, const std::string &r9,
+                 const std::string &run, const std::string &sf_file,
+                 const std::string &sf_name) {
     // load the correctionlib evaluator
     auto evaluator =
         correction_manager.loadCompoundCorrection(sf_file, sf_name);
 
     // lambda function to apply the scale correction
-    auto correction = [evaluator] (
-        const ROOT::RVec<float> &pt,
-        const ROOT::RVec<float> &eta,
-        const ROOT::RVec<float> &delta_eta_sc,
-        const ROOT::RVec<UChar_t> &seed_gain,
-        const ROOT::RVec<float> &r9,
-        const unsigned int &run
-    ) {
-        // for the data correction, we just need to multiply the original pt with the scale factor
-        ROOT::RVec<float> corrected_pt(pt.size());
-        for (int i = 0; i < pt.size(); ++i) {
-            // calculate supercluster eta
-            float eta_sc = eta.at(i) + delta_eta_sc.at(i);
+    auto correction =
+        [evaluator](const ROOT::RVec<float> &pt, const ROOT::RVec<float> &eta,
+                    const ROOT::RVec<float> &delta_eta_sc,
+                    const ROOT::RVec<UChar_t> &seed_gain,
+                    const ROOT::RVec<float> &r9, const unsigned int &run) {
+            // for the data correction, we just need to multiply the original pt
+            // with the scale factor
+            ROOT::RVec<float> corrected_pt(pt.size());
+            for (int i = 0; i < pt.size(); ++i) {
+                // calculate supercluster eta
+                float eta_sc = eta.at(i) + delta_eta_sc.at(i);
 
-            // evaluate the nominal correction scale factor from correctionlib
-            auto sf = evaluator->evaluate({
-                "scale",
-                static_cast<float>(run),
-                eta_sc,
-                r9.at(i),
-                pt.at(i),
-                static_cast<float>(seed_gain.at(i))
-            });
-            corrected_pt[i] = sf * pt.at(i);
-            Logger::get("physicsobject::electron::PtCorrectionData")
-                ->debug("ele pt before {}, ele pt after {}, sf {}",
-                        pt.at(i), corrected_pt.at(i), sf);
-        }
-        return corrected_pt;
-    };
+                // evaluate the nominal correction scale factor from
+                // correctionlib
+                auto sf = evaluator->evaluate(
+                    {"scale", static_cast<float>(run), eta_sc, r9.at(i),
+                     pt.at(i), static_cast<float>(seed_gain.at(i))});
+                corrected_pt[i] = sf * pt.at(i);
+                Logger::get("physicsobject::electron::PtCorrectionData")
+                    ->debug("ele pt before {}, ele pt after {}, sf {}",
+                            pt.at(i), corrected_pt.at(i), sf);
+            }
+            return corrected_pt;
+        };
 
-    return df.Define(
-        outputname,
-        correction,
-        {pt, eta, delta_eta_sc, seed_gain, r9, run}
-    );
+    return df.Define(outputname, correction,
+                     {pt, eta, delta_eta_sc, seed_gain, r9, run});
 }
 
 /**
@@ -433,7 +411,7 @@ namespace scalefactor {
 /**
  * @brief This function calculates electron ID scale factors (SFs) for a single
  * electron dependening on its pseudorapidity (\f$\eta\f$) and transverse
- * momentum (\f$p_T\f$). The scale factors are loaded from a correctionlib file 
+ * momentum (\f$p_T\f$). The scale factors are loaded from a correctionlib file
  * using a specified scale factor name and variation.
  *
  * Recommendations by EgammaPOG:
@@ -461,15 +439,15 @@ namespace scalefactor {
  * @return a new dataframe containing the new column
  *
  * @note This function needs the dependence on phi only in case of 2023 data
- * because for whatever reason EGM POG introduced it only in that era. 
+ * because for whatever reason EGM POG introduced it only in that era.
  */
 ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
                     correctionManager::CorrectionManager &correction_manager,
                     const std::string &outputname, const std::string &pt,
                     const std::string &eta, const std::string &phi,
-                    const std::string &era,
-                    const std::string &wp, const std::string &sf_file,
-                    const std::string &sf_name, const std::string &variation) {
+                    const std::string &era, const std::string &wp,
+                    const std::string &sf_file, const std::string &sf_name,
+                    const std::string &variation) {
     Logger::get("physicsobject::electron::scalefactor::Id")
         ->debug("Setting up functions for electron id sf with correctionlib");
     Logger::get("physicsobject::electron::scalefactor::Id")
@@ -477,9 +455,8 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     auto df1 = df.Define(
         outputname,
-        [evaluator, era, sf_name, wp, variation](const float &pt,
-                                                 const float &eta,
-                                                 const float &phi) {
+        [evaluator, era, sf_name, wp,
+         variation](const float &pt, const float &eta, const float &phi) {
             Logger::get("physicsobject::electron::scalefactor::Id")
                 ->debug("Era {}, Variation {}, WP {}", era, variation, wp);
             Logger::get("physicsobject::electron::scalefactor::Id")
@@ -488,9 +465,10 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
             if (pt >= 0.0) {
                 if (era.find("2023") != std::string::npos) {
                     // for 2023, phi is needed as input
-                    sf = evaluator->evaluate({era, variation, wp, eta, pt, phi});
-                } 
-                else sf = evaluator->evaluate({era, variation, wp, eta, pt});
+                    sf =
+                        evaluator->evaluate({era, variation, wp, eta, pt, phi});
+                } else
+                    sf = evaluator->evaluate({era, variation, wp, eta, pt});
             }
             Logger::get("physicsobject::electron::scalefactor::Id")
                 ->debug("Scale Factor {}", sf);
@@ -502,22 +480,28 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
 
 /**
  * @brief This function calculates single electron trigger scale factors (SFs)
- * for a single electron dependening on its pseudorapidity (\f$\eta\f$), its transverse
- * momentum (\f$p_T\f$), and the electron identification working point. The scale factors
- * are loaded from a correctionlib file using a specified scale factor name and variation.
- * This function only uses the scale factor from the correctionlib evaluation if the
- * corresponding trigger flag is set to `true`. Otherwise, it returns a scale factor of
- * 1.0.
+ * for a single electron dependening on its pseudorapidity (\f$\eta\f$), its
+ * transverse momentum (\f$p_T\f$), and the electron identification working
+ * point. The scale factors are loaded from a correctionlib file using a
+ * specified scale factor name and variation. This function only uses the scale
+ * factor from the correctionlib evaluation if the corresponding trigger flag is
+ * set to `true`. Otherwise, it returns a scale factor of 1.0.
  *
  * Recommendations by EgammaPOG:
- * - [Run3 triggers](https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTRunIIISummary)
- * - [Run3 scale factors](https://twiki.cern.ch/twiki/bin/view/CMS/EgammSFandSSRun3)
- * 
+ * - [Run3
+ * triggers](https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTRunIIISummary)
+ * - [Run3 scale
+ * factors](https://twiki.cern.ch/twiki/bin/view/CMS/EgammSFandSSRun3)
+ *
  * The documentation of the corresponding jsonPOG files can be found here:
- * - [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22_electronHlt.html)
- * - [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22EE_electronHlt.html)
- * - [2023preBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23_electronHlt.html)
- * - [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23BPix_electronHlt.html)
+ * -
+ * [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22_electronHlt.html)
+ * -
+ * [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22EE_electronHlt.html)
+ * -
+ * [2023preBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23_electronHlt.html)
+ * -
+ * [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23BPix_electronHlt.html)
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
@@ -540,15 +524,17 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
  *
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode Trigger(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correction_manager,
-                    const std::string &outputname, const std::string &pt,
-                    const std::string &eta, const std::string &trigger_flag,
-                    const std::string &era, const std::string &path_id_name,
-                    const std::string &sf_file, const std::string &sf_name,
-                    const std::string &variation) {
+ROOT::RDF::RNode
+Trigger(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname, const std::string &pt,
+        const std::string &eta, const std::string &trigger_flag,
+        const std::string &era, const std::string &path_id_name,
+        const std::string &sf_file, const std::string &sf_name,
+        const std::string &variation) {
     Logger::get("physicsobject::electron::scalefactor::Trigger")
-        ->debug("Setting up functions for electron trigger sf with correctionlib");
+        ->debug(
+            "Setting up functions for electron trigger sf with correctionlib");
     Logger::get("physicsobject::electron::scalefactor::Trigger")
         ->debug("Scale factor - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
@@ -557,15 +543,18 @@ ROOT::RDF::RNode Trigger(ROOT::RDF::RNode df,
         [evaluator, era, sf_name, path_id_name, variation](
             const float &pt, const float &eta, const bool &trigger_flag) {
             Logger::get("physicsobject::electron::scalefactor::Trigger")
-                ->debug("Era {}, Variation {}, Trigger at electron ID {}", era, variation, path_id_name);
+                ->debug("Era {}, Variation {}, Trigger at electron ID {}", era,
+                        variation, path_id_name);
             Logger::get("physicsobject::electron::scalefactor::Trigger")
-                ->debug("ID - pt {}, eta {}, trigger flag {}", pt, eta, trigger_flag);
+                ->debug("ID - pt {}, eta {}, trigger flag {}", pt, eta,
+                        trigger_flag);
             double sf = 1.;
             // check to prevent electrons with default values due to tau energy
             // correction shifts below good tau pt selection
             try {
                 if (pt >= 0.0 && std::abs(eta) >= 0.0 && trigger_flag) {
-                    sf = evaluator->evaluate({era, variation, path_id_name, eta, pt});
+                    sf = evaluator->evaluate(
+                        {era, variation, path_id_name, eta, pt});
                     Logger::get("physicsobject::electron::scalefactor::Trigger")
                         ->debug("Scale Factor {}", sf);
                 }

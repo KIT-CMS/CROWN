@@ -14,45 +14,43 @@ namespace quantity {
 /**
  * @brief This function defines a new column in the dataframe with seeds for a
  * random number generator for each event.
- * 
+ *
  * The seed value for each event is calculated by concatenating event index
  * variables and a seed value to `{seed}_{lumi}_{run}_{event}`. From that, a
  * SHA256 hash is calculated. The first four bytes of the hash are then used
  * to create a 32-bit unsigned integer, which serves as the event seed.
- * 
+ *
  * @param df input dataframe
  * @param outputname name of the new column containing the generated event seeds
  * @param lumi name of the column containing the luminosity block number
  * @param run name of the column containing the run number
  * @param event name of the column containing the event number
- * @param master_seed master seed value to be added to the hash used for event seed
- * generation
+ * @param master_seed master seed value to be added to the hash used for event
+ * seed generation
  *
  * @return a dataframe with the new column
  */
-ROOT::RDF::RNode
-GenerateSeed(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &lumi,
-    const std::string &run,
-    const std::string &event,
-    const UInt_t &master_seed = 42
-) {
-   
-    auto generate_seed = [master_seed] (
-        const unsigned int &lumi,
-        const unsigned int &run,
-        const unsigned long long &event
-    ) {
+ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
+                              const std::string &outputname,
+                              const std::string &lumi, const std::string &run,
+                              const std::string &event,
+                              const UInt_t &master_seed = 42) {
+
+    auto generate_seed = [master_seed](const unsigned int &lumi,
+                                       const unsigned int &run,
+                                       const unsigned long long &event) {
         // string for setting the seed value
-        const std::string seed_string = std::to_string(master_seed) + "_" + std::to_string(lumi) + "_" + std::to_string(run) + "_" + std::to_string(event);
+        const std::string seed_string =
+            std::to_string(master_seed) + "_" + std::to_string(lumi) + "_" +
+            std::to_string(run) + "_" + std::to_string(event);
 
         // create a SHA256 has from the seed string
         unsigned char hash[SHA256_DIGEST_LENGTH];
-        SHA256(reinterpret_cast<const unsigned char*>(seed_string.c_str()), seed_string.size(), hash);
+        SHA256(reinterpret_cast<const unsigned char *>(seed_string.c_str()),
+               seed_string.size(), hash);
 
-        // use the first for bits of the hash to create a 32-bit unsigned integer as seed
+        // use the first for bits of the hash to create a 32-bit unsigned
+        // integer as seed
         unsigned int event_seed = 0;
         for (int i = 0; i < 4; ++i) {
             event_seed = (event_seed << 8) | hash[i];
@@ -61,11 +59,7 @@ GenerateSeed(
         return event_seed;
     };
 
-    return df.Define(
-        outputname,
-        generate_seed,
-        {lumi, run, event}
-    );
+    return df.Define(outputname, generate_seed, {lumi, run, event});
 }
 
 } // end namespace quantity

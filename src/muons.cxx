@@ -340,8 +340,8 @@ ROOT::RDF::RNode Iso(ROOT::RDF::RNode df,
  *
  * @return a new dataframe containing the new column
  *
- * @warning This function is deprecated. Use the overloaded function with the additional
- * parameter `trigger_flag` instead.
+ * @warning This function is deprecated. Use the overloaded function with the
+ * additional parameter `trigger_flag` instead.
  */
 ROOT::RDF::RNode
 Trigger(ROOT::RDF::RNode df,
@@ -423,16 +423,11 @@ Trigger(ROOT::RDF::RNode df,
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     auto df1 = df.Define(
         outputname,
-        [evaluator, variation, sf_name](const float &pt,
-                                        const float &eta,
+        [evaluator, variation, sf_name](const float &pt, const float &eta,
                                         const bool &trigger_flag) {
             Logger::get("physicsobject::muon::scalefactor::Trigger")
-                ->debug(
-                    "Trigger - pt {}, eta {}, trigger flag {}",
-                    pt,
-                    eta,
-                    trigger_flag
-                );
+                ->debug("Trigger - pt {}, eta {}, trigger flag {}", pt, eta,
+                        trigger_flag);
             double sf = 1.;
             // check to prevent muons with default values due to tau energy
             // correction shifts below good tau pt selection

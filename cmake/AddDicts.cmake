@@ -4,8 +4,8 @@ set(PERSISTENT_LIB "${CACHE_DIR}/libMyDicts.so")
 set(PERSISTENT_PCM "${CACHE_DIR}/libMyDicts_dict_rdict.pcm")
 set(PERSISTENT_CC  "${CACHE_DIR}/libMyDicts_dict.cc")
 
-set(SRC_HEADER  "${CMAKE_CURRENT_SOURCE_DIR}/include/dictionaries/MyDicts.h")
-set(SRC_LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/include/dictionaries/LinkDef.h")
+set(SRC_HEADER  "${CMAKE_CURRENT_SOURCE_DIR}/include/dictionaries/MyDicts.hxx")
+set(SRC_LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/include/dictionaries/LinkDef.hxx")
 
 if(NOT EXISTS "${CACHE_DIR}")
     file(MAKE_DIRECTORY "${CACHE_DIR}")

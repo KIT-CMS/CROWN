@@ -1,46 +1,47 @@
-#include "ROOT/RDataFrame.hxx"
 #include "ROOT/RDFHelpers.hxx"
+#include "ROOT/RDataFrame.hxx"
 #include "RooTrace.h"
 #include "TStopwatch.h"
-#include <ROOT/RLogger.hxx>
-#include "include/utility/Logger.hxx"
-#include <TFile.h>
-#include <TMap.h>
-#include <filesystem>
-#include <TObjString.h>
-#include <TTree.h>
-#include <TVector.h>
-#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
-#include <regex>
-#include <string>
-#include <TInterpreter.h>
-#include "include/utility/OnnxSessionManager.hxx"
-#include "include/utility/CorrectionManager.hxx"
+#include "include/electrons.hxx"
+#include "include/embedding.hxx"
+#include "include/fatjets.hxx"
 #include "include/genparticles.hxx"
 #include "include/htxs.hxx"
 #include "include/jets.hxx"
-#include "include/fatjets.hxx"
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"
 #include "include/ml.hxx"
-#include "include/pairselection.hxx"
-#include "include/embedding.hxx"
-#include "include/physicsobjects.hxx"
 #include "include/muons.hxx"
-#include "include/electrons.hxx"
-#include "include/taus.hxx"
+#include "include/pairselection.hxx"
+#include "include/physicsobjects.hxx"
 #include "include/quantities.hxx"
 #include "include/reweighting.hxx"
+#include "include/taus.hxx"
 #include "include/topreco.hxx"
 #include "include/triggers.hxx"
 #include "include/tripleselection.hxx"
+#include "include/utility/CorrectionManager.hxx"
+#include "include/utility/Logger.hxx"
+#include "include/utility/OnnxSessionManager.hxx"
+#include <ROOT/RLogger.hxx>
+#include <TFile.h>
+#include <TInterpreter.h>
+#include <TMap.h>
+#include <TObjString.h>
+#include <TTree.h>
+#include <TVector.h>
+#include <filesystem>
+#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
+#include <regex>
+#include <string>
 
 // {INCLUDE_ANALYSISADDONS}
 
 // {INCLUDES}
 
-// Choose correct namespace for logging (ROOT 6.34 uses Experimental, 6.36+ does not)
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6,36,0)
+// Choose correct namespace for logging (ROOT 6.34 uses Experimental, 6.36+ does
+// not)
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6, 36, 0)
 namespace ROOTLogNS = ROOT;
 #else
 namespace ROOTLogNS = ROOT::Experimental;
@@ -76,12 +77,13 @@ int validate_rootfile(std::string file, std::string &basetree) {
         nevents += t1->GetEntries();
         basetree = "ntuple";
         Logger::get("main")->critical("CROWN input_file: {} - {} Events", file,
-                                  t1->GetEntries());
+                                      t1->GetEntries());
         return nevents;
     } else {
-        Logger::get("main")->critical("File {} does not contain a tree "
-                                      "named 'Events' or 'ntuple' or 'quantities'",
-                                      file);
+        Logger::get("main")->critical(
+            "File {} does not contain a tree "
+            "named 'Events' or 'ntuple' or 'quantities'",
+            file);
         return -1;
     }
 }
@@ -91,8 +93,7 @@ int main(int argc, char *argv[]) {
     // ROOT logging
     if (debug) {
         auto verbosity = ROOTLogNS::RLogScopedVerbosity(
-            ROOT::Detail::RDF::RDFLogChannel(),
-            ROOTLogNS::ELogLevel::kInfo);
+            ROOT::Detail::RDF::RDFLogChannel(), ROOTLogNS::ELogLevel::kInfo);
         RooTrace::verbose(kTRUE);
         Logger::setLevel(Logger::LogLevel::DEBUG);
     } else {

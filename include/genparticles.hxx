@@ -12,17 +12,21 @@
 
 namespace genparticles {
 
-ROOT::RDF::RNode GetBoson(
-    ROOT::RDF::RNode df, const std::string outputname,
-    const std::string &genparticles_pt, const std::string &genparticles_eta,
-    const std::string &genparticles_phi, const std::string &genparticles_mass,
-    const std::string &genparticles_pdg_id, const std::string &genparticles_status,
-    const std::string &genparticles_status_flags, bool is_data);
+ROOT::RDF::RNode GetBoson(ROOT::RDF::RNode df, const std::string outputname,
+                          const std::string &genparticles_pt,
+                          const std::string &genparticles_eta,
+                          const std::string &genparticles_phi,
+                          const std::string &genparticles_mass,
+                          const std::string &genparticles_pdg_id,
+                          const std::string &genparticles_status,
+                          const std::string &genparticles_status_flags,
+                          bool is_data);
 ROOT::RDF::RNode GetVisibleBoson(
     ROOT::RDF::RNode df, const std::string outputname,
     const std::string &genparticles_pt, const std::string &genparticles_eta,
     const std::string &genparticles_phi, const std::string &genparticles_mass,
-    const std::string &genparticles_pdg_id, const std::string &genparticles_status,
+    const std::string &genparticles_pdg_id,
+    const std::string &genparticles_status,
     const std::string &genparticles_status_flags, bool is_data);
 
 namespace tau {
@@ -41,22 +45,22 @@ ROOT::RDF::RNode GenMatching(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &genparticles_phi,
                              const std::string &genparticles_mass,
                              const std::string &reco_had_tau);
-ROOT::RDF::RNode GenMatching(
-    ROOT::RDF::RNode df, const std::string &outputname,
-    const std::string &hadronic_gen_taus, const std::string &genparticles_pdg_id,
-    const std::string &genparticles_status_flags, const std::string &genparticle_motheridx,
-    const std::string &genparticles_pt, const std::string &genparticles_eta, 
-    const std::string &genparticles_phi, const std::string &genparticles_mass, 
-    const std::string &reco_had_tau);
+ROOT::RDF::RNode GenMatching(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &hadronic_gen_taus,
+                             const std::string &genparticles_pdg_id,
+                             const std::string &genparticles_status_flags,
+                             const std::string &genparticle_motheridx,
+                             const std::string &genparticles_pt,
+                             const std::string &genparticles_eta,
+                             const std::string &genparticles_phi,
+                             const std::string &genparticles_mass,
+                             const std::string &reco_had_tau);
 } // end namespace tau
 
-namespace drell_yan{
-ROOT::RDF::RNode DecayFlavor(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &lhe_pdg_id,
-    const std::string &lhe_status
-);
+namespace drell_yan {
+ROOT::RDF::RNode DecayFlavor(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &lhe_pdg_id,
+                             const std::string &lhe_status);
 } // end namespace drell_yan
 } // end namespace genparticles
 #endif /* GUARD_GENPARTICLES_H */
