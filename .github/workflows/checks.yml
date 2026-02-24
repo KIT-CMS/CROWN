@@ -149,6 +149,19 @@ jobs:
         shell: bash
         run: cd $GITHUB_WORKSPACE && bash checks/python-formatting.sh
 
+  cmake_format:
+    runs-on: ubuntu-24.04
+    container:
+      image: tvoigtlaender/kingmaker_standalone:V1.4g
+      options: --user 0 # run as root
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check CMake formatting
+        shell: bash
+        run: cd $GITHUB_WORKSPACE && bash checks/cmake-formatting.sh
+
   cpp_format:
     runs-on: ubuntu-24.04
     container:
