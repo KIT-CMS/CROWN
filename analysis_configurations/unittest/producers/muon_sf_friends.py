@@ -1,7 +1,6 @@
 from ..quantities import output as q
 from code_generation.producer import Producer
 
-
 MuonIDSF_friends_1 = Producer(
     name="MuonIDSF_friends_1",
     call="""embedding::muon::Scalefactor(

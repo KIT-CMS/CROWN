@@ -2,7 +2,6 @@ import correctionlib.convert
 import json
 import gzip
 
-
 syst = ""
 # syst = '_combined_syst'
 

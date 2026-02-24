@@ -2,7 +2,6 @@ from ..quantities import output as q
 from code_generation.producer import Producer, ProducerGroup
 from code_generation.producer import ExtendedVectorProducer
 
-
 ############################
 # Muon ID, ISO SF
 # The readout is done via correctionlib
