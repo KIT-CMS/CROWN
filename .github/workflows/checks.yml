@@ -45,29 +45,33 @@ jobs:
           ssh-strict: "false"
           ssh-known-hosts: "[gitlab.cern.ch]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubVS0czgKaPkC5cfB75CI3XjgWBv7pj2ILiZezVf8okkCAYr+bf4w6VrH2pyv3NRUW5Mm8U/3zoSNcrYIqhFFpz6R62/3xt8hMrPKJKstbt1lSIr8QhEyD24SJEKugMi560BWRPkTzXrrFgxz0X4vuKKytpvihRsccZ7F1JaX76UCWEJ3Xr2BFCEnnN6gj9nvFr4gvSMneunWVLGw2KcHwS1OJfnWBlp3fB0rYWSxZAoVjcjZjvv3hioEftaTapff2PkdQIX//N9Cc555FzdmMzixTvU5j/i+QvjxWVbEBNSKI6te6udC4fYUZMePs2QQnqw9mXUQtaQtw+HV7utuw=="
 
-      - name: Mark git directory as safe
-        run: git config --global --add safe.directory ${{github.workspace}}
+      - name: Mark all git directories as safe
+        run: git config --global --add safe.directory '*'
 
       - name: Create Build Environment
-        run: cmake -E make_directory ${{github.workspace}}/build
+        run: cmake -E make_directory build
 
       - name: adding a system path
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Configure CMake
         run: |
-          cd ${{github.workspace}}/build
-          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SCOPES -DSHIFTS=$SHIFTS -DOPTIMIZED=false
+          cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DANALYSIS=$ANALYSIS \
+            -DCONFIG=$CONFIG \
+            -DSAMPLES=$SAMPLES \
+            -DERAS=$ERAS \
+            -DSCOPES=$SCOPES \
+            -DSHIFTS=$SHIFTS \
+            -DOPTIMIZED=false
 
       - name: Build
-        run: |
-          cd ${{github.workspace}}/build
-          make install -j 2
+        run: make -C build install -j$(nproc)
 
       - name: Test
-        run: |
-          cd ${{github.workspace}}/build
-          ctest -V --label-regex "ntuple.*."
+        run: ctest --test-dir build -V --label-regex "ntuple.*."
 
   build_single_friend:
     runs-on: ubuntu-24.04
@@ -84,29 +88,34 @@ jobs:
           ssh-strict: "false"
           ssh-known-hosts: "[gitlab.cern.ch]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubVS0czgKaPkC5cfB75CI3XjgWBv7pj2ILiZezVf8okkCAYr+bf4w6VrH2pyv3NRUW5Mm8U/3zoSNcrYIqhFFpz6R62/3xt8hMrPKJKstbt1lSIr8QhEyD24SJEKugMi560BWRPkTzXrrFgxz0X4vuKKytpvihRsccZ7F1JaX76UCWEJ3Xr2BFCEnnN6gj9nvFr4gvSMneunWVLGw2KcHwS1OJfnWBlp3fB0rYWSxZAoVjcjZjvv3hioEftaTapff2PkdQIX//N9Cc555FzdmMzixTvU5j/i+QvjxWVbEBNSKI6te6udC4fYUZMePs2QQnqw9mXUQtaQtw+HV7utuw=="
 
-      - name: Mark git directory as safe
-        run: git config --global --add safe.directory ${{github.workspace}}
+      - name: Mark all git directories as safe
+        run: git config --global --add safe.directory '*'
 
       - name: Create Build Environment
-        run: cmake -E make_directory ${{github.workspace}}/build
+        run: cmake -E make_directory build
 
       - name: adding a system path
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Configure CMake
         run: |
-          cd ${{github.workspace}}/build
-          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$SINGLE_FRIEND_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$SINGLE_FRIEND_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy"
+          cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DANALYSIS=$ANALYSIS \
+            -DCONFIG=$SINGLE_FRIEND_CONFIG \
+            -DSAMPLES=$SAMPLES \
+            -DERAS=$ERAS \
+            -DSCOPES=$SINGLE_FRIEND_SCOPES \
+            -DSHIFTS=$FRIEND_SHIFTS \
+            -DOPTIMIZED=false \
+            -DQUANTITIESMAP="dummy"
 
       - name: Build
-        run: |
-          cd ${{github.workspace}}/build
-          make install -j 2
+        run: make -C build install -j$(nproc)
 
       - name: Test
-        run: |
-          cd ${{github.workspace}}/build
-          ctest -V --label-regex "single_friend.*."
+        run: ctest --test-dir build -V --label-regex "single_friend.*."
 
   build_two_friends:
     runs-on: ubuntu-24.04
@@ -123,29 +132,29 @@ jobs:
           ssh-strict: "false"
           ssh-known-hosts: "[gitlab.cern.ch]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubVS0czgKaPkC5cfB75CI3XjgWBv7pj2ILiZezVf8okkCAYr+bf4w6VrH2pyv3NRUW5Mm8U/3zoSNcrYIqhFFpz6R62/3xt8hMrPKJKstbt1lSIr8QhEyD24SJEKugMi560BWRPkTzXrrFgxz0X4vuKKytpvihRsccZ7F1JaX76UCWEJ3Xr2BFCEnnN6gj9nvFr4gvSMneunWVLGw2KcHwS1OJfnWBlp3fB0rYWSxZAoVjcjZjvv3hioEftaTapff2PkdQIX//N9Cc555FzdmMzixTvU5j/i+QvjxWVbEBNSKI6te6udC4fYUZMePs2QQnqw9mXUQtaQtw+HV7utuw=="
 
-      - name: Mark git directory as safe
-        run: git config --global --add safe.directory ${{github.workspace}}
-
-      - name: Create Build Environment
-        run: cmake -E make_directory ${{github.workspace}}/build
-
-      - name: adding a system path
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Mark all directories as safe
+        run: git config --global --add safe.directory '*'
 
       - name: Configure CMake
         run: |
-          cd ${{github.workspace}}/build
-          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DANALYSIS=$ANALYSIS -DCONFIG=$TWO_FRIENDS_CONFIG -DSAMPLES=$SAMPLES -DERAS=$ERAS -DSCOPES=$TWO_FRIENDS_SCOPES -DSHIFTS=$FRIEND_SHIFTS -DOPTIMIZED=false -DQUANTITIESMAP="dummy"
+          mkdir -p build
+          cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DANALYSIS=$ANALYSIS \
+            -DCONFIG=$TWO_FRIENDS_CONFIG \
+            -DSAMPLES=$SAMPLES \
+            -DERAS=$ERAS \
+            -DSCOPES=$TWO_FRIENDS_SCOPES \
+            -DSHIFTS=$FRIEND_SHIFTS \
+            -DOPTIMIZED=false \
+            -DQUANTITIESMAP="dummy"
 
       - name: Build
-        run: |
-          cd ${{github.workspace}}/build
-          make install -j 2
+        run: make -C build install -j$(nproc)
 
       - name: Test
-        run: |
-          cd ${{github.workspace}}/build
-          ctest -V --label-regex "two_friends.*."
+        run: ctest --test-dir build -V --label-regex "two_friends.*."
 
   code_formatting:
     runs-on: ubuntu-24.04
@@ -155,12 +164,10 @@ jobs:
     steps:
       - name: Clone project
         uses: actions/checkout@v4
-
-      - name: Mark git directory as safe
-        run: git config --global --add safe.directory ${{github.workspace}}
-
       - name: Run all formatting checks
-        run: bash ./checks/run-all-checks.sh
+        run: |
+          git config --global --add safe.directory '*'
+          bash ./checks/run-all-checks.sh
 
   docs:
     runs-on: ubuntu-24.04
