@@ -12,7 +12,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-echo "🔍 Finding CMake files (respecting .gitignore and submodules)..."
+echo "🔍 Finding CMake files ..."
 
 # Find tracked CMake files:
 # 1. Any file named CMakeLists.txt

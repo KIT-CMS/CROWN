@@ -12,7 +12,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-echo "🔍 Finding Python files (respecting .gitignore and submodules)..."
+echo "🔍 Finding Python files ..."
 
 # Find tracked python files
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,7 +35,7 @@ else
     # --diff: show what would change
     # --quiet: reduce noise, we only want the diffs/errors
     if echo "$FILES" | xargs black --check --diff; then
-        echo "✨ Python code is looking sharp!"
+        echo "✨ Python code is looking good!"
         exit 0
     else
         echo "------------------------------------------------------"
