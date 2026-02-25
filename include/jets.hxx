@@ -1,6 +1,8 @@
 #ifndef GUARD_JETS_H
 #define GUARD_JETS_H
 
+#include "utility/CorrectionManager.hxx"
+
 namespace physicsobject {
 namespace jet {
 

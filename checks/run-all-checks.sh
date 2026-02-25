@@ -33,7 +33,7 @@ run_sub_script() {
     fi
 
     # Run the script and capture its exit code
-    bash "$full_path" "$APPLY_FIXES"
+    bash "$full_path" ${APPLY_FIXES:+"$APPLY_FIXES"}
     local status=$?
 
     if [ $status -eq 0 ]; then

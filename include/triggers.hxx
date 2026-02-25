@@ -1,6 +1,8 @@
 #ifndef GUARD_TRIGGERS_H
 #define GUARD_TRIGGERS_H
 
+#include "utility/CorrectionManager.hxx"
+
 typedef std::bitset<30> IntBits;
 
 namespace trigger {

@@ -1,6 +1,8 @@
 #ifndef GUARD_TAUS_H
 #define GUARD_TAUS_H
 
+#include "utility/CorrectionManager.hxx"
+
 namespace physicsobject {
 namespace tau {
 

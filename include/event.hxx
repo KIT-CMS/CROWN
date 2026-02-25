@@ -1,10 +1,10 @@
 #ifndef GUARD_EVENT_H
 #define GUARD_EVENT_H
 
-#include "../include/defaults.hxx"
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
+#include "defaults.hxx"
+#include "utility/CorrectionManager.hxx"
+#include "utility/Logger.hxx"
+#include "utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include <TRandom3.h>

@@ -1,6 +1,8 @@
 #ifndef GUARD_REWEIGHTING_H
 #define GUARD_REWEIGHTING_H
 
+#include "utility/CorrectionManager.hxx"
+
 namespace event {
 namespace reweighting {
 

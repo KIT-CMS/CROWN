@@ -1,6 +1,8 @@
 #ifndef GUARD_ELECTRONS_H
 #define GUARD_ELECTRONS_H
 
+#include "utility/CorrectionManager.hxx"
+
 namespace physicsobject {
 namespace electron {
 

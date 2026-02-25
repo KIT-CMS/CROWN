@@ -38,8 +38,7 @@
 
 // {INCLUDE_ANALYSISADDONS}
 
-ROOT::RDF::RNode{
-    subsetname}(ROOT::RDF::RNode df0, OnnxSessionManager &onnxSessionManager,
+ROOT::RDF::RNode {subsetname}(ROOT::RDF::RNode df0, OnnxSessionManager &onnxSessionManager,
                 correctionManager::CorrectionManager &correctionManager) {
 
     //    { commands }

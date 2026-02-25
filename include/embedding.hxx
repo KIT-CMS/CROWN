@@ -1,6 +1,8 @@
 #ifndef GUARD_EMBEDDING_H
 #define GUARD_EMBEDDING_H
 
+#include "utility/CorrectionManager.hxx"
+
 namespace embedding {
 
 namespace scalefactor {
