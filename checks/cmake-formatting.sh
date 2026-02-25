@@ -17,7 +17,8 @@ echo "🔍 Finding CMake files (respecting .gitignore and submodules)..."
 # Find tracked CMake files:
 # 1. Any file named CMakeLists.txt
 # 2. Any file ending in .cmake or .cmake.in
-FILES=$(git ls-files | grep -E '(CMakeLists\.txt|\.cmake(\.in)?)$')
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FILES=$(git ls-files | grep -E '(CMakeLists\.txt|\.cmake(\.in)?)$' | grep -vEf "$SCRIPT_DIR/format_ignore.txt")
 
 if [[ -z "$FILES" ]]; then
     echo "No CMake files found."

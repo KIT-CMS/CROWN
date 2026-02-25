@@ -10,7 +10,8 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # Find files tracked by git, excluding submodules and ignored files
-FILES=$(git ls-files | grep -E '\.(h(xx)?|c(xx?))$')
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FILES=$(git ls-files | grep -E '\.(h(xx)?|c(xx?))$' | grep -vEf "$SCRIPT_DIR/format_ignore.txt")
 
 if [[ -z "$FILES" ]]; then
     echo "No matching files found."

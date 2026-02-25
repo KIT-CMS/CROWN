@@ -15,7 +15,8 @@ done
 echo "🔍 Finding Python files (respecting .gitignore and submodules)..."
 
 # Find tracked python files
-FILES=$(git ls-files | grep -E '\.py$')
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FILES=$(git ls-files | grep -E '\.py$' | grep -vEf "$SCRIPT_DIR/format_ignore.txt")
 
 if [[ -z "$FILES" ]]; then
     echo "No Python files found."
