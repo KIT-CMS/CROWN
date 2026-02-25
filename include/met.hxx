@@ -1,8 +1,8 @@
 #ifndef GUARD_MET_H
 #define GUARD_MET_H
 
-#include "utility/CorrectionManager.hxx"
 #include "event.hxx"
+#include "utility/CorrectionManager.hxx"
 #include "utility/utility.hxx"
 
 namespace met {
