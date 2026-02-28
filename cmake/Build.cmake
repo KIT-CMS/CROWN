@@ -70,7 +70,12 @@ foreach(FILENAME ${FILELIST})
     PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CORRECTION_LIB_PATH}"
             ${INSTALLDIR}/lib/libcorrectionlib.so)
-  # Find shared libraries next to the executable in the /lib folder
+
+  # Add local conda lib path to the executable when available
+  # This allows for build in local conda env and execution in container
+  if(DEFINED ENV{CONDA_PREFIX})
+    set(CONDA_RPATH "$ENV{CONDA_PREFIX}/lib")
+  endif()
 
   set_target_properties(
     ${TARGET_NAME}
@@ -81,10 +86,10 @@ foreach(FILENAME ${FILELIST})
                # itself
                # Note: We use \$ORIGIN to prevent CMake from trying to evaluate
                # it as a variable
-               INSTALL_RPATH "\$ORIGIN/lib"
+               INSTALL_RPATH "\$ORIGIN/lib;${CONDA_RPATH};/opt/conda/envs/env/lib"
                # Also tell the binary where to look while still in the build
                # directory
-               BUILD_RPATH "${CMAKE_BINARY_DIR}/lib")
+               BUILD_RPATH "${CMAKE_BINARY_DIR}/lib;${CONDA_RPATH};/opt/conda/envs/env/lib")
 
   # set_target_properties( ${TARGET_NAME} PROPERTIES BUILD_WITH_INSTALL_RPATH
   # FALSE LINK_FLAGS "-Wl,-rpath,$ORIGIN/lib")
