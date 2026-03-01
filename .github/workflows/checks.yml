@@ -33,7 +33,7 @@ jobs:
   build_project:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:1.5
+      image: tvoigtlaender/kingmaker_standalone:V1.5
       options: --user 0 # run as root
 
     steps:
@@ -76,7 +76,7 @@ jobs:
   build_single_friend:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:1.5
+      image: tvoigtlaender/kingmaker_standalone:V1.5
       options: --user 0 # run as root
 
     steps:
@@ -120,7 +120,7 @@ jobs:
   build_two_friends:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:1.5
+      image: tvoigtlaender/kingmaker_standalone:V1.5
       options: --user 0 # run as root
 
     steps:
@@ -159,7 +159,7 @@ jobs:
   code_formatting:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:1.5
+      image: tvoigtlaender/kingmaker_standalone:V1.5
       options: --user 0
     steps:
       - name: Clone project
@@ -172,7 +172,7 @@ jobs:
   docs:
     runs-on: ubuntu-24.04
     container:
-      image: tvoigtlaender/kingmaker_standalone:1.5
+      image: tvoigtlaender/kingmaker_standalone:V1.5
       options: --user 0
     steps:
       - name: Clone project
