@@ -49,9 +49,11 @@ action() {
                 echo ""
                 echo "Options:"
                 echo "  -a, --analysis ANALYSIS    The CROWN analysis configs to use"
-                echo "  -l, --list                 List available CROWN analyses"
                 echo "  -c, --container CONTAINER  The container to use as environment"
+                echo "                             'none' initializes without starting a container"
                 echo "                             [default: ${DEFAULT_CONTAINER}]"
+                echo "  -l, --list                 List available CROWN analyses"
+                echo "  -d, --dry-run              Only check out analysis configurations"
                 echo "  -h, --help                 Show this help message"
                 echo ""
                 return 1
@@ -106,31 +108,41 @@ action() {
         echo "Warning: No valid VOMS proxy found. Grid storage may be inaccessible."
     fi
 
-    # --- Get the absolute path of the parent git repository ---
-    # checks/git-status.sh fails if top level git directory is not mounted in
-    GIT_ROOT=$(git -C "${SCRIPT_DIR}" rev-parse --show-superproject-working-tree)
-
-    # --- Define the Internal Environment ---
-    # This string is executed once the container starts
-    INT_CMD="
-        echo '--- Initializing Conda Environment ---';
-        export ANALYSIS_PATH=${ANALYSIS_PATH};
-        export CROWN_ANALYSIS=${CROWN_ANALYSIS};
+    if [[ "$CONTAINER" == "none" ]]; then
+        # Only set env variables if container is set to "none"
+        # Requires local environment to function
+        echo '--- Initializing Local Environment ---';
+        export ANALYSIS_PATH
+        export CROWN_ANALYSIS
         export CCACHE_DIR=${ANALYSIS_PATH}/.cache/ccache;
         export CMAKE_GENERATOR='Unix Makefiles';
         export EXTRA_CLING_ARGS='-O2';
-        export X509_USER_PROXY=${X509_USER_PROXY};
-        echo '--- Container Ready. Analysis: ${CROWN_ANALYSIS} ---';
-        bash --rcfile /etc/bashrc -i
-    "
+    else
+        # --- Get the absolute path of the parent git repository ---
+        # checks/git-status.sh fails if top level git directory is not mounted in
+        GIT_ROOT=$(git -C "${SCRIPT_DIR}" rev-parse --show-superproject-working-tree)
 
-    # --- Execute Singularity ---
-    echo "--> Launching Container: ${CONTAINER}"
-    singularity exec -e \
-        -B /etc/grid-security/certificates \
-        -B "${GIT_ROOT}:${GIT_ROOT}" \
-        -B "${HOME}:${HOME}" \
-        "${CONTAINER}" \
-        bash -c "${INT_CMD}"
+        # --- Define the Internal Environment ---
+        # This string is executed once the container starts
+        INT_CMD="
+            echo '--- Initializing Container Environment ---';
+            export ANALYSIS_PATH=${ANALYSIS_PATH};
+            export CROWN_ANALYSIS=${CROWN_ANALYSIS};
+            export CCACHE_DIR=${ANALYSIS_PATH}/.cache/ccache;
+            export CMAKE_GENERATOR='Unix Makefiles';
+            export EXTRA_CLING_ARGS='-O2';
+            export X509_USER_PROXY=${X509_USER_PROXY};
+            bash --rcfile /etc/bashrc -i
+        "
+
+        # --- Execute Singularity ---
+        echo "--> Launching Container: ${CONTAINER}"
+        singularity exec -e \
+            -B /etc/grid-security/certificates \
+            -B "${GIT_ROOT}:${GIT_ROOT}" \
+            -B "${HOME}:${HOME}" \
+            "${CONTAINER}" \
+            bash -c "${INT_CMD}"
+    fi
 }
 action "$@"
