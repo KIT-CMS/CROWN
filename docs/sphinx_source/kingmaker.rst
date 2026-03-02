@@ -296,7 +296,7 @@ The ``KingMaker_luigi.cfg`` file contains the configuration of the different tas
     wlcg_path = root://cmsdcache-kit-disk.gridka.de//store/user/${USER}/CROWN/ntuples/
     htcondor_accounting_group = cms.higgs
     htcondor_remote_job = True
-    htcondor_universe = docker
+    htcondor_universe = container
     transfer_logs = True
     local_scheduler = True
     tolerance = 0.00
