@@ -549,7 +549,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             if (reapply_jes) {
                 // reapplying the JES correction
                 float raw_pt = pts.at(i) * (1 - raw_factors.at(i));
-                float corr = jet_energy_scale_sf(area.at(i), etas.at(i), raw_pt, rho, phis.at(i), era);
+                float corr =
+                    jet_energy_scale_sf(area.at(i), etas.at(i), raw_pt, rho, phis.at(i), era);
                 corr_pt = raw_pt * corr;
                 Logger::get("physicsobject::jet::PtCorrectionMC")
                     ->debug("reapplying JE scale: orig. jet pt {} to raw "
@@ -562,9 +563,11 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             float reso =
                 jet_energy_resolution(etas.at(i), corrected_pts.at(i), rho);
             float reso_sf = 1.0;
-            if (std::stoi(era.substr(0, 4)) <= 2018) { // run 2 case
+            if (std::stoi(era.substr(0, 4)) <= 2018) {
+                // run 2 case
                 reso_sf = jer_sf_evaluator->evaluate({etas.at(i), jer_shift});
-            } else { // run 3 case
+            } else {
+                // run 3 case
                 reso_sf = jer_sf_evaluator->evaluate({etas.at(i), corrected_pts.at(i), jer_shift});
             }
             Logger::get("physicsobject::jet::PtCorrectionMC")

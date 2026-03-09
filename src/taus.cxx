@@ -1623,10 +1623,10 @@ Id_vsMu(ROOT::RDF::RNode df,
         const std::string &gen_match,
         const std::string &sf_file,
         const std::string &sf_name,
-        const std::string &era,
-        const std::string &wp,  
+        const std::string &wp,
         const std::string &wp_ele,
         const std::string &wp_jet,
+        const std::string &era,
         const std::string &variation_wheel1,
         const std::string &variation_wheel2,
         const std::string &variation_wheel3,
@@ -1645,7 +1645,7 @@ Id_vsMu(ROOT::RDF::RNode df,
     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")->debug("Setting up function for tau id vsMu sf");
     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")->debug("ID - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, era, wp, wp_ele, wp_jet, variations,
+    auto sf_calculator = [evaluator, wp, wp_ele, wp_jet, era, variations,
                             sf_name](const float &eta, const int &gen_match) {
         double sf = 1.;
         // exclude default values due to tau energy correction shifts below good tau
