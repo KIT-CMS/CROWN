@@ -3,6 +3,62 @@
 
 namespace physicsobject {
 namespace jet {
+ROOT::RDF::RNode RawPt(ROOT::RDF::RNode df,
+                        const std::string &outputname,
+                        const std::string &pts,
+                        const std::string &jet_raw_factor);
+
+ROOT::RDF::RNode
+PtCorrectionL1(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname,
+        const std::string &jet_pt,
+        const std::string &jet_eta, 
+        const std::string &jet_phi,
+        const std::string &jet_area, 
+        const std::string &jet_raw_factor,
+        const std::string &jet_raw_muonfactor,
+        const std::string &corrjet_pt,
+        const std::string &corrjet_eta, 
+        const std::string &corrjet_phi,
+        const std::string &corrjet_area, 
+        const std::string &corrjet_raw_muonfactor,
+        const std::string &rho, 
+        const std::string &jec_file, 
+        const std::string &jec_algo,
+        const std::string &jes_tag_mc, 
+        const std::string &jes_tag_data, 
+        const std::string &era,
+        const bool &is_data,
+        const bool &is_embedding);
+
+ROOT::RDF::RNode
+PtCorrection(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname,
+        const std::string &jet_pts,
+        const std::string &jet_eta, 
+        const std::string &jet_phi,
+        const std::string &jet_area, 
+        const std::string &jet_id,
+        const std::string &corrjet_eta, 
+        const std::string &corrjet_phi,
+        const std::string &corrjet_area, 
+        const std::string &gen_jet_pt,
+        const std::string &gen_jet_eta, 
+        const std::string &gen_jet_phi,
+        const std::string &rho, 
+        const std::string &jer_seed,
+        const std::string &run, 
+        const std::string &jec_file, 
+        const std::string &jec_algo,
+        const std::string &jes_tag_mc, 
+        const std::string &jes_tag_data, 
+        const std::vector<std::string> &jes_shift_sources,
+        const std::string &jer_tag,
+        const int &jes_shift, const std::string &jer_shift,
+        const std::string &era, const bool &is_data,
+        const bool &is_embedding);
 
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
@@ -17,13 +73,15 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &jes_tag, const std::vector<std::string> &jes_shift_sources,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
-               const int& lhc_run = 2, const bool &no_jer_for_unmatched_forward_jets = false);
+               const std::string &era, const bool &no_jer_for_unmatched_forward_jets = false);
 ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
                  correctionManager::CorrectionManager &correction_manager,
                  const std::string &outputname, const std::string &jet_pt,
                  const std::string &jet_eta, const std::string &jet_area,
                  const std::string &jet_raw_factor, const std::string &rho,
+                 const std::string &jet_phi,
+                 const std::string &run, const std::string &era,
                  const std::string &jec_file, const std::string &jec_algo,
                  const std::string &jes_tag);
 ROOT::RDF::RNode
