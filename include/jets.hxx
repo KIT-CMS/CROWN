@@ -78,12 +78,11 @@ ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
                  correctionManager::CorrectionManager &correction_manager,
                  const std::string &outputname, const std::string &jet_pt,
-                 const std::string &jet_eta, const std::string &jet_area,
-                 const std::string &jet_raw_factor, const std::string &rho,
-                 const std::string &jet_phi,
-                 const std::string &run, const std::string &era,
+                 const std::string &jet_eta, const std::string &jet_phi,
+                 const std::string &jet_area, const std::string &jet_raw_factor,
+                 const std::string &rho, const std::string &run,
                  const std::string &jec_file, const std::string &jec_algo,
-                 const std::string &jes_tag);
+                 const std::string &jes_tag, const std::string &era);
 ROOT::RDF::RNode
 PtCorrectionBJets(ROOT::RDF::RNode df,
                   const std::string &outputname,
