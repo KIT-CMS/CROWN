@@ -25,7 +25,7 @@ ROOT::RDF::RNode RawPt(ROOT::RDF::RNode df,
         [](const ROOT::RVec<float> &pt_vec, const ROOT::RVec<float> &raw_factor_vec) {
             ROOT::RVec<float> corrected_pts(pt_vec.size());
             for (size_t i = 0; i < pt_vec.size(); ++i) {
-                corrected_pts[i] = pt_vec[i] * (1 - raw_factor_vec[i]);
+                corrected_pts.at(i) = pt_vec[i] * (1 - raw_factor_vec[i]);
             }
             return corrected_pts;
         }, {pts, jet_raw_factor});
@@ -49,33 +49,35 @@ PtCorrectionL1(ROOT::RDF::RNode df,
         const std::string &rho, 
         const std::string &jec_file, 
         const std::string &jec_algo,
-        const std::string &jes_tag, 
+        const std::string &jes_tag_mc, 
+        const std::string &jes_tag_data, 
         const std::string &era,
-        const bool &is_data) {
+        const bool &is_data,
+        const bool &is_embedding) {
 
-    // get the algorithm type from the data flag
-    std::string type;
-    if (is_data) type = "_DATA";
-    else type = "_MC";
+    // get the algorithm tag 
+    std::string jes_tag;
+    if (is_data || is_embedding) jes_tag = jes_tag_data;
+    else jes_tag = jes_tag_data;
 
     // loading jet energy correction scale factor function
     auto jes_l1_evaluator = correction_manager.loadCorrection(
-        jec_file, jes_tag + type + "_L1FastJet_" + jec_algo);
+        jec_file, jes_tag + "_L1FastJet_" + jec_algo);
 
     // Concatenate columns for jet collections
-    auto df1 = df.Define("pts", [](const ROOT::RVec<float>& jet_pt_vec, const ROOT::RVec<float>& corrjet_pt_vec) {
+    auto df1 = df.Define("pts_raw", [](const ROOT::RVec<float>& jet_pt_vec, const ROOT::RVec<float>& corrjet_pt_vec) {
         return ROOT::VecOps::Concatenate(jet_pt_vec, corrjet_pt_vec);
     }, {jet_pt, corrjet_pt})
-    .Define("etas", [](const ROOT::RVec<float>& jet_eta_vec, const ROOT::RVec<float>& corrjet_eta_vec) {
+    .Define("etas_raw", [](const ROOT::RVec<float>& jet_eta_vec, const ROOT::RVec<float>& corrjet_eta_vec) {
         return ROOT::VecOps::Concatenate(jet_eta_vec, corrjet_eta_vec);
     }, {jet_eta, corrjet_eta})
-    .Define("phis", [](const ROOT::RVec<float>& jet_phi_vec, const ROOT::RVec<float>& corrjet_phi_vec) {
+    .Define("phis_raw", [](const ROOT::RVec<float>& jet_phi_vec, const ROOT::RVec<float>& corrjet_phi_vec) {
         return ROOT::VecOps::Concatenate(jet_phi_vec, corrjet_phi_vec);
     }, {jet_phi, corrjet_phi})
-    .Define("area", [](const ROOT::RVec<float>& jet_area_vec, const ROOT::RVec<float>& corrjet_area_vec) {
+    .Define("area_raw", [](const ROOT::RVec<float>& jet_area_vec, const ROOT::RVec<float>& corrjet_area_vec) {
         return ROOT::VecOps::Concatenate(jet_area_vec, corrjet_area_vec);
     }, {jet_area, corrjet_area})
-    .Define("muonSubtrFactor", [](const ROOT::RVec<float>& jet_raw_muonfactor_vec, const ROOT::RVec<float>& corrjet_raw_muonfactor_vec) {
+    .Define("muonSubtrFactor_raw", [](const ROOT::RVec<float>& jet_raw_muonfactor_vec, const ROOT::RVec<float>& corrjet_raw_muonfactor_vec) {
         return ROOT::VecOps::Concatenate(jet_raw_muonfactor_vec, corrjet_raw_muonfactor_vec);
     }, {jet_raw_muonfactor, corrjet_raw_muonfactor});
 
@@ -95,27 +97,27 @@ PtCorrectionL1(ROOT::RDF::RNode df,
             // raw pt for PuppiJet, first collection
             // already raw pt for CorrT1METJet
             float ptRaw = pts.at(i);
-            if (raw_factor.size() <= i) ptRaw = pts.at(i) * (1 - raw_factor.at(i));
+            if (i < raw_factor.size()) ptRaw = pts.at(i) * (1 - raw_factor.at(i));
 
             // Muon-subtracted raw pt
             float ptRawMinusMuon = ptRaw * (1.0 - muonSubtrFactor.at(i));
 
             // --- L1 ---
             float ptCorr = ptRawMinusMuon;
-            // apply L! only if run 3, else return raw pt for inclusive run2 correction
+            // apply L1 only if run 3, else return raw pt for inclusive run2 correction
             if (std::stoi(era.substr(0, 4)) >= 2022) {
                 float c1 = jes_l1_evaluator->evaluate({area.at(i), etas.at(i), ptRawMinusMuon, rho});
                 ptCorr *= c1;
             }
             
-            corrected_pts[i] = ptCorr;
+            corrected_pts.at(i) = ptCorr;
         }
         return corrected_pts;
     };
 
     std::vector<std::string> columns = {
-        "pts", "etas", "phis", "area", "muonSubtrFactor",
-        "jet_raw_factor", "Rho_fixedGridRhoFastjetAll",
+        "pts_raw", "etas_raw", "phis_raw", "area_raw", "muonSubtrFactor_raw",
+        "Jet_rawFactor", "Rho_fixedGridRhoFastjetAll",
     };
     auto df2 = df1.Define(outputname, correction_lambda, columns);
     return df2;
@@ -141,16 +143,20 @@ PtCorrection(ROOT::RDF::RNode df,
         const std::string &run, 
         const std::string &jec_file, 
         const std::string &jec_algo,
-        const std::string &jes_tag, 
+        const std::string &jes_tag_mc, 
+        const std::string &jes_tag_data, 
         const std::vector<std::string> &jes_shift_sources,
         const std::string &jer_tag,
-        const int &jes_shift, const std::string &jer_shift,
-        const std::string &era, const bool &is_data) {
+        const int &jes_shift, 
+        const std::string &jer_shift,
+        const std::string &era, 
+        const bool &is_data,
+        const bool &is_embedding ) {
 
-    // get the algorithm type from the data flag
-    std::string type;
-    if (is_data) type = "_DATA";
-    else type = "_MC";
+    // get the algorithm tag
+    std::string jes_tag;
+    if (is_data || is_embedding) jes_tag = jes_tag_data;
+    else jes_tag = jes_tag_data;
 
     // identifying jet radius from algorithm
     float jet_radius = 0.4;
@@ -169,7 +175,7 @@ PtCorrection(ROOT::RDF::RNode df,
         if (source != "" && source != "HEMIssue") {
             auto jes_source_evaluator = const_cast<correction::Correction *>(
                 correction_manager.loadCorrection(
-                    jec_file, jes_tag + type + "_" + source + "_" + jec_algo));
+                    jec_file, jes_tag + "_" + source + "_" + jec_algo));
             jet_energy_scale_shifts.push_back(jes_source_evaluator);
         }
     };
@@ -189,19 +195,19 @@ PtCorrection(ROOT::RDF::RNode df,
 
     // loading jet energy correction scale factor function    
     auto jes_l2_evaluator = correction_manager.loadCorrection(
-        jec_file, jes_tag + type + "_L2Relative_" + jec_algo);
+        jec_file, jes_tag + "_L2Relative_" + jec_algo);
 
     auto jes_l2l3_evaluator = correction_manager.loadCorrection(
-        jec_file, jes_tag + type + "_L2L3Residual_" + jec_algo);
+        jec_file, jes_tag + "_L2L3Residual_" + jec_algo);
 
     auto jes_evaluator = correction_manager.loadCompoundCorrection(
-            jec_file, jes_tag + type + "_L1L2L3Res_" + jec_algo);
+            jec_file, jes_tag + "_L1L2L3Res_" + jec_algo);
     
     // Create a unified lambda that handles both era cases
     auto jet_energy_scale_sf =
         [jes_l2_evaluator, jes_l2l3_evaluator, jes_evaluator]
             (const float area, const float eta, const float pt, const float rho, 
-            const float phi, const unsigned int run, const std::string &era, bool is_data) {
+            const float phi, const unsigned int run, const std::string &era, bool is_data, bool is_embedding ) {
 
             double l2 = 1.0;
             double l2l3 = 1.0;
@@ -212,15 +218,15 @@ PtCorrection(ROOT::RDF::RNode df,
             } else {
                 if (era_year == 2022) { // 2022
                     l2 = jes_l2_evaluator->evaluate({eta, pt});
-                    if (is_data) l2l3 = jes_l2l3_evaluator->evaluate({eta, pt});
+                    if (is_data || is_embedding) l2l3 = jes_l2l3_evaluator->evaluate({eta, pt});
                     return l2 * l2l3;
                 } else if (era == "2023preBPix") { // 2023preBPix
                     l2 = jes_l2_evaluator->evaluate({eta, pt});
-                    if (is_data) l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, pt});
+                    if (is_data || is_embedding) l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, pt});
                     return l2 * l2l3;
                 } else { // run 3 from 2023postBPix onward
                     l2 = jes_l2_evaluator->evaluate({eta, phi, pt});
-                    if (is_data) {
+                    if (is_data || is_embedding) {
                         //pt clipping for l2l3 https://indico.cern.ch/event/1624984/contributions/6896120/attachments/3208048/5713070/20260127_JetMET_PerformanceRun3_HIGMeeting.pdf 
                         if (era == "2024" && pt < 30.0 && 2.0 < abs(eta) < 2.5) l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, 30.0}); 
                         else l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, pt});
@@ -231,13 +237,13 @@ PtCorrection(ROOT::RDF::RNode df,
         };
 
     // Concatenate columns for jet collections
-    auto df2 = df1.Define("etas", [](const ROOT::RVec<float>& jet_eta_vec, const ROOT::RVec<float>& corrjet_eta_vec) {
+    auto df2 = df1.Define("etas_corrected", [](const ROOT::RVec<float>& jet_eta_vec, const ROOT::RVec<float>& corrjet_eta_vec) {
         return ROOT::VecOps::Concatenate(jet_eta_vec, corrjet_eta_vec);
     }, {jet_eta, corrjet_eta})
-    .Define("phis", [](const ROOT::RVec<float>& jet_phi_vec, const ROOT::RVec<float>& corrjet_phi_vec) {
+    .Define("phis_corrected", [](const ROOT::RVec<float>& jet_phi_vec, const ROOT::RVec<float>& corrjet_phi_vec) {
         return ROOT::VecOps::Concatenate(jet_phi_vec, corrjet_phi_vec);
     }, {jet_phi, corrjet_phi})
-    .Define("area", [](const ROOT::RVec<float>& jet_area_vec, const ROOT::RVec<float>& corrjet_area_vec) {
+    .Define("area_corrected", [](const ROOT::RVec<float>& jet_area_vec, const ROOT::RVec<float>& corrjet_area_vec) {
         return ROOT::VecOps::Concatenate(jet_area_vec, corrjet_area_vec);
     }, {jet_area, corrjet_area});
 
@@ -256,7 +262,8 @@ PtCorrection(ROOT::RDF::RNode df,
                                 const float &rho, 
                                 const unsigned int &seed,
                                 const unsigned int &run,
-                                bool is_data) {
+                                bool is_data,
+                                bool is_embedding) {
 
         // random value generator for jet smearing
         TRandom3 randm = TRandom3(seed);
@@ -269,7 +276,7 @@ PtCorrection(ROOT::RDF::RNode df,
             
             // --- L2 and L2L3Residual (DATA only)
             // for Run 2 this applies L1L2L3 to raw pt
-            float c2 = jet_energy_scale_sf(area.at(i), etas.at(i), ptCorr, rho, phis.at(i), run, era, is_data);
+            float c2 = jet_energy_scale_sf(area.at(i), etas.at(i), ptCorr, rho, phis.at(i), run, era, is_data, is_embedding);
             ptCorr *= c2;
 
             // --- JES/JER (MC only, and only if gen jet vectors are not empty) ---
@@ -301,15 +308,16 @@ PtCorrection(ROOT::RDF::RNode df,
                                         jes_shift, jesShift);
                         }
                     } else if (jes_shift_sources.at(0) == "HEMIssue") {
-                        if (jes_shift == (-1.) && ptCorr > 15. &&
-                            phis.at(i) > (-1.57) && phis.at(i) < (-0.87) &&
-                            (ids.size() > i && ids.at(i) == 2)) { // id condition valid only for jet class
-                            if (etas.at(i) > (-2.5) && etas.at(i) < (-1.3))
-                                jesShift = 0.8;
-                            else if (etas.at(i) > (-3.) && etas.at(i) <= (-2.5))
-                                jesShift = 0.65;
+                        // indices are only present for the jet column, not corrjet
+                        if (i < ids.size()) {
+                            if (jes_shift == (-1.) && ptCorr > 15. &&
+                                phis.at(i) > (-1.57) && phis.at(i) < (-0.87) &&
+                                ids.at(i) == 2) { // id condition valid only for jet class
+                                if (etas.at(i) > (-2.5) && etas.at(i) < (-1.3)) jesShift = 0.8;
+                                else if (etas.at(i) > (-3.) && etas.at(i) <= (-2.5)) jesShift = 0.65;
+                                }
+                            }
                         }
-                    }
                     ptCorr *= jesShift;
                 }
 
@@ -361,15 +369,15 @@ PtCorrection(ROOT::RDF::RNode df,
                 }
                 ptCorr *= std::max(0.0, 1.0 + jerShift);
             }
-            corrected_pts[i] = ptCorr;
+            corrected_pts.at(i) = ptCorr;
         }
         return corrected_pts;
     };
 
     std::vector<std::string> columns = {
-        "pts", "etas", "phis", "area", "jet_id_v12"
+        "Jet_pt_L1corrected", "etas_corrected", "phis_corrected", "area_corrected", "Jet_ID_v12",
         "gen_jet_pt", "gen_jet_eta", "gen_jet_phi",
-        "Rho_fixedGridRhoFastjetAll", "Jet_seed", "run", "is_data"
+        "Rho_fixedGridRhoFastjetAll", "Jet_seed", "run", "is_data", "is_embedding"
     };
     auto df3 = df2.Define(outputname, correction_lambda, columns);
     return df3;

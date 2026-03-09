@@ -26,9 +26,11 @@ PtCorrectionL1(ROOT::RDF::RNode df,
         const std::string &rho, 
         const std::string &jec_file, 
         const std::string &jec_algo,
-        const std::string &jes_tag, 
+        const std::string &jes_tag_mc, 
+        const std::string &jes_tag_data, 
         const std::string &era,
-        const bool &is_data);
+        const bool &is_data,
+        const bool &is_embedding);
 
 ROOT::RDF::RNode
 PtCorrection(ROOT::RDF::RNode df,
@@ -50,11 +52,13 @@ PtCorrection(ROOT::RDF::RNode df,
         const std::string &run, 
         const std::string &jec_file, 
         const std::string &jec_algo,
-        const std::string &jes_tag, 
+        const std::string &jes_tag_mc, 
+        const std::string &jes_tag_data, 
         const std::vector<std::string> &jes_shift_sources,
         const std::string &jer_tag,
         const int &jes_shift, const std::string &jer_shift,
-        const std::string &era, const bool &is_data);
+        const std::string &era, const bool &is_data,
+        const bool &is_embedding);
 
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,

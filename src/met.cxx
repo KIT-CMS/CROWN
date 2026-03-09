@@ -438,19 +438,19 @@ TypeIMET_v2(ROOT::RDF::RNode df,
         const std::string &jet_neEmEF,
         const std::string &corrjet_EmEF) {
 
-    auto df1 = df.Define("etas", [](const ROOT::RVec<float>& jet_eta_vec, const ROOT::RVec<float>& corrjet_eta_vec) {
+    auto df1 = df.Define("etas_met", [](const ROOT::RVec<float>& jet_eta_vec, const ROOT::RVec<float>& corrjet_eta_vec) {
         return ROOT::VecOps::Concatenate(jet_eta_vec, corrjet_eta_vec);
     }, {jet_eta, corrjet_eta})
-    .Define("phis", [](const ROOT::RVec<float>& jet_phi_vec, const ROOT::RVec<float>& corrjet_phi_vec) {
+    .Define("phis_met", [](const ROOT::RVec<float>& jet_phi_vec, const ROOT::RVec<float>& corrjet_phi_vec) {
         return ROOT::VecOps::Concatenate(jet_phi_vec, corrjet_phi_vec);
     }, {jet_phi, corrjet_phi})
     // for CorrTypeIJet the EmEf is already added up
-    .Define("jet_EmEF", [](const ROOT::RVec<float>& chEmEF, const ROOT::RVec<float>& neEmEF) {
+    .Define("jet_EmEF_met", [](const ROOT::RVec<float>& chEmEF, const ROOT::RVec<float>& neEmEF) {
         return chEmEF + neEmEF;
     }, {jet_chEmEF, jet_neEmEF})
-    .Define("EmEf", [](const ROOT::RVec<float>& jet_EmEF, const ROOT::RVec<float>& corrjet_EmEF) {
+    .Define("EmEf_met", [](const ROOT::RVec<float>& jet_EmEF, const ROOT::RVec<float>& corrjet_EmEF) {
         return ROOT::VecOps::Concatenate(jet_EmEF, corrjet_EmEF);
-    }, {"jet_EmEF", corrjet_EmEF});
+    }, {"jet_EmEF_met", corrjet_EmEF});
 
     auto correction_lambda = [](
                                 const ROOT::Math::PtEtaPhiMVector &raw_met,
@@ -484,7 +484,7 @@ TypeIMET_v2(ROOT::RDF::RNode df,
         return corrected_met;
     };
 
-    std::vector<std::string> columns = {"raw_met", "jet_pt_l1corr", "jet_pt_corr", "etas", "phis", "EmEf"};
+    std::vector<std::string> columns = {"met_p4", "Jet_pt_L1corrected", "Jet_pt_corrected", "etas_met", "phis_met", "EmEf_met"};
     auto df2 = df1.Define(outputname, correction_lambda, columns);
     return df2;
 }
@@ -768,8 +768,8 @@ TypeIMET(ROOT::RDF::RNode df,
     };
 
     std::vector<std::string> columns = {
-        "raw_met", "pts", "etas", "phis", "area", "muonSubtrFactor",
-        "EmEf", "gen_pt", "gen_eta", "gen_phi",
+        "met_p4", "pts", "etas", "phis", "area", "muonSubtrFactor",
+        "EmEf", "gen_jet_pt", "gen_jet_eta", "gen_jet_phi",
         "Rho_fixedGridRhoFastjetAll", "Jet_seed", "run", "is_data"
     };
     auto df2 = df1.Define(outputname, correction_lambda, columns);
