@@ -65,8 +65,8 @@ namespace jet {
  * should be reapplied
  * @param jes_shift JES shift variation (0 = nominal, +/-1 = up/down)
  * @param jer_shift JER shift variation ("nom", "up", or "down")
- * @param era string defining the currently processed era, needed due to different
- * kind of recommendations from JME POG for different eras
+ * @param era string defining the currently processed era, needed due to
+ * different kind of recommendations from JME POG for different eras
  * @param no_jer_for_unmatched_forward_jets if true, no jet energy resolution
  * smearing is applied to unmatched jets in the forward region
  * (\f$|\eta| > 2.5\f$).
@@ -98,7 +98,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::vector<std::string> &jes_shift_sources,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
-               const std::string &era, const bool &no_jer_for_unmatched_forward_jets = false) {
+               const std::string &era,
+               const bool &no_jer_for_unmatched_forward_jets = false) {
     // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, jet_id_column] =
@@ -123,11 +124,12 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     // loading jet energy correction scale factor function
     auto jes_evaluator = correction_manager.loadCompoundCorrection(
         jec_file, jes_tag + "_L1L2L3Res_" + jec_algo);
-    
+
     // Create a unified lambda that handles both era cases
-    auto jet_energy_scale_sf = [jes_evaluator](const float area, const float eta,
-                                               const float pt, const float rho,
-                                               const float phi, const std::string era) {
+    auto jet_energy_scale_sf = [jes_evaluator](const float area,
+                                               const float eta, const float pt,
+                                               const float rho, const float phi,
+                                               const std::string era) {
         if (std::stoi(era.substr(0, 4)) <= 2022 || era == "2023preBPix") {
             // run 2 and 2022 to 2023preBPix cases
             return jes_evaluator->evaluate({area, eta, pt, rho});
@@ -151,19 +153,19 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     // lambda run with dataframe
     auto correction_lambda = [reapply_jes, jet_energy_scale_shifts,
                               jet_energy_scale_sf, jet_energy_resolution,
-                              jer_sf_evaluator, jes_shift_sources,
-                              jes_shift, jer_shift, jet_radius, 
-                              era, no_jer_for_unmatched_forward_jets](
-                                       const ROOT::RVec<float> &pts,
-                                       const ROOT::RVec<float> &etas,
-                                       const ROOT::RVec<float> &phis,
-                                       const ROOT::RVec<float> &area,
-                                       const ROOT::RVec<float> &raw_factors,
-                                       const ROOT::RVec<UChar_t> &ids_v12,
-                                       const ROOT::RVec<float> &gen_pts,
-                                       const ROOT::RVec<float> &gen_etas,
-                                       const ROOT::RVec<float> &gen_phis,
-                                       const float &rho, const unsigned int &seed) {
+                              jer_sf_evaluator, jes_shift_sources, jes_shift,
+                              jer_shift, jet_radius, era,
+                              no_jer_for_unmatched_forward_jets](
+                                 const ROOT::RVec<float> &pts,
+                                 const ROOT::RVec<float> &etas,
+                                 const ROOT::RVec<float> &phis,
+                                 const ROOT::RVec<float> &area,
+                                 const ROOT::RVec<float> &raw_factors,
+                                 const ROOT::RVec<UChar_t> &ids_v12,
+                                 const ROOT::RVec<float> &gen_pts,
+                                 const ROOT::RVec<float> &gen_etas,
+                                 const ROOT::RVec<float> &gen_phis,
+                                 const float &rho, const unsigned int &seed) {
         // random value generator for jet smearing
         TRandom3 randm = TRandom3(seed);
 
@@ -174,8 +176,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             if (reapply_jes) {
                 // reapplying the JES correction
                 float raw_pt = pts.at(i) * (1 - raw_factors.at(i));
-                float corr =
-                    jet_energy_scale_sf(area.at(i), etas.at(i), raw_pt, rho, phis.at(i), era);
+                float corr = jet_energy_scale_sf(area.at(i), etas.at(i), raw_pt,
+                                                 rho, phis.at(i), era);
                 corr_pt = raw_pt * corr;
                 Logger::get("physicsobject::jet::PtCorrectionMC")
                     ->debug("reapplying JE scale: orig. jet pt {} to raw "
@@ -193,7 +195,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 reso_sf = jer_sf_evaluator->evaluate({etas.at(i), jer_shift});
             } else {
                 // run 3 case
-                reso_sf = jer_sf_evaluator->evaluate({etas.at(i), corrected_pts.at(i), jer_shift});
+                reso_sf = jer_sf_evaluator->evaluate(
+                    {etas.at(i), corrected_pts.at(i), jer_shift});
             }
             Logger::get("physicsobject::jet::PtCorrectionMC")
                 ->debug("Calculate JER {}: SF: {} resolution: {} ", jer_shift,
@@ -334,8 +337,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * "AK8PFPuppi")
  * @param jes_tag tag of the JES correction campaign which is run dependent
  * (e.g., "Summer19UL18_RunA_V5_DATA")
- * @param era string defining the currently processed era, needed due to different
- * kind of recommendations from JME POG for different eras
+ * @param era string defining the currently processed era, needed due to
+ * different kind of recommendations from JME POG for different eras
  *
  * @return a dataframe with a new column of corrected jet \f$p_T\f$'s
  *
@@ -361,33 +364,37 @@ PtCorrectionData(ROOT::RDF::RNode df,
                     (jes_tag + "_L1L2L3Res_" + jec_algo));
         auto jet_energy_scale_sf =
             [jes_evaluator](const float area, const float eta, const float pt,
-                            const float rho, const float phi, const unsigned int run,
-                            const std::string era) {
+                            const float rho, const float phi,
+                            const unsigned int run, const std::string era) {
                 if (std::stoi(era.substr(0, 4)) <= 2022) {
                     // run 2 and 2022 cases
                     return jes_evaluator->evaluate({area, eta, pt, rho});
                 } else if (era == "2023preBPix") {
                     // run 3 2023preBPix
-                    return jes_evaluator->evaluate({area, eta, pt, rho, (float)run});
+                    return jes_evaluator->evaluate(
+                        {area, eta, pt, rho, (float)run});
                 } else {
                     // run 3 from 2023postBpix onwards
-                    return jes_evaluator->evaluate({area, eta, pt, rho, phi, (float)run});
+                    return jes_evaluator->evaluate(
+                        {area, eta, pt, rho, phi, (float)run});
                 }
             };
 
         auto correction_lambda =
-            [jes_tag, jet_energy_scale_sf, era](
-                const ROOT::RVec<float> &pts, const ROOT::RVec<float> &etas,
-                const ROOT::RVec<float> &phis, const ROOT::RVec<float> &area,
-                const ROOT::RVec<float> &raw_factors, const float &rho,
-                const unsigned int &run) {
+            [jes_tag, jet_energy_scale_sf,
+             era](const ROOT::RVec<float> &pts, const ROOT::RVec<float> &etas,
+                  const ROOT::RVec<float> &phis, const ROOT::RVec<float> &area,
+                  const ROOT::RVec<float> &raw_factors, const float &rho,
+                  const unsigned int &run) {
                 ROOT::RVec<float> corrected_pts;
                 for (int i = 0; i < pts.size(); i++) {
                     float corr_pt = pts.at(i);
 
                     // reapplying the JES correction
                     float raw_pt = pts.at(i) * (1 - raw_factors.at(i));
-                    float corr = jet_energy_scale_sf(area.at(i), etas.at(i), raw_pt, rho, phis.at(i), run, era);
+                    float corr =
+                        jet_energy_scale_sf(area.at(i), etas.at(i), raw_pt, rho,
+                                            phis.at(i), run, era);
 
                     corr_pt = raw_pt * corr;
                     Logger::get("physicsobject::jet::PtCorrectionData")
@@ -395,14 +402,15 @@ PtCorrectionData(ROOT::RDF::RNode df,
                                 "pt {} to raw "
                                 "jet pt {} to recorr. jet pt {}",
                                 pts.at(i), raw_pt, corr_pt);
-    
+
                     corrected_pts.push_back(corr_pt);
                 }
                 return corrected_pts;
             };
-            auto df1 = df.Define(outputname, correction_lambda,
-                                 {jet_pt, jet_eta, jet_phi, jet_area, jet_raw_factor, rho, run});
-            return df1;
+        auto df1 = df.Define(
+            outputname, correction_lambda,
+            {jet_pt, jet_eta, jet_phi, jet_area, jet_raw_factor, rho, run});
+        return df1;
     } else {
         auto df1 = df.Define(outputname,
                              [](const ROOT::RVec<float> &pts) { return pts; },

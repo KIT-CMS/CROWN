@@ -234,7 +234,8 @@ ROOT::RDF::RNode GetVisibleBoson(
                         abs(pdg_ids.at(index)) != 14 &&
                         abs(pdg_ids.at(index)) != 16) {
                         Logger::get("genparticles::GetVisibleBoson")
-                            ->debug("Adding {} to visible gen boson vector", pdg_ids.at(index));
+                            ->debug("Adding {} to visible gen boson vector",
+                                    pdg_ids.at(index));
                         genparticle = ROOT::Math::PtEtaPhiMVector(
                             pts.at(index), etas.at(index), phis.at(index),
                             masses.at(index));

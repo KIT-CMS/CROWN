@@ -84,7 +84,7 @@ namespace quantity {
 template <typename T>
 inline ROOT::RDF::RNode
 MinFlag(ROOT::RDF::RNode df, const std::string &outputname,
-       const std::string &quantity, const T &threshold) {
+        const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
                          int flag = value >= threshold;
@@ -111,7 +111,7 @@ MinFlag(ROOT::RDF::RNode df, const std::string &outputname,
 template <typename T>
 inline ROOT::RDF::RNode
 AbsMinFlag(ROOT::RDF::RNode df, const std::string &outputname,
-       const std::string &quantity, const T &threshold) {
+           const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
                          int flag = abs(value) >= threshold;
@@ -138,7 +138,7 @@ AbsMinFlag(ROOT::RDF::RNode df, const std::string &outputname,
 template <typename T>
 inline ROOT::RDF::RNode
 MaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
-       const std::string &quantity, const T &threshold) {
+        const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
                          int flag = value < threshold;
@@ -165,7 +165,7 @@ MaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
 template <typename T>
 inline ROOT::RDF::RNode
 AbsMaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
-       const std::string &quantity, const T &threshold) {
+           const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
                          int flag = abs(value) < threshold;
@@ -192,7 +192,7 @@ AbsMaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
 template <typename T>
 inline ROOT::RDF::RNode
 EqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
-         const std::string &quantity, const T &threshold) {
+          const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
                          int flag = value == threshold;
@@ -219,7 +219,7 @@ EqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
 template <typename T>
 inline ROOT::RDF::RNode
 AbsEqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
-         const std::string &quantity, const T &threshold) {
+             const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
                          int flag = abs(value) == threshold;
