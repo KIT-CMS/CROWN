@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
         friends.push_back(friend_chain);
     }
     // initialize df
-    ROOT::RDataFrame df0(dataset);
+    auto df0 = (nevents != 0) ? ROOT::RDataFrame(dataset) : ROOT::RDataFrame(0);
     // print all available branches to the log
     if (nevents != 0) {
         ROOT::RDF::Experimental::AddProgressBar(df0); // add progress bar
