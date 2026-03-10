@@ -78,12 +78,11 @@ ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
                  correctionManager::CorrectionManager &correction_manager,
                  const std::string &outputname, const std::string &jet_pt,
-                 const std::string &jet_eta, const std::string &jet_area,
-                 const std::string &jet_raw_factor, const std::string &rho,
-                 const std::string &jet_phi,
-                 const std::string &run, const std::string &era,
+                 const std::string &jet_eta, const std::string &jet_phi,
+                 const std::string &jet_area, const std::string &jet_raw_factor,
+                 const std::string &rho, const std::string &run,
                  const std::string &jec_file, const std::string &jec_algo,
-                 const std::string &jes_tag);
+                 const std::string &jes_tag, const std::string &era);
 ROOT::RDF::RNode
 PtCorrectionBJets(ROOT::RDF::RNode df,
                   const std::string &outputname,
@@ -99,6 +98,24 @@ ApplyVetoMap(ROOT::RDF::RNode df, const std::string &outputname,
              const std::string &jet_eta, const std::string &jet_phi,
              const std::string &vetomap_file, const std::string &vetomap_name,
              const std::string &vetomap_type);
+ROOT::RDF::RNode
+JetVetomap(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
+    const std::string &output_mask,
+    const std::string &jet_pt,
+    const std::string &jet_eta,
+    const std::string &jet_phi,
+    const std::string &jet_id,
+    const std::string &jet_ch_em_ef,
+    const std::string &jet_n_em_ef,
+    const std::string &jet_vetomap_file,
+    const std::string &jet_vetomap_name,
+    const std::string &jet_vetomap_type,
+    const float &min_pt,
+    const int &id_wp,
+    const float &max_em_frac
+);
 ROOT::RDF::RNode
 VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &jet_eta, const std::string &jet_phi,
@@ -117,6 +134,18 @@ ROOT::RDF::RNode VetoOverlappingJetsWithIsoLepton(ROOT::RDF::RNode df,
                                                   const float &min_delta_r);
 
 namespace quantity {
+ROOT::RDF::RNode
+PatchedIDNanoV12(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &jet_pt,
+    const std::string &jet_eta,
+    const std::string &jet_id,
+    const std::string &jet_ne_hef,
+    const std::string &jet_ne_em_ef,
+    const std::string &jet_mu_ef,
+    const std::string &jet_ch_em_ef
+);
 ROOT::RDF::RNode 
 ID(ROOT::RDF::RNode df,
               correctionManager::CorrectionManager &correction_manager,

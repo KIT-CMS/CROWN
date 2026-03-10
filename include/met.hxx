@@ -121,7 +121,7 @@ ROOT::RDF::RNode METPhiCorrection(ROOT::RDF::RNode df,
                         const std::string &pileup_variation);
 
 ROOT::RDF::RNode
-TypeIMET_v2(ROOT::RDF::RNode df,
+TypeIMETCorrections(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
         const std::string &outputname, 
         const std::string &raw_met,

@@ -431,6 +431,8 @@ PtCorrection(ROOT::RDF::RNode df,
  * should be reapplied
  * @param jes_shift JES shift variation (0 = nominal, +/-1 = up/down)
  * @param jer_shift JER shift variation ("nom", "up", or "down")
+ * @param era string defining the currently processed era, needed due to different
+ * kind of recommendations from JME POG for different eras
  * @param no_jer_for_unmatched_forward_jets if true, no jet energy resolution
  * smearing is applied to unmatched jets in the forward region
  * (\f$|\eta| > 2.5\f$).
@@ -494,33 +496,20 @@ PtCorrectionMC(ROOT::RDF::RNode df,
         jec_file, jes_tag + "_L2L3Residual_" + jec_algo);
 
     auto jes_evaluator = correction_manager.loadCompoundCorrection(
-            jec_file, jes_tag + "_L1L2L3Res_" + jec_algo);
+        jec_file, jes_tag + "_L1L2L3Res_" + jec_algo);
     
     // Create a unified lambda that handles both era cases
-    auto jet_energy_scale_sf =
-        [jes_l1_evaluator, jes_l2_evaluator, jes_l2l3_evaluator, jes_evaluator](const float area, const float eta, const float pt,
-                        const float rho, const float phi, const std::string &era) {
-            double l1 = 1.0;
-            double l2 = 1.0;
-            int era_year = std::stoi(era.substr(0, 4));
-            if (era_year < 2022) { // run 2
-                return jes_evaluator->evaluate({area, eta, pt, rho});
-            } else {
-                if (era_year == 2022) { // 2022
-                    l1 = jes_l1_evaluator->evaluate({area, eta, pt, rho});
-                    l2 = jes_l2_evaluator->evaluate({eta, pt});
-                    return l1 * l2;
-                } else if (era == "2023preBPix") { // 2023preBPix
-                    l1 = jes_l1_evaluator->evaluate({area, eta, pt, rho});
-                    l2 = jes_l2_evaluator->evaluate({eta, pt});
-                    return l1 * l2 ;
-                } else { // run 3 from 2023postBPix onward
-                    l1 = jes_l1_evaluator->evaluate({area, eta, pt, rho});
-                    l2 = jes_l2_evaluator->evaluate({eta, phi, pt});
-                    return l1 * l2 ;
-                }
-            }
-        };
+    auto jet_energy_scale_sf = [jes_evaluator](const float area, const float eta,
+                                               const float pt, const float rho,
+                                               const float phi, const std::string era) {
+        if (std::stoi(era.substr(0, 4)) <= 2022 || era == "2023preBPix") {
+            // run 2 and 2022 to 2023preBPix cases
+            return jes_evaluator->evaluate({area, eta, pt, rho});
+        } else {
+            // run 3 from 2023postBpix onwards
+            return jes_evaluator->evaluate({area, eta, pt, rho, phi});
+        }
+    };
     // loading relative pT resolution function
     auto jer_resolution_evaluator = correction_manager.loadCorrection(
         jec_file, jer_tag + "_PtResolution_" + jec_algo);
@@ -538,7 +527,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                               jet_energy_scale_sf, jet_energy_resolution,
                               jer_sf_evaluator, jes_shift_sources,
                               jes_shift, jer_shift, jet_radius, 
-                              no_jer_for_unmatched_forward_jets, era](
+                              era, no_jer_for_unmatched_forward_jets](
                                        const ROOT::RVec<float> &pts,
                                        const ROOT::RVec<float> &etas,
                                        const ROOT::RVec<float> &phis,
@@ -707,6 +696,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * @param outputname name of the output column for corrected jet \f$p_T\f$'s
  * @param jet_pt name of the column containing the jet transverse momenta
  * @param jet_eta name of the column containing the jet pseudorapidities
+ * @param jet_phi name of the column containing the jet azimuthal angles
  * @param jet_area name of the column containing the jet catchment area
  * @param jet_raw_factor name of the column containing the jet factors to
  * calculate back to the raw jet \f$p_T\f$'s
@@ -716,6 +706,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * "AK8PFPuppi")
  * @param jes_tag tag of the JES correction campaign which is run dependent
  * (e.g., "Summer19UL18_RunA_V5_DATA")
+ * @param era string defining the currently processed era, needed due to different
+ * kind of recommendations from JME POG for different eras
  *
  * @return a dataframe with a new column of corrected jet \f$p_T\f$'s
  *
@@ -727,12 +719,11 @@ ROOT::RDF::RNode
 PtCorrectionData(ROOT::RDF::RNode df,
                  correctionManager::CorrectionManager &correction_manager,
                  const std::string &outputname, const std::string &jet_pt,
-                 const std::string &jet_eta, const std::string &jet_area,
-                 const std::string &jet_raw_factor, const std::string &rho,
-                 const std::string &jet_phi,
-                 const std::string &run, const std::string &era,
+                 const std::string &jet_eta, const std::string &jet_phi,
+                 const std::string &jet_area, const std::string &jet_raw_factor,
+                 const std::string &rho, const std::string &run,
                  const std::string &jec_file, const std::string &jec_algo,
-                 const std::string &jes_tag) {
+                 const std::string &jes_tag, const std::string &era) {
     if (jes_tag != "") {
 
         // loading jet energy correction scale factor function
@@ -750,42 +741,26 @@ PtCorrectionData(ROOT::RDF::RNode df,
         
         // Create a unified lambda that handles both era cases
         auto jet_energy_scale_sf =
-            [jes_l1_evaluator, jes_l2_evaluator, jes_l2l3_evaluator, jes_evaluator](const float area, const float eta, const float pt,
-                            const float rho, const float phi, const unsigned int run, const std::string &era) {
-                double l1 = 1.0;
-                double l2 = 1.0;
-                double l2l3 = 1.0;
-                int era_year = std::stoi(era.substr(0, 4));
-                if (era_year < 2022) { // run 2
+            [jes_evaluator](const float area, const float eta, const float pt,
+                            const float rho, const float phi, const unsigned int run,
+                            const std::string era) {
+                if (std::stoi(era.substr(0, 4)) <= 2022) {
+                    // run 2 and 2022 cases
                     return jes_evaluator->evaluate({area, eta, pt, rho});
+                } else if (era == "2023preBPix") {
+                    // run 3 2023preBPix
+                    return jes_evaluator->evaluate({area, eta, pt, rho, (float)run});
                 } else {
-                    if (era_year == 2022) { // 2022
-                        l1 = jes_l1_evaluator->evaluate({area, eta, pt, rho});
-                        l2 = jes_l2_evaluator->evaluate({eta, pt});
-                        l2l3 = jes_l2l3_evaluator->evaluate({eta, pt});
-                        return l1 * l2 * l2l3;
-                    } else if (era == "2023preBPix") { // 2023preBPix
-                        l1 = jes_l1_evaluator->evaluate({area, eta, pt, rho});
-                        l2 = jes_l2_evaluator->evaluate({eta, pt});
-                        l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, pt});
-                        return l1 * l2 * l2l3;
-                    } else { // run 3 from 2023postBPix onward
-                        l1 = jes_l1_evaluator->evaluate({area, eta, pt, rho});
-                        l2 = jes_l2_evaluator->evaluate({eta, phi, pt});
-                        //pt clipping for l2l3 https://indico.cern.ch/event/1624984/contributions/6896120/attachments/3208048/5713070/20260127_JetMET_PerformanceRun3_HIGMeeting.pdf 
-                        if (era == "2024" && pt < 30.0 && 2.0 < abs(eta) < 2.5) l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, 30.0}); 
-                        else l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, pt});
-                        return l1 * l2 * l2l3;
-                    }
+                    // run 3 from 2023postBpix onwards
+                    return jes_evaluator->evaluate({area, eta, pt, rho, phi, (float)run});
                 }
             };
 
         auto correction_lambda =
             [jes_tag, jet_energy_scale_sf, era](
                 const ROOT::RVec<float> &pts, const ROOT::RVec<float> &etas,
-                const ROOT::RVec<float> &area,
+                const ROOT::RVec<float> &phis, const ROOT::RVec<float> &area,
                 const ROOT::RVec<float> &raw_factors, const float &rho,
-                const ROOT::RVec<float> &phis,
                 const unsigned int &run) {
                 ROOT::RVec<float> corrected_pts;
                 for (int i = 0; i < pts.size(); i++) {
@@ -806,9 +781,8 @@ PtCorrectionData(ROOT::RDF::RNode df,
                 }
                 return corrected_pts;
             };
-            
             auto df1 = df.Define(outputname, correction_lambda,
-                                 {jet_pt, jet_eta, jet_area, jet_raw_factor, rho, jet_phi, run});
+                                 {jet_pt, jet_eta, jet_phi, jet_area, jet_raw_factor, rho, run});
             return df1;
     } else {
         auto df1 = df.Define(outputname,
@@ -967,6 +941,133 @@ ApplyVetoMap(ROOT::RDF::RNode df,
     auto df1 = df.Define(outputname, lambda, {jet_eta, jet_phi});
     return df1;
 }
+
+/**
+ * @brief Create a veto flag for events with jets in regions, which are known to produce wrong measurements.
+ * The function checks for jets which pass the base selection criteria if they are in a eta-phi region with
+ * "hot" and/or "cold" towers. Events with any jet in such a region are vetoed in data and simulation.
+ * If the event is vetoed, a value of `true` is stored in the new column, otherwise `false`.
+ * The locations are provided by a `correctionlib` file and depend on the data-taking era. This procedure
+ * follows the official [JME POG recommendations](https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps).
+ *
+ * @param df The input data frame.
+ * @param correctionManager The CorrectionManager object
+ * @param output_mask The output mask column.
+ * @param jet_pt The tranverse momentum column of the jets.
+ * @param jet_eta The pseudorapidity column of the jets.
+ * @param jet_phi The azimuthal angle column of the jets.
+ * @param jet_id The jet identification bitmask column of the jets.
+ * @param jet_ch_em_ef The charged electromagnetic energy fraction column of the jets.
+ * @param jet_n_em_ef The neutral electromagnetic energy fraction column of the jets.
+ * @param jet_vetomap_file The file path to the correctionlib jet veto map.
+ * @param jet_vetomap_name The name of the correction to access jet veto map.
+ * @param jet_vetomap_type The jet veto map type; for analyses, this name should be `"jetvetomap"`.
+ * @param min_pt The minimum transverse momentum for selected jets.
+ * @param id_wp The working point for the jet identification.
+ * @param max_em_frac The maximum charged and neutral electromagnetic energy fraction for selected jets.
+ *
+ * @return A new data frame with the selection mask column.
+ *
+ * @note The veto map selection is mandatory for Run 3 analyses and can also be applied to Run 2 analyses.
+ */
+ROOT::RDF::RNode JetVetomap(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
+    const std::string &output_mask,
+    const std::string &jet_pt,
+    const std::string &jet_eta,
+    const std::string &jet_phi,
+    const std::string &jet_id,
+    const std::string &jet_ch_em_ef,
+    const std::string &jet_n_em_ef,
+    const std::string &jet_vetomap_file,
+    const std::string &jet_vetomap_name,
+    const std::string &jet_vetomap_type,
+    const float &min_pt,
+    const int &id_wp,
+    const float &max_em_frac
+) {
+    // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, jet_id_v12] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+        df, jet_id+"_v12", "ROOT::VecOps::RVec<UChar_t>", jet_id
+    );
+
+    // load the veto map evaluator
+    auto evaluator = correctionManager.loadCorrection(jet_vetomap_file, jet_vetomap_name);
+
+    auto select = [
+        evaluator, min_pt, id_wp, max_em_frac, jet_vetomap_type
+    ] (
+        const ROOT::RVec<float> &jet_pt,
+        const ROOT::RVec<float> &jet_eta,
+        const ROOT::RVec<float> &jet_phi,
+        const ROOT::RVec<UChar_t> &jet_id,
+        const ROOT::RVec<float> &jet_ch_em_ef,
+        const ROOT::RVec<float> &jet_n_em_ef
+    ) {
+        // debug output for selection criteria and jet observables
+        Logger::get("physicsobject::jet::JetVetomap")->debug("Create selection masks for jets");
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    min_pt {}, id_wp {}, max_em_fraction {}", min_pt, id_wp, max_em_frac);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    pt {}", jet_pt);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    eta {}", jet_eta);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    phi {}", jet_phi);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    id {}", jet_id);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    ch_em_ef {}", jet_ch_em_ef);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    n_em_ef {}", jet_n_em_ef);
+
+        // create the index of selected jets
+        auto jet_index = ROOT::VecOps::Nonzero(
+            (jet_pt > min_pt)
+            && (jet_id >= id_wp)
+            && ((jet_ch_em_ef + jet_n_em_ef) < max_em_frac)
+        );
+
+        // create container with indices for vetoed jets
+        auto jet_index_vetoed = ROOT::RVec<int>(0);
+
+        for (const auto &i : jet_index) {
+            // evaluate the jet veto map value
+            auto jet_vetoed = evaluator->evaluate({
+                jet_vetomap_type,
+                jet_eta.at(i),
+                jet_phi.at(i)
+            });
+
+            // if the jet is vetoed, add it to the vetoed jet index
+            if (jet_vetoed) {
+                jet_index_vetoed.push_back(i);
+            };
+        }
+
+        // check if any jet has been vetoed
+        bool event_veto = false;
+        if (!jet_index_vetoed.empty()) {
+            event_veto = true;
+        }
+
+        // debug output for vetoes
+        Logger::get("physicsobject::jet::JetVetomap")->debug("Vetoes");
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    jet_index_vetoed {}", jet_index_vetoed);
+        Logger::get("physicsobject::jet::JetVetomap")->debug("    event_veto {}", event_veto);
+
+        return event_veto;
+    };
+
+    return df1.Define(
+        output_mask,
+        select,
+        {
+            jet_pt,
+            jet_eta,
+            jet_phi,
+            jet_id_v12,
+            jet_ch_em_ef,
+            jet_n_em_ef
+        }
+    );
+}
+
 
 /**
  * @brief This function checks the separation (deltaR) between each jet and
@@ -1136,6 +1237,105 @@ ROOT::RDF::RNode VetoOverlappingJetsWithIsoLepton(ROOT::RDF::RNode df,
 }
 
 namespace quantity {
+
+/**
+ * @brief Patch for wrong Jet ID values in Run3 NanoAOD v12 samples.
+ *
+ * The implementation follows the recipe by the [JME POG](https://twiki.cern.ch/twiki/bin/view/CMS/JetID13p6TeV#nanoAOD_Flags).
+ *
+ * @param df the input dataframe
+ * @param outputname the name of the produced column
+ * @param jet_pt name of the column with jet pt values
+ * @param jet_eta name of the column with jet eta values
+ * @param jet_id name of the column with (broken) jet ID values 
+ * @param jet_ne_hef name of the column with neutral hadron energy fraction
+ * @param jet_ne_em_ef name of the column with neutral EM energy fraction
+ * @param jet_mu_ef name of the column with muon energy fraction
+ * @param jet_ch_em_ef name of the column with charged EM energy fraction
+ *
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode PatchedIDNanoV12(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &jet_pt,
+    const std::string &jet_eta,
+    const std::string &jet_id,
+    const std::string &jet_ne_hef,
+    const std::string &jet_ne_em_ef,
+    const std::string &jet_mu_ef,
+    const std::string &jet_ch_em_ef
+) {
+
+    // we do not need to ensure the correct casting for NanoAOD v9 samples here as this fix applies to NanoAOD v12 samples only
+
+    auto correction = [] (
+        const ROOT::RVec<float> &jet_pt,
+        const ROOT::RVec<float> &jet_eta,
+        const ROOT::RVec<UChar_t> &jet_id_v12,
+        const ROOT::RVec<float> &jet_ne_hef,
+        const ROOT::RVec<float> &jet_ne_em_ef,
+        const ROOT::RVec<float> &jet_mu_ef,
+        const ROOT::RVec<float> &jet_ch_em_ef
+    ) {
+        // cast jet_id to integer
+        auto jet_id = static_cast<ROOT::RVec<int>>(jet_id_v12);
+
+        // apply the JME POG recipe
+        auto jet_id_corrected = ROOT::RVec<int>(jet_id.size(), 0);
+        for (int i = 0; i < jet_pt.size(); ++i) {
+            // evaluate if the jet passes the tight WP
+            bool pass_tight = false;
+            if (abs(jet_eta.at(i)) <= 2.7) {
+                pass_tight = jet_id.at(i) & (1 << 1);
+            } else if (abs(jet_eta.at(i)) > 2.7 && abs(jet_eta.at(i)) <= 3.0) {
+                pass_tight = (jet_id.at(i) & (1 << 1)) && (jet_ne_hef.at(i) < 0.99);
+            } else if (abs(jet_eta.at(i)) > 3.0) {
+                pass_tight = (jet_id.at(i) & (1 << 1)) && (jet_ne_em_ef.at(i) < 0.4);
+            }
+
+            // evaluate if the jet passes the tight WP and fulfills the lepton veto
+            bool pass_tight_lep_veto = false;
+            if (abs(jet_eta.at(i)) <= 2.7) {
+                pass_tight_lep_veto = pass_tight && (jet_mu_ef.at(i) < 0.8) && (jet_ch_em_ef.at(i) < 0.8);
+            } else {
+                pass_tight_lep_veto = pass_tight;
+            }
+
+            // return value of the working point that is passed
+            // - 0 == fail
+            // - 2 == pass tight & fail tightlepveto
+            // - 6 == pass tight & pass tightlepveto
+            if (pass_tight && !pass_tight_lep_veto) {
+                jet_id_corrected[i] = 2;
+            } else if (pass_tight && pass_tight_lep_veto) {
+                jet_id_corrected[i] = 6;
+            } else {
+                jet_id_corrected[i] = 0;
+            }
+        }
+
+        // convert the data type to default in NanoAOD v12 (UChar_t)
+        auto jet_id_corrected_v12 = static_cast<ROOT::RVec<UChar_t>>(jet_id_corrected);
+
+        return jet_id_corrected_v12;
+    };
+
+    // redefine the data type of the Jet ID mask
+    return df.Define(
+        outputname,
+        correction,
+        {
+            jet_pt,
+            jet_eta,
+            jet_id,
+            jet_ne_hef,
+            jet_ne_em_ef,
+            jet_mu_ef,
+            jet_ch_em_ef
+        }
+    );
+}
 
 /**
  * @brief Applies jet identification criteria based on JSON-defined jet ID corrections.

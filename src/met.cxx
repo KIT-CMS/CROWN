@@ -423,8 +423,33 @@ METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
     return df.Define(outputname, xyCorrection, {p4_met, n_pv});
 }
 
+/**
+ * @brief Applies Type-I MET corrections by propagating jet energy corrections to the MET vector.
+ * To be used for Run3 v15 nanoAOD samples to both data and MC.
+ *
+ * This function combines information from both corrected and uncorrected jets to update the MET vector.
+ * It concatenates jet kinematic variables and electromagnetic fractions, then applies Type-I corrections
+ * by subtracting the difference between fully corrected and L1-corrected jet pT for jets passing selection criteria.
+ * Only jets with $p_T > 15$ GeV, $|\eta| < 5.2$, and $\mathrm{EmEF} < 0.9$ are propagated to MET.
+ *
+ * @param df Input ROOT DataFrame.
+ * @param correction_manager Correction manager for loading jet corrections.
+ * @param outputname Name of the new column containing the corrected MET Lorentz vector.
+ * @param raw_met Name of the column with the initial/uncorrected MET Lorentz vector.
+ * @param jet_pt_l1corr Name of the column with L1-corrected jet $p_T$.
+ * @param jet_pt_corr Name of the column with fully corrected jet $p_T$.
+ * @param jet_eta Name of the column with jet $\eta$.
+ * @param corrjet_eta Name of the column with corrected jet $\eta$.
+ * @param jet_phi Name of the column with jet $\phi$.
+ * @param corrjet_phi Name of the column with corrected jet $\phi$.
+ * @param jet_chEmEF Name of the column with jet charged electromagnetic fraction.
+ * @param jet_neEmEF Name of the column with jet neutral electromagnetic fraction.
+ * @param corrjet_EmEF Name of the column with corrected jet electromagnetic fraction.
+ *
+ * @return A new DataFrame with the corrected MET column.
+ */
 ROOT::RDF::RNode
-TypeIMET_v2(ROOT::RDF::RNode df,
+TypeIMETCorrections(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
         const std::string &outputname, 
         const std::string &raw_met,
