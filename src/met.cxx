@@ -47,7 +47,7 @@ namespace met {
  * correction string in the json file (e.g. "Recoil_correction")
  * @param method method to be used to apply the corrections, possible options are
  * "Rescaling", "QuantileMapHist" and "Uncertainty" (second part of the correction string)
- * @param order order of the used DY samples: "LO" for madgraph, "NLO" for amc@nlo,
+ * @param order order of the used DY samples: "LO" for madgraph, "NLO" for amc\@nlo,
  * "NNLO" for powheg
  * @param variation name of the variation that should be evaluated, options are
  * "nom", "RespUp", "RespDown", "ResolUp", "ResolDown". This is only used if
