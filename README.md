@@ -6,6 +6,7 @@
 <a href="https://app.codacy.com/gh/KIT-CMS/CROWN/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade"><img src="https://app.codacy.com/project/badge/Grade/681a25523b544d788155696eb829e38b"/></a>
 <a href="https://crown.readthedocs.io/en/latest/?badge=latest"><img alt="Documentation Status" src="https://readthedocs.org/projects/crown/badge/?version=latest"></a>
 <a href="https://doi.org/10.5281/zenodo.8325327"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.8325327.svg" alt="DOI"></a>
+<a href="https://deepwiki.com/KIT-CMS/CROWN"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
 </p>
 
 ---
