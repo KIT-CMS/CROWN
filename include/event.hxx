@@ -479,6 +479,182 @@ inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
+ * @brief This function gets the gen. jet quantity for a given jet. This
+ * function finds the associated gen. jet to a reconstructed jet via indices
+ * that are present in nanoAODs.
+ *
+ * If the generator-level jet cannot be accessed, the function returns a
+ * default value.
+ *
+ * _Example:_ Let the column `"good_jet_indices"` contain the indices of
+ * selected AK4 jets. For the `Jet` collection, the column `"Jet_genJetIdx"`
+ * contains the index of the matched generator-level jet in the `GenJet`
+ * collection. To define the generator-level p<sub>T</sub> of the leading
+ * reconstructed AK4 jet, one needs to call:
+ *
+ * ```cpp
+ * event::quantity::GetGenJetForJet(
+ *     df,
+ *     "jet_gen_pt_1",
+ *     "GenJet_pt",
+ *     "Jet_genJetIdx",
+ *     "good_jet_indices",
+ *     0
+ * )
+ * ```
+ *
+ * @tparam T type of the input gen. jet column values
+ * @param df input dataframe
+ * @param outputname name of the output column containing the gen. jet quantity value
+ * @param genjet_quantity name of the column containing the gen. jet quantity vector
+ * @param jet_genjet_index name of the column containing the association (via index) 
+ * between the jet and the gen. jet collection 
+ * @param index_vector name of the column containing the vector with the relevant
+ * jet indices
+ * @param position position in the index vector that specifies which jet in the 
+ * jet vector should be used to get its associated gen. jet quantity
+ *
+ * @return a dataframe with the new column
+ */
+template <typename T>
+ROOT::RDF::RNode GetGenJetForJet(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &genjet_quantity,
+    const std::string &jet_genjet_index,
+    const std::string &index_vector,
+    const int &position) {
+    // In nanoAODv12 the types of jet indices were changed to Short_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, jet_genjet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df, jet_genjet_index+"_v12", "ROOT::VecOps::RVec<Short_t>", jet_genjet_index);
+    
+    return df1.Define(outputname,
+        [position](const ROOT::RVec<T> &quantity,
+                   const ROOT::RVec<Short_t> &jet_genjet_idx_v12,
+                   const ROOT::RVec<int> &indices) {
+            auto jet_genjet_idx = static_cast<ROOT::RVec<int>>(jet_genjet_idx_v12);
+            const int jet_index = indices.at(position);
+            const int genjet_index = jet_genjet_idx.at(jet_index, -1);
+            
+            T result = quantity.at(genjet_index, default_value<T>());
+            Logger::get("event::quantity::GetGenJetForJet")->debug(
+                "   Retrieved gen. jet quantity value {} for jet index {}",
+                result, jet_index
+            );
+            return result;
+        },
+        {genjet_quantity, jet_genjet_index_column, index_vector});
+}
+
+/** 
+ * @brief This function gets the gen. jet quantity for a given object. All objects
+ * are usually also reconstructed as jets. This function finds the corresponding jet
+ * and the associated gen. jet via indices that are present in nanoAODs.
+ *
+ * If the generator-level jet cannot be accessed, the function returns a
+ * default value.
+ *
+ * @tparam T type of the input gen. jet column values
+ * @param df input dataframe
+ * @param outputname name of the output column containing the gen. jet quantity value
+ * @param genjet_quantity name of the column containing the gen. jet quantity vector
+ * @param jet_genjet_index name of the column containing the association (via index) 
+ * between the jet and the gen. jet collection 
+ * @param object_jet_index name of the column containing the association (via index) 
+ * between the object and the jet collection
+ * @param object_index_vector name of the column containing the vector with the relevant
+ * object indices
+ * @param position position in the index vector that specifies which object in the 
+ * object vector should be used to get its associated gen. jet quantity
+ *
+ * @return a dataframe with the new column
+ */
+template <typename T>
+ROOT::RDF::RNode GetGenJetForObject(ROOT::RDF::RNode df,
+                            const std::string &outputname,
+                            const std::string &genjet_quantity,
+                            const std::string &jet_genjet_index,
+                            const std::string &object_jet_index,
+                            const std::string &object_index_vector,
+                            const int &position) {
+    // In nanoAODv12 the types of jet indices were changed to Short_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, jet_genjet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df, jet_genjet_index+"_v12", "ROOT::VecOps::RVec<Short_t>", jet_genjet_index);
+    auto [df2, object_jet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df1, object_jet_index+"_v12", "ROOT::VecOps::RVec<Short_t>", object_jet_index);
+    return df2.Define(outputname,
+        [position](const ROOT::RVec<T> &quantity,
+                const ROOT::RVec<Short_t> &jet_genjet_idx_v12,
+                const ROOT::RVec<Short_t> &obj_jet_idx_v12,
+                const ROOT::RVec<int> &obj_indices) {
+            auto jet_genjet_idx = static_cast<ROOT::RVec<int>>(jet_genjet_idx_v12);
+            auto obj_jet_idx = static_cast<ROOT::RVec<int>>(obj_jet_idx_v12);
+            const int obj_index = obj_indices.at(position);
+            const int jet_index = obj_jet_idx.at(obj_index, -1);
+            const int genjet_index = jet_genjet_idx.at(jet_index, -1);
+
+            T result = quantity.at(genjet_index, default_value<T>());
+            Logger::get("event::quantity::GetGenJetForObject")->debug(
+                "   Retrieved gen. jet quantity value {} for object index {}",
+                result, obj_index
+            );
+            return result;
+        },
+        {genjet_quantity, jet_genjet_index_column, object_jet_index_column, object_index_vector});
+}
+
+/** 
+ * @brief This function gets the jet quantity for a given object. All objects
+ * are usually also reconstructed as jets. This function finds the corresponding jet 
+ * via indices that are present in nanoAODs.
+ *
+ * If the reconstruction-level jet cannot be accessed, the function returns a
+ * default value.
+ *
+ * @tparam T type of the input jet column values
+ * @param df input dataframe
+ * @param outputname name of the output column containing the jet quantity value
+ * @param jet_quantity name of the column containing the jet quantity vector
+ * @param object_jet_index name of the column containing the association (via index) 
+ * between the object and the jet collection
+ * @param object_index_vector name of the column containing the vector with the relevant
+ * object indices
+ * @param position position in the index vector that specifies which object in the 
+ * object vector should be used to get its associated jet quantity
+ *
+ * @return a dataframe with the new column
+ */
+template <typename T>
+ROOT::RDF::RNode GetJetForObject(ROOT::RDF::RNode df,
+                            const std::string &outputname,
+                            const std::string &jet_quantity,
+                            const std::string &object_jet_index,
+                            const std::string &object_index_vector,
+                            const int &position) {
+    // In nanoAODv12 the type ofs object to jet indices were changed to Short_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, object_jet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df, object_jet_index+"_v12", "ROOT::VecOps::RVec<Short_t>", object_jet_index);
+    return df1.Define(outputname,
+        [position](const ROOT::RVec<T> &quantity,
+                const ROOT::RVec<Short_t> &obj_jet_idx_v12,
+                const ROOT::RVec<int> &obj_indices) {
+            auto obj_jet_idx = static_cast<ROOT::RVec<int>>(obj_jet_idx_v12);
+            const int obj_index = obj_indices.at(position);
+            const int jet_index = obj_jet_idx.at(obj_index, -1);
+            T result = quantity.at(jet_index, default_value<T>());
+            Logger::get("event::quantity::GetJetForObject")->debug(
+                "   Retrieved jet quantity value {} for object index {}",
+                result, obj_index
+            );
+            return result;
+        },
+        {jet_quantity, object_jet_index_column, object_index_vector});
+}
+
+/**
  * @brief This function computes the sum of the elements in the `quantity`
  * column for each event. If no elements are selected, a default value (provided
  * by `zero`) is used as the sum for that event.
