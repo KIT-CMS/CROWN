@@ -332,6 +332,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * @param jet_raw_factor name of the column containing the jet factors to
  * calculate back to the raw jet \f$p_T\f$'s
  * @param rho name of the column containing the event energy density
+ * @param run name of the column containing the run number
  * @param jec_file path to the JEC correction file
  * @param jec_algo name of the jet reconstruction algorithm (e.g., "AK4PFchs" or
  * "AK8PFPuppi")

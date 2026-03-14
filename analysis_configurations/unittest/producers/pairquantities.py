@@ -263,7 +263,7 @@ tau_decaymode_1_notau = Producer(
 )
 taujet_pt_1 = Producer(
     name="taujet_pt_1",
-    call="quantities::JetMatching({df}, {output}, {input}, 0)",
+    call="event::quantity::GetJetForObject<float>({df}, {output}, {input}, 0)",
     input=[nanoAOD.Jet_pt, nanoAOD.Tau_jetIdx, q.dileptonpair],
     output=[q.taujet_pt_1],
     scopes=["tt"],
@@ -309,7 +309,7 @@ tau_decaymode_2_notau = Producer(
 )
 taujet_pt_2 = Producer(
     name="taujet_pt_2",
-    call="quantities::JetMatching({df}, {output}, {input}, 1)",
+    call="event::quantity::GetJetForObject<float>({df}, {output}, {input}, 1)",
     input=[nanoAOD.Jet_pt, nanoAOD.Tau_jetIdx, q.dileptonpair],
     output=[q.taujet_pt_2],
     scopes=["mt", "et", "tt"],
