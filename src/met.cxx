@@ -48,10 +48,11 @@ namespace met {
  * @param corr_file path to the json file with the recoil corrections
  * @param corr_name name of the recoil correction, this is the first part of the
  * correction string in the json file (e.g. "Recoil_correction")
- * @param method method to be used to apply the corrections, possible options are
- * "Rescaling", "QuantileMapHist" and "Uncertainty" (second part of the correction string)
- * @param order order of the used DY samples: "LO" for madgraph, "NLO" for amc\@nlo,
- * "NNLO" for powheg
+ * @param method method to be used to apply the corrections, possible options
+ * are "Rescaling", "QuantileMapHist" and "Uncertainty" (second part of the
+ * correction string)
+ * @param order order of the used DY samples: "LO" for madgraph, "NLO" for
+ * amc\@nlo, "NNLO" for powheg
  * @param variation name of the variation that should be evaluated, options are
  * "nom", "RespUp", "RespDown", "ResolUp", "ResolDown". This is only used if
  * `method` is set to "Uncertainty".
