@@ -5,9 +5,9 @@
 #include <Math/Vector4D.h>
 #include <TObjString.h>
 #include <bitset>
-#include <spdlog/fmt/bundled/core.h> // Include fmt library header
 #include <map>
 #include <mutex>
+#include <spdlog/fmt/bundled/core.h> // Include fmt library header
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
@@ -16,8 +16,8 @@
 template <> struct fmt::formatter<TString> : fmt::formatter<std::string> {
     // Use the format method of the std::string formatter
     template <typename FormatContext>
-    auto format(const TString &tstring,
-                FormatContext &ctx) -> decltype(ctx.out()) {
+    auto format(const TString &tstring, FormatContext &ctx)
+        -> decltype(ctx.out()) {
         // Directly use the formatter for std::string on TString's value
         return fmt::formatter<std::string>::format((std::string)tstring, ctx);
     }
@@ -34,8 +34,8 @@ template <typename T> struct fmt::formatter<ROOT::VecOps::RVec<T>> {
     // Implement the format method to define how to convert
     // ROOT::VecOps::RVec<T> to a string
     template <typename FormatContext>
-    constexpr auto format(const ROOT::VecOps::RVec<T> &vec,
-                          FormatContext &ctx) -> decltype(ctx.out()) {
+    constexpr auto format(const ROOT::VecOps::RVec<T> &vec, FormatContext &ctx)
+        -> decltype(ctx.out()) {
         // Start with an opening bracket
         fmt::format_to(ctx.out(), "[");
         // Format each element separated by a comma
@@ -71,8 +71,8 @@ template <> struct fmt::formatter<ROOT::Math::PtEtaPhiMVector> {
 
 // Generic formatter function for std::bitset of any size
 template <std::size_t N> struct BitsetFormatter {
-    static auto format(fmt::format_context &ctx,
-                       const std::bitset<N> &b) -> decltype(ctx.out()) {
+    static auto format(fmt::format_context &ctx, const std::bitset<N> &b)
+        -> decltype(ctx.out()) {
         fmt::format_to(ctx.out(), "[");
         for (size_t i = 0; i < b.size(); ++i) {
             fmt::format_to(ctx.out(), "{}", b.test(i) ? '1' : '0');
@@ -85,8 +85,8 @@ template <std::size_t N> struct BitsetFormatter {
 template <std::size_t N>
 struct fmt::formatter<std::bitset<N>> : formatter<std::string> {
     template <typename FormatContext>
-    auto format(const std::bitset<N> &b,
-                FormatContext &ctx) -> decltype(ctx.out()) {
+    auto format(const std::bitset<N> &b, FormatContext &ctx)
+        -> decltype(ctx.out()) {
         return BitsetFormatter<N>::format(ctx, b);
     }
 };

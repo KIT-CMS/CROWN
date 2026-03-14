@@ -1,4 +1,4 @@
-Workflow Management
+Kingmaker Workflow Management
 ===================
 
 KingMaker is a workflow management for producing ntuples with the CROWN framework. The workflow management is based on law (https://github.com/riga/law), which uses luigi (https://github.com/spotify/luigi) as the backend. Kingmaker is used to orchestrate the production of ntuples and friend trees for the CROWN framework. The workflow is designed to be flexible and can be adapted to different analyses. Kingmaker takes care of building all required CROWN executables, submitting jobs to a batch system and writing the output to a remote storage. On top of that, Kingmaker can be used to generate FriendTrees, which can be used to store additional information to extend the ntuples. A sample manager is provided to manage the samples and keep track of the individual input files that have to be processed.
@@ -21,7 +21,7 @@ This should install all required packages and set up the environment. In additio
 The setup script has also additional options:
 
 .. code-block:: bash
-    
+
     Usage: source setup.sh [options]
 
     Options:
@@ -299,7 +299,7 @@ The ``KingMaker_luigi.cfg`` file contains the configuration of the different tas
     wlcg_path = root://cmsdcache-kit-disk.gridka.de//store/user/${USER}/CROWN/ntuples/
     htcondor_accounting_group = cms.higgs
     htcondor_remote_job = True
-    htcondor_universe = docker
+    htcondor_universe = container
     transfer_logs = True
     local_scheduler = True
     tolerance = 0.00
@@ -346,11 +346,11 @@ For a more complete description of the different options, please refer to the ov
 Local debugging
 -----------------------
 
-The compiled executables that are used in the submitted jobs can be found in the ``tarballs/<production_tag>/`` directories. 
+The compiled executables that are used in the submitted jobs can be found in the ``tarballs/<production_tag>/`` directories.
 All executables can be tested locally:
 
-1. Change to the directory with the executable (`tarballs/<production_tag>/CROWN*/`, depending on which step you are running).
-2. Source the ``init.sh`` script.
+1. Run the ``CROWN/init.sh`` script, which puts you into the container environment.
+2. Change to the directory with the executable (`tarballs/<production_tag>/CROWN*/`, depending on which step you are running).
 3. Run the executable with the required arguments.
 
 The exact arguments required to call the executable depend on the type:
@@ -365,21 +365,17 @@ The executables work with remote input paths/files, but the path to the output f
 
     # Ntuples
     cd tarballs/<production_tag>/CROWN_<analysis_name>_<config_name>/
-    source init.sh
     ./<config_name>_<data_type>_<era> <output_file> <input_file1> <input_file2> ...
-
 
     # Friends
     cd tarballs/<production_tag>/CROWNFriends_<analysis_name>_<friend_config_name>_<mapped_friend_name>_<sample_type>_<era>
     # Where `mapped_friend_name` is either directly set via `--friend-name`, or set in the `--friend-mapping` for the `friend_config`.
-    source init.sh
-    ./<friend_config_name>_<data_type>_<era>_<scope> <output_file> <Ntuple_file> 
+    ./<friend_config_name>_<data_type>_<era>_<scope> <output_file> <Ntuple_file>
 
 
     # MultiFriends (Friends with Friends as inputs)
     cd tarballs/<production_tag>/CROWNFriends_<analysis_name>_<multifriend_config_name>_<multi_friend_name>_<sample_type>_<era>
     # Where `multi_friend_name` is set via `--friend-name`.
-    source init.sh
     ./<multifriend_config_name>_<data_type>_<era>_<scope> <output_file> <Ntuple_file> <Friend_file1> <Friend_file2> ...
 
 For the command provided in :ref:`Production of friend trees with additional friends as input`, this turns into:
@@ -388,18 +384,15 @@ For the command provided in :ref:`Production of friend trees with additional fri
 
     # Ntuples
     cd tarballs/test_production_v1/CROWN_template_analysis_template_config/
-    source init.sh
     ./template_config_data_2018 <Ntuple_file> <input_file1> <input_file2> ...
 
     # Friends
     cd tarballs/test_production_v1/CROWNFriends_template_analysis_template_friend_config_test_friend_v1_data_2018/
-    source init.sh
     ./template_friend_config_data_2018_mm <Friend_file> <Ntuple_file>
 
     # MultiFriends (Friends with Friends as inputs)
     cd tarballs/test_production_v1/CROWNFriends_template_analysis_template_multifriend_config_test_multifriend_v1_data_2018/
-    source init.sh
     ./template_multifriend_config_data_2018_mm <MultiFriend_file> <Ntuple_file> <Friend_file>
 
-If further investigation is needed, a local compilation of the CROWN config is recommended as described in :ref:`Running the framework` 
+If further investigation is needed, a local compilation of the CROWN config is recommended as described in :ref:`Running the framework`
 with optionally activating `-DDEBUG`.

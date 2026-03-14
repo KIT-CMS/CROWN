@@ -1,46 +1,48 @@
-#include "ROOT/RDataFrame.hxx"
 #include "ROOT/RDFHelpers.hxx"
+#include "ROOT/RDataFrame.hxx"
 #include "RooTrace.h"
 #include "TStopwatch.h"
-#include <ROOT/RLogger.hxx>
-#include "include/utility/Logger.hxx"
-#include <TFile.h>
-#include <TMap.h>
-#include <filesystem>
-#include <TObjString.h>
-#include <TTree.h>
-#include <TVector.h>
-#include "onnxruntime_cxx_api.h"
-#include <regex>
-#include <string>
-#include "include/utility/OnnxSessionManager.hxx"
-#include "include/utility/CorrectionManager.hxx"
+#include "include/electrons.hxx"
+#include "include/embedding.hxx"
+#include "include/event.hxx"
+#include "include/fatjets.hxx"
 #include "include/genparticles.hxx"
 #include "include/htxs.hxx"
 #include "include/jets.hxx"
-#include "include/fatjets.hxx"
-#include "include/event.hxx"
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"
 #include "include/ml.hxx"
-#include "include/pairselection.hxx"
-#include "include/tripleselection.hxx"
-#include "include/embedding.hxx"
-#include "include/physicsobjects.hxx"
 #include "include/muons.hxx"
-#include "include/electrons.hxx"
-#include "include/taus.hxx"
+#include "include/pairselection.hxx"
+#include "include/physicsobjects.hxx"
 #include "include/quantities.hxx"
 #include "include/reweighting.hxx"
+#include "include/taus.hxx"
 #include "include/topreco.hxx"
 #include "include/triggers.hxx"
+#include "include/tripleselection.hxx"
+#include "include/utility/CorrectionManager.hxx"
+#include "include/utility/Logger.hxx"
+#include "include/utility/OnnxSessionManager.hxx"
+#include <ROOT/RLogger.hxx>
+#include <TFile.h>
+#include <TInterpreter.h>
+#include <TMap.h>
+#include <TObjString.h>
+#include <TTree.h>
+#include <TVector.h>
+#include <filesystem>
+#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
+#include <regex>
+#include <string>
 
 // {INCLUDE_ANALYSISADDONS}
 
 // {INCLUDES}
 
-// Choose correct namespace for logging (ROOT 6.34 uses Experimental, 6.36+ does not)
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6,36,0)
+// Choose correct namespace for logging (ROOT 6.34 uses Experimental, 6.36+ does
+// not)
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6, 36, 0)
 namespace ROOTLogNS = ROOT;
 #else
 namespace ROOTLogNS = ROOT::Experimental;
@@ -51,8 +53,7 @@ int main(int argc, char *argv[]) {
     // ROOT logging
     if (debug) {
         auto verbosity = ROOTLogNS::RLogScopedVerbosity(
-            ROOT::Detail::RDF::RDFLogChannel(),
-            ROOTLogNS::ELogLevel::kInfo);
+            ROOT::Detail::RDF::RDFLogChannel(), ROOTLogNS::ELogLevel::kInfo);
         RooTrace::verbose(kTRUE);
         Logger::setLevel(Logger::LogLevel::DEBUG);
     } else {
@@ -68,11 +69,13 @@ int main(int argc, char *argv[]) {
             "./analysis output.root /path/to/inputfiles/*.root");
         return 1;
     }
-    // check if CROWN is run from the correct directory, if the folder "data" does not exist, exit
+    // check if CROWN is run from the correct directory, if the folder "data"
+    // does not exist, exit
     if (!std::filesystem::exists("data")) {
         Logger::get("main")->critical(
             "CROWN is not run from the correct directory, "
-            "data folder does not exist. Did you run CROWN from the correct directory?");
+            "data folder does not exist. Did you run CROWN from the correct "
+            "directory?");
         return 1;
     }
     std::vector<std::string> input_files;
@@ -135,7 +138,7 @@ int main(int argc, char *argv[]) {
     std::vector<ROOT::RDF::RResultPtr<ROOT::RDF::RCutFlowReport>> cutReports;
     // setup output files
     // {OUTPUT_PATHS}
-    if (nevents == 0){
+    if (nevents == 0) {
         // {ZERO_EVENTS_FALLBACK}
     } else {
         // {CODE_GENERATION}
@@ -189,19 +192,19 @@ int main(int argc, char *argv[]) {
                                     &analysis_setup_clean);
         analysis_commit_meta.Fill();
         analysis_commit_meta.Write();
-        if (nevents != 0){
+        if (nevents != 0) {
             TH1D cutflow;
             cutflow.SetName("cutflow");
             cutflow.SetTitle("cutflow");
-            // iterate through the cutflow vector and fill the histogram with the
-            // .GetPass() values
+            // iterate through the cutflow vector and fill the histogram with
+            // the .GetPass() values
             if (scope_counter >= cutReports.size()) {
                 Logger::get("main")->critical(
                     "Cutflow vector is too small, this should not happen");
                 return 1;
             }
             for (auto cut = cutReports[scope_counter].begin();
-                cut != cutReports[scope_counter].end(); cut++) {
+                 cut != cutReports[scope_counter].end(); cut++) {
                 cutflow.SetBinContent(
                     std::distance(cutReports[scope_counter].begin(), cut) + 1,
                     cut->GetPass());

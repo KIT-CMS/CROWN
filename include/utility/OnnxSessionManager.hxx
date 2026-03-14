@@ -3,7 +3,7 @@
 
 #include "Logger.hxx"
 #include <memory>
-#include <onnxruntime_cxx_api.h>
+#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
 #include <string>
 #include <unordered_map>
 

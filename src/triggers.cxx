@@ -22,12 +22,13 @@ namespace trigger {
 /**
  * @brief This function tries to match an object with a trigger object. An
  * object is successfully matched, if they overlap within a given \f$\Delta R\f$
- * cone and the \f$p_T\f$ / \f$|\eta|\f$ thresholds are met. Further, the trigger
- * object ID and the trigger object filter bit are set to the correct value.
+ * cone and the \f$p_T\f$ / \f$|\eta|\f$ thresholds are met. Further, the
+ * trigger object ID and the trigger object filter bit are set to the correct
+ * value.
  *
  * For the trigger objects, two additional quantities are stored, the ID of the
- * particle and some further information on the trigger path encoded in a bitmap.
- * The trigger object ID is encoded as follows:
+ * particle and some further information on the trigger path encoded in a
+ * bitmap. The trigger object ID is encoded as follows:
  * @code
  *   1 = Jet
  *   2 = MET
@@ -85,20 +86,19 @@ namespace trigger {
  *
  * @return boolean value indicating whether a match was found
  */
-bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
-                   ROOT::RVec<float> &triggerobject_pts,
-                   ROOT::RVec<float> &triggerobject_etas,
-                   ROOT::RVec<float> &triggerobject_phis,
-                   ROOT::RVec<int> &triggerobject_ids,
-                   ROOT::RVec<int> &triggerobject_filterbits,
-                   const float &pt_threshold, const float &eta_threshold,
-                   const int &trigger_particle_id_value, const int &trigger_bit_value,
-                   const float &deltaR_threshold) {
+bool matchParticle(
+    const ROOT::Math::PtEtaPhiMVector &particle,
+    ROOT::RVec<float> &triggerobject_pts, ROOT::RVec<float> &triggerobject_etas,
+    ROOT::RVec<float> &triggerobject_phis, ROOT::RVec<int> &triggerobject_ids,
+    ROOT::RVec<int> &triggerobject_filterbits, const float &pt_threshold,
+    const float &eta_threshold, const int &trigger_particle_id_value,
+    const int &trigger_bit_value, const float &deltaR_threshold) {
     Logger::get("trigger::matchParticle")->debug("Checking Triggerobjects");
     Logger::get("trigger::matchParticle")
         ->debug("Total number of triggerobjects: {}", triggerobject_pts.size());
     for (std::size_t idx = 0; idx < triggerobject_pts.size(); ++idx) {
-        Logger::get("trigger::matchParticle")->debug("Triggerobject Nr. {}", idx);
+        Logger::get("trigger::matchParticle")
+            ->debug("Triggerobject Nr. {}", idx);
         auto triggerobject = ROOT::Math::RhoEtaPhiVectorF(
             0, triggerobject_etas[idx], triggerobject_phis[idx]);
         // We check the deltaR match as well as that the pt and eta of the
@@ -109,22 +109,24 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
         bool eta = abs(particle.eta()) < eta_threshold;
         // if you don't want to do bit matching here, the trigger_bit_value
         // has to be set to -1
-        bool bit = (trigger_bit_value == -1) ||
-                   (IntBits(triggerobject_filterbits[idx]).test(trigger_bit_value));
+        bool bit =
+            (trigger_bit_value == -1) ||
+            (IntBits(triggerobject_filterbits[idx]).test(trigger_bit_value));
         bool id = triggerobject_ids[idx] == trigger_particle_id_value;
 
         Logger::get("trigger::matchParticle")
             ->debug("-------------------------------------------------------");
 
         Logger::get("trigger::matchParticle")
-            ->debug("deltaR_threshold: {}, Check: {}", deltaR_threshold, deltaR);
+            ->debug("deltaR_threshold: {}, Check: {}", deltaR_threshold,
+                    deltaR);
         Logger::get("trigger::matchParticle")
             ->debug("deltaR value: {}",
-                ROOT::Math::VectorUtil::DeltaR(triggerobject, particle));
+                    ROOT::Math::VectorUtil::DeltaR(triggerobject, particle));
 
         Logger::get("trigger::matchParticle")
             ->debug("trigger_particle_id_value: {}, Check: {}",
-                trigger_particle_id_value, id);
+                    trigger_particle_id_value, id);
         Logger::get("trigger::matchParticle")
             ->debug("id value: {}", triggerobject_ids[idx]);
 
@@ -137,24 +139,25 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
             ->debug("pt_threshold: {}, Check: {}", pt_threshold, pt);
         Logger::get("trigger::matchParticle")
             ->debug("pt value (trg): {}, pt value (reco): {}",
-                triggerobject_pts[idx], particle.pt());
+                    triggerobject_pts[idx], particle.pt());
 
         Logger::get("trigger::matchParticle")
             ->debug("eta_threshold: {}, Check: {}", eta_threshold, eta);
         Logger::get("trigger::matchParticle")
             ->debug("eta (trg) value: {}, eta (reco) value: {}",
-                triggerobject_etas[idx], abs(particle.eta()));
+                    triggerobject_etas[idx], abs(particle.eta()));
 
         Logger::get("trigger::matchParticle")
             ->debug("-------------------------------------------------------");
         if (deltaR && bit && id && pt && eta) {
-            // remove the matching object from the object vectors so it cannot be
-            // matched by the next particle as well (if there is one)
+            // remove the matching object from the object vectors so it cannot
+            // be matched by the next particle as well (if there is one)
             triggerobject_pts.erase(triggerobject_pts.begin() + idx);
             triggerobject_etas.erase(triggerobject_etas.begin() + idx);
             triggerobject_phis.erase(triggerobject_phis.begin() + idx);
             triggerobject_ids.erase(triggerobject_ids.begin() + idx);
-            triggerobject_filterbits.erase(triggerobject_filterbits.begin() + idx);
+            triggerobject_filterbits.erase(triggerobject_filterbits.begin() +
+                                           idx);
             return true;
         }
     }
@@ -207,50 +210,58 @@ ROOT::RDF::RNode SingleObjectFlag(
     ROOT::RDF::RNode df, const std::string &outputname,
     const std::string &particle, const std::string &triggerobject_pt,
     const std::string &triggerobject_eta, const std::string &triggerobject_phi,
-    const std::string &triggerobject_id, const std::string &triggerobject_filterbit,
-    const std::string &hlt_path, const float &pt_threshold, const float &eta_threshold,
+    const std::string &triggerobject_id,
+    const std::string &triggerobject_filterbit, const std::string &hlt_path,
+    const float &pt_threshold, const float &eta_threshold,
     const int &trigger_particle_id_value, const int &trigger_bit_value,
     const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
-    auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
+    auto [df1, triggerobject_id_column] =
+        utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, triggerobject_id + "_v12", "ROOT::VecOps::RVec<UShort_t>",
+            triggerobject_id);
     // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
     // For v9 and v12 compatibility a type casting is applied
-    auto [df2, triggerobject_filterbit_column] = utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
-            df1, triggerobject_filterbit+"_v15", "ROOT::VecOps::RVec<ULong64_t>", triggerobject_filterbit);
+    auto [df2, triggerobject_filterbit_column] =
+        utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_filterbit + "_v15",
+            "ROOT::VecOps::RVec<ULong64_t>", triggerobject_filterbit);
 
-    auto trigger_matching = [pt_threshold, eta_threshold, trigger_particle_id_value,
-                             trigger_bit_value, deltaR_threshold](
-                                bool hlt_path_match,
-                                const ROOT::Math::PtEtaPhiMVector &particle,
-                                ROOT::RVec<float> triggerobject_pts,
-                                ROOT::RVec<float> triggerobject_etas,
-                                ROOT::RVec<float> triggerobject_phis,
-                                ROOT::RVec<UShort_t> triggerobject_ids_v12,
-                                ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) {
-        auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
-        auto triggerobject_filterbits = static_cast<ROOT::RVec<int>>(triggerobject_filterbits_v15);
+    auto trigger_matching =
+        [pt_threshold, eta_threshold, trigger_particle_id_value,
+         trigger_bit_value, deltaR_threshold](
+            bool hlt_path_match, const ROOT::Math::PtEtaPhiMVector &particle,
+            ROOT::RVec<float> triggerobject_pts,
+            ROOT::RVec<float> triggerobject_etas,
+            ROOT::RVec<float> triggerobject_phis,
+            ROOT::RVec<UShort_t> triggerobject_ids_v12,
+            ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) {
+            auto triggerobject_ids =
+                static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+            auto triggerobject_filterbits =
+                static_cast<ROOT::RVec<int>>(triggerobject_filterbits_v15);
 
-        bool match_result = false;
-        if (hlt_path_match) {
+            bool match_result = false;
+            if (hlt_path_match) {
+                Logger::get("trigger::SingleObjectFlag")
+                    ->debug("Checking triggerobject match with particle ....");
+                match_result = matchParticle(
+                    particle, triggerobject_pts, triggerobject_etas,
+                    triggerobject_phis, triggerobject_ids,
+                    triggerobject_filterbits, pt_threshold, eta_threshold,
+                    trigger_particle_id_value, trigger_bit_value,
+                    deltaR_threshold);
+            }
+            bool result = hlt_path_match & match_result;
             Logger::get("trigger::SingleObjectFlag")
-                ->debug("Checking triggerobject match with particle ....");
-            match_result = matchParticle(
-                particle, triggerobject_pts, triggerobject_etas,
-                triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
-                pt_threshold, eta_threshold, trigger_particle_id_value,
-                trigger_bit_value, deltaR_threshold);
-        }
-        bool result = hlt_path_match & match_result;
-        Logger::get("trigger::SingleObjectFlag")
-            ->debug("---> HLT Matching: {}", hlt_path_match);
-        Logger::get("trigger::SingleObjectFlag")
-            ->debug("---> Object Matching: {}", match_result);
-        Logger::get("trigger::SingleObjectFlag")
-            ->debug("--->>>> result: {}", result);
-        return match_result;
-    };
+                ->debug("---> HLT Matching: {}", hlt_path_match);
+            Logger::get("trigger::SingleObjectFlag")
+                ->debug("---> Object Matching: {}", match_result);
+            Logger::get("trigger::SingleObjectFlag")
+                ->debug("--->>>> result: {}", result);
+            return match_result;
+        };
     auto available_trigger = df.GetColumnNames();
     std::vector<std::string> matched_trigger_names;
     std::regex hlt_path_regex = std::regex(hlt_path);
@@ -269,20 +280,22 @@ ROOT::RDF::RNode SingleObjectFlag(
     if (matched_trigger_names.size() == 0) {
         Logger::get("trigger::SingleObjectFlag")
             ->debug("No matching trigger for {} found, returning false for "
-                   "trigger flag {}", hlt_path, outputname);
+                    "trigger flag {}",
+                    hlt_path, outputname);
         auto df3 = df2.Define(outputname, []() { return false; });
         return df3;
     } else if (matched_trigger_names.size() > 1) {
         Logger::get("trigger::SingleObjectFlag")
-            ->debug("More than one matching trigger found, not implemented yet");
+            ->debug(
+                "More than one matching trigger found, not implemented yet");
         throw std::invalid_argument(
             "received too many matching trigger paths, not implemented yet");
     } else {
-        auto df3 =
-            df2.Define(outputname, trigger_matching,
-                      {matched_trigger_names[0], particle, triggerobject_pt,
-                       triggerobject_eta, triggerobject_phi,
-                       triggerobject_id_column, triggerobject_filterbit_column});
+        auto df3 = df2.Define(outputname, trigger_matching,
+                              {matched_trigger_names[0], particle,
+                               triggerobject_pt, triggerobject_eta,
+                               triggerobject_phi, triggerobject_id_column,
+                               triggerobject_filterbit_column});
         return df3;
     }
 }
@@ -327,44 +340,52 @@ ROOT::RDF::RNode SingleObjectFlag(
     ROOT::RDF::RNode df, const std::string &outputname,
     const std::string &particle, const std::string &triggerobject_pt,
     const std::string &triggerobject_eta, const std::string &triggerobject_phi,
-    const std::string &triggerobject_id, const std::string &triggerobject_filterbit,
-    const float &pt_threshold, const float &eta_threshold,
-    const int &trigger_particle_id_value, const int &trigger_bit_value,
-    const float &deltaR_threshold) {
+    const std::string &triggerobject_id,
+    const std::string &triggerobject_filterbit, const float &pt_threshold,
+    const float &eta_threshold, const int &trigger_particle_id_value,
+    const int &trigger_bit_value, const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
-    auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
+    auto [df1, triggerobject_id_column] =
+        utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, triggerobject_id + "_v12", "ROOT::VecOps::RVec<UShort_t>",
+            triggerobject_id);
     // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
     // For v9 and v12 compatibility a type casting is applied
-    auto [df2, triggerobject_filterbit_column] = utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
-            df1, triggerobject_filterbit+"_v15", "ROOT::VecOps::RVec<ULong64_t>", triggerobject_filterbit);
+    auto [df2, triggerobject_filterbit_column] =
+        utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_filterbit + "_v15",
+            "ROOT::VecOps::RVec<ULong64_t>", triggerobject_filterbit);
 
-    auto trigger_matching = [pt_threshold, eta_threshold, trigger_particle_id_value,
-                             trigger_bit_value, deltaR_threshold](
-                                const ROOT::Math::PtEtaPhiMVector &particle,
-                                ROOT::RVec<float> triggerobject_pts,
-                                ROOT::RVec<float> triggerobject_etas,
-                                ROOT::RVec<float> triggerobject_phis,
-                                ROOT::RVec<UShort_t> triggerobject_ids_v12,
-                                ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) {
-        auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
-        auto triggerobject_filterbits = static_cast<ROOT::RVec<int>>(triggerobject_filterbits_v15);
-        Logger::get("trigger::SingleObjectFlag")
-            ->debug("Checking triggerobject match with particle ....");
-        bool match_result = matchParticle(
-            particle, triggerobject_pts, triggerobject_etas,
-            triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
-            pt_threshold, eta_threshold, trigger_particle_id_value,
-            trigger_bit_value, deltaR_threshold);
-        Logger::get("trigger::SingleObjectFlag")
-            ->debug("---> Matching: {}", match_result);
-        return match_result;
-    };
+    auto trigger_matching =
+        [pt_threshold, eta_threshold, trigger_particle_id_value,
+         trigger_bit_value,
+         deltaR_threshold](const ROOT::Math::PtEtaPhiMVector &particle,
+                           ROOT::RVec<float> triggerobject_pts,
+                           ROOT::RVec<float> triggerobject_etas,
+                           ROOT::RVec<float> triggerobject_phis,
+                           ROOT::RVec<UShort_t> triggerobject_ids_v12,
+                           ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) {
+            auto triggerobject_ids =
+                static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+            auto triggerobject_filterbits =
+                static_cast<ROOT::RVec<int>>(triggerobject_filterbits_v15);
+            Logger::get("trigger::SingleObjectFlag")
+                ->debug("Checking triggerobject match with particle ....");
+            bool match_result = matchParticle(
+                particle, triggerobject_pts, triggerobject_etas,
+                triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
+                pt_threshold, eta_threshold, trigger_particle_id_value,
+                trigger_bit_value, deltaR_threshold);
+            Logger::get("trigger::SingleObjectFlag")
+                ->debug("---> Matching: {}", match_result);
+            return match_result;
+        };
 
     auto df3 = df2.Define(outputname, trigger_matching,
-                   {particle, triggerobject_pt, triggerobject_eta, triggerobject_phi,
-                    triggerobject_id_column, triggerobject_filterbit_column});
+                          {particle, triggerobject_pt, triggerobject_eta,
+                           triggerobject_phi, triggerobject_id_column,
+                           triggerobject_filterbit_column});
     return df3;
 }
 
@@ -431,17 +452,21 @@ ROOT::RDF::RNode DoubleObjectFlag(
     const std::string &triggerobject_filterbit, const std::string &hlt_path,
     const float &pt_threshold_1, const float &pt_threshold_2,
     const float &eta_threshold_1, const float &eta_threshold_2,
-    const int &trigger_particle_id_value_1, const int &trigger_particle_id_value_2,
-    const int &trigger_bit_value_1, const int &trigger_bit_value_2,
-    const float &deltaR_threshold) {
+    const int &trigger_particle_id_value_1,
+    const int &trigger_particle_id_value_2, const int &trigger_bit_value_1,
+    const int &trigger_bit_value_2, const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
-    auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
+    auto [df1, triggerobject_id_column] =
+        utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, triggerobject_id + "_v12", "ROOT::VecOps::RVec<UShort_t>",
+            triggerobject_id);
     // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
     // For v9 and v12 compatibility a type casting is applied
-    auto [df2, triggerobject_filterbit_column] = utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
-            df1, triggerobject_filterbit+"_v15", "ROOT::VecOps::RVec<ULong64_t>", triggerobject_filterbit);
+    auto [df2, triggerobject_filterbit_column] =
+        utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_filterbit + "_v15",
+            "ROOT::VecOps::RVec<ULong64_t>", triggerobject_filterbit);
 
     auto trigger_matching = [pt_threshold_1, pt_threshold_2, eta_threshold_1,
                              eta_threshold_2, trigger_particle_id_value_1,
@@ -454,9 +479,12 @@ ROOT::RDF::RNode DoubleObjectFlag(
                                 ROOT::RVec<float> triggerobject_etas,
                                 ROOT::RVec<float> triggerobject_phis,
                                 ROOT::RVec<UShort_t> triggerobject_ids_v12,
-                                ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) {
-        auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
-        auto triggerobject_filterbits = static_cast<ROOT::RVec<int>>(triggerobject_filterbits_v15);
+                                ROOT::RVec<ULong64_t>
+                                    triggerobject_filterbits_v15) {
+        auto triggerobject_ids =
+            static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+        auto triggerobject_filterbits =
+            static_cast<ROOT::RVec<int>>(triggerobject_filterbits_v15);
 
         bool match_result_p1 = false;
         bool match_result_p2 = false;
@@ -506,29 +534,31 @@ ROOT::RDF::RNode DoubleObjectFlag(
     if (matched_trigger_names.size() == 0) {
         Logger::get("trigger::DoubleObjectFlag")
             ->debug("No matching trigger for {} found, returning false for "
-                   "trigger flag {}",
-                   hlt_path, outputname);
+                    "trigger flag {}",
+                    hlt_path, outputname);
         auto df3 = df2.Define(outputname, []() { return false; });
         return df3;
     } else if (matched_trigger_names.size() > 1) {
         Logger::get("trigger::DoubleObjectFlag")
-            ->debug("More than one matching trigger found, not implemented yet");
+            ->debug(
+                "More than one matching trigger found, not implemented yet");
         throw std::invalid_argument(
             "received too many matching trigger paths, not implemented yet");
     } else {
-        auto df3 =
-            df2.Define(outputname, trigger_matching,
-                      {matched_trigger_names[0], particle_1, particle_2,
-                       triggerobject_pt, triggerobject_eta, triggerobject_phi,
-                       triggerobject_id_column, triggerobject_filterbit_column});
+        auto df3 = df2.Define(outputname, trigger_matching,
+                              {matched_trigger_names[0], particle_1, particle_2,
+                               triggerobject_pt, triggerobject_eta,
+                               triggerobject_phi, triggerobject_id_column,
+                               triggerobject_filterbit_column});
         return df3;
     }
 }
 
 /**
  * @brief This function generates a trigger flag based on the trigger object
- * matching for the selected objects. This relies on the `trigger::matchParticle`
- * function which does the object to trigger object matching test.
+ * matching for the selected objects. This relies on the
+ * `trigger::matchParticle` function which does the object to trigger object
+ * matching test.
  *
  * @note This function is defined for double object triggers only. For single
  * object triggers be referred to the `trigger::SingleObjectFlag` functions.
@@ -578,62 +608,68 @@ ROOT::RDF::RNode DoubleObjectFlag(
     const std::string &particle_1, const std::string &particle_2,
     const std::string &triggerobject_pt, const std::string &triggerobject_eta,
     const std::string &triggerobject_phi, const std::string &triggerobject_id,
-    const std::string &triggerobject_filterbit,
-    const float &pt_threshold_1, const float &pt_threshold_2,
-    const float &eta_threshold_1, const float &eta_threshold_2,
-    const int &trigger_particle_id_value_1, const int &trigger_particle_id_value_2,
-    const int &trigger_bit_value_1, const int &trigger_bit_value_2,
-    const float &deltaR_threshold) {
+    const std::string &triggerobject_filterbit, const float &pt_threshold_1,
+    const float &pt_threshold_2, const float &eta_threshold_1,
+    const float &eta_threshold_2, const int &trigger_particle_id_value_1,
+    const int &trigger_particle_id_value_2, const int &trigger_bit_value_1,
+    const int &trigger_bit_value_2, const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
-    auto [df1, triggerobject_id_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, triggerobject_id+"_v12", "ROOT::VecOps::RVec<UShort_t>", triggerobject_id);
+    auto [df1, triggerobject_id_column] =
+        utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, triggerobject_id + "_v12", "ROOT::VecOps::RVec<UShort_t>",
+            triggerobject_id);
     // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
     // For v9 and v12 compatibility a type casting is applied
-    auto [df2, triggerobject_filterbit_column] = utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
-            df1, triggerobject_filterbit+"_v15", "ROOT::VecOps::RVec<ULong64_t>", triggerobject_filterbit);
+    auto [df2, triggerobject_filterbit_column] =
+        utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_filterbit + "_v15",
+            "ROOT::VecOps::RVec<ULong64_t>", triggerobject_filterbit);
 
-    auto trigger_matching = [pt_threshold_1, pt_threshold_2, eta_threshold_1,
-                             eta_threshold_2, trigger_particle_id_value_1,
-                             trigger_particle_id_value_2, trigger_bit_value_1,
-                             trigger_bit_value_2, deltaR_threshold](
-                                const ROOT::Math::PtEtaPhiMVector &particle_1,
-                                const ROOT::Math::PtEtaPhiMVector &particle_2,
-                                ROOT::RVec<float> triggerobject_pts,
-                                ROOT::RVec<float> triggerobject_etas,
-                                ROOT::RVec<float> triggerobject_phis,
-                                ROOT::RVec<UShort_t> triggerobject_ids_v12,
-                                ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) {
-        auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
-        auto triggerobject_filterbits = static_cast<ROOT::RVec<int>>(triggerobject_filterbits_v15);
-        Logger::get("trigger::DoubleObjectFlag")
-            ->debug("Checking triggerobject match with particle ....");
-        Logger::get("trigger::DoubleObjectFlag")->debug("First particle");
-        bool match_result_p1 = matchParticle(
-            particle_1, triggerobject_pts, triggerobject_etas,
-            triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
-            pt_threshold_1, eta_threshold_1, trigger_particle_id_value_1,
-            trigger_bit_value_1, deltaR_threshold);
-        Logger::get("trigger::DoubleObjectFlag")->debug("Second particle");
-        bool match_result_p2 = matchParticle(
-            particle_2, triggerobject_pts, triggerobject_etas,
-            triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
-            pt_threshold_2, eta_threshold_2, trigger_particle_id_value_2,
-            trigger_bit_value_2, deltaR_threshold);
-        bool result = match_result_p1 & match_result_p2;
-        Logger::get("trigger::DoubleObjectFlag")
-            ->debug("---> Matching p1: {}", match_result_p1);
-        Logger::get("trigger::DoubleObjectFlag")
-            ->debug("---> Matching p2: {}", match_result_p2);
-        Logger::get("trigger::DoubleObjectFlag")
-            ->debug("--->>>> result: {}", result);
-        return result;
-    };
+    auto trigger_matching =
+        [pt_threshold_1, pt_threshold_2, eta_threshold_1, eta_threshold_2,
+         trigger_particle_id_value_1, trigger_particle_id_value_2,
+         trigger_bit_value_1, trigger_bit_value_2,
+         deltaR_threshold](const ROOT::Math::PtEtaPhiMVector &particle_1,
+                           const ROOT::Math::PtEtaPhiMVector &particle_2,
+                           ROOT::RVec<float> triggerobject_pts,
+                           ROOT::RVec<float> triggerobject_etas,
+                           ROOT::RVec<float> triggerobject_phis,
+                           ROOT::RVec<UShort_t> triggerobject_ids_v12,
+                           ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) {
+            auto triggerobject_ids =
+                static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+            auto triggerobject_filterbits =
+                static_cast<ROOT::RVec<int>>(triggerobject_filterbits_v15);
+            Logger::get("trigger::DoubleObjectFlag")
+                ->debug("Checking triggerobject match with particle ....");
+            Logger::get("trigger::DoubleObjectFlag")->debug("First particle");
+            bool match_result_p1 = matchParticle(
+                particle_1, triggerobject_pts, triggerobject_etas,
+                triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
+                pt_threshold_1, eta_threshold_1, trigger_particle_id_value_1,
+                trigger_bit_value_1, deltaR_threshold);
+            Logger::get("trigger::DoubleObjectFlag")->debug("Second particle");
+            bool match_result_p2 = matchParticle(
+                particle_2, triggerobject_pts, triggerobject_etas,
+                triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
+                pt_threshold_2, eta_threshold_2, trigger_particle_id_value_2,
+                trigger_bit_value_2, deltaR_threshold);
+            bool result = match_result_p1 & match_result_p2;
+            Logger::get("trigger::DoubleObjectFlag")
+                ->debug("---> Matching p1: {}", match_result_p1);
+            Logger::get("trigger::DoubleObjectFlag")
+                ->debug("---> Matching p2: {}", match_result_p2);
+            Logger::get("trigger::DoubleObjectFlag")
+                ->debug("--->>>> result: {}", result);
+            return result;
+        };
 
     auto df3 =
         df2.Define(outputname, trigger_matching,
-                    {particle_1, particle_2, triggerobject_pt, triggerobject_eta,
-                    triggerobject_phi, triggerobject_id_column, triggerobject_filterbit_column});
+                   {particle_1, particle_2, triggerobject_pt, triggerobject_eta,
+                    triggerobject_phi, triggerobject_id_column,
+                    triggerobject_filterbit_column});
     return df3;
 }
 
@@ -658,12 +694,12 @@ ROOT::RDF::RNode DoubleObjectFlag(
  *
  * @return a new dataframe containing the prescale value column
  */
-ROOT::RDF::RNode GetPrescaleValues(
-    ROOT::RDF::RNode df,
-    correctionManager::CorrectionManager &correction_manager,
-    const std::string &outputname, const std::string &hlt_path,
-    const std::string &run, const std::string &lumiblock,
-    const std::string &prescale_file) {
+ROOT::RDF::RNode
+GetPrescaleValues(ROOT::RDF::RNode df,
+                  correctionManager::CorrectionManager &correction_manager,
+                  const std::string &outputname, const std::string &hlt_path,
+                  const std::string &run, const std::string &lumiblock,
+                  const std::string &prescale_file) {
 
     Logger::get("trigger::GetPrescaleValues")
         ->debug("reading json from {}", prescale_file);

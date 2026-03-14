@@ -29,15 +29,6 @@ message(
 )
 message(STATUS "")
 
-message(STATUS "Finding Packages")
-# add the different dependencies
-include(AddBaseDependencies)
-include(AddRoot)
-include(AddLogging)
-include(AddCorrectionlib)
-include(AddOnnxruntime)
-include(ConfigurePython)
-
 # installdir
 if(NOT DEFINED INSTALLDIR)
   message(
@@ -48,15 +39,26 @@ if(NOT DEFINED INSTALLDIR)
 endif()
 set(GENERATE_CPP_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+message(STATUS "Finding Packages")
+# add the different dependencies
+include(AddBaseDependencies)
+include(AddRoot)
+include(AddDicts)
+include(AddLogging)
+include(AddCorrectionlib)
+include(AddOnnxruntime)
+include(ConfigurePython)
+
 # crownlib setup
 include(ConfigureCrownlib)
-if (BUILD_CROWNLIB_ONLY)
+if(BUILD_CROWNLIB_ONLY)
   # exit if only crownlib is being built
   return()
 endif()
 # run the code generation
 include(CodeGeneration)
 
+message(STATUS "Next is Build")
 # run the build
 include(Build)
 

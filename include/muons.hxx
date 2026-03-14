@@ -1,6 +1,8 @@
 #ifndef GUARD_MUONS_H
 #define GUARD_MUONS_H
 
+#include "utility/CorrectionManager.hxx"
+
 namespace physicsobject {
 namespace muon {
 

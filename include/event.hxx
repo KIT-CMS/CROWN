@@ -1,12 +1,12 @@
 #ifndef GUARD_EVENT_H
 #define GUARD_EVENT_H
 
-#include "../include/defaults.hxx"
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
+#include "defaults.hxx"
+#include "utility/CorrectionManager.hxx"
+#include "utility/Logger.hxx"
+#include "utility/utility.hxx"
 #include <TRandom3.h>
 #include <type_traits>
 
@@ -84,7 +84,7 @@ namespace quantity {
 template <typename T>
 inline ROOT::RDF::RNode
 MinFlag(ROOT::RDF::RNode df, const std::string &outputname,
-       const std::string &quantity, const T &threshold) {
+        const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
                          int flag = value >= threshold;
@@ -111,7 +111,7 @@ MinFlag(ROOT::RDF::RNode df, const std::string &outputname,
 template <typename T>
 inline ROOT::RDF::RNode
 AbsMinFlag(ROOT::RDF::RNode df, const std::string &outputname,
-       const std::string &quantity, const T &threshold) {
+           const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
                          int flag = abs(value) >= threshold;
@@ -138,7 +138,7 @@ AbsMinFlag(ROOT::RDF::RNode df, const std::string &outputname,
 template <typename T>
 inline ROOT::RDF::RNode
 MaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
-       const std::string &quantity, const T &threshold) {
+        const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
                          int flag = value < threshold;
@@ -165,7 +165,7 @@ MaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
 template <typename T>
 inline ROOT::RDF::RNode
 AbsMaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
-       const std::string &quantity, const T &threshold) {
+           const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
                          int flag = abs(value) < threshold;
@@ -192,7 +192,7 @@ AbsMaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
 template <typename T>
 inline ROOT::RDF::RNode
 EqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
-         const std::string &quantity, const T &threshold) {
+          const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
                          int flag = value == threshold;
@@ -219,7 +219,7 @@ EqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
 template <typename T>
 inline ROOT::RDF::RNode
 AbsEqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
-         const std::string &quantity, const T &threshold) {
+             const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
                          int flag = abs(value) == threshold;
@@ -277,7 +277,7 @@ inline ROOT::RDF::RNode Define(ROOT::RDF::RNode df,
  * vector
  * @param quantity name of the input column whose size determines the length of
  * the random vector
- * @param seed seed value for the random number generator, if not set the answer 
+ * @param seed seed value for the random number generator, if not set the answer
  * to everything is used as default `42`
  *
  * @return a dataframe with the new column
@@ -296,15 +296,11 @@ GenerateRandomVector(ROOT::RDF::RNode df, const std::string &outputname,
         {quantity});
 }
 
-ROOT::RDF::RNode
-GenerateSeed(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &lumi,
-    const std::string &run,
-    const std::string &event,
-    const UInt_t &master_seed = 42
-);
+ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
+                              const std::string &outputname,
+                              const std::string &lumi, const std::string &run,
+                              const std::string &event,
+                              const UInt_t &master_seed = 42);
 
 /**
  * @brief This function creates a new column in the dataframe by applying
@@ -330,7 +326,7 @@ inline ROOT::RDF::RNode Negate(ROOT::RDF::RNode df,
  * specified in a collection index. The order of the output values reflects the
  * order of the indices. The function uses `ROOT::VecOps::Take` internally,
  * leading to the following behavior:
- * 
+ *
  * ```C++
  * auto values = ROOT::RVec<float>({0.1, 0.2, 0.3, 0.4});
  * auto index = ROOT::RVec<int>({2, 3, 1});
@@ -338,11 +334,11 @@ inline ROOT::RDF::RNode Negate(ROOT::RDF::RNode df,
  * result
  * // (ROOT::VecOps::RVec<float>) {0.3, 0.4, 0.2}
  * ```
- * 
+ *
  * The column `index_vector` must contain the indices for which values
  * should be extracted, and the `quantity` column must contain the values
  * of the quantity.
- * 
+ *
  * Note that `T` is the type of the values stored in the `RVec` containers in
  * the `quantity` column, e.g., if the column has type `RVec<float>`, you
  * must use `T = float`.
@@ -358,30 +354,20 @@ inline ROOT::RDF::RNode Negate(ROOT::RDF::RNode df,
  * @note If the index is out of range, a default value of type `T` is returned.
  */
 template <typename T>
-inline ROOT::RDF::RNode Take(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &quantity,
-    const std::string &index_vector
-) {
-    auto take = [] (
-        const ROOT::RVec<T> &quantity,
-        const ROOT::RVec<int> &index_vector
-    ) {
+inline ROOT::RDF::RNode Take(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &quantity,
+                             const std::string &index_vector) {
+    auto take = [](const ROOT::RVec<T> &quantity,
+                   const ROOT::RVec<int> &index_vector) {
         Logger::get("event::quantity::Take")
             ->debug("Taking quantity {} at indices {}", quantity, index_vector);
         auto result = ROOT::VecOps::Take(quantity, index_vector);
-        Logger::get("event::quantity::Take")
-            ->debug("Result {}", result);
+        Logger::get("event::quantity::Take")->debug("Result {}", result);
 
         return result;
     };
 
-    return df.Define(
-        outputname,
-        take,
-        {quantity, index_vector}
-    );
+    return df.Define(outputname, take, {quantity, index_vector});
 }
 
 /**
@@ -401,31 +387,32 @@ inline ROOT::RDF::RNode Take(
 template <typename T>
 inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, const std::string &outputname,
                             const std::string &quantity, const int &index) {
-    return df.Define(outputname,
-                     [index](const ROOT::RVec<T> &quantity) {
-                        T result = default_value<T>();
+    return df.Define(
+        outputname,
+        [index](const ROOT::RVec<T> &quantity) {
+            T result = default_value<T>();
 
-                        try {
-                            result = quantity.at(index);
-                        } catch (const std::out_of_range &e) {
-                            Logger::get("event::quantity::Get")
-                                ->debug(
-                                    "Index not found, returning dummy value!");
-                        }
-                        // the static_cast is used because some types of nanoAOD 
-                        // branches changed from Int_t to UChar_t for nanoAOD 
-                        // versions > 9
-                        if constexpr (std::is_same<T, UChar_t>::value || std::is_same<T, Short_t>::value) {
-                            int cast_result = static_cast<int>(result);
-                            Logger::get("event::quantity::Get")
-                                ->debug("Returning UChar_t/Short_t quantity as int: {}",
-                                        cast_result);
-                            return cast_result;
-                        } else {
-                            return result;
-                        }
-                     },
-                     {quantity});
+            try {
+                result = quantity.at(index);
+            } catch (const std::out_of_range &e) {
+                Logger::get("event::quantity::Get")
+                    ->debug("Index not found, returning dummy value!");
+            }
+            // the static_cast is used because some types of nanoAOD
+            // branches changed from Int_t to UChar_t for nanoAOD
+            // versions > 9
+            if constexpr (std::is_same<T, UChar_t>::value ||
+                          std::is_same<T, Short_t>::value) {
+                int cast_result = static_cast<int>(result);
+                Logger::get("event::quantity::Get")
+                    ->debug("Returning UChar_t/Short_t quantity as int: {}",
+                            cast_result);
+                return cast_result;
+            } else {
+                return result;
+            }
+        },
+        {quantity});
 }
 
 /**
@@ -449,33 +436,34 @@ inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, const std::string &outputname,
                             const std::string &quantity,
                             const std::string &index_vector,
                             const int &position) {
-    return df.Define(outputname,
-                     [position](const ROOT::RVec<T> &quantity,
-                                const ROOT::RVec<int> &indices) {
-                        T result = default_value<T>();
+    return df.Define(
+        outputname,
+        [position](const ROOT::RVec<T> &quantity,
+                   const ROOT::RVec<int> &indices) {
+            T result = default_value<T>();
 
-                        try {
-                            const int index = indices.at(position);
-                            result = quantity.at(index);
-                        } catch (const std::out_of_range &e) {
-                            Logger::get("event::quantity::Get")
-                                ->debug(
-                                    "Index not found, returning dummy value!");
-                        }
-                        // the static_cast is used because some types of nanoAOD 
-                        // branches changed from Int_t to UChar_t for nanoAOD 
-                        // versions > 9
-                        if constexpr (std::is_same<T, UChar_t>::value || std::is_same<T, Short_t>::value) {
-                            int cast_result = static_cast<int>(result);
-                            Logger::get("event::quantity::Get")
-                                ->debug("Returning UChar_t/Short_t quantity as int: {}",
-                                        cast_result);
-                            return cast_result;
-                        } else {
-                            return result;
-                        }
-                    },
-                    {quantity, index_vector});
+            try {
+                const int index = indices.at(position);
+                result = quantity.at(index);
+            } catch (const std::out_of_range &e) {
+                Logger::get("event::quantity::Get")
+                    ->debug("Index not found, returning dummy value!");
+            }
+            // the static_cast is used because some types of nanoAOD
+            // branches changed from Int_t to UChar_t for nanoAOD
+            // versions > 9
+            if constexpr (std::is_same<T, UChar_t>::value ||
+                          std::is_same<T, Short_t>::value) {
+                int cast_result = static_cast<int>(result);
+                Logger::get("event::quantity::Get")
+                    ->debug("Returning UChar_t/Short_t quantity as int: {}",
+                            cast_result);
+                return cast_result;
+            } else {
+                return result;
+            }
+        },
+        {quantity, index_vector});
 }
 
 /**
@@ -505,110 +493,124 @@ inline ROOT::RDF::RNode Get(ROOT::RDF::RNode df, const std::string &outputname,
  *
  * @tparam T type of the input gen. jet column values
  * @param df input dataframe
- * @param outputname name of the output column containing the gen. jet quantity value
- * @param genjet_quantity name of the column containing the gen. jet quantity vector
- * @param jet_genjet_index name of the column containing the association (via index) 
- * between the jet and the gen. jet collection 
- * @param index_vector name of the column containing the vector with the relevant
- * jet indices
- * @param position position in the index vector that specifies which jet in the 
+ * @param outputname name of the output column containing the gen. jet quantity
+ * value
+ * @param genjet_quantity name of the column containing the gen. jet quantity
+ * vector
+ * @param jet_genjet_index name of the column containing the association (via
+ * index) between the jet and the gen. jet collection
+ * @param index_vector name of the column containing the vector with the
+ * relevant jet indices
+ * @param position position in the index vector that specifies which jet in the
  * jet vector should be used to get its associated gen. jet quantity
  *
  * @return a dataframe with the new column
  */
 template <typename T>
-ROOT::RDF::RNode GetGenJetForJet(
-    ROOT::RDF::RNode df,
-    const std::string &outputname,
-    const std::string &genjet_quantity,
-    const std::string &jet_genjet_index,
-    const std::string &index_vector,
-    const int &position) {
+ROOT::RDF::RNode
+GetGenJetForJet(ROOT::RDF::RNode df, const std::string &outputname,
+                const std::string &genjet_quantity,
+                const std::string &jet_genjet_index,
+                const std::string &index_vector, const int &position) {
     // In nanoAODv12 the types of jet indices were changed to Short_t
     // For v9 compatibility a type casting is applied
-    auto [df1, jet_genjet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
-            df, jet_genjet_index+"_v12", "ROOT::VecOps::RVec<Short_t>", jet_genjet_index);
-    
-    return df1.Define(outputname,
+    auto [df1, jet_genjet_index_column] =
+        utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df, jet_genjet_index + "_v12", "ROOT::VecOps::RVec<Short_t>",
+            jet_genjet_index);
+
+    return df1.Define(
+        outputname,
         [position](const ROOT::RVec<T> &quantity,
                    const ROOT::RVec<Short_t> &jet_genjet_idx_v12,
                    const ROOT::RVec<int> &indices) {
-            auto jet_genjet_idx = static_cast<ROOT::RVec<int>>(jet_genjet_idx_v12);
+            auto jet_genjet_idx =
+                static_cast<ROOT::RVec<int>>(jet_genjet_idx_v12);
             const int jet_index = indices.at(position);
             const int genjet_index = jet_genjet_idx.at(jet_index, -1);
-            
+
             T result = quantity.at(genjet_index, default_value<T>());
-            Logger::get("event::quantity::GetGenJetForJet")->debug(
-                "   Retrieved gen. jet quantity value {} for jet index {}",
-                result, jet_index
-            );
+            Logger::get("event::quantity::GetGenJetForJet")
+                ->debug(
+                    "   Retrieved gen. jet quantity value {} for jet index {}",
+                    result, jet_index);
             return result;
         },
         {genjet_quantity, jet_genjet_index_column, index_vector});
 }
 
-/** 
- * @brief This function gets the gen. jet quantity for a given object. All objects
- * are usually also reconstructed as jets. This function finds the corresponding jet
- * and the associated gen. jet via indices that are present in nanoAODs.
+/**
+ * @brief This function gets the gen. jet quantity for a given object. All
+ * objects are usually also reconstructed as jets. This function finds the
+ * corresponding jet and the associated gen. jet via indices that are present in
+ * nanoAODs.
  *
  * If the generator-level jet cannot be accessed, the function returns a
  * default value.
  *
  * @tparam T type of the input gen. jet column values
  * @param df input dataframe
- * @param outputname name of the output column containing the gen. jet quantity value
- * @param genjet_quantity name of the column containing the gen. jet quantity vector
- * @param jet_genjet_index name of the column containing the association (via index) 
- * between the jet and the gen. jet collection 
- * @param object_jet_index name of the column containing the association (via index) 
- * between the object and the jet collection
- * @param object_index_vector name of the column containing the vector with the relevant
- * object indices
- * @param position position in the index vector that specifies which object in the 
- * object vector should be used to get its associated gen. jet quantity
+ * @param outputname name of the output column containing the gen. jet quantity
+ * value
+ * @param genjet_quantity name of the column containing the gen. jet quantity
+ * vector
+ * @param jet_genjet_index name of the column containing the association (via
+ * index) between the jet and the gen. jet collection
+ * @param object_jet_index name of the column containing the association (via
+ * index) between the object and the jet collection
+ * @param object_index_vector name of the column containing the vector with the
+ * relevant object indices
+ * @param position position in the index vector that specifies which object in
+ * the object vector should be used to get its associated gen. jet quantity
  *
  * @return a dataframe with the new column
  */
 template <typename T>
 ROOT::RDF::RNode GetGenJetForObject(ROOT::RDF::RNode df,
-                            const std::string &outputname,
-                            const std::string &genjet_quantity,
-                            const std::string &jet_genjet_index,
-                            const std::string &object_jet_index,
-                            const std::string &object_index_vector,
-                            const int &position) {
+                                    const std::string &outputname,
+                                    const std::string &genjet_quantity,
+                                    const std::string &jet_genjet_index,
+                                    const std::string &object_jet_index,
+                                    const std::string &object_index_vector,
+                                    const int &position) {
     // In nanoAODv12 the types of jet indices were changed to Short_t
     // For v9 compatibility a type casting is applied
-    auto [df1, jet_genjet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
-            df, jet_genjet_index+"_v12", "ROOT::VecOps::RVec<Short_t>", jet_genjet_index);
-    auto [df2, object_jet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
-            df1, object_jet_index+"_v12", "ROOT::VecOps::RVec<Short_t>", object_jet_index);
-    return df2.Define(outputname,
+    auto [df1, jet_genjet_index_column] =
+        utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df, jet_genjet_index + "_v12", "ROOT::VecOps::RVec<Short_t>",
+            jet_genjet_index);
+    auto [df2, object_jet_index_column] =
+        utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df1, object_jet_index + "_v12", "ROOT::VecOps::RVec<Short_t>",
+            object_jet_index);
+    return df2.Define(
+        outputname,
         [position](const ROOT::RVec<T> &quantity,
-                const ROOT::RVec<Short_t> &jet_genjet_idx_v12,
-                const ROOT::RVec<Short_t> &obj_jet_idx_v12,
-                const ROOT::RVec<int> &obj_indices) {
-            auto jet_genjet_idx = static_cast<ROOT::RVec<int>>(jet_genjet_idx_v12);
+                   const ROOT::RVec<Short_t> &jet_genjet_idx_v12,
+                   const ROOT::RVec<Short_t> &obj_jet_idx_v12,
+                   const ROOT::RVec<int> &obj_indices) {
+            auto jet_genjet_idx =
+                static_cast<ROOT::RVec<int>>(jet_genjet_idx_v12);
             auto obj_jet_idx = static_cast<ROOT::RVec<int>>(obj_jet_idx_v12);
             const int obj_index = obj_indices.at(position);
             const int jet_index = obj_jet_idx.at(obj_index, -1);
             const int genjet_index = jet_genjet_idx.at(jet_index, -1);
 
             T result = quantity.at(genjet_index, default_value<T>());
-            Logger::get("event::quantity::GetGenJetForObject")->debug(
-                "   Retrieved gen. jet quantity value {} for object index {}",
-                result, obj_index
-            );
+            Logger::get("event::quantity::GetGenJetForObject")
+                ->debug("   Retrieved gen. jet quantity value {} for object "
+                        "index {}",
+                        result, obj_index);
             return result;
         },
-        {genjet_quantity, jet_genjet_index_column, object_jet_index_column, object_index_vector});
+        {genjet_quantity, jet_genjet_index_column, object_jet_index_column,
+         object_index_vector});
 }
 
-/** 
+/**
  * @brief This function gets the jet quantity for a given object. All objects
- * are usually also reconstructed as jets. This function finds the corresponding jet 
- * via indices that are present in nanoAODs.
+ * are usually also reconstructed as jets. This function finds the corresponding
+ * jet via indices that are present in nanoAODs.
  *
  * If the reconstruction-level jet cannot be accessed, the function returns a
  * default value.
@@ -617,38 +619,40 @@ ROOT::RDF::RNode GetGenJetForObject(ROOT::RDF::RNode df,
  * @param df input dataframe
  * @param outputname name of the output column containing the jet quantity value
  * @param jet_quantity name of the column containing the jet quantity vector
- * @param object_jet_index name of the column containing the association (via index) 
- * between the object and the jet collection
- * @param object_index_vector name of the column containing the vector with the relevant
- * object indices
- * @param position position in the index vector that specifies which object in the 
- * object vector should be used to get its associated jet quantity
+ * @param object_jet_index name of the column containing the association (via
+ * index) between the object and the jet collection
+ * @param object_index_vector name of the column containing the vector with the
+ * relevant object indices
+ * @param position position in the index vector that specifies which object in
+ * the object vector should be used to get its associated jet quantity
  *
  * @return a dataframe with the new column
  */
 template <typename T>
-ROOT::RDF::RNode GetJetForObject(ROOT::RDF::RNode df,
-                            const std::string &outputname,
-                            const std::string &jet_quantity,
-                            const std::string &object_jet_index,
-                            const std::string &object_index_vector,
-                            const int &position) {
+ROOT::RDF::RNode
+GetJetForObject(ROOT::RDF::RNode df, const std::string &outputname,
+                const std::string &jet_quantity,
+                const std::string &object_jet_index,
+                const std::string &object_index_vector, const int &position) {
     // In nanoAODv12 the type ofs object to jet indices were changed to Short_t
     // For v9 compatibility a type casting is applied
-    auto [df1, object_jet_index_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
-            df, object_jet_index+"_v12", "ROOT::VecOps::RVec<Short_t>", object_jet_index);
-    return df1.Define(outputname,
+    auto [df1, object_jet_index_column] =
+        utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
+            df, object_jet_index + "_v12", "ROOT::VecOps::RVec<Short_t>",
+            object_jet_index);
+    return df1.Define(
+        outputname,
         [position](const ROOT::RVec<T> &quantity,
-                const ROOT::RVec<Short_t> &obj_jet_idx_v12,
-                const ROOT::RVec<int> &obj_indices) {
+                   const ROOT::RVec<Short_t> &obj_jet_idx_v12,
+                   const ROOT::RVec<int> &obj_indices) {
             auto obj_jet_idx = static_cast<ROOT::RVec<int>>(obj_jet_idx_v12);
             const int obj_index = obj_indices.at(position);
             const int jet_index = obj_jet_idx.at(obj_index, -1);
             T result = quantity.at(jet_index, default_value<T>());
-            Logger::get("event::quantity::GetJetForObject")->debug(
-                "   Retrieved jet quantity value {} for object index {}",
-                result, obj_index
-            );
+            Logger::get("event::quantity::GetJetForObject")
+                ->debug(
+                    "   Retrieved jet quantity value {} for object index {}",
+                    result, obj_index);
             return result;
         },
         {jet_quantity, object_jet_index_column, object_index_vector});
@@ -700,7 +704,8 @@ inline ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, const std::string &outputname,
 template <typename T>
 inline ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, const std::string &outputname,
                             const std::string &quantity,
-                            const std::string &index_vector, const T zero = T(0)) {
+                            const std::string &index_vector,
+                            const T zero = T(0)) {
     auto sum_per_event = [zero](const ROOT::RVec<T> &quantity,
                                 const ROOT::RVec<int> &indices) {
         Logger::get("event::quantity::Sum")
@@ -713,39 +718,42 @@ inline ROOT::RDF::RNode Sum(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief This function calculates the scalar sum of an arbitrary set of quantities
- * of type `float`.
+ * @brief This function calculates the scalar sum of an arbitrary set of
+ * quantities of type `float`.
  *
- * @tparam Quantities variadic template parameter pack representing the quantity columns
+ * @tparam Quantities variadic template parameter pack representing the quantity
+ * columns
  * @param df input dataframe
  * @param outputname name of the output column containing the scalar sum
- * @param quantities parameter pack of column names that contain the considered quantities
+ * @param quantities parameter pack of column names that contain the considered
+ * quantities
  *
  * @return a dataframe with a new column
  */
 template <typename... Quantities>
-inline ROOT::RDF::RNode 
-ScalarSum(ROOT::RDF::RNode df, const std::string &outputname,
-          Quantities... quantities) {
+inline ROOT::RDF::RNode ScalarSum(ROOT::RDF::RNode df,
+                                  const std::string &outputname,
+                                  Quantities... quantities) {
     auto argTuple = std::make_tuple(quantities...);
     std::vector<std::string> QuantityList{quantities...};
     const auto nQuantities = sizeof...(Quantities);
 
     using namespace ROOT::VecOps;
-    return df.Define(
-        outputname,
-        utility::PassAsVec<nQuantities, float>([](const ROOT::RVec<float> &quantities) {
-            for (const auto &quantity : quantities) {
-                if (quantity < 0.0) {
-                    Logger::get("event::quantity::ScalarSum")
-                        ->debug("Negative quantity found, returning default value!");
-                    return default_float;
-                }
-            }
-            const auto sum = Sum(quantities, float(0.0));
-            return sum;
-        }),
-        QuantityList);
+    return df.Define(outputname,
+                     utility::PassAsVec<nQuantities, float>(
+                         [](const ROOT::RVec<float> &quantities) {
+                             for (const auto &quantity : quantities) {
+                                 if (quantity < 0.0) {
+                                     Logger::get("event::quantity::ScalarSum")
+                                         ->debug("Negative quantity found, "
+                                                 "returning default value!");
+                                     return default_float;
+                                 }
+                             }
+                             const auto sum = Sum(quantities, float(0.0));
+                             return sum;
+                         }),
+                     QuantityList);
 }
 
 /**
@@ -779,10 +787,11 @@ Unroll(ROOT::RDF::RNode df, const std::vector<std::string> &outputnames,
     if (index >= outputnames.size()) {
         return df;
     }
-    auto df1 = df.Define(
-        outputnames.at(index),
-        [index](const std::vector<T> &quantities) { return quantities.at(index); },
-        {quantity});
+    auto df1 = df.Define(outputnames.at(index),
+                         [index](const std::vector<T> &quantities) {
+                             return quantities.at(index);
+                         },
+                         {quantity});
     return Unroll<T>(df1, outputnames, quantity, index + 1);
 }
 

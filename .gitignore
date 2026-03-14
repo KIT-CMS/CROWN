@@ -5,6 +5,7 @@ build*/
 log/
 logs/
 generation_logs/
+.cache/*
 # ignore all analysis in the config folder apart from the unittest and the template
 analysis_configurations/*
 !analysis_configurations/quantities

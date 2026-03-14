@@ -292,9 +292,9 @@ namespace three_flavor {
 /// Events contain at least two good leptons and one good tau, if the
 /// the two leptonmasks have nonzero elements. These masks are
 /// constructed using the functions from the physicsobject namespace
-/// (e.g. physicsobject::CutMin applied for pT). The argument triple gives 
-/// information wheather the emt or the met channel is considered. Events 
-/// with two good electrons or two good muons are vetos immediately. For the 
+/// (e.g. physicsobject::CutMin applied for pT). The argument triple gives
+/// information wheather the emt or the met channel is considered. Events
+/// with two good electrons or two good muons are vetos immediately. For the
 /// fake rate estimation, base leptons are also considered.
 ///
 /// \returns an `ROOT::RVec<int>` with three values, the first one beeing

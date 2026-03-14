@@ -7,9 +7,9 @@ namespace physicsobject {
 
 /**
  * @brief This function takes multiple masks and applies a logical operation
- * (`"any_of"`, `"all_of"`, or `"none_of"`) elemet-wise to generate a combined mask.
- * The function ensures that elements are correctly merged based on the given
- * mode:
+ * (`"any_of"`, `"all_of"`, or `"none_of"`) elemet-wise to generate a combined
+ * mask. The function ensures that elements are correctly merged based on the
+ * given mode:
  *
  * - `"any_of"`: The resulting mask contains true values if any element of
  * the input masks is true (element-wise)
@@ -315,7 +315,7 @@ CutQuantity(ROOT::RDF::RNode df, const std::string &outputname,
  */
 template <typename T>
 inline ROOT::RDF::RNode Size(ROOT::RDF::RNode df, const std::string &outputname,
-                       const std::string &vector_quantity) {
+                             const std::string &vector_quantity) {
     return df.Define(outputname,
                      [](const ROOT::RVec<T> &quantity) {
                          int length = quantity.size();
