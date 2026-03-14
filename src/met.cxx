@@ -10,6 +10,7 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "bitset"
+#include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include <cmath>
@@ -421,6 +422,98 @@ METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
     };
     return df.Define(outputname, xyCorrection, {p4_met, n_pv});
 }
+
+/**
+ * @brief Applies Type-I MET corrections by propagating jet energy corrections to the MET vector.
+ * To be used for Run3 v15 nanoAOD samples to both data and MC.
+ *
+ * This function combines information from both corrected and uncorrected jets to update the MET vector.
+ * It concatenates jet kinematic variables and electromagnetic fractions, then applies Type-I corrections
+ * by subtracting the difference between fully corrected and L1-corrected jet pT for jets passing selection criteria.
+ * Only jets with $p_T > 15$ GeV, $|\eta| < 5.2$, and $\mathrm{EmEF} < 0.9$ are propagated to MET.
+ *
+ * @param df Input ROOT DataFrame.
+ * @param correction_manager Correction manager for loading jet corrections.
+ * @param outputname Name of the new column containing the corrected MET Lorentz vector.
+ * @param raw_met Name of the column with the initial/uncorrected MET Lorentz vector.
+ * @param jet_pt_l1corr Name of the column with L1-corrected jet $p_T$.
+ * @param jet_pt_corr Name of the column with fully corrected jet $p_T$.
+ * @param jet_eta Name of the column with jet $\eta$.
+ * @param corrjet_eta Name of the column with corrected jet $\eta$.
+ * @param jet_phi Name of the column with jet $\phi$.
+ * @param corrjet_phi Name of the column with corrected jet $\phi$.
+ * @param jet_chEmEF Name of the column with jet charged electromagnetic fraction.
+ * @param jet_neEmEF Name of the column with jet neutral electromagnetic fraction.
+ * @param corrjet_EmEF Name of the column with corrected jet electromagnetic fraction.
+ *
+ * @return A new DataFrame with the corrected MET column.
+ */
+ROOT::RDF::RNode
+TypeIMETCorrections(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname, 
+        const std::string &raw_met,
+        const std::string &jet_pt_l1corr,
+        const std::string &jet_pt_corr,
+        const std::string &jet_eta,
+        const std::string &corrjet_eta, 
+        const std::string &jet_phi,
+        const std::string &corrjet_phi, 
+        const std::string &jet_chEmEF,
+        const std::string &jet_neEmEF,
+        const std::string &corrjet_EmEF) {
+
+    auto df1 = df.Define("etas_met", [](const ROOT::RVec<float>& jet_eta_vec, const ROOT::RVec<float>& corrjet_eta_vec) {
+        return ROOT::VecOps::Concatenate(jet_eta_vec, corrjet_eta_vec);
+    }, {jet_eta, corrjet_eta})
+    .Define("phis_met", [](const ROOT::RVec<float>& jet_phi_vec, const ROOT::RVec<float>& corrjet_phi_vec) {
+        return ROOT::VecOps::Concatenate(jet_phi_vec, corrjet_phi_vec);
+    }, {jet_phi, corrjet_phi})
+    // for CorrTypeIJet the EmEf is already added up
+    .Define("jet_EmEF_met", [](const ROOT::RVec<float>& chEmEF, const ROOT::RVec<float>& neEmEF) {
+        return chEmEF + neEmEF;
+    }, {jet_chEmEF, jet_neEmEF})
+    .Define("EmEf_met", [](const ROOT::RVec<float>& jet_EmEF, const ROOT::RVec<float>& corrjet_EmEF) {
+        return ROOT::VecOps::Concatenate(jet_EmEF, corrjet_EmEF);
+    }, {"jet_EmEF_met", corrjet_EmEF});
+
+    auto correction_lambda = [](
+                                const ROOT::Math::PtEtaPhiMVector &raw_met,
+                                const ROOT::RVec<float> &ptCorrL1,
+                                const ROOT::RVec<float> &ptCorr,
+                                const ROOT::RVec<float> &etas,
+                                const ROOT::RVec<float> &phis,
+                                const ROOT::RVec<float> &EmEf) {
+
+        float MetX = raw_met.Px();
+        float MetY = raw_met.Py();
+        ROOT::Math::PtEtaPhiMVector corrected_met;
+
+        for (std::size_t i = 0; i < ptCorr.size(); ++i) {                         
+            // --- Type-1 jet selection ---
+            // only propagate objects above the given pt threshold
+            if (ptCorr.at(i) > 15.0 && abs(etas.at(i)) < 5.2 && EmEf.at(i) < 0.9) {
+                // Apply (full − L1) to MET
+                float dpt = (ptCorr.at(i) - ptCorrL1.at(i));
+                MetX -= dpt * std::cos(phis.at(i));
+                MetY -= dpt * std::sin(phis.at(i));
+            }
+        }
+
+        corrected_met.SetPxPyPzE(MetX, MetY, 0,
+                                    std::sqrt(MetX * MetX + MetY * MetY));
+        Logger::get("physicsobject::TypeIMET")->debug("old met {}", raw_met.Pt());
+        Logger::get("physicsobject::TypeIMET")
+            ->debug("corrected met {}", corrected_met.Pt());
+
+        return corrected_met;
+    };
+
+    std::vector<std::string> columns = {"met_p4", "Jet_pt_L1corrected", "Jet_pt_corrected", "etas_met", "phis_met", "EmEf_met"};
+    auto df2 = df1.Define(outputname, correction_lambda, columns);
+    return df2;
+}
+
 } // end namespace met
 
 namespace physicsobject {

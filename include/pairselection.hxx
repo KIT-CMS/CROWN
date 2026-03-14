@@ -20,16 +20,19 @@ bool check_mother(ROOT::RVec<GenParticle> genparticles, const int index,
                   const int mother_pdgid);
 
 namespace ditau_pairselection {
-ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
+ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, 
+                              const std::string &genpair,
+                              const std::string &recopair,
                               const std::string &genindex_particle1,
-                              const std::string &genindex_particle2,
-                              const std::string &genpair);
+                              const std::string &genindex_particle2);
 ROOT::RDF::RNode
-buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
-                 const std::string &status, const std::string &pdgids,
-                 const std::string &motherids, const std::string &pts,
-                 const std::string &genpair, const int mother_pdgid,
-                 const int daughter_1_pdgid, const int daughter_2_pdgid);
+buildtruegenpair(ROOT::RDF::RNode df, 
+                const std::string &genpair,
+                const std::string &statusflags,
+                const std::string &status, const std::string &pdgids,
+                const std::string &motherids, const std::string &pts,
+                const int mother_pdgid,
+                const int daughter_1_pdgid, const int daughter_2_pdgid);
 ROOT::RDF::RNode flagGoodPairs(ROOT::RDF::RNode df, const std::string &flagname,
                                const std::string &pairname);
 auto compareForPairs(const ROOT::RVec<float> &lep1pt,

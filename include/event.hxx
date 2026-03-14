@@ -65,6 +65,21 @@ inline auto CombineFlags(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 namespace quantity {
+/**
+ * @brief This function creates a mask column from a column of ulong64_t values:
+ * returns 1 if the value is even, 0 if odd.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new mask column
+ * @param quantity name of the ulong64_t column
+ *
+ * @return a dataframe with the new mask column
+ */
+inline ROOT::RDF::RNode EventMask(ROOT::RDF::RNode df, const std::string &outputname, const std::string &quantity) {
+    return df.Define(outputname, [](const ULong64_t &value) {
+        return (value % 2 == 0) ? 1 : 0;
+    }, {quantity});
+}
 
 /**
  * @brief This function defines a flag for event quantities that satisfy a

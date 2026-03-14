@@ -66,10 +66,11 @@ namespace ditau_pairselection {
  * @param genpairname name of the new column containing the GenDiTauPair
  * @return a new Dataframe with the GenDiTauPair column
  */
-ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
+ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df,
+                              const std::string &genpairname,
+                              const std::string &recopair,
                               const std::string &genindex_particle1,
-                              const std::string &genindex_particle2,
-                              const std::string &genpairname) {
+                              const std::string &genindex_particle2) {
     // In nanoAODv12 the types of gen object indices were changed to Short_t
     // For v9 compatibility a type casting is applied
     auto [df1, genindex_particle1_column] = utility::Cast<ROOT::RVec<Short_t>, ROOT::RVec<Int_t>>(
@@ -120,11 +121,16 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, const std::string &recopair,
  */
 
 ROOT::RDF::RNode
-buildtruegenpair(ROOT::RDF::RNode df, const std::string &statusflags,
-                 const std::string &status, const std::string &pdgids,
-                 const std::string &motherids, const std::string &pts,
-                 const std::string &genpair, const int mother_pdgid,
-                 const int daughter_1_pdgid, const int daughter_2_pdgid) {
+buildtruegenpair(ROOT::RDF::RNode df, 
+                 const std::string &genpair,
+                 const std::string &statusflags,
+                 const std::string &status, 
+                 const std::string &pdgids,
+                 const std::string &motherids, 
+                 const std::string &pts,
+                 const int mother_pdgid,
+                 const int daughter_1_pdgid, 
+                 const int daughter_2_pdgid) {
     // In nanoAODv12 the type of genparticle status flags / mother index were changed to UShort_t / Short_t
     // For v9 compatibility a type casting is applied
     auto [df1, statusflags_column] = utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(

@@ -5256,3 +5256,32 @@ MC_PFScouting = NanoAODQuantity("MC_PFScouting")
 """dtype: Bool_t; description: Trigger/flag bit (process: HLT) """
 HLTriggerFinalPath = NanoAODQuantity("HLTriggerFinalPath")
 """dtype: Bool_t; description: Trigger/flag bit (process: HLT) """
+
+TauEmbedding_SelectionNewMass = NanoAODQuantity("TauEmbedding_SelectionNewMass")
+"""dtype: Float_t; description: Mass of the Dimuon pair using the new selection algorithm (for internal studies only) """
+TauEmbedding_SelectionOldMass = NanoAODQuantity("TauEmbedding_SelectionOldMass")
+"""dtype: Float_t; description: Mass of the Dimuon pair using the old selection algorithm (for internal studies only) """
+TauEmbedding_initialMETEt = NanoAODQuantity("TauEmbedding_initialMETEt")
+"""dtype: Float_t; description: MET Et of selected event """
+TauEmbedding_initialMETphi = NanoAODQuantity("TauEmbedding_initialMETphi")
+"""dtype: Float_t; description: MET phi of selected event """
+TauEmbedding_initialPuppiMETEt = NanoAODQuantity("TauEmbedding_initialPuppiMETEt")
+"""dtype: Float_t; description: PuppiMET Et of selected event """
+TauEmbedding_initialPuppiMETphi = NanoAODQuantity("TauEmbedding_initialPuppiMETphi")
+"""dtype: Float_t; description: PuppiMET phi of selected event """
+TauEmbedding_isMediumLeadingMuon = NanoAODQuantity("TauEmbedding_isMediumLeadingMuon")
+"""dtype: Bool_t; description: leading muon ID (medium) """
+TauEmbedding_isMediumTrailingMuon = NanoAODQuantity("TauEmbedding_isMediumTrailingMuon")
+"""dtype: Bool_t; description: trailing muon ID (medium) """
+TauEmbedding_isTightLeadingMuon = NanoAODQuantity("TauEmbedding_isTightLeadingMuon")
+"""dtype: Bool_t; description: leading muon ID (tight) """
+TauEmbedding_isTightTrailingMuon = NanoAODQuantity("TauEmbedding_isTightTrailingMuon")
+"""dtype: Bool_t; description: trailing muon ID (tight) """
+TauEmbedding_nInitialPairCandidates = NanoAODQuantity(
+    "TauEmbedding_nInitialPairCandidates"
+)
+"""dtype: Float_t; description: number of muons pairs suitable for selection (for internal studies only) """
+TauEmbedding_InitialPairCandidates = NanoAODQuantity(
+    "TauEmbedding_InitialPairCandidates"
+)
+"""dtype: Float_t; description: muons pairs suitable for selection (for internal studies only) """
