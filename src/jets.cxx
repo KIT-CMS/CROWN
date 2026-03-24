@@ -1,7 +1,5 @@
-#ifndef GUARD_JETS_H
-#define GUARD_JETS_H
-
 #include "../include/defaults.hxx"
+#include "../include/jets.hxx"
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/utility.hxx"
@@ -16,6 +14,1066 @@
 
 namespace physicsobject {
 namespace jet {
+namespace jec {
+
+const correction::Correction* load_nominal_jes_correction(
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &jec_file,
+    const std::string &jes_tag,
+    const std::string &type_tag,
+    const std::string &jes_level,
+    const std::string &jec_algo
+) {
+    return correction_manager.loadCorrection(
+        jec_file,
+        jes_tag + "_" + type_tag + "_" + jes_level + "_" + jec_algo
+    );
+}
+
+const correction::Correction* load_shifted_jes_correction(
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &jec_file,
+    const std::string &jer_tag,
+    const std::string &type_tag,
+    const std::string &jes_shift,
+    const std::string &jec_algo
+) {
+    return correction_manager.loadCorrection(
+        jec_file,
+        jer_tag + "_" + type_tag + "_" + jes_shift + "_" + jec_algo
+    );
+}
+
+const correction::Correction* load_jer_correction(
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &jec_file,
+    const std::string &jer_tag,
+    const std::string &type_tag,
+    const std::string &jer_parameter,
+    const std::string &jec_algo
+) {
+    return correction_manager.loadCorrection(
+        jec_file,
+        jer_tag + "_" + type_tag + "_" + jer_parameter + "_" + jec_algo
+    );
+}
+
+float apply_jes_l1 (
+    const float &jet_pt,
+    const float &jet_eta,
+    const float &jet_area,
+    const float &rho,
+    const correction::Correction *jes_l1_evaluator
+) {
+    // Calculate L1FastJet-corrected pt
+    return jet_pt * jes_l1_evaluator->evaluate({
+        jet_area, jet_eta, jet_pt, rho
+    });
+}
+
+float apply_jes_l2rel (
+    const float &jet_pt,
+    const float &jet_eta,
+    const float &jet_phi,
+    const correction::Correction *jes_l2rel_evaluator
+) {
+    // Calculate the L2rel-corrected pt
+    return jet_pt * jes_l2rel_evaluator->evaluate({
+        jet_eta, jet_phi, jet_pt 
+    });
+}
+
+float apply_jes_l2l3res (
+    const float &jet_pt,
+    const float &jet_eta,
+    const correction::Correction *jes_l2l3res_evaluator
+) {
+    // Calculate the L2rel-corrected pt
+    return jet_pt * jes_l2l3res_evaluator->evaluate({
+        jet_eta, jet_pt 
+    });
+}
+
+float apply_jes_shifts (
+    const float &jet_pt,
+    const float &jet_eta,
+    const float &jet_phi,
+    const UChar_t &jet_id,
+    const std::vector<std::string> &jes_shift_sources,
+    const int &jes_shift_factor,
+    const std::vector<correction::Correction*> &jes_shift_evaluators
+) {
+    float jet_pt_corr;
+    if (jes_shift_sources.at(0) == "HEMIssue") {
+        // To assign an uncertainty to the HEM issue, the jet pt needs to be
+        // manually scaled in a specific phase space region.
+        float sf = 1.0;
+        if (
+            jes_shift_factor == -1
+            && jet_pt > 15.0
+            && jet_phi > -1.57
+            && jet_phi < -0.87
+            && jet_id == 2
+        ) {
+            if (jet_eta > -2.5 && jet_eta < -1.3) {
+                sf = 0.8;
+            } else if (jet_eta > -3.0 && jet_eta <= -2.5) {
+                sf = 0.65;
+            }
+        }
+        jet_pt_corr = sf * jet_pt;
+    } else {
+        // Calculate the relative difference to the nominal corrected pt.
+        // If multiple sources are combined, the squared sum of the
+        // differences is computed.
+        float delta_squared = 0.;
+        for (const auto &evaluator : jes_shift_evaluators) {
+            delta_squared += std::pow(
+                evaluator->evaluate({jet_eta, jet_pt}),
+                2
+            );
+        }
+
+        jet_pt_corr = jet_pt * (
+            1 + jes_shift_factor * std::sqrt(delta_squared)
+        );
+    }
+    return jet_pt_corr;
+}
+
+float apply_jer(
+    const float &jet_pt,
+    const float &jet_eta,
+    const float &jet_phi,
+    const float &rho,
+    const ROOT::RVec<float> &genjet_pt,
+    const ROOT::RVec<float> &genjet_eta,
+    const ROOT::RVec<float> &genjet_phi,
+    const correction::Correction *jer_resolution_evaluator,
+    const correction::Correction *jer_scalefactor_evaluator,
+    const std::string &jer_shift,
+    const float &jet_radius,
+    const std::string &era,
+    TRandom3 randgen
+) {
+    // Get the JER MC resolution and data-MC scale factor for the smearing
+    auto resol = jer_resolution_evaluator->evaluate({
+        jet_eta, jet_pt, rho
+    });
+    auto sf = 1.0;
+    if (std::stoi(era.substr(0, 4)) <= 2018) { // with run 2 inputs 
+        sf = jer_scalefactor_evaluator->evaluate({
+            jet_eta, jer_shift
+        });
+    } else {
+        sf = jer_scalefactor_evaluator->evaluate({ // with run 3 inputs
+            jet_eta, jet_pt, jer_shift
+        });
+    }
+
+    // Match the jet to a generator-level jet
+    float min_delta_r = 0;
+    float gen_pt = -10.0;
+    for (int i = 0; i < genjet_pt.size(); ++i) {
+        float delta_r = ROOT::VecOps::DeltaR(
+            jet_eta, jet_phi, genjet_eta[i], genjet_phi[i]
+        );
+        if (delta_r > min_delta_r) {
+            continue;
+        } 
+        if (
+            delta_r < (jet_radius / 2.)
+            && std::abs(jet_pt - genjet_pt[i]) < (3.0 * resol * jet_pt)
+        ) {
+            min_delta_r = delta_r;
+            gen_pt = genjet_pt[i];
+        }
+    }
+
+    // Smear the JER by either using the rescaling or the random smearing
+    // method
+    float delta_jer = 0.0;
+    if (gen_pt >= 0.0) {
+        delta_jer = (sf - 1.0) * (jet_pt - gen_pt) / jet_pt;
+    } else {
+        // Jet horn mitigation for run 3
+        // If no generator-level jet is found for a reconstructed jet in
+        // 2.5 < eta < 3.0, no smearing shall be applied.
+        if (
+            std::stoi(era.substr(0, 4)) > 2022
+            && abs(jet_eta) > 2.5
+            && abs(jet_eta) < 3.0
+        ) {
+            delta_jer = 0.0;
+        } else {
+            delta_jer = randgen.Gaus(0, resol) * (
+                std::sqrt(std::max(std::pow(sf, 2) - 1.0, 0.0))
+            );
+        }
+    }
+
+    return jet_pt * std::max(0.f, 1.f + delta_jer);
+}
+
+JECResult apply_full_jec_mc(
+    const float &jet_pt,
+    const float &jet_eta,
+    const float &jet_phi,
+    const UChar_t &jet_id,
+    const float &jet_area,
+    const float &rho,
+    const ROOT::RVec<float> &genjet_pt,
+    const ROOT::RVec<float> &genjet_eta,
+    const ROOT::RVec<float> &genjet_phi,
+    const std::vector<std::string> &jes_shift_sources,
+    const int &jes_shift_factor,
+    const std::string &jer_shift,
+    const float &jet_radius,
+    const std::string &era,
+    TRandom3 randgen,
+    const correction::Correction* jes_l1_evaluator,
+    const correction::Correction* jes_l2rel_evaluator,
+    const std::vector<correction::Correction*> &jes_shift_evaluators,
+    const correction::Correction *jer_resolution_evaluator,
+    const correction::Correction *jer_scalefactor_evaluator
+) {
+    // Apply the consecutive steps of the jet energy calibration
+    auto jet_pt_l1 = apply_jes_l1(
+        jet_pt,
+        jet_eta,
+        jet_area,
+        rho,
+        jes_l1_evaluator
+    );
+    auto jet_pt_l2rel = apply_jes_l2rel (
+        jet_pt_l1,
+        jet_eta,
+        jet_phi,
+        jes_l2rel_evaluator
+    );
+    auto jet_pt_syst = apply_jes_shifts(
+        jet_pt_l2rel,
+        jet_eta,
+        jet_phi,
+        jet_id,
+        jes_shift_sources,
+        jes_shift_factor,
+        jes_shift_evaluators
+    );
+    auto jet_pt_jer = apply_jer(
+        jet_pt_syst,
+        jet_eta,
+        jet_phi,
+        rho,
+        genjet_pt,
+        genjet_eta,
+        genjet_phi,
+        jer_resolution_evaluator,
+        jer_scalefactor_evaluator,
+        jer_shift,
+        jet_radius,
+        era,
+        randgen
+    );
+     
+    // Create the JECResult which also contains intermediate results of the
+    // calibration
+    auto result = physicsobject::jet::jec::JECResult{
+        jet_pt_l1,
+        jet_pt_l2rel,
+        jet_pt_l2rel, // not applied to MC, so this is just the correction after L2rel
+        jet_pt_syst,
+        jet_pt_jer
+    };
+
+    return result;
+}
+
+JECResult apply_jes_shifts_and_jer_mc(
+    const float &jet_pt,
+    const float &jet_eta,
+    const float &jet_phi,
+    const UChar_t &jet_id,
+    const float &rho,
+    const ROOT::RVec<float> &genjet_pt,
+    const ROOT::RVec<float> &genjet_eta,
+    const ROOT::RVec<float> &genjet_phi,
+    const std::vector<std::string> &jes_shift_sources,
+    const int &jes_shift_factor,
+    const std::string &jer_shift,
+    const float &jet_radius,
+    const std::string &era,
+    TRandom3 randgen,
+    const std::vector<correction::Correction*> &jes_shift_evaluators,
+    const correction::Correction *jer_resolution_evaluator,
+    const correction::Correction *jer_scalefactor_evaluator
+) {
+    // Apply the jet energy scale shifts and the resolution smearing
+    auto jet_pt_syst = apply_jes_shifts(
+        jet_pt,
+        jet_eta,
+        jet_phi,
+        jet_id,
+        jes_shift_sources,
+        jes_shift_factor,
+        jes_shift_evaluators
+    );
+    auto jet_pt_jer = apply_jer(
+        jet_pt_syst,
+        jet_eta,
+        jet_phi,
+        rho,
+        genjet_pt,
+        genjet_eta,
+        genjet_phi,
+        jer_resolution_evaluator,
+        jer_scalefactor_evaluator,
+        jer_shift,
+        jet_radius,
+        era,
+        randgen
+    );
+
+    // Create the JECResult which also contains intermediate results of the
+    // calibration
+    auto result = JECResult{
+        jet_pt,  // the input is the already JES-corrected pt
+        jet_pt,  // the input is the already JES-corrected pt
+        jet_pt,  // the input is the already JES-corrected pt
+        jet_pt_syst,
+        jet_pt_jer
+    };
+
+    return result;
+}
+
+JECResult apply_full_jec_data(
+    const float &jet_pt,
+    const float &jet_eta,
+    const float &jet_phi,
+    const float &jet_area,
+    const float &rho,
+    const correction::Correction* jes_l1_evaluator,
+    const correction::Correction* jes_l2rel_evaluator,
+    const correction::Correction* jes_l2l3res_evaluator
+) {
+    // Apply the consecutive steps of the jet energy calibration
+    auto jet_pt_l1 = apply_jes_l1(
+        jet_pt,
+        jet_eta,
+        jet_area,
+        rho,
+        jes_l1_evaluator
+    );
+    auto jet_pt_l2rel = apply_jes_l2rel (
+        jet_pt_l1,
+        jet_eta,
+        jet_phi,
+        jes_l2rel_evaluator
+    );
+    auto jet_pt_l2l3res = apply_jes_l2l3res(
+        jet_pt_l2rel,
+        jet_eta,
+        jes_l2l3res_evaluator
+    );
+     
+    // Create the JECResult which also contains intermediate results of the
+    // calibration
+    auto result = JECResult{
+        jet_pt_l1,
+        jet_pt_l2rel,
+        jet_pt_l2l3res, 
+        jet_pt_l2l3res, // not applied to data, so this is just the correction after L2L3res
+        jet_pt_l2l3res  // no JER smearing applied to data, so this is just the correction after L2L3res
+    };
+
+    return result;
+}
+
+ROOT::RDF::RNode Raw(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &jet_quantity,
+    const std::string &jet_raw_factor,
+    const bool &reapply_jes
+) {
+    // Event-level lambda that computes the jet pt before JEC for each jet in
+    // the event. If the reapply_jes flag is set to false, this is a dummy
+    // action and the input value of the quantity is returned.
+    auto func = [reapply_jes] (
+        const ROOT::RVec<float> &jet_quantity,
+        const ROOT::RVec<float> &jet_raw_factor
+    ) {
+        if (reapply_jes) {
+            return jet_quantity * ( 1 - jet_raw_factor);
+        } else {
+            return jet_quantity;
+        }
+    };
+
+    return df.Define(
+        outputname, 
+        func,
+        {
+            jet_quantity,
+            jet_raw_factor
+        }
+    );
+}
+
+ROOT::RDF::RNode RawMuonSubtr(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &jet_quantity,
+    const std::string &jet_raw_factor,
+    const std::string &jet_muon_subtr_factor
+) {
+    // Event-level lambda that computes the jet pt before JEC and with 
+    // subtracting the muon component for each jet in the event
+    auto callable = [] (
+        const ROOT::RVec<float> &jet_quantity,
+        const ROOT::RVec<float> &jet_raw_factor,
+        const ROOT::RVec<float> &jet_muon_subtr_factor
+    ) {
+        return jet_quantity * ( 1 - jet_raw_factor);
+    };
+
+    return df.Define(
+        outputname, 
+        callable,
+        {
+            jet_quantity,
+            jet_raw_factor,
+            jet_muon_subtr_factor
+        }
+    );
+}
+
+/**
+ * @brief This function applies the full jet energy calibration (JEC) procedure
+ * to MC according to the recommendations of the JME POG. The corrections are
+ * implemented as a multi-step procedure, where the corrected jet \f$p_T\f$ of
+ * the previous step serves as input for the next step.
+ *
+ * The jet energy scale (JES) in simulation is corrected in two steps
+ * ([JES recipe](https://cms-jerc.web.cern.ch/JES/)):
+ * - `L1FastJet`: Correction for the offset of the energy measurement due to
+ *   pileup.
+ * - `L2Relative`: Correction to bring the response of reconstructed-level jets
+ *   relative to particle-level jets to 1.
+ * These steps are only processed by this function if the parameter `reapply_jes` is set to `true`. Otherwise, make sure that the `jet_pt_raw` function contains the already JES-corrected jet \f$p_T\f$ values, e.g., from the input NANOAOD file.
+ * 
+ * Systematic shifts encoding different sources of uncertainties are
+ * applied on top of the outcome of these corrections. Recommendations for the
+ * uncertainty scheme to use can be found in the
+ * [JES uncertainty recipe](https://cms-jerc.web.cern.ch/JECUncertaintySources/).
+ *
+ * On top of the outcome of the previous steps, a jet energy resolution smearing
+ * is performed, details can be found in the 
+ * [JER recipe](https://cms-jerc.web.cern.ch/JER/). This function uses the
+ * hybrid method to smear the resolution of reconstructed jets in simulation.
+ * The JER corrections are also associated with systematic uncertainties.
+ *
+ * The corrections are provided as JSON files provided by the JME POG. The
+ * most recent recommendations on the use of these files can be found in
+ * the
+ * [JERC documentation](https://cms-jerc.web.cern.ch/Recommendations/#jet-energy-scale).
+ * Specifications of the data format for corresponding eras can be found in the
+ * [CMS analysis corrections documentation](https://cms-analysis-corrections.docs.cern.ch/corrections/JME/).
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the jet energy correction file
+ * @param output_jec_result name of the output column for storing a `JECResult` object containing intermediate results of the calibration of the jet \f$p_T\f$
+ * @param output_l1 name of the output column for corrected jet \f$p_T\f$ after the `L1FastJet` correction level
+ * @param output_full name of the output column for corrected jet \f$p_T\f$ after the full procedure
+ * @param jet_pt_raw collection column of raw jet \f$p_T\f$ before the calibration; if `reapply_jes` is set to `true`, this column is interpreted as the already JES-corrected jet \f$p_T\f$.
+ * @param jet_eta collection column of jet \f$\eta\f$
+ * @param jet_phi collection column of jet \f$\phi\f$
+ * @param jet_area collection column of area that the clustered object covers in \f$\eta\f$-\f$\phi\f$ plane
+ * @param jet_id collection column of jet ID
+ * @param genjet_pt collection column of particle-level jet \f$p_T\f$
+ * @param genjet_eta collection column of particle-level jet \f$\eta\f$
+ * @param genjet_phi collection column of particle-level jet \f$\phi\f$
+ * @param rho column containing the average event energy density
+ * @param jer_seed column with eventwise seed value for the random number generator that is used for the jet energy resolution smearing
+ * @param jec_file path to the JEC correction file
+ * @param jec_algo name of the jet reconstruction algorithm (e.g., "AK4PFchs" or "AK8PFPuppi")
+ * @param jes_tag tag of the JES correction campaign (e.g., "Summer19UL18_V5")
+ * @param jer_tag tag of the JER correction campaign (e.g., "Summer19UL18_JRV2")
+ * @param jes_shift_sources list of JES shift sources for the systematic shift to be applied
+ * @param jes_shift_factor factor of the JES shift variation (0 = nominal, +/-1 = up/down)
+ * @param jer_shift name of the JER shift variation ("nom", "up", or "down")
+ * @param reapply_jes flag to reapply the jet energy calibration, otherwise `jet_pt_raw` is taken as the already JES-corrected \f$p_T\f$
+ * @param era string defining the currently processed era, needed due to different kind of recommendations from JME POG for different eras
+ * 
+ * @return A dataframe with a new column of corrected jet \f$p_T\f$'s
+ */
+ROOT::RDF::RNode PtCorrectionMC(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &output_jec_result,
+    const std::string output_l1,
+    const std::string output_full,
+    const std::string &jet_pt_raw,
+    const std::string &jet_eta,
+    const std::string &jet_phi,
+    const std::string &jet_area,
+    const std::string &jet_id,
+    const std::string &genjet_pt,
+    const std::string &genjet_eta,
+    const std::string &genjet_phi,
+    const std::string &rho,
+    const std::string &jer_seed,
+    const std::string &jec_file,
+    const std::string &jec_algo,
+    const std::string &jes_tag,
+    const std::string &jer_tag,
+    const std::vector<std::string> &jes_shift_sources,
+    const int &jes_shift_factor,
+    const std::string &jer_shift,
+    const bool &reapply_jes,
+    const std::string &era
+) {
+    // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, jet_id_v12] =
+        utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+            df, jet_id+"_v12", "ROOT::VecOps::RVec<UChar_t>", jet_id
+        )
+    ;
+
+    // Identify jet radius from algorithm
+    float jet_radius = 0.4;
+    if (jec_algo.find("AK8") != std::string::npos) {
+        jet_radius = 0.8;
+    }
+
+    // Set the type tag to "MC"
+    const std::string type_tag = "MC";
+    
+    // Load the nominal jet energy scale evaluators
+    auto jes_l1_evaluator = load_nominal_jes_correction(
+        correction_manager,
+        jec_file,
+        jes_tag,
+        type_tag,
+        "L1FastJet",
+        jec_algo
+    );
+    auto jes_l2rel_evaluator = load_nominal_jes_correction(
+        correction_manager,
+        jec_file,
+        jes_tag,
+        type_tag,
+        "L2Relative",
+        jec_algo
+    );
+
+    // Load the jet energy scale variation evaluators
+    std::vector<correction::Correction *> jes_shift_evaluators;
+    for (const auto &source : jes_shift_sources) {
+        if (source != "" && source != "HEMIssue") {
+            auto evaluator = const_cast<correction::Correction*>(
+                load_shifted_jes_correction(
+                    correction_manager,
+                    jec_file,
+                    jes_tag,
+                    type_tag,
+                    source,
+                    jec_algo
+                )
+            );
+            jes_shift_evaluators.push_back(evaluator);
+        }
+    }
+
+    // Load the jet energy resolution evaluators
+    auto jer_resolution_evaluator = load_jer_correction(
+        correction_manager,
+        jec_file,
+        jer_tag,
+        type_tag,
+        "PtResolution",
+        jec_algo
+    );
+    auto jer_scalefactor_evaluator = load_jer_correction(
+        correction_manager,
+        jec_file,
+        jer_tag,
+        type_tag,
+        "ScaleFactor",
+        jec_algo
+    );
+
+    // Function to retrieve the JEC result with intermediate steps
+    auto func_jec_result = [
+        jes_shift_sources,
+        jes_shift_factor,
+        jer_shift,
+        jet_radius, 
+        reapply_jes,
+        era,
+        jes_l1_evaluator,
+        jes_l2rel_evaluator,
+        jes_shift_evaluators,
+        jer_resolution_evaluator,
+        jer_scalefactor_evaluator
+    ] (
+        const ROOT::RVec<float> &jet_pt_raw,
+        const ROOT::RVec<float> &jet_eta,
+        const ROOT::RVec<float> &jet_phi,
+        const ROOT::RVec<UChar_t> &jet_id,
+        const ROOT::RVec<float> &jet_area,
+        const ROOT::RVec<float> &genjet_pt,
+        const ROOT::RVec<float> &genjet_eta,
+        const ROOT::RVec<float> &genjet_phi,
+        const float &rho, 
+        const unsigned int &seed
+    ) {
+        // Random value generator for jet energy resolution smearing
+        TRandom3 randgen = TRandom3(seed);
+
+        ROOT::RVec<JECResult> jet_jec_result;
+        if (reapply_jes) {
+            // Apply the jet energy scale and resolution corrections to MC
+            // events. This is done by using the corresponding helper function 
+            // for single jets and wrap it with ROOT::VecOps::Map to retrieve 
+            // the calibrated momenta for the full collection.
+            jet_jec_result = ROOT::VecOps::Map(
+                jet_pt_raw,
+                jet_eta,
+                jet_phi,
+                jet_id,
+                jet_area,
+                [
+                    rho,
+                    genjet_pt,
+                    genjet_eta,
+                    genjet_phi,
+                    jes_shift_sources,
+                    jes_shift_factor,
+                    jer_shift,
+                    jet_radius,
+                    era,
+                    randgen,
+                    jes_l1_evaluator,
+                    jes_l2rel_evaluator,
+                    jes_shift_evaluators,
+                    jer_resolution_evaluator,
+                    jer_scalefactor_evaluator
+                ] (
+                    const float &jet_pt,
+                    const float &jet_eta,
+                    const float &jet_phi,
+                    const float &jet_id,
+                    const float &jet_area
+                ) {
+                    return apply_full_jec_mc(
+                        jet_pt,
+                        jet_eta,
+                        jet_phi,
+                        jet_id,
+                        jet_area,
+                        rho,
+                        genjet_pt,
+                        genjet_eta,
+                        genjet_phi,
+                        jes_shift_sources,
+                        jes_shift_factor,
+                        jer_shift,
+                        jet_radius,
+                        era,
+                        randgen,
+                        jes_l1_evaluator,
+                        jes_l2rel_evaluator,
+                        jes_shift_evaluators,
+                        jer_resolution_evaluator,
+                        jer_scalefactor_evaluator
+                    );
+                }
+            );
+        } else {
+            // The jet_pt_raw is already the jet energy scale-corrected pt.
+            // Only shifts and and resolution corrections need to be applied
+            // on top of it. This is done by using the corresponding helper
+            // function for single jets and wrap it with ROOT::VecOps::Map to 
+            // retrieve the calibrated momenta for the full collection.
+            jet_jec_result = ROOT::VecOps::Map(
+                jet_pt_raw,
+                jet_eta,
+                jet_phi,
+                jet_id,
+                jet_area,
+                [
+                    rho,
+                    genjet_pt,
+                    genjet_eta,
+                    genjet_phi,
+                    jes_shift_sources,
+                    jes_shift_factor,
+                    jer_shift,
+                    jet_radius,
+                    era,
+                    randgen,
+                    jes_shift_evaluators,
+                    jer_resolution_evaluator,
+                    jer_scalefactor_evaluator
+                ] (
+                    const float &jet_pt,
+                    const float &jet_eta,
+                    const float &jet_phi,
+                    const float &jet_id,
+                    const float &jet_area
+                ) {
+                    return apply_jes_shifts_and_jer_mc(
+                        jet_pt,
+                        jet_eta,
+                        jet_phi,
+                        jet_id,
+                        rho,
+                        genjet_pt,
+                        genjet_eta,
+                        genjet_phi,
+                        jes_shift_sources,
+                        jes_shift_factor,
+                        jer_shift,
+                        jet_radius,
+                        era,
+                        randgen,
+                        jes_shift_evaluators,
+                        jer_resolution_evaluator,
+                        jer_scalefactor_evaluator
+                    );
+                }
+            );
+        }
+        return jet_jec_result;
+    };
+
+    // Function to store the L1FastJet step outcome in a column
+    auto func_pt_l1 = [] (
+        const ROOT::RVec<JECResult> &jec_result
+    ) {
+        // Retrieve the result from the JECResult struct eventwise and wrap
+        // with ROOT::VecOps::Map to get the result collection.
+        auto jet_pt_l1 = ROOT::VecOps::Map(
+            jec_result,
+            [] (const JECResult &jec_result) {
+                return jec_result.jet_pt_l1;
+            }
+        );
+        return jet_pt_l1;
+    };
+
+    // Function to store the full procedure outcome in a column
+    auto func_pt_final = [] (
+        const ROOT::RVec<JECResult> &jec_result
+    ) {
+        // Retrieve the result from the JECResult struct eventwise and wrap
+        // with ROOT::VecOps::Map to get the result collection.
+        auto jet_pt_final = ROOT::VecOps::Map(
+            jec_result,
+            [] (const JECResult &jec_result) {
+                return jec_result.jet_pt_corr;
+            }
+        );
+        return jet_pt_final;
+    };
+
+    // Store the JECResult
+    auto df2 = df1.Define(
+        output_jec_result,
+        func_jec_result,
+        {
+            jet_pt_raw,
+            jet_eta,
+            jet_phi,
+            jet_id_v12,
+            jet_area,
+            genjet_pt,
+            genjet_eta,
+            genjet_phi,
+            rho, 
+            jer_seed
+        }
+    );
+
+    // Store the L1FastJet-corrected pt
+    auto df3 = df2.Define(output_l1, func_pt_l1, { output_jec_result });
+    
+    // Store the corrected pt after the full JEC procedure
+    auto df4 = df3.Define(output_full, func_pt_l1, { output_jec_result });
+
+    return df4;
+}
+
+/**
+ * @brief This function applies the full jet energy calibration (JEC) procedure
+ * to data according to the recommendations of the JME POG. The corrections are
+ * implemented as a multi-step procedure, where the corrected jet \f$p_T\f$ of
+ * the previous step serves as input for the next step.
+ *
+ * The jet energy scale (JES) in simulation is corrected in two steps
+ * ([JES recipe](https://cms-jerc.web.cern.ch/JES/)):
+ * - `L1FastJet`: Correction for the offset of the energy measurement due to
+ *   pileup.
+ * - `L2Relative`: Correction to bring the response of reconstructed-level jets
+ *   relative to particle-level jets to 1.
+ * - `L2L3Residual`: Relative (\f$\eta\f$-dependent) and absolute
+ *   (\f$p_T\f$-dependent) corrections to the jet \f$p_T\f to correct for
+ *   residual differences between data and simulation, introduced in the
+ *   `L2Relative` step.
+ * These steps are only processed by this function if the parameter
+ * `reapply_jes` is set to `true`. Otherwise, make sure that the `jet_pt_raw`
+ * function contains the already JES-corrected jet \f$p_T\f$ values, e.g., from
+ * the input NANOAOD file.
+ *
+ * The corrections are provided as JSON files provided by the JME POG. The
+ * most recent recommendations on the use of these files can be found in
+ * the
+ * [JERC documentation](https://cms-jerc.web.cern.ch/Recommendations/#jet-energy-scale).
+ * Specifications of the data format for corresponding eras can be found in the
+ * [CMS analysis corrections documentation](https://cms-analysis-corrections.docs.cern.ch/corrections/JME/).
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the jet energy correction file
+ * @param output_jec_result name of the output column for storing a `JECResult` object containing intermediate results of the calibration of the jet \f$p_T\f$
+ * @param output_l1 name of the output column for corrected jet \f$p_T\f$ after the `L1FastJet` correction level
+ * @param output_full name of the output column for corrected jet \f$p_T\f$ after the full procedure
+ * @param jet_pt_raw collection column of raw jet \f$p_T\f$ before the calibration; if `reapply_jes` is set to `true`, this column is interpreted as the already JES-corrected jet \f$p_T\f$.
+ * @param jet_eta collection column of jet \f$\eta\f$
+ * @param jet_phi collection column of jet \f$\phi\f$
+ * @param jet_area collection column of area that the clustered object covers in \f$\eta\f$-\f$\phi\f$ plane
+ * @param rho column containing the average event energy density
+ * @param jec_file path to the JEC correction file
+ * @param jec_algo name of the jet reconstruction algorithm (e.g., "AK4PFchs" or "AK8PFPuppi")
+ * @param jes_tag tag of the JES correction campaign (e.g., "Summer19UL18_V5")
+ * @param jer_shift name of the JER shift variation ("nom", "up", or "down")
+ * @param reapply_jes flag to reapply the jet energy calibration, otherwise `jet_pt_raw` is taken as the already JES-corrected \f$p_T\f$
+ * @param era string defining the currently processed era, needed due to different kind of recommendations from JME POG for different eras
+ *
+ * @return A dataframe with a new column of corrected jet \f$p_T\f$'s
+ */
+ROOT::RDF::RNode PtCorrectionData(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &output_jec_result,
+    const std::string output_l1,
+    const std::string output_full,
+    const std::string &jet_pt_raw,
+    const std::string &jet_eta,
+    const std::string &jet_phi,
+    const std::string &jet_area,
+    const std::string &rho,
+    const std::string &jec_file,
+    const std::string &jec_algo,
+    const std::string &jes_tag,
+    const bool &reapply_jes,
+    const std::string &era
+) {
+    // Identify jet radius from algorithm
+    float jet_radius = 0.4;
+    if (jec_algo.find("AK8") != std::string::npos) {
+        jet_radius = 0.8;
+    }
+
+    // Set the type tag to "DATA"
+    const std::string type_tag = "DATA";
+    
+    // Load the nominal jet energy scale evaluators
+    auto jes_l1_evaluator = load_nominal_jes_correction(
+        correction_manager,
+        jec_file,
+        jes_tag,
+        type_tag,
+        "L1FastJet",
+        jec_algo
+    );
+    auto jes_l2rel_evaluator = load_nominal_jes_correction(
+        correction_manager,
+        jec_file,
+        jes_tag,
+        type_tag,
+        "L2Relative",
+        jec_algo
+    );
+    auto jes_l2l3res_evaluator = load_nominal_jes_correction(
+        correction_manager,
+        jec_file,
+        jes_tag,
+        type_tag,
+        "L2L3Residual",
+        jec_algo
+    );
+
+    // Function to retrieve the JEC result with intermediate steps
+    auto func_jec_result = [
+        reapply_jes,
+        jes_l1_evaluator,
+        jes_l2rel_evaluator,
+        jes_l2l3res_evaluator
+    ] (
+        const ROOT::RVec<float> &jet_pt_raw,
+        const ROOT::RVec<float> &jet_eta,
+        const ROOT::RVec<float> &jet_phi,
+        const ROOT::RVec<float> &jet_area,
+        const float &rho
+    ) {
+        ROOT::RVec<JECResult> jet_jec_result;
+        if (reapply_jes) {
+            // Apply the jet energy scale corrections to data. This is done by
+            // using the corresponding helper function for single jets and wrap 
+            // it with ROOT::VecOps::Map to retrieve the calibrated momenta for
+            // the full collection.
+            jet_jec_result = ROOT::VecOps::Map(
+                jet_pt_raw,
+                jet_eta,
+                jet_phi,
+                jet_area,
+                [
+                    rho,
+                    jes_l1_evaluator,
+                    jes_l2rel_evaluator,
+                    jes_l2l3res_evaluator
+                ] (
+                    const float &jet_pt,
+                    const float &jet_eta,
+                    const float &jet_phi,
+                    const float &jet_area
+                ) {
+                    return apply_full_jec_data(
+                        jet_pt,
+                        jet_eta,
+                        jet_phi,
+                        jet_area,
+                        rho,
+                        jes_l1_evaluator,
+                        jes_l2rel_evaluator,
+                        jes_l2l3res_evaluator
+                    );
+                }
+            );
+        } else {
+            // Nothing needs to be done here as the input jet_pt_raw is
+            // interpreted as the already corrected jet pt. ROOT::VecOps::Map
+            // is used to create dummy JECResult objects in order to allow
+            // consistent processing with the other branch of this if else
+            // query.
+            jet_jec_result = ROOT::VecOps::Map(
+                jet_pt_raw,
+                [] (const float &jet_pt) {
+                    return JECResult{
+                        jet_pt,  // the input is the already JES-corrected pt
+                        jet_pt,  // the input is the already JES-corrected pt
+                        jet_pt,  // the input is the already JES-corrected pt
+                        jet_pt,  // the input is the already JES-corrected pt
+                        jet_pt,  // the input is the already JES-corrected pt
+                    };
+                }
+            );
+        }
+
+        return jet_jec_result;
+    };
+
+    // Function to store the L1FastJet step outcome in a column
+    auto func_pt_l1 = [] (
+        const ROOT::RVec<JECResult> &jec_result
+    ) {
+        // Retrieve the result from the JECResult struct eventwise and wrap
+        // with ROOT::VecOps::Map to get the result collection.
+        auto jet_pt_l1 = ROOT::VecOps::Map(
+            jec_result,
+            [] (const JECResult &jec_result) {
+                return jec_result.jet_pt_l1;
+            }
+        );
+        return jet_pt_l1;
+    };
+
+    // Function to store the full procedure outcome in a column
+    auto func_pt_final = [] (
+        const ROOT::RVec<JECResult> &jec_result
+    ) {
+        // Retrieve the result from the JECResult struct eventwise and wrap
+        // with ROOT::VecOps::Map to get the result collection.
+        auto jet_pt_final = ROOT::VecOps::Map(
+            jec_result,
+            [] (const JECResult &jec_result) {
+                return jec_result.jet_pt_corr;
+            }
+        );
+        return jet_pt_final;
+    };
+
+    // Store the JECResult
+    auto df1 = df.Define(
+        output_jec_result,
+        func_jec_result,
+        {
+            jet_pt_raw,
+            jet_eta,
+            jet_phi,
+            jet_area,
+            rho
+        }
+    );
+
+    // Store the L1FastJet-corrected pt
+    auto df2 = df1.Define(output_l1, func_pt_l1, { output_jec_result });
+
+    // Store the corrected pt after the full JEC procedure
+    auto df3 = df2.Define(output_full, func_pt_l1, { output_jec_result });
+
+    return df3;
+}
+
+/**
+ * @brief This function modifies the mass of objects in an event using the
+ * formula \f[ M_{\text{corrected},i} = M_{\text{raw},i} \times
+ * \frac{p_{T,\text{corrected},i}}{p_{T,\text{raw},i}} \f] for each object of an
+ * object collection in the event. The correction is applied element-wise to the
+ * mass vector and is needed as part of for example energy scale corrections
+ * that were before to the transverse momenta.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column storing the corrected masses
+ * @param raw_mass name of the column containing raw object masses
+ * @param raw_pt name of the column containing raw object transverse momenta
+ * @param corrected_pt name of the column containing corrected transverse
+ * momenta
+ *
+ * @return a dataframe with a new column
+ */
+ROOT::RDF::RNode MassCorrectionFromPt(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &jet_mass_raw,
+    const std::string &jet_pt_raw,
+    const std::string &jet_pt_corrected
+) {
+    // Function to align the jet mass to the corrected jet pt
+    auto func = [](
+        const ROOT::RVec<float> &jet_mass_raw,
+        const ROOT::RVec<float> &jet_pt_raw,
+        const ROOT::RVec<float> &jet_pt_corrected
+    ) {
+        return jet_mass_raw * jet_pt_corrected / jet_pt_raw;
+    };
+
+    auto df1 = df.Define(
+        outputname,
+        func,
+        {
+            jet_mass_raw,
+            jet_pt_raw,
+            jet_pt_corrected
+        }
+    );
+    return df1;
+}
+
+} // end namespace jec
 
 /**
  * @brief This function applies jet energy scale corrections (JES) and jet
@@ -97,7 +1155,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &jes_tag, const std::vector<std::string> &jes_shift_sources,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
-               const std::string &era, const bool &no_jer_for_unmatched_forward_jets = false) {
+               const std::string &era, const bool &no_jer_for_unmatched_forward_jets) {
     // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, jet_id_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
@@ -1070,4 +2128,3 @@ BtaggingWP(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace jet
 } // end namespace physicsobject
-#endif /* GUARD_JETS_H */
