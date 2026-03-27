@@ -782,8 +782,8 @@ template <typename T>
 inline ROOT::RDF::RNode SumVectors(
     ROOT::RDF::RNode df,
     const std::string &outputname,
-    const std::string &quantity,
-    const std::string &index_vector,
+    const std::string &quantity_1,
+    const std::string &quantity_2,
     const T zero = T(0)
 ) {
     auto sum_func = [] (
