@@ -83,14 +83,16 @@ float apply_jes_l2rel (
     });
 }
 
+
 float apply_jes_l2l3res (
     const float &jet_pt,
     const float &jet_eta,
+    const float &run,
     const correction::Correction *jes_l2l3res_evaluator
 ) {
     // Calculate the L2rel-corrected pt
     return jet_pt * jes_l2l3res_evaluator->evaluate({
-        jet_eta, jet_pt 
+        run, jet_eta, jet_pt 
     });
 }
 
@@ -353,6 +355,7 @@ JECResult apply_full_jec_data(
     const float &jet_phi,
     const float &jet_area,
     const float &rho,
+    const unsigned int &run,
     const correction::Correction* jes_l1_evaluator,
     const correction::Correction* jes_l2rel_evaluator,
     const correction::Correction* jes_l2l3res_evaluator
@@ -374,6 +377,7 @@ JECResult apply_full_jec_data(
     auto jet_pt_l2l3res = apply_jes_l2l3res(
         jet_pt_l2rel,
         jet_eta,
+        static_cast<float>(run),
         jes_l2l3res_evaluator
     );
      
@@ -906,6 +910,7 @@ ROOT::RDF::RNode PtCorrectionMC(
  * @param jet_phi collection column of jet \f$\phi\f$
  * @param jet_area collection column of area that the clustered object covers in \f$\eta\f$-\f$\phi\f$ plane
  * @param rho column containing the average event energy density
+ * @param run run index of the event
  * @param jec_file path to the JEC correction file
  * @param jec_algo name of the jet reconstruction algorithm (e.g., "AK4PFchs" or "AK8PFPuppi")
  * @param jes_tag tag of the JES correction campaign (e.g., "Summer19UL18_V5")
@@ -928,6 +933,7 @@ ROOT::RDF::RNode PtCorrectionData(
     const std::string &jet_phi,
     const std::string &jet_area,
     const std::string &rho,
+    const std::string &run,
     const std::string &jec_file,
     const std::string &jec_algo,
     const std::string &jes_tag,
@@ -980,7 +986,8 @@ ROOT::RDF::RNode PtCorrectionData(
         const ROOT::RVec<float> &jet_eta,
         const ROOT::RVec<float> &jet_phi,
         const ROOT::RVec<float> &jet_area,
-        const float &rho
+        const float &rho,
+        const unsigned int &run
     ) {
         ROOT::RVec<JECResult> jet_jec_result;
         if (reapply_jes) {
@@ -995,6 +1002,7 @@ ROOT::RDF::RNode PtCorrectionData(
                 jet_area,
                 [
                     rho,
+                    run,
                     jes_l1_evaluator,
                     jes_l2rel_evaluator,
                     jes_l2l3res_evaluator
@@ -1010,6 +1018,7 @@ ROOT::RDF::RNode PtCorrectionData(
                         jet_phi,
                         jet_area,
                         rho,
+                        run,
                         jes_l1_evaluator,
                         jes_l2rel_evaluator,
                         jes_l2l3res_evaluator
@@ -1108,7 +1117,8 @@ ROOT::RDF::RNode PtCorrectionData(
             jet_eta,
             jet_phi,
             jet_area,
-            rho
+            rho,
+            run
         }
     );
 
