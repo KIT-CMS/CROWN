@@ -819,7 +819,7 @@ ROOT::RDF::RNode PtCorrectionMC(
     };
 
     // Function to store the full procedure outcome in a column
-    auto func_pt_final = [] (
+    auto func_pt_full = [] (
         const ROOT::RVec<JECResult> &jec_result
     ) {
         // Retrieve the result from the JECResult struct eventwise and wrap
@@ -1085,7 +1085,7 @@ ROOT::RDF::RNode PtCorrectionData(
     };
 
     // Function to store the full procedure outcome in a column
-    auto func_pt_final = [] (
+    auto func_pt_full = [] (
         const ROOT::RVec<JECResult> &jec_result
     ) {
         // Retrieve the result from the JECResult struct eventwise and wrap
