@@ -394,21 +394,15 @@ ROOT::RDF::RNode Raw(
     ROOT::RDF::RNode df,
     const std::string &outputname,
     const std::string &jet_quantity,
-    const std::string &jet_raw_factor,
-    const bool &reapply_jes
+    const std::string &jet_raw_factor
 ) {
     // Event-level lambda that computes the jet pt before JEC for each jet in
-    // the event. If the reapply_jes flag is set to false, this is a dummy
-    // action and the input value of the quantity is returned.
-    auto func = [reapply_jes] (
+    // the event
+    auto func = [] (
         const ROOT::RVec<float> &jet_quantity,
         const ROOT::RVec<float> &jet_raw_factor
     ) {
-        if (reapply_jes) {
-            return jet_quantity * ( 1 - jet_raw_factor);
-        } else {
-            return jet_quantity;
-        }
+        return jet_quantity * (1 - jet_raw_factor);
     };
 
     return df.Define(
@@ -435,7 +429,7 @@ ROOT::RDF::RNode RawMuonSubtr(
         const ROOT::RVec<float> &jet_raw_factor,
         const ROOT::RVec<float> &jet_muon_subtr_factor
     ) {
-        return jet_quantity * ( 1 - jet_raw_factor);
+        return jet_quantity * (1 - jet_raw_factor) * (1 - jet_muon_subtr_factor);
     };
 
     return df.Define(
@@ -444,6 +438,31 @@ ROOT::RDF::RNode RawMuonSubtr(
         {
             jet_quantity,
             jet_raw_factor,
+            jet_muon_subtr_factor
+        }
+    );
+}
+
+ROOT::RDF::RNode RawMuonSubtr(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &jet_quantity,
+    const std::string &jet_muon_subtr_factor
+) {
+    // Event-level lambda that computes the jet pt before JEC and with 
+    // subtracting the muon component for each jet in the event
+    auto callable = [] (
+        const ROOT::RVec<float> &jet_quantity,
+        const ROOT::RVec<float> &jet_muon_subtr_factor
+    ) {
+        return jet_quantity * ( 1 - jet_muon_subtr_factor);
+    };
+
+    return df.Define(
+        outputname, 
+        callable,
+        {
+            jet_quantity,
             jet_muon_subtr_factor
         }
     );

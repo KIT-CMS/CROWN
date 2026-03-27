@@ -137,8 +137,7 @@ ROOT::RDF::RNode Raw(
     ROOT::RDF::RNode df,
     const std::string &outputname,
     const std::string &jet_quantity,
-    const std::string &jet_raw_factor,
-    const bool &reapply_jes
+    const std::string &jet_raw_factor
 );
 ROOT::RDF::RNode RawMuonSubtr(
     ROOT::RDF::RNode df,
