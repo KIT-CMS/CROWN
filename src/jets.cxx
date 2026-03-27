@@ -504,6 +504,8 @@ ROOT::RDF::RNode RawMuonSubtr(
  * @param correction_manager correction manager responsible for loading the jet energy correction file
  * @param output_jec_result name of the output column for storing a `JECResult` object containing intermediate results of the calibration of the jet \f$p_T\f$
  * @param output_l1 name of the output column for corrected jet \f$p_T\f$ after the `L1FastJet` correction level
+ * @param output_l2rel name of the output column for corrected jet \f$p_T\f$ after the `L2Relative` correction level
+ * @param output_l2l3res name of the output column for corrected jet \f$p_T\f$ after the `L2L3Residual` correction level
  * @param output_full name of the output column for corrected jet \f$p_T\f$ after the full procedure
  * @param jet_pt_raw collection column of raw jet \f$p_T\f$ before the calibration; if `reapply_jes` is set to `true`, this column is interpreted as the already JES-corrected jet \f$p_T\f$.
  * @param jet_eta collection column of jet \f$\eta\f$
@@ -531,8 +533,10 @@ ROOT::RDF::RNode PtCorrectionMC(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correction_manager,
     const std::string &output_jec_result,
-    const std::string output_l1,
-    const std::string output_full,
+    const std::string &output_l1,
+    const std::string &output_l2rel,
+    const std::string &output_l2l3res,
+    const std::string &output_full,
     const std::string &jet_pt_raw,
     const std::string &jet_eta,
     const std::string &jet_phi,
@@ -784,6 +788,36 @@ ROOT::RDF::RNode PtCorrectionMC(
         return jet_pt_l1;
     };
 
+    // Function to store the L2Rel step outcome in a column
+    auto func_pt_l2rel = [] (
+        const ROOT::RVec<JECResult> &jec_result
+    ) {
+        // Retrieve the result from the JECResult struct eventwise and wrap
+        // with ROOT::VecOps::Map to get the result collection.
+        auto jet_pt_l2rel = ROOT::VecOps::Map(
+            jec_result,
+            [] (const JECResult &jec_result) {
+                return jec_result.jet_pt_l2rel;
+            }
+        );
+        return jet_pt_l2rel;
+    };
+
+    // Function to store the L2L3Residual step outcome in a column
+    auto func_pt_l2l3res = [] (
+        const ROOT::RVec<JECResult> &jec_result
+    ) {
+        // Retrieve the result from the JECResult struct eventwise and wrap
+        // with ROOT::VecOps::Map to get the result collection.
+        auto jet_pt_l2l3res = ROOT::VecOps::Map(
+            jec_result,
+            [] (const JECResult &jec_result) {
+                return jec_result.jet_pt_l2l3res;
+            }
+        );
+        return jet_pt_l2l3res;
+    };
+
     // Function to store the full procedure outcome in a column
     auto func_pt_final = [] (
         const ROOT::RVec<JECResult> &jec_result
@@ -819,11 +853,17 @@ ROOT::RDF::RNode PtCorrectionMC(
 
     // Store the L1FastJet-corrected pt
     auto df3 = df2.Define(output_l1, func_pt_l1, { output_jec_result });
-    
-    // Store the corrected pt after the full JEC procedure
-    auto df4 = df3.Define(output_full, func_pt_l1, { output_jec_result });
+ 
+    // Store the L2Relative-corrected pt
+    auto df4 = df3.Define(output_l2rel, func_pt_l2rel, { output_jec_result });
 
-    return df4;
+    // Store the L2L3Residual-corrected pt
+    auto df5 = df4.Define(output_l2l3res, func_pt_l2l3res, { output_jec_result });
+
+    // Store the corrected pt after the full JEC procedure
+    auto df6 = df5.Define(output_full, func_pt_full, { output_jec_result });
+
+    return df6;
 }
 
 /**
@@ -858,6 +898,8 @@ ROOT::RDF::RNode PtCorrectionMC(
  * @param correction_manager correction manager responsible for loading the jet energy correction file
  * @param output_jec_result name of the output column for storing a `JECResult` object containing intermediate results of the calibration of the jet \f$p_T\f$
  * @param output_l1 name of the output column for corrected jet \f$p_T\f$ after the `L1FastJet` correction level
+ * @param output_l2rel name of the output column for corrected jet \f$p_T\f$ after the `L2Relative` correction level
+ * @param output_l2l3res name of the output column for corrected jet \f$p_T\f$ after the `L2L3Residual` correction level
  * @param output_full name of the output column for corrected jet \f$p_T\f$ after the full procedure
  * @param jet_pt_raw collection column of raw jet \f$p_T\f$ before the calibration; if `reapply_jes` is set to `true`, this column is interpreted as the already JES-corrected jet \f$p_T\f$.
  * @param jet_eta collection column of jet \f$\eta\f$
@@ -877,8 +919,10 @@ ROOT::RDF::RNode PtCorrectionData(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correction_manager,
     const std::string &output_jec_result,
-    const std::string output_l1,
-    const std::string output_full,
+    const std::string &output_l1,
+    const std::string &output_l2rel,
+    const std::string &output_l2l3res,
+    const std::string &output_full,
     const std::string &jet_pt_raw,
     const std::string &jet_eta,
     const std::string &jet_phi,
@@ -1010,6 +1054,36 @@ ROOT::RDF::RNode PtCorrectionData(
         return jet_pt_l1;
     };
 
+    // Function to store the L2Rel step outcome in a column
+    auto func_pt_l2rel = [] (
+        const ROOT::RVec<JECResult> &jec_result
+    ) {
+        // Retrieve the result from the JECResult struct eventwise and wrap
+        // with ROOT::VecOps::Map to get the result collection.
+        auto jet_pt_l2rel = ROOT::VecOps::Map(
+            jec_result,
+            [] (const JECResult &jec_result) {
+                return jec_result.jet_pt_l2rel;
+            }
+        );
+        return jet_pt_l2rel;
+    };
+
+    // Function to store the L2L3Residual step outcome in a column
+    auto func_pt_l2l3res = [] (
+        const ROOT::RVec<JECResult> &jec_result
+    ) {
+        // Retrieve the result from the JECResult struct eventwise and wrap
+        // with ROOT::VecOps::Map to get the result collection.
+        auto jet_pt_l2l3res = ROOT::VecOps::Map(
+            jec_result,
+            [] (const JECResult &jec_result) {
+                return jec_result.jet_pt_l2l3res;
+            }
+        );
+        return jet_pt_l2l3res;
+    };
+
     // Function to store the full procedure outcome in a column
     auto func_pt_final = [] (
         const ROOT::RVec<JECResult> &jec_result
@@ -1040,11 +1114,17 @@ ROOT::RDF::RNode PtCorrectionData(
 
     // Store the L1FastJet-corrected pt
     auto df2 = df1.Define(output_l1, func_pt_l1, { output_jec_result });
+ 
+    // Store the L2Relative-corrected pt
+    auto df3 = df2.Define(output_l2rel, func_pt_l2rel, { output_jec_result });
+
+    // Store the L2L3Residual-corrected pt
+    auto df4 = df3.Define(output_l2l3res, func_pt_l2l3res, { output_jec_result });
 
     // Store the corrected pt after the full JEC procedure
-    auto df3 = df2.Define(output_full, func_pt_l1, { output_jec_result });
+    auto df5 = df4.Define(output_full, func_pt_full, { output_jec_result });
 
-    return df3;
+    return df5;
 }
 
 /**
