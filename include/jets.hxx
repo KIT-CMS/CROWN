@@ -146,6 +146,12 @@ ROOT::RDF::RNode RawMuonSubtr(
     const std::string &jet_raw_factor,
     const std::string &jet_muon_subtr_factor
 );
+ROOT::RDF::RNode RawMuonSubtr(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &jet_quantity,
+    const std::string &jet_muon_subtr_factor
+);
 ROOT::RDF::RNode PtCorrectionMC(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correction_manager,
