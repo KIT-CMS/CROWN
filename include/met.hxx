@@ -119,6 +119,19 @@ ROOT::RDF::RNode METPhiCorrection(ROOT::RDF::RNode df,
                         const bool is_mc,
                         const std::string &stat_variation,
                         const std::string &pileup_variation);
+ROOT::RDF::RNode Type1Correction(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string raw_met,
+    const std::string &t1jet_pt_l1corrected,
+    const std::string &t1jet_pt_corrected,
+    const std::string &t1jet_eta,
+    const std::string &t1jet_phi,
+    const std::string &t1jet_em_ef,
+    const float &t1jet_min_pt,
+    const float &t1jet_max_abs_eta,
+    const float &t1jet_max_em_ef
+);
 } // end namespace met
 
 namespace lorentzvector {
@@ -224,5 +237,6 @@ ROOT::RDF::RNode PropagateToMET(
     const std::string &pt, const std::string &eta,
     const std::string &phi, const std::string &mass,
     bool apply_propagation, float min_pt);
+
 } // end namespace physicsobject
 #endif /* GUARD_MET_H */
