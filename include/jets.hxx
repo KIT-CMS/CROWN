@@ -51,11 +51,14 @@ float apply_jes_l2rel (
     const float &jet_pt,
     const float &jet_eta,
     const float &jet_phi,
+    const std::string &era,
     const correction::Correction *jes_l2rel_evaluator
 );
 float apply_jes_l2l3res (
     const float &jet_pt,
     const float &jet_eta,
+    const float &run,
+    const std::string &era,
     const correction::Correction *jes_l2l3res_evaluator
 );
 float apply_jes_shifts (

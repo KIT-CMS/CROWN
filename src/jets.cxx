@@ -75,25 +75,46 @@ float apply_jes_l2rel (
     const float &jet_pt,
     const float &jet_eta,
     const float &jet_phi,
+    const std::string &era,
     const correction::Correction *jes_l2rel_evaluator
 ) {
     // Calculate the L2rel-corrected pt
-    return jet_pt * jes_l2rel_evaluator->evaluate({
-        jet_eta, jet_phi, jet_pt 
-    });
+    float pt_corrected;
+    if (std::stoi(era.substr(0, 4)) <= 2022 || era == "2023preBPix") {
+        // For era <= 2023preBPix, phi is not an input argument
+        pt_corrected = jet_pt * jes_l2rel_evaluator->evaluate({
+            jet_eta, jet_pt 
+        });
+    } else {
+        // For era >= 2023postBPix, phi is an input argument
+        pt_corrected = jet_pt * jes_l2rel_evaluator->evaluate({
+            jet_eta, jet_phi, jet_pt 
+        });
+    }
+    return pt_corrected;
 }
-
 
 float apply_jes_l2l3res (
     const float &jet_pt,
     const float &jet_eta,
     const float &run,
+    const std::string &era,
     const correction::Correction *jes_l2l3res_evaluator
 ) {
-    // Calculate the L2rel-corrected pt
-    return jet_pt * jes_l2l3res_evaluator->evaluate({
-        run, jet_eta, jet_pt 
-    });
+    // Calculate the L2L3res-corrected pt
+    float pt_corrected;
+    if (std::stoi(era.substr(0, 4)) <= 2022) {
+        // For year <= 2022, run is not an input argument
+        pt_corrected = jet_pt * jes_l2l3res_evaluator->evaluate({
+            jet_eta, jet_pt 
+        });
+    } else {
+        // For year >= 2023, run is an input argument
+        pt_corrected = jet_pt * jes_l2l3res_evaluator->evaluate({
+            run, jet_eta, jet_pt 
+        });
+    }
+    return pt_corrected;
 }
 
 float apply_jes_shifts (
@@ -247,10 +268,11 @@ JECResult apply_full_jec_mc(
         rho,
         jes_l1_evaluator
     );
-    auto jet_pt_l2rel = apply_jes_l2rel (
+    auto jet_pt_l2rel = apply_jes_l2rel(
         jet_pt_l1,
         jet_eta,
         jet_phi,
+        era,
         jes_l2rel_evaluator
     );
     auto jet_pt_syst = apply_jes_shifts(
@@ -356,6 +378,7 @@ JECResult apply_full_jec_data(
     const float &jet_area,
     const float &rho,
     const unsigned int &run,
+    const std::string &era,
     const correction::Correction* jes_l1_evaluator,
     const correction::Correction* jes_l2rel_evaluator,
     const correction::Correction* jes_l2l3res_evaluator
@@ -372,12 +395,14 @@ JECResult apply_full_jec_data(
         jet_pt_l1,
         jet_eta,
         jet_phi,
+        era,
         jes_l2rel_evaluator
     );
     auto jet_pt_l2l3res = apply_jes_l2l3res(
         jet_pt_l2rel,
         jet_eta,
         static_cast<float>(run),
+        era,
         jes_l2l3res_evaluator
     );
      
@@ -977,6 +1002,7 @@ ROOT::RDF::RNode PtCorrectionData(
 
     // Function to retrieve the JEC result with intermediate steps
     auto func_jec_result = [
+        era,
         reapply_jes,
         jes_l1_evaluator,
         jes_l2rel_evaluator,
@@ -1003,6 +1029,7 @@ ROOT::RDF::RNode PtCorrectionData(
                 [
                     rho,
                     run,
+                    era,
                     jes_l1_evaluator,
                     jes_l2rel_evaluator,
                     jes_l2l3res_evaluator
@@ -1019,6 +1046,7 @@ ROOT::RDF::RNode PtCorrectionData(
                         jet_area,
                         rho,
                         run,
+                        era,
                         jes_l1_evaluator,
                         jes_l2rel_evaluator,
                         jes_l2l3res_evaluator
