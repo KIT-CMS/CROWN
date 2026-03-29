@@ -1540,7 +1540,8 @@ Id_vsEle(ROOT::RDF::RNode df,
                         variation_endcap);
             // the eta cuts are taken from the correctionlib json file to define 
             // barrel and endcap
-            if (std::stoi(era.substr(0, 4)) < 2022) {
+            if (sf_name == "DeepTau2017v2p1") {
+                // SFs for DeepTau2017v2p1 depend on eta
                 if (std::abs(eta) < max_abs_eta_barrel) {
                     sf = evaluator->evaluate(
                         {eta, gen_match, wp, variation_barrel});
@@ -1551,7 +1552,7 @@ Id_vsEle(ROOT::RDF::RNode df,
                     sf = 1.;
                 }
             } else {
-                // additional dm argument for run3 sf
+                // SFs for DeepTau2018v2p5 depend on eta and the decay mode
                 if (std::abs(eta) < max_abs_eta_barrel) {
                     sf = evaluator->evaluate(
                         {eta, dm, gen_match, wp, variation_barrel});
