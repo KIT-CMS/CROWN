@@ -1540,7 +1540,7 @@ Id_vsEle(ROOT::RDF::RNode df,
                         variation_endcap);
             // the eta cuts are taken from the correctionlib json file to define 
             // barrel and endcap
-            if (sf_name == "DeepTau2017v2p1") {
+            if (sf_name == "DeepTau2017v2p1VSjet") {
                 // SFs for DeepTau2017v2p1 depend on eta
                 if (std::abs(eta) < max_abs_eta_barrel) {
                     sf = evaluator->evaluate(
