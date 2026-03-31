@@ -1,6 +1,8 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 
 from typing import List
+import json
+import pickle
 
 from .producers import event as event
 from .producers import genparticles as genparticles
@@ -14,6 +16,7 @@ from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier
 from code_generation.rules import RemoveProducer, AppendProducer
 from code_generation.systematics import SystematicShift
+from code_generation.utility.generate_DAG import create_graph
 
 
 def build_config(
@@ -260,4 +263,7 @@ def build_config(
     configuration.optimize()
     configuration.validate()
     configuration.report()
-    return configuration.expanded_configuration()
+    nanoAOD_inputs = [n for n in dir(nanoAOD) if not n.startswith("__")]
+    create_graph(configuration, nanoAOD_inputs, "CROWNelements")
+    configuration = configuration.expanded_configuration()
+    return configuration
