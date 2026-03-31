@@ -1,8 +1,6 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 
 from typing import List
-import json
-import pickle
 
 from .producers import event as event
 from .producers import genparticles as genparticles
