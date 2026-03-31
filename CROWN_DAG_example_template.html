@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Physics Analysis Graph Explorer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
+
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; background: #fcfcfc; }
+
+        /* UI Layer */
+        #search-container { position: absolute; top: 20px; left: 20px; z-index: 10; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 340px; border: 1px solid #e0e0e0; }
+        .row { display: flex; gap: 6px; margin-bottom: 8px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-family: 'Cascadia Code', 'Courier New', monospace; outline: none; }
+        input:focus { border-color: #3498db; }
+
+        button { padding: 8px 12px; cursor: pointer; border: none; border-radius: 4px; background: #2c3e50; color: white; font-weight: 600; font-size: 13px; }
+        button:hover { background: #34495e; }
+
+        .nav-btn { background: #3498db; flex: 1; }
+        .cancel-btn { background: #95a5a6; }
+        .nav-btn:disabled { background: #d5d8dc; cursor: not-allowed; }
+        #status {
+            text-align: center;
+            font-size: 11px;
+            color: #7f8c8d;
+            font-weight: bold;
+            margin-top: 12px;
+            min-height: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        #status.error {
+            color: #e74c3c;
+        }
+        #reset-ui { position: absolute; bottom: 20px; right: 20px; z-index: 10; }
+        .reset-btn { background: #e74c3c; padding: 12px 20px; border-radius: 30px; color: white; font-weight: bold; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); border:none; cursor:pointer;}
+
+        #cy { width: 100vw; height: 100vh; z-index: 1; }
+
+        /* Inspector Overlay */
+        #inspector-overlay {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 25px;
+            background: rgba(30, 39, 46, 0.95);
+            padding: 20px 30px;
+            border-radius: 16px;
+            color: white;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            max-width: 85vw;
+            max-height: 35vh;
+            transition: all 0.2s ease;
+            pointer-events: auto;
+        }
+
+        .inspector-column {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 180px;
+            max-height: 30vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .column-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #3498db;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            margin-bottom: 5px;
+            position: sticky;
+            top: 0;
+            background: rgba(30, 39, 46, 0.95);
+            padding: 2px 0;
+        }
+
+        .detail-box {
+            background: #ffffff;
+            color: #2c3e50;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 11px;
+            white-space: nowrap;
+            border-left: 3px solid #3498db;
+        }
+
+        .focus-item {
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+            border: none;
+        }
+
+        .detail-edge-text {
+            font-family: 'Cascadia Code', monospace;
+            font-size: 11px;
+            color: #bdc3c7;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 4px;
+        }
+
+        .inspector-column::-webkit-scrollbar { width: 4px; }
+        .inspector-column::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+        /* Legend Styling */
+        #legend {
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+        }
+
+        .legend-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: #95a5a6;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 8px;
+            margin-top: 5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #2c3e50;
+            white-space: nowrap;
+        }
+
+        .symbol {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+
+        .hexagon {
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+
+        .diamond {
+            transform: rotate(45deg);
+            width: 12px;
+            height: 12px;
+            margin-left: 2px;
+        }
+
+        .square {
+            border-radius: 2px;
+        }
+
+        .parent-box {
+            border: 2px dashed #1e88e5;
+            background: rgba(30, 136, 229, 0.1);
+        }
+    </style>
+</head>
+<body>
+<div id="search-container">
+    <div class="row">
+        <input type="text" id="searchInput" placeholder="Regex (e.g. ^gen_.*_mm$)" onkeyup="if(event.key === 'Enter') runSearch()">
+    </div>
+    <div class="row">
+        <button onclick="runSearch()">Search</button>
+        <button class="cancel-btn" onclick="cancelSearch()">Cancel</button>
+        <button class="nav-btn" id="prevBtn" onclick="moveFocus(-1)" disabled>←</button>
+        <button class="nav-btn" id="nextBtn" onclick="moveFocus(1)" disabled>→</button>
+    </div>
+
+    <div id="legend">
+        <div class="legend-title">Graph Legend</div>
+        <div class="legend-grid">
+            <div class="legend-item">
+                <div class="symbol hexagon" style="background: #ffcdd2; border: 1.5px solid #d32f2f;"></div>
+                <span>Data Source</span>
+            </div>
+            <div class="legend-item">
+                <div class="symbol diamond" style="background: #fff3e0; border: 1.5px solid #ff9800;"></div>
+                <span>Filter</span>
+            </div>
+            <div class="legend-item">
+                <div class="symbol square" style="border: 4px dashed #8e24aa; background: rgba(218, 112, 214, 0.15);"></div>
+                <span>Vector</span>
+            </div>
+            <div class="legend-item">
+                <div class="symbol parent-box"></div>
+                <span>Group</span>
+            </div>
+        </div>
+    </div> <div id="status"></div>
+</div>
+
+<div id="inspector-overlay">
+    <div class="inspector-column" id="incoming-col">
+        <div class="column-label">Inflow</div>
+        <div id="incoming-list"></div>
+    </div>
+
+    <div class="inspector-column" style="align-items: center; justify-content: center;">
+        <div class="column-label">Focused Element</div>
+        <div id="focus-node" class="detail-box focus-item"></div>
+    </div>
+
+    <div class="inspector-column" id="outgoing-col">
+        <div class="column-label">Outflow</div>
+        <div id="outgoing-list"></div>
+    </div>
+</div>
+
+<div id="reset-ui"><button class="reset-btn" onclick="resetView()">Reset View</button></div>
+<div id="cy"></div>
+
+<script>
+let cy;
+let searchResults = [];
+let currentIndex = -1;
+
+async function initGraph() {
+    try {
+        const response = await fetch('CROWNelements.json');
+        const elementsData = await response.json();
+
+        cy = cytoscape({
+            container: document.getElementById('cy'),
+            elements: elementsData,
+            autoungrabify: true,
+            wheelSensitivity: 0.15,
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'label': 'data(label)',
+                        'text-valign': 'center',
+                        'background-color': '#ffffff',
+                        'border-width': 1.5,
+                        'border-color': '#2c3e50',
+                        'shape': 'round-rectangle',
+                        'width': 'label',
+                        'height': 'label',
+                        'padding': '12px',
+                        'font-size': '11px',
+                        'z-index': 10
+                    }
+                },
+                /* Categorical Group Styles */
+                {
+                    selector: ':parent',
+                    style: {
+                        'background-opacity': 0.1,
+                        'background-color': '#1e88e5',
+                        'border-color': '#1e88e5',
+                        'border-style': 'dashed',
+                        'border-width': 4,
+                        'text-valign': 'top',
+                        'padding': '20px',
+                        'events': 'no'
+                    }
+                },
+                {
+                    selector: 'node[type="I/O"]',
+                    style: {
+                        'shape': 'hexagon',
+                        'background-color': '#ffcdd2',
+                        'border-color': '#d32f2f'
+                    }
+                },
+                {
+                    selector: 'node[type="scope"]',
+                    style: {
+                        'border-style': 'solid',
+                        'border-width': 4,
+                        'border-color': '#4a4a4a',
+                        'background-color': '#d1d1d1',
+                        'background-opacity': 0.2
+                    }
+                },
+                {
+                    selector: 'node[type="vector"]',
+                    style: {
+                        'border-style': 'dashed',
+                        'border-width': 4,
+                        'border-color': '#8e24aa',
+                        'background-color': '#da70d6',
+                        'background-opacity': 0.15
+                    }
+                },
+                {
+                    selector: 'node[type = "filter"]',
+                    style: {
+                        'shape': 'diamond',
+                        'background-color': '#fff3e0',
+                        'border-color': '#ff9800'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 1.5,
+                        'line-color': '#bdc3c7',
+                        'target-arrow-color': '#bdc3c7',
+                        'target-arrow-shape': 'triangle',
+                        'arrow-scale': 0.8,
+                        'curve-style': 'unbundled-bezier',
+                        'control-point-step-size': 40,
+                        'label': 'data(label)',
+                        'font-size': '8px',
+                        'text-rotation': 'autorotate',
+                        'text-background-opacity': 1,
+                        'text-background-color': '#fcfcfc',
+                        'text-margin-y': -5
+                    }
+                },
+                /* Search Highlights */
+                {
+                    selector: 'node.highlighted',
+                    style: {
+                        'background-color': '#a5d6a7',
+                        'border-color': '#2e7d32',
+                        'border-width': 3,
+                        'z-index': 99
+                    }
+                },
+                {
+                    selector: 'edge.highlighted',
+                    style: {
+                        'line-color': '#2e7d32',
+                        'target-arrow-color': '#2e7d32',
+                        'width': 3,
+                        'z-index': 99
+                    }
+                },
+                {
+                    selector: 'node.activeFocus',
+                    style: {
+                        'background-color': '#2ecc71',
+                        'border-color': '#27ae60',
+                        'color': '#000000',
+                        'z-index': 1000
+                    }
+                },
+                {
+                    selector: 'edge.activeFocus',
+                    style: {
+                        'line-color': '#2ecc71',
+                        'target-arrow-color': '#27ae60',
+                        'target-arrow-shape': 'triangle',
+                        'width': 4,
+                        'z-index': 1001
+                    }
+                }
+            ],
+            layout: {
+                name: 'dagre',
+                rankDir: 'TB',
+                nodeSep: 80,
+                rankSep: 120
+            }
+        });
+
+        setupInteractions();
+        updateUI();
+
+    } catch (e) {
+        console.error("Data Load Error:", e);
+        document.getElementById('status').innerText = "Data Load Error";
+    }
+}
+
+function setupInteractions() {
+    const overlay = document.getElementById('inspector-overlay');
+    const inList = document.getElementById('incoming-list');
+    const outList = document.getElementById('outgoing-list');
+    const focusBox = document.getElementById('focus-node');
+
+    cy.on('tap', 'node', function(evt) {
+        const node = evt.target;
+        if (node.isParent()) return;
+
+        const typeTag = node.data('type') ? ` [${node.data('type').toUpperCase()}]` : '';
+        focusBox.innerText = (node.data('label') || node.id()) + typeTag;
+
+        inList.innerHTML = '';
+        outList.innerHTML = '';
+
+        const connectedEdges = node.connectedEdges();
+        connectedEdges.forEach(edge => {
+            const eLabel = edge.data('label') || '──';
+            const div = document.createElement('div');
+            div.className = 'detail-edge-text';
+
+            if (edge.target().id() === node.id()) {
+                const srcLabel = edge.source().data('label') || edge.source().id();
+                div.innerHTML = `<span class="detail-box">${srcLabel}</span> ➔ ${eLabel}`;
+                inList.appendChild(div);
+            } else {
+                const destLabel = edge.target().id() === node.id() ? edge.source().data('label') : edge.target().data('label') || edge.target().id();
+                div.innerHTML = `${eLabel} ➔ <span class="detail-box">${destLabel}</span>`;
+                outList.appendChild(div);
+            }
+        });
+
+        if (inList.innerHTML === '') inList.innerHTML = '<span style="color: #576574; font-size: 11px;">Source node</span>';
+        if (outList.innerHTML === '') outList.innerHTML = '<span style="color: #576574; font-size: 11px;">Terminal node</span>';
+
+        overlay.style.display = 'flex';
+    });
+
+    cy.on('tap', 'edge', function(evt) {
+        const edge = evt.target;
+        focusBox.innerText = edge.data('label') || 'Connection';
+        inList.innerHTML = `<div class="detail-edge-text"><span class="detail-box">${edge.source().data('label') || edge.source().id()}</span></div>`;
+        outList.innerHTML = `<div class="detail-edge-text"><span class="detail-box">${edge.target().data('label') || edge.target().id()}</span></div>`;
+        overlay.style.display = 'flex';
+    });
+
+    cy.on('tap', function(evt) {
+        if (evt.target === cy) {
+            overlay.style.display = 'none';
+        }
+    });
+}
+
+function cancelSearch() {
+    document.getElementById('searchInput').value = '';
+    cy.elements().removeClass('highlighted activeFocus');
+    searchResults = [];
+    currentIndex = -1;
+    document.getElementById('inspector-overlay').style.display = 'none';
+    updateUI();
+}
+
+function moveFocus(dir) {
+    if (searchResults.length === 0) return;
+
+    if (currentIndex >= 0) {
+        searchResults[currentIndex].removeClass('activeFocus');
+    }
+
+    currentIndex = (currentIndex + dir + searchResults.length) % searchResults.length;
+    const current = searchResults[currentIndex];
+
+    current.addClass('activeFocus');
+
+    if (current.isNode()) {
+        cy.animate({ center: { eles: current }, zoom: 1.3, duration: 350 });
+    } else {
+        cy.animate({ center: { eles: current }, zoom: 1.1, duration: 350 });
+    }
+    updateUI();
+}
+function updateUI() {
+    const count = searchResults.length;
+    const input = document.getElementById('searchInput').value;
+    const statusEl = document.getElementById('status');
+
+    // Clear error class by default
+    statusEl.classList.remove('error');
+
+    // Logic: If no input, stay silent. If input exists, show count.
+    if (!input) {
+        statusEl.innerText = "";
+    } else {
+        statusEl.innerText = count > 0 ? `${currentIndex + 1} / ${count}` : "0 Matches";
+    }
+
+    document.getElementById('prevBtn').disabled = count === 0;
+    document.getElementById('nextBtn').disabled = count === 0;
+}
+
+function runSearch() {
+    const query = document.getElementById('searchInput').value;
+    const statusEl = document.getElementById('status');
+
+    if (!query) { cancelSearch(); return; }
+
+    try {
+        const regex = new RegExp(query);
+        cy.elements().removeClass('highlighted activeFocus');
+        searchResults = cy.elements().filter(el => regex.test(el.data('label') || ""));
+
+        if (searchResults.length > 0) {
+            searchResults.addClass('highlighted');
+            currentIndex = -1;
+            moveFocus(1);
+        } else {
+            currentIndex = -1;
+            updateUI();
+        }
+    } catch (e) {
+        // Handle Regex Error visually
+        statusEl.innerText = "Invalid Regex Syntax";
+        statusEl.classList.add('error');
+    }
+}
+
+function resetView() { cy.animate({ fit: { padding: 40 }, duration: 500 }); }
+
+window.onload = initGraph;
+</script>
+</body>
+</html>
