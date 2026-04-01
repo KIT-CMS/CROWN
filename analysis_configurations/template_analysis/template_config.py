@@ -25,6 +25,7 @@ def build_config(
     available_sample_types: List[str],
     available_eras: List[str],
     available_scopes: List[str],
+    DAG_dir: str="",
 ):
     configuration = Configuration(
         era,
@@ -261,7 +262,8 @@ def build_config(
     configuration.optimize()
     configuration.validate()
     configuration.report()
-    nanoAOD_inputs = [n for n in dir(nanoAOD) if not n.startswith("__")]
-    create_graph(configuration, nanoAOD_inputs, "CROWNelements")
+    if DAG_dir:
+        nanoAOD_inputs = [n for n in dir(nanoAOD) if not n.startswith("__")]
+        create_graph(configuration, nanoAOD_inputs, DAG_dir, "CROWNelements")
     configuration = configuration.expanded_configuration()
     return configuration
