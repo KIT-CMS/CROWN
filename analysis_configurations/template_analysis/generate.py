@@ -42,6 +42,7 @@ def run(args):
         available_samples,
         available_eras,
         available_scopes,
+        DAG_dir = args.output
     )
     # create a CodeGenerator object
     generator = CodeGenerator(

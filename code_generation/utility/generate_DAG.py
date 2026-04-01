@@ -1,29 +1,61 @@
 import re
 import json
+import os
 from code_generation.quantity import QuantityGroup
 
 
 class GraphParser:
-    def __init__(self, config, nanoAOD_inputs, debugging=False):
+    def __init__(self, config, nanoAOD_inputs, DAG_dir=None, debugging=False):
         self.config = config
         self.nanoAOD_inputs = nanoAOD_inputs
         self.debugging = debugging
-        self.nodes = []
-        self.edges = []
+        self.nodes = {}
+        self.edges = {}
         self.inputs = {}
         self.outputs = {}
         self.vec_output_mappings = {}
         self.in_file_name = "IN_File"
         self.out_file_name = "OUT_File"
-        self.DAG_data = None
+        self.DAG_data = {}
+        self.DAG_dir = DAG_dir
 
-    def save_graph(self, name):
-        # for scope in scopes:
-        scopes = self.config.scopes
-        scope = scopes[0]
+    def save_graph(self, scope, name):
         path = f"{name}_{self.config.era}_{self.config.sample}_{scope}.json"
+        if self.DAG_dir:
+            path = os.path.join(self.DAG_dir, path)
+        scope_DAG_data = self.DAG_data[scope]
+        if scope != "global":
+            scope_DAG_data += self.DAG_data["global"]
         with open(path, "w") as f:
-            json.dump(self.DAG_data, f, indent=4, sort_keys=True)
+            json.dump(scope_DAG_data, f, indent=4, sort_keys=True)
+        self.update_DAG_file_list(os.path.join(self.DAG_dir, "DAG_files.json"),self.config.era, self.config.sample, scope)
+
+
+    def update_DAG_file_list(self, config_path, new_era, new_sample, new_scope):
+        """
+        Updates the config JSON with new values, ensuring no duplicates.
+        """
+        # Initialize with empty structure if file doesn't exist
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError:
+                    data = {"era": [], "sample": [], "scope": []}
+        else:
+            data = {"era": [], "sample": [], "scope": []}
+
+        # Add new values and ensure uniqueness using sets
+        # Then convert back to sorted lists for a clean JSON output
+        data["era"] = sorted(list(set(data["era"] + [str(new_era)])))
+        data["sample"] = sorted(list(set(data["sample"] + [str(new_sample)])))
+        data["scope"] = sorted(list(set(data["scope"] + [str(new_scope)])))
+
+        # Write back to the file
+        with open(config_path, 'w') as f:
+            json.dump(data, f, indent=4)
+
+        print(f"Updated {config_path} with {new_era}/{new_sample}/{new_scope}")
 
     def add_output(self, output_name, output_node, scope):
         if not self.outputs.get(scope):
@@ -48,10 +80,14 @@ class GraphParser:
             add_data["data"]["parent"] = f"{scope}_{parent}"
         if node_type:
             add_data["data"]["type"] = node_type
-        self.nodes += [add_data]
+        if not self.nodes.get(scope):
+            self.nodes[scope] = []
+        self.nodes[scope] += [add_data]
 
-    def add_edge(self, source, target, name):
-        self.edges += [{"data": {"source": source, "target": target, "label": name}}]
+    def add_edge(self, source, target, scope, name):
+        if not self.edges.get(scope):
+            self.edges[scope] = []
+        self.edges[scope] += [{"data": {"source": source, "target": target, "label": name}}]
 
     def parse_from_call(self, producer, parent, scope, align=""):
         group_id = f"{producer.name}_v"
@@ -125,7 +161,6 @@ class GraphParser:
                 node_type="I/O",
             )
 
-        # raise NotImplementedError
         # check outputs for ambigous assignment
         for scope in self.config.scopes:
             all_keys = list(self.outputs["global"].keys()) + list(
@@ -140,7 +175,8 @@ class GraphParser:
                         f"Output {output} has multiple origins: {total_output_nodes}"
                     )
         self.assemble_edges()
-        self.DAG_data = self.nodes + self.edges
+        for scope in self.config.scopes:
+            self.DAG_data[scope] = self.nodes[scope] + self.edges[scope]
 
     def assemble_edges(self):
         for scope in self.config.scopes + ["global"]:
@@ -162,7 +198,7 @@ class GraphParser:
                     composite_name = ", ".join(sorted(n))
                     if self.debugging:
                         print(f"Adding Edge {composite_name} from {o} to {k}")
-                    self.add_edge(source=o, target=k, name=composite_name)
+                    self.add_edge(source=o, target=k, scope=scope, name=composite_name)
 
     def parse_VectorProducer(self, producer, parent, scope, align=""):
         if self.debugging:
@@ -275,7 +311,8 @@ class GraphParser:
             raise Exception(f"Unknown Producer class {producer.__class__.__name__}")
 
 
-def create_graph(configuration, nanoAOD_inputs, json_name):
-    graph = GraphParser(configuration, nanoAOD_inputs, debugging=False)
+def create_graph(configuration, nanoAOD_inputs, DAG_dir, json_name):
+    graph = GraphParser(configuration, nanoAOD_inputs, DAG_dir, debugging=False)
     graph.generate_graph()
-    graph.save_graph(json_name)
+    for scope in graph.config.scopes:
+        graph.save_graph(scope, json_name)
