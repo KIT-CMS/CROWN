@@ -1511,10 +1511,9 @@ Id_vsEle(ROOT::RDF::RNode df,
          const std::string &outputname,
          const std::string &eta,
          const std::string &decay_mode,
-         const std::string &gen_match, 
-         const std::string &era,
+         const std::string &gen_match,
          const std::string &sf_file, const std::string &sf_name,
-         const std::string &wp, 
+         const std::string &wp, const std::string &era,
          const std::string &variation_barrel,
          const std::string &variation_endcap) {
 

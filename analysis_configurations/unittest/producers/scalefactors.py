@@ -153,13 +153,14 @@ Tau_1_VsJetTauID_SF = ExtendedVectorProducer(
 Tau_1_VsEleTauID_SF = ExtendedVectorProducer(
     name="Tau_1_VsEleTauID_SF",
     call="""physicsobject::tau::scalefactor::Id_vsEle(
-        {df}, 
-        correctionManager, 
-        {output}, 
-        {input}, 
+        {df},
+        correctionManager,
+        {output},
+        {input},
         "{tau_sf_file}", 
         "{tau_id_discriminator}",
-        "{vsele_tau_id_WP}", 
+        "{vsele_tau_id_WP}",
+        "{era}",
         "{tau_sf_vsele_barrel}", 
         "{tau_sf_vsele_endcap}")
         """,
@@ -241,13 +242,14 @@ Tau_2_VsJetTauID_tt_SF = ExtendedVectorProducer(
 Tau_2_VsEleTauID_SF = ExtendedVectorProducer(
     name="Tau_2_VsEleTauID_SF",
     call="""physicsobject::tau::scalefactor::Id_vsEle(
-        {df}, 
-        correctionManager, 
-        {output}, 
-        {input}, 
+        {df},
+        correctionManager,
+        {output},
+        {input},
         "{tau_sf_file}", 
         "{tau_id_discriminator}",
-        "{vsele_tau_id_WP}", 
+        "{vsele_tau_id_WP}",
+        "{era}",
         "{tau_sf_vsele_barrel}", 
         "{tau_sf_vsele_endcap}")
         """,
