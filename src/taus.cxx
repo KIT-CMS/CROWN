@@ -1485,9 +1485,12 @@ ROOT::RDF::RNode Id_vsJet(
  * tau scale factor file
  * @param outputname name of the output column containing the vsEle ID scale factor
  * @param eta name of the column containing the pseudorapidity of a tau
+ * @param decay_mode name of the column containing the decay mode of the tau
  * @param gen_match name of the column with the matching information of the
  * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt mu,
  * 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
+ * @param era data-taking era, e.g. "2017" or "2018", needed to set the eta boundaries
+ * for the endcap region
  * @param sf_file path to the file with the tau scale factors
  * @param sf_name name of the tau scale factor for the vsEle ID correction
  * @param wp working point of the vsEle ID

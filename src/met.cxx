@@ -424,55 +424,63 @@ METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief Applies Type-I MET corrections by propagating jet energy corrections to the MET vector.
- * To be used for Run3 v15 nanoAOD samples to both data and MC.
+ * @brief Applies Type-1 MET corrections by propagating jet energy corrections
+ * to the MET vector.
  *
- * This function combines information from both corrected and uncorrected jets to update the MET vector.
- * It concatenates jet kinematic variables and electromagnetic fractions, then applies Type-I corrections
- * by subtracting the difference between fully corrected and L1-corrected jet pT for jets passing selection criteria.
- * Only jets with $p_T > 15$ GeV, $|\eta| < 5.2$, and $\mathrm{EmEF} < 0.9$ are propagated to MET.
+ * This function combines information from both corrected and uncorrected jets
+ * to update the MET vector. It concatenates jet kinematic variables and
+ * electromagnetic fractions, then applies Type-1 corrections by subtracting
+ * the difference between fully corrected and L1-corrected jet transverse momenta
+ * for jets passing selection criteria. Only jets with $p_T > 15$ GeV and
+ * $\mathrm{EmEF} < 0.9$ are propagated to MET.
  *
- * @param df Input ROOT DataFrame.
- * @param correction_manager Correction manager for loading jet corrections.
- * @param outputname Name of the new column containing the corrected MET Lorentz vector.
- * @param raw_met Name of the column with the initial/uncorrected MET Lorentz vector.
- * @param jet_pt_l1corr Name of the column with L1-corrected jet $p_T$.
- * @param jet_pt_corr Name of the column with fully corrected jet $p_T$.
- * @param jet_eta Name of the column with jet $\eta$.
- * @param corrjet_eta Name of the column with corrected jet $\eta$.
- * @param jet_phi Name of the column with jet $\phi$.
- * @param corrjet_phi Name of the column with corrected jet $\phi$.
- * @param jet_chEmEF Name of the column with jet charged electromagnetic fraction.
- * @param jet_neEmEF Name of the column with jet neutral electromagnetic fraction.
- * @param corrjet_EmEF Name of the column with corrected jet electromagnetic fraction.
+ * @note To be used for v15 nanoAOD samples to both data and MC.
  *
- * @return A new DataFrame with the corrected MET column.
+ * @param df input dataframe
+ * @param outputname name of the new column containing the corrected MET Lorentz vector
+ * @param raw_met name of the column with the initial/uncorrected MET Lorentz vector
+ * @param jet_pt_l1corr name of the column with L1-corrected jet $p_T$'s
+ * @param jet_pt_corr name of the column with fully corrected jet $p_T$'s
+ * @param jet_phi name of the column with jet $\phi$'s
+ * @param jet_muon_subtr_delta_phi name of the column with the $\phi$ difference
+ * between before muon subtraction and after muon subtraction for jets
+ * @param jet_ch_em_ef name of the column with jet charged electromagnetic
+ * fraction
+ * @param jet_ne_em_ef name of the column with jet neutral electromagnetic
+ * fraction
+ * @param low_pt_jet_phi name of the column with corrected jet $\phi$'s
+ * @param low_pt_jet_muon_subtr_delta_phi name of the column with the $\phi$
+ * difference between before muon subtraction and after muon subtraction for
+ * low-pt jets
+ * @param low_pt_jet_em_ef name of the column with low-pt jet electromagnetic
+ * fraction
+ *
+ * @return a new dataframe with the new MET column
  */
 ROOT::RDF::RNode
 Type1Correction(ROOT::RDF::RNode df,
-        correctionManager::CorrectionManager &correction_manager,
         const std::string &outputname,
         const std::string &raw_met,
         const std::string &jet_pt_l1corr,
         const std::string &jet_pt_corr,
         const std::string &jet_phi,
         const std::string &jet_muon_subtr_delta_phi,
-        const std::string &jet_chEmEF,
-        const std::string &jet_neEmEF,
+        const std::string &jet_ch_em_ef,
+        const std::string &jet_ne_em_ef,
         const std::string &low_pt_jet_phi,
         const std::string &low_pt_jet_muon_subtr_delta_phi,
-        const std::string &low_pt_jet_EmEF) {
+        const std::string &low_pt_jet_em_ef) {
 
     auto correction_lambda = [](const ROOT::Math::PtEtaPhiMVector &raw_met,
                                 const ROOT::RVec<float> &jet_L1_pts,
                                 const ROOT::RVec<float> &jet_corr_pts,
                                 const ROOT::RVec<float> &jet_phis,
                                 const ROOT::RVec<float> &jet_muon_subtr_delta_phis,
-                                const ROOT::RVec<float> &jet_chEmEFs,
-                                const ROOT::RVec<float> &jet_neEmEFs,
+                                const ROOT::RVec<float> &jet_ch_em_efs,
+                                const ROOT::RVec<float> &jet_ne_em_efs,
                                 const ROOT::RVec<float> &low_pt_jet_phis,
                                 const ROOT::RVec<float> &low_pt_jet_muon_subtr_delta_phis,
-                                const ROOT::RVec<float> &low_pt_jet_EmEFs) {
+                                const ROOT::RVec<float> &low_pt_jet_em_efs) {
 
         float MetX = raw_met.Px();
         float MetY = raw_met.Py();
@@ -481,15 +489,15 @@ Type1Correction(ROOT::RDF::RNode df,
         ROOT::RVec<float> phis(jet_corr_pts.size());
         phis = ROOT::VecOps::Concatenate(jet_phis + jet_muon_subtr_delta_phis, low_pt_jet_phis + low_pt_jet_muon_subtr_delta_phis);
 
-        ROOT::RVec<float> jet_EmEFs(jet_chEmEFs.size());
-        jet_EmEFs = jet_chEmEFs + jet_neEmEFs;
-        ROOT::RVec<float> EmEFs(jet_corr_pts.size());
-        EmEFs = ROOT::VecOps::Concatenate(jet_EmEFs, low_pt_jet_EmEFs);
+        ROOT::RVec<float> jet_em_efs(jet_ch_em_efs.size());
+        jet_em_efs = jet_ch_em_efs + jet_ne_em_efs;
+        ROOT::RVec<float> em_efs(jet_corr_pts.size());
+        em_efs = ROOT::VecOps::Concatenate(jet_em_efs, low_pt_jet_em_efs);
 
         for (std::size_t i = 0; i < jet_corr_pts.size(); ++i) {
             // --- Type-1 jet selection ---
             // only propagate objects above the given pt threshold
-            if (jet_corr_pts.at(i) > 15.0 && EmEFs.at(i) < 0.9) {
+            if (jet_corr_pts.at(i) > 15.0 && em_efs.at(i) < 0.9) {
                 // Apply (full − L1) to MET
                 float dpt = (jet_corr_pts.at(i) - jet_L1_pts.at(i));
                 MetX -= dpt * std::cos(phis.at(i));
@@ -508,55 +516,56 @@ Type1Correction(ROOT::RDF::RNode df,
 
     auto df1 = df.Define(outputname, correction_lambda, 
                             {raw_met, jet_pt_l1corr, jet_pt_corr, jet_phi, 
-                             jet_muon_subtr_delta_phi, jet_chEmEF, jet_neEmEF,
+                             jet_muon_subtr_delta_phi, jet_ch_em_ef, jet_ne_em_ef,
                              low_pt_jet_phi, low_pt_jet_muon_subtr_delta_phi,
-                             low_pt_jet_EmEF});
+                             low_pt_jet_em_ef});
     return df1;
 }
 
 /**
- * @brief Applies Type-I MET corrections by propagating jet energy corrections to the MET vector.
- * To be used for Run3 v15 nanoAOD samples to both data and MC.
+ * @brief Applies Type-1 MET corrections by propagating jet energy corrections
+ * to the MET vector.
  *
- * This function combines information from both corrected and uncorrected jets to update the MET vector.
- * It concatenates jet kinematic variables and electromagnetic fractions, then applies Type-I corrections
- * by subtracting the difference between fully corrected and L1-corrected jet pT for jets passing selection criteria.
- * Only jets with $p_T > 15$ GeV, $|\eta| < 5.2$, and $\mathrm{EmEF} < 0.9$ are propagated to MET.
+ * This function combines information from both corrected and uncorrected jets
+ * to update the MET vector. It concatenates jet kinematic variables and
+ * electromagnetic fractions, then applies Type-1 corrections by subtracting
+ * the difference between fully corrected and L1-corrected jet transverse momenta
+ * for jets passing selection criteria. Only jets with $p_T > 15$ GeV and
+ * $\mathrm{EmEF} < 0.9$ are propagated to MET.
  *
- * @param df Input ROOT DataFrame.
- * @param correction_manager Correction manager for loading jet corrections.
- * @param outputname Name of the new column containing the corrected MET Lorentz vector.
- * @param raw_met Name of the column with the initial/uncorrected MET Lorentz vector.
- * @param jet_pt_l1corr Name of the column with L1-corrected jet $p_T$.
- * @param jet_pt_corr Name of the column with fully corrected jet $p_T$.
- * @param jet_eta Name of the column with jet $\eta$.
- * @param corrjet_eta Name of the column with corrected jet $\eta$.
- * @param jet_phi Name of the column with jet $\phi$.
- * @param corrjet_phi Name of the column with corrected jet $\phi$.
- * @param jet_chEmEF Name of the column with jet charged electromagnetic fraction.
- * @param jet_neEmEF Name of the column with jet neutral electromagnetic fraction.
- * @param corrjet_EmEF Name of the column with corrected jet electromagnetic fraction.
+ * @note To be used for v9/v12 nanoAOD samples to both data and MC.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the corrected MET Lorentz vector
+ * @param raw_met name of the column with the initial/uncorrected MET Lorentz vector
+ * @param jet_pt_l1corr name of the column with L1-corrected jet $p_T$'s
+ * @param jet_pt_corr name of the column with fully corrected jet $p_T$'s
+ * @param jet_phi name of the column with jet $\phi$'s
+ * @param jet_ch_em_ef name of the column with jet charged electromagnetic
+ * fraction
+ * @param jet_ne_em_ef name of the column with jet neutral electromagnetic
+ * fraction
+ * @param low_pt_jet_phi name of the column with corrected jet $\phi$'s
  *
  * @return A new DataFrame with the corrected MET column.
  */
 ROOT::RDF::RNode
 Type1Correction(ROOT::RDF::RNode df,
-        correctionManager::CorrectionManager &correction_manager,
         const std::string &outputname,
         const std::string &raw_met,
         const std::string &jet_pt_l1corr,
         const std::string &jet_pt_corr,
         const std::string &jet_phi,
-        const std::string &jet_chEmEF,
-        const std::string &jet_neEmEF,
+        const std::string &jet_ch_em_ef,
+        const std::string &jet_ne_em_ef,
         const std::string &low_pt_jet_phi) {
 
     auto correction_lambda = [](const ROOT::Math::PtEtaPhiMVector &raw_met,
                                 const ROOT::RVec<float> &jet_L1_pts,
                                 const ROOT::RVec<float> &jet_corr_pts,
                                 const ROOT::RVec<float> &jet_phis,
-                                const ROOT::RVec<float> &jet_chEmEFs,
-                                const ROOT::RVec<float> &jet_neEmEFs,
+                                const ROOT::RVec<float> &jet_ch_em_efs,
+                                const ROOT::RVec<float> &jet_ne_em_efs,
                                 const ROOT::RVec<float> &low_pt_jet_phis) {
 
         float MetX = raw_met.Px();
@@ -566,17 +575,17 @@ Type1Correction(ROOT::RDF::RNode df,
         ROOT::RVec<float> phis(jet_corr_pts.size());
         phis = ROOT::VecOps::Concatenate(jet_phis, low_pt_jet_phis);
 
-        ROOT::RVec<float> jet_EmEFs(jet_chEmEFs.size());
-        jet_EmEFs = jet_chEmEFs + jet_neEmEFs;
+        ROOT::RVec<float> jet_em_efs(jet_ch_em_efs.size());
+        jet_em_efs = jet_ch_em_efs + jet_ne_em_efs;
         // Setting low pT jets to 0 to always be true for the EmEF < 0.9 condition
-        ROOT::RVec<float> low_pt_jet_EmEFs(low_pt_jet_phis.size(), 0.0);
-        ROOT::RVec<float> EmEFs(jet_corr_pts.size());
-        EmEFs = ROOT::VecOps::Concatenate(jet_EmEFs, low_pt_jet_EmEFs);
+        ROOT::RVec<float> low_pt_jet_em_efs(low_pt_jet_phis.size(), 0.0);
+        ROOT::RVec<float> em_efs(jet_corr_pts.size());
+        em_efs = ROOT::VecOps::Concatenate(jet_em_efs, low_pt_jet_em_efs);
 
         for (std::size_t i = 0; i < jet_corr_pts.size(); ++i) {
             // --- Type-1 jet selection ---
             // only propagate objects above the given pt threshold
-            if (jet_corr_pts.at(i) > 15.0 && EmEFs.at(i) < 0.9) {
+            if (jet_corr_pts.at(i) > 15.0 && em_efs.at(i) < 0.9) {
                 // Apply (full − L1) to MET
                 float dpt = (jet_corr_pts.at(i) - jet_L1_pts.at(i));
                 MetX -= dpt * std::cos(phis.at(i));
@@ -595,7 +604,7 @@ Type1Correction(ROOT::RDF::RNode df,
 
     auto df1 = df.Define(outputname, correction_lambda, 
                         {raw_met, jet_pt_l1corr, jet_pt_corr, jet_phi, 
-                            jet_chEmEF, jet_neEmEF, low_pt_jet_phi});
+                            jet_ch_em_ef, jet_ne_em_ef, low_pt_jet_phi});
     return df1;
 }
 
