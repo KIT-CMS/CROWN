@@ -3,47 +3,45 @@
 
 namespace physicsobject {
 namespace jet {
-ROOT::RDF::RNode RawPt(ROOT::RDF::RNode df,
-                        const std::string &outputname,
-                        const std::string &pts,
-                        const std::string &jet_raw_factor);
-
+ROOT::RDF::RNode 
+RawPt(ROOT::RDF::RNode df,
+      const std::string &outputname,
+      const std::string &jet_pt,
+      const std::string &jet_raw_factor);
 ROOT::RDF::RNode
 PtCorrectionL1(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
-        const std::string &outputname,
-        const std::string &jet_pt,
+        const std::string &outputname_L1,
+        const std::string &outputname_L1_T1MET,
+        const std::string &jet_raw_pt,
         const std::string &jet_eta, 
         const std::string &jet_phi,
         const std::string &jet_area, 
-        const std::string &jet_raw_factor,
         const std::string &jet_raw_muonfactor,
-        const std::string &corrjet_pt,
-        const std::string &corrjet_eta, 
-        const std::string &corrjet_phi,
-        const std::string &corrjet_area, 
-        const std::string &corrjet_raw_muonfactor,
+        const std::string &lowpt_jet_raw_pt,
+        const std::string &lowpt_jet_eta, 
+        const std::string &lowpt_jet_phi,
+        const std::string &lowpt_jet_area, 
+        const std::string &lowpt_jet_raw_muonfactor,
         const std::string &rho, 
         const std::string &jec_file, 
         const std::string &jec_algo,
-        const std::string &jes_tag_mc, 
-        const std::string &jes_tag_data, 
-        const std::string &era,
-        const bool &is_data,
-        const bool &is_embedding);
-
+        const std::string &jes_tag, 
+        const std::string &era);
 ROOT::RDF::RNode
-PtCorrection(ROOT::RDF::RNode df,
+PtCorrectionL2L3(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
-        const std::string &outputname,
-        const std::string &jet_pts,
+        const std::string &outputname_L2L3,
+        const std::string &outputname_L2L3_T1MET,
+        const std::string &jet_L1_pt,
         const std::string &jet_eta, 
         const std::string &jet_phi,
         const std::string &jet_area, 
         const std::string &jet_id,
-        const std::string &corrjet_eta, 
-        const std::string &corrjet_phi,
-        const std::string &corrjet_area, 
+        const std::string &jet_L1_T1MET_pt,
+        const std::string &lowpt_jet_eta,
+        const std::string &lowpt_jet_phi,
+        const std::string &lowpt_jet_area,
         const std::string &gen_jet_pt,
         const std::string &gen_jet_eta, 
         const std::string &gen_jet_phi,
@@ -52,13 +50,11 @@ PtCorrection(ROOT::RDF::RNode df,
         const std::string &run, 
         const std::string &jec_file, 
         const std::string &jec_algo,
-        const std::string &jes_tag_mc, 
-        const std::string &jes_tag_data, 
+        const std::string &jes_tag, 
         const std::vector<std::string> &jes_shift_sources,
         const std::string &jer_tag,
         const int &jes_shift, const std::string &jer_shift,
-        const std::string &era, const bool &is_data,
-        const bool &is_embedding);
+        const std::string &era);
 
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
@@ -94,15 +90,14 @@ ROOT::RDF::RNode CutPileupID(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &jet_pt, const int &pu_id_cut,
                              const float &pt_cut);
 ROOT::RDF::RNode
-ApplyVetoMap(ROOT::RDF::RNode df, const std::string &outputname,
+VetoMap(ROOT::RDF::RNode df, const std::string &outputname,
              const std::string &jet_eta, const std::string &jet_phi,
              const std::string &vetomap_file, const std::string &vetomap_name,
              const std::string &vetomap_type);
 ROOT::RDF::RNode
-JetVetomap(
-    ROOT::RDF::RNode df,
+VetoMap(ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correctionManager,
-    const std::string &output_mask,
+    const std::string &outputname,
     const std::string &jet_pt,
     const std::string &jet_eta,
     const std::string &jet_phi,
@@ -114,8 +109,7 @@ JetVetomap(
     const std::string &jet_vetomap_type,
     const float &min_pt,
     const int &id_wp,
-    const float &max_em_frac
-);
+    const float &max_em_frac);
 ROOT::RDF::RNode
 VetoOverlappingJets(ROOT::RDF::RNode df, const std::string &outputname,
                     const std::string &jet_eta, const std::string &jet_phi,
@@ -144,8 +138,7 @@ PatchedIDNanoV12(
     const std::string &jet_ne_hef,
     const std::string &jet_ne_em_ef,
     const std::string &jet_mu_ef,
-    const std::string &jet_ch_em_ef
-);
+    const std::string &jet_ch_em_ef);
 ROOT::RDF::RNode 
 ID(ROOT::RDF::RNode df,
               correctionManager::CorrectionManager &correction_manager,

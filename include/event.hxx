@@ -66,18 +66,24 @@ inline auto CombineFlags(ROOT::RDF::RNode df, const std::string &outputname,
 
 namespace quantity {
 /**
- * @brief This function creates a mask column from a column of ulong64_t values:
- * returns 1 if the value is even, 0 if odd.
+ * @brief This function creates a flag column based on a quantity. 
+ * The flag is set to `true` if the quantity value is even and `false`
+ * if it is odd. This can be useful for splitting datasets into two subsets.
  *
+ * @tparam T type of the quantity (e.g. `ULong64_t`, `int`)
  * @param df input dataframe
- * @param outputname name of the new mask column
- * @param quantity name of the ulong64_t column
+ * @param outputname name of the new flag column
+ * @param quantity name of the column containing a quantity that can be used
+ * to define the flag (e.g., event ID)
  *
- * @return a dataframe with the new mask column
+ * @return a dataframe with the new flag column
  */
-inline ROOT::RDF::RNode EventMask(ROOT::RDF::RNode df, const std::string &outputname, const std::string &quantity) {
-    return df.Define(outputname, [](const ULong64_t &value) {
-        return (value % 2 == 0) ? 1 : 0;
+template <typename T>
+inline ROOT::RDF::RNode
+EvenOddFlag(ROOT::RDF::RNode df, const std::string &outputname,
+              const std::string &quantity) {
+    return df.Define(outputname, [](const T &quantity) {
+        return (quantity % 2 == 0) ? true : false;
     }, {quantity});
 }
 
@@ -85,7 +91,7 @@ inline ROOT::RDF::RNode EventMask(ROOT::RDF::RNode df, const std::string &output
  * @brief This function defines a flag for event quantities that satisfy a
  * minimum threshold requirement. The flag is created by comparing the value
  * in the specified quantity column with the given threshold, marking elements
- * as `1` if they pass the cut and `0` otherwise.
+ * as `true` if they pass the cut and `false` otherwise.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
@@ -102,7 +108,7 @@ MinFlag(ROOT::RDF::RNode df, const std::string &outputname,
        const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
-                         int flag = value >= threshold;
+                         bool flag = value >= threshold;
                          return flag;
                      },
                      {quantity});
@@ -112,7 +118,7 @@ MinFlag(ROOT::RDF::RNode df, const std::string &outputname,
  * @brief This function defines a flag for event quantities that satisfy a
  * minimum threshold requirement. The flag is created by comparing the absolute
  * value in the specified quantity column with the given threshold, marking
- * elements as `1` if they pass the cut and `0` otherwise.
+ * elements as `true` if they pass the cut and `false` otherwise.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
@@ -129,7 +135,7 @@ AbsMinFlag(ROOT::RDF::RNode df, const std::string &outputname,
        const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
-                         int flag = abs(value) >= threshold;
+                         bool flag = abs(value) >= threshold;
                          return flag;
                      },
                      {quantity});
@@ -139,7 +145,7 @@ AbsMinFlag(ROOT::RDF::RNode df, const std::string &outputname,
  * @brief This function defines a flag for event quantities that satisfy a
  * maximum threshold requirement. The flag is created by comparing the value
  * in the specified quantity column with the given threshold, marking elements
- * as `1` if they pass the cut and `0` otherwise.
+ * as `true` if they pass the cut and `false` otherwise.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
@@ -156,7 +162,7 @@ MaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
        const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
-                         int flag = value < threshold;
+                         bool flag = value < threshold;
                          return flag;
                      },
                      {quantity});
@@ -166,7 +172,7 @@ MaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
  * @brief This function defines a flag for event quantities that satisfy a
  * maximum threshold requirement. The flag is created by comparing the absolute
  * value in the specified quantity column with the given threshold, marking
- * elements as `1` if they pass the cut and `0` otherwise.
+ * elements as `true` if they pass the cut and `false` otherwise.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
@@ -183,7 +189,7 @@ AbsMaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
        const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
-                         int flag = abs(value) < threshold;
+                         bool flag = abs(value) < threshold;
                          return flag;
                      },
                      {quantity});
@@ -193,7 +199,7 @@ AbsMaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
  * @brief This function defines a flag for event quantities that satisfy an
  * exact threshold requirement. The flag is created by comparing the value in
  * the specified quantity column with the given threshold, marking elements as
- * `1` if they pass the cut and `0` otherwise.
+ * `true` if they pass the cut and `false` otherwise.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
@@ -210,7 +216,7 @@ EqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
          const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
-                         int flag = value == threshold;
+                         bool flag = value == threshold;
                          return flag;
                      },
                      {quantity});
@@ -220,7 +226,7 @@ EqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
  * @brief This function defines a flag for event quantities that satisfy an
  * exact threshold requirement. The flag is created by comparing the absolute
  * value in the specified quantity column with the given threshold, marking
- * elements as `1` if they pass the cut and `0` otherwise.
+ * elements as `true` if they pass the cut and `false` otherwise.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
@@ -237,7 +243,7 @@ AbsEqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
          const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
-                         int flag = abs(value) == threshold;
+                         bool flag = abs(value) == threshold;
                          return flag;
                      },
                      {quantity});
@@ -823,6 +829,23 @@ namespace filter {
 inline ROOT::RDF::RNode Flag(ROOT::RDF::RNode df, const std::string &filtername,
                              const std::string &flagname) {
     return df.Filter([](const bool flag) { return flag; }, {flagname},
+                     filtername);
+}
+
+/**
+ * @brief This function applies a filter to the input dataframe based on a
+ * boolean flag column. It returns only the rows where the flag value is `false`.
+ *
+ * @param df input dataframe
+ * @param filtername name of the filter to be applied (used in the dataframe
+ * report)
+ * @param flagname name of the boolean flag column to use for filtering
+ *
+ * @return a filtered dataframe
+ */
+inline ROOT::RDF::RNode InvertedFlag(ROOT::RDF::RNode df, const std::string &filtername,
+                             const std::string &flagname) {
+    return df.Filter([](const bool flag) { return !flag; }, {flagname},
                      filtername);
 }
 

@@ -58,16 +58,16 @@ namespace ditau_pairselection {
  * particles.
  *
  * @param df the Dataframe
+ * @param outputname name of the new column containing the GenDiTauPair
  * @param recopair the column containing the DiTauPair vector
  * @param genindex_particle1 the column containing the index of the GenParticle
  * reference for the first pair particle
  * @param genindex_particle2 the column containing the index of the GenParticle
  * reference for the second pair particle
- * @param genpairname name of the new column containing the GenDiTauPair
  * @return a new Dataframe with the GenDiTauPair column
  */
 ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df,
-                              const std::string &genpairname,
+                              const std::string &outputname,
                               const std::string &recopair,
                               const std::string &genindex_particle1,
                               const std::string &genindex_particle2) {
@@ -91,7 +91,7 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df,
             ->debug("matching GenDiTauPair: {}", genpair);
         return genpair;
     };
-    return df2.Define(genpairname, getGenPair,
+    return df2.Define(outputname, getGenPair,
                      {recopair, genindex_particle1_column, genindex_particle2_column});
 }
 
@@ -103,6 +103,8 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df,
  mother particle.
  *
  * @param df the Dataframe
+ * @param outputname name of the new column containing the index of the two selected gen
+ particles
  * @param statusflags the column containing the status flags of the gen
  particles
  * @param status the column containing the status of the genparticles (status=1
@@ -112,8 +114,6 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df,
  the gen particles
  * @param pts the column containing the pt of the gen particles (used for
  sorting the particles by pt)
- * @param genpair the output column containing the index of the two selected gen
- particles
  * @param mother_pdgid the PDGID of the mother particle
  * @param daughter_1_pdgid the PDGID of the first daughter particle
  * @param daughter_2_pdgid the PDGID of the second daughter particle
@@ -122,7 +122,7 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df,
 
 ROOT::RDF::RNode
 buildtruegenpair(ROOT::RDF::RNode df, 
-                 const std::string &genpair,
+                 const std::string &outputname,
                  const std::string &statusflags,
                  const std::string &status, 
                  const std::string &pdgids,
@@ -251,7 +251,7 @@ buildtruegenpair(ROOT::RDF::RNode df,
 
         return genpair;
     };
-    return df2.Define(genpair, getTrueGenPair,
+    return df2.Define(outputname, getTrueGenPair,
                      {statusflags_column, status, pdgids, motherids_column, pts});
 }
 /// This function flags events, where a suitable particle pair is found.
