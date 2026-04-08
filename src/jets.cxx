@@ -1423,7 +1423,7 @@ ROOT::RDF::RNode PatchedIDNanoV12(
             if (abs(jet_eta.at(i)) <= 2.7) {
                 pass_tight = jet_id.at(i) & (1 << 1);
             } else if (abs(jet_eta.at(i)) > 2.7 && abs(jet_eta.at(i)) <= 3.0) {
-                pass_tight = (jet_id.at(i) & (1 << 1)) && (jet_ne_hef.at(i) < 0.99);
+                pass_tight = (jet_id.at(i) & (1 << 1)) && (jet_ne_h_ef.at(i) < 0.99);
             } else if (abs(jet_eta.at(i)) > 3.0) {
                 pass_tight = (jet_id.at(i) & (1 << 1)) && (jet_ne_em_ef.at(i) < 0.4);
             }
