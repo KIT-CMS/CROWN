@@ -102,14 +102,13 @@ PtCorrectionL1(ROOT::RDF::RNode df,
                const std::string &rho, 
                const std::string &jec_file, 
                const std::string &jec_algo,
-               const std::string &jes_tag,
-               const std::string &era) {
+               const std::string &jes_tag) {
     
     // loading jet energy correction scale factor function
     auto jes_l1_evaluator = correction_manager.loadCorrection(
         jec_file, jes_tag + "_L1FastJet_" + jec_algo);
 
-    auto L1_T1MET_lambda = [jes_l1_evaluator, era](
+    auto L1_T1MET_lambda = [jes_l1_evaluator](
                     const ROOT::RVec<float> &jet_raw_pts,
                     const ROOT::RVec<float> &jet_etas,
                     const ROOT::RVec<float> &jet_phis,
@@ -136,7 +135,7 @@ PtCorrectionL1(ROOT::RDF::RNode df,
         }
         return corrected_pts;
     };
-    auto L1_lambda = [jes_l1_evaluator, era](
+    auto L1_lambda = [jes_l1_evaluator](
                     const ROOT::RVec<float> &jet_raw_pts,
                     const ROOT::RVec<float> &jet_etas,
                     const ROOT::RVec<float> &jet_phis,
@@ -310,7 +309,7 @@ PtCorrectionL2L3(ROOT::RDF::RNode df,
 
         l3 = jes_l3_evaluator->evaluate({eta, pt});
 
-        if (era_year >= 2023 && is_data) {
+        if (is_data) {
             l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, pt});
         } else {
             if (era == "2024" && pt < 30.0 && 2.0 < abs(eta) < 2.5) l2l3 = jes_l2l3_evaluator->evaluate({eta, 30.0});
@@ -854,7 +853,7 @@ PtCorrectionData(ROOT::RDF::RNode df,
                  const std::string &rho, const std::string &run,
                  const std::string &jec_file, const std::string &jec_algo,
                  const std::string &jes_tag, const std::string &era) {
-    if (jes_tag != "") {
+    if (jes_tag != "NONE") {
 
         // loading jet energy correction scale factor function
         auto jes_l1_evaluator = correction_manager.loadCorrection(

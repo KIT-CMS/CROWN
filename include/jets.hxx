@@ -26,8 +26,7 @@ PtCorrectionL1(ROOT::RDF::RNode df,
         const std::string &rho, 
         const std::string &jec_file, 
         const std::string &jec_algo,
-        const std::string &jes_tag, 
-        const std::string &era);
+        const std::string &jes_tag);
 ROOT::RDF::RNode
 PtCorrectionL2L3(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
