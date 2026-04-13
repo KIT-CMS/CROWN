@@ -58,7 +58,7 @@ PtCorrectionL1(ROOT::RDF::RNode df,
     // get the algorithm tag 
     std::string jes_tag;
     if (is_data || is_embedding) jes_tag = jes_tag_data;
-    else jes_tag = jes_tag_data;
+    else jes_tag = jes_tag_mc;
 
     // loading jet energy correction scale factor function
     auto jes_l1_evaluator = correction_manager.loadCorrection(
@@ -156,7 +156,7 @@ PtCorrection(ROOT::RDF::RNode df,
     // get the algorithm tag
     std::string jes_tag;
     if (is_data || is_embedding) jes_tag = jes_tag_data;
-    else jes_tag = jes_tag_data;
+    else jes_tag = jes_tag_mc;
 
     // identifying jet radius from algorithm
     float jet_radius = 0.4;

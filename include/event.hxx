@@ -66,19 +66,26 @@ inline auto CombineFlags(ROOT::RDF::RNode df, const std::string &outputname,
 
 namespace quantity {
 /**
- * @brief This function creates a mask column from a column of ulong64_t values:
- * returns 1 if the value is even, 0 if odd.
+ * @brief This function filters events based on a column of ulong64_t values.
+ * The filter mode determines which values are kept:
+ * - mode = 0: keeps events where the value is even
+ * - mode = 1: keeps events where the value is odd
  *
  * @param df input dataframe
- * @param outputname name of the new mask column
+ * @param filtername name of the filter (used in the dataframe report)
  * @param quantity name of the ulong64_t column
+ * @param mode filter mode: 0 for even values (default), 1 for odd values
  *
- * @return a dataframe with the new mask column
+ * @return a filtered dataframe
  */
-inline ROOT::RDF::RNode EventMask(ROOT::RDF::RNode df, const std::string &outputname, const std::string &quantity) {
-    return df.Define(outputname, [](const ULong64_t &value) {
-        return (value % 2 == 0) ? 1 : 0;
-    }, {quantity});
+inline ROOT::RDF::RNode EventMask(ROOT::RDF::RNode df, const std::string &filtername, const std::string &quantity, const int &era) {
+    return df.Filter([era](const ULong64_t &value) {
+        if (era % 2 == 0) {
+            return value % 2 == 0;  // keep even values
+        } else {
+            return value % 2 == 1;  // keep odd values
+        }
+    }, {quantity}, filtername);
 }
 
 /**
