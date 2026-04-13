@@ -42,7 +42,7 @@ def run(args):
         available_samples,
         available_eras,
         available_scopes,
-        DAG_dir = args.output
+        DAG_dir = f"{args.output}/visualization"
     )
     # create a CodeGenerator object
     generator = CodeGenerator(
