@@ -18,8 +18,11 @@ class GraphParser:
         self.inputs = defaultdict(lambda: defaultdict(list))
         self.outputs = defaultdict(lambda: defaultdict(list))
         self.vec_output_mappings = {}
-        self.in_file_name = "IN_File"
-        self.out_file_name = "OUT_File"
+
+        # Sets to track which nodes act as Entry (In) or Exit (Out) points
+        self.in_nodes = set()
+        self.out_nodes = set()
+
         self.DAG_data = {}
         self.DAG_dir = DAG_dir
 
@@ -31,6 +34,7 @@ class GraphParser:
         path = f"{name}_{self.config.era}_{self.config.sample}_{scope}.json"
         if self.DAG_dir:
             path = os.path.join(self.DAG_dir, path)
+            os.makedirs(self.DAG_dir, exist_ok=True)
 
         scope_DAG_data = self.DAG_data[scope]
         if scope != "global":
@@ -67,15 +71,21 @@ class GraphParser:
         with open(config_path, 'w') as f:
             json.dump(data, f, indent=4)
 
-        print(f"Updated {config_path} with {new_era}/{new_sample}/{new_scope}")
+        if self.debugging:
+            print(f"Updated {config_path} with {new_era}/{new_sample}/{new_scope}")
 
     def add_output(self, output_name, output_node, scope):
         """Registers a node as the creator of a specific output."""
-        self.outputs[scope][output_name].append(f"{scope}_{output_node}")
+        node_id = f"{scope}_{output_node}"
+        if node_id in self.outputs[scope][output_name]:
+            raise ValueError(f"Node {node_id} already exists in output nodes.")
+        self.outputs[scope][output_name].append(node_id)
 
     def add_input(self, input_name, input_node, scope):
         """Registers a node's requirement for a specific input."""
         scoped_input = f"{scope}_{input_node}"
+        if input_name in self.inputs[scope][scoped_input]:
+            raise ValueError(f"Input {input_name} already exists in inputs.")
         self.inputs[scope][scoped_input].append(input_name)
 
     def add_node(self, id_name, name=None, scope="global", parent=None, node_type=None):
@@ -93,7 +103,12 @@ class GraphParser:
 
     def add_edge(self, source, target, scope, name):
         """Creates a directional edge between a source node and a target node."""
-        self.edges[scope].append({"data": {"source": source, "target": target, "label": name}})
+        if not any(e["data"]["source"] == source and
+            e["data"]["target"] == target and
+            e["data"]["label"] == name
+            for e in self.edges[scope]):
+            # raise ValueError(f"Edge {name} between {source} and {target} already exists.")
+            self.edges[scope].append({"data": {"source": source, "target": target, "label": name}})
 
     def parse_from_call(self, producer, parent, scope, align=""):
         """
@@ -137,8 +152,6 @@ class GraphParser:
         The main orchestrator. Iterates through all scopes of the configuration,
         generates the inputs/outputs/nodes, verifies output ambiguity, and creates edges.
         """
-        self.add_node(id_name=self.in_file_name, node_type="I/O")
-
         for scope in self.config.scopes:
             if self.debugging:
                 print(f"\nFor scope {scope}:")
@@ -148,32 +161,43 @@ class GraphParser:
             for p in self.config.producers[scope]:
                 self.parse_producer(producer=p, parent="scope", scope=scope, align="    ")
 
-            # Parse outputs and connect to out_file_name
-            for output in self.config.outputs[scope]:
-                if isinstance(output, QuantityGroup):
-                    vec_config = self.config.config_parameters[scope][output.vec_config]
-                    vec_output_name = self.vec_output_mappings[output.name]
-                    for o in vec_config:
-                        self.add_input(o[vec_output_name], f"{self.out_file_name}", scope)
-                else:
-                    self.add_input(output.name, f"{self.out_file_name}", scope)
-
-            self.add_node(
-                id_name=self.out_file_name,
-                name=f"{scope}_{self.out_file_name}",
-                scope=scope,
-                node_type="I/O",
-            )
-
         # Check outputs for ambiguous assignments (multiple origins for the same output)
         for scope in self.config.scopes:
-            all_keys = list(self.outputs["global"].keys()) + list(self.outputs[scope].keys())
+            all_keys = list(set(list(self.outputs["global"].keys()) + list(self.outputs[scope].keys())))
             for key in all_keys:
                 total_output_nodes = self.outputs["global"].get(key, []) + self.outputs[scope].get(key, [])
                 if len(set(total_output_nodes)) != 1:
                     raise ValueError(f"Output {key} has multiple origins: {total_output_nodes}")
 
         self.assemble_edges()
+
+        # Determine Output nodes by tracing configured scope outputs back to their producers
+        for scope in self.config.scopes:
+            if hasattr(self.config, 'outputs') and scope in self.config.outputs:
+                for output in self.config.outputs[scope]:
+                    if isinstance(output, QuantityGroup):
+                        if output.vec_config in self.config.config_parameters.get(scope, {}):
+                            vec_config = self.config.config_parameters[scope][output.vec_config]
+                            vec_output_name = self.vec_output_mappings.get(output.name)
+                            if vec_output_name:
+                                for o in vec_config:
+                                    req_out = o.get(vec_output_name)
+                                    if req_out:
+                                        producers = self.outputs[scope].get(req_out, []) + self.outputs["global"].get(req_out, [])
+                                        self.out_nodes.update(producers)
+                    else:
+                        req_out = output.name
+                        producers = self.outputs[scope].get(req_out, []) + self.outputs["global"].get(req_out, [])
+                        self.out_nodes.update(producers)
+
+        # Inject in/out state explicitly into the node data dicts for Cytoscape parsing
+        for scope in self.config.scopes + ["global"]:
+            for node in self.nodes[scope]:
+                node_id = node["data"]["id"]
+                if node_id in self.in_nodes:
+                    node["data"]["is_in"] = True
+                if node_id in self.out_nodes:
+                    node["data"]["is_out"] = True
 
         # Compile final DAG data
         for scope in self.config.scopes:
@@ -182,7 +206,7 @@ class GraphParser:
     def assemble_edges(self):
         """
         Resolves the inputs vs. outputs mappings to draw the actual connecting
-        lines (edges) between nodes in the DAG.
+        lines (edges) between nodes in the DAG. Records IN scope nodes.
         """
         for scope in self.config.scopes + ["global"]:
             for target_node, required_inputs in self.inputs[scope].items():
@@ -192,14 +216,14 @@ class GraphParser:
                 for req_input in required_inputs:
                     if self.outputs["global"].get(req_input):
                         source = self.outputs["global"][req_input][0]
+                        compose[source].append(req_input)
                     elif self.outputs[scope].get(req_input):
                         source = self.outputs[scope][req_input][0]
+                        compose[source].append(req_input)
                     elif req_input in self.nanoAOD_inputs:
-                        source = f"global_{self.in_file_name}"
+                        self.in_nodes.add(target_node) # Consumes external inputs directly
                     else:
                         raise ValueError(f"Input {req_input} is missing from NanoAOD and producers.")
-
-                    compose[source].append(req_input)
 
                 # Create edges grouped by source node
                 for source_node, input_names in compose.items():
@@ -209,7 +233,6 @@ class GraphParser:
                     self.add_edge(source=source_node, target=target_node, scope=scope, name=composite_name)
 
     def parse_VectorProducer(self, producer, parent, scope, align=""):
-        """Handles legacy vector producers by passing them to the regex parser."""
         if self.debugging:
             print(align + f"Adding VectorProducer: {producer.name}")
         print(f"!!! {producer.name} is a legacy producer and should be replaced with ExtendedVectorProducer !!!")
@@ -220,7 +243,6 @@ class GraphParser:
             raise NotImplementedError(f"The call {producer.call} does not have legacy support.")
 
     def parse_ExtendedVectorProducer(self, producer, parent, scope, align=""):
-        """Handles extended vector producers, mapping nested inputs and outputs."""
         if self.debugging:
             print(align + f"Adding ExtendedVectorProducer: {producer.name}")
 
@@ -237,7 +259,7 @@ class GraphParser:
             self.add_node(id_name=vector_id, name=vector_name, scope=scope, parent=group_id)
 
             if isinstance(producer.input[scope], list):
-                for n in producer.input[scope]:
+                for n in set(producer.input[scope]):
                     self.add_input(n.name, vector_id, scope)
                     if self.debugging:
                         print(align + "        " + f"Adding Input: {n.name}")
@@ -250,7 +272,6 @@ class GraphParser:
                     print(align + "        " + f"Adding Output: {vec_output}")
 
     def parse_ProducerGroup(self, producer, parent, scope, align=""):
-        """Recursively parses a group of sub-producers, grouping them under a common parent."""
         if self.debugging:
             print(align + f"Adding ProducerGroup: {producer.name}")
 
@@ -261,7 +282,6 @@ class GraphParser:
             self.parse_producer(producer=p, parent=group_id, scope=scope, align=align + "    ")
 
     def parse_Filter(self, producer, parent, scope, align=""):
-        """Recursively parses a group of filters under a common parent group."""
         if self.debugging:
             print(align + f"Adding Filter Group: {producer.name}")
 
@@ -272,41 +292,35 @@ class GraphParser:
             self.parse_producer(producer=p, parent=group_id, scope=scope, align=align + "    ")
 
     def parse_BaseFilter(self, producer, parent, scope, align=""):
-        """Parses a base level filter node and records its required inputs."""
         if self.debugging:
             print(align + f"Adding BaseFilter: {producer.name}")
         print(f"!!! {producer.name} is a legacy producer and should be replaced with Filter !!!")
 
         self.add_node(id_name=producer.name, scope=scope, parent=parent)
-        for n in producer.input[scope]:
+        for n in set(producer.input[scope]):
             self.add_input(n.name, producer.name, scope)
             if self.debugging:
                 print(align + "    " + f"Adding Input: {n.name}")
 
     def parse_Producer(self, producer, parent, scope, align=""):
-        """Parses a standard producer node, mapping its simple list of inputs and outputs."""
         if self.debugging:
             print(align + f"Adding Producer: {producer.name}")
 
         self.add_node(id_name=producer.name, scope=scope, parent=parent)
 
         if isinstance(producer.input[scope], list):
-            for n in producer.input[scope]:
+            for n in set(producer.input[scope]):
                 self.add_input(n.name, producer.name, scope)
                 if self.debugging:
                     print(align + "    " + f"Adding Input: {n.name}")
 
         if isinstance(producer.output, list):
-            for n in producer.output:
+            for n in set(producer.output):
                 self.add_output(n.name, producer.name, scope)
                 if self.debugging:
                     print(align + "    " + f"Adding Output: {n.name}")
 
     def parse_producer(self, producer, parent, scope, align=""):
-        """
-        Routing method. Determines the class type of the producer and dispatches
-        it to the appropriate specific parsing method dynamically.
-        """
         class_name = producer.__class__.__name__
         parser_method = getattr(self, f"parse_{class_name}", None)
 
@@ -315,10 +329,9 @@ class GraphParser:
         else:
             raise NotImplementedError(f"Unknown Producer class {class_name}")
 
-
-def create_graph(configuration, nanoAOD_inputs, DAG_dir, json_name):
+def create_graph(configuration, nanoAOD_inputs, DAG_dir, json_name, debugging=False):
     """Entry point function to instantiate a GraphParser and execute generation."""
-    graph = GraphParser(configuration, nanoAOD_inputs, DAG_dir, debugging=False)
+    graph = GraphParser(configuration, nanoAOD_inputs, DAG_dir, debugging=debugging)
     graph.generate_graph()
     for scope in graph.config.scopes:
         graph.save_graph(scope, json_name)
