@@ -318,7 +318,7 @@ PtCorrectionL2L3(ROOT::RDF::RNode df,
         return l2 * l3 * l2l3;
     };
 
-     // loading relative pT resolution function
+    // loading relative pT resolution function
     auto jer_resolution_evaluator = correction_manager.loadCorrection(
         jec_file, jer_tag + "_PtResolution_" + jec_algo);
     auto jet_energy_resolution = [jer_resolution_evaluator](const float eta,
