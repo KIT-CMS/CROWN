@@ -212,7 +212,7 @@ if __name__ == "__main__":
         "-o",
         "--output-file",
         required=True,
-        help="Name of the output Python file. The file is saved in 'analysis_configurations/quantities/'",
+        help="Name of the output Python file (with .py). The file is saved in 'analysis_configurations/quantities/'",
         metavar="OUT_FILE",
     )
 

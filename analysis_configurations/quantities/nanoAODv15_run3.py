@@ -5257,10 +5257,18 @@ MC_PFScouting = NanoAODQuantity("MC_PFScouting")
 HLTriggerFinalPath = NanoAODQuantity("HLTriggerFinalPath")
 """dtype: Bool_t; description: Trigger/flag bit (process: HLT) """
 
-TauEmbedding_SelectionNewMass = NanoAODQuantity("TauEmbedding_SelectionNewMass")
-"""dtype: Float_t; description: Mass of the Dimuon pair using the new selection algorithm (for internal studies only) """
-TauEmbedding_SelectionOldMass = NanoAODQuantity("TauEmbedding_SelectionOldMass")
-"""dtype: Float_t; description: Mass of the Dimuon pair using the old selection algorithm (for internal studies only) """
+TauEmbedding_chargeLeadingMuon = NanoAODQuantity("TauEmbedding_chargeLeadingMuon")
+"""dtype: Float_t; description: leading muon charge """
+TauEmbedding_chargeTrailingMuon = NanoAODQuantity("TauEmbedding_chargeTrailingMuon")
+"""dtype: Float_t; description: trailing muon charge """
+TauEmbedding_dbLeadingMuon = NanoAODQuantity("TauEmbedding_dbLeadingMuon")
+"""dtype: Float_t; description: leading muon DB """
+TauEmbedding_dbTrailingMuon = NanoAODQuantity("TauEmbedding_dbTrailingMuon")
+"""dtype: Float_t; description: trailing muon DB """
+TauEmbedding_etaLeadingMuon = NanoAODQuantity("TauEmbedding_etaLeadingMuon")
+"""dtype: Float_t; description: leading muon eta """
+TauEmbedding_etaTrailingMuon = NanoAODQuantity("TauEmbedding_etaTrailingMuon")
+"""dtype: Float_t; description: trailing muon eta """
 TauEmbedding_initialMETEt = NanoAODQuantity("TauEmbedding_initialMETEt")
 """dtype: Float_t; description: MET Et of selected event """
 TauEmbedding_initialMETphi = NanoAODQuantity("TauEmbedding_initialMETphi")
