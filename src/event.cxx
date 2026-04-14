@@ -1,10 +1,12 @@
 #ifndef GUARD_EVENT_H
 #define GUARD_EVENT_H
 
+#include "../include/defaults.hxx"
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "TRandom3.h"
+#include <cmath>
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
 
@@ -68,10 +70,91 @@ GenerateSeed(
     );
 }
 
+/**
+ * @brief This function selects the embedding muon Lorentz vector that matches
+ * the charge of the reconstructed particle.
+ *
+ * The reconstructed particle charge is compared to the charges of the two
+ * embedding muons. If the charge matches the first embedding muon, its Lorentz
+ * vector is returned. If it matches the second embedding muon, the second
+ * Lorentz vector is returned. If no charge match is found, a default Lorentz
+ * vector is returned and the corresponding `HasEmbeddingMuonChargeMatch`
+ * helper is expected to veto the event later.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the matched embedding muon Lorentz vector
+ * @param reco_q name of the reconstructed particle charge column
+ * @param emb_q_1 name of the leading embedding muon charge column
+ * @param emb_q_2 name of the trailing embedding muon charge column
+ * @param emb_p4_1 name of the leading embedding muon Lorentz vector column
+ * @param emb_p4_2 name of the trailing embedding muon Lorentz vector column
+ *
+ * @return a dataframe with the new Lorentz vector column
+ */
+ROOT::RDF::RNode MatchEmbeddingMuonP4ByCharge(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &reco_q,
+    const std::string &emb_q_1,
+    const std::string &emb_q_2,
+    const std::string &emb_p4_1,
+    const std::string &emb_p4_2) {
+    auto match_embedding_muon =
+        [](const int &reco_q,
+           const float &emb_q_1,
+           const float &emb_q_2,
+           const ROOT::Math::PtEtaPhiMVector &emb_p4_1,
+           const ROOT::Math::PtEtaPhiMVector &emb_p4_2) {
+            if (reco_q == static_cast<int>(emb_q_1)) {
+                return emb_p4_1;
+            }
+            if (reco_q == static_cast<int>(emb_q_2)) {
+                return emb_p4_2;
+            }
+            return default_lorentzvector;
+        };
+
+    return df.Define(outputname,
+                     match_embedding_muon,
+                     {reco_q, emb_q_1, emb_q_2, emb_p4_1, emb_p4_2});
+}
+
+/**
+ * @brief This function checks whether the reconstructed particle charge matches
+ * the charge of at least one embedding muon.
+ *
+ * The reconstructed particle charge is compared to the charges of the two
+ * embedding muons. The returned flag is `1` if a charge match is found and `0`
+ * otherwise. This keeps the old selection logic explicit before the `DeltaR`
+ * cut is applied.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the charge-match flag
+ * @param reco_q name of the reconstructed particle charge column
+ * @param emb_q_1 name of the leading embedding muon charge column
+ * @param emb_q_2 name of the trailing embedding muon charge column
+ *
+ * @return a dataframe with the new flag column
+ */
+ROOT::RDF::RNode HasEmbeddingMuonChargeMatch(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &reco_q,
+    const std::string &emb_q_1,
+    const std::string &emb_q_2) {
+    auto has_match = [](const int &reco_q,
+                        const float &emb_q_1,
+                        const float &emb_q_2) {
+        return static_cast<int>(reco_q == static_cast<int>(emb_q_1) ||
+                                reco_q == static_cast<int>(emb_q_2));
+    };
+
+    return df.Define(outputname, has_match, {reco_q, emb_q_1, emb_q_2});
+}
+
 } // end namespace quantity
 
 namespace filter {
-
 /**
  * @brief This function applies a filter to the input dataframe using a Golden
  * JSON file, which contains a mapping of valid run-luminosity pairs. The

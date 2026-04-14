@@ -114,39 +114,39 @@ bool matchParticle(const ROOT::Math::PtEtaPhiMVector &particle,
         bool id = triggerobject_ids[idx] == trigger_particle_id_value;
 
         Logger::get("trigger::matchParticle")
-            ->debug("-------------------------------------------------------");
+            ->info("-------------------------------------------------------");
 
         Logger::get("trigger::matchParticle")
-            ->debug("deltaR_threshold: {}, Check: {}", deltaR_threshold, deltaR);
+            ->info("deltaR_threshold: {}, Check: {}", deltaR_threshold, deltaR);
         Logger::get("trigger::matchParticle")
-            ->debug("deltaR value: {}",
+            ->info("deltaR value: {}",
                 ROOT::Math::VectorUtil::DeltaR(triggerobject, particle));
 
         Logger::get("trigger::matchParticle")
-            ->debug("trigger_particle_id_value: {}, Check: {}",
+            ->info("trigger_particle_id_value: {}, Check: {}",
                 trigger_particle_id_value, id);
         Logger::get("trigger::matchParticle")
-            ->debug("id value: {}", triggerobject_ids[idx]);
+            ->info("id value: {}", triggerobject_ids[idx]);
 
         Logger::get("trigger::matchParticle")
-            ->debug("trigger_bit_value: {}, Check: {}", trigger_bit_value, bit);
+            ->info("trigger_bit_value: {}, Check: {}", trigger_bit_value, bit);
         Logger::get("trigger::matchParticle")
-            ->debug("bit value: {}", IntBits(triggerobject_filterbits[idx]));
+            ->info("bit value: {}", IntBits(triggerobject_filterbits[idx]));
 
         Logger::get("trigger::matchParticle")
-            ->debug("pt_threshold: {}, Check: {}", pt_threshold, pt);
+            ->info("pt_threshold: {}, Check: {}", pt_threshold, pt);
         Logger::get("trigger::matchParticle")
-            ->debug("pt value (trg): {}, pt value (reco): {}",
+            ->info("pt value (trg): {}, pt value (reco): {}",
                 triggerobject_pts[idx], particle.pt());
 
         Logger::get("trigger::matchParticle")
-            ->debug("eta_threshold: {}, Check: {}", eta_threshold, eta);
+            ->info("eta_threshold: {}, Check: {}", eta_threshold, eta);
         Logger::get("trigger::matchParticle")
-            ->debug("eta (trg) value: {}, eta (reco) value: {}",
+            ->info("eta (trg) value: {}, eta (reco) value: {}",
                 triggerobject_etas[idx], abs(particle.eta()));
 
         Logger::get("trigger::matchParticle")
-            ->debug("-------------------------------------------------------");
+            ->info("-------------------------------------------------------");
         if (deltaR && bit && id && pt && eta) {
             // remove the matching object from the object vectors so it cannot be
             // matched by the next particle as well (if there is one)
@@ -235,7 +235,7 @@ ROOT::RDF::RNode SingleObjectFlag(
         bool match_result = false;
         if (hlt_path_match) {
             Logger::get("trigger::SingleObjectFlag")
-                ->debug("Checking triggerobject match with particle ....");
+                ->info("Checking triggerobject match with particle ....");
             match_result = matchParticle(
                 particle, triggerobject_pts, triggerobject_etas,
                 triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
@@ -244,11 +244,11 @@ ROOT::RDF::RNode SingleObjectFlag(
         }
         bool result = hlt_path_match & match_result;
         Logger::get("trigger::SingleObjectFlag")
-            ->debug("---> HLT Matching: {}", hlt_path_match);
+            ->info("---> HLT Matching: {}", hlt_path_match);
         Logger::get("trigger::SingleObjectFlag")
-            ->debug("---> Object Matching: {}", match_result);
+            ->info("---> Object Matching: {}", match_result);
         Logger::get("trigger::SingleObjectFlag")
-            ->debug("--->>>> result: {}", result);
+            ->info("--->>>> result: {}", result);
         return match_result;
     };
     auto available_trigger = df.GetColumnNames();
