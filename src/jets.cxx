@@ -162,7 +162,7 @@ PtCorrectionL1(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief This function applies the L2, L3, and L2L3 energy corrections to
+ * @brief This function applies the L2, and L2L3 energy corrections to
  * already L1 corrected jet momenta based on the recommendations of JME POG.
  * More details: https://cms-jerc.web.cern.ch/JES/. It calculates corrected
  * jet momenta for both standard and low-pt jets, and stores the results in
@@ -282,22 +282,18 @@ PtCorrectionL2L3(ROOT::RDF::RNode df,
     auto jes_l2_evaluator = correction_manager.loadCorrection(
         jec_file, jes_tag + "_L2Relative_" + jec_algo);
 
-    auto jes_l3_evaluator = correction_manager.loadCorrection(
-        jec_file, jes_tag + "_L3Absolute_" + jec_algo);
-
     auto jes_l2l3_evaluator = correction_manager.loadCorrection(
         jec_file, jes_tag + "_L2L3Residual_" + jec_algo);
     
     // Create a unified lambda that handles both era cases
-    auto jet_energy_scale_sf = [jes_l2_evaluator, jes_l3_evaluator,
-                                jes_l2l3_evaluator, is_data](const float eta,
-                                                             const float pt,
-                                                             const float phi,
-                                                             const unsigned int run,
-                                                             const std::string &era) {
+    auto jet_energy_scale_sf = [jes_l2_evaluator, jes_l2l3_evaluator,
+                                is_data](const float eta,
+                                         const float pt,
+                                         const float phi,
+                                         const unsigned int run,
+                                         const std::string &era) {
 
         double l2 = 1.0;
-        double l3 = 1.0;
         double l2l3 = 1.0;
         int era_year = std::stoi(era.substr(0, 4));
         
@@ -306,16 +302,13 @@ PtCorrectionL2L3(ROOT::RDF::RNode df,
         } else {
             l2 = jes_l2_evaluator->evaluate({eta, phi, pt});
         }
-
-        l3 = jes_l3_evaluator->evaluate({eta, pt});
-
         if (is_data) {
-            l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, pt});
-        } else {
-            if (era == "2024" && pt < 30.0 && 2.0 < abs(eta) < 2.5) l2l3 = jes_l2l3_evaluator->evaluate({eta, 30.0});
-            else l2l3 = jes_l2l3_evaluator->evaluate({eta, pt});
+            float _pt;
+            if (era == "2024" && pt < 30.0 && 2.0 < abs(eta) < 2.5) _pt = 30.0;
+            else _pt = pt;
+            l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, _pt});
         }
-        return l2 * l3 * l2l3;
+        return l2 * l2l3;
     };
 
     // loading relative pT resolution function
@@ -358,7 +351,7 @@ PtCorrectionL2L3(ROOT::RDF::RNode df,
             // L1 already applied by previous producer
             float pt_corr = pts.at(i);
             
-            // --- L2, L3 and L2L3Residual (DATA only)
+            // --- L2 and L2L3Residual (DATA only)
             float corr_factor = jet_energy_scale_sf(etas.at(i), pt_corr, phis.at(i), run, era);
             pt_corr *= corr_factor;
 
@@ -370,7 +363,6 @@ PtCorrectionL2L3(ROOT::RDF::RNode df,
             if (!is_data) {
                 float pt_scale_sf = 1.0;
                 if (jes_shift != 0.0) {
-                    // double jesShift = 1.0;
                     if (jes_shift_sources.at(0) != "HEMIssue") {
                         if (jet_energy_scale_shifts.size() == 1) {
                             pt_scale_sf =
