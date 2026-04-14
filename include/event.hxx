@@ -345,6 +345,13 @@ ROOT::RDF::RNode HasEmbeddingMuonChargeMatch(
     const std::string &emb_q_1,
     const std::string &emb_q_2);
 
+// Require opposite charge for a reconstructed dilepton pair.
+ROOT::RDF::RNode HasOppositeCharge(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &q_1,
+    const std::string &q_2);
+
 /**
  * @brief This function creates a new column in the dataframe by applying
  * element-wise negation to an existing `quantity` column.

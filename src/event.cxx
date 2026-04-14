@@ -152,6 +152,32 @@ ROOT::RDF::RNode HasEmbeddingMuonChargeMatch(
     return df.Define(outputname, has_match, {reco_q, emb_q_1, emb_q_2});
 }
 
+/**
+ * @brief This function checks whether two reconstructed particles have
+ * opposite charge.
+ *
+ * The returned flag is `true` if the product of the two charges is `-1`,
+ * i.e. one particle is positively charged and the other negatively charged.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the opposite-sign flag
+ * @param q_1 name of the first reconstructed charge column
+ * @param q_2 name of the second reconstructed charge column
+ *
+ * @return a dataframe with the new boolean flag column
+ */
+ROOT::RDF::RNode HasOppositeCharge(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &q_1,
+    const std::string &q_2) {
+    auto has_opposite_charge = [](const int &q_1, const int &q_2) {
+        return q_1 * q_2 == -1;
+    };
+
+    return df.Define(outputname, has_opposite_charge, {q_1, q_2});
+}
+
 } // end namespace quantity
 
 namespace filter {

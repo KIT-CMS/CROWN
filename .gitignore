@@ -23,6 +23,7 @@ env.bak/
 venv.bak/
 .vscode
 .vscode/
+.codex
 
 # Jupyter Notebook
 .ipynb_checkpoints
