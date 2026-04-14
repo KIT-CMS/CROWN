@@ -107,7 +107,23 @@ PtCorrectionL1(ROOT::RDF::RNode df,
     // loading jet energy correction scale factor function
     auto jes_l1_evaluator = correction_manager.loadCorrection(
         jec_file, jes_tag + "_L1FastJet_" + jec_algo);
+    
+    auto L1_lambda = [jes_l1_evaluator](
+                    const ROOT::RVec<float> &jet_raw_pts,
+                    const ROOT::RVec<float> &jet_etas,
+                    const ROOT::RVec<float> &jet_phis,
+                    const ROOT::RVec<float> &jet_areas,
+                    const float &rho) {
 
+        ROOT::RVec<float> corrected_pts(jet_raw_pts.size());
+
+        for (std::size_t i = 0; i < jet_raw_pts.size(); ++i) {
+            float corr_factor = jes_l1_evaluator->evaluate({jet_areas.at(i), jet_etas.at(i), jet_raw_pts.at(i), rho});
+            corrected_pts.at(i) = jet_raw_pts.at(i) * corr_factor;
+        }
+        return corrected_pts;
+    };
+    
     auto L1_T1MET_lambda = [jes_l1_evaluator](
                     const ROOT::RVec<float> &jet_raw_pts,
                     const ROOT::RVec<float> &jet_etas,
@@ -135,29 +151,14 @@ PtCorrectionL1(ROOT::RDF::RNode df,
         }
         return corrected_pts;
     };
-    auto L1_lambda = [jes_l1_evaluator](
-                    const ROOT::RVec<float> &jet_raw_pts,
-                    const ROOT::RVec<float> &jet_etas,
-                    const ROOT::RVec<float> &jet_phis,
-                    const ROOT::RVec<float> &jet_areas,
-                    const float &rho) {
 
-        ROOT::RVec<float> corrected_pts(jet_raw_pts.size());
-
-        for (std::size_t i = 0; i < jet_raw_pts.size(); ++i) {
-            float corr_factor = jes_l1_evaluator->evaluate({jet_areas.at(i), jet_etas.at(i), jet_raw_pts.at(i), rho});
-            corrected_pts.at(i) = jet_raw_pts.at(i) * corr_factor;
-        }
-        return corrected_pts;
-    };
-
-    auto df1 = df.Define(outputname_L1_T1MET, L1_T1MET_lambda,
+    auto df1 = df.Define(outputname_L1, L1_lambda,
+                         {jet_raw_pt, jet_eta, jet_phi, jet_area, rho});
+    auto df2 = df1.Define(outputname_L1_T1MET, L1_T1MET_lambda,
                          {jet_raw_pt, jet_eta, jet_phi, jet_area,
                           jet_raw_muonfactor, lowpt_jet_raw_pt,
                           lowpt_jet_eta, lowpt_jet_phi, lowpt_jet_area,
                           lowpt_jet_raw_muonfactor, rho});
-    auto df2 = df1.Define(outputname_L1, L1_lambda,
-                         {jet_raw_pt, jet_eta, jet_phi, jet_area, rho});
     return df2;
 }
 
