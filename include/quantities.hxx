@@ -51,7 +51,7 @@ ROOT::RDF::RNode GenJetMatching(ROOT::RDF::RNode df,
                             const std::string &jet_genjet_index,
                             const std::string &object_jet_index,
                             const std::string &object_index_vector,
-                            const int &position);
+                            const int &position);           
 ROOT::RDF::RNode deltaPhi_WH(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &vector_1,
                              const std::string &vector_2,

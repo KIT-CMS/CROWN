@@ -17,151 +17,249 @@
 namespace physicsobject {
 namespace jet {
 
+/**
+ * @brief This function calculates back to the raw jet transverse momenta
+ * based on the raw factor stored in nanoAOD. This is needed to reapply
+ * the newest jet energy corrections, since the already applied corrections
+ * in the nanoAOD files are often outdated.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the raw jet \f$p_T\f$'s
+ * @param jet_pt name of the column containing the default jet \f$p_T\f$'s
+ * @param jet_raw_factor name of the column containing the raw factor for
+ * each jet to get back to the raw jet \f$p_T\f$'s
+ *
+ * @return a dataframe with a new column of raw jet \f$p_T\f$'s   
+ */
 ROOT::RDF::RNode RawPt(ROOT::RDF::RNode df,
-                        const std::string &outputname,
-                        const std::string &pts,
-                        const std::string &jet_raw_factor) {
+                       const std::string &outputname,
+                       const std::string &jet_pt,
+                       const std::string &jet_raw_factor) {
     return df.Define(outputname, 
-        [](const ROOT::RVec<float> &pt_vec, const ROOT::RVec<float> &raw_factor_vec) {
-            ROOT::RVec<float> corrected_pts(pt_vec.size());
-            for (size_t i = 0; i < pt_vec.size(); ++i) {
-                corrected_pts.at(i) = pt_vec[i] * (1 - raw_factor_vec[i]);
+        [](const ROOT::RVec<float> &pts, const ROOT::RVec<float> &raw_factors) {
+            ROOT::RVec<float> raw_pts(pts.size());
+            for (size_t i = 0; i < pts.size(); ++i) {
+                raw_pts.at(i) = pts.at(i) * (1 - raw_factors.at(i));
             }
-            return corrected_pts;
-        }, {pts, jet_raw_factor});
+            return raw_pts;
+        }, {jet_pt, jet_raw_factor});
 }
 
+/** 
+ * @brief This function applies L1 energy corrections to raw jet momenta based
+ * on the recommendations of JetMET POG. More details: https://cms-jerc.web.cern.ch/JES/. 
+ * It calculates corrected jet momenta for both standard and low-pt jets, and
+ * stores the results in the specified output columns.
+ *
+ * The function needs both standard jets (> 15 GeV) and low-pt jets, and it
+ * calculates L1 corrected versions for the standard jets only and the combination
+ * of both which is need for the recalculation of MET (`met::Type1Correction`).
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * jet energy correction file
+ * @param outputname_L1 name of the output column for L1 corrected jet \f$p_T\f$'s
+ * @param outputname_L1_T1MET name of the output column for L1 corrected jet
+ * \f$p_T\f$'s including low-pt jets, this is needed for the Type-1 MET correction
+ * @param jet_raw_pt name of the column containing raw jet momenta
+ * @param jet_eta name of the column containing jet pseudorapidity
+ * @param jet_phi name of the column containing jet azimuthal angle
+ * @param jet_area name of the column containing jet area
+ * @param jet_raw_muonfactor name of the column containing raw muon subtraction factors
+ * @param lowpt_jet_raw_pt name of the column containing raw momenta for low-pt jets
+ * @param lowpt_jet_eta name of the column containing pseudorapidity for low-pt jets
+ * @param lowpt_jet_phi name of the column containing azimuthal angle for low-pt jets
+ * @param lowpt_jet_area name of the column containing area for low-pt jets
+ * @param lowpt_jet_raw_muonfactor name of the column containing raw muon subtraction
+ * factors for low-pt jets
+ * @param rho name of the column containing the event energy density
+ * @param jec_file path to the JEC file containing the corrections
+ * @param jec_algo name of the JEC algorithm use for jet reconstruction
+ * (e.g., "AK4PFchs", "AK4PUPPI")
+ * @param jes_tag tag for the JES correction campaign
+ * (e.g., "Summer19UL18_V5_MC", "Summer24Prompt24_V2_DATA")
+ * @param era name of the era being processed (e.g., "2018", "2022preEE")
+ *
+ * @return a newdataframe with a two new column of L1 corrected jet \f$p_T\f$'s
+ *
+ * @note This function can be used for both Run 2 and Run 3 as well as for data and MC.
+ */
 ROOT::RDF::RNode
 PtCorrectionL1(ROOT::RDF::RNode df,
-        correctionManager::CorrectionManager &correction_manager,
-        const std::string &outputname,
-        const std::string &jet_pt,
-        const std::string &jet_eta, 
-        const std::string &jet_phi,
-        const std::string &jet_area, 
-        const std::string &jet_raw_factor,
-        const std::string &jet_raw_muonfactor,
-        const std::string &corrjet_pt,
-        const std::string &corrjet_eta, 
-        const std::string &corrjet_phi,
-        const std::string &corrjet_area, 
-        const std::string &corrjet_raw_muonfactor,
-        const std::string &rho, 
-        const std::string &jec_file, 
-        const std::string &jec_algo,
-        const std::string &jes_tag_mc, 
-        const std::string &jes_tag_data, 
-        const std::string &era,
-        const bool &is_data,
-        const bool &is_embedding) {
-
-    // get the algorithm tag 
-    std::string jes_tag;
-    if (is_data || is_embedding) jes_tag = jes_tag_data;
-    else jes_tag = jes_tag_mc;
-
+               correctionManager::CorrectionManager &correction_manager,
+               const std::string &outputname_L1,
+               const std::string &outputname_L1_T1MET,
+               const std::string &jet_raw_pt,
+               const std::string &jet_eta, 
+               const std::string &jet_phi,
+               const std::string &jet_area, 
+               const std::string &jet_raw_muonfactor,
+               const std::string &lowpt_jet_raw_pt,
+               const std::string &lowpt_jet_eta, 
+               const std::string &lowpt_jet_phi,
+               const std::string &lowpt_jet_area, 
+               const std::string &lowpt_jet_raw_muonfactor,
+               const std::string &rho, 
+               const std::string &jec_file, 
+               const std::string &jec_algo,
+               const std::string &jes_tag) {
+    
     // loading jet energy correction scale factor function
     auto jes_l1_evaluator = correction_manager.loadCorrection(
         jec_file, jes_tag + "_L1FastJet_" + jec_algo);
 
-    // Concatenate columns for jet collections
-    auto df1 = df.Define("pts_raw", [](const ROOT::RVec<float>& jet_pt_vec, const ROOT::RVec<float>& corrjet_pt_vec) {
-        return ROOT::VecOps::Concatenate(jet_pt_vec, corrjet_pt_vec);
-    }, {jet_pt, corrjet_pt})
-    .Define("etas_raw", [](const ROOT::RVec<float>& jet_eta_vec, const ROOT::RVec<float>& corrjet_eta_vec) {
-        return ROOT::VecOps::Concatenate(jet_eta_vec, corrjet_eta_vec);
-    }, {jet_eta, corrjet_eta})
-    .Define("phis_raw", [](const ROOT::RVec<float>& jet_phi_vec, const ROOT::RVec<float>& corrjet_phi_vec) {
-        return ROOT::VecOps::Concatenate(jet_phi_vec, corrjet_phi_vec);
-    }, {jet_phi, corrjet_phi})
-    .Define("area_raw", [](const ROOT::RVec<float>& jet_area_vec, const ROOT::RVec<float>& corrjet_area_vec) {
-        return ROOT::VecOps::Concatenate(jet_area_vec, corrjet_area_vec);
-    }, {jet_area, corrjet_area})
-    .Define("muonSubtrFactor_raw", [](const ROOT::RVec<float>& jet_raw_muonfactor_vec, const ROOT::RVec<float>& corrjet_raw_muonfactor_vec) {
-        return ROOT::VecOps::Concatenate(jet_raw_muonfactor_vec, corrjet_raw_muonfactor_vec);
-    }, {jet_raw_muonfactor, corrjet_raw_muonfactor});
+    auto L1_T1MET_lambda = [jes_l1_evaluator](
+                    const ROOT::RVec<float> &jet_raw_pts,
+                    const ROOT::RVec<float> &jet_etas,
+                    const ROOT::RVec<float> &jet_phis,
+                    const ROOT::RVec<float> &jet_areas,
+                    const ROOT::RVec<float> &jet_muon_subtr_factors,
+                    const ROOT::RVec<float> &lowpt_jet_raw_pts,
+                    const ROOT::RVec<float> &lowpt_jet_etas,
+                    const ROOT::RVec<float> &lowpt_jet_phis,
+                    const ROOT::RVec<float> &lowpt_jet_areas,
+                    const ROOT::RVec<float> &lowpt_jet_muon_subtr_factors,
+                    const float &rho) {
 
-    auto correction_lambda = [jes_l1_evaluator, era](
-                                const ROOT::RVec<float> &pts,
-                                const ROOT::RVec<float> &etas,
-                                const ROOT::RVec<float> &phis,
-                                const ROOT::RVec<float> &area,
-                                const ROOT::RVec<float> &muonSubtrFactor,
-                                const ROOT::RVec<float> &raw_factor,
-                                const float &rho) {
+        ROOT::RVec<float> corrected_pts(jet_raw_pts.size()+lowpt_jet_raw_pts.size());
 
-        ROOT::RVec<float> corrected_pts(pts.size());
+        for (std::size_t i = 0; i < jet_raw_pts.size(); ++i) {
+            float pt_noMuRaw = jet_raw_pts.at(i) * (1 - jet_muon_subtr_factors.at(i));
+            float corr_factor = jes_l1_evaluator->evaluate({jet_areas.at(i), jet_etas.at(i), jet_raw_pts.at(i), rho});
+            corrected_pts.at(i) = pt_noMuRaw * corr_factor;
+        }
+        for (std::size_t i = 0; i < lowpt_jet_raw_pts.size(); ++i) {
+            float pt_noMuRaw = lowpt_jet_raw_pts.at(i) * (1.0 - lowpt_jet_muon_subtr_factors.at(i));
+            float corr_factor = jes_l1_evaluator->evaluate({lowpt_jet_areas.at(i), lowpt_jet_etas.at(i), lowpt_jet_raw_pts.at(i), rho});
+            corrected_pts.at(jet_raw_pts.size() + i) = pt_noMuRaw * corr_factor;
+        }
+        return corrected_pts;
+    };
+    auto L1_lambda = [jes_l1_evaluator](
+                    const ROOT::RVec<float> &jet_raw_pts,
+                    const ROOT::RVec<float> &jet_etas,
+                    const ROOT::RVec<float> &jet_phis,
+                    const ROOT::RVec<float> &jet_areas,
+                    const float &rho) {
 
-        for (std::size_t i = 0; i < pts.size(); ++i) {
-            
-            // raw pt for PuppiJet, first collection
-            // already raw pt for CorrT1METJet
-            float ptRaw = pts.at(i);
-            if (i < raw_factor.size()) ptRaw = pts.at(i) * (1 - raw_factor.at(i));
+        ROOT::RVec<float> corrected_pts(jet_raw_pts.size());
 
-            // Muon-subtracted raw pt
-            float ptRawMinusMuon = ptRaw * (1.0 - muonSubtrFactor.at(i));
-
-            // --- L1 ---
-            float ptCorr = ptRawMinusMuon;
-            // apply L1 only if run 3, else return raw pt for inclusive run2 correction
-            if (std::stoi(era.substr(0, 4)) >= 2022) {
-                float c1 = jes_l1_evaluator->evaluate({area.at(i), etas.at(i), ptRawMinusMuon, rho});
-                ptCorr *= c1;
-            }
-            
-            corrected_pts.at(i) = ptCorr;
+        for (std::size_t i = 0; i < jet_raw_pts.size(); ++i) {
+            float corr_factor = jes_l1_evaluator->evaluate({jet_areas.at(i), jet_etas.at(i), jet_raw_pts.at(i), rho});
+            corrected_pts.at(i) = jet_raw_pts.at(i) * corr_factor;
         }
         return corrected_pts;
     };
 
-    std::vector<std::string> columns = {
-        "pts_raw", "etas_raw", "phis_raw", "area_raw", "muonSubtrFactor_raw",
-        "Jet_rawFactor", "Rho_fixedGridRhoFastjetAll",
-    };
-    auto df2 = df1.Define(outputname, correction_lambda, columns);
+    auto df1 = df.Define(outputname_L1_T1MET, L1_T1MET_lambda,
+                         {jet_raw_pt, jet_eta, jet_phi, jet_area,
+                          jet_raw_muonfactor, lowpt_jet_raw_pt,
+                          lowpt_jet_eta, lowpt_jet_phi, lowpt_jet_area,
+                          lowpt_jet_raw_muonfactor, rho});
+    auto df2 = df1.Define(outputname_L1, L1_lambda,
+                         {jet_raw_pt, jet_eta, jet_phi, jet_area, rho});
     return df2;
 }
 
+/**
+ * @brief This function applies the L2, L3, and L2L3 energy corrections to
+ * already L1 corrected jet momenta based on the recommendations of JME POG.
+ * More details: https://cms-jerc.web.cern.ch/JES/. It calculates corrected
+ * jet momenta for both standard and low-pt jets, and stores the results in
+ * the specified output column.
+ *
+ * The function needs both standard jets (> 15 GeV) and low-pt jets, and it
+ * calculates fully corrected versions for the standard jets only and the
+ * combination of both which is need for the recalculation of MET (`met::Type1Correction`). 
+ *
+ * Further, this function applies the jet energy resolution smearing to
+ * simulated events, based on the JER correction factors provided by JME POG.
+ *
+ * This function is able to process the JEC uncertainties, which includes the
+ * induvidual jes uncertainties as well as the merged uncertainty scheme.
+ * Additionally, the HEM issue (2018) can be included as an uncertainty
+ * based on https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/2000.html.
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * jet energy correction file
+ * @param outputname_L2L3 name of the output column for L2L3 corrected jet momenta
+ * @param outputname_L2L3_T1MET name of the output column for L2L3 corrected jet
+ * momenta for Type-1 MET correction (including low-pt jets)
+ * @param jet_L1_pt name of the column containing L1 corrected jet momenta
+ * @param jet_eta name of the column containing jet pseudorapidities
+ * @param jet_phi name of the column containing jet azimuthal angles
+ * @param jet_area name of the column containing jet area
+ * @param jet_id name of the column containing jet IDs
+ * @param jet_L1_T1MET_pt name of the column containing L1 corrected jet momenta
+ * specifically for Type-1 MET correction, which includes low-pt jets
+ * @param lowpt_jet_eta name of the column containing low-pt jet pseudorapidities
+ * @param lowpt_jet_phi name of the column containing low-pt jet azimuthal angles
+ * @param lowpt_jet_area name of the column containing low-pt jet area
+ * @param gen_jet_pt name of the column containing generator-level jet momenta
+ * @param gen_jet_eta name of the column containing generator-level jet
+ * pseudorapidities
+ * @param gen_jet_phi name of the column containing generator-level jet azimuthal
+ * angles
+ * @param rho name of the column containing the event energy density
+ * @param jer_seed seed value for the random number generator that is used for
+ * the jet energy resolution smearing in MC simulated events
+ * @param run name of the column containing the run number (relevant for data)
+ * @param jec_file path to the JEC correction file
+ * @param jec_algo name of the JEC algorithm use for jet reconstruction
+ * (e.g., "AK4PFchs", "AK4PUPPI")
+ * @param jes_tag tag for the JES correction campaign
+ * (e.g., "Summer19UL18_V5_MC", "Summer24Prompt24_V2_DATA")
+ * @param jes_shift_sources list of JES shift sources for systematic
+ * uncertainties
+ * @param jer_tag tag of the JER correction campaign (e.g., "Summer19UL18_JRV2_MC")
+ * @param jes_shift JES shift variation (0 = nominal, +/-1 = up/down)
+ * @param jer_shift JER shift variation ("nom", "up", or "down")
+ * @param era string defining the currently processed era, needed due to different
+ * kind of recommendations from JME POG for different eras (e.g., "2018", "2022preEE")
+ *
+ * @return a new dataframe with two columns for with fully corrected jet momenta
+ *
+ * @note This function can be used for both Run 2 and Run 3 as well as for data and MC.
+ */                                                                                           
 ROOT::RDF::RNode
-PtCorrection(ROOT::RDF::RNode df,
+PtCorrectionL2L3(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
-        const std::string &outputname,
-        const std::string &jet_pts,
-        const std::string &jet_eta, 
+        const std::string &outputname_L2L3,
+        const std::string &outputname_L2L3_T1MET,
+        const std::string &jet_L1_pt,
+        const std::string &jet_eta,
         const std::string &jet_phi,
-        const std::string &jet_area, 
+        const std::string &jet_area,
         const std::string &jet_id,
-        const std::string &corrjet_eta, 
-        const std::string &corrjet_phi,
-        const std::string &corrjet_area, 
+        const std::string &jet_L1_T1MET_pt,
+        const std::string &lowpt_jet_eta,
+        const std::string &lowpt_jet_phi,
+        const std::string &lowpt_jet_area,
         const std::string &gen_jet_pt,
         const std::string &gen_jet_eta, 
         const std::string &gen_jet_phi,
         const std::string &rho, 
         const std::string &jer_seed,
         const std::string &run, 
-        const std::string &jec_file, 
+        const std::string &jec_file,
         const std::string &jec_algo,
-        const std::string &jes_tag_mc, 
-        const std::string &jes_tag_data, 
+        const std::string &jes_tag, 
         const std::vector<std::string> &jes_shift_sources,
         const std::string &jer_tag,
         const int &jes_shift, 
         const std::string &jer_shift,
-        const std::string &era, 
-        const bool &is_data,
-        const bool &is_embedding ) {
-
-    // get the algorithm tag
-    std::string jes_tag;
-    if (is_data || is_embedding) jes_tag = jes_tag_data;
-    else jes_tag = jes_tag_mc;
+        const std::string &era) {
 
     // identifying jet radius from algorithm
     float jet_radius = 0.4;
     if (jec_algo.find("AK8") != std::string::npos) {
         jet_radius = 0.8;
+    }
+
+    bool is_data = false;
+    if (jes_tag.find("DATA") != std::string::npos) {
+        is_data = true;
     }
 
     // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
@@ -180,7 +278,49 @@ PtCorrection(ROOT::RDF::RNode df,
         }
     };
 
-    // loading relative pT resolution function
+    // loading jet energy correction scale factor function    
+    auto jes_l2_evaluator = correction_manager.loadCorrection(
+        jec_file, jes_tag + "_L2Relative_" + jec_algo);
+
+    auto jes_l3_evaluator = correction_manager.loadCorrection(
+        jec_file, jes_tag + "_L3Absolute_" + jec_algo);
+
+    auto jes_l2l3_evaluator = correction_manager.loadCorrection(
+        jec_file, jes_tag + "_L2L3Residual_" + jec_algo);
+    
+    // Create a unified lambda that handles both era cases
+    auto jet_energy_scale_sf = [jes_l2_evaluator, jes_l3_evaluator,
+                                jes_l2l3_evaluator, is_data](const float eta,
+                                                             const float pt,
+                                                             const float phi,
+                                                             const unsigned int run,
+                                                             const std::string &era) {
+
+        double l2 = 1.0;
+        double l3 = 1.0;
+        double l2l3 = 1.0;
+        int era_year = std::stoi(era.substr(0, 4));
+        
+        if (era_year <= 2022 || era == "2023preBPix") {
+            l2 = jes_l2_evaluator->evaluate({eta, pt});
+        } else {
+            l2 = jes_l2_evaluator->evaluate({eta, phi, pt});
+        }
+
+        //l3 = jes_l3_evaluator->evaluate({eta, pt});
+
+        if (is_data) {
+            if (era_year <= 2022) {
+                l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, pt});
+            } else {
+                if (era == "2024" && pt < 30.0 && 2.0 < abs(eta) < 2.5) l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, 30.0}); 
+                else l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, pt});
+            }
+        }
+        return l2 * l3 * l2l3;
+    };
+
+     // loading relative pT resolution function
     auto jer_resolution_evaluator = correction_manager.loadCorrection(
         jec_file, jer_tag + "_PtResolution_" + jec_algo);
     auto jet_energy_resolution = [jer_resolution_evaluator](const float eta,
@@ -193,64 +333,10 @@ PtCorrection(ROOT::RDF::RNode df,
     auto jer_sf_evaluator = correction_manager.loadCorrection(
         jec_file, jer_tag +  "_ScaleFactor_" + jec_algo);
 
-    // loading jet energy correction scale factor function    
-    auto jes_l2_evaluator = correction_manager.loadCorrection(
-        jec_file, jes_tag + "_L2Relative_" + jec_algo);
-
-    auto jes_l2l3_evaluator = correction_manager.loadCorrection(
-        jec_file, jes_tag + "_L2L3Residual_" + jec_algo);
-
-    auto jes_evaluator = correction_manager.loadCompoundCorrection(
-            jec_file, jes_tag + "_L1L2L3Res_" + jec_algo);
-    
-    // Create a unified lambda that handles both era cases
-    auto jet_energy_scale_sf =
-        [jes_l2_evaluator, jes_l2l3_evaluator, jes_evaluator]
-            (const float area, const float eta, const float pt, const float rho, 
-            const float phi, const unsigned int run, const std::string &era, bool is_data, bool is_embedding ) {
-
-            double l2 = 1.0;
-            double l2l3 = 1.0;
-            int era_year = std::stoi(era.substr(0, 4));
-
-            if (era_year < 2022) { // run 2
-                return jes_evaluator->evaluate({area, eta, pt, rho});
-            } else {
-                if (era_year == 2022) { // 2022
-                    l2 = jes_l2_evaluator->evaluate({eta, pt});
-                    if (is_data || is_embedding) l2l3 = jes_l2l3_evaluator->evaluate({eta, pt});
-                    return l2 * l2l3;
-                } else if (era == "2023preBPix") { // 2023preBPix
-                    l2 = jes_l2_evaluator->evaluate({eta, pt});
-                    if (is_data || is_embedding) l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, pt});
-                    return l2 * l2l3;
-                } else { // run 3 from 2023postBPix onward
-                    l2 = jes_l2_evaluator->evaluate({eta, phi, pt});
-                    if (is_data || is_embedding) {
-                        //pt clipping for l2l3 https://indico.cern.ch/event/1624984/contributions/6896120/attachments/3208048/5713070/20260127_JetMET_PerformanceRun3_HIGMeeting.pdf 
-                        if (era == "2024" && pt < 30.0 && 2.0 < abs(eta) < 2.5) l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, 30.0}); 
-                        else l2l3 = jes_l2l3_evaluator->evaluate({static_cast<float>(run), eta, pt});
-                    }
-                    return l2 * l2l3;
-                }
-            }
-        };
-
-    // Concatenate columns for jet collections
-    auto df2 = df1.Define("etas_corrected", [](const ROOT::RVec<float>& jet_eta_vec, const ROOT::RVec<float>& corrjet_eta_vec) {
-        return ROOT::VecOps::Concatenate(jet_eta_vec, corrjet_eta_vec);
-    }, {jet_eta, corrjet_eta})
-    .Define("phis_corrected", [](const ROOT::RVec<float>& jet_phi_vec, const ROOT::RVec<float>& corrjet_phi_vec) {
-        return ROOT::VecOps::Concatenate(jet_phi_vec, corrjet_phi_vec);
-    }, {jet_phi, corrjet_phi})
-    .Define("area_corrected", [](const ROOT::RVec<float>& jet_area_vec, const ROOT::RVec<float>& corrjet_area_vec) {
-        return ROOT::VecOps::Concatenate(jet_area_vec, corrjet_area_vec);
-    }, {jet_area, corrjet_area});
-
     auto correction_lambda = [jet_energy_scale_shifts,
                               jet_energy_scale_sf, jet_energy_resolution,
                               jer_sf_evaluator, jes_shift_sources,
-                              jes_shift, jer_shift, jet_radius, era](
+                              jes_shift, jer_shift, jet_radius, era, is_data](
                                 const ROOT::RVec<float> &pts,
                                 const ROOT::RVec<float> &etas,
                                 const ROOT::RVec<float> &phis,
@@ -261,126 +347,163 @@ PtCorrection(ROOT::RDF::RNode df,
                                 const ROOT::RVec<float> &gen_phis,
                                 const float &rho, 
                                 const unsigned int &seed,
-                                const unsigned int &run,
-                                bool is_data,
-                                bool is_embedding) {
+                                const unsigned int &run) {
 
         // random value generator for jet smearing
         TRandom3 randm = TRandom3(seed);
         auto ids = static_cast<ROOT::RVec<int>>(ids_v12);
         ROOT::RVec<float> corrected_pts(pts.size());
 
+        int era_year = std::stoi(era.substr(0, 4));
+
         for (std::size_t i = 0; i < pts.size(); ++i) {
             // L1 already applied by previous producer
-            float ptCorr = pts.at(i);
+            float pt_corr = pts.at(i);
             
-            // --- L2 and L2L3Residual (DATA only)
-            // for Run 2 this applies L1L2L3 to raw pt
-            float c2 = jet_energy_scale_sf(area.at(i), etas.at(i), ptCorr, rho, phis.at(i), run, era, is_data, is_embedding);
-            ptCorr *= c2;
+            // --- L2, L3 and L2L3Residual (DATA only)
+            float corr_factor = jet_energy_scale_sf(etas.at(i), pt_corr, phis.at(i), run, era);
+            pt_corr *= corr_factor;
 
-            // --- JES/JER (MC only, and only if gen jet vectors are not empty) ---
-            if (!is_data && gen_pts.size() > 0) {
+            Logger::get("physicsobject::jet::PtCorrectionL2L3")
+                ->debug("applying jet energy scale (L2-L3): L1 jet pt {} to corr. jet pt {}",
+                    pts.at(i), pt_corr);
+
+            // --- JES uncertainties and JER (MC only) ---
+            if (!is_data) {
+                float pt_scale_sf = 1.0;
                 if (jes_shift != 0.0) {
-                    double jesShift = 1.0;
+                    // double jesShift = 1.0;
                     if (jes_shift_sources.at(0) != "HEMIssue") {
                         if (jet_energy_scale_shifts.size() == 1) {
-                            jesShift =
+                            pt_scale_sf =
                                 1. +
                                 jes_shift * jet_energy_scale_shifts.at(0)->evaluate(
-                                                {etas.at(i), ptCorr});
-                            Logger::get("physicsobject::jet::PtCorrection")
+                                                {etas.at(i), pt_corr});
+                            Logger::get("physicsobject::jet::PtCorrectionL2L3")
                                 ->debug("JES shift of jet pt by {} for single source "
-                                        "with SF {}",
-                                        jes_shift, jesShift);
+                                        "with SF {}", jes_shift, pt_scale_sf);
                         } else {
                             float quad_sum = 0.;
                             for (const auto &evaluator : jet_energy_scale_shifts) {
                                 quad_sum +=
                                     std::pow(evaluator->evaluate(
-                                                    {etas.at(i), ptCorr}),
+                                                    {etas.at(i), pt_corr}),
                                                 2.0);
                             }
-                            jesShift = 1. + jes_shift * std::sqrt(quad_sum);
-                            Logger::get("physicsobject::jet::PtCorrection")
+                            pt_scale_sf = 1. + jes_shift * std::sqrt(quad_sum);
+                            Logger::get("physicsobject::jet::PtCorrectionL2L3")
                                 ->debug("JES shift of jet pt by {} for multiple "
                                         "sources with SF {}",
-                                        jes_shift, jesShift);
+                                        jes_shift, pt_scale_sf);
                         }
                     } else if (jes_shift_sources.at(0) == "HEMIssue") {
-                        // indices are only present for the jet column, not corrjet
-                        if (i < ids.size()) {
-                            if (jes_shift == (-1.) && ptCorr > 15. &&
+                        // IDs are only present for the jet collection, not low pt jets
+                        if (i < ids.size()) { 
+                            if (jes_shift == (-1.) && pt_corr > 15. &&
                                 phis.at(i) > (-1.57) && phis.at(i) < (-0.87) &&
-                                ids.at(i) == 2) { // id condition valid only for jet class
-                                if (etas.at(i) > (-2.5) && etas.at(i) < (-1.3)) jesShift = 0.8;
-                                else if (etas.at(i) > (-3.) && etas.at(i) <= (-2.5)) jesShift = 0.65;
-                                }
+                                ids.at(i) == 2) {
+                                    if (etas.at(i) > (-2.5) && etas.at(i) < (-1.3)) 
+                                        pt_scale_sf = 0.8;
+                                    else if (etas.at(i) > (-3.) && etas.at(i) <= (-2.5)) 
+                                        pt_scale_sf = 0.65;
                             }
                         }
-                    ptCorr *= jesShift;
+                        
+                    }
+                    pt_corr *= pt_scale_sf;
                 }
 
                 // --- JER (MC only) ---
-                float reso = jet_energy_resolution(etas.at(i), ptCorr, rho);
-                float sJer = 1.0;
-                if (std::stoi(era.substr(0, 4)) <= 2018) { // run 2 case
-                    sJer = jer_sf_evaluator->evaluate({etas.at(i), jer_shift});
+                float reso = jet_energy_resolution(etas.at(i), pt_corr, rho);
+                float reso_sf = 1.0;
+                if (era_year <= 2018) { // run 2 case
+                    reso_sf = jer_sf_evaluator->evaluate({etas.at(i), jer_shift});
                 } else { // run 3 case
-                    sJer = jer_sf_evaluator->evaluate({etas.at(i), ptCorr, jer_shift});
+                    reso_sf = jer_sf_evaluator->evaluate({etas.at(i), pt_corr, jer_shift});
                 }
+                Logger::get("physicsobject::jet::PtCorrectionL2L3")
+                    ->debug("Calculate JER {}: SF: {} resolution: {} ", jer_shift,
+                        reso_sf, reso);
 
-                bool matched = false;
-                double genPtForSmear = -1.0;
+                float gen_pt_for_smear = default_float;
                 // gen jet matching algorithm for JER
-                ROOT::Math::RhoEtaPhiVectorF jet(ptCorr, etas.at(i), phis.at(i));
-                float gen_jet_pt = default_float;
-                Logger::get("physicsobject::jet::PtCorrection")
+                ROOT::Math::RhoEtaPhiVectorF jet(pt_corr, etas.at(i), phis.at(i));
+                Logger::get("physicsobject::jet::PtCorrectionL2L3")
                     ->debug("Going to smear jet: Eta: {} Phi: {} ", jet.Eta(),
                             jet.Phi());
                 double min_delta_r = std::numeric_limits<double>::infinity();
                 for (int j = 0; j < gen_pts.size(); j++) {
                     ROOT::Math::RhoEtaPhiVectorF gen_jet(
                         gen_pts.at(j), gen_etas.at(j), gen_phis.at(j));
-                    Logger::get("physicsobject::jet::PtCorrection")
+                    Logger::get("physicsobject::jet::PtCorrectionL2L3")
                         ->debug("Checking gen Jet: Eta: {} Phi: {}", gen_jet.Eta(),
                                 gen_jet.Phi());
                     auto delta_r = ROOT::Math::VectorUtil::DeltaR(jet, gen_jet);
                     if (delta_r > min_delta_r)
                         continue;
-                    if (delta_r < (jet_radius / 2.) && std::abs(ptCorr - gen_pts.at(j)) <
-                            (3.0 * reso * ptCorr)) {
+                    if (delta_r < (jet_radius / 2.) && std::abs(pt_corr - gen_pts.at(j)) <
+                            (3.0 * reso * pt_corr)) {
                         min_delta_r = delta_r;
-                        gen_jet_pt = gen_pts.at(j);
+                        gen_pt_for_smear = gen_pts.at(j);
                     }
                 }
-                double jerShift = 0.0;
-                if (gen_jet_pt > 0.0) {
-                    Logger::get("physicsobject::jet::PtCorrection")
+                float jer_corr = 0.0;
+                if (gen_pt_for_smear > 0.0) {
+                    Logger::get("physicsobject::jet::PtCorrectionL2L3")
                         ->debug("Found gen jet for hybrid smearing method");
-                    jerShift = (sJer - 1.0) * (ptCorr - gen_jet_pt) / ptCorr;
+                    jer_corr = (reso_sf - 1.0) * (pt_corr - gen_pt_for_smear) / pt_corr;
                 } else {
-                    Logger::get("physicsobject::jet::PtCorrection")
+                    Logger::get("physicsobject::jet::PtCorrectionL2L3")
                         ->debug("No gen jet found. Applying stochastic smearing.");
-                    if (2.5 < abs(etas.at(i)) || abs(etas.at(i)) > 3) {
-                        jerShift = randm.Gaus(0, reso) *
-                                std::sqrt(std::max(sJer * sJer - 1., 0.0));
+                    if (era_year >= 2022 && era_year <= 2024 && abs(etas.at(i)) > 2.5 && abs(etas.at(i)) < 3.0) {
+                        Logger::get("physicsobject::jet::PtCorrectionL2L3")
+                            ->debug(
+                                "Jet has 3 > |eta| > 2.5, and no JER applied to "
+                                "unmatched jets turned on."
+                            );
+                        jer_corr = 0.0;
+                    } else {
+                        jer_corr = randm.Gaus(0, reso) *
+                                std::sqrt(std::max(reso_sf * reso_sf - 1., 0.0));
                     }
                 }
-                ptCorr *= std::max(0.0, 1.0 + jerShift);
+                pt_corr *= std::max(0.0, 1.0 + jer_corr);
             }
-            corrected_pts.at(i) = ptCorr;
+            corrected_pts.at(i) = pt_corr;
         }
         return corrected_pts;
     };
 
     std::vector<std::string> columns = {
-        "Jet_pt_L1corrected", "etas_corrected", "phis_corrected", "area_corrected", "Jet_ID_v12",
-        "gen_jet_pt", "gen_jet_eta", "gen_jet_phi",
-        "Rho_fixedGridRhoFastjetAll", "Jet_seed", "run", "is_data", "is_embedding"
+        jet_L1_pt, jet_eta, jet_phi, jet_area, jet_id_column, gen_jet_pt, 
+        gen_jet_eta, gen_jet_phi, rho, jer_seed, run
     };
-    auto df3 = df2.Define(outputname, correction_lambda, columns);
-    return df3;
+    auto df2 = df1.Define(outputname_L2L3, correction_lambda, columns);
+
+    // get name of systematic variation to not over-define the same column multiple times in case of multiple systematic sources
+    std::string syst;
+    size_t pos = outputname_L2L3_T1MET.find("__");
+    if (pos != std::string::npos) syst = outputname_L2L3_T1MET.substr(pos);
+    else syst = "";
+
+    // Concatenate columns for jet collections
+    auto df3 = df2.Define("T1MET_etas"+syst, [](const ROOT::RVec<float>& jet_etas, const ROOT::RVec<float>& lowpt_jet_etas) {
+        return ROOT::VecOps::Concatenate(jet_etas, lowpt_jet_etas);
+    }, {jet_eta, lowpt_jet_eta})
+    .Define("T1MET_phis"+syst, [](const ROOT::RVec<float>& jet_phis, const ROOT::RVec<float>& lowpt_jet_phis) {
+        return ROOT::VecOps::Concatenate(jet_phis, lowpt_jet_phis);
+    }, {jet_phi, lowpt_jet_phi})
+    .Define("T1MET_area"+syst, [](const ROOT::RVec<float>& jet_area, const ROOT::RVec<float>& lowpt_jet_area) {
+        return ROOT::VecOps::Concatenate(jet_area, lowpt_jet_area);
+    }, {jet_area, lowpt_jet_area});
+
+    columns = {
+        jet_L1_T1MET_pt, "T1MET_etas"+syst, "T1MET_phis"+syst, "T1MET_area"+syst,
+        jet_id_column, gen_jet_pt, gen_jet_eta, gen_jet_phi, rho, jer_seed, run
+    };
+    auto df4 = df3.Define(outputname_L2L3_T1MET, correction_lambda, columns);
+
+    return df4;
 }
 
 /**
@@ -399,6 +522,10 @@ PtCorrection(ROOT::RDF::RNode df,
  * induvidual jes uncertainties as well as the merged uncertainty scheme.
  * Additionally, the HEM issue (2018) can be included as an uncertainty
  * based on https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/2000.html
+ *
+ * @warning This function is deprecated. It is recommended to use
+ * `physicsobject::jet::PtCorrectionL1` and `physicsobject::jet::PtCorrectionL2L3`
+ * instead for both Run 2 and Run 3 as well as for data and MC. 
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
@@ -436,7 +563,6 @@ PtCorrection(ROOT::RDF::RNode df,
  * @param no_jer_for_unmatched_forward_jets if true, no jet energy resolution
  * smearing is applied to unmatched jets in the forward region
  * (\f$|\eta| > 2.5\f$).
- * @param era string of the era
  * 
  * @return a dataframe with a new column of corrected jet \f$p_T\f$'s
  *
@@ -687,8 +813,9 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * Unlike in Monte Carlo (MC), no smearing is applied, as resolution corrections
  * are not necessary for data.
  *
- * @warning It is not recommended to use this function because CROWN does not
- * yet have a functionality to differenciate between individual runs in eras.
+ * @warning This function is deprecated. It is recommended to use
+ * `physicsobject::jet::PtCorrectionL1` and `physicsobject::jet::PtCorrectionL2L3`
+ * instead for both Run 2 and Run 3 as well as for data and MC.
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
@@ -701,6 +828,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * @param jet_raw_factor name of the column containing the jet factors to
  * calculate back to the raw jet \f$p_T\f$'s
  * @param rho name of the column containing the event energy density
+ * @param run name of the column containing the run number
  * @param jec_file path to the JEC correction file
  * @param jec_algo name of the jet reconstruction algorithm (e.g., "AK4PFchs" or
  * "AK8PFPuppi")
@@ -724,7 +852,7 @@ PtCorrectionData(ROOT::RDF::RNode df,
                  const std::string &rho, const std::string &run,
                  const std::string &jec_file, const std::string &jec_algo,
                  const std::string &jes_tag, const std::string &era) {
-    if (jes_tag != "") {
+    if (jes_tag != "NONE") {
 
         // loading jet energy correction scale factor function
         auto jes_l1_evaluator = correction_manager.loadCorrection(
@@ -863,7 +991,7 @@ ROOT::RDF::RNode PtCorrectionBJets(ROOT::RDF::RNode df,
  * @param jet_pt name of the column containing jet transverse momenta
  * @param pu_id_cut minimum pileup ID value required for a jet to pass
  * @param pt_cut minimum \f$p_T\f$ threshold for a jet to bypass the pileup ID
- cut
+ * cut
  *
  * @return a dataframe containing the new mask as a column
  */
@@ -907,7 +1035,7 @@ ROOT::RDF::RNode CutPileupID(ROOT::RDF::RNode df, const std::string &outputname,
  * @return a new dataframe containing the veto mask
  */
 ROOT::RDF::RNode
-ApplyVetoMap(ROOT::RDF::RNode df,
+VetoMap(ROOT::RDF::RNode df,
              correctionManager::CorrectionManager &correction_manager,
              const std::string &outputname, const std::string &jet_eta,
              const std::string &jet_phi, const std::string &vetomap_file,
@@ -927,13 +1055,13 @@ ApplyVetoMap(ROOT::RDF::RNode df,
             veto = bool(
                 vetomap_evaluator->evaluate({vetomap_type, eta_tmp, phi_tmp}));
 
-            Logger::get("physicsobject::jet::ApplyVetoMap")
+            Logger::get("physicsobject::jet::VetoMap")
                 ->debug("checking object with eta {} and phi {}: should object "
                         "get vetoed? -> {}",
                         etas.at(i), phis.at(i), veto);
             mask[i] = 1 - veto;
         }
-        Logger::get("physicsobject::jet::ApplyVetoMap")
+        Logger::get("physicsobject::jet::VetoMap")
             ->debug("final object veto mask {}", mask);
 
         return mask;
@@ -943,58 +1071,64 @@ ApplyVetoMap(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief Create a veto flag for events with jets in regions, which are known to produce wrong measurements.
- * The function checks for jets which pass the base selection criteria if they are in a eta-phi region with
- * "hot" and/or "cold" towers. Events with any jet in such a region are vetoed in data and simulation.
- * If the event is vetoed, a value of `true` is stored in the new column, otherwise `false`.
- * The locations are provided by a `correctionlib` file and depend on the data-taking era. This procedure
- * follows the official [JME POG recommendations](https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps).
+ * @brief Create a veto flag for events with jets in regions, which are known to
+ * produce wrong measurements. The function checks for jets which pass the base
+ * selection criteria if they are in a eta-phi region with "hot" and/or "cold" towers.
+ * Events with any jet in such a region are vetoed in data and simulation. If the
+ * event is vetoed, a value of `true` is stored in the new column, otherwise `false`.
+ * The locations are provided by a `correctionlib` file and depend on the data-taking
+ * era. This procedure follows the official [JME POG recommendations](https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps).
  *
- * @param df The input data frame.
- * @param correctionManager The CorrectionManager object
- * @param output_mask The output mask column.
- * @param jet_pt The tranverse momentum column of the jets.
- * @param jet_eta The pseudorapidity column of the jets.
- * @param jet_phi The azimuthal angle column of the jets.
- * @param jet_id The jet identification bitmask column of the jets.
- * @param jet_ch_em_ef The charged electromagnetic energy fraction column of the jets.
- * @param jet_n_em_ef The neutral electromagnetic energy fraction column of the jets.
- * @param jet_vetomap_file The file path to the correctionlib jet veto map.
- * @param jet_vetomap_name The name of the correction to access jet veto map.
- * @param jet_vetomap_type The jet veto map type; for analyses, this name should be `"jetvetomap"`.
- * @param min_pt The minimum transverse momentum for selected jets.
- * @param id_wp The working point for the jet identification.
- * @param max_em_frac The maximum charged and neutral electromagnetic energy fraction for selected jets.
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * jet veto map file
+ * @param outputname name of the output column storing the veto event mask
+ * @param jet_pt name of the column containing the jet transverse momenta
+ * @param jet_eta name of the column containing the jet pseudorapidities
+ * @param jet_phi name of the column containing the jet azimuthal angles
+ * @param jet_id name of the column containing the jet IDs
+ * @param jet_ch_em_ef name of the column containing the jet charged electromagnetic
+ * energy fraction
+ * @param jet_ne_em_ef name of the column containing the jet neutral electromagnetic
+ * energy fraction
+ * @param jet_vetomap_file file path to the correctionlib jet veto map
+ * @param jet_vetomap_name name of the correction to access jet veto map
+ * @param jet_vetomap_type jet veto map type; for analyses, this name should be
+ * `"jetvetomap"`.
+ * @param min_pt minimum transverse momentum for selected jets
+ * @param id_wp working point for the jet identification
+ * @param max_em_frac maximum charged and neutral electromagnetic energy fraction
+ * for selected jets
  *
- * @return A new data frame with the selection mask column.
+ * @return a new data frame with the veto event mask column
  *
- * @note The veto map selection is mandatory for Run 3 analyses and can also be applied to Run 2 analyses.
+ * @note The veto map selection is mandatory for Run 3 analyses and can also be
+ * applied to Run 2 analyses.
  */
-ROOT::RDF::RNode JetVetomap(
+ROOT::RDF::RNode VetoMap(
     ROOT::RDF::RNode df,
-    correctionManager::CorrectionManager &correctionManager,
-    const std::string &output_mask,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname,
     const std::string &jet_pt,
     const std::string &jet_eta,
     const std::string &jet_phi,
     const std::string &jet_id,
     const std::string &jet_ch_em_ef,
-    const std::string &jet_n_em_ef,
+    const std::string &jet_ne_em_ef,
     const std::string &jet_vetomap_file,
     const std::string &jet_vetomap_name,
     const std::string &jet_vetomap_type,
     const float &min_pt,
     const int &id_wp,
-    const float &max_em_frac
-) {
+    const float &max_em_frac) {
     // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
     // For v9 compatibility a type casting is applied
-    auto [df1, jet_id_v12] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+    auto [df1, jet_id_column] = utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
         df, jet_id+"_v12", "ROOT::VecOps::RVec<UChar_t>", jet_id
     );
 
     // load the veto map evaluator
-    auto evaluator = correctionManager.loadCorrection(jet_vetomap_file, jet_vetomap_name);
+    auto evaluator = correction_manager.loadCorrection(jet_vetomap_file, jet_vetomap_name);
 
     auto select = [
         evaluator, min_pt, id_wp, max_em_frac, jet_vetomap_type
@@ -1002,25 +1136,26 @@ ROOT::RDF::RNode JetVetomap(
         const ROOT::RVec<float> &jet_pt,
         const ROOT::RVec<float> &jet_eta,
         const ROOT::RVec<float> &jet_phi,
-        const ROOT::RVec<UChar_t> &jet_id,
+        const ROOT::RVec<UChar_t> &jet_id_v12,
         const ROOT::RVec<float> &jet_ch_em_ef,
-        const ROOT::RVec<float> &jet_n_em_ef
+        const ROOT::RVec<float> &jet_ne_em_ef
     ) {
+        auto jet_id = static_cast<ROOT::RVec<int>>(jet_id_v12);
         // debug output for selection criteria and jet observables
-        Logger::get("physicsobject::jet::JetVetomap")->debug("Create selection masks for jets");
-        Logger::get("physicsobject::jet::JetVetomap")->debug("    min_pt {}, id_wp {}, max_em_fraction {}", min_pt, id_wp, max_em_frac);
-        Logger::get("physicsobject::jet::JetVetomap")->debug("    pt {}", jet_pt);
-        Logger::get("physicsobject::jet::JetVetomap")->debug("    eta {}", jet_eta);
-        Logger::get("physicsobject::jet::JetVetomap")->debug("    phi {}", jet_phi);
-        Logger::get("physicsobject::jet::JetVetomap")->debug("    id {}", jet_id);
-        Logger::get("physicsobject::jet::JetVetomap")->debug("    ch_em_ef {}", jet_ch_em_ef);
-        Logger::get("physicsobject::jet::JetVetomap")->debug("    n_em_ef {}", jet_n_em_ef);
+        Logger::get("physicsobject::jet::VetoMap")->debug("Create selection masks for jets");
+        Logger::get("physicsobject::jet::VetoMap")->debug("    min_pt {}, id_wp {}, max_em_fraction {}", min_pt, id_wp, max_em_frac);
+        Logger::get("physicsobject::jet::VetoMap")->debug("    pt {}", jet_pt);
+        Logger::get("physicsobject::jet::VetoMap")->debug("    eta {}", jet_eta);
+        Logger::get("physicsobject::jet::VetoMap")->debug("    phi {}", jet_phi);
+        Logger::get("physicsobject::jet::VetoMap")->debug("    id {}", jet_id);
+        Logger::get("physicsobject::jet::VetoMap")->debug("    ch_em_ef {}", jet_ch_em_ef);
+        Logger::get("physicsobject::jet::VetoMap")->debug("    n_em_ef {}", jet_ne_em_ef);
 
         // create the index of selected jets
         auto jet_index = ROOT::VecOps::Nonzero(
             (jet_pt > min_pt)
             && (jet_id >= id_wp)
-            && ((jet_ch_em_ef + jet_n_em_ef) < max_em_frac)
+            && ((jet_ch_em_ef + jet_ne_em_ef) < max_em_frac)
         );
 
         // create container with indices for vetoed jets
@@ -1047,27 +1182,26 @@ ROOT::RDF::RNode JetVetomap(
         }
 
         // debug output for vetoes
-        Logger::get("physicsobject::jet::JetVetomap")->debug("Vetoes");
-        Logger::get("physicsobject::jet::JetVetomap")->debug("    jet_index_vetoed {}", jet_index_vetoed);
-        Logger::get("physicsobject::jet::JetVetomap")->debug("    event_veto {}", event_veto);
+        Logger::get("physicsobject::jet::VetoMap")->debug("Vetoes");
+        Logger::get("physicsobject::jet::VetoMap")->debug("    jet_index_vetoed {}", jet_index_vetoed);
+        Logger::get("physicsobject::jet::VetoMap")->debug("    event_veto {}", event_veto);
 
         return event_veto;
     };
 
     return df1.Define(
-        output_mask,
+        outputname,
         select,
         {
             jet_pt,
             jet_eta,
             jet_phi,
-            jet_id_v12,
+            jet_id_column,
             jet_ch_em_ef,
-            jet_n_em_ef
+            jet_ne_em_ef
         }
     );
 }
-
 
 /**
  * @brief This function checks the separation (deltaR) between each jet and
@@ -1243,12 +1377,12 @@ namespace quantity {
  *
  * The implementation follows the recipe by the [JME POG](https://twiki.cern.ch/twiki/bin/view/CMS/JetID13p6TeV#nanoAOD_Flags).
  *
- * @param df the input dataframe
- * @param outputname the name of the produced column
+ * @param df input dataframe
+ * @param outputname name of the produced column
  * @param jet_pt name of the column with jet pt values
  * @param jet_eta name of the column with jet eta values
  * @param jet_id name of the column with (broken) jet ID values 
- * @param jet_ne_hef name of the column with neutral hadron energy fraction
+ * @param jet_ne_h_ef name of the column with neutral hadron energy fraction
  * @param jet_ne_em_ef name of the column with neutral EM energy fraction
  * @param jet_mu_ef name of the column with muon energy fraction
  * @param jet_ch_em_ef name of the column with charged EM energy fraction
@@ -1261,19 +1395,17 @@ ROOT::RDF::RNode PatchedIDNanoV12(
     const std::string &jet_pt,
     const std::string &jet_eta,
     const std::string &jet_id,
-    const std::string &jet_ne_hef,
+    const std::string &jet_ne_h_ef,
     const std::string &jet_ne_em_ef,
     const std::string &jet_mu_ef,
     const std::string &jet_ch_em_ef
 ) {
-
     // we do not need to ensure the correct casting for NanoAOD v9 samples here as this fix applies to NanoAOD v12 samples only
-
     auto correction = [] (
         const ROOT::RVec<float> &jet_pt,
         const ROOT::RVec<float> &jet_eta,
         const ROOT::RVec<UChar_t> &jet_id_v12,
-        const ROOT::RVec<float> &jet_ne_hef,
+        const ROOT::RVec<float> &jet_ne_h_ef,
         const ROOT::RVec<float> &jet_ne_em_ef,
         const ROOT::RVec<float> &jet_mu_ef,
         const ROOT::RVec<float> &jet_ch_em_ef
@@ -1289,7 +1421,7 @@ ROOT::RDF::RNode PatchedIDNanoV12(
             if (abs(jet_eta.at(i)) <= 2.7) {
                 pass_tight = jet_id.at(i) & (1 << 1);
             } else if (abs(jet_eta.at(i)) > 2.7 && abs(jet_eta.at(i)) <= 3.0) {
-                pass_tight = (jet_id.at(i) & (1 << 1)) && (jet_ne_hef.at(i) < 0.99);
+                pass_tight = (jet_id.at(i) & (1 << 1)) && (jet_ne_h_ef.at(i) < 0.99);
             } else if (abs(jet_eta.at(i)) > 3.0) {
                 pass_tight = (jet_id.at(i) & (1 << 1)) && (jet_ne_em_ef.at(i) < 0.4);
             }
@@ -1314,11 +1446,7 @@ ROOT::RDF::RNode PatchedIDNanoV12(
                 jet_id_corrected[i] = 0;
             }
         }
-
-        // convert the data type to default in NanoAOD v12 (UChar_t)
-        auto jet_id_corrected_v12 = static_cast<ROOT::RVec<UChar_t>>(jet_id_corrected);
-
-        return jet_id_corrected_v12;
+        return jet_id_corrected;
     };
 
     // redefine the data type of the Jet ID mask
@@ -1329,7 +1457,7 @@ ROOT::RDF::RNode PatchedIDNanoV12(
             jet_pt,
             jet_eta,
             jet_id,
-            jet_ne_hef,
+            jet_ne_h_ef,
             jet_ne_em_ef,
             jet_mu_ef,
             jet_ch_em_ef
@@ -1351,38 +1479,37 @@ ROOT::RDF::RNode PatchedIDNanoV12(
  *  - 0 : fails Tight ID
  * (Ref. https://twiki.cern.ch/twiki/bin/view/CMS/JetID13p6TeV#Recommendations_for_the_13_6_AN1)
  *
- * The jet ID is returned as a vector of int, compatible with NanoAOD v9 conventions.
+ * The jet ID is returned as a vector of `int`, compatible with NanoAOD v9 conventions.
  *
- * @param df Input ROOT RDataFrame containing jet variables
+ * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
- * correction scale uncertainty patch file
- * @param outputname Name of the new column to hold the computed jet ID flags
- * @param jet_eta Name of the branch for jet pseudorapidity
- * @param jet_chHEF Name of the branch for charged hadron energy fraction
- * @param jet_neHEF Name of the branch for neutral hadron energy fraction
- * @param jet_chEmEF Name of the branch for charged electromagnetic energy fraction
- * @param jet_neEmEF Name of the branch for neutral electromagnetic energy fraction
- * @param jet_muEF Name of the branch for muon energy fraction
- * @param jet_chMult Name of the branch for charged multiplicity
- * @param jet_neMult Name of the branch for neutral multiplicity
- * @param jet_id_file Path to the jet ID JSON file containing correction definitions
- * @param jet_name Prefix of the jet collection used to select the appropriate corrections
+ * jet ID patch file
+ * @param outputname name of the new column to hold the computed jet ID flags
+ * @param jet_eta name of the branch for jet pseudorapidity
+ * @param jet_ch_h_ef name of the branch for charged hadron energy fraction
+ * @param jet_ne_h_ef name of the branch for neutral hadron energy fraction
+ * @param jet_ch_em_ef name of the branch for charged electromagnetic energy fraction
+ * @param jet_ne_em_ef name of the branch for neutral electromagnetic energy fraction
+ * @param jet_mu_ef name of the branch for muon energy fraction
+ * @param jet_ch_mult name of the branch for number of charged particles in a jet
+ * @param jet_ne_mult name of the branch for number of neutral particles in a jet
+ * @param jet_id_file path to the jet ID JSON file containing correction definitions
+ * @param jet_name prefix of the jet collection used to select the appropriate corrections
  *
- * @return a RDataFrame with the new jet ID column appended
+ * @return a new dataframe with the new jet ID column appended
  */
-
 ROOT::RDF::RNode 
 ID(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
         const std::string &outputname,
         const std::string &jet_eta,
-        const std::string &jet_chHEF,
-        const std::string &jet_neHEF,
-        const std::string &jet_chEmEF,
-        const std::string &jet_neEmEF,
-        const std::string &jet_muEF,
-        const std::string &jet_chMult,
-        const std::string &jet_neMult,
+        const std::string &jet_ch_h_ef,
+        const std::string &jet_ne_h_ef,
+        const std::string &jet_ch_em_ef,
+        const std::string &jet_ne_em_ef,
+        const std::string &jet_mu_ef,
+        const std::string &jet_ch_mult,
+        const std::string &jet_ne_mult,
         const std::string &jet_id_file,
         const std::string &jet_name) {
 
@@ -1394,29 +1521,30 @@ ID(ROOT::RDF::RNode df,
     auto tightLepVetoID = 
         correction_manager.loadCorrection(jet_id_file, jet_name + "_TightLeptonVeto"); 
 
-    auto compute_jet_id = [tightID, tightLepVetoID](const ROOT::RVec<float> &eta,
-                                                    const ROOT::RVec<float> &chHEF,
-                                                    const ROOT::RVec<float> &neHEF,
-                                                    const ROOT::RVec<float> &chEmEF,
-                                                    const ROOT::RVec<float> &neEmEF,
-                                                    const ROOT::RVec<float> &muEF,
-                                                    const ROOT::RVec<UChar_t> &chMult,
-                                                    const ROOT::RVec<UChar_t> &neMult) {
+    auto compute_jet_id = [tightID, tightLepVetoID](
+                            const ROOT::RVec<float> &eta,
+                            const ROOT::RVec<float> &ch_h_ef,
+                            const ROOT::RVec<float> &ne_h_ef,
+                            const ROOT::RVec<float> &ch_em_ef,
+                            const ROOT::RVec<float> &ne_em_ef,
+                            const ROOT::RVec<float> &mu_ef,
+                            const ROOT::RVec<UChar_t> &ch_mult,
+                            const ROOT::RVec<UChar_t> &ne_mult) {
 
         size_t nJets = eta.size();
         ROOT::RVec<int> jetId(nJets); 
         for (size_t i = 0; i < nJets; ++i) {
-            UChar_t mult = chMult.at(i) + neMult.at(i);
+            UChar_t mult = ch_mult.at(i) + ne_mult.at(i);
             bool passTight = false, passTightLepVeto = false;
 
             passTight = (tightID->evaluate(
-                {eta.at(i), chHEF.at(i), neHEF.at(i), chEmEF.at(i),
-                neEmEF.at(i), muEF.at(i), chMult.at(i), neMult.at(i), mult}
+                {eta.at(i), ch_h_ef.at(i), ne_h_ef.at(i), ch_em_ef.at(i),
+                ne_em_ef.at(i), mu_ef.at(i), ch_mult.at(i), ne_mult.at(i), mult}
             ) > 0.5);
 
             passTightLepVeto = (tightLepVetoID->evaluate(
-                {eta.at(i), chHEF.at(i), neHEF.at(i), chEmEF.at(i),
-                neEmEF.at(i), muEF.at(i), chMult.at(i), neMult.at(i), mult}
+                {eta.at(i), ch_h_ef.at(i), ne_h_ef.at(i), ch_em_ef.at(i),
+                ne_em_ef.at(i), mu_ef.at(i), ch_mult.at(i), ne_mult.at(i), mult}
             ) > 0.5);
 
             if (passTight && passTightLepVeto) jetId[i] = 6;
@@ -1427,9 +1555,9 @@ ID(ROOT::RDF::RNode df,
     };
 
     auto df1 = df.Define(outputname, compute_jet_id,
-                     {jet_eta, jet_chHEF, jet_neHEF,
-                      jet_chEmEF, jet_neEmEF, jet_muEF,
-                      jet_chMult, jet_neMult});
+                     {jet_eta, jet_ch_h_ef, jet_ne_h_ef,
+                      jet_ch_em_ef, jet_ne_em_ef, jet_mu_ef,
+                      jet_ch_mult, jet_ne_mult});
     return df1;
 }
 } // end namespace quantity

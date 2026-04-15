@@ -1485,9 +1485,12 @@ ROOT::RDF::RNode Id_vsJet(
  * tau scale factor file
  * @param outputname name of the output column containing the vsEle ID scale factor
  * @param eta name of the column containing the pseudorapidity of a tau
+ * @param decay_mode name of the column containing the decay mode of the tau
  * @param gen_match name of the column with the matching information of the
  * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt mu,
  * 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
+ * @param era data-taking era, e.g. "2017" or "2018", needed to set the eta boundaries
+ * for the endcap region
  * @param sf_file path to the file with the tau scale factors
  * @param sf_name name of the tau scale factor for the vsEle ID correction
  * @param wp working point of the vsEle ID
@@ -1508,10 +1511,9 @@ Id_vsEle(ROOT::RDF::RNode df,
          const std::string &outputname,
          const std::string &eta,
          const std::string &decay_mode,
-         const std::string &gen_match, 
-         const std::string &era,
+         const std::string &gen_match,
          const std::string &sf_file, const std::string &sf_name,
-         const std::string &wp, 
+         const std::string &wp, const std::string &era,
          const std::string &variation_barrel,
          const std::string &variation_endcap) {
 
@@ -1540,7 +1542,8 @@ Id_vsEle(ROOT::RDF::RNode df,
                         variation_endcap);
             // the eta cuts are taken from the correctionlib json file to define 
             // barrel and endcap
-            if (std::stoi(era.substr(0, 4)) < 2022) {
+            if (sf_name == "DeepTau2017v2p1VSe") {
+                // SFs for DeepTau2017v2p1 depend on eta
                 if (std::abs(eta) < max_abs_eta_barrel) {
                     sf = evaluator->evaluate(
                         {eta, gen_match, wp, variation_barrel});
@@ -1551,7 +1554,7 @@ Id_vsEle(ROOT::RDF::RNode df,
                     sf = 1.;
                 }
             } else {
-                // additional dm argument for run3 sf
+                // SFs for DeepTau2018v2p5 depend on eta and the decay mode
                 if (std::abs(eta) < max_abs_eta_barrel) {
                     sf = evaluator->evaluate(
                         {eta, dm, gen_match, wp, variation_barrel});

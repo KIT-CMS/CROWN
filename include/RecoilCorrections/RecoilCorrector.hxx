@@ -24,24 +24,21 @@ class RecoilCorrector {
                          float &MetCorrPx, float &MetCorrPy);
 
   private:
-    int binNumber(float x, const std::vector<float> &bins) const {
-        // bin vector too small
+    int binNumber(float x, const std::vector<float> bins) const {
         if (bins.size() < 2) {
             return 0;
         }
-        for (size_t iB = 0; iB < bins.size() - 1; ++iB) {
+        for (size_t iB = 0; iB < bins.size(); ++iB) {
             if (x >= bins[iB] && x < bins[iB + 1])
                 return iB;
         }
-        // If x is exactly the last bin edge or above, return the last valid bin
         if (x >= bins[bins.size() - 1]) {
             return bins.size() - 2;
         }
         return 0;
     }
 
-    int binNumber(float x, int nbins, const float *bins) const {
-        // bin vector too small
+    int binNumber(float x, int nbins, const float *bins) {
         if (nbins < 1) {
             return 0;
         }
@@ -50,9 +47,8 @@ class RecoilCorrector {
                 return iB;
             }
         }
-        // If x is exactly the last bin edge or above, return the last valid bin
-        if (x >= bins[nbins]) {
-            return nbins - 1;
+        if (x >= bins[nbins - 1]) {
+            return nbins - 2;
         }
         return 0;
     }

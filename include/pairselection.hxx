@@ -21,13 +21,13 @@ bool check_mother(ROOT::RVec<GenParticle> genparticles, const int index,
 
 namespace ditau_pairselection {
 ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df, 
-                              const std::string &genpair,
+                              const std::string &outputname,
                               const std::string &recopair,
                               const std::string &genindex_particle1,
                               const std::string &genindex_particle2);
 ROOT::RDF::RNode
 buildtruegenpair(ROOT::RDF::RNode df, 
-                const std::string &genpair,
+                const std::string &outputname,
                 const std::string &statusflags,
                 const std::string &status, const std::string &pdgids,
                 const std::string &motherids, const std::string &pts,

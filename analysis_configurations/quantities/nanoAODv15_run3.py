@@ -5257,6 +5257,18 @@ MC_PFScouting = NanoAODQuantity("MC_PFScouting")
 HLTriggerFinalPath = NanoAODQuantity("HLTriggerFinalPath")
 """dtype: Bool_t; description: Trigger/flag bit (process: HLT) """
 
+TauEmbedding_chargeLeadingMuon = NanoAODQuantity("TauEmbedding_chargeLeadingMuon")
+"""dtype: Float_t; description: leading muon charge """
+TauEmbedding_chargeTrailingMuon = NanoAODQuantity("TauEmbedding_chargeTrailingMuon")
+"""dtype: Float_t; description: trailing muon charge """
+TauEmbedding_dbLeadingMuon = NanoAODQuantity("TauEmbedding_dbLeadingMuon")
+"""dtype: Float_t; description: leading muon DB """
+TauEmbedding_dbTrailingMuon = NanoAODQuantity("TauEmbedding_dbTrailingMuon")
+"""dtype: Float_t; description: trailing muon DB """
+TauEmbedding_etaLeadingMuon = NanoAODQuantity("TauEmbedding_etaLeadingMuon")
+"""dtype: Float_t; description: leading muon eta """
+TauEmbedding_etaTrailingMuon = NanoAODQuantity("TauEmbedding_etaTrailingMuon")
+"""dtype: Float_t; description: trailing muon eta """
 TauEmbedding_initialMETEt = NanoAODQuantity("TauEmbedding_initialMETEt")
 """dtype: Float_t; description: MET Et of selected event """
 TauEmbedding_initialMETphi = NanoAODQuantity("TauEmbedding_initialMETphi")
@@ -5273,3 +5285,27 @@ TauEmbedding_isTightLeadingMuon = NanoAODQuantity("TauEmbedding_isTightLeadingMu
 """dtype: Bool_t; description: leading muon ID (tight) """
 TauEmbedding_isTightTrailingMuon = NanoAODQuantity("TauEmbedding_isTightTrailingMuon")
 """dtype: Bool_t; description: trailing muon ID (tight) """
+TauEmbedding_massLeadingMuon = NanoAODQuantity("TauEmbedding_massLeadingMuon")
+"""dtype: Float_t; description: leading muon mass """
+TauEmbedding_massTrailingMuon = NanoAODQuantity("TauEmbedding_massTrailingMuon")
+"""dtype: Float_t; description: trailing muon mass """
+TauEmbedding_phiLeadingMuon = NanoAODQuantity("TauEmbedding_phiLeadingMuon")
+"""dtype: Float_t; description: leading muon phi """
+TauEmbedding_phiTrailingMuon = NanoAODQuantity("TauEmbedding_phiTrailingMuon")
+"""dtype: Float_t; description: trailing muon phi """
+TauEmbedding_ptLeadingMuon = NanoAODQuantity("TauEmbedding_ptLeadingMuon")
+"""dtype: Float_t; description: leading muon pt """
+TauEmbedding_ptTrailingMuon = NanoAODQuantity("TauEmbedding_ptTrailingMuon")
+"""dtype: Float_t; description: trailing muon pt """
+TauEmbedding_vtxXLeadingMuon = NanoAODQuantity("TauEmbedding_vtxXLeadingMuon")
+"""dtype: Float_t; description: leading muon vertex X """
+TauEmbedding_vtxXTrailingMuon = NanoAODQuantity("TauEmbedding_vtxXTrailingMuon")
+"""dtype: Float_t; description: trailing muon vertex X """
+TauEmbedding_vtxYLeadingMuon = NanoAODQuantity("TauEmbedding_vtxYLeadingMuon")
+"""dtype: Float_t; description: leading muon vertex Y """
+TauEmbedding_vtxYTrailingMuon = NanoAODQuantity("TauEmbedding_vtxYTrailingMuon")
+"""dtype: Float_t; description: trailing muon vertex Y """
+TauEmbedding_vtxZLeadingMuon = NanoAODQuantity("TauEmbedding_vtxZLeadingMuon")
+"""dtype: Float_t; description: leading muon vertex Z """
+TauEmbedding_vtxZTrailingMuon = NanoAODQuantity("TauEmbedding_vtxZTrailingMuon")
+"""dtype: Float_t; description: trailing muon vertex Z """

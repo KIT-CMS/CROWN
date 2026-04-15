@@ -50,9 +50,9 @@ EEGenPair = Producer(
 MMTrueGenPair = Producer(
     name="GenPair",
     call="""ditau_pairselection::buildtruegenpair(
-        {df}, 
-        {input}, 
-        {output}, 
+        {df},
+        {output},
+        {input},
         {truegen_mother_pdgid}, 
         {truegen_daughter_1_pdgid}, 
         {truegen_daugher_2_pdgid})
@@ -202,7 +202,7 @@ gen_m_vis = Producer(
 )
 gen_taujet_pt_1 = Producer(
     name="gen_taujet_pt_1",
-    call="quantities::GenJetMatching({df}, {output}, {input}, 0)",
+    call="event::quantity::GetGenJetForObject<float>({df}, {output}, {input}, 0)",
     input=[
         nanoAOD.GenJet_pt,
         nanoAOD.Jet_genJetIdx,
@@ -214,7 +214,7 @@ gen_taujet_pt_1 = Producer(
 )
 gen_taujet_pt_2 = Producer(
     name="gen_taujet_pt_2",
-    call="quantities::GenJetMatching({df}, {output}, {input}, 1)",
+    call="event::quantity::GetGenJetForObject<float>({df}, {output}, {input}, 1)",
     input=[
         nanoAOD.GenJet_pt,
         nanoAOD.Jet_genJetIdx,
