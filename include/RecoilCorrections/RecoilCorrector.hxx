@@ -25,21 +25,32 @@ class RecoilCorrector {
 
   private:
     int binNumber(float x, const std::vector<float> bins) const {
-        for (size_t iB = 0; iB < bins.size(); ++iB)
+        if (bins.size() < 2) {
+            return 0;
+        }
+        for (size_t iB = 0; iB < bins.size(); ++iB) {
             if (x >= bins[iB] && x < bins[iB + 1])
                 return iB;
+        }
+        if (x >= bins[bins.size() - 1]) {
+            return bins.size() - 2;
+        }
         return 0;
     }
 
     int binNumber(float x, int nbins, const float *bins) {
-        int binN = 0;
+        if (nbins < 1) {
+            return 0;
+        }
         for (int iB = 0; iB < nbins; ++iB) {
             if (x >= bins[iB] && x < bins[iB + 1]) {
-                binN = iB;
-                break;
+                return iB;
             }
         }
-        return binN;
+        if (x >= bins[nbins - 1]) {
+            return nbins - 2;
+        }
+        return 0;
     }
 
     TString fileName;
