@@ -1,3 +1,4 @@
+from curses import meta
 from math import sqrt
 import re
 import json
@@ -27,8 +28,9 @@ class GraphParser:
         self.inputs = defaultdict(lambda: defaultdict(list))
         self.outputs = defaultdict(lambda: defaultdict(list))
         self.vec_output_mappings = {}
+        self.family_register = defaultdict(list)
 
-        self.DAG_data = {}
+        self.DAG_data = None
         self.DAG_dir = DAG_dir
 
     def save_graph(self, name):
@@ -41,8 +43,11 @@ class GraphParser:
             path = os.path.join(self.DAG_dir, path)
             os.makedirs(self.DAG_dir, exist_ok=True)
 
+        meta_data = {"familyRegister": self.family_register}
+        full_dict = {"elementData": self.DAG_data, "metaData": meta_data}
+
         with open(path, "w") as f:
-            json.dump(self.DAG_data, f, indent=4, sort_keys=True)
+            json.dump(full_dict, f, indent=4, sort_keys=True)
 
         self.update_DAG_file_list(
             os.path.join(self.DAG_dir, "DAG_files.json"),
@@ -120,7 +125,8 @@ class GraphParser:
         formatted_nodes = [{"data": n} for n in self.nodes.values()]
 
         # Compile final DAG data
-        self.DAG_data = formatted_nodes + self.edges
+        # self.DAG_data = formatted_nodes + self.edges
+        self.DAG_data = sorted(formatted_nodes, key=lambda d: d["data"].get("label","")) + sorted(self.edges, key=lambda d: d["data"]["target"])
 
     def set_is_out(self, scope, req_out):
         producers = self.outputs[scope].get(req_out, []) + self.outputs["global"].get(req_out, [])
@@ -169,8 +175,19 @@ class GraphParser:
             for name, targets in dt.items():
                 if len(targets)==1:
                     target = targets[0]
-                    edge_id = f"{name}_{target}"
-                    self.add_edge(source, targets[0], edge_id, name, 1, "leaf")
+                    # edge_id = f"{name}_{target}"
+                    location = self.nodes[source].get("parent")
+                    proxy_node_name = f"proxy_{name}_{location}"
+                    proxy_edge_name = f"proxyedge_{name}_{location}"
+                    leaf_edge_name = f"{name}_{target}"
+                    if self.debugging:
+                        print(f"Label at {location}")
+                        print(f"Adding proxy node {proxy_node_name} with parent {location}")
+                        print(f"Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight 1")
+                        print(f"Adding final edge {leaf_edge_name} from {proxy_node_name} to {target} with weight 1")
+                    self.add_node(id_name=proxy_node_name, name=name, parent=location, node_type="proxy", family=name)
+                    self.add_edge(source=source, target=proxy_node_name, edge_id=proxy_edge_name, name=name, weight=1, edge_type="twig", family=name)
+                    self.add_edge(source=proxy_node_name, target=target, edge_id=leaf_edge_name, name=name, weight=1, edge_type="leaf", family=name)
                 else:
                     source_history = self.get_ancestors(source)
                     relative_targets = [self.get_relative(source_history, self.get_ancestors(target)) for target in targets]
@@ -203,8 +220,8 @@ class GraphParser:
                 print(f"Junktion at {proxy_loc}")
                 print(f"Adding proxy node {proxy_node_name} with parent {proxy_loc}")
                 print(f"Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight {len(valid_idx)}")
-            self.add_node(proxy_node_name, parent=proxy_loc, node_type="proxy")
-            self.add_edge(source, proxy_node_name, proxy_edge_name, name, len(valid_idx), "branch")
+            self.add_node(id_name=proxy_node_name, name=name, parent=proxy_loc, node_type="proxy", family=name)
+            self.add_edge(source=source, target=proxy_node_name, edge_id=proxy_edge_name, name=name, weight=len(valid_idx), edge_type="branch", family=name)
             for val in set(data_slice):
                 part_idx = [valid_idx[i] for i, d in enumerate(data_slice) if d == val]
                 if len(part_idx) <= 1:
@@ -212,7 +229,7 @@ class GraphParser:
                     leaf_edge_name = f"{name}_{leaf_name}"
                     if self.debugging:
                         print(f"Adding final edge {leaf_edge_name} from {proxy_node_name} to {leaf_name} with weight 1")
-                    self.add_edge(proxy_node_name, leaf_name, leaf_edge_name, name, 1, "leaf")
+                    self.add_edge(source=proxy_node_name, target=leaf_name, edge_id=leaf_edge_name, name=name, weight=1, edge_type="leaf", family=name)
                 else:
                     self.construct_proxies(name, data, part_idx, tot_idx, rank + 1, proxy_node_name)
 
@@ -364,7 +381,7 @@ class GraphParser:
             raise ValueError(f"Input {input_name} already exists in inputs.")
         self.inputs[scope][scoped_input].append(input_name)
 
-    def add_node(self, id_name, name=None, scope=None, parent=None, node_type=None):
+    def add_node(self, id_name, name=None, scope=None, parent=None, node_type=None, family=None):
         """Creates a standardized node object and appends it to the graph's node list."""
         if not name:
             name = id_name
@@ -380,6 +397,12 @@ class GraphParser:
                 add_data["parent"] = parent
         if node_type:
             add_data["type"] = node_type
+        if family:
+            add_data["family"] = family
+            self.family_register[family].append(full_id)
+        else:
+            add_data["family"] = full_id
+            self.family_register[full_id].append(full_id)
 
         self.nodes[full_id] = add_data
 
@@ -387,10 +410,11 @@ class GraphParser:
         """Creates a directional edge between a source node and a target node."""
         self.connections[source][name].append(target)
 
-    def add_edge(self, source, target, edge_id, name, weight, edge_type, family=None):
+    def add_edge(self, source, target, edge_id, name, weight, edge_type, family):
         """Creates a directional edge between a source node and a target node."""
-        if not family:
-            family = [edge_id]
+
+        self.family_register[family].append(edge_id)
+
         self.edges.append({
             "data": {
                 "id":edge_id,
