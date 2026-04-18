@@ -4,36 +4,18 @@
     <meta charset="UTF-8">
     <title>Physics Analysis Graph Explorer</title>
 
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
-    <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/elkjs@0.9.3/lib/elk.bundled.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/cytoscape-elk@2.1.0/dist/cytoscape-elk.min.js"></script>
 
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; background: #fcfcfc; }
-        #selector-group {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 8px;
-        }
-
-        #selector-group select {
-            flex: 1;
-            min-width: 0;
-            padding: 8px 4px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            background: white;
-            font-size: 12px;
-            cursor: pointer;
-        }
 
         /* UI Layer */
         #search-container { position: absolute; top: 20px; left: 20px; z-index: 10; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 340px; border: 1px solid #e0e0e0; }
+        #selector-group { display: flex; gap: 6px; margin-bottom: 8px; }
+        #selector-group select { flex: 1; min-width: 0; padding: 8px 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-size: 12px; cursor: pointer; }
+
         .row { display: flex; gap: 6px; margin-bottom: 8px; }
         input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-family: 'Cascadia Code', 'Courier New', monospace; outline: none; }
         input:focus { border-color: #3498db; }
@@ -44,144 +26,117 @@
         .nav-btn { background: #3498db; flex: 1; }
         .cancel-btn { background: #95a5a6; }
         .nav-btn:disabled { background: #d5d8dc; cursor: not-allowed; }
-        #status {
-            text-align: center;
-            font-size: 11px;
-            color: #7f8c8d;
-            font-weight: bold;
-            margin-top: 12px;
-            min-height: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+
+        #status { text-align: center; font-size: 11px; color: #7f8c8d; font-weight: bold; margin-top: 12px; min-height: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
         #status.error { color: #e74c3c; }
-        #reset-ui { position: absolute; bottom: 20px; right: 20px; z-index: 10; }
+
+        #reset-ui { position: absolute; bottom: 20px; left: 20px; z-index: 10; }
         .reset-btn { background: #e74c3c; padding: 12px 20px; border-radius: 30px; color: white; font-weight: bold; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); border:none; cursor:pointer;}
 
         #cy { width: 100vw; height: 100vh; z-index: 1; }
 
-        /* Inspector Overlay */
-        #inspector-overlay {
+        /* Sidebar Overlay */
+        #sidebar {
             position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: none;
-            flex-direction: row;
-            align-items: flex-start;
-            gap: 25px;
-            background: rgba(30, 39, 46, 0.95);
-            padding: 20px 30px;
-            border-radius: 16px;
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            bottom: 20px;
+            background: rgba(30, 39, 46, 0.96);
+            padding: 24px;
+            border-radius: 12px;
             color: white;
             z-index: 100;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-            max-width: 85vw;
-            max-height: 35vh;
-            transition: all 0.2s ease;
-            pointer-events: auto;
+            box-shadow: -4px 0 25px rgba(0,0,0,0.3);
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
         }
 
-        .inspector-column {
+        .sidebar-header {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 12px;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #ecf0f1;
+            word-wrap: break-word;
+        }
+
+        .sidebar-section {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            min-width: 180px;
-            max-height: 30vh;
-            overflow-y: auto;
-            padding-right: 10px;
+            gap: 10px;
         }
 
-        .column-label {
-            font-size: 10px;
+        .sidebar-subtitle {
+            font-size: 11px;
             text-transform: uppercase;
             color: #3498db;
             font-weight: 800;
             letter-spacing: 1.5px;
-            margin-bottom: 5px;
-            position: sticky;
-            top: 0;
-            background: rgba(30, 39, 46, 0.95);
-            padding: 2px 0;
+        }
+
+        .node-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .detail-box {
             background: #ffffff;
             color: #2c3e50;
-            padding: 4px 10px;
+            padding: 8px 12px;
             border-radius: 4px;
             font-weight: bold;
-            font-size: 11px;
-            white-space: nowrap;
-            border-left: 3px solid #3498db;
+            font-size: 12px;
+            word-wrap: break-word;
+            border-left: 4px solid #3498db;
         }
 
-        .focus-item {
-            background: #3498db;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 14px;
-            text-align: center;
-            border: none;
-        }
-
-        .detail-edge-text {
-            font-family: 'Cascadia Code', monospace;
-            font-size: 11px;
-            color: #bdc3c7;
-            margin-bottom: 8px;
+        .detail-row {
+            font-size: 13px;
             display: flex;
-            align-items: center;
-            gap: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 4px;
+            flex-direction: column;
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 6px;
+            gap: 4px;
         }
 
-        .inspector-column::-webkit-scrollbar { width: 4px; }
-        .inspector-column::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .detail-label {
+            color: #95a5a6;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .detail-value {
+            color: #fff;
+            font-family: 'Cascadia Code', monospace;
+            word-wrap: break-word;
+            font-size: 13px;
+        }
+
+        #sidebar::-webkit-scrollbar { width: 6px; }
+        #sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
         /* Legend Styling */
-        #legend {
-            margin-top: 15px;
-            padding-top: 12px;
-            border-top: 1px solid #eee;
-        }
-
-        .legend-title {
-            font-size: 10px;
-            text-transform: uppercase;
-            font-weight: 800;
-            color: #95a5a6;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
-        }
-
-        .legend-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px 8px;
-            margin-top: 5px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 11px;
-            color: #2c3e50;
-            white-space: nowrap;
-        }
-
-        .symbol {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-            box-sizing: border-box;
-        }
-
+        #legend { margin-top: 15px; padding-top: 12px; border-top: 1px solid #eee; }
+        .legend-title { font-size: 10px; text-transform: uppercase; font-weight: 800; color: #95a5a6; margin-bottom: 10px; letter-spacing: 1px; }
+        .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 8px; margin-top: 5px; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #2c3e50; white-space: nowrap; }
+        .symbol { width: 16px; height: 16px; flex-shrink: 0; box-sizing: border-box; }
         .diamond { transform: rotate(45deg); width: 12px; height: 12px; margin-left: 2px; }
         .square { border-radius: 2px; }
         .parent-box { border: 2px dashed #1e88e5; background: rgba(30, 136, 229, 0.1); }
@@ -229,21 +184,11 @@
     <div id="status"></div>
 </div>
 
-<div id="inspector-overlay">
-    <div class="inspector-column" id="incoming-col">
-        <div class="column-label">Inflow</div>
-        <div id="incoming-list"></div>
+<div id="sidebar">
+    <div class="sidebar-header">
+        <h2 id="sidebar-title">Family Name</h2>
     </div>
-
-    <div class="inspector-column" style="align-items: center; justify-content: center;">
-        <div class="column-label">Focused Element</div>
-        <div id="focus-node" class="detail-box focus-item"></div>
-    </div>
-
-    <div class="inspector-column" id="outgoing-col">
-        <div class="column-label">Outflow</div>
-        <div id="outgoing-list"></div>
-    </div>
+    <div id="sidebar-content"></div>
 </div>
 
 <div id="reset-ui"><button class="reset-btn" onclick="resetView()">Reset View</button></div>
@@ -254,6 +199,7 @@ let cy;
 let searchResults = [];
 let currentIndex = -1;
 let familyIndex = {};
+let familyTypes = {};
 let familyResults = [];
 
 const CONFIG_URL = 'build/visualization/DAG_files.json?v=' + Date.now();
@@ -307,7 +253,7 @@ async function initGraph(fileName) {
         document.getElementById('status').innerText = "Loading " + fileName + "...";
         document.getElementById('status').classList.remove('error');
 
-        const response = await fetch(`build/visualization/_${fileName}.json?v=${Date.now()}`);
+        const response = await fetch(`build/visualization/${fileName}.json?v=${Date.now()}`);
         if (!response.ok) throw new Error("File not found");
 
         let DAGData = await response.json();
@@ -325,9 +271,9 @@ async function initGraph(fileName) {
         const metaData = DAGData.metaData;
         familyIndex = Object.fromEntries(
             Object.entries(metaData.familyRegister).map(
-                ([fam, ids]) => [fam, new Set(ids)]
+                ([fam, obj]) => [fam, new Set(obj.members)]
             )
-        )
+        );
 
         cy = cytoscape({
             container: document.getElementById('cy'),
@@ -351,10 +297,7 @@ async function initGraph(fileName) {
                         'z-index': 10
                     }
                 },
-
-                /* In/Out Edge Indicator Styles */
                 {
-                    // Leftside Blue Extension for inputs
                     selector: 'node[?is_in]',
                     style: {
                         'background-fill': 'linear-gradient',
@@ -364,7 +307,6 @@ async function initGraph(fileName) {
                     }
                 },
                 {
-                    // Rightside Blue Extension for outputs
                     selector: 'node[?is_out]',
                     style: {
                         'background-fill': 'linear-gradient',
@@ -374,7 +316,6 @@ async function initGraph(fileName) {
                     }
                 },
                 {
-                    // If a node is both an Input and an Output
                     selector: 'node[?is_in][?is_out]',
                     style: {
                         'background-fill': 'linear-gradient',
@@ -383,41 +324,27 @@ async function initGraph(fileName) {
                         'background-gradient-direction': 'to-right'
                     }
                 },
-
                 { selector: ':parent', style: { 'background-fill': 'solid', 'background-opacity': 0.1, 'background-color': '#1e88e5', 'border-color': '#1e88e5', 'border-style': 'dashed', 'border-width': 4, 'text-valign': 'top', 'padding': '20px', 'events': 'no' } },
                 { selector: 'node[type="scope"]', style: { 'border-style': 'solid', 'border-width': 4, 'border-color': '#4a4a4a', 'background-color': '#d1d1d1', 'background-opacity': 0.2 } },
                 { selector: 'node[type="vector"]', style: { 'border-style': 'dashed', 'border-width': 4, 'border-color': '#8e24aa', 'background-color': '#da70d6', 'background-opacity': 0.15 } },
-                { selector: 'node[type = "filter"]', style: { 'shape': 'diamond', 'background-color': '#fff3e0', 'border-color': '#ff9800' } },
+                { selector: 'node[type="filter"]', style: { 'shape': 'diamond', 'background-color': '#fff3e0', 'border-color': '#ff9800' } },
                 {
                     selector: 'node[type="proxy"]',
                     style: {
                         'label': 'data(label)',
-
-                        // Give the node a real footprint so edges connect cleanly
                         'width': 'label',
                         'height': 'label',
                         'padding': 6,
-
-                        // Light yellow fill
                         'background-color': '#fff9c4',
                         'background-opacity': 1,
-
-                        // Outline to anchor edges visually
                         'border-width': 1.5,
                         'border-color': '#d4c96a',
-
-                        // Text styling
                         'color': '#333',
                         'font-size': 10,
                         'text-valign': 'center',
                         'text-halign': 'center',
-
-                        // Improve readability
                         'text-wrap': 'wrap',
                         'text-max-width': 80,
-
-                        // Optional: keep it non-interactive
-                        // 'events': 'no'
                     }
                 },
                 {
@@ -426,23 +353,11 @@ async function initGraph(fileName) {
                         'curve-style': 'unbundled-bezier',
                         'line-color': '#6e7070',
                         'width': 'data(width)',
-                        // 'width': 1.5,
                         'target-arrow-shape': 'none',
                     }
                 },
-                {
-                    selector: 'edge[type="twig"]',
-                    style: {
-                        'curve-style': 'bezier',
-                    }
-                },
-                {
-                    selector: 'edge[type="leaf"]',
-                    style: {
-                        'curve-style': 'bezier',
-                        'target-arrow-shape': 'triangle',
-                    }
-                },
+                { selector: 'edge[type="twig"]', style: { 'curve-style': 'bezier' } },
+                { selector: 'edge[type="leaf"]', style: { 'curve-style': 'bezier', 'target-arrow-shape': 'triangle' } },
                 { selector: 'node.highlighted', style: { 'border-color': '#2e7d32', 'border-width': 3, 'z-index': 99 } },
                 { selector: 'edge.highlighted', style: { 'line-color': '#2e7d32', 'target-arrow-color': '#2e7d32', 'width': 3, 'z-index': 99 } },
                 { selector: 'node.activeFocus', style: { 'border-color': '#27ae60', 'color': '#000000', 'z-index': 1000 } },
@@ -472,74 +387,111 @@ async function initGraph(fileName) {
 
 function getFamilyCollection(el) {
     const fam = el.data('family');
-    if (!fam || !familyIndex[fam]) return cy.collection([el]);
+    // if (!fam || !familyIndex[fam]) return cy.collection([el]);
 
     return cy.collection(
-        [...familyIndex[fam]].map(id => cy.getElementById(id))
+        [...familyIndex[fam]].map(id => cy.getElementById(id)) //.filter(e => e.length > 0)
     );
 }
 
-function setupInteractions() {
-    const overlay = document.getElementById('inspector-overlay');
-    const inList = document.getElementById('incoming-list');
-    const outList = document.getElementById('outgoing-list');
-    const focusBox = document.getElementById('focus-node');
+function updateSidebar(familyEles, famName) {
+    const sidebar = document.getElementById('sidebar');
+    const sidebarTitle = document.getElementById('sidebar-title');
+    const sidebarContent = document.getElementById('sidebar-content');
 
+    sidebarTitle.innerText = famName || 'Unknown Family';
+    sidebarContent.innerHTML = '';
+
+    if (!famName || !familyTypes[famName]) {
+        sidebar.style.display = 'none';
+        return;
+    }
+
+    if (familyTypes[famName] === 'edge') {
+        let trueSources = new Set();
+        let trueTargets = new Set();
+
+        familyEles.edges().forEach(e => {
+            const src = e.source();
+            const tgt = e.target();
+            // Filter out internal junktion proxies to find real sources/targets
+            if (src && !src.id().startsWith('proxy_')) trueSources.add(src);
+            if (tgt && !tgt.id().startsWith('proxy_')) trueTargets.add(tgt);
+        });
+
+        let html = `<div class="sidebar-section"><div class="sidebar-subtitle">Source Node(s)</div><ul class="node-list">`;
+        trueSources.forEach(s => {
+            html += `<li><div class="detail-box">${s.data('label') || s.id()}</div></li>`;
+        });
+        if(trueSources.size === 0) html += `<li><span style="color:#7f8c8d">None Found</span></li>`;
+        html += `</ul></div>`;
+
+        html += `<div class="sidebar-section"><div class="sidebar-subtitle">Target Node(s)</div><ul class="node-list">`;
+        trueTargets.forEach(t => {
+            html += `<li><div class="detail-box">${t.data('label') || t.id()}</div></li>`;
+        });
+        if(trueTargets.size === 0) html += `<li><span style="color:#7f8c8d">None Found</span></li>`;
+        html += `</ul></div>`;
+
+        sidebarContent.innerHTML = html;
+
+    } else {
+        // Node Type Family
+        let nodeDetails = familyEles.nodes().first();
+        // Fallback: Make sure we don't display a proxy if a real node exists
+        familyEles.nodes().forEach(n => {
+            if (!n.id().startsWith('proxy_')) nodeDetails = n;
+        });
+
+        if (nodeDetails && !nodeDetails.empty()) {
+            let data = nodeDetails.data();
+            let html = `<div class="sidebar-section"><div class="sidebar-subtitle">Node Details</div>`;
+            html += `<div class="detail-row"><span class="detail-label">Label</span> <span class="detail-value">${data.label || '-'}</span></div>`;
+            html += `<div class="detail-row"><span class="detail-label">ID</span> <span class="detail-value">${data.id}</span></div>`;
+
+            if(data.parent) html += `<div class="detail-row"><span class="detail-label">Parent Block</span> <span class="detail-value">${data.parent}</span></div>`;
+            if(data.type) html += `<div class="detail-row"><span class="detail-label">Element Type</span> <span class="detail-value">${data.type}</span></div>`;
+            if(data.is_in) html += `<div class="detail-row"><span class="detail-label">Input</span> <span class="detail-value">Read from NanoAOD</span></div>`;
+            if(data.is_out) html += `<div class="detail-row"><span class="detail-label">Output</span> <span class="detail-value">Written to NTuple</span></div>`;
+
+            html += `</div>`;
+            sidebarContent.innerHTML = html;
+        }
+    }
+
+    sidebar.style.display = 'flex';
+}
+
+function setupInteractions() {
     cy.on('tap', 'node, edge', function(evt) {
         const el = evt.target;
         if (el.isNode() && el.isParent()) return;
 
         const data = el.data();
+        const fam = data.family;
+
+        // if (!fam || !familyIndex[fam]) return;
 
         cy.elements().removeClass('activeFocus');
-
         const familyEles = getFamilyCollection(el);
         familyEles.addClass('activeFocus');
 
-        if (data.type === 'leaf') {
-            familyEles.forEach(e => {
-                if (e.isEdge()) {
-                    e.target().addClass('activeFocus');
-                }
-            });
-        }
+        // Optional UX: Also highlight end-nodes connected by true leaf edges
+        // if (data.type === 'leaf') {
+        //     familyEles.forEach(e => {
+        //         if (e.isEdge() && !e.target().id().startsWith('proxy_')) {
+        //             e.target().addClass('activeFocus');
+        //         }
+        //     });
+        // }
 
-        // Inspector unchanged
-        const overlay = document.getElementById('inspector-overlay');
-        const inList = document.getElementById('incoming-list');
-        const outList = document.getElementById('outgoing-list');
-        const focusBox = document.getElementById('focus-node');
-
-        focusBox.innerText = data.label || data.description || el.id();
-
-        inList.innerHTML = '';
-        outList.innerHTML = '';
-
-        el.connectedEdges().forEach(edge => {
-            const eLabel = edge.data('label') || '──';
-            const div = document.createElement('div');
-            div.className = 'detail-edge-text';
-
-            if (edge.target().id() === el.id()) {
-                const srcLabel = edge.source().data('label') || edge.source().id();
-                div.innerHTML = `<span class="detail-box">${srcLabel}</span> ➔ ${eLabel}`;
-                inList.appendChild(div);
-            } else {
-                const destLabel = edge.target().data('label') || edge.target().id();
-                div.innerHTML = `${eLabel} ➔ <span class="detail-box">${destLabel}</span>`;
-                outList.appendChild(div);
-            }
-        });
-
-        if (!inList.innerHTML) inList.innerHTML = '<span style="color: #576574; font-size: 11px;">Source node</span>';
-        if (!outList.innerHTML) outList.innerHTML = '<span style="color: #576574; font-size: 11px;">Terminal node</span>';
-
-        overlay.style.display = 'flex';
+        updateSidebar(familyEles, fam);
     });
 
     cy.on('tap', function(evt) {
         if (evt.target === cy) {
-            overlay.style.display = 'none';
+            document.getElementById('sidebar').style.display = 'none';
+            cy.elements().removeClass('activeFocus');
         }
     });
 }
@@ -548,28 +500,51 @@ function cancelSearch() {
     document.getElementById('searchInput').value = '';
     cy.elements().removeClass('highlighted activeFocus');
     searchResults = [];
+    familyResults = [];
     currentIndex = -1;
-    document.getElementById('inspector-overlay').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'none';
     updateUI();
 }
 
 function moveFocus(dir) {
-    if (searchResults.length === 0) return;
+    if (familyResults.length === 0) return;
 
     if (currentIndex >= 0) {
-        searchResults[currentIndex].removeClass('activeFocus');
+        familyResults[currentIndex].removeClass('activeFocus');
     }
 
-    currentIndex = (currentIndex + dir + searchResults.length) % searchResults.length;
-    const current = searchResults[currentIndex];
+    currentIndex = (currentIndex + dir + familyResults.length) % familyResults.length;
+    const currentCollection = familyResults[currentIndex];
 
-    current.addClass('activeFocus');
+    currentCollection.addClass('activeFocus');
 
-    if (current.isNode()) {
-        cy.animate({ center: { eles: current }, zoom: 1.3, duration: 350 });
-    } else {
-        cy.animate({ center: { eles: current }, zoom: 1.1, duration: 350 });
+    // Determine the ideal element to focus the camera on.
+    // Prioritize actual nodes over junction proxies.
+    let famName = null;
+    let focusEles = currentCollection.nodes().filter(n => {
+        if(!famName) famName = n.data('family');
+        return !n.id().startsWith('proxy_');
+    });
+
+    if(!famName && currentCollection.length > 0) {
+        famName = currentCollection.first().data('family');
     }
+
+    // If it's an edge family with only proxies/edges, zoom to the true source
+    if (focusEles.empty()) {
+        let trueSources = currentCollection.edges().sources().filter(n => !n.id().startsWith('proxy_'));
+        if (!trueSources.empty()) {
+            focusEles = trueSources;
+        } else {
+            focusEles = currentCollection;
+        }
+    }
+
+    if (!focusEles.empty()) {
+        cy.animate({ center: { eles: focusEles }, zoom: 1.3, duration: 350 });
+    }
+
+    updateSidebar(currentCollection, famName);
     updateUI();
 }
 
@@ -598,12 +573,11 @@ function runSearch() {
 
     try {
         const regex = new RegExp(query);
-
         cy.elements().removeClass('highlighted activeFocus');
 
         const matchedFamilies = new Set();
 
-        // Step 1: match → collect families
+        // Pass 1: Find matched element labels & trace back to family name
         cy.elements().forEach(el => {
             const label = el.data('label') || el.data('description') || '';
             if (regex.test(label)) {
@@ -612,10 +586,10 @@ function runSearch() {
             }
         });
 
-        // Step 2: map families → collections
+        // Pass 2: Map families back to Cytoscape collections
         familyResults = [...matchedFamilies].map(f => {
             const ids = familyIndex[f] || new Set();
-            return cy.collection([...ids].map(id => cy.getElementById(id)));
+            return cy.collection([...ids].map(id => cy.getElementById(id)).filter(e => e.length > 0));
         });
 
         if (familyResults.length > 0) {
