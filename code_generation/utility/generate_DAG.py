@@ -28,8 +28,10 @@ class GraphParser:
         self.inputs = defaultdict(lambda: defaultdict(list))
         self.outputs = defaultdict(lambda: defaultdict(list))
         self.vec_output_mappings = {}
-        self.family_register = defaultdict(list)
-
+        self.family_register = defaultdict(lambda: {"type": None, "members": [], "familyHead": None})
+        # self.family_register = defaultdict(
+        #     lambda: defaultdict(list)
+        # )
         self.DAG_data = None
         self.DAG_dir = DAG_dir
 
@@ -47,7 +49,7 @@ class GraphParser:
         full_dict = {"elementData": self.DAG_data, "metaData": meta_data}
 
         with open(path, "w") as f:
-            json.dump(full_dict, f, indent=4, sort_keys=True)
+            json.dump(full_dict, f, indent=4) #, sort_keys=True)
 
         self.update_DAG_file_list(
             os.path.join(self.DAG_dir, "DAG_files.json"),
@@ -185,9 +187,9 @@ class GraphParser:
                         print(f"Adding proxy node {proxy_node_name} with parent {location}")
                         print(f"Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight 1")
                         print(f"Adding final edge {leaf_edge_name} from {proxy_node_name} to {target} with weight 1")
-                    self.add_node(id_name=proxy_node_name, name=name, parent=location, node_type="proxy", family=name)
-                    self.add_edge(source=source, target=proxy_node_name, edge_id=proxy_edge_name, name=name, weight=1, edge_type="twig", family=name)
-                    self.add_edge(source=proxy_node_name, target=target, edge_id=leaf_edge_name, name=name, weight=1, edge_type="leaf", family=name)
+                    self.add_node(id_name=proxy_node_name, name=name, parent=location, node_type="proxy", family=f"edge_{name}")
+                    self.add_edge(source=source, target=proxy_node_name, edge_id=proxy_edge_name, name=name, weight=1, edge_type="twig", family=f"edge_{name}")
+                    self.add_edge(source=proxy_node_name, target=target, edge_id=leaf_edge_name, name=name, weight=1, edge_type="leaf", family=f"edge_{name}")
                 else:
                     source_history = self.get_ancestors(source)
                     relative_targets = [self.get_relative(source_history, self.get_ancestors(target)) for target in targets]
@@ -220,8 +222,8 @@ class GraphParser:
                 print(f"Junktion at {proxy_loc}")
                 print(f"Adding proxy node {proxy_node_name} with parent {proxy_loc}")
                 print(f"Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight {len(valid_idx)}")
-            self.add_node(id_name=proxy_node_name, name=name, parent=proxy_loc, node_type="proxy", family=name)
-            self.add_edge(source=source, target=proxy_node_name, edge_id=proxy_edge_name, name=name, weight=len(valid_idx), edge_type="branch", family=name)
+            self.add_node(id_name=proxy_node_name, name=name, parent=proxy_loc, node_type="proxy", family=f"edge_{name}")
+            self.add_edge(source=source, target=proxy_node_name, edge_id=proxy_edge_name, name=name, weight=len(valid_idx), edge_type="branch", family=f"edge_{name}")
             for val in set(data_slice):
                 part_idx = [valid_idx[i] for i, d in enumerate(data_slice) if d == val]
                 if len(part_idx) <= 1:
@@ -229,7 +231,7 @@ class GraphParser:
                     leaf_edge_name = f"{name}_{leaf_name}"
                     if self.debugging:
                         print(f"Adding final edge {leaf_edge_name} from {proxy_node_name} to {leaf_name} with weight 1")
-                    self.add_edge(source=proxy_node_name, target=leaf_name, edge_id=leaf_edge_name, name=name, weight=1, edge_type="leaf", family=name)
+                    self.add_edge(source=proxy_node_name, target=leaf_name, edge_id=leaf_edge_name, name=name, weight=1, edge_type="leaf", family=f"edge_{name}")
                 else:
                     self.construct_proxies(name, data, part_idx, tot_idx, rank + 1, proxy_node_name)
 
@@ -397,12 +399,19 @@ class GraphParser:
                 add_data["parent"] = parent
         if node_type:
             add_data["type"] = node_type
+        # Any node with a family is assumed to be a proxy node part of an edge connection
         if family:
             add_data["family"] = family
-            self.family_register[family].append(full_id)
+            self.family_register[family]["members"].append(full_id)
+            if not self.family_register[family]["type"]:
+                self.family_register[family]["type"] = "edge"
+                self.family_register[family]["familyHead"] = full_id
         else:
-            add_data["family"] = full_id
-            self.family_register[full_id].append(full_id)
+            add_data["family"] = name
+            self.family_register[name]["members"].append(full_id)
+            if not self.family_register[name]["type"]:
+                self.family_register[name]["type"] = "node"
+                self.family_register[name]["familyHead"] = full_id
 
         self.nodes[full_id] = add_data
 
@@ -413,7 +422,7 @@ class GraphParser:
     def add_edge(self, source, target, edge_id, name, weight, edge_type, family):
         """Creates a directional edge between a source node and a target node."""
 
-        self.family_register[family].append(edge_id)
+        self.family_register[family]["members"].append(edge_id)
 
         self.edges.append({
             "data": {
