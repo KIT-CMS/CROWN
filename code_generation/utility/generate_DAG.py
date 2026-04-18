@@ -4,6 +4,7 @@ import json
 import os
 from collections import defaultdict
 from code_generation.quantity import QuantityGroup
+from code_generation.helpers import is_empty
 
 
 class GraphParser:
@@ -139,6 +140,17 @@ class GraphParser:
                         self.set_is_out(scope, output.name)
         # Derive connections from inputs/outputs
         self.assemble_connections()
+
+        # Identify nodes without a specific type and without any outgoing connections
+        # This excludes filters, groups, vector groups, and scopes.
+        # While they are only defined afterwards this also excludes proxy nodes and edges (branch, twig, leaf).
+        for node_id, node_data in self.nodes.items():
+            if (
+                not node_data.get("type")
+                and not node_data.get("is_out")
+                and node_id not in self.connections
+            ):
+                node_data["type"] = "stump"
 
         # Bundle edges for quantities with multiple targets
         self.bundle_edges()
@@ -458,7 +470,13 @@ class GraphParser:
             print(align + f"Adding ProducerGroup: {producer.name}")
 
         group_id = f"{producer.name}_g"
-        self.add_node(id_name=group_id, name=producer.name, scope=scope, parent=parent)
+        self.add_node(
+            id_name=group_id,
+            name=producer.name,
+            scope=scope,
+            parent=parent,
+            node_type="group",
+        )
 
         for p in producer.producers[scope]:
             self.parse_producer(
@@ -470,7 +488,13 @@ class GraphParser:
             print(align + f"Adding Filter Group: {producer.name}")
 
         group_id = f"{producer.name}_f"
-        self.add_node(id_name=group_id, name=producer.name, scope=scope, parent=parent)
+        self.add_node(
+            id_name=group_id,
+            name=producer.name,
+            scope=scope,
+            parent=parent,
+            node_type="group",
+        )
 
         for p in producer.producers[scope]:
             self.parse_producer(
