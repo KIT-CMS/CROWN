@@ -407,11 +407,11 @@ class GraphParser:
                 self.family_register[family]["type"] = "edge"
                 self.family_register[family]["familyHead"] = full_id
         else:
-            add_data["family"] = name
-            self.family_register[name]["members"].append(full_id)
-            if not self.family_register[name]["type"]:
-                self.family_register[name]["type"] = "node"
-                self.family_register[name]["familyHead"] = full_id
+            add_data["family"] = full_id
+            self.family_register[full_id]["members"].append(full_id)
+            if not self.family_register[full_id]["type"]:
+                self.family_register[full_id]["type"] = "node"
+                self.family_register[full_id]["familyHead"] = full_id
 
         self.nodes[full_id] = add_data
 
