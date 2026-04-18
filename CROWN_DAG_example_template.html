@@ -202,409 +202,486 @@ let familyTypes = {};
 let familyResults = [];
 let metaData;
 
-const CONFIG_URL = 'build/visualization/DAG_files.json?v=' + Date.now();
+const CONFIG_URL = "build/visualization/DAG_files.json?v=" + Date.now();
 
 async function loadConfig() {
-    const response = await fetch(CONFIG_URL);
-    const config = await response.json();
+  const response = await fetch(CONFIG_URL);
+  const config = await response.json();
 
-    const container = document.getElementById('selector-group');
-    container.innerHTML = '';
+  const container = document.getElementById("selector-group");
+  container.innerHTML = "";
 
-    const keys = ['era', 'sample', 'scope'];
+  const keys = ["era", "sample", "scope"];
 
-    keys.forEach(key => {
-        const select = document.createElement('select');
-        select.id = `select-${key}`;
+  keys.forEach((key) => {
+    const select = document.createElement("select");
+    select.id = `select-${key}`;
 
-        config[key].forEach(val => {
-            const opt = document.createElement('option');
-            opt.value = val;
-            opt.innerText = val;
-            select.appendChild(opt);
-        });
-
-        select.onchange = switchDataset;
-        container.appendChild(select);
+    config[key].forEach((val) => {
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.innerText = val;
+      select.appendChild(opt);
     });
 
-    switchDataset();
+    select.onchange = switchDataset;
+    container.appendChild(select);
+  });
+
+  switchDataset();
 }
 
 function switchDataset() {
-    const era = document.getElementById('select-era').value;
-    const sample = document.getElementById('select-sample').value;
-    const scope = document.getElementById('select-scope').value;
+  const era = document.getElementById("select-era").value;
+  const sample = document.getElementById("select-sample").value;
+  const scope = document.getElementById("select-scope").value;
 
-    const filename = `CROWNelements_${era}_${sample}_${scope}`;
-    initGraph(filename);
+  const filename = `CROWNelements_${era}_${sample}_${scope}`;
+  initGraph(filename);
 }
 
 async function initGraph(fileName) {
-    if (cy) cy.destroy();
+  if (cy) cy.destroy();
 
-    document.getElementById('status').innerText = "Loading " + fileName + "...";
+  document.getElementById("status").innerText = "Loading " + fileName + "...";
 
-    const response = await fetch(`build/visualization/${fileName}.json?v=${Date.now()}`);
-    const DAGData = await response.json();
+  const response = await fetch(
+    `build/visualization/${fileName}.json?v=${Date.now()}`,
+  );
+  const DAGData = await response.json();
 
-    const elementsData = DAGData.elementData;
+  const elementsData = DAGData.elementData;
 
-    elementsData.forEach(e => {
-        if (!e.data) throw new Error(`Missing data field`);
-        if (!e.data.family) throw new Error(`Missing family`);
-    });
+  elementsData.forEach((e) => {
+    if (!e.data) throw new Error(`Missing data field`);
+    if (!e.data.family) throw new Error(`Missing family`);
+  });
 
-    metaData = DAGData.metaData;
+  metaData = DAGData.metaData;
 
-    familyIndex = Object.fromEntries(
-        Object.entries(metaData.familyRegister).map(
-            ([fam, obj]) => [fam, new Set(obj.members)]
-        )
-    );
+  familyIndex = Object.fromEntries(
+    Object.entries(metaData.familyRegister).map(([fam, obj]) => [
+      fam,
+      new Set(obj.members),
+    ]),
+  );
 
-    cy = cytoscape({
-        container: document.getElementById('cy'),
-        elements: elementsData,
-        autoungrabify: true,
-        wheelSensitivity: 0.15,
-        style: [
-            {
-                selector: 'node',
-                style: {
-                    'label': 'data(label)',
-                    'text-valign': 'center',
-                    'background-color': '#ffffff',
-                    'border-width': 1.5,
-                    'border-color': '#2c3e50',
-                    'shape': 'rectangle',
-                    'width': 'label',
-                    'height': 'label',
-                    'padding': '12px',
-                    'font-size': '11px',
-                    'z-index': 10
-                }
-            },
-            {
-                selector: 'node[?is_in]',
-                style: {
-                    'background-fill': 'linear-gradient',
-                    'background-gradient-stop-colors': '#3498db #3498db #ffffff #ffffff',
-                    'background-gradient-stop-positions': '0 12 12 100',
-                    'background-gradient-direction': 'to-right'
-                }
-            },
-            {
-                selector: 'node[?is_out]',
-                style: {
-                    'background-fill': 'linear-gradient',
-                    'background-gradient-stop-colors': '#ffffff #ffffff #3498db #3498db',
-                    'background-gradient-stop-positions': '0 88 88 100',
-                    'background-gradient-direction': 'to-right'
-                }
-            },
-            {
-                selector: 'node[?is_in][?is_out]',
-                style: {
-                    'background-fill': 'linear-gradient',
-                    'background-gradient-stop-colors': '#3498db #3498db #ffffff #ffffff #3498db #3498db',
-                    'background-gradient-stop-positions': '0 12 12 88 88 100',
-                    'background-gradient-direction': 'to-right'
-                }
-            },
+  cy = cytoscape({
+    container: document.getElementById("cy"),
+    elements: elementsData,
+    autoungrabify: true,
+    wheelSensitivity: 0.15,
+    style: [
+      {
+        selector: "node",
+        style: {
+          label: "data(label)",
+          "text-valign": "center",
+          "background-color": "#ffffff",
+          "border-width": 1.5,
+          "border-color": "#2c3e50",
+          shape: "rectangle",
+          width: "label",
+          height: "label",
+          padding: "12px",
+          "font-size": "11px",
+          "z-index": 10,
+        },
+      },
+      {
+        selector: "node[?is_in]",
+        style: {
+          "background-fill": "linear-gradient",
+          "background-gradient-stop-colors": "#3498db #3498db #ffffff #ffffff",
+          "background-gradient-stop-positions": "0 12 12 100",
+          "background-gradient-direction": "to-right",
+        },
+      },
+      {
+        selector: "node[?is_out]",
+        style: {
+          "background-fill": "linear-gradient",
+          "background-gradient-stop-colors": "#ffffff #ffffff #3498db #3498db",
+          "background-gradient-stop-positions": "0 88 88 100",
+          "background-gradient-direction": "to-right",
+        },
+      },
+      {
+        selector: "node[?is_in][?is_out]",
+        style: {
+          "background-fill": "linear-gradient",
+          "background-gradient-stop-colors":
+            "#3498db #3498db #ffffff #ffffff #3498db #3498db",
+          "background-gradient-stop-positions": "0 12 12 88 88 100",
+          "background-gradient-direction": "to-right",
+        },
+      },
 
-            { selector: ':parent', style: { 'background-fill': 'solid', 'background-opacity': 0.1, 'background-color': '#1e88e5', 'border-color': '#1e88e5', 'border-style': 'dashed', 'border-width': 4, 'text-valign': 'top', 'padding': '20px', 'events': 'no' } },
-            { selector: 'node[type="scope"]', style: { 'border-style': 'solid', 'border-width': 4, 'border-color': '#4a4a4a', 'background-color': '#d1d1d1', 'background-opacity': 0.2 } },
-            { selector: 'node[type="vector"]', style: { 'border-style': 'dashed', 'border-width': 4, 'border-color': '#8e24aa', 'background-color': '#da70d6', 'background-opacity': 0.15 } },
-            { selector: 'node[type="filter"]', style: { 'shape': 'diamond', 'background-color': '#fff3e0', 'border-color': '#ff9800' } },
-            {
-                selector: 'node[type="proxy"]',
-                style: {
-                    'label': 'data(label)',
-                    'width': 'label',
-                    'height': 'label',
-                    'padding': 6,
-                    'background-color': '#fff9c4',
-                    'background-opacity': 1,
-                    'border-width': 1.5,
-                    'border-color': '#d4c96a',
-                    'color': '#333',
-                    'font-size': 10,
-                    'text-valign': 'center',
-                    'text-halign': 'center',
-                    'text-wrap': 'wrap',
-                    'text-max-width': 80,
-                }
-            },
-            {
-                selector: 'edge',
-                style: {
-                    'curve-style': 'unbundled-bezier',
-                    'line-color': '#6e7070',
-                    'width': 'data(width)',
-                    'target-arrow-shape': 'none',
-                }
-            },
-            { selector: 'edge[type="twig"]', style: { 'curve-style': 'bezier' } },
-            { selector: 'edge[type="leaf"]', style: { 'curve-style': 'bezier', 'target-arrow-shape': 'triangle' } },
-            { selector: 'node.highlighted', style: { 'background-color': '#9cea95', 'border-color': '#2e7d32', 'border-width': 3, 'z-index': 99 } },
-            { selector: 'edge.highlighted', style: { 'line-color': '#2e7d32', 'target-arrow-color': '#2e7d32', 'width': 3, 'z-index': 99 } },
-            { selector: 'node.activeFocus', style: { 'background-color': '#6ae35f', 'border-color': '#27ae60', 'color': '#000000', 'z-index': 1000 } },
-            { selector: 'edge.activeFocus', style: { 'line-color': '#2ecc71', 'target-arrow-color': '#27ae60', 'target-arrow-shape': 'triangle', 'width': 4, 'z-index': 1001 } },
-            {
-                selector: 'nodenode[?is_in].highlighted',
-                style: {
-                    'background-gradient-stop-colors': '#3498db #3498db #9cea95 #9cea95',
-                }
-            },
-            {
-                selector: 'nodenode[?is_in].activeFocus',
-                style: {
-                    'background-gradient-stop-colors': '#3498db #3498db #6ae35f #6ae35f',
-                }
-            },
-            {
-                selector: 'nodenode[?is_out].highlighted',
-                style: {
-                    'background-gradient-stop-colors': '#9cea95 #9cea95 #3498db #3498db',
-                }
-            },
-            {
-                selector: 'nodenode[?is_out].activeFocus',
-                style: {
-                    'background-gradient-stop-colors': '#6ae35f #6ae35f #3498db #3498db',
-                }
-            },
-            {
-                selector: 'nodenode[?is_in][?is_out].highlighted',
-                style: {
-                    'background-gradient-stop-colors': '#3498db #3498db #9cea95 #9cea95 #3498db #3498db',
-                }
-            },
-            {
-                selector: 'nodenode[?is_in][?is_out].activeFocus',
-                style: {
-                    'background-gradient-stop-colors': '#3498db #3498db #6ae35f #6ae35f #3498db #3498db',
-                }
-            },
-            {
-                selector: ':parent.highlighted',
-                style: {
-                    'background-fill': 'solid',
-                    'background-color': '#7af16f',
-                    'background-opacity': 0.25
-                }
-            },
-            {
-                selector: ':parent.activeFocus',
-                style: {
-                    'background-fill': 'solid',
-                    'background-color': '#2ecc71',
-                    'background-opacity': 0.4
-                }
-            },
-            {
-                selector: 'node[type="proxy"].highlighted',
-                style: {
-                    'background-fill': 'solid',
-                    'background-color': '#9cea95',
-                    'border-color': '#2e7d32',
-                    'color': '#000'
-                }
-            },
-            {
-                selector: 'node[type="proxy"].activeFocus',
-                style: {
-                    'background-fill': 'solid',
-                    'background-color': '#6ae35f',
-                    'border-color': '#27ae60',
-                    'color': '#000'
-                }
-            },
-        ],
-        layout: {
-            name: 'elk',
-            elk: {
-                    algorithm: 'layered',
-                    direction: 'RIGHT',
-                    hierarchyHandling: 'INCLUDE_CHILDREN',
-                    nodeNodeBetweenLayers: '120',
-                }
-        }
-    });
+      {
+        selector: ":parent",
+        style: {
+          "background-fill": "solid",
+          "background-opacity": 0.1,
+          "background-color": "#1e88e5",
+          "border-color": "#1e88e5",
+          "border-style": "dashed",
+          "border-width": 4,
+          "text-valign": "top",
+          padding: "20px",
+          events: "no",
+        },
+      },
+      {
+        selector: 'node[type="scope"]',
+        style: {
+          "border-style": "solid",
+          "border-width": 4,
+          "border-color": "#4a4a4a",
+          "background-color": "#d1d1d1",
+          "background-opacity": 0.2,
+        },
+      },
+      {
+        selector: 'node[type="vector"]',
+        style: {
+          "border-style": "dashed",
+          "border-width": 4,
+          "border-color": "#8e24aa",
+          "background-color": "#da70d6",
+          "background-opacity": 0.15,
+        },
+      },
+      {
+        selector: 'node[type="filter"]',
+        style: {
+          shape: "diamond",
+          "background-color": "#fff3e0",
+          "border-color": "#ff9800",
+        },
+      },
+      {
+        selector: 'node[type="proxy"]',
+        style: {
+          label: "data(label)",
+          width: "label",
+          height: "label",
+          padding: 6,
+          "background-color": "#fff9c4",
+          "background-opacity": 1,
+          "border-width": 1.5,
+          "border-color": "#d4c96a",
+          color: "#333",
+          "font-size": 10,
+          "text-valign": "center",
+          "text-halign": "center",
+          "text-wrap": "wrap",
+          "text-max-width": 80,
+        },
+      },
+      {
+        selector: "edge",
+        style: {
+          "curve-style": "unbundled-bezier",
+          "line-color": "#6e7070",
+          width: "data(width)",
+          "target-arrow-shape": "none",
+        },
+      },
+      { selector: 'edge[type="twig"]', style: { "curve-style": "bezier" } },
+      {
+        selector: 'edge[type="leaf"]',
+        style: { "curve-style": "bezier", "target-arrow-shape": "triangle" },
+      },
+      {
+        selector: "node.highlighted",
+        style: {
+          "background-color": "#9cea95",
+          "border-color": "#2e7d32",
+          "border-width": 3,
+          "z-index": 99,
+        },
+      },
+      {
+        selector: "edge.highlighted",
+        style: {
+          "line-color": "#2e7d32",
+          "target-arrow-color": "#2e7d32",
+          width: 3,
+          "z-index": 99,
+        },
+      },
+      {
+        selector: "node.activeFocus",
+        style: {
+          "background-color": "#6ae35f",
+          "border-color": "#27ae60",
+          color: "#000000",
+          "z-index": 1000,
+        },
+      },
+      {
+        selector: "edge.activeFocus",
+        style: {
+          "line-color": "#2ecc71",
+          "target-arrow-color": "#27ae60",
+          "target-arrow-shape": "triangle",
+          width: 4,
+          "z-index": 1001,
+        },
+      },
+      {
+        selector: "nodenode[?is_in].highlighted",
+        style: {
+          "background-gradient-stop-colors": "#3498db #3498db #9cea95 #9cea95",
+        },
+      },
+      {
+        selector: "nodenode[?is_in].activeFocus",
+        style: {
+          "background-gradient-stop-colors": "#3498db #3498db #6ae35f #6ae35f",
+        },
+      },
+      {
+        selector: "nodenode[?is_out].highlighted",
+        style: {
+          "background-gradient-stop-colors": "#9cea95 #9cea95 #3498db #3498db",
+        },
+      },
+      {
+        selector: "nodenode[?is_out].activeFocus",
+        style: {
+          "background-gradient-stop-colors": "#6ae35f #6ae35f #3498db #3498db",
+        },
+      },
+      {
+        selector: "nodenode[?is_in][?is_out].highlighted",
+        style: {
+          "background-gradient-stop-colors":
+            "#3498db #3498db #9cea95 #9cea95 #3498db #3498db",
+        },
+      },
+      {
+        selector: "nodenode[?is_in][?is_out].activeFocus",
+        style: {
+          "background-gradient-stop-colors":
+            "#3498db #3498db #6ae35f #6ae35f #3498db #3498db",
+        },
+      },
+      {
+        selector: ":parent.highlighted",
+        style: {
+          "background-fill": "solid",
+          "background-color": "#7af16f",
+          "background-opacity": 0.25,
+        },
+      },
+      {
+        selector: ":parent.activeFocus",
+        style: {
+          "background-fill": "solid",
+          "background-color": "#2ecc71",
+          "background-opacity": 0.4,
+        },
+      },
+      {
+        selector: 'node[type="proxy"].highlighted',
+        style: {
+          "background-fill": "solid",
+          "background-color": "#9cea95",
+          "border-color": "#2e7d32",
+          color: "#000",
+        },
+      },
+      {
+        selector: 'node[type="proxy"].activeFocus',
+        style: {
+          "background-fill": "solid",
+          "background-color": "#6ae35f",
+          "border-color": "#27ae60",
+          color: "#000",
+        },
+      },
+    ],
+    layout: {
+      name: "elk",
+      elk: {
+        algorithm: "layered",
+        direction: "RIGHT",
+        hierarchyHandling: "INCLUDE_CHILDREN",
+        nodeNodeBetweenLayers: "120",
+      },
+    },
+  });
 
-    setupInteractions();
-    cancelSearch();
-    document.getElementById('status').innerText = "";
+  setupInteractions();
+  cancelSearch();
+  document.getElementById("status").innerText = "";
 }
 
 function getFamilyCollection(el) {
-    const fam = el.data('family');
+  const fam = el.data("family");
 
-    return cy.collection(
-        [...familyIndex[fam]].map(id => cy.getElementById(id))
-    );
+  return cy.collection(
+    [...familyIndex[fam]].map((id) => cy.getElementById(id)),
+  );
 }
 
 function updateSidebar(familyEles, famName) {
-    const sidebar = document.getElementById('sidebar');
-    const sidebarTitle = document.getElementById('sidebar-title');
-    const sidebarContent = document.getElementById('sidebar-content');
+  const sidebar = document.getElementById("sidebar");
+  const sidebarTitle = document.getElementById("sidebar-title");
+  const sidebarContent = document.getElementById("sidebar-content");
 
-    sidebarTitle.innerText = famName;
-    sidebarContent.innerHTML = '';
+  sidebarTitle.innerText = famName;
+  sidebarContent.innerHTML = "";
 
-    if (familyTypes[famName] === 'edge') {
-        let trueSources = new Set();
-        let trueTargets = new Set();
+  if (familyTypes[famName] === "edge") {
+    let trueSources = new Set();
+    let trueTargets = new Set();
 
-        familyEles.edges().forEach(e => {
-            const src = e.source();
-            const tgt = e.target();
+    familyEles.edges().forEach((e) => {
+      const src = e.source();
+      const tgt = e.target();
 
-            if (!src.id().startsWith('proxy_')) trueSources.add(src);
-            if (!tgt.id().startsWith('proxy_')) trueTargets.add(tgt);
-        });
+      if (!src.id().startsWith("proxy_")) trueSources.add(src);
+      if (!tgt.id().startsWith("proxy_")) trueTargets.add(tgt);
+    });
 
-        let html = `<div class="sidebar-section"><div class="sidebar-subtitle">Source Node(s)</div><ul class="node-list">`;
-        trueSources.forEach(s => {
-            html += `<li><div class="detail-box">${s.data('label')}</div></li>`;
-        });
-        html += `</ul></div>`;
+    let html = `<div class="sidebar-section"><div class="sidebar-subtitle">Source Node(s)</div><ul class="node-list">`;
+    trueSources.forEach((s) => {
+      html += `<li><div class="detail-box">${s.data("label")}</div></li>`;
+    });
+    html += `</ul></div>`;
 
-        html += `<div class="sidebar-section"><div class="sidebar-subtitle">Target Node(s)</div><ul class="node-list">`;
-        trueTargets.forEach(t => {
-            html += `<li><div class="detail-box">${t.data('label')}</div></li>`;
-        });
-        html += `</ul></div>`;
+    html += `<div class="sidebar-section"><div class="sidebar-subtitle">Target Node(s)</div><ul class="node-list">`;
+    trueTargets.forEach((t) => {
+      html += `<li><div class="detail-box">${t.data("label")}</div></li>`;
+    });
+    html += `</ul></div>`;
 
-        sidebarContent.innerHTML = html;
+    sidebarContent.innerHTML = html;
+  } else {
+    let nodeDetails = familyEles.nodes().first();
 
-    } else {
-        let nodeDetails = familyEles.nodes().first();
+    familyEles.nodes().forEach((n) => {
+      if (!n.id().startsWith("proxy_")) nodeDetails = n;
+    });
 
-        familyEles.nodes().forEach(n => {
-            if (!n.id().startsWith('proxy_')) nodeDetails = n;
-        });
+    const data = nodeDetails.data();
 
-        const data = nodeDetails.data();
+    let html = `<div class="sidebar-section"><div class="sidebar-subtitle">Node Details</div>`;
+    html += `<div class="detail-row"><span class="detail-label">Label</span><span class="detail-value">${data.label}</span></div>`;
+    html += `<div class="detail-row"><span class="detail-label">ID</span><span class="detail-value">${data.id}</span></div>`;
+    html += `<div class="detail-row"><span class="detail-label">Parent</span><span class="detail-value">${data.parent}</span></div>`;
+    html += `<div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">${data.type}</span></div>`;
+    html += `<div class="detail-row"><span class="detail-label">Input</span><span class="detail-value">${data.is_in}</span></div>`;
+    html += `<div class="detail-row"><span class="detail-label">Output</span><span class="detail-value">${data.is_out}</span></div>`;
+    html += `</div>`;
 
-        let html = `<div class="sidebar-section"><div class="sidebar-subtitle">Node Details</div>`;
-        html += `<div class="detail-row"><span class="detail-label">Label</span><span class="detail-value">${data.label}</span></div>`;
-        html += `<div class="detail-row"><span class="detail-label">ID</span><span class="detail-value">${data.id}</span></div>`;
-        html += `<div class="detail-row"><span class="detail-label">Parent</span><span class="detail-value">${data.parent}</span></div>`;
-        html += `<div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">${data.type}</span></div>`;
-        html += `<div class="detail-row"><span class="detail-label">Input</span><span class="detail-value">${data.is_in}</span></div>`;
-        html += `<div class="detail-row"><span class="detail-label">Output</span><span class="detail-value">${data.is_out}</span></div>`;
-        html += `</div>`;
+    sidebarContent.innerHTML = html;
+  }
 
-        sidebarContent.innerHTML = html;
-    }
-
-    sidebar.style.display = 'flex';
+  sidebar.style.display = "flex";
 }
 
 function setupInteractions() {
-    cy.on('tap', 'node, edge', function(evt) {
-        const el = evt.target;
-        const fam = el.data('family');
+  cy.on("tap", "node, edge", function (evt) {
+    const el = evt.target;
+    const fam = el.data("family");
 
-        cy.elements().removeClass('activeFocus');
+    cy.elements().removeClass("activeFocus");
 
-        const familyEles = getFamilyCollection(el);
-        familyEles.addClass('activeFocus');
+    const familyEles = getFamilyCollection(el);
+    familyEles.addClass("activeFocus");
 
-        updateSidebar(familyEles, fam);
-    });
+    updateSidebar(familyEles, fam);
+  });
 
-    cy.on('tap', function(evt) {
-        if (evt.target === cy) {
-            document.getElementById('sidebar').style.display = 'none';
-            cy.elements().removeClass('activeFocus');
-        }
-    });
+  cy.on("tap", function (evt) {
+    if (evt.target === cy) {
+      document.getElementById("sidebar").style.display = "none";
+      cy.elements().removeClass("activeFocus");
+    }
+  });
 }
 
 function cancelSearch() {
-    document.getElementById('searchInput').value = '';
-    cy.elements().removeClass('highlighted activeFocus');
-    searchResults = [];
-    familyResults = [];
-    currentIndex = -1;
-    document.getElementById('sidebar').style.display = 'none';
-    updateUI();
+  document.getElementById("searchInput").value = "";
+  cy.elements().removeClass("highlighted activeFocus");
+  searchResults = [];
+  familyResults = [];
+  currentIndex = -1;
+  document.getElementById("sidebar").style.display = "none";
+  updateUI();
 }
 
-
 function moveFocus(dir) {
+  if (currentIndex >= 0) {
+    familyResults[currentIndex].collection.removeClass("activeFocus");
+  }
 
-    if (currentIndex >= 0) {
-        familyResults[currentIndex].collection.removeClass('activeFocus');
-    }
+  currentIndex =
+    (currentIndex + dir + familyResults.length) % familyResults.length;
 
-    currentIndex = (currentIndex + dir + familyResults.length) % familyResults.length;
+  const { head, collection } = familyResults[currentIndex];
 
-    const { head, collection } = familyResults[currentIndex];
+  collection.addClass("activeFocus");
 
-    collection.addClass('activeFocus');
+  const focusEle = cy.getElementById(head);
 
-    const focusEle = cy.getElementById(head);
+  cy.animate({ center: { eles: focusEle }, zoom: 1.3, duration: 350 });
 
-    cy.animate({ center: { eles: focusEle }, zoom: 1.3, duration: 350 });
-
-    updateSidebar(collection, focusEle.data('family'));
-    updateUI();
+  updateSidebar(collection, focusEle.data("family"));
+  updateUI();
 }
 
 function updateUI() {
-    const count = familyResults.length;
-    const input = document.getElementById('searchInput').value;
-    const statusEl = document.getElementById('status');
+  const count = familyResults.length;
+  const input = document.getElementById("searchInput").value;
+  const statusEl = document.getElementById("status");
 
-    statusEl.innerText = input ? `${currentIndex + 1} / ${count}` : "";
+  statusEl.innerText = input ? `${currentIndex + 1} / ${count}` : "";
 
-    document.getElementById('prevBtn').disabled = count === 0;
-    document.getElementById('nextBtn').disabled = count === 0;
+  document.getElementById("prevBtn").disabled = count === 0;
+  document.getElementById("nextBtn").disabled = count === 0;
 }
 
 function runSearch() {
-    const query = document.getElementById('searchInput').value;
-    const regex = new RegExp(query);
+  const query = document.getElementById("searchInput").value;
+  const regex = new RegExp(query);
 
-    cy.elements().removeClass('highlighted activeFocus');
+  cy.elements().removeClass("highlighted activeFocus");
 
-    const matchedFamilies = new Set();
+  const matchedFamilies = new Set();
 
-    cy.elements().forEach(el => {
-        const label = el.data('label') || el.data('description') || '';
-        if (regex.test(label)) {
-            matchedFamilies.add(el.data('family'));
-        }
-    });
+  cy.elements().forEach((el) => {
+    const label = el.data("label") || el.data("description") || "";
+    if (regex.test(label)) {
+      matchedFamilies.add(el.data("family"));
+    }
+  });
 
-    familyResults = [...matchedFamilies].map(f => {
-        const head = metaData.familyRegister[f].familyHead;
-        const ids = familyIndex[f];
+  familyResults = [...matchedFamilies].map((f) => {
+    const head = metaData.familyRegister[f].familyHead;
+    const ids = familyIndex[f];
 
-        return {
-            head,
-            collection: cy.collection(
-                [...ids].map(id => cy.getElementById(id))
-            )
-        };
-    });
+    return {
+      head,
+      collection: cy.collection([...ids].map((id) => cy.getElementById(id))),
+    };
+  });
 
-    familyResults.forEach(col => col.collection.addClass('highlighted'));
+  familyResults.forEach((col) => col.collection.addClass("highlighted"));
 
-    currentIndex = -1;
-    moveFocus(1);
+  currentIndex = -1;
+  moveFocus(1);
 }
 
 function resetView() {
-    cy.animate({ fit: { padding: 40 }, duration: 500 });
+  cy.animate({ fit: { padding: 40 }, duration: 500 });
 }
 
 window.onload = loadConfig;
+
 </script>
 </body>
 </html>
