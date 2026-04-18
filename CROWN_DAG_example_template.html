@@ -137,7 +137,7 @@
         .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 8px; margin-top: 5px; }
         .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #2c3e50; white-space: nowrap; }
         .symbol { width: 16px; height: 16px; flex-shrink: 0; box-sizing: border-box; }
-        .diamond { transform: rotate(45deg); width: 12px; height: 12px; margin-left: 2px; }
+        .octagon {clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);}
         .square { border-radius: 2px; }
         .parent-box { border: 2px dashed #1e88e5; background: rgba(30, 136, 229, 0.1); }
     </style>
@@ -168,16 +168,16 @@
                 <span>Writes to Ntuple</span>
             </div>
             <div class="legend-item">
-                <div class="symbol diamond" style="background: #fff3e0; border: 1.5px solid #ff9800;"></div>
-                <span>Filter</span>
-            </div>
-            <div class="legend-item">
                 <div class="symbol square" style="border: 4px dashed #8e24aa; background: rgba(218, 112, 214, 0.15);"></div>
                 <span>Vector</span>
             </div>
             <div class="legend-item">
                 <div class="symbol parent-box"></div>
                 <span>Group</span>
+            </div>
+            <div class="legend-item">
+                <div class="symbol octagon" style="background: #fac370; border: 1.5px solid #ffaa00;"></div>
+                <span>Filter</span>
             </div>
         </div>
     </div>
@@ -293,7 +293,7 @@ async function initGraph(fileName) {
         style: {
           "background-fill": "linear-gradient",
           "background-gradient-stop-colors": "#3498db #3498db #ffffff #ffffff",
-          "background-gradient-stop-positions": "0 12 12 100",
+          "background-gradient-stop-positions": "0 15 15 100",
           "background-gradient-direction": "to-right",
         },
       },
@@ -302,7 +302,7 @@ async function initGraph(fileName) {
         style: {
           "background-fill": "linear-gradient",
           "background-gradient-stop-colors": "#ffffff #ffffff #3498db #3498db",
-          "background-gradient-stop-positions": "0 88 88 100",
+          "background-gradient-stop-positions": "0 85 85 100",
           "background-gradient-direction": "to-right",
         },
       },
@@ -312,7 +312,7 @@ async function initGraph(fileName) {
           "background-fill": "linear-gradient",
           "background-gradient-stop-colors":
             "#3498db #3498db #ffffff #ffffff #3498db #3498db",
-          "background-gradient-stop-positions": "0 12 12 88 88 100",
+          "background-gradient-stop-positions": "0 15 15 85 85 100",
           "background-gradient-direction": "to-right",
         },
       },
@@ -354,9 +354,28 @@ async function initGraph(fileName) {
       {
         selector: 'node[type="filter"]',
         style: {
-          shape: "diamond",
-          "background-color": "#fff3e0",
-          "border-color": "#ff9800",
+          shape: "octagon",
+          "background-color": "#fac370",
+          "border-color": "#ffaa00",
+        },
+      },
+      {
+        selector: 'node[type="filter"][?is_in]',
+        style: {
+          "background-gradient-stop-colors": "#3498db #3498db #fac370 #fac370",
+        },
+      },
+      {
+        selector: 'node[type="stump"]',
+        style: {
+          "background-color": "#f7a5f8",
+          "border-color": "#f84cfa",
+        },
+      },
+      {
+        selector: 'node[type="stump"][?is_in]',
+        style: {
+          "background-gradient-stop-colors": "#3498db #3498db #f7a5f8 #f7a5f8",
         },
       },
       {
