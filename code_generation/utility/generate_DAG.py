@@ -340,7 +340,7 @@ class GraphParser:
                         name, data, part_idx, tot_idx, rank + 1, proxy_node_name
                     )
 
-    def parse_from_call(self, producer, parent, scope, align=""):
+    def parse_Flag_from_call(self, producer, parent, scope, align=""):
         """
         Uses regex to extract vector configurations from a legacy producer's string call
         and maps them into graph nodes and inputs.
@@ -379,10 +379,9 @@ class GraphParser:
             vector_name = f"{producer.name}_{i_c}"
 
             if self.debugging:
-                print(align + "    " + f"Adding Producer: {vector_name}")
-
+                print(align + "    " + f"Adding Filter: {vector_name}")
             self.add_node(
-                id_name=vector_id, name=vector_name, scope=scope, parent=group_id
+                id_name=vector_id, name=vector_name, scope=scope, parent=group_id, is_filter=producer.is_filter
             )
             self.add_input(input_name, vector_id, scope)
 
@@ -399,7 +398,7 @@ class GraphParser:
         )
 
         if producer.call.startswith("event::filter::Flag"):
-            self.parse_from_call(
+            self.parse_Flag_from_call(
                 producer=producer, parent=parent, scope=scope, align=align
             )
         else:
@@ -407,7 +406,7 @@ class GraphParser:
                 f"The call {producer.call} does not have legacy support."
             )
 
-    def parse_ExtendedVectorProducer(self, producer, parent, scope, align=""):
+    def parse_ExtendedVectorProducer(self, producer, parent, scope, align="", is_filter=False):
         if self.debugging:
             print(align + f"Adding ExtendedVectorProducer: {producer.name}")
 
@@ -428,7 +427,7 @@ class GraphParser:
             if self.debugging:
                 print(align + "    " + f"Adding Producer: {vector_name}")
             self.add_node(
-                id_name=vector_id, name=vector_name, scope=scope, parent=group_id
+                id_name=vector_id, name=vector_name, scope=scope, parent=group_id, is_filter=producer.is_filter
             )
 
             if isinstance(producer.input[scope], list):
@@ -446,7 +445,7 @@ class GraphParser:
                 if self.debugging:
                     print(align + "        " + f"Adding Output: {vec_output}")
 
-    def parse_ProducerGroup(self, producer, parent, scope, align=""):
+    def parse_ProducerGroup(self, producer, parent, scope, align="", is_filter=False):
         if self.debugging:
             print(align + f"Adding ProducerGroup: {producer.name}")
 
@@ -458,7 +457,7 @@ class GraphParser:
                 producer=p, parent=group_id, scope=scope, align=align + "    "
             )
 
-    def parse_Filter(self, producer, parent, scope, align=""):
+    def parse_Filter(self, producer, parent, scope, align="", is_filter=True):
         if self.debugging:
             print(align + f"Adding Filter Group: {producer.name}")
 
@@ -470,14 +469,14 @@ class GraphParser:
                 producer=p, parent=group_id, scope=scope, align=align + "    "
             )
 
-    def parse_BaseFilter(self, producer, parent, scope, align=""):
+    def parse_BaseFilter(self, producer, parent, scope, align="", is_filter=True):
         if self.debugging:
             print(align + f"Adding BaseFilter: {producer.name}")
         print(
             f"!!! {producer.name} is a legacy producer and should be replaced with Filter !!!"
         )
 
-        self.add_node(id_name=producer.name, scope=scope, parent=parent)
+        self.add_node(id_name=producer.name, scope=scope, parent=parent, is_filter=producer.is_filter)
         for n in set(producer.input[scope]):
             self.add_input(n.name, producer.name, scope)
             if self.debugging:
@@ -486,8 +485,7 @@ class GraphParser:
     def parse_Producer(self, producer, parent, scope, align=""):
         if self.debugging:
             print(align + f"Adding Producer: {producer.name}")
-
-        self.add_node(id_name=producer.name, scope=scope, parent=parent)
+        self.add_node(id_name=producer.name, scope=scope, parent=parent, is_filter=producer.is_filter)
 
         if isinstance(producer.input[scope], list):
             for n in set(producer.input[scope]):
@@ -503,10 +501,19 @@ class GraphParser:
 
     def parse_producer(self, producer, parent, scope, align=""):
         class_name = producer.__class__.__name__
-        parser_method = getattr(self, f"parse_{class_name}", None)
 
-        if parser_method:
-            parser_method(producer, parent, scope, align)
+        if class_name == "VectorProducer":
+            self.parse_VectorProducer(producer=producer, parent=parent, scope=scope, align=align)
+        elif class_name == "ExtendedVectorProducer":
+            self.parse_ExtendedVectorProducer(producer=producer, parent=parent, scope=scope, align=align)
+        elif class_name == "ProducerGroup":
+            self.parse_ProducerGroup(producer=producer, parent=parent, scope=scope, align=align)
+        elif class_name == "Filter":
+            self.parse_Filter(producer=producer, parent=parent, scope=scope, align=align)
+        elif class_name == "BaseFilter":
+            self.parse_BaseFilter(producer=producer, parent=parent, scope=scope, align=align)
+        elif class_name == "Producer":
+            self.parse_Producer(producer=producer, parent=parent, scope=scope, align=align)
         else:
             raise NotImplementedError(f"Unknown Producer class {class_name}")
 
@@ -525,9 +532,15 @@ class GraphParser:
         self.inputs[scope][scoped_input].append(input_name)
 
     def add_node(
-        self, id_name, name=None, scope=None, parent=None, node_type=None, family=None
+        self, id_name, name=None, scope=None, parent=None, node_type=None, is_filter=False, family=None
     ):
         """Creates a standardized node object and appends it to the graph's node list."""
+
+        if node_type and is_filter:
+            raise ValueError("Cannot specify both node_type and is_filter")
+        if is_filter:
+            node_type = "filter"
+
         if not name:
             name = id_name
         if scope:

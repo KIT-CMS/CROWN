@@ -28,6 +28,7 @@ class Producer:
         input: Union[List[q.Quantity], Dict[str, List[q.Quantity]]],
         output: Union[List[q.Quantity], None],
         scopes: List[str],
+        is_filter: bool = False,
     ):
         """
         A Producer is a class that holds all information about a producer. Input quantities are
@@ -38,6 +39,7 @@ class Producer:
             input: A list of input quantities or a dict with scope specific input quantities
             output: A list of output quantities
             scopes: A list of scopes in which the producer is used
+            is_filter: True if the producer is a filter
 
         """
         log.debug("Setting up a new producer {}".format(name))
@@ -57,6 +59,7 @@ class Producer:
         self.call: str = call
         self.output: Union[List[q.Quantity], None] = output
         self.scopes = scopes
+        self.is_filter = is_filter
         self.parameters: Dict[str, Set[str]] = self.extract_parameters()
         # if input not given as dict and therfore not scope specific transform into dict with all scopes
         if not isinstance(input, dict):
@@ -73,7 +76,10 @@ class Producer:
                     for output_quantity in self.output:
                         input_quantity.adopt(output_quantity, scope)
         log.debug("-----------------------------------------")
-        log.debug("| Producer: {}".format(self.name))
+        if self.is_filter:
+            log.debug("| Filter Producer: {}".format(self.name))
+        else:
+            log.debug("| Producer: {}".format(self.name))
         log.debug("| Call: {}".format(self.call))
         for scope in self.scopes:
             if is_empty(self.input[scope]):
@@ -374,6 +380,7 @@ class VectorProducer(Producer):
         output: Union[List[q.Quantity], None],
         scopes: List[str],
         vec_configs: List[str],
+        is_filter: bool = False,
     ):
         """A Vector Producer is a Producer which can be configured to produce multiple calls and outputs at once, deprecated in favor of the ExtendedVectorProducer
 
@@ -384,9 +391,10 @@ class VectorProducer(Producer):
             output (Union[List[q.Quantity], None]): The outputs of the producer, either a list of Quantity objects, or None if the producer does not produce any output
             scopes (List[str]): The scopes in which the producer is to be called
             vec_configs (List[str]): A list of strings, which are the names of the parameters to be varied in the vectorized call
+            is_filter (bool, optional): Whether the vector producer is a filter. Defaults to False.
         """
         self.name = name
-        super().__init__(name, call, input, output, scopes)
+        super().__init__(name, call, input, output, scopes, is_filter)
         self.vec_configs = vec_configs
 
     def __str__(self) -> str:
@@ -463,6 +471,7 @@ class ExtendedVectorProducer(Producer):
         output: str,
         scope: Union[List[str], str],
         vec_config: str,
+        is_filter: bool = False,
     ):
         """A ExtendedVectorProducer is a Producer which can be configured to produce multiple calls and outputs at once
 
@@ -473,6 +482,7 @@ class ExtendedVectorProducer(Producer):
             output (Union[List[q.Quantity], None]): The outputs of the producer, either a list of Quantity objects, or None if the producer does not produce any output
             scopes (List[str]): The scopes in which the producer is to be called
             vec_configs (List[str]): The key of the vec config in the config dict
+            is_filter (bool, optional): Whether the vectorproducer is a filter. Defaults to False.
         """
         # we create a Quantity Group, which is updated during the writecalls() step
         self.outputname = output
@@ -482,7 +492,7 @@ class ExtendedVectorProducer(Producer):
         quantity_group = q.QuantityGroup(name)
         # set the vec config key of the quantity group
         quantity_group.set_vec_config(vec_config)
-        super().__init__(name, call, input, [quantity_group], scope)
+        super().__init__(name, call, input, [quantity_group], scope, is_filter)
         if is_empty(self.output):
             raise InvalidProducerConfigurationError(self.name)
         # add the vec config to the parameters of the producer
@@ -566,7 +576,7 @@ class BaseFilter(Producer):
             either a list of Quantity objects, or a dict with the scope as key and a list of Quantity objects as value
             scopes (List[str]): The scopes in which the filter is to be called
         """
-        super().__init__(name, call, input, None, scopes)
+        super().__init__(name, call, input, None, scopes, True)
 
     def __str__(self) -> str:
         return "BaseFilter: {}".format(self.name)
