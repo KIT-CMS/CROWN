@@ -381,7 +381,11 @@ class GraphParser:
             if self.debugging:
                 print(align + "    " + f"Adding Filter: {vector_name}")
             self.add_node(
-                id_name=vector_id, name=vector_name, scope=scope, parent=group_id, is_filter=producer.is_filter
+                id_name=vector_id,
+                name=vector_name,
+                scope=scope,
+                parent=group_id,
+                is_filter=producer.is_filter,
             )
             self.add_input(input_name, vector_id, scope)
 
@@ -406,7 +410,7 @@ class GraphParser:
                 f"The call {producer.call} does not have legacy support."
             )
 
-    def parse_ExtendedVectorProducer(self, producer, parent, scope, align="", is_filter=False):
+    def parse_ExtendedVectorProducer(self, producer, parent, scope, align=""):
         if self.debugging:
             print(align + f"Adding ExtendedVectorProducer: {producer.name}")
 
@@ -427,7 +431,11 @@ class GraphParser:
             if self.debugging:
                 print(align + "    " + f"Adding Producer: {vector_name}")
             self.add_node(
-                id_name=vector_id, name=vector_name, scope=scope, parent=group_id, is_filter=producer.is_filter
+                id_name=vector_id,
+                name=vector_name,
+                scope=scope,
+                parent=group_id,
+                is_filter=producer.is_filter,
             )
 
             if isinstance(producer.input[scope], list):
@@ -445,7 +453,7 @@ class GraphParser:
                 if self.debugging:
                     print(align + "        " + f"Adding Output: {vec_output}")
 
-    def parse_ProducerGroup(self, producer, parent, scope, align="", is_filter=False):
+    def parse_ProducerGroup(self, producer, parent, scope, align=""):
         if self.debugging:
             print(align + f"Adding ProducerGroup: {producer.name}")
 
@@ -457,7 +465,7 @@ class GraphParser:
                 producer=p, parent=group_id, scope=scope, align=align + "    "
             )
 
-    def parse_Filter(self, producer, parent, scope, align="", is_filter=True):
+    def parse_Filter(self, producer, parent, scope, align=""):
         if self.debugging:
             print(align + f"Adding Filter Group: {producer.name}")
 
@@ -469,14 +477,19 @@ class GraphParser:
                 producer=p, parent=group_id, scope=scope, align=align + "    "
             )
 
-    def parse_BaseFilter(self, producer, parent, scope, align="", is_filter=True):
+    def parse_BaseFilter(self, producer, parent, scope, align=""):
         if self.debugging:
             print(align + f"Adding BaseFilter: {producer.name}")
         print(
             f"!!! {producer.name} is a legacy producer and should be replaced with Filter !!!"
         )
 
-        self.add_node(id_name=producer.name, scope=scope, parent=parent, is_filter=producer.is_filter)
+        self.add_node(
+            id_name=producer.name,
+            scope=scope,
+            parent=parent,
+            is_filter=producer.is_filter,
+        )
         for n in set(producer.input[scope]):
             self.add_input(n.name, producer.name, scope)
             if self.debugging:
@@ -485,7 +498,12 @@ class GraphParser:
     def parse_Producer(self, producer, parent, scope, align=""):
         if self.debugging:
             print(align + f"Adding Producer: {producer.name}")
-        self.add_node(id_name=producer.name, scope=scope, parent=parent, is_filter=producer.is_filter)
+        self.add_node(
+            id_name=producer.name,
+            scope=scope,
+            parent=parent,
+            is_filter=producer.is_filter,
+        )
 
         if isinstance(producer.input[scope], list):
             for n in set(producer.input[scope]):
@@ -503,17 +521,29 @@ class GraphParser:
         class_name = producer.__class__.__name__
 
         if class_name == "VectorProducer":
-            self.parse_VectorProducer(producer=producer, parent=parent, scope=scope, align=align)
+            self.parse_VectorProducer(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
         elif class_name == "ExtendedVectorProducer":
-            self.parse_ExtendedVectorProducer(producer=producer, parent=parent, scope=scope, align=align)
+            self.parse_ExtendedVectorProducer(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
         elif class_name == "ProducerGroup":
-            self.parse_ProducerGroup(producer=producer, parent=parent, scope=scope, align=align)
+            self.parse_ProducerGroup(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
         elif class_name == "Filter":
-            self.parse_Filter(producer=producer, parent=parent, scope=scope, align=align)
+            self.parse_Filter(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
         elif class_name == "BaseFilter":
-            self.parse_BaseFilter(producer=producer, parent=parent, scope=scope, align=align)
+            self.parse_BaseFilter(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
         elif class_name == "Producer":
-            self.parse_Producer(producer=producer, parent=parent, scope=scope, align=align)
+            self.parse_Producer(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
         else:
             raise NotImplementedError(f"Unknown Producer class {class_name}")
 
@@ -532,7 +562,14 @@ class GraphParser:
         self.inputs[scope][scoped_input].append(input_name)
 
     def add_node(
-        self, id_name, name=None, scope=None, parent=None, node_type=None, is_filter=False, family=None
+        self,
+        id_name,
+        name=None,
+        scope=None,
+        parent=None,
+        node_type=None,
+        is_filter=False,
+        family=None,
     ):
         """Creates a standardized node object and appends it to the graph's node list."""
 
