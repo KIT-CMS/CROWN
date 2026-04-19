@@ -31,12 +31,12 @@ class GraphParser:
         self.inputs = defaultdict(lambda: defaultdict(list))
         self.outputs = defaultdict(lambda: defaultdict(list))
         self.vec_output_mappings = {}
-        self.family_register = defaultdict(
-            lambda: {"type": None, "members": [], "familyHead": None}
+        self.node_family_register = defaultdict(
+            lambda: {"file_in": [], "file_out": [], "node_call_data": {}}
         )
-        # self.family_register = defaultdict(
-        #     lambda: defaultdict(list)
-        # )
+        self.edge_family_register = defaultdict(
+            lambda: {"members": [], "familyHead": None}
+        )
         self.DAG_data = None
         self.DAG_dir = DAG_dir
 
@@ -50,7 +50,7 @@ class GraphParser:
             path = os.path.join(self.DAG_dir, path)
             os.makedirs(self.DAG_dir, exist_ok=True)
 
-        meta_data = {"familyRegister": self.family_register}
+        meta_data = {"nodeFamilyRegister": self.node_family_register, "edgeFamilyRegister": self.edge_family_register}
         full_dict = {"elementData": self.DAG_data, "metaData": meta_data}
 
         with open(path, "w") as f:
@@ -175,6 +175,7 @@ class GraphParser:
             ), f"Num producers for out {req_out}: {len(producers)}"
             if self.nodes.get(producers[0]):
                 self.nodes[producers[0]]["is_out"] = True
+                self.node_family_register[producers[0]]["file_out"].append(req_out)
             else:
                 raise ValueError(
                     f"Source {producers[0]} is neither part of {scope} nor global scope."
@@ -204,6 +205,7 @@ class GraphParser:
                         compose[source].append(req_input)
                     elif req_input in self.nanoAOD_inputs:
                         self.nodes[target_node]["is_in"] = True
+                        self.node_family_register[target_node]["file_in"].append(req_input)
                     else:
                         raise ValueError(
                             f"Input {req_input} is missing from NanoAOD and producers."
@@ -401,7 +403,7 @@ class GraphParser:
                 scope=scope,
                 parent=group_id,
                 is_filter=producer.is_filter,
-                metadata={"call": call, "configs": config_data},
+                node_call_data={"call": call, "configs": config_data},
             )
             self.add_input(input_name, vector_id, scope)
 
@@ -453,7 +455,7 @@ class GraphParser:
                 scope=scope,
                 parent=group_id,
                 is_filter=producer.is_filter,
-                metadata={"call": call, "configs": config_data},
+                node_call_data={"call": call, "configs": config_data},
             )
 
             if isinstance(producer.input[scope], list):
@@ -520,7 +522,7 @@ class GraphParser:
             scope=scope,
             parent=parent,
             is_filter=producer.is_filter,
-            metadata={"call": call, "configs": config_data},
+            node_call_data={"call": call, "configs": config_data},
         )
         for n in set(producer.input[scope]):
             self.add_input(n.name, producer.name, scope)
@@ -537,7 +539,7 @@ class GraphParser:
             scope=scope,
             parent=parent,
             is_filter=producer.is_filter,
-            metadata={"call": call, "configs": config_data},
+            node_call_data={"call": call, "configs": config_data},
         )
 
         if isinstance(producer.input[scope], list):
@@ -605,7 +607,7 @@ class GraphParser:
         node_type=None,
         is_filter=False,
         family=None,
-        metadata=None,
+        node_call_data=None,
     ):
         """Creates a standardized node object and appends it to the graph's node list."""
 
@@ -631,20 +633,16 @@ class GraphParser:
         # Any node with a family is assumed to be a proxy node part of an edge connection
         if family:
             add_data["family"] = family
-            self.family_register[family]["members"].append(full_id)
-            if not self.family_register[family]["type"]:
-                self.family_register[family]["type"] = "edge"
-                self.family_register[family]["familyHead"] = full_id
+            self.edge_family_register[family]["members"].append(full_id)
+            if not self.edge_family_register[family]["familyHead"]:
+                self.edge_family_register[family]["familyHead"] = full_id
         else:
             # Standalone nodes will only ever have one member in their family, themselves
-            if self.family_register[full_id]["type"] == "node":
+            if self.node_family_register.get(full_id):
                 raise ValueError(f"Node {full_id} already exists in family register")
             add_data["family"] = full_id
-            self.family_register[full_id]["members"].append(full_id)
-            self.family_register[full_id]["type"] = "node"
-            self.family_register[full_id]["familyHead"] = full_id
-            if metadata:
-                self.family_register[full_id]["metaData"] = metadata
+            if node_call_data:
+                self.node_family_register[full_id]["node_call_data"] = node_call_data
 
         self.nodes[full_id] = add_data
 
@@ -677,7 +675,7 @@ class GraphParser:
     def add_edge(self, source, target, edge_id, name, weight, edge_type, family):
         """Creates a directional edge between a source node and a target node."""
 
-        self.family_register[family]["members"].append(edge_id)
+        self.edge_family_register[family]["members"].append(edge_id)
 
         self.edges.append(
             {
