@@ -3,7 +3,6 @@ import re
 import json
 import os
 from collections import defaultdict
-from turtle import st
 from code_generation.quantity import QuantityGroup
 from code_generation.helpers import is_empty
 
@@ -50,7 +49,10 @@ class GraphParser:
             path = os.path.join(self.DAG_dir, path)
             os.makedirs(self.DAG_dir, exist_ok=True)
 
-        meta_data = {"nodeFamilyRegister": self.node_family_register, "edgeFamilyRegister": self.edge_family_register}
+        meta_data = {
+            "nodeFamilyRegister": self.node_family_register,
+            "edgeFamilyRegister": self.edge_family_register,
+        }
         full_dict = {"elementData": self.DAG_data, "metaData": meta_data}
 
         with open(path, "w") as f:
@@ -170,9 +172,8 @@ class GraphParser:
             req_out, []
         )
         if len(producers) > 0:
-            assert (
-                len(producers) == 1
-            ), f"Num producers for out {req_out}: {len(producers)}"
+            if len(producers) != 1:
+                raise ValueError(f"Num producers for out {req_out}: {len(producers)}")
             if self.nodes.get(producers[0]):
                 self.nodes[producers[0]]["is_out"] = True
                 self.node_family_register[producers[0]]["file_out"].append(req_out)
@@ -205,7 +206,9 @@ class GraphParser:
                         compose[source].append(req_input)
                     elif req_input in self.nanoAOD_inputs:
                         self.nodes[target_node]["is_in"] = True
-                        self.node_family_register[target_node]["file_in"].append(req_input)
+                        self.node_family_register[target_node]["file_in"].append(
+                            req_input
+                        )
                     else:
                         raise ValueError(
                             f"Input {req_input} is missing from NanoAOD and producers."
@@ -646,10 +649,18 @@ class GraphParser:
 
         self.nodes[full_id] = add_data
 
-    def extract_configs(self, call, scope, vector_configs={}, ignore={}):
+    def extract_configs(self, call, scope, vector_configs=None, ignore={}):
 
         if is_empty(ignore):
-            ignore = {"df", "output", "input", "output_vec", "input_vec", "vec_open", "vec_close"}
+            ignore = {
+                "df",
+                "output",
+                "input",
+                "output_vec",
+                "input_vec",
+                "vec_open",
+                "vec_close",
+            }
         else:
             ignore = set(ignore)
 
@@ -660,7 +671,7 @@ class GraphParser:
 
         config_dict = {}
         for c in config_parameters:
-            if not is_empty(vector_configs.get(c)):
+            if vector_configs != None and not is_empty(vector_configs.get(c)):
                 config_dict[c] = vector_configs[c]
             elif not is_empty(self.config.config_parameters[scope].get(c)):
                 config_dict[c] = self.config.config_parameters[scope][c]
