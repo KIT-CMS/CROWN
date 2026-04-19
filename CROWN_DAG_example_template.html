@@ -827,20 +827,46 @@ function getDisplayName(famName) {
 
 function runSearch() {
   const query = document.getElementById("searchInput").value;
-  const regex = new RegExp(query);
+  if (!query) {
+    cancelSearch();
+    return;
+  }
 
+  const regex = new RegExp(query);
   cy.elements().removeClass("highlighted activeFocus");
 
   const matchedFamilies = new Set();
+
+  // 1. Search labels and descriptions in element data
   cy.elements().forEach((el) => {
     const label = el.data("label") || el.data("description") || "";
     if (regex.test(label)) matchedFamilies.add(el.data("family"));
   });
 
+  // 2. Search call, file_in, file_out in node-type family metadata
+  if (metaData && metaData.nodeFamilyRegister) {
+    for (const [famName, famInfo] of Object.entries(metaData.nodeFamilyRegister)) {
+      if (famInfo.node_call_data && famInfo.node_call_data.call && regex.test(famInfo.node_call_data.call)) {
+        matchedFamilies.add(famName);
+        continue;
+      }
+      if (famInfo.file_in && famInfo.file_in.some(val => regex.test(val))) {
+        matchedFamilies.add(famName);
+        continue;
+      }
+      if (famInfo.file_out && famInfo.file_out.some(val => regex.test(val))) {
+        matchedFamilies.add(famName);
+        continue;
+      }
+    }
+  }
+
   familyResults = [...matchedFamilies].map((f) => ({ famName: f }));
 
   familyResults.forEach((res) => {
     const ids = familyIndex[res.famName];
+    if (!ids) throw new Error("Search matched a family not present in the graph index: " + res.famName);
+
     cy.collection([...ids].map(id => {
         const item = cy.getElementById(id);
         if (item.length === 0) throw new Error("Missing element for search highlight: " + id);
@@ -849,7 +875,11 @@ function runSearch() {
   });
 
   currentIndex = -1;
-  moveFocus(1);
+  if (familyResults.length > 0) {
+    moveFocus(1);
+  } else {
+    updateUI();
+  }
 }
 
 function resetView() {
