@@ -3,6 +3,7 @@ import re
 import json
 import os
 from collections import defaultdict
+from turtle import st
 from code_generation.quantity import QuantityGroup
 from code_generation.helpers import is_empty
 
@@ -373,7 +374,7 @@ class GraphParser:
             )
 
         vec_input_index = producer.vec_configs.index(input_vec_config)
-
+        call = producer.call
         self.add_node(
             id_name=group_id,
             name=producer.name,
@@ -381,6 +382,7 @@ class GraphParser:
             parent=parent,
             node_type="vector",
         )
+        call = producer.call
         vec_configs = [
             self.config.config_parameters[scope][c] for c in producer.vec_configs
         ]
@@ -389,7 +391,8 @@ class GraphParser:
             input_name = c[vec_input_index]
             vector_id = f"{group_id}_{i_c}"
             vector_name = f"{producer.name}_{i_c}"
-
+            vector_config_dict = {vc: cc for vc, cc in zip(producer.vec_configs, c)}
+            config_data = self.extract_configs(call, scope, vector_config_dict)
             if self.debugging:
                 print(align + "    " + f"Adding Filter: {vector_name}")
             self.add_node(
@@ -398,6 +401,7 @@ class GraphParser:
                 scope=scope,
                 parent=group_id,
                 is_filter=producer.is_filter,
+                metadata={"call": call, "configs": config_data},
             )
             self.add_input(input_name, vector_id, scope)
 
@@ -434,12 +438,13 @@ class GraphParser:
             parent=parent,
             node_type="vector",
         )
+        call = producer.call
         vec_config = self.config.config_parameters[scope][producer.vec_config]
 
         for i_c, c in enumerate(vec_config):
             vector_id = f"{group_id}_{i_c}"
             vector_name = f"{producer.name}_{i_c}"
-
+            config_data = self.extract_configs(call, scope, c)
             if self.debugging:
                 print(align + "    " + f"Adding Producer: {vector_name}")
             self.add_node(
@@ -448,6 +453,7 @@ class GraphParser:
                 scope=scope,
                 parent=group_id,
                 is_filter=producer.is_filter,
+                metadata={"call": call, "configs": config_data},
             )
 
             if isinstance(producer.input[scope], list):
@@ -507,12 +513,14 @@ class GraphParser:
         print(
             f"!!! {producer.name} is a legacy producer and should be replaced with Filter !!!"
         )
-
+        call = producer.call
+        config_data = self.extract_configs(call, scope)
         self.add_node(
             id_name=producer.name,
             scope=scope,
             parent=parent,
             is_filter=producer.is_filter,
+            metadata={"call": call, "configs": config_data},
         )
         for n in set(producer.input[scope]):
             self.add_input(n.name, producer.name, scope)
@@ -522,11 +530,14 @@ class GraphParser:
     def parse_Producer(self, producer, parent, scope, align=""):
         if self.debugging:
             print(align + f"Adding Producer: {producer.name}")
+        call = producer.call
+        config_data = self.extract_configs(call, scope)
         self.add_node(
             id_name=producer.name,
             scope=scope,
             parent=parent,
             is_filter=producer.is_filter,
+            metadata={"call": call, "configs": config_data},
         )
 
         if isinstance(producer.input[scope], list):
@@ -594,6 +605,7 @@ class GraphParser:
         node_type=None,
         is_filter=False,
         family=None,
+        metadata=None,
     ):
         """Creates a standardized node object and appends it to the graph's node list."""
 
@@ -624,13 +636,39 @@ class GraphParser:
                 self.family_register[family]["type"] = "edge"
                 self.family_register[family]["familyHead"] = full_id
         else:
+            # Standalone nodes will only ever have one member in their family, themselves
+            if self.family_register[full_id]["type"] == "node":
+                raise ValueError(f"Node {full_id} already exists in family register")
             add_data["family"] = full_id
             self.family_register[full_id]["members"].append(full_id)
-            if not self.family_register[full_id]["type"]:
-                self.family_register[full_id]["type"] = "node"
-                self.family_register[full_id]["familyHead"] = full_id
+            self.family_register[full_id]["type"] = "node"
+            self.family_register[full_id]["familyHead"] = full_id
+            if metadata:
+                self.family_register[full_id]["metaData"] = metadata
 
         self.nodes[full_id] = add_data
+
+    def extract_configs(self, call, scope, vector_configs={}, ignore={}):
+
+        if is_empty(ignore):
+            ignore = {"df", "output", "input", "output_vec", "input_vec", "vec_open", "vec_close"}
+        else:
+            ignore = set(ignore)
+
+        pattern = r"\{(\w+)\}"
+        matches = re.findall(pattern, call)
+
+        config_parameters = [m for m in matches if m not in ignore]
+
+        config_dict = {}
+        for c in config_parameters:
+            if not is_empty(vector_configs.get(c)):
+                config_dict[c] = vector_configs[c]
+            elif not is_empty(self.config.config_parameters[scope].get(c)):
+                config_dict[c] = self.config.config_parameters[scope][c]
+            else:
+                raise ValueError(f"Unknown config parameter {c}")
+        return config_dict
 
     def add_connection(self, source, target, name):
         """Creates a directional edge between a source node and a target node."""
