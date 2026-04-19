@@ -128,6 +128,17 @@
             font-size: 13px;
         }
 
+        .clickable {
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .clickable:hover {
+            background: #e3f2fd !important;
+            border-left-color: #1e88e5 !important;
+            color: #0d47a1 !important;
+        }
+
         #sidebar::-webkit-scrollbar { width: 6px; }
         #sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
@@ -544,75 +555,90 @@ function getFamilyCollection(el) {
     [...familyIndex[fam]].map((id) => cy.getElementById(id)),
   );
 }
-
 function updateSidebar(familyEles, famName) {
-  const sidebar = document.getElementById("sidebar");
-  const sidebarTitle = document.getElementById("sidebar-title");
   const sidebarContent = document.getElementById("sidebar-content");
+  const famInfo = metaData.familyRegister[famName];
+  const headNode = cy.getElementById(famInfo.familyHead);
+  const headData = headNode.data();
 
-  sidebarTitle.innerText = famName;
+  // Set Title
+  document.getElementById("sidebar-title").innerText = headData.label || headData.description || famName;
   sidebarContent.innerHTML = "";
 
-  if (familyTypes[famName] === "edge") {
-    let trueSources = new Set();
-    let trueTargets = new Set();
+  if (famInfo.type === "edge") {
+    // --- EDGE FAMILY VIEW ---
+    let sourceFams = new Set();
+    let targetFams = new Set();
 
-    familyEles.edges().forEach((e) => {
-      const src = e.source();
-      const tgt = e.target();
-
-      if (!src.id().startsWith("proxy_")) trueSources.add(src);
-      if (!tgt.id().startsWith("proxy_")) trueTargets.add(tgt);
+    familyEles.edges().forEach(e => {
+      // Find the real node families at the start and end of this edge chain
+      if (!e.source().id().startsWith("proxy_")) sourceFams.add(e.source().data("family"));
+      if (!e.target().id().startsWith("proxy_")) targetFams.add(e.target().data("family"));
     });
 
-    let html = `<div class="sidebar-section"><div class="sidebar-subtitle">Source Node(s)</div><ul class="node-list">`;
-    trueSources.forEach((s) => {
-      html += `<li><div class="detail-box">${s.data("label")}</div></li>`;
-    });
-    html += `</ul></div>`;
-
-    html += `<div class="sidebar-section"><div class="sidebar-subtitle">Target Node(s)</div><ul class="node-list">`;
-    trueTargets.forEach((t) => {
-      html += `<li><div class="detail-box">${t.data("label")}</div></li>`;
-    });
-    html += `</ul></div>`;
-
-    sidebarContent.innerHTML = html;
+    sidebarContent.innerHTML =
+      renderFamilyLinkList("Source", sourceFams) +
+      renderFamilyLinkList("Targets", targetFams);
   } else {
-    let nodeDetails = familyEles.nodes().first();
+    let html = `<div class="sidebar-section">`;
+    // <div class="sidebar-subtitle">Details</div>`;
+    // html += `<div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">${headData.type || 'Standard'}</span></div></div>`;
 
-    familyEles.nodes().forEach((n) => {
-      if (!n.id().startsWith("proxy_")) nodeDetails = n;
+    let inFams = new Set(), outFams = new Set();
+
+    // Since node families only have one member, we just look at its connected edges
+    headNode.connectedEdges().forEach(e => {
+      const edgeFam = e.data("family");
+      // Direction is relative to the single head node
+      if (e.target().id() === headNode.id()) {
+        inFams.add(edgeFam);
+      } else {
+        outFams.add(edgeFam);
+      }
     });
 
-    const data = nodeDetails.data();
-
-    let html = `<div class="sidebar-section"><div class="sidebar-subtitle">Node Details</div>`;
-    html += `<div class="detail-row"><span class="detail-label">Label</span><span class="detail-value">${data.label}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">ID</span><span class="detail-value">${data.id}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">Parent</span><span class="detail-value">${data.parent}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">${data.type}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">Input</span><span class="detail-value">${data.is_in}</span></div>`;
-    html += `<div class="detail-row"><span class="detail-label">Output</span><span class="detail-value">${data.is_out}</span></div>`;
-    html += `</div>`;
-
+    html += renderFamilyLinkList("Ingoing Quantities", inFams);
+    html += renderFamilyLinkList("Outgoing Quantities", outFams);
     sidebarContent.innerHTML = html;
   }
+  document.getElementById("sidebar").style.display = "flex";
+}
 
-  sidebar.style.display = "flex";
+/**
+ * Helper to render grouped Edge Families and their endpoints
+ */
+function renderEdgeFamilyGroup(title, edgeMap) {
+  if (edgeMap.size === 0) return "";
+  let html = `<div class="sidebar-section"><div class="sidebar-subtitle">${title}</div>`;
+
+  edgeMap.forEach((nodes, edgeName) => {
+    html += `<div class="detail-row">
+               <span class="detail-label">${edgeName}</span>
+               <div style="margin-top:4px; display:flex; flex-wrap:wrap; gap:4px;">`;
+    nodes.forEach(nodeLabel => {
+      html += `<span class="detail-box" style="font-size:10px; padding:2px 6px;">${nodeLabel}</span>`;
+    });
+    html += `</div></div>`;
+  });
+
+  html += `</div>`;
+  return html;
+}
+
+/**
+ * Basic helper for simple label lists
+ */
+function renderLabelList(title, set) {
+  if (set.size === 0) return "";
+  let html = `<div class="sidebar-section"><div class="sidebar-subtitle">${title}</div><ul class="node-list">`;
+  Array.from(set).sort().forEach(l => html += `<li><div class="detail-box">${l}</div></li>`);
+  return html + `</ul></div>`;
 }
 
 function setupInteractions() {
+  // Clicking any node or edge focuses its entire family
   cy.on("tap", "node, edge", function (evt) {
-    const el = evt.target;
-    const fam = el.data("family");
-
-    cy.elements().removeClass("activeFocus");
-
-    const familyEles = getFamilyCollection(el);
-    familyEles.addClass("activeFocus");
-
-    updateSidebar(familyEles, fam);
+    focusFamily(evt.target.data("family"));
   });
 
   cy.on("tap", function (evt) {
@@ -621,6 +647,16 @@ function setupInteractions() {
       cy.elements().removeClass("activeFocus");
     }
   });
+}
+
+function moveFocus(dir) {
+  if (familyResults.length === 0) return;
+
+  // Calculate next index
+  currentIndex = (currentIndex + dir + familyResults.length) % familyResults.length;
+
+  // Use the consolidated focus logic
+  focusFamily(familyResults[currentIndex].famName);
 }
 
 function cancelSearch() {
@@ -633,24 +669,62 @@ function cancelSearch() {
   updateUI();
 }
 
-function moveFocus(dir) {
-  if (currentIndex >= 0) {
-    familyResults[currentIndex].collection.removeClass("activeFocus");
-  }
+function renderFamilyLinkList(title, famSet) {
+  if (famSet.size === 0) return "";
 
-  currentIndex =
-    (currentIndex + dir + familyResults.length) % familyResults.length;
+  let html = `<div class="sidebar-section">
+                <div class="sidebar-subtitle">${title}</div>
+                <ul class="node-list">`;
 
-  const { head, collection } = familyResults[currentIndex];
+  // Sort by display name
+  const sortedFams = Array.from(famSet).sort((a, b) => {
+    const nameA = getDisplayName(a);
+    const nameB = getDisplayName(b);
+    return nameA.localeCompare(nameB);
+  });
 
+  sortedFams.forEach(f => {
+    const dName = getDisplayName(f);
+    html += `<li><div class="detail-box clickable" onclick="focusFamily('${f}')">${dName}</div></li>`;
+  });
+
+  html += `</ul></div>`;
+  return html;
+}
+
+/**
+ * Single source of truth for focusing on a family.
+ * Centers the view on the family head and updates the sidebar.
+ */
+function focusFamily(famName) {
+  const famInfo = metaData.familyRegister[famName];
+  if (!famInfo) return;
+
+  const headId = famInfo.familyHead;
+  const ids = familyIndex[famName];
+
+  // 1. Manage Highlighting
+  cy.elements().removeClass("activeFocus");
+  const collection = cy.collection([...ids].map((id) => cy.getElementById(id)));
   collection.addClass("activeFocus");
 
-  const focusEle = cy.getElementById(head);
+  // 2. Animate to the Family Head
+  const focusEle = cy.getElementById(headId);
+  cy.animate({
+    center: { eles: focusEle },
+    zoom: 1.3,
+    duration: 350
+  });
 
-  cy.animate({ center: { eles: focusEle }, zoom: 1.3, duration: 350 });
+  // 3. Update UI Components
+  updateSidebar(collection, famName);
 
-  updateSidebar(collection, focusEle.data("family"));
-  updateUI();
+  // Update search index if this family is in the current search results
+  const searchIdx = familyResults.findIndex(res => res.famName === famName);
+  if (searchIdx !== -1) {
+    currentIndex = searchIdx;
+    updateUI();
+  }
 }
 
 function updateUI() {
@@ -664,6 +738,13 @@ function updateUI() {
   document.getElementById("nextBtn").disabled = count === 0;
 }
 
+function getDisplayName(famName) {
+  const info = metaData.familyRegister[famName];
+  if (!info) return famName;
+  const head = cy.getElementById(info.familyHead);
+  return head.data("label") || head.data("description") || famName;
+}
+
 function runSearch() {
   const query = document.getElementById("searchInput").value;
   const regex = new RegExp(query);
@@ -671,25 +752,19 @@ function runSearch() {
   cy.elements().removeClass("highlighted activeFocus");
 
   const matchedFamilies = new Set();
-
   cy.elements().forEach((el) => {
     const label = el.data("label") || el.data("description") || "";
-    if (regex.test(label)) {
-      matchedFamilies.add(el.data("family"));
-    }
+    if (regex.test(label)) matchedFamilies.add(el.data("family"));
   });
 
-  familyResults = [...matchedFamilies].map((f) => {
-    const head = metaData.familyRegister[f].familyHead;
-    const ids = familyIndex[f];
+  // Store the family names in the results
+  familyResults = [...matchedFamilies].map((f) => ({ famName: f }));
 
-    return {
-      head,
-      collection: cy.collection([...ids].map((id) => cy.getElementById(id))),
-    };
+  // Highlight all matches in the background
+  familyResults.forEach((res) => {
+    const ids = familyIndex[res.famName];
+    cy.collection([...ids].map(id => cy.getElementById(id))).addClass("highlighted");
   });
-
-  familyResults.forEach((col) => col.collection.addClass("highlighted"));
 
   currentIndex = -1;
   moveFocus(1);
