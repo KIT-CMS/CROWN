@@ -119,6 +119,31 @@ ROOT::RDF::RNode METPhiCorrection(ROOT::RDF::RNode df,
                         const bool is_mc,
                         const std::string &stat_variation,
                         const std::string &pileup_variation);
+
+ROOT::RDF::RNode
+Type1Correction(ROOT::RDF::RNode df,
+        const std::string &outputname, 
+        const std::string &raw_met,
+        const std::string &jet_pt_l1corr,
+        const std::string &jet_pt_corr,
+        const std::string &jet_phi,
+        const std::string &jet_muon_subtr_delta_phi,
+        const std::string &jet_chEmEF,
+        const std::string &jet_neEmEF,
+        const std::string &low_pt_jet_phi,
+        const std::string &low_pt_jet_muon_subtr_delta_phi,
+        const std::string &low_pt_jet_EmEF);
+ROOT::RDF::RNode
+Type1Correction(ROOT::RDF::RNode df,
+        const std::string &outputname, 
+        const std::string &raw_met,
+        const std::string &jet_pt_l1corr,
+        const std::string &jet_pt_corr,
+        const std::string &jet_phi,
+        const std::string &jet_chEmEF,
+        const std::string &jet_neEmEF,
+        const std::string &low_pt_jet_phi);
+
 } // end namespace met
 
 namespace lorentzvector {

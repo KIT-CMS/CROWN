@@ -5,6 +5,31 @@
 
 namespace physicsobject {
 
+// /**
+//  * @brief Truncates an input vector to match the size of a reference vector.
+//  *
+//  * @tparam T type of the input vector elements
+//  * @param df input dataframe
+//  * @param outputname name of the output column
+//  * @param input_vector name of the input vector column
+//  * @param reference_vector name of the reference vector column
+//  * @return a dataframe with a new column containing the truncated input vector
+//  */
+// template <typename T>
+// inline ROOT::RDF::RNode TruncateToSize(ROOT::RDF::RNode df,
+//                                        const std::string &outputname,
+//                                        const std::string &input_vector,
+//                                        const std::string &reference_vector) {
+//     return df.Define(outputname,
+//         [](const ROOT::RVec<T> &input, const ROOT::RVec<T> &reference) {
+//             ROOT::RVec<T> result;
+//             for (std::size_t i = 0; i < reference.size(); ++i) {
+//                 result.push_back(input.at(i));
+//             }
+//             return result;
+//         }, {input_vector, reference_vector});
+// }
+
 /**
  * @brief This function takes multiple masks and applies a logical operation
  * (`"any_of"`, `"all_of"`, or `"none_of"`) elemet-wise to generate a combined mask.
