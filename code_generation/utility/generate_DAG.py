@@ -80,7 +80,7 @@ class GraphParser:
     def generate_graph(self):
         """
         The main orchestrator. Iterates through all scopes of the configuration,
-        generates the inputs/outputs/nodes, verifies output ambiguity, and creates edges.
+        generates the nodes and edges, verifies output ambiguity, and generates metadata.
         """
         for scope in self.scopes:
             if not is_empty(self.config.producers[scope]):
@@ -160,6 +160,9 @@ class GraphParser:
         ) + sorted(self.edges, key=lambda d: d["data"]["target"])
 
     def parse_Producer_routing(self, producer, parent, scope, align=""):
+        """
+        Router to producer classes.
+        """
         class_name = producer.__class__.__name__
 
         if class_name == "VectorProducer":
@@ -190,6 +193,11 @@ class GraphParser:
             raise NotImplementedError(f"Unknown Producer class {class_name}")
 
     def parse_VectorProducer(self, producer, parent, scope, align=""):
+        """
+        Uses regex to extract vector configurations from a legacy producer's string call
+        and maps them into graph nodes and inputs.
+        Currently only supports 'event::filter::Flag'.
+        """
         if self.debugging:
             print(align + f"Adding VectorProducer: {producer.name}")
         print(
@@ -208,7 +216,7 @@ class GraphParser:
     def parse_Flag_from_call(self, producer, parent, scope, align=""):
         """
         Uses regex to extract vector configurations from a legacy producer's string call
-        and maps them into graph nodes and inputs.
+        and maps them onto configs.
         """
         group_id = f"{producer.name}_v"
         call = producer.call
@@ -263,6 +271,9 @@ class GraphParser:
                 )
 
     def parse_ExtendedVectorProducer(self, producer, parent, scope, align=""):
+        """
+        Parses the ExtendedVectorProducer class into graph nodes and inputs/outputs
+        """
         if self.debugging:
             print(align + f"Adding ExtendedVectorProducer: {producer.name}")
 
@@ -308,6 +319,10 @@ class GraphParser:
                     print(align + "        " + f"Adding Output: {vec_output}")
 
     def parse_ProducerGroup(self, producer, parent, scope, align=""):
+        """
+        Parses the ProducerGroup class into graph nodes and inputs/outputs.
+        Calls parse_Producer_routing for each producer in the group.
+        """
         if self.debugging:
             print(align + f"Adding ProducerGroup: {producer.name}")
 
@@ -326,6 +341,11 @@ class GraphParser:
             )
 
     def parse_Filter(self, producer, parent, scope, align=""):
+        """
+        Parses the Filter class into graph nodes and inputs.
+        Calls parse_Producer_routing for each producer in the group,
+        similar to parse_ProducerGroup.
+        """
         if self.debugging:
             print(align + f"Adding Filter Group: {producer.name}")
 
@@ -344,6 +364,9 @@ class GraphParser:
             )
 
     def parse_BaseFilter(self, producer, parent, scope, align=""):
+        """
+        Parses the Legacy BaseFilter class into graph nodes and inputs.
+        """
         if self.debugging:
             print(align + f"Adding BaseFilter: {producer.name}")
         print(
@@ -364,6 +387,9 @@ class GraphParser:
                 print(align + "    " + f"Adding Input: {n.name}")
 
     def parse_Producer(self, producer, parent, scope, align=""):
+        """
+        Parses the Producer class into graph nodes and inputs/outputs.
+        """
         if self.debugging:
             print(align + f"Adding Producer: {producer.name}")
         call = producer.call
@@ -389,6 +415,7 @@ class GraphParser:
                     print(align + "    " + f"Adding Output: {n.name}")
 
     def set_is_out(self, scope, req_out):
+        """Sets the node as a source of an Ntuple output."""
         producers = self.outputs[scope].get(req_out, []) + self.outputs["global"].get(
             req_out, []
         )
@@ -413,7 +440,8 @@ class GraphParser:
     def assemble_connections(self):
         """
         Resolves the inputs vs. outputs mappings to draw the actual connecting
-        lines (edges) between nodes in the DAG. Records IN scope nodes.
+        lines (edges) between nodes in the DAG.
+        Determines the source of each input: Producer, NanoAOD, or Ntuple.
         """
         for scope in self.scopes:
             for target_node, required_inputs in self.inputs[scope].items():
@@ -459,7 +487,10 @@ class GraphParser:
                 node["is_in"] = ",".join(sorted(list(node["is_in"])))
 
     def bundle_edges(self):
-        # self.connections[scope][name][source].append(target)
+        """
+        Bundles connections based on common target location.
+        Creates proxy nodes and edges with width based on number of connections.
+        """
         for source, dt in self.connections.items():
             for name, targets in dt.items():
                 if len(targets) == 1:
@@ -522,6 +553,7 @@ class GraphParser:
                     )
 
     def get_ancestors(self, node_name):
+        """Returns recursive list of parents of a given node."""
         parent = self.nodes[node_name].get("parent")
         if not parent:
             return ["root", node_name]
@@ -529,6 +561,7 @@ class GraphParser:
             return self.get_ancestors(parent) + [node_name]
 
     def get_relative(self, source_hist, target_hist):
+        """Returns the relative path from source to target."""
         min_len = min(len(source_hist), len(target_hist))
         for i in range(min_len):
             if source_hist[i] != target_hist[i]:
@@ -539,6 +572,7 @@ class GraphParser:
                 )
 
     def construct_proxies(self, name, data, valid_idx, tot_idx, rank, source):
+        """Recursive function to create proxy nodes and edges."""
         data_slice = [data[i][rank] for i in tot_idx if i in valid_idx]
         if len(set(data_slice)) <= 1:
             self.construct_proxies(name, data, valid_idx, tot_idx, rank + 1, source)
@@ -592,6 +626,7 @@ class GraphParser:
                     )
 
     def extract_configs(self, call, scope, vector_configs=None, ignore={}):
+        """Extracts configuration parameters from a call string."""
         if is_empty(ignore):
             ignore = {
                 "df",
@@ -645,7 +680,10 @@ class GraphParser:
         family=None,
         node_call_data=None,
     ):
-        """Creates a standardized node object and appends it to the graph's node list."""
+        """
+        Creates a standardized node object and appends it to the graph's node list.
+        Also updates the node family register and edge family register.
+        """
 
         if node_type and is_filter:
             raise ValueError("Cannot specify both node_type and is_filter")
@@ -688,9 +726,7 @@ class GraphParser:
 
     def add_edge(self, source, target, edge_id, name, weight, edge_type, family):
         """Creates a directional edge between a source node and a target node."""
-
         self.edge_family_register[family]["members"].append(edge_id)
-
         self.edges.append(
             {
                 "data": {
