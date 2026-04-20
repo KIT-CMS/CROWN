@@ -14,7 +14,7 @@ class GraphParser:
     """
 
     def __init__(
-        self, config, nanoAOD_inputs, active_scope, DAG_dir=None, debugging=False
+        self, config, nanoAOD_inputs, active_scope, DAG_dir=None, CROWN_input_quantities=None, debugging=False
     ):
         self.config = config
         self.active_scope = active_scope
@@ -23,6 +23,10 @@ class GraphParser:
         else:
             self.scopes = ["global", self.active_scope]
         self.nanoAOD_inputs = nanoAOD_inputs
+        if CROWN_input_quantities is None:
+            self.CROWN_input_quantities = {}
+        else:
+            self.CROWN_input_quantities = CROWN_input_quantities
         self.debugging = debugging
         self.nodes = defaultdict()
         self.connections = defaultdict(lambda: defaultdict(list))
@@ -31,7 +35,7 @@ class GraphParser:
         self.outputs = defaultdict(lambda: defaultdict(list))
         self.vec_output_mappings = {}
         self.node_family_register = defaultdict(
-            lambda: {"file_in": [], "file_out": [], "node_call_data": {}}
+            lambda: {"file_in": {"NanoAOD": [], "Ntuple": []}, "file_out": [], "node_call_data": {}}
         )
         self.edge_family_register = defaultdict(
             lambda: {"members": [], "familyHead": None}
@@ -95,11 +99,12 @@ class GraphParser:
         generates the inputs/outputs/nodes, verifies output ambiguity, and creates edges.
         """
         for scope in self.scopes:
-            if self.debugging:
-                print(f"\nFor scope {scope}:")
-            self.add_node(
-                id_name="scope", name=f"{scope} scope", scope=scope, node_type="scope"
-            )
+            if not is_empty(self.config.producers[scope]):
+                if self.debugging:
+                    print(f"\nFor scope {scope}:")
+                self.add_node(
+                    id_name="scope", name=f"{scope} scope", scope=scope, node_type="scope"
+                )
 
             # Parse all producers in this scope
             for p in self.config.producers[scope]:
@@ -182,10 +187,15 @@ class GraphParser:
                     f"Source {producers[0]} is neither part of {scope} nor global scope."
                 )
         else:
-            if not req_out in self.nanoAOD_inputs:
+            if not (req_out in self.nanoAOD_inputs or req_out in self.CROWN_input_quantities):
                 raise ValueError(
-                    f"Requested output {req_out} is neither provided by a producer nor NanoAOD."
+                    f"Requested output {req_out} is neither provided by a producer nor NanoAOD/Ntuple."
                 )
+
+    def add_is_in_type(self, node, node_type):
+        if "is_in" not in node:
+            node["is_in"] = set()
+        node["is_in"].add(node_type)
 
     def assemble_connections(self):
         """
@@ -205,8 +215,13 @@ class GraphParser:
                         source = self.outputs[scope][req_input][0]
                         compose[source].append(req_input)
                     elif req_input in self.nanoAOD_inputs:
-                        self.nodes[target_node]["is_in"] = True
-                        self.node_family_register[target_node]["file_in"].append(
+                        self.nodes[target_node].setdefault("is_in", set()).add("NanoAOD")
+                        self.node_family_register[target_node]["file_in"]["NanoAOD"].append(
+                            req_input
+                        )
+                    elif req_input in self.CROWN_input_quantities:
+                        self.nodes[target_node].setdefault("is_in", set()).add("Ntuple")
+                        self.node_family_register[target_node]["file_in"]["Ntuple"].append(
                             req_input
                         )
                     else:
@@ -224,6 +239,9 @@ class GraphParser:
                         self.add_connection(
                             source=source_node, target=target_node, name=input_name
                         )
+        for node in self.nodes.values():
+            if "is_in" in node:
+                node["is_in"] = ",".join(sorted(list(node["is_in"])))
 
     def bundle_edges(self):
         # self.connections[scope][name][source].append(target)
@@ -705,15 +723,21 @@ class GraphParser:
 
 def create_graph(configuration, nanoAOD_inputs, DAG_dir, json_name, debugging=False):
     """Entry point function to instantiate a GraphParser and execute generation."""
+
     for active_scope in configuration.scopes:
         if active_scope == "global":
             pass
         else:
+            if hasattr(configuration, "input_quantities_mapping"):
+                CROWN_input_quantities = configuration.input_quantities_mapping[active_scope][""]
+            else:
+                CROWN_input_quantities = None
             graph = GraphParser(
                 configuration,
                 nanoAOD_inputs,
                 active_scope,
                 DAG_dir,
+                CROWN_input_quantities=CROWN_input_quantities,
                 debugging=debugging,
             )
             graph.generate_graph()
