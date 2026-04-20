@@ -25,7 +25,7 @@ def build_config(
     available_sample_types: List[str],
     available_eras: List[str],
     available_scopes: List[str],
-    DAG_dir: str="",
+    DAG_dir: str = "",
 ):
     configuration = Configuration(
         era,

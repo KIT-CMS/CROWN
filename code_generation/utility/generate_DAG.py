@@ -14,7 +14,13 @@ class GraphParser:
     """
 
     def __init__(
-        self, config, nanoAOD_inputs, active_scope, DAG_dir=None, CROWN_input_quantities=None, debugging=False
+        self,
+        config,
+        nanoAOD_inputs,
+        active_scope,
+        DAG_dir=None,
+        CROWN_input_quantities=None,
+        debugging=False,
     ):
         self.config = config
         self.active_scope = active_scope
@@ -35,7 +41,11 @@ class GraphParser:
         self.outputs = defaultdict(lambda: defaultdict(list))
         self.vec_output_mappings = {}
         self.node_family_register = defaultdict(
-            lambda: {"file_in": {"NanoAOD": [], "Ntuple": []}, "file_out": [], "node_call_data": {}}
+            lambda: {
+                "file_in": {"NanoAOD": [], "Ntuple": []},
+                "file_out": [],
+                "node_call_data": {},
+            }
         )
         self.edge_family_register = defaultdict(
             lambda: {"members": [], "familyHead": None}
@@ -103,7 +113,10 @@ class GraphParser:
                 if self.debugging:
                     print(f"\nFor scope {scope}:")
                 self.add_node(
-                    id_name="scope", name=f"{scope} scope", scope=scope, node_type="scope"
+                    id_name="scope",
+                    name=f"{scope} scope",
+                    scope=scope,
+                    node_type="scope",
                 )
 
             # Parse all producers in this scope
@@ -187,7 +200,9 @@ class GraphParser:
                     f"Source {producers[0]} is neither part of {scope} nor global scope."
                 )
         else:
-            if not (req_out in self.nanoAOD_inputs or req_out in self.CROWN_input_quantities):
+            if not (
+                req_out in self.nanoAOD_inputs or req_out in self.CROWN_input_quantities
+            ):
                 raise ValueError(
                     f"Requested output {req_out} is neither provided by a producer nor NanoAOD/Ntuple."
                 )
@@ -215,15 +230,17 @@ class GraphParser:
                         source = self.outputs[scope][req_input][0]
                         compose[source].append(req_input)
                     elif req_input in self.nanoAOD_inputs:
-                        self.nodes[target_node].setdefault("is_in", set()).add("NanoAOD")
-                        self.node_family_register[target_node]["file_in"]["NanoAOD"].append(
-                            req_input
+                        self.nodes[target_node].setdefault("is_in", set()).add(
+                            "NanoAOD"
                         )
+                        self.node_family_register[target_node]["file_in"][
+                            "NanoAOD"
+                        ].append(req_input)
                     elif req_input in self.CROWN_input_quantities:
                         self.nodes[target_node].setdefault("is_in", set()).add("Ntuple")
-                        self.node_family_register[target_node]["file_in"]["Ntuple"].append(
-                            req_input
-                        )
+                        self.node_family_register[target_node]["file_in"][
+                            "Ntuple"
+                        ].append(req_input)
                     else:
                         raise ValueError(
                             f"Input {req_input} is missing from NanoAOD and producers."
@@ -729,7 +746,9 @@ def create_graph(configuration, nanoAOD_inputs, DAG_dir, json_name, debugging=Fa
             pass
         else:
             if hasattr(configuration, "input_quantities_mapping"):
-                CROWN_input_quantities = configuration.input_quantities_mapping[active_scope][""]
+                CROWN_input_quantities = configuration.input_quantities_mapping[
+                    active_scope
+                ][""]
             else:
                 CROWN_input_quantities = None
             graph = GraphParser(

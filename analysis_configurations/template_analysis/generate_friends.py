@@ -58,7 +58,7 @@ def run(args):
             available_eras,
             available_scopes,
             args.quantities_map,
-            DAG_dir = f"{args.output}/visualization"
+            DAG_dir=f"{args.output}/visualization",
         )
         # check if the config is of type FriendTreeConfiguration
         if not isinstance(code_generation_config, FriendTreeConfiguration):
