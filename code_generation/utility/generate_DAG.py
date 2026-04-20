@@ -6,6 +6,30 @@ from collections import defaultdict
 from code_generation.quantity import QuantityGroup
 from code_generation.helpers import is_empty
 
+def create_graph(configuration, nanoAOD_inputs, DAG_dir, json_name, debugging=False):
+    """Entry point function to instantiate a GraphParser and execute generation."""
+
+    for active_scope in configuration.scopes:
+        if active_scope == "global":
+            pass
+        else:
+            if hasattr(configuration, "input_quantities_mapping"):
+                CROWN_input_quantities = configuration.input_quantities_mapping[
+                    active_scope
+                ][""]
+            else:
+                CROWN_input_quantities = None
+            graph = GraphParser(
+                configuration,
+                nanoAOD_inputs,
+                active_scope,
+                DAG_dir,
+                CROWN_input_quantities=CROWN_input_quantities,
+                debugging=debugging,
+            )
+            graph.generate_graph()
+            graph.save_graph(json_name)
+
 
 class GraphParser:
     """
@@ -53,56 +77,6 @@ class GraphParser:
         self.DAG_data = None
         self.DAG_dir = DAG_dir
 
-    def save_graph(self, name):
-        """
-        Compiles the global and scoped DAG data and saves it to a JSON file.
-        Also triggers an update to the master DAG file list.
-        """
-        path = f"{name}_{self.config.era}_{self.config.sample}_{self.active_scope}.json"
-        if self.DAG_dir:
-            path = os.path.join(self.DAG_dir, path)
-            os.makedirs(self.DAG_dir, exist_ok=True)
-
-        meta_data = {
-            "nodeFamilyRegister": self.node_family_register,
-            "edgeFamilyRegister": self.edge_family_register,
-        }
-        full_dict = {"elementData": self.DAG_data, "metaData": meta_data}
-
-        with open(path, "w") as f:
-            json.dump(full_dict, f, indent=4)  # , sort_keys=True)
-
-        self.update_DAG_file_list(
-            os.path.join(self.DAG_dir, "DAG_files.json"),
-            self.config.era,
-            self.config.sample,
-            self.active_scope,
-        )
-
-    def update_DAG_file_list(self, config_path, new_era, new_sample, new_scope):
-        """
-        Updates the master JSON tracking file to ensure new eras, samples,
-        and scopes are registered without duplicates.
-        """
-        if os.path.exists(config_path):
-            with open(config_path, "r") as f:
-                try:
-                    data = json.load(f)
-                except json.JSONDecodeError:
-                    data = {"era": [], "sample": [], "scope": []}
-        else:
-            data = {"era": [], "sample": [], "scope": []}
-
-        data["era"] = sorted(list(set(data["era"] + [str(new_era)])))
-        data["sample"] = sorted(list(set(data["sample"] + [str(new_sample)])))
-        data["scope"] = sorted(list(set(data["scope"] + [str(new_scope)])))
-
-        with open(config_path, "w") as f:
-            json.dump(data, f, indent=4)
-
-        if self.debugging:
-            print(f"Updated {config_path} with {new_era}/{new_sample}/{new_scope}")
-
     def generate_graph(self):
         """
         The main orchestrator. Iterates through all scopes of the configuration,
@@ -121,7 +95,7 @@ class GraphParser:
 
             # Parse all producers in this scope
             for p in self.config.producers[scope]:
-                self.parse_producer(
+                self.parse_Producer_routing(
                     producer=p, parent="scope", scope=scope, align="    "
                 )
 
@@ -185,6 +159,235 @@ class GraphParser:
             formatted_nodes, key=lambda d: d["data"].get("label", "")
         ) + sorted(self.edges, key=lambda d: d["data"]["target"])
 
+    def parse_Producer_routing(self, producer, parent, scope, align=""):
+        class_name = producer.__class__.__name__
+
+        if class_name == "VectorProducer":
+            self.parse_VectorProducer(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        elif class_name == "ExtendedVectorProducer":
+            self.parse_ExtendedVectorProducer(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        elif class_name == "ProducerGroup":
+            self.parse_ProducerGroup(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        elif class_name == "Filter":
+            self.parse_Filter(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        elif class_name == "BaseFilter":
+            self.parse_BaseFilter(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        elif class_name == "Producer":
+            self.parse_Producer(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        else:
+            raise NotImplementedError(f"Unknown Producer class {class_name}")
+
+    def parse_VectorProducer(self, producer, parent, scope, align=""):
+        if self.debugging:
+            print(align + f"Adding VectorProducer: {producer.name}")
+        print(
+            f"!!! {producer.name} is a legacy producer and should be replaced with ExtendedVectorProducer !!!"
+        )
+
+        if producer.call.startswith("event::filter::Flag"):
+            self.parse_Flag_from_call(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        else:
+            raise NotImplementedError(
+                f"The call {producer.call} does not have legacy support."
+            )
+
+    def parse_Flag_from_call(self, producer, parent, scope, align=""):
+        """
+        Uses regex to extract vector configurations from a legacy producer's string call
+        and maps them into graph nodes and inputs.
+        """
+        group_id = f"{producer.name}_v"
+        call = producer.call
+        pattern = r'event::filter::Flag\({df}, "{(.*)}", "{(.*)}"\)'
+        match = re.search(pattern, call)
+
+        if match:
+            input_vec_config = match.group(1)
+        else:
+            raise ValueError(f"Input vector config could not be parsed from {call}")
+
+        if input_vec_config not in producer.vec_configs:
+            raise ValueError(
+                f"Input name from {call} not in producer vector configs {producer.vec_configs}"
+            )
+
+        vec_input_index = producer.vec_configs.index(input_vec_config)
+        call = producer.call
+        self.add_node(
+            id_name=group_id,
+            name=producer.name,
+            scope=scope,
+            parent=parent,
+            node_type="vector",
+        )
+        call = producer.call
+        vec_configs = [
+            self.config.config_parameters[scope][c] for c in producer.vec_configs
+        ]
+
+        for i_c, c in enumerate(zip(*vec_configs)):
+            input_name = c[vec_input_index]
+            vector_id = f"{group_id}_{i_c}"
+            vector_name = f"{producer.name}_{i_c}"
+            vector_config_dict = {vc: cc for vc, cc in zip(producer.vec_configs, c)}
+            config_data = self.extract_configs(call, scope, vector_config_dict)
+            if self.debugging:
+                print(align + "    " + f"Adding Filter: {vector_name}")
+            self.add_node(
+                id_name=vector_id,
+                name=vector_name,
+                scope=scope,
+                parent=group_id,
+                is_filter=producer.is_filter,
+                node_call_data={"call": call, "configs": config_data},
+            )
+            self.add_input(input_name, vector_id, scope)
+
+            if isinstance(producer.output, list):
+                raise NotImplementedError(
+                    "List outputs for legacy parsed calls are not supported."
+                )
+
+    def parse_ExtendedVectorProducer(self, producer, parent, scope, align=""):
+        if self.debugging:
+            print(align + f"Adding ExtendedVectorProducer: {producer.name}")
+
+        group_id = f"{producer.name}_v"
+        self.add_node(
+            id_name=group_id,
+            name=producer.name,
+            scope=scope,
+            parent=parent,
+            node_type="vector",
+        )
+        call = producer.call
+        vec_config = self.config.config_parameters[scope][producer.vec_config]
+
+        for i_c, c in enumerate(vec_config):
+            vector_id = f"{group_id}_{i_c}"
+            vector_name = f"{producer.name}_{i_c}"
+            config_data = self.extract_configs(call, scope, c)
+            if self.debugging:
+                print(align + "    " + f"Adding Producer: {vector_name}")
+            self.add_node(
+                id_name=vector_id,
+                name=vector_name,
+                scope=scope,
+                parent=group_id,
+                is_filter=producer.is_filter,
+                node_call_data={"call": call, "configs": config_data},
+            )
+
+            if isinstance(producer.input[scope], list):
+                for n in set(producer.input[scope]):
+                    self.add_input(n.name, vector_id, scope)
+                    if self.debugging:
+                        print(align + "        " + f"Adding Input: {n.name}")
+
+            if isinstance(producer.output, list):
+                vec_output = c[producer.outputname]
+                self.vec_output_mappings[producer.output_group.name] = (
+                    producer.outputname
+                )
+                self.add_output(vec_output, vector_id, scope)
+                if self.debugging:
+                    print(align + "        " + f"Adding Output: {vec_output}")
+
+    def parse_ProducerGroup(self, producer, parent, scope, align=""):
+        if self.debugging:
+            print(align + f"Adding ProducerGroup: {producer.name}")
+
+        group_id = f"{producer.name}_g"
+        self.add_node(
+            id_name=group_id,
+            name=producer.name,
+            scope=scope,
+            parent=parent,
+            node_type="group",
+        )
+
+        for p in producer.producers[scope]:
+            self.parse_Producer_routing(
+                producer=p, parent=group_id, scope=scope, align=align + "    "
+            )
+
+    def parse_Filter(self, producer, parent, scope, align=""):
+        if self.debugging:
+            print(align + f"Adding Filter Group: {producer.name}")
+
+        group_id = f"{producer.name}_f"
+        self.add_node(
+            id_name=group_id,
+            name=producer.name,
+            scope=scope,
+            parent=parent,
+            node_type="group",
+        )
+
+        for p in producer.producers[scope]:
+            self.parse_Producer_routing(
+                producer=p, parent=group_id, scope=scope, align=align + "    "
+            )
+
+    def parse_BaseFilter(self, producer, parent, scope, align=""):
+        if self.debugging:
+            print(align + f"Adding BaseFilter: {producer.name}")
+        print(
+            f"!!! {producer.name} is a legacy producer and should be replaced with Filter !!!"
+        )
+        call = producer.call
+        config_data = self.extract_configs(call, scope)
+        self.add_node(
+            id_name=producer.name,
+            scope=scope,
+            parent=parent,
+            is_filter=producer.is_filter,
+            node_call_data={"call": call, "configs": config_data},
+        )
+        for n in set(producer.input[scope]):
+            self.add_input(n.name, producer.name, scope)
+            if self.debugging:
+                print(align + "    " + f"Adding Input: {n.name}")
+
+    def parse_Producer(self, producer, parent, scope, align=""):
+        if self.debugging:
+            print(align + f"Adding Producer: {producer.name}")
+        call = producer.call
+        config_data = self.extract_configs(call, scope)
+        self.add_node(
+            id_name=producer.name,
+            scope=scope,
+            parent=parent,
+            is_filter=producer.is_filter,
+            node_call_data={"call": call, "configs": config_data},
+        )
+
+        if isinstance(producer.input[scope], list):
+            for n in set(producer.input[scope]):
+                self.add_input(n.name, producer.name, scope)
+                if self.debugging:
+                    print(align + "    " + f"Adding Input: {n.name}")
+
+        if isinstance(producer.output, list):
+            for n in set(producer.output):
+                self.add_output(n.name, producer.name, scope)
+                if self.debugging:
+                    print(align + "    " + f"Adding Output: {n.name}")
+
     def set_is_out(self, scope, req_out):
         producers = self.outputs[scope].get(req_out, []) + self.outputs["global"].get(
             req_out, []
@@ -206,11 +409,6 @@ class GraphParser:
                 raise ValueError(
                     f"Requested output {req_out} is neither provided by a producer nor NanoAOD/Ntuple."
                 )
-
-    def add_is_in_type(self, node, node_type):
-        if "is_in" not in node:
-            node["is_in"] = set()
-        node["is_in"].add(node_type)
 
     def assemble_connections(self):
         """
@@ -393,234 +591,34 @@ class GraphParser:
                         name, data, part_idx, tot_idx, rank + 1, proxy_node_name
                     )
 
-    def parse_Flag_from_call(self, producer, parent, scope, align=""):
-        """
-        Uses regex to extract vector configurations from a legacy producer's string call
-        and maps them into graph nodes and inputs.
-        """
-        group_id = f"{producer.name}_v"
-        call = producer.call
-        pattern = r'event::filter::Flag\({df}, "{(.*)}", "{(.*)}"\)'
-        match = re.search(pattern, call)
-
-        if match:
-            input_vec_config = match.group(1)
+    def extract_configs(self, call, scope, vector_configs=None, ignore={}):
+        if is_empty(ignore):
+            ignore = {
+                "df",
+                "output",
+                "input",
+                "output_vec",
+                "input_vec",
+                "vec_open",
+                "vec_close",
+            }
         else:
-            raise ValueError(f"Input vector config could not be parsed from {call}")
+            ignore = set(ignore)
 
-        if input_vec_config not in producer.vec_configs:
-            raise ValueError(
-                f"Input name from {call} not in producer vector configs {producer.vec_configs}"
-            )
+        pattern = r"\{(\w+)\}"
+        matches = re.findall(pattern, call)
 
-        vec_input_index = producer.vec_configs.index(input_vec_config)
-        call = producer.call
-        self.add_node(
-            id_name=group_id,
-            name=producer.name,
-            scope=scope,
-            parent=parent,
-            node_type="vector",
-        )
-        call = producer.call
-        vec_configs = [
-            self.config.config_parameters[scope][c] for c in producer.vec_configs
-        ]
+        config_parameters = [m for m in matches if m not in ignore]
 
-        for i_c, c in enumerate(zip(*vec_configs)):
-            input_name = c[vec_input_index]
-            vector_id = f"{group_id}_{i_c}"
-            vector_name = f"{producer.name}_{i_c}"
-            vector_config_dict = {vc: cc for vc, cc in zip(producer.vec_configs, c)}
-            config_data = self.extract_configs(call, scope, vector_config_dict)
-            if self.debugging:
-                print(align + "    " + f"Adding Filter: {vector_name}")
-            self.add_node(
-                id_name=vector_id,
-                name=vector_name,
-                scope=scope,
-                parent=group_id,
-                is_filter=producer.is_filter,
-                node_call_data={"call": call, "configs": config_data},
-            )
-            self.add_input(input_name, vector_id, scope)
-
-            if isinstance(producer.output, list):
-                raise NotImplementedError(
-                    "List outputs for legacy parsed calls are not supported."
-                )
-
-    def parse_VectorProducer(self, producer, parent, scope, align=""):
-        if self.debugging:
-            print(align + f"Adding VectorProducer: {producer.name}")
-        print(
-            f"!!! {producer.name} is a legacy producer and should be replaced with ExtendedVectorProducer !!!"
-        )
-
-        if producer.call.startswith("event::filter::Flag"):
-            self.parse_Flag_from_call(
-                producer=producer, parent=parent, scope=scope, align=align
-            )
-        else:
-            raise NotImplementedError(
-                f"The call {producer.call} does not have legacy support."
-            )
-
-    def parse_ExtendedVectorProducer(self, producer, parent, scope, align=""):
-        if self.debugging:
-            print(align + f"Adding ExtendedVectorProducer: {producer.name}")
-
-        group_id = f"{producer.name}_v"
-        self.add_node(
-            id_name=group_id,
-            name=producer.name,
-            scope=scope,
-            parent=parent,
-            node_type="vector",
-        )
-        call = producer.call
-        vec_config = self.config.config_parameters[scope][producer.vec_config]
-
-        for i_c, c in enumerate(vec_config):
-            vector_id = f"{group_id}_{i_c}"
-            vector_name = f"{producer.name}_{i_c}"
-            config_data = self.extract_configs(call, scope, c)
-            if self.debugging:
-                print(align + "    " + f"Adding Producer: {vector_name}")
-            self.add_node(
-                id_name=vector_id,
-                name=vector_name,
-                scope=scope,
-                parent=group_id,
-                is_filter=producer.is_filter,
-                node_call_data={"call": call, "configs": config_data},
-            )
-
-            if isinstance(producer.input[scope], list):
-                for n in set(producer.input[scope]):
-                    self.add_input(n.name, vector_id, scope)
-                    if self.debugging:
-                        print(align + "        " + f"Adding Input: {n.name}")
-
-            if isinstance(producer.output, list):
-                vec_output = c[producer.outputname]
-                self.vec_output_mappings[producer.output_group.name] = (
-                    producer.outputname
-                )
-                self.add_output(vec_output, vector_id, scope)
-                if self.debugging:
-                    print(align + "        " + f"Adding Output: {vec_output}")
-
-    def parse_ProducerGroup(self, producer, parent, scope, align=""):
-        if self.debugging:
-            print(align + f"Adding ProducerGroup: {producer.name}")
-
-        group_id = f"{producer.name}_g"
-        self.add_node(
-            id_name=group_id,
-            name=producer.name,
-            scope=scope,
-            parent=parent,
-            node_type="group",
-        )
-
-        for p in producer.producers[scope]:
-            self.parse_producer(
-                producer=p, parent=group_id, scope=scope, align=align + "    "
-            )
-
-    def parse_Filter(self, producer, parent, scope, align=""):
-        if self.debugging:
-            print(align + f"Adding Filter Group: {producer.name}")
-
-        group_id = f"{producer.name}_f"
-        self.add_node(
-            id_name=group_id,
-            name=producer.name,
-            scope=scope,
-            parent=parent,
-            node_type="group",
-        )
-
-        for p in producer.producers[scope]:
-            self.parse_producer(
-                producer=p, parent=group_id, scope=scope, align=align + "    "
-            )
-
-    def parse_BaseFilter(self, producer, parent, scope, align=""):
-        if self.debugging:
-            print(align + f"Adding BaseFilter: {producer.name}")
-        print(
-            f"!!! {producer.name} is a legacy producer and should be replaced with Filter !!!"
-        )
-        call = producer.call
-        config_data = self.extract_configs(call, scope)
-        self.add_node(
-            id_name=producer.name,
-            scope=scope,
-            parent=parent,
-            is_filter=producer.is_filter,
-            node_call_data={"call": call, "configs": config_data},
-        )
-        for n in set(producer.input[scope]):
-            self.add_input(n.name, producer.name, scope)
-            if self.debugging:
-                print(align + "    " + f"Adding Input: {n.name}")
-
-    def parse_Producer(self, producer, parent, scope, align=""):
-        if self.debugging:
-            print(align + f"Adding Producer: {producer.name}")
-        call = producer.call
-        config_data = self.extract_configs(call, scope)
-        self.add_node(
-            id_name=producer.name,
-            scope=scope,
-            parent=parent,
-            is_filter=producer.is_filter,
-            node_call_data={"call": call, "configs": config_data},
-        )
-
-        if isinstance(producer.input[scope], list):
-            for n in set(producer.input[scope]):
-                self.add_input(n.name, producer.name, scope)
-                if self.debugging:
-                    print(align + "    " + f"Adding Input: {n.name}")
-
-        if isinstance(producer.output, list):
-            for n in set(producer.output):
-                self.add_output(n.name, producer.name, scope)
-                if self.debugging:
-                    print(align + "    " + f"Adding Output: {n.name}")
-
-    def parse_producer(self, producer, parent, scope, align=""):
-        class_name = producer.__class__.__name__
-
-        if class_name == "VectorProducer":
-            self.parse_VectorProducer(
-                producer=producer, parent=parent, scope=scope, align=align
-            )
-        elif class_name == "ExtendedVectorProducer":
-            self.parse_ExtendedVectorProducer(
-                producer=producer, parent=parent, scope=scope, align=align
-            )
-        elif class_name == "ProducerGroup":
-            self.parse_ProducerGroup(
-                producer=producer, parent=parent, scope=scope, align=align
-            )
-        elif class_name == "Filter":
-            self.parse_Filter(
-                producer=producer, parent=parent, scope=scope, align=align
-            )
-        elif class_name == "BaseFilter":
-            self.parse_BaseFilter(
-                producer=producer, parent=parent, scope=scope, align=align
-            )
-        elif class_name == "Producer":
-            self.parse_Producer(
-                producer=producer, parent=parent, scope=scope, align=align
-            )
-        else:
-            raise NotImplementedError(f"Unknown Producer class {class_name}")
+        config_dict = {}
+        for c in config_parameters:
+            if vector_configs != None and not is_empty(vector_configs.get(c)):
+                config_dict[c] = vector_configs[c]
+            elif not is_empty(self.config.config_parameters[scope].get(c)):
+                config_dict[c] = self.config.config_parameters[scope][c]
+            else:
+                raise ValueError(f"Unknown config parameter {c}")
+        return config_dict
 
     def add_output(self, output_name, output_node, scope):
         """Registers a node as the creator of a specific output."""
@@ -684,36 +682,6 @@ class GraphParser:
 
         self.nodes[full_id] = add_data
 
-    def extract_configs(self, call, scope, vector_configs=None, ignore={}):
-
-        if is_empty(ignore):
-            ignore = {
-                "df",
-                "output",
-                "input",
-                "output_vec",
-                "input_vec",
-                "vec_open",
-                "vec_close",
-            }
-        else:
-            ignore = set(ignore)
-
-        pattern = r"\{(\w+)\}"
-        matches = re.findall(pattern, call)
-
-        config_parameters = [m for m in matches if m not in ignore]
-
-        config_dict = {}
-        for c in config_parameters:
-            if vector_configs != None and not is_empty(vector_configs.get(c)):
-                config_dict[c] = vector_configs[c]
-            elif not is_empty(self.config.config_parameters[scope].get(c)):
-                config_dict[c] = self.config.config_parameters[scope][c]
-            else:
-                raise ValueError(f"Unknown config parameter {c}")
-        return config_dict
-
     def add_connection(self, source, target, name):
         """Creates a directional edge between a source node and a target node."""
         self.connections[source][name].append(target)
@@ -737,27 +705,53 @@ class GraphParser:
             }
         )
 
-
-def create_graph(configuration, nanoAOD_inputs, DAG_dir, json_name, debugging=False):
-    """Entry point function to instantiate a GraphParser and execute generation."""
-
-    for active_scope in configuration.scopes:
-        if active_scope == "global":
-            pass
+    def update_DAG_file_list(self, config_path, new_era, new_sample, new_scope):
+        """
+        Updates the master JSON tracking file to ensure new eras, samples,
+        and scopes are registered without duplicates.
+        """
+        if os.path.exists(config_path):
+            with open(config_path, "r") as f:
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError:
+                    data = {"era": [], "sample": [], "scope": []}
         else:
-            if hasattr(configuration, "input_quantities_mapping"):
-                CROWN_input_quantities = configuration.input_quantities_mapping[
-                    active_scope
-                ][""]
-            else:
-                CROWN_input_quantities = None
-            graph = GraphParser(
-                configuration,
-                nanoAOD_inputs,
-                active_scope,
-                DAG_dir,
-                CROWN_input_quantities=CROWN_input_quantities,
-                debugging=debugging,
-            )
-            graph.generate_graph()
-            graph.save_graph(json_name)
+            data = {"era": [], "sample": [], "scope": []}
+
+        data["era"] = sorted(list(set(data["era"] + [str(new_era)])))
+        data["sample"] = sorted(list(set(data["sample"] + [str(new_sample)])))
+        data["scope"] = sorted(list(set(data["scope"] + [str(new_scope)])))
+
+        with open(config_path, "w") as f:
+            json.dump(data, f, indent=4)
+
+        if self.debugging:
+            print(f"Updated {config_path} with {new_era}/{new_sample}/{new_scope}")
+
+    def save_graph(self, name):
+        """
+        Compiles the global and scoped DAG data and saves it to a JSON file.
+        Also triggers an update to the master DAG file list.
+        """
+        path = f"{name}_{self.config.era}_{self.config.sample}_{self.active_scope}.json"
+        if self.DAG_dir:
+            path = os.path.join(self.DAG_dir, path)
+            os.makedirs(self.DAG_dir, exist_ok=True)
+
+        meta_data = {
+            "nodeFamilyRegister": self.node_family_register,
+            "edgeFamilyRegister": self.edge_family_register,
+        }
+        full_dict = {"elementData": self.DAG_data, "metaData": meta_data}
+
+        with open(path, "w") as f:
+            json.dump(full_dict, f, indent=4)  # , sort_keys=True)
+
+        self.update_DAG_file_list(
+            os.path.join(self.DAG_dir, "DAG_files.json"),
+            self.config.era,
+            self.config.sample,
+            self.active_scope,
+        )
+
