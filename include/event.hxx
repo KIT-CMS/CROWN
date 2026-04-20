@@ -327,6 +327,31 @@ GenerateSeed(
     const UInt_t &master_seed = 42
 );
 
+// Select the embedding-muon p4 that has the same charge as the reco object.
+ROOT::RDF::RNode MatchEmbeddingMuonP4ByCharge(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &reco_q,
+    const std::string &emb_q_1,
+    const std::string &emb_q_2,
+    const std::string &emb_p4_1,
+    const std::string &emb_p4_2);
+
+// Keep the old logic explicit: require that such a charge match exists.
+ROOT::RDF::RNode HasEmbeddingMuonChargeMatch(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &reco_q,
+    const std::string &emb_q_1,
+    const std::string &emb_q_2);
+
+// Require opposite charge for a reconstructed dilepton pair.
+ROOT::RDF::RNode HasOppositeCharge(
+    ROOT::RDF::RNode df,
+    const std::string &outputname,
+    const std::string &q_1,
+    const std::string &q_2);
+
 /**
  * @brief This function creates a new column in the dataframe by applying
  * element-wise negation to an existing `quantity` column.
@@ -927,7 +952,6 @@ Quantity(ROOT::RDF::RNode df, const std::string &filtername,
         },
         {quantity}, filtername);
 }
-
 ROOT::RDF::RNode
 GoldenJSON(ROOT::RDF::RNode df,
            correctionManager::CorrectionManager &correctionManager,
