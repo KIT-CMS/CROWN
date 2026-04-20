@@ -4,9 +4,11 @@ from typing import List, Union
 
 from .producers import pairselection as pairselection
 from .producers import genparticles as genparticles
+from .quantities import nanoAOD as nanoAOD
 from .quantities import output as q
 from code_generation.friend_trees import FriendTreeConfiguration
 from code_generation.rules import RemoveProducer
+from code_generation.utility.generate_DAG import create_graph
 
 
 def build_config(
@@ -18,6 +20,7 @@ def build_config(
     available_eras: List[str],
     available_scopes: List[str],
     quantities_map: Union[str, None] = None,
+    DAG_dir: str="",
 ):
     configuration = FriendTreeConfiguration(
         era,
@@ -67,4 +70,8 @@ def build_config(
     configuration.optimize()
     configuration.validate()
     configuration.report()
-    return configuration.expanded_configuration()
+    if DAG_dir:
+        nanoAOD_inputs = [n for n in dir(nanoAOD) if not n.startswith("__")]
+        create_graph(configuration, nanoAOD_inputs, DAG_dir, "CROWNelements")
+    configuration = configuration.expanded_configuration()
+    return configuration
