@@ -6,7 +6,8 @@ from collections import defaultdict
 from code_generation.quantity import QuantityGroup
 from code_generation.helpers import is_empty
 
-def create_graph(configuration, nanoAOD_inputs, DAG_dir, json_name, debugging=False):
+
+def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=False):
     """Entry point function to instantiate a GraphParser and execute generation."""
 
     for active_scope in configuration.scopes:
@@ -15,18 +16,20 @@ def create_graph(configuration, nanoAOD_inputs, DAG_dir, json_name, debugging=Fa
             pass
         else:
             # Add Ntuple quantities for friends
+            is_friend_config = False
             if hasattr(configuration, "input_quantities_mapping"):
-                CROWN_input_quantities = configuration.input_quantities_mapping[
-                    active_scope
-                ][""]
+                external_inputs = configuration.input_quantities_mapping[active_scope][
+                    ""
+                ]
+                is_friend_config = True
             else:
                 CROWN_input_quantities = None
             graph = GraphParser(
                 configuration,
-                nanoAOD_inputs,
+                external_inputs,
                 active_scope,
                 DAG_dir,
-                CROWN_input_quantities=CROWN_input_quantities,
+                is_friend_config=is_friend_config,
                 debugging=debugging,
             )
             # Generate and save graph for each scope separately
@@ -43,10 +46,10 @@ class GraphParser:
     def __init__(
         self,
         config,
-        nanoAOD_inputs,
+        external_inputs,
         active_scope,
         DAG_dir=None,
-        CROWN_input_quantities=None,
+        is_friend_config=None,
         debugging=False,
     ):
         self.config = config
@@ -55,11 +58,8 @@ class GraphParser:
             self.scopes = ["global"]
         else:
             self.scopes = ["global", self.active_scope]
-        self.nanoAOD_inputs = nanoAOD_inputs
-        if CROWN_input_quantities is None:
-            self.CROWN_input_quantities = {}
-        else:
-            self.CROWN_input_quantities = CROWN_input_quantities
+        self.external_inputs = external_inputs
+        self.is_friend_config = is_friend_config
         self.debugging = debugging
         self.nodes = defaultdict()
         self.connections = defaultdict(lambda: defaultdict(list))
@@ -438,11 +438,9 @@ class GraphParser:
                     f"Source {producers[0]} is neither part of {scope} nor global scope."
                 )
         else:
-            if not (
-                req_out in self.nanoAOD_inputs or req_out in self.CROWN_input_quantities
-            ):
+            if not (req_out in self.external_inputs):
                 raise ValueError(
-                    f"Requested output {req_out} is neither provided by a producer nor NanoAOD/Ntuple."
+                    f"Requested output {req_out} is not provided by NanoAOD/Ntuple."
                 )
 
     def assemble_connections(self):
@@ -466,21 +464,26 @@ class GraphParser:
                     elif self.outputs[scope].get(req_input):
                         source = self.outputs[scope][req_input][0]
                         compose[source].append(req_input)
-                    elif req_input in self.nanoAOD_inputs:
-                        self.nodes[target_node].setdefault("is_in", set()).add(
-                            "NanoAOD"
-                        )
-                        self.node_family_register[target_node]["file_in"][
-                            "NanoAOD"
-                        ].append(req_input)
-                    elif req_input in self.CROWN_input_quantities:
-                        self.nodes[target_node].setdefault("is_in", set()).add("Ntuple")
-                        self.node_family_register[target_node]["file_in"][
-                            "Ntuple"
-                        ].append(req_input)
+                    elif req_input in self.external_inputs:
+                        if self.is_friend_config:
+                            # CROWN friend production may only read quantities from  CROWN Ntuples
+                            self.nodes[target_node].setdefault("is_in", set()).add(
+                                "Ntuple"
+                            )
+                            self.node_family_register[target_node]["file_in"][
+                                "Ntuple"
+                            ].append(req_input)
+                        else:
+                            # CROWN Ntuple production may only read quantities from NanoAOD
+                            self.nodes[target_node].setdefault("is_in", set()).add(
+                                "NanoAOD"
+                            )
+                            self.node_family_register[target_node]["file_in"][
+                                "NanoAOD"
+                            ].append(req_input)
                     else:
                         raise ValueError(
-                            f"Input {req_input} is missing from NanoAOD and producers."
+                            f"Input {req_input} is missing from NanoAOD/Ntuple and producers."
                         )
 
                 # Create connections grouped by source node
@@ -829,4 +832,3 @@ class GraphParser:
 
         if self.debugging:
             print(f"Updated {config_path} with {new_era}/{new_sample}/{new_scope}")
-
