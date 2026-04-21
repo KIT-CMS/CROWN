@@ -6,10 +6,8 @@ from collections import defaultdict
 from code_generation.quantity import QuantityGroup
 from code_generation.helpers import is_empty
 
-
 def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=False):
     """Entry point function to instantiate a GraphParser and execute generation."""
-
     for active_scope in configuration.scopes:
         # Skip global scope as it is included in all other scopes
         if active_scope == "global":
@@ -18,12 +16,10 @@ def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=F
             # Add Ntuple quantities for friends
             is_friend_config = False
             if hasattr(configuration, "input_quantities_mapping"):
-                external_inputs = configuration.input_quantities_mapping[active_scope][
-                    ""
-                ]
+                external_inputs = configuration.input_quantities_mapping[
+                    active_scope
+                ][""]
                 is_friend_config = True
-            else:
-                CROWN_input_quantities = None
             graph = GraphParser(
                 configuration,
                 external_inputs,
@@ -38,20 +34,20 @@ def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=F
 
 
 class GraphParser:
-    """
-    Parses configuration data to generate Directed Acyclic Graphs (DAGs)
-    representing the dependencies and flow of producers, filters, and I/O.
-    """
+
+    """Parses configuration data to generate Directed Acyclic Graphs (DAGs).
+    Represents the dependencies and flow of producers, filters, and I/O."""
 
     def __init__(
         self,
         config,
         external_inputs,
         active_scope,
-        DAG_dir=None,
+        DAG_dir="",
         is_friend_config=None,
         debugging=False,
     ):
+        """Innitialize GraphParser Object"""
         self.config = config
         self.active_scope = active_scope
         if active_scope == "global":
@@ -80,63 +76,67 @@ class GraphParser:
         self.DAG_data = None
         self.DAG_dir = DAG_dir
 
-    def generate_graph(self):
-        """
-        The main orchestrator. Iterates through all scopes of the configuration,
-        generates the nodes and edges, verifies output ambiguity, and generates metadata.
-        """
-        for scope in self.scopes:
-            if not is_empty(self.config.producers[scope]):
-                if self.debugging:
-                    print(f"\nFor scope {scope}:")
-                # Add top level scope node
-                self.add_node(
-                    id_name="scope",
-                    name=f"{scope} scope",
-                    scope=scope,
-                    node_type="scope",
-                )
-
-            # Parse all producers in this scope
-            for p in self.config.producers[scope]:
-                self.parse_Producer_routing(
-                    producer=p, parent="scope", scope=scope, align="    "
-                )
-
-            # Check outputs for ambiguous assignments (multiple origins for the same output)
-            all_keys = list(
-                set(
-                    list(self.outputs["global"].keys())
-                    + list(self.outputs[scope].keys())
-                )
+    def parse_scope_producers(self, scope):
+        """Parses producers and outputs for a specific scope."""
+        if not is_empty(self.config.producers[scope]):
+            if self.debugging:
+                print(f"\nFor scope {scope}:")
+            # Add top level scope node
+            self.add_node(
+                id_name="scope",
+                name=f"{scope} scope",
+                scope=scope,
+                node_type="scope",
             )
-            for key in all_keys:
-                total_output_nodes = self.outputs["global"].get(key, []) + self.outputs[
-                    scope
-                ].get(key, [])
-                if len(set(total_output_nodes)) != 1:
-                    raise ValueError(
-                        f"Output {key} has multiple origins: {total_output_nodes}"
-                    )
 
-            # Determine nodes writing to Ntuple by tracing configured scope outputs back to their producers
-            if hasattr(self.config, "outputs") and scope in self.config.outputs:
-                for output in self.config.outputs[scope]:
-                    if isinstance(output, QuantityGroup):
-                        if output.vec_config in self.config.config_parameters.get(
-                            scope, {}
-                        ):
-                            vec_config = self.config.config_parameters[scope][
-                                output.vec_config
-                            ]
-                            vec_output_name = self.vec_output_mappings.get(output.name)
-                            if vec_output_name:
-                                for o in vec_config:
-                                    req_out = o.get(vec_output_name)
-                                    if req_out:
-                                        self.set_is_out(scope, req_out)
-                    else:
-                        self.set_is_out(scope, output.name)
+        # Parse all producers in this scope
+        for p in self.config.producers[scope]:
+            self.parse_Producer_routing(
+                producer=p, parent="scope", scope=scope, align="    "
+            )
+
+        # Check outputs for ambiguous assignments (multiple origins for the same output)
+        all_keys = list(
+            set(
+                list(self.outputs["global"].keys())
+                + list(self.outputs[scope].keys())
+            )
+        )
+        for key in all_keys:
+            total_output_nodes = self.outputs["global"].get(key, []) + self.outputs[
+                scope
+            ].get(key, [])
+            if len(set(total_output_nodes)) != 1:
+                raise ValueError(
+                    f"Output {key} has multiple origins: {total_output_nodes}"
+                )
+
+        # Determine nodes writing to Ntuple by tracing configured scope outputs back to their producers
+        if hasattr(self.config, "outputs") and scope in self.config.outputs:
+            for output in self.config.outputs[scope]:
+                if isinstance(output, QuantityGroup):
+                    if output.vec_config in self.config.config_parameters.get(
+                        scope, {}
+                    ):
+                        vec_config = self.config.config_parameters[scope][
+                            output.vec_config
+                        ]
+                        vec_output_name = self.vec_output_mappings.get(output.name)
+                        if vec_output_name:
+                            for o in vec_config:
+                                req_out = o.get(vec_output_name)
+                                if req_out:
+                                    self.set_is_out(scope, req_out)
+                else:
+                    self.set_is_out(scope, output.name)
+
+    def generate_graph(self):
+        """The main orchestrator. Iterates through all scopes of the configuration,
+        generates the nodes and edges, verifies output ambiguity, and generates metadata."""
+        # Determine producers from configuration for global and active scope
+        for scope in self.scopes:
+            self.parse_scope_producers(scope)
+
         # Derive connections from inputs/outputs
         self.assemble_connections()
 
@@ -163,9 +163,7 @@ class GraphParser:
         ) + sorted(self.edges, key=lambda d: d["data"]["target"])
 
     def parse_Producer_routing(self, producer, parent, scope, align=""):
-        """
-        Router to producer classes.
-        """
+        """Router to producer classes."""
         class_name = producer.__class__.__name__
 
         if class_name == "VectorProducer":
@@ -196,11 +194,9 @@ class GraphParser:
             raise NotImplementedError(f"Unknown Producer class {class_name}")
 
     def parse_VectorProducer(self, producer, parent, scope, align=""):
-        """
-        Uses regex to extract vector configurations from a legacy producer's string call
+        """Uses regex to extract vector configurations from a legacy producer's string call
         and maps them into graph nodes and inputs.
-        Currently only supports 'event::filter::Flag'.
-        """
+        Currently only supports 'event::filter::Flag'."""
         if self.debugging:
             print(align + f"Adding VectorProducer: {producer.name}")
         print(
@@ -218,10 +214,8 @@ class GraphParser:
             )
 
     def parse_Flag_from_call(self, producer, parent, scope, align=""):
-        """
-        Uses regex to extract vector configurations from a legacy producer's string call
-        and maps them onto configs.
-        """
+        """Uses regex to extract vector configurations from a legacy producer's string call
+        and maps them onto configs."""
         group_id = f"{producer.name}_v"
         call = producer.call
         # Pattern consists of: event::filter::Flag(df, "Flag_name", "Flag_name")
@@ -276,9 +270,7 @@ class GraphParser:
                 )
 
     def parse_ExtendedVectorProducer(self, producer, parent, scope, align=""):
-        """
-        Parses the ExtendedVectorProducer class into graph nodes and inputs/outputs
-        """
+        """Parses the ExtendedVectorProducer class into graph nodes and inputs/outputs"""
         if self.debugging:
             print(align + f"Adding ExtendedVectorProducer: {producer.name}")
         group_id = f"{producer.name}_v"
@@ -325,10 +317,8 @@ class GraphParser:
                     print(align + "        " + f"Adding Output: {vec_output}")
 
     def parse_ProducerGroup(self, producer, parent, scope, align=""):
-        """
-        Parses the ProducerGroup class into graph nodes and inputs/outputs.
-        Calls parse_Producer_routing for each producer in the group.
-        """
+        """Parses the ProducerGroup class into graph nodes and inputs/outputs.
+        Calls parse_Producer_routing for each producer in the group."""
         if self.debugging:
             print(align + f"Adding ProducerGroup: {producer.name}")
 
@@ -347,11 +337,9 @@ class GraphParser:
             )
 
     def parse_Filter(self, producer, parent, scope, align=""):
-        """
-        Parses the Filter class into graph nodes and inputs.
+        """Parses the Filter class into graph nodes and inputs.
         Calls parse_Producer_routing for each producer in the group,
-        similar to parse_ProducerGroup.
-        """
+        similar to parse_ProducerGroup."""
         if self.debugging:
             print(align + f"Adding Filter Group: {producer.name}")
 
@@ -371,9 +359,7 @@ class GraphParser:
             )
 
     def parse_BaseFilter(self, producer, parent, scope, align=""):
-        """
-        Parses the Legacy BaseFilter class into graph nodes and inputs.
-        """
+        """Parses the Legacy BaseFilter class into graph nodes and inputs."""
         if self.debugging:
             print(align + f"Adding BaseFilter: {producer.name}")
         print(
@@ -395,9 +381,7 @@ class GraphParser:
                 print(align + "    " + f"Adding Input: {n.name}")
 
     def parse_Producer(self, producer, parent, scope, align=""):
-        """
-        Parses the Producer class into graph nodes and inputs/outputs.
-        """
+        """Parses the Producer class into graph nodes and inputs/outputs."""
         if self.debugging:
             print(align + f"Adding Producer: {producer.name}")
         call = producer.call
@@ -444,11 +428,9 @@ class GraphParser:
                 )
 
     def assemble_connections(self):
-        """
-        Resolves the inputs vs. outputs mappings to draw the actual connecting
+        """Resolves the inputs vs. outputs mappings to draw the actual connecting
         lines (edges) between nodes in the DAG.
-        Determines the source of each input: Producer, NanoAOD, or Ntuple.
-        """
+        Determines the source of each input: Producer, NanoAOD, or Ntuple."""
         for scope in self.scopes:
             # Assemble connections by iterating through all nodes
             # {target_node: [required_inputs]} is matched to {input: [source_nodes]}
@@ -467,9 +449,7 @@ class GraphParser:
                     elif req_input in self.external_inputs:
                         if self.is_friend_config:
                             # CROWN friend production may only read quantities from  CROWN Ntuples
-                            self.nodes[target_node].setdefault("is_in", set()).add(
-                                "Ntuple"
-                            )
+                            self.nodes[target_node].setdefault("is_in", set()).add("Ntuple")
                             self.node_family_register[target_node]["file_in"][
                                 "Ntuple"
                             ].append(req_input)
@@ -502,11 +482,8 @@ class GraphParser:
                 node["is_in"] = ",".join(sorted(list(node["is_in"])))
 
     def bundle_edges(self):
-        """
-        Bundles connections based on common target location.
-        Creates proxy nodes and edges with width based on number of connections.
-        """
-
+        """Bundles connections based on common target location.
+        Creates proxy nodes and edges with width based on number of connections."""
         # Apply bundling for each quantity separately
         for source, dt in self.connections.items():
             # Inner and outer loop as each source may have multiple output quantities
@@ -659,7 +636,7 @@ class GraphParser:
                         name, data, part_idx, tot_idx, rank + 1, proxy_node_name
                     )
 
-    def extract_configs(self, call, scope, vector_configs=None, ignore={}):
+    def extract_configs(self, call, scope, vector_configs=None, ignore=None):
         """Extracts configuration parameters from a call string."""
         # Ignore parameters that are not config parameters
         if is_empty(ignore):
@@ -716,10 +693,8 @@ class GraphParser:
         family=None,
         node_call_data=None,
     ):
-        """
-        Creates a standardized node object and appends it to the graph's node list.
-        Also updates the node family register and edge family register.
-        """
+        """Creates a standardized node object and appends it to the graph's node list.
+        Also updates the node family register and edge family register."""
 
         if node_type and is_filter:
             raise ValueError("Cannot specify both node_type and is_filter")
@@ -779,10 +754,8 @@ class GraphParser:
         )
 
     def save_graph(self, name):
-        """
-        Compiles the global and scoped DAG data and saves it to a JSON file.
-        Also triggers an update to the master DAG file list.
-        """
+        """Compiles the global and scoped DAG data and saves it to a JSON file.
+        Also triggers an update to the master DAG file list."""
         path = f"{name}_{self.config.era}_{self.config.sample}_{self.active_scope}.json"
         if self.DAG_dir:
             path = os.path.join(self.DAG_dir, path)
@@ -808,10 +781,8 @@ class GraphParser:
         )
 
     def update_DAG_file_list(self, config_path, new_era, new_sample, new_scope):
-        """
-        Updates the master JSON tracking file to ensure new eras, samples,
-        and scopes are registered without duplicates.
-        """
+        """Updates the master JSON tracking file to ensure new eras, samples,
+        and scopes are registered without duplicates."""
         if os.path.exists(config_path):
             with open(config_path, "r") as f:
                 try:
@@ -832,3 +803,4 @@ class GraphParser:
 
         if self.debugging:
             print(f"Updated {config_path} with {new_era}/{new_sample}/{new_scope}")
+
