@@ -10,9 +10,11 @@ def create_graph(configuration, nanoAOD_inputs, DAG_dir, json_name, debugging=Fa
     """Entry point function to instantiate a GraphParser and execute generation."""
 
     for active_scope in configuration.scopes:
+        # Skip global scope as it is included in all other scopes
         if active_scope == "global":
             pass
         else:
+            # Add Ntuple quantities for friends
             if hasattr(configuration, "input_quantities_mapping"):
                 CROWN_input_quantities = configuration.input_quantities_mapping[
                     active_scope
@@ -27,6 +29,7 @@ def create_graph(configuration, nanoAOD_inputs, DAG_dir, json_name, debugging=Fa
                 CROWN_input_quantities=CROWN_input_quantities,
                 debugging=debugging,
             )
+            # Generate and save graph for each scope separately
             graph.generate_graph()
             graph.save_graph(json_name)
 
@@ -86,6 +89,7 @@ class GraphParser:
             if not is_empty(self.config.producers[scope]):
                 if self.debugging:
                     print(f"\nFor scope {scope}:")
+                # Add top level scope node
                 self.add_node(
                     id_name="scope",
                     name=f"{scope} scope",
@@ -115,7 +119,7 @@ class GraphParser:
                         f"Output {key} has multiple origins: {total_output_nodes}"
                     )
 
-            # Determine Output nodes by tracing configured scope outputs back to their producers
+            # Determine nodes writing to Ntuple by tracing configured scope outputs back to their producers
             if hasattr(self.config, "outputs") and scope in self.config.outputs:
                 for output in self.config.outputs[scope]:
                     if isinstance(output, QuantityGroup):
@@ -153,8 +157,7 @@ class GraphParser:
         # Prepare node formatting for usage with cytoscape
         formatted_nodes = [{"data": n} for n in self.nodes.values()]
 
-        # Compile final DAG data
-        # self.DAG_data = formatted_nodes + self.edges
+        # Compile final DAG data and sort by label
         self.DAG_data = sorted(
             formatted_nodes, key=lambda d: d["data"].get("label", "")
         ) + sorted(self.edges, key=lambda d: d["data"]["target"])
@@ -204,6 +207,7 @@ class GraphParser:
             f"!!! {producer.name} is a legacy producer and should be replaced with ExtendedVectorProducer !!!"
         )
 
+        # Only accept whitelisted calls for legacy support
         if producer.call.startswith("event::filter::Flag"):
             self.parse_Flag_from_call(
                 producer=producer, parent=parent, scope=scope, align=align
@@ -220,6 +224,7 @@ class GraphParser:
         """
         group_id = f"{producer.name}_v"
         call = producer.call
+        # Pattern consists of: event::filter::Flag(df, "Flag_name", "Flag_name")
         pattern = r'event::filter::Flag\({df}, "{(.*)}", "{(.*)}"\)'
         match = re.search(pattern, call)
 
@@ -232,7 +237,7 @@ class GraphParser:
             raise ValueError(
                 f"Input name from {call} not in producer vector configs {producer.vec_configs}"
             )
-
+        # Determine the index of the input vector config from the call
         vec_input_index = producer.vec_configs.index(input_vec_config)
         call = producer.call
         self.add_node(
@@ -242,11 +247,10 @@ class GraphParser:
             parent=parent,
             node_type="vector",
         )
-        call = producer.call
         vec_configs = [
             self.config.config_parameters[scope][c] for c in producer.vec_configs
         ]
-
+        # Loop over all vector configurations
         for i_c, c in enumerate(zip(*vec_configs)):
             input_name = c[vec_input_index]
             vector_id = f"{group_id}_{i_c}"
@@ -265,6 +269,7 @@ class GraphParser:
             )
             self.add_input(input_name, vector_id, scope)
 
+            # outputs are not supported for this legacy producer
             if isinstance(producer.output, list):
                 raise NotImplementedError(
                     "List outputs for legacy parsed calls are not supported."
@@ -276,7 +281,6 @@ class GraphParser:
         """
         if self.debugging:
             print(align + f"Adding ExtendedVectorProducer: {producer.name}")
-
         group_id = f"{producer.name}_v"
         self.add_node(
             id_name=group_id,
@@ -285,9 +289,11 @@ class GraphParser:
             parent=parent,
             node_type="vector",
         )
+
+        # ExtendedVectorProducer is better defined and doesn't require regex
         call = producer.call
         vec_config = self.config.config_parameters[scope][producer.vec_config]
-
+        # Loop over all vector configurations
         for i_c, c in enumerate(vec_config):
             vector_id = f"{group_id}_{i_c}"
             vector_name = f"{producer.name}_{i_c}"
@@ -334,7 +340,7 @@ class GraphParser:
             parent=parent,
             node_type="group",
         )
-
+        # Add all producers in group recursively
         for p in producer.producers[scope]:
             self.parse_Producer_routing(
                 producer=p, parent=group_id, scope=scope, align=align + "    "
@@ -358,6 +364,7 @@ class GraphParser:
             node_type="group",
         )
 
+        # Add all filters in group recursively
         for p in producer.producers[scope]:
             self.parse_Producer_routing(
                 producer=p, parent=group_id, scope=scope, align=align + "    "
@@ -381,6 +388,7 @@ class GraphParser:
             is_filter=producer.is_filter,
             node_call_data={"call": call, "configs": config_data},
         )
+        # BaseFilter don't have outputs
         for n in set(producer.input[scope]):
             self.add_input(n.name, producer.name, scope)
             if self.debugging:
@@ -444,6 +452,9 @@ class GraphParser:
         Determines the source of each input: Producer, NanoAOD, or Ntuple.
         """
         for scope in self.scopes:
+            # Assemble connections by iterating through all nodes
+            # {target_node: [required_inputs]} is matched to {input: [source_nodes]}
+            # Connection is of shape {source: {required_inputs: [targets]}}
             for target_node, required_inputs in self.inputs[scope].items():
                 compose = defaultdict(list)
 
@@ -472,7 +483,7 @@ class GraphParser:
                             f"Input {req_input} is missing from NanoAOD and producers."
                         )
 
-                # Create edges grouped by source node
+                # Create connections grouped by source node
                 for source_node, input_names in compose.items():
                     for input_name in input_names:
                         if self.debugging:
@@ -482,6 +493,7 @@ class GraphParser:
                         self.add_connection(
                             source=source_node, target=target_node, name=input_name
                         )
+        # Convert is_in value to string for cytoscape selector
         for node in self.nodes.values():
             if "is_in" in node:
                 node["is_in"] = ",".join(sorted(list(node["is_in"])))
@@ -491,11 +503,16 @@ class GraphParser:
         Bundles connections based on common target location.
         Creates proxy nodes and edges with width based on number of connections.
         """
+
+        # Apply bundling for each quantity separately
         for source, dt in self.connections.items():
+            # Inner and outer loop as each source may have multiple output quantities
+            # And each quantity may be used by multiple target nodes
             for name, targets in dt.items():
                 if len(targets) == 1:
+                    # Simplified case: only one target
+                    # One proxy node near source for edge label
                     target = targets[0]
-                    # edge_id = f"{name}_{target}"
                     location = self.nodes[source].get("parent")
                     proxy_node_name = f"proxy_{name}_{location}"
                     proxy_edge_name = f"proxyedge_{name}_{location}"
@@ -537,11 +554,15 @@ class GraphParser:
                         family=f"edge_{name}",
                     )
                 else:
+                    # More than one target: Resolved through relative path bundling
+                    # Determine location relative to root
                     source_history = self.get_ancestors(source)
+                    # Convert to relative path to source node
                     relative_targets = [
                         self.get_relative(source_history, self.get_ancestors(target))
                         for target in targets
                     ]
+                    # bundle based on relative location
                     start_idx = list(range(len(relative_targets)))
                     self.construct_proxies(
                         name,
@@ -563,8 +584,10 @@ class GraphParser:
     def get_relative(self, source_hist, target_hist):
         """Returns the relative path from source to target."""
         min_len = min(len(source_hist), len(target_hist))
+        # Find first non-matching element
         for i in range(min_len):
             if source_hist[i] != target_hist[i]:
+                # Return shortest path
                 return (
                     list(reversed(source_hist[i:]))
                     + [source_hist[i - 1]]
@@ -573,10 +596,13 @@ class GraphParser:
 
     def construct_proxies(self, name, data, valid_idx, tot_idx, rank, source):
         """Recursive function to create proxy nodes and edges."""
+        # Get slice by current rank in path
         data_slice = [data[i][rank] for i in tot_idx if i in valid_idx]
         if len(set(data_slice)) <= 1:
+            # Go to next rank if no edge splits off
             self.construct_proxies(name, data, valid_idx, tot_idx, rank + 1, source)
         else:
+            # Add a proxy node at the previous (matching) rank
             proxy_loc = data[valid_idx[0]][rank - 1]
             proxy_node_name = f"proxy_{name}_{proxy_loc}"
             proxy_edge_name = f"proxyedge_{name}_{proxy_loc}"
@@ -602,9 +628,13 @@ class GraphParser:
                 edge_type="branch",
                 family=f"edge_{name}",
             )
+            # Run bundling algorithm for each branch recursively
+            # Edges now start at proxy
             for val in set(data_slice):
+                # Calculate number of connections in the branch
                 part_idx = [valid_idx[i] for i, d in enumerate(data_slice) if d == val]
                 if len(part_idx) <= 1:
+                    # Add leaf edge if only 1 connection remains
                     leaf_name = data[part_idx[0]][-1]
                     leaf_edge_name = f"{name}_{leaf_name}"
                     if self.debugging:
@@ -621,12 +651,14 @@ class GraphParser:
                         family=f"edge_{name}",
                     )
                 else:
+                    # Go deeper if more than 1 connection remains
                     self.construct_proxies(
                         name, data, part_idx, tot_idx, rank + 1, proxy_node_name
                     )
 
     def extract_configs(self, call, scope, vector_configs=None, ignore={}):
         """Extracts configuration parameters from a call string."""
+        # Ignore parameters that are not config parameters
         if is_empty(ignore):
             ignore = {
                 "df",
@@ -645,6 +677,7 @@ class GraphParser:
 
         config_parameters = [m for m in matches if m not in ignore]
 
+        # Get config parameter values from vector or general configs
         config_dict = {}
         for c in config_parameters:
             if vector_configs != None and not is_empty(vector_configs.get(c)):
@@ -692,6 +725,7 @@ class GraphParser:
 
         if not name:
             name = id_name
+        # Add scope name to node id to distinguish between nodes of the same name
         if scope:
             full_id = f"{scope}_{id_name}"
         else:
@@ -741,6 +775,35 @@ class GraphParser:
             }
         )
 
+    def save_graph(self, name):
+        """
+        Compiles the global and scoped DAG data and saves it to a JSON file.
+        Also triggers an update to the master DAG file list.
+        """
+        path = f"{name}_{self.config.era}_{self.config.sample}_{self.active_scope}.json"
+        if self.DAG_dir:
+            path = os.path.join(self.DAG_dir, path)
+            os.makedirs(self.DAG_dir, exist_ok=True)
+
+        # Compile DAG data with metadata
+        meta_data = {
+            "nodeFamilyRegister": self.node_family_register,
+            "edgeFamilyRegister": self.edge_family_register,
+        }
+        full_dict = {"elementData": self.DAG_data, "metaData": meta_data}
+
+        # Write DAG data to json
+        with open(path, "w") as f:
+            json.dump(full_dict, f, indent=4)
+
+        # Update master DAG file list
+        self.update_DAG_file_list(
+            os.path.join(self.DAG_dir, "DAG_files.json"),
+            self.config.era,
+            self.config.sample,
+            self.active_scope,
+        )
+
     def update_DAG_file_list(self, config_path, new_era, new_sample, new_scope):
         """
         Updates the master JSON tracking file to ensure new eras, samples,
@@ -755,39 +818,15 @@ class GraphParser:
         else:
             data = {"era": [], "sample": [], "scope": []}
 
+        # Update master DAG file data
         data["era"] = sorted(list(set(data["era"] + [str(new_era)])))
         data["sample"] = sorted(list(set(data["sample"] + [str(new_sample)])))
         data["scope"] = sorted(list(set(data["scope"] + [str(new_scope)])))
 
+        # Write updated master DAG file data back
         with open(config_path, "w") as f:
             json.dump(data, f, indent=4)
 
         if self.debugging:
             print(f"Updated {config_path} with {new_era}/{new_sample}/{new_scope}")
-
-    def save_graph(self, name):
-        """
-        Compiles the global and scoped DAG data and saves it to a JSON file.
-        Also triggers an update to the master DAG file list.
-        """
-        path = f"{name}_{self.config.era}_{self.config.sample}_{self.active_scope}.json"
-        if self.DAG_dir:
-            path = os.path.join(self.DAG_dir, path)
-            os.makedirs(self.DAG_dir, exist_ok=True)
-
-        meta_data = {
-            "nodeFamilyRegister": self.node_family_register,
-            "edgeFamilyRegister": self.edge_family_register,
-        }
-        full_dict = {"elementData": self.DAG_data, "metaData": meta_data}
-
-        with open(path, "w") as f:
-            json.dump(full_dict, f, indent=4)  # , sort_keys=True)
-
-        self.update_DAG_file_list(
-            os.path.join(self.DAG_dir, "DAG_files.json"),
-            self.config.era,
-            self.config.sample,
-            self.active_scope,
-        )
 

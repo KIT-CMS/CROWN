@@ -13,26 +13,35 @@
 
         /* UI Layer */
         #search-container { position: absolute; top: 20px; left: 20px; z-index: 10; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 340px; border: 1px solid #e0e0e0; }
+
+        /* Era, Sample, and Scope drop-down selectors */
         #selector-group { display: flex; gap: 6px; margin-bottom: 8px; }
         #selector-group select { flex: 1; min-width: 0; padding: 8px 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-size: 12px; cursor: pointer; }
 
+        /* Search bar */
         .row { display: flex; gap: 6px; margin-bottom: 8px; }
         input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-family: 'Cascadia Code', 'Courier New', monospace; outline: none; }
         input:focus { border-color: #3498db; }
 
+        /* Search button */
         button { padding: 8px 12px; cursor: pointer; border: none; border-radius: 4px; background: #2c3e50; color: white; font-weight: 600; font-size: 13px; }
         button:hover { background: #34495e; }
 
+        /* Next and Previous Match buttons */
         .nav-btn { background: #3498db; flex: 1; }
+        /* Abort search button */
         .cancel-btn { background: #95a5a6; }
         .nav-btn:disabled { background: #d5d8dc; cursor: not-allowed; }
 
+        /* Status message */
         #status { text-align: center; font-size: 11px; color: #7f8c8d; font-weight: bold; margin-top: 12px; min-height: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
         #status.error { color: #e74c3c; }
 
+        /* Reset Button */
         #reset-ui { position: absolute; bottom: 20px; left: 20px; z-index: 10; }
         .reset-btn { background: #e74c3c; padding: 12px 20px; border-radius: 30px; color: white; font-weight: bold; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); border:none; cursor:pointer;}
 
+        /* Main Graph */
         #cy { width: 100vw; height: 100vh; z-index: 1; }
 
         /* Sidebar Overlay */
@@ -105,7 +114,6 @@
             border-left: 4px solid #3498db;
         }
 
-        /* Non-interactable file IO lists */
         .simple-list {
             list-style-type: square;
             padding-left: 18px;
@@ -234,8 +242,11 @@ let familyIndex = {};
 let familyResults = [];
 let metaData;
 
+
+/* Add date to force reload instead of cache */
 const CONFIG_URL = "build/visualization/DAG_files.json?v=" + Date.now();
 
+// Load config to fill drop-down menus
 async function loadConfig() {
   const response = await fetch(CONFIG_URL);
   const config = await response.json();
@@ -255,7 +266,7 @@ async function loadConfig() {
       opt.innerText = val;
       select.appendChild(opt);
     });
-
+    // select first value for each key by default
     select.onchange = switchDataset;
     container.appendChild(select);
   });
@@ -263,6 +274,7 @@ async function loadConfig() {
   switchDataset();
 }
 
+// Innit graph with selected dataset
 function switchDataset() {
   const era = document.getElementById("select-era").value;
   const sample = document.getElementById("select-sample").value;
@@ -273,10 +285,12 @@ function switchDataset() {
 }
 
 async function initGraph(fileName) {
+  // Destroy previous graph
   if (cy) cy.destroy();
 
   document.getElementById("status").innerText = "Loading " + fileName + "...";
 
+  // Add date to force reload instead of cache
   const response = await fetch(
     `build/visualization/${fileName}.json?v=${Date.now()}`,
   );
@@ -294,14 +308,14 @@ async function initGraph(fileName) {
 
   familyIndex = {};
 
-  // 1. Index edges properly from Edge Family Register
+  // Index edges as set from Edge Family Register
   if (metaData.edgeFamilyRegister) {
       for (const [fam, obj] of Object.entries(metaData.edgeFamilyRegister)) {
           familyIndex[fam] = new Set(obj.members);
       }
   }
 
-  // 2. Scan all elements to ensure node families and any non-registered families are indexed
+  // Scan all elements to ensure node families and any non-registered families are indexed
   elementsData.forEach((e) => {
       const fam = e.data.family;
       if (!familyIndex[fam]) {
@@ -310,6 +324,7 @@ async function initGraph(fileName) {
       familyIndex[fam].add(e.data.id);
   });
 
+  // Construct cytoscape graph
   cy = cytoscape({
     container: document.getElementById("cy"),
     elements: elementsData,
@@ -333,7 +348,7 @@ async function initGraph(fileName) {
         },
       },
 
-      /* Output Style */
+      /* I/O Styles */
       {
         selector: "node[?is_out]",
         style: {
@@ -343,8 +358,6 @@ async function initGraph(fileName) {
           "background-gradient-direction": "to-right",
         },
       },
-
-      /* Input Styles */
       {
         selector: "node[is_in *= 'NanoAOD']",
         style: {
@@ -400,7 +413,7 @@ async function initGraph(fileName) {
         },
       },
 
-      /* Node Shapes */
+      /* Group styles */
       {
         selector: ":parent",
         style: {
@@ -611,11 +624,14 @@ async function initGraph(fileName) {
     },
   });
 
+  // Setup interactions for the graph
   setupInteractions();
+  // Reset the search
   cancelSearch();
   document.getElementById("status").innerText = "";
 }
 
+// Update the sidebar information based on the selected family cytoscape elements/metadata
 function updateSidebar(familyEles, famName) {
   const sidebarContent = document.getElementById("sidebar-content");
 
@@ -626,6 +642,7 @@ function updateSidebar(familyEles, famName) {
       throw new Error("Family not found in registers or index: " + famName);
   }
 
+  // Focus familyHead node for edges and node itself for nodes
   let headId;
   if (isEdge) {
       headId = metaData.edgeFamilyRegister[famName].familyHead;
@@ -638,13 +655,13 @@ function updateSidebar(familyEles, famName) {
 
   const headData = headNode.data();
 
-  // Name
+  // Get Name of focus
   document.getElementById("sidebar-title").innerText = headData.label || headData.description || famName;
   sidebarContent.innerHTML = "";
 
   let html = ``;
 
-  // Type
+  // Get Type (defaults to "Producer" for nodes)
   const type = headData.type === "proxy"
     ? null
     : (headData.type || "Producer");
@@ -658,6 +675,7 @@ function updateSidebar(familyEles, famName) {
   }
 
   if (isEdge) {
+    // Determine source and targets for edges
     let sourceFams = new Set();
     let targetFams = new Set();
 
@@ -666,13 +684,13 @@ function updateSidebar(familyEles, famName) {
       if (!e.target().id().startsWith("proxy_")) targetFams.add(e.target().data("family"));
     });
 
-    // Interactable IO Elements
+    // Link sidebar elements to graph nodes
     html += renderFamilyLinkList("Quantity source", sourceFams);
     html += renderFamilyLinkList("Quantity targets", targetFams);
 
   } else {
 
-    // Parent Node
+    // Parent Node (Interactive)
     if (headData.parent) {
         const parentNode = cy.getElementById(headData.parent);
         if (parentNode.length === 0) throw new Error("Parent node referenced but missing: " + headData.parent);
@@ -703,7 +721,7 @@ function updateSidebar(familyEles, famName) {
         }
     }
 
-    // Interactable IO Elements
+    // Required and Produced Quantities (Interactive)
     let inFams = new Set(), outFams = new Set();
     headNode.connectedEdges().forEach(e => {
       const edgeFam = e.data("family");
@@ -717,7 +735,7 @@ function updateSidebar(familyEles, famName) {
     html += renderFamilyLinkList("Required Quantities", inFams);
     html += renderFamilyLinkList("Produced Quantities", outFams);
 
-    // File IO
+    // File IO with split between reads, writes to NanoAOD and Ntuple
     if (famInfo) {
         if (famInfo.file_in && (famInfo.file_in.NanoAOD?.length > 0 || famInfo.file_in.Ntuple?.length > 0)) {
             html += `<div class="sidebar-section">
@@ -744,6 +762,7 @@ function updateSidebar(familyEles, famName) {
   document.getElementById("sidebar").style.display = "flex";
 }
 
+// Link between sidebar elements and graph nodes
 function renderFamilyLinkList(title, famSet) {
   if (famSet.size === 0) return "";
 
@@ -766,6 +785,7 @@ function renderFamilyLinkList(title, famSet) {
   return html;
 }
 
+// Render list of strings
 function renderSubList(title, set) {
   if (set.size === 0) return "";
   let html = `<div style="margin-top: 4px;"><div class="detail-label" style="color: #bdc3c7; margin-bottom: 2px;">${title}</div><ul class="simple-list">`;
@@ -773,6 +793,7 @@ function renderSubList(title, set) {
   return html + `</ul></div>`;
 }
 
+// Initialize interactions
 function setupInteractions() {
   cy.on("tap", "node, edge", function (evt) {
     focusFamily(evt.target.data("family"));
@@ -786,6 +807,7 @@ function setupInteractions() {
   });
 }
 
+// Move focus between edges and nodes
 function moveFocus(dir) {
   if (familyResults.length === 0) return;
 
@@ -793,6 +815,7 @@ function moveFocus(dir) {
   focusFamily(familyResults[currentIndex].famName);
 }
 
+// Abort search
 function cancelSearch() {
   document.getElementById("searchInput").value = "";
   cy.elements().removeClass("highlighted activeFocus");
@@ -803,6 +826,7 @@ function cancelSearch() {
   updateUI();
 }
 
+// Move focus to family
 function focusFamily(famName) {
   const isEdge = metaData.edgeFamilyRegister && metaData.edgeFamilyRegister[famName];
   const isNode = metaData.nodeFamilyRegister && metaData.nodeFamilyRegister[famName];
@@ -811,6 +835,7 @@ function focusFamily(famName) {
       throw new Error("Cannot focus unknown family: " + famName);
   }
 
+  // Focus familyHead node for edges and node itself for nodes
   let headId;
   if (isEdge) {
       headId = metaData.edgeFamilyRegister[famName].familyHead;
@@ -818,6 +843,7 @@ function focusFamily(famName) {
       headId = [...familyIndex[famName]][0];
   }
 
+  // Move activeFocus to new family
   const ids = familyIndex[famName];
   if (!ids) throw new Error("No IDs mapped in index for family: " + famName);
 
@@ -833,14 +859,17 @@ function focusFamily(famName) {
   const headEle = cy.getElementById(headId);
   if (headEle.length === 0) throw new Error("Head element not found: " + headId);
 
+  // Update graph view
   cy.animate({
     center: { eles: headEle },
     zoom: 1.3,
     duration: 350
   });
 
+  // Update sidebar
   updateSidebar(collection, famName);
 
+  // Reset search
   const searchIdx = familyResults.findIndex(res => res.famName === famName);
   if (searchIdx !== -1) {
     currentIndex = searchIdx;
@@ -848,6 +877,7 @@ function focusFamily(famName) {
   }
 }
 
+// Update UI
 function updateUI() {
   const count = familyResults.length;
   const input = document.getElementById("searchInput").value;
@@ -859,6 +889,7 @@ function updateUI() {
   document.getElementById("nextBtn").disabled = count === 0;
 }
 
+// Return name to display for family based on label/description/family name
 function getDisplayName(famName) {
   const edgeInfo = metaData.edgeFamilyRegister?.[famName];
   if (edgeInfo) {
@@ -879,6 +910,7 @@ function getDisplayName(famName) {
   throw new Error("Could not find display name for unregistered family: " + famName);
 }
 
+// Run regex search through name, call, file_in, file_out
 function runSearch() {
   const query = document.getElementById("searchInput").value;
   if (!query) {
@@ -891,13 +923,13 @@ function runSearch() {
 
   const matchedFamilies = new Set();
 
-  // 1. Search labels and descriptions in element data
+  // Search labels and descriptions in element data
   cy.elements().forEach((el) => {
     const label = el.data("label") || el.data("description") || "";
     if (regex.test(label)) matchedFamilies.add(el.data("family"));
   });
 
-  // 2. Search call, file_in, file_out in node-type family metadata
+  // Search call, file_in, file_out in node-type family metadata
   if (metaData && metaData.nodeFamilyRegister) {
     for (const [famName, famInfo] of Object.entries(metaData.nodeFamilyRegister)) {
       if (famInfo.node_call_data && famInfo.node_call_data.call && regex.test(famInfo.node_call_data.call)) {
@@ -922,6 +954,7 @@ function runSearch() {
 
   familyResults = [...matchedFamilies].map((f) => ({ famName: f }));
 
+  // highlight all matching results
   familyResults.forEach((res) => {
     const ids = familyIndex[res.famName];
     if (!ids) throw new Error("Search matched a family not present in the graph index: " + res.famName);
@@ -935,16 +968,19 @@ function runSearch() {
 
   currentIndex = -1;
   if (familyResults.length > 0) {
+    // Jump to first match
     moveFocus(1);
   } else {
     updateUI();
   }
 }
 
+// Reset view to full view
 function resetView() {
   cy.animate({ fit: { padding: 40 }, duration: 500 });
 }
 
+//Innitialize
 window.onload = loadConfig;
 
 </script>
