@@ -35,8 +35,7 @@ def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=F
 
 class GraphParser:
 
-    """Parses configuration data to generate Directed Acyclic Graphs (DAGs).
-    Represents the dependencies and flow of producers, filters, and I/O."""
+    """Parses configuration data to generate Directed Acyclic Graphs (DAGs).Represents the dependencies and flow of producers, filters, and I/O."""
 
     def __init__(
         self,
@@ -131,8 +130,7 @@ class GraphParser:
                     self.set_is_out(scope, output.name)
 
     def generate_graph(self):
-        """The main orchestrator. Iterates through all scopes of the configuration,
-        generates the nodes and edges, verifies output ambiguity, and generates metadata."""
+        """The main orchestrator. Iterates through all scopes of the configuration, generates the nodes and edges, verifies output ambiguity, and generates metadata."""
         # Determine producers from configuration for global and active scope
         for scope in self.scopes:
             self.parse_scope_producers(scope)
@@ -194,9 +192,10 @@ class GraphParser:
             raise NotImplementedError(f"Unknown Producer class {class_name}")
 
     def parse_VectorProducer(self, producer, parent, scope, align=""):
-        """Uses regex to extract vector configurations from a legacy producer's string call
-        and maps them into graph nodes and inputs.
-        Currently only supports 'event::filter::Flag'."""
+        """Uses regex to extract vector configurations from a legacy producer's string call and maps them into graph nodes and inputs.
+
+        Currently only supports 'event::filter::Flag'.
+        """
         if self.debugging:
             print(align + f"Adding VectorProducer: {producer.name}")
         print(
@@ -214,8 +213,7 @@ class GraphParser:
             )
 
     def parse_Flag_from_call(self, producer, parent, scope, align=""):
-        """Uses regex to extract vector configurations from a legacy producer's string call
-        and maps them onto configs."""
+        """Uses regex to extract vector configurations from a legacy producer's string calland maps them onto configs."""
         group_id = f"{producer.name}_v"
         call = producer.call
         # Pattern consists of: event::filter::Flag(df, "Flag_name", "Flag_name")
@@ -317,8 +315,7 @@ class GraphParser:
                     print(align + "        " + f"Adding Output: {vec_output}")
 
     def parse_ProducerGroup(self, producer, parent, scope, align=""):
-        """Parses the ProducerGroup class into graph nodes and inputs/outputs.
-        Calls parse_Producer_routing for each producer in the group."""
+        """Parses the ProducerGroup class into graph nodes and inputs/outputs. Calls parse_Producer_routing for each producer in the group."""
         if self.debugging:
             print(align + f"Adding ProducerGroup: {producer.name}")
 
@@ -338,8 +335,9 @@ class GraphParser:
 
     def parse_Filter(self, producer, parent, scope, align=""):
         """Parses the Filter class into graph nodes and inputs.
-        Calls parse_Producer_routing for each producer in the group,
-        similar to parse_ProducerGroup."""
+
+        Calls parse_Producer_routing for each producer in the group, similar to parse_ProducerGroup.
+        """
         if self.debugging:
             print(align + f"Adding Filter Group: {producer.name}")
 
@@ -428,9 +426,10 @@ class GraphParser:
                 )
 
     def assemble_connections(self):
-        """Resolves the inputs vs. outputs mappings to draw the actual connecting
-        lines (edges) between nodes in the DAG.
-        Determines the source of each input: Producer, NanoAOD, or Ntuple."""
+        """Resolves the inputs vs. outputs mappings to draw the actual connecting lines (edges) between nodes in the DAG.
+
+        Determines the source of each input: Producer, NanoAOD, or Ntuple.
+        """
         for scope in self.scopes:
             # Assemble connections by iterating through all nodes
             # {target_node: [required_inputs]} is matched to {input: [source_nodes]}
@@ -483,7 +482,9 @@ class GraphParser:
 
     def bundle_edges(self):
         """Bundles connections based on common target location.
-        Creates proxy nodes and edges with width based on number of connections."""
+
+        Creates proxy nodes and edges with width based on number of connections.
+        """
         # Apply bundling for each quantity separately
         for source, dt in self.connections.items():
             # Inner and outer loop as each source may have multiple output quantities
@@ -693,9 +694,7 @@ class GraphParser:
         family=None,
         node_call_data=None,
     ):
-        """Creates a standardized node object and appends it to the graph's node list.
-        Also updates the node family register and edge family register."""
-
+        """Creates a standardized node object and appends it to the graph's node list. Also updates the node family register and edge family register."""
         if node_type and is_filter:
             raise ValueError("Cannot specify both node_type and is_filter")
         if is_filter:
@@ -754,8 +753,7 @@ class GraphParser:
         )
 
     def save_graph(self, name):
-        """Compiles the global and scoped DAG data and saves it to a JSON file.
-        Also triggers an update to the master DAG file list."""
+        """Compiles the global and scoped DAG data and saves it to a JSON file. Also triggers an update to the master DAG file list."""
         path = f"{name}_{self.config.era}_{self.config.sample}_{self.active_scope}.json"
         if self.DAG_dir:
             path = os.path.join(self.DAG_dir, path)
@@ -781,8 +779,7 @@ class GraphParser:
         )
 
     def update_DAG_file_list(self, config_path, new_era, new_sample, new_scope):
-        """Updates the master JSON tracking file to ensure new eras, samples,
-        and scopes are registered without duplicates."""
+        """Updates the master JSON tracking file to ensure new eras, samples, and scopes are registered without duplicates."""
         if os.path.exists(config_path):
             with open(config_path, "r") as f:
                 try:
