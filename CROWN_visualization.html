@@ -15,7 +15,7 @@
         #search-container { position: absolute; top: 20px; left: 20px; z-index: 10; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 340px; border: 1px solid #e0e0e0; transition: height 0.3s; }
 
         /* Drop-down selectors */
-        #selector-group { display: flex; gap: 6px; margin-bottom: 8px; }
+        #selector-group { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
         #selector-group select, #select-shift { flex: 1; min-width: 0; padding: 8px 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-size: 12px; cursor: pointer; }
 
         /* Search bar */
@@ -317,14 +317,16 @@ async function loadConfig() {
     const select = document.createElement("select");
     select.id = `select-${key}`;
 
-    config[key].forEach((val) => {
-      const opt = document.createElement("option");
-      opt.value = val;
-      opt.innerText = val;
-      select.appendChild(opt);
-    });
-    select.onchange = switchDataset;
-    container.appendChild(select);
+    if(config[key]) {
+      config[key].forEach((val) => {
+        const opt = document.createElement("option");
+        opt.value = val;
+        opt.innerText = val;
+        select.appendChild(opt);
+      });
+      select.onchange = switchDataset;
+      container.appendChild(select);
+    }
   });
 
   switchDataset();
@@ -714,13 +716,13 @@ async function initGraph(fileName) {
   document.getElementById("status").innerText = "";
 }
 
-function renderGlobalIO(affectedOutputs = new Set()) {
-    const createListHTML = (title, itemsSet, checkForHighlight) => {
+function renderGlobalIO(affectedIns = new Set(), affectedOuts = new Set()) {
+    const createListHTML = (title, itemsSet, highlightSet) => {
         if (itemsSet.size === 0) return "";
         let listHTML = `<div style="color:#3498db; font-weight:800; text-transform:uppercase; margin-top:8px; margin-bottom:4px;">${title}</div>
                         <ul style="margin: 0; padding-left: 20px; color: #2c3e50;">`;
         Array.from(itemsSet).sort().forEach(item => {
-            const isAffected = checkForHighlight && affectedOutputs.has(item);
+            const isAffected = highlightSet && highlightSet.has(item);
             if (isAffected) {
                 listHTML += `<li style="color: #e74c3c; font-weight: bold;">${item}</li>`;
             } else {
@@ -736,9 +738,9 @@ function renderGlobalIO(affectedOutputs = new Set()) {
     let html_in = "";
     let html_out = "";
 
-    html_in += createListHTML("Reads from NanoAOD", globalIOData.nanoIn, false);
-    html_in += createListHTML("Reads from Ntuple", globalIOData.ntupleIn, false);
-    html_out += createListHTML("Writes to Ntuple", globalIOData.ntupleOut, true);
+    html_in += createListHTML("Reads from NanoAOD", globalIOData.nanoIn, affectedIns);
+    html_in += createListHTML("Reads from Ntuple", globalIOData.ntupleIn, affectedIns);
+    html_out += createListHTML("Writes to Ntuple", globalIOData.ntupleOut, affectedOuts);
 
     container_in.innerHTML = html_in;
     container_out.innerHTML = html_out;
@@ -763,17 +765,20 @@ function applyShift() {
   cy.elements().removeClass("shift-head shift-affected");
   const shiftName = document.getElementById("select-shift").value;
   let affectedOuts = new Set();
+  let affectedIns = new Set();
   
   if (!shiftName || !metaData.shiftRegistry || !metaData.shiftRegistry[shiftName]) {
       // Restore default state, clear IO highlights, refresh sidebar
       const activeEle = cy.elements(".activeFocus").first();
       if (activeEle.length > 0) updateSidebar(cy.elements(".activeFocus"), activeEle.data("family"));
-      renderGlobalIO(affectedOuts);
+      renderGlobalIO(affectedIns, affectedOuts);
       return;
   }
 
   const shiftData = metaData.shiftRegistry[shiftName];
+  let allAffected = cy.collection();
   let headEles = cy.collection();
+  let inputAffectedEles = cy.collection();
 
   // 1. Identify Head elements via O(1) collection filter
   if (shiftData.heads) {
@@ -788,33 +793,58 @@ function applyShift() {
       });
   }
 
-  // 2. Apply styles, gather downstream nodes, and extract outputs
-  if (headEles.length > 0) {
-      headEles.addClass("shift-head");
-      const affectedEles = headEles.successors();
-      affectedEles.addClass("shift-affected");
-
-      // Extract all file_out variables for the Global I/O Red Highlight
-      const allShiftedEles = headEles.union(affectedEles);
-      allShiftedEles.nodes().forEach(n => {
+  // 2. Identify elements affected by shifted_inputs
+  if (shiftData.shifted_inputs && shiftData.shifted_inputs.length > 0) {
+      const shiftedInputsSet = new Set(shiftData.shifted_inputs);
+      shiftData.shifted_inputs.forEach(i => affectedIns.add(i)); // Track for Global UI
+      
+      cy.nodes().forEach(n => {
           const famInfo = metaData.nodeFamilyRegister[n.data('family')];
-          if (famInfo && famInfo.file_out) {
-              famInfo.file_out.forEach(o => affectedOuts.add(o));
+          if (famInfo && famInfo.file_in) {
+              const allIn = [...(famInfo.file_in.NanoAOD || []), ...(famInfo.file_in.Ntuple || [])];
+              if (allIn.some(inVar => shiftedInputsSet.has(inVar))) {
+                  inputAffectedEles = inputAffectedEles.union(n);
+              }
           }
       });
-      
-      // Jump to first headNode
-      cy.animate({ center: { eles: headEles[0] }, zoom: 1.3, duration: 350 });
   }
 
-  // 3. Reload sidebar for existing selection to show shifted values
+  // 3. Apply styles and gather downstream nodes
+  if (headEles.length > 0) {
+      headEles.addClass("shift-head");
+      allAffected = allAffected.union(headEles).union(headEles.successors());
+  }
+
+  if (inputAffectedEles.length > 0) {
+      allAffected = allAffected.union(inputAffectedEles).union(inputAffectedEles.successors());
+  }
+
+  // Any node that is in allAffected but NOT a head node gets the 'shift-affected' class
+  allAffected.difference(headEles).addClass("shift-affected");
+
+  // Extract all file_out variables for the Global I/O Red Highlight
+  allAffected.nodes().forEach(n => {
+      const famInfo = metaData.nodeFamilyRegister[n.data('family')];
+      if (famInfo && famInfo.file_out) {
+          famInfo.file_out.forEach(o => affectedOuts.add(o));
+      }
+  });
+  
+  // Jump to first relevant node
+  if (headEles.length > 0) {
+      cy.animate({ center: { eles: headEles[0] }, zoom: 1.3, duration: 350 });
+  } else if (inputAffectedEles.length > 0) {
+      cy.animate({ center: { eles: inputAffectedEles[0] }, zoom: 1.3, duration: 350 });
+  }
+
+  // 4. Reload sidebar for existing selection to show shifted values
   const activeEle = cy.elements(".activeFocus").first();
   if (activeEle.length > 0) {
       updateSidebar(cy.elements(".activeFocus"), activeEle.data("family"));
   }
 
-  // 4. Highlight the Output Quantities list
-  renderGlobalIO(affectedOuts);
+  // 5. Highlight the Input/Output Quantities lists
+  renderGlobalIO(affectedIns, affectedOuts);
 }
 
 function updateSidebar(familyEles, famName) {
@@ -874,6 +904,10 @@ function updateSidebar(familyEles, famName) {
     const activeShiftName = document.getElementById("select-shift").value;
     const activeShift = activeShiftName ? metaData.shiftRegistry[activeShiftName] : null;
     const isHeadOfActiveShift = headNode.hasClass("shift-head"); 
+    const isAffectedNode = headNode.hasClass("shift-head") || headNode.hasClass("shift-affected");
+
+    // Gather specific inputs affected by this shift to pass to the renderer
+    const shiftedInputsSet = activeShift && activeShift.shifted_inputs ? new Set(activeShift.shifted_inputs) : new Set();
 
     if (famInfo && famInfo.node_call) {
         html += `<div class="sidebar-section">`;
@@ -930,18 +964,20 @@ function updateSidebar(familyEles, famName) {
             html += `<div class="sidebar-section">
                         <div class="sidebar-subtitle">Reads from file</div>`;
             if (famInfo.file_in.NanoAOD && famInfo.file_in.NanoAOD.length > 0) {
-                html += renderSubList("NanoAOD", new Set(famInfo.file_in.NanoAOD));
+                html += renderSubList("NanoAOD", new Set(famInfo.file_in.NanoAOD), shiftedInputsSet);
             }
             if (famInfo.file_in.Ntuple && famInfo.file_in.Ntuple.length > 0) {
-                html += renderSubList("Ntuple", new Set(famInfo.file_in.Ntuple));
+                html += renderSubList("Ntuple", new Set(famInfo.file_in.Ntuple), shiftedInputsSet);
             }
             html += `</div>`;
         }
 
         if (famInfo.file_out && famInfo.file_out.length > 0) {
+            // If the node itself is affected, ALL its file outputs are affected
+            const outHighlightSet = isAffectedNode ? new Set(famInfo.file_out) : new Set();
             html += `<div class="sidebar-section">
                         <div class="sidebar-subtitle">Writes to file</div>
-                        ${renderSubList("Ntuple", new Set(famInfo.file_out))}
+                        ${renderSubList("Ntuple", new Set(famInfo.file_out), outHighlightSet)}
                      </div>`;
         }
     }
@@ -973,10 +1009,16 @@ function renderFamilyLinkList(title, famSet) {
   return html;
 }
 
-function renderSubList(title, set) {
+function renderSubList(title, set, highlightSet = new Set()) {
   if (set.size === 0) return "";
   let html = `<div style="margin-top: 4px;"><div class="detail-label" style="color: #bdc3c7; margin-bottom: 2px;">${title}</div><ul class="simple-list">`;
-  Array.from(set).sort().forEach(l => html += `<li>${l}</li>`);
+  Array.from(set).sort().forEach(l => {
+      if (highlightSet.has(l)) {
+          html += `<li style="color: #e74c3c; font-weight: bold;">${l}</li>`;
+      } else {
+          html += `<li>${l}</li>`;
+      }
+  });
   return html + `</ul></div>`;
 }
 
