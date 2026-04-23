@@ -787,6 +787,7 @@ class GraphParser:
                         shift_heads.add(node)
             self.shift_registry[shift] = {
                 "heads": list(shift_heads),
+                "shift_configs": shift_configs,
             }
 
     def get_downstream(self, source_node, downstream=None):
