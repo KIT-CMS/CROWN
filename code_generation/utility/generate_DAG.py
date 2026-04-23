@@ -76,7 +76,6 @@ class GraphParser:
         self.external_inputs = external_inputs
         self.is_friend_config = is_friend_config
         self.debugging = debugging
-        self.nodes = defaultdict()
         self.connections = defaultdict(lambda: defaultdict(list))
         self.edges = []
         self.inputs = defaultdict(lambda: defaultdict(list))
@@ -84,15 +83,28 @@ class GraphParser:
         self.vec_output_mappings = {}
         self.node_family_register = defaultdict(
             lambda: {
+                # "id": None,
+                "name": None,
+                "parent": None,
+                "type": None,
                 "file_in": {"NanoAOD": [], "Ntuple": []},
                 "file_out": [],
-                "node_call_data": {},
+                "node_call": None,
+                "node_call_configs": {},
             }
         )
         self.edge_family_register = defaultdict(
-            lambda: {"members": [], "familyHead": None}
+            lambda: {
+                "name": None,
+                "familyHead": None,
+                "nodes": defaultdict(dict), 
+                "edges": defaultdict(dict), 
+                # Nodes: id, parent, 
+                # Edges: id, source, target, type, width
+            }
         )
-        self.DAG_data = None
+        self.shift_registry = defaultdict()
+        # self.DAG_data = None
         self.DAG_dir = DAG_dir
 
     def generate_graph(self):
@@ -112,10 +124,10 @@ class GraphParser:
         # Identify nodes without a specific type and without any outgoing connections
         # This excludes filters, groups, vector groups, and scopes.
         # While they are only defined afterwards this also excludes proxy nodes and edges (branch, twig, leaf).
-        for node_id, node_data in self.nodes.items():
+        for node_id, node_data in self.node_family_register.items():
             if (
                 not node_data.get("type")
-                and not node_data.get("is_out")
+                and is_empty(node_data.get("file_out"))
                 and node_id not in self.connections
             ):
                 node_data["type"] = "stump"
@@ -123,13 +135,7 @@ class GraphParser:
         # Bundle edges for quantities with multiple targets
         self.bundle_edges()
 
-        # Prepare node formatting for usage with cytoscape
-        formatted_nodes = [{"data": n} for n in self.nodes.values()]
-
-        # Compile final DAG data and sort by label
-        self.DAG_data = sorted(
-            formatted_nodes, key=lambda d: d["data"].get("label", "")
-        ) + sorted(self.edges, key=lambda d: d["data"]["target"])
+        self.compile_shift_registry()
 
     def parse_scope_producers(self, scope):
         """Parse producers and outputs for a specific scope.
@@ -321,7 +327,8 @@ class GraphParser:
                 scope=scope,
                 parent=group_id,
                 is_filter=producer.is_filter,
-                node_call_data={"call": call, "configs": config_data},
+                node_call=call, 
+                node_call_configs=config_data,
             )
             self.add_input(input_name, vector_id, scope)
 
@@ -367,7 +374,8 @@ class GraphParser:
                 scope=scope,
                 parent=group_id,
                 is_filter=producer.is_filter,
-                node_call_data={"call": call, "configs": config_data},
+                node_call=call,
+                node_call_configs=config_data,
             )
 
             if isinstance(producer.input[scope], list):
@@ -459,7 +467,8 @@ class GraphParser:
             scope=scope,
             parent=parent,
             is_filter=producer.is_filter,
-            node_call_data={"call": call, "configs": config_data},
+            node_call=call,
+            node_call_configs=config_data
         )
         # BaseFilter don't have outputs
         for n in set(producer.input[scope]):
@@ -485,7 +494,8 @@ class GraphParser:
             scope=scope,
             parent=parent,
             is_filter=producer.is_filter,
-            node_call_data={"call": call, "configs": config_data},
+            node_call=call,
+            node_call_configs=config_data,
         )
 
         if isinstance(producer.input[scope], list):
@@ -517,8 +527,7 @@ class GraphParser:
         if len(producers) > 0:
             if len(producers) != 1:
                 raise ValueError(f"Num producers for out {req_out}: {len(producers)}")
-            if self.nodes.get(producers[0]):
-                self.nodes[producers[0]]["is_out"] = True
+            if self.node_family_register.get(producers[0]):
                 self.node_family_register[producers[0]]["file_out"].append(req_out)
             else:
                 raise ValueError(
@@ -557,15 +566,10 @@ class GraphParser:
                     elif req_input in self.external_inputs:
                         if self.is_friend_config:
                             # CROWN friend production may only read quantities from  CROWN Ntuples
-                            self.nodes[target_node].setdefault("is_in", set()).add("Ntuple")
                             self.node_family_register[target_node]["file_in"][
                                 "Ntuple"
                             ].append(req_input)
                         else:
-                            # CROWN Ntuple production may only read quantities from NanoAOD
-                            self.nodes[target_node].setdefault("is_in", set()).add(
-                                "NanoAOD"
-                            )
                             self.node_family_register[target_node]["file_in"][
                                 "NanoAOD"
                             ].append(req_input)
@@ -584,10 +588,6 @@ class GraphParser:
                         self.add_connection(
                             source=source_node, target=target_node, name=input_name
                         )
-        # Convert is_in value to string for cytoscape selector
-        for node in self.nodes.values():
-            if "is_in" in node:
-                node["is_in"] = ",".join(sorted(list(node["is_in"])))
 
     def bundle_edges(self):
         """Group connections based on common target locations to reduce clutter.
@@ -604,7 +604,7 @@ class GraphParser:
                     # Simplified case: only one target
                     # One proxy node near source for edge label
                     target = targets[0]
-                    location = self.nodes[source].get("parent")
+                    location = self.node_family_register[source].get("parent")
                     proxy_node_name = f"proxy_{name}_{location}"
                     proxy_edge_name = f"proxyedge_{name}_{location}"
                     leaf_edge_name = f"{name}_{target}"
@@ -630,7 +630,6 @@ class GraphParser:
                         source=source,
                         target=proxy_node_name,
                         edge_id=proxy_edge_name,
-                        name=name,
                         weight=1,
                         edge_type="twig",
                         family=f"edge_{name}",
@@ -639,7 +638,6 @@ class GraphParser:
                         source=proxy_node_name,
                         target=target,
                         edge_id=leaf_edge_name,
-                        name=name,
                         weight=1,
                         edge_type="leaf",
                         family=f"edge_{name}",
@@ -661,7 +659,7 @@ class GraphParser:
                         start_idx,
                         start_idx,
                         0,
-                        relative_targets[0][0],
+                        relative_targets[0][0], # type: ignore
                     )
 
     def get_ancestors(self, node_name):
@@ -673,7 +671,7 @@ class GraphParser:
         Returns:
             list: A list of parent IDs sequentially ending with the requested node.
         """
-        parent = self.nodes[node_name].get("parent")
+        parent = self.node_family_register[node_name].get("parent")
         if not parent:
             return ["root", node_name]
         else:
@@ -738,7 +736,6 @@ class GraphParser:
                 source=source,
                 target=proxy_node_name,
                 edge_id=proxy_edge_name,
-                name=name,
                 weight=len(valid_idx),
                 edge_type="branch",
                 family=f"edge_{name}",
@@ -760,7 +757,6 @@ class GraphParser:
                         source=proxy_node_name,
                         target=leaf_name,
                         edge_id=leaf_edge_name,
-                        name=name,
                         weight=1,
                         edge_type="leaf",
                         family=f"edge_{name}",
@@ -770,6 +766,52 @@ class GraphParser:
                     self.construct_proxies(
                         name, data, part_idx, tot_idx, rank + 1, proxy_node_name
                     )
+
+    def compile_shift_registry(self):
+        # Aggregate all shifts
+        # Fails if configurations would be overwritten by another scope
+        aggregated_shifts = defaultdict(defaultdict)
+        for scope in self.scopes:
+            for shift, value in self.config.shifts[scope].items():
+                merger = aggregated_shifts[shift]
+                conflict = merger.keys() & value.keys() and merger != value
+                if conflict:
+                    raise ValueError(f"Merge conflict on keys: {conflict}")
+                merger |= value
+
+        for shift, shift_configs in aggregated_shifts.items():
+            shift_heads = set()
+            shift_affected = {"edges": set(), "nodes": set()}
+            for shift_cfg in shift_configs:
+                for node, node_data in self.node_family_register.items():
+                    if shift_cfg in node_data["node_call_configs"]:
+                        shift_heads.add(node)
+
+            ds_dat = {"edges": set(), "nodes": set()}
+            for node in shift_heads:
+                ds_dat = self.get_downstream(node)
+                shift_affected["edges"].update(ds_dat["edges"])
+                shift_affected["nodes"].update(ds_dat["nodes"])
+            shift_affected["edges"].update(ds_dat["edges"])
+            self.shift_registry[shift] = {
+                "heads": list(shift_heads),
+                "affected": {"edges": list(shift_affected["edges"]), "nodes": list(shift_affected["nodes"])},
+            }
+
+    def get_downstream(self, source_node, downstream=None):
+        # Get all downstream nodes
+        if downstream is None:
+            downstream = {"edges": set(), "nodes": set()}
+        for edge, nodes in self.connections[source_node].items():
+            downstream["edges"].add(f"edge_{edge}")
+            for node in nodes:
+                if node not in downstream["nodes"]:
+                    downstream["nodes"].add(node)
+                    ds_dat = self.get_downstream(node, downstream)
+                    downstream["edges"].update(ds_dat["edges"])
+                    downstream["nodes"].update(ds_dat["nodes"])
+
+        return downstream
 
     def extract_configs(self, call, scope, vector_configs=None, ignore=None):
         """Parse out explicit configuration string replacements from a call parameter.
@@ -798,7 +840,7 @@ class GraphParser:
                 "vec_close",
             }
         else:
-            ignore = set(ignore)
+            ignore = set(ignore) # type: ignore
 
         pattern = r"\{(\w+)\}"
         matches = re.findall(pattern, call)
@@ -857,7 +899,8 @@ class GraphParser:
         node_type=None,
         is_filter=False,
         family=None,
-        node_call_data=None,
+        node_call=None,
+        node_call_configs=None,
     ):
         """Create a standardized node object and append it to the graph's internal list.
 
@@ -880,38 +923,31 @@ class GraphParser:
         if node_type and is_filter:
             raise ValueError("Cannot specify both node_type and is_filter")
         if is_filter:
-            node_type = "filter"
-
+            node_type = "filter"   
         if not name:
-            name = id_name
-        # Add scope name to node id to distinguish between nodes of the same name
+            name = id_name     
         if scope:
-            full_id = f"{scope}_{id_name}"
-        else:
-            full_id = id_name
-        add_data = {"id": full_id, "label": name}
+            id_name = f"{scope}_{id_name}"
         if parent:
             if scope:
-                add_data["parent"] = f"{scope}_{parent}"
-            else:
-                add_data["parent"] = parent
-        if node_type:
-            add_data["type"] = node_type
-        # Any node with a family is assumed to be a proxy node part of an edge connection
+                parent = f"{scope}_{parent}"
         if family:
-            add_data["family"] = family
-            self.edge_family_register[family]["members"].append(full_id)
             if not self.edge_family_register[family]["familyHead"]:
-                self.edge_family_register[family]["familyHead"] = full_id
+                self.edge_family_register[family]["familyHead"] = id_name
+                self.edge_family_register[family]["name"] = name
+            self.edge_family_register[family]["nodes"][id_name]["parent"] = parent
         else:
-            # Standalone nodes will only ever have one member in their family, themselves
-            if self.node_family_register.get(full_id):
-                raise ValueError(f"Node {full_id} already exists in family register")
-            add_data["family"] = full_id
-            if node_call_data:
-                self.node_family_register[full_id]["node_call_data"] = node_call_data
-
-        self.nodes[full_id] = add_data
+            family = id_name
+            if self.node_family_register.get(id_name):
+                raise ValueError(f"Node {id_name} already exists in family register")
+            self.node_family_register[family]["name"] = name
+            if parent:
+                self.node_family_register[family]["parent"] = parent
+            if node_type:
+                self.node_family_register[family]["type"] = node_type
+            if node_call:
+                self.node_family_register[family]["node_call"] = node_call
+                self.node_family_register[family]["node_call_configs"] = node_call_configs
 
     def add_connection(self, source, target, name):
         """Log a relational connection locally between a source and a target.
@@ -923,7 +959,7 @@ class GraphParser:
         """
         self.connections[source][name].append(target)
 
-    def add_edge(self, source, target, edge_id, name, weight, edge_type, family):
+    def add_edge(self, source, target, edge_id, weight, edge_type, family):
         """Create a directional edge drawing parameters for JSON structure export.
 
         Args:
@@ -935,20 +971,10 @@ class GraphParser:
             edge_type (str): Structural descriptor indicating behavior (e.g., leaf, branch, twig).
             family (str): Tie-in key for grouping in the edge family register.
         """
-        self.edge_family_register[family]["members"].append(edge_id)
-        self.edges.append(
-            {
-                "data": {
-                    "id": edge_id,
-                    "source": source,
-                    "target": target,
-                    "type": edge_type,
-                    "width": sqrt(weight),
-                    "description": name,
-                    "family": family,
-                }
-            }
-        )
+        self.edge_family_register[family]["edges"][edge_id]["source"] = source
+        self.edge_family_register[family]["edges"][edge_id]["target"] = target
+        self.edge_family_register[family]["edges"][edge_id]["type"] = edge_type
+        self.edge_family_register[family]["edges"][edge_id]["width"] = sqrt(weight)
 
     def save_graph(self, name):
         """Compile the DAG data structures, inject metadata, and export to a JSON file.
@@ -964,15 +990,15 @@ class GraphParser:
             os.makedirs(self.DAG_dir, exist_ok=True)
 
         # Compile DAG data with metadata
-        meta_data = {
+        full_data = {
             "nodeFamilyRegister": self.node_family_register,
             "edgeFamilyRegister": self.edge_family_register,
+            "shiftRegistry": self.shift_registry,
         }
-        full_dict = {"elementData": self.DAG_data, "metaData": meta_data}
 
         # Write DAG data to json
         with open(path, "w") as f:
-            json.dump(full_dict, f, indent=4)
+            json.dump(full_data, f, indent=4)
 
         # Update master DAG file list
         self.update_DAG_file_list(
