@@ -12,18 +12,18 @@
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; background: #fcfcfc; }
 
         /* UI Layer */
-        #search-container { position: absolute; top: 20px; left: 20px; z-index: 10; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 340px; border: 1px solid #e0e0e0; }
+        #search-container { position: absolute; top: 20px; left: 20px; z-index: 10; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 340px; border: 1px solid #e0e0e0; transition: height 0.3s; }
 
-        /* Era, Sample, and Scope drop-down selectors */
+        /* Drop-down selectors */
         #selector-group { display: flex; gap: 6px; margin-bottom: 8px; }
-        #selector-group select { flex: 1; min-width: 0; padding: 8px 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-size: 12px; cursor: pointer; }
+        #selector-group select, #select-shift { flex: 1; min-width: 0; padding: 8px 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-size: 12px; cursor: pointer; }
 
         /* Search bar */
         .row { display: flex; gap: 6px; margin-bottom: 8px; }
         input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-family: 'Cascadia Code', 'Courier New', monospace; outline: none; }
         input:focus { border-color: #3498db; }
 
-        /* Search button */
+        /* Buttons */
         button { padding: 8px 12px; cursor: pointer; border: none; border-radius: 4px; background: #2c3e50; color: white; font-weight: 600; font-size: 13px; }
         button:hover { background: #34495e; }
 
@@ -177,52 +177,65 @@
 </head>
 <body>
 <div id="search-container">
-    <div id="selector-group"></div>
-
-    <div class="row">
-        <input type="text" id="searchInput" placeholder="Regex (e.g. ^gen_.*_mm$)" onkeyup="if(event.key === 'Enter') runSearch()">
-    </div>
-    <div class="row">
-        <button onclick="runSearch()">Search</button>
-        <button class="cancel-btn" onclick="cancelSearch()">Cancel</button>
-        <button class="nav-btn" id="prevBtn" onclick="moveFocus(-1)" disabled>←</button>
-        <button class="nav-btn" id="nextBtn" onclick="moveFocus(1)" disabled>→</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3 style="margin: 0; font-size: 14px; color: #2c3e50;">Controls</h3>
+        <button id="toggle-ui-btn" onclick="toggleUI()" style="padding: 4px 8px; font-size: 11px; background: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7;">Hide</button>
     </div>
 
-    <div id="legend">
-        <div class="legend-title">Graph Legend</div>
-        <div class="legend-grid">
-            <div class="legend-item">
-                <div class="symbol square" style="background: linear-gradient(to right, #3498db 0%, #3498db 25%, #ffffff 25%, #ffffff 100%); border: 1.5px solid #2c3e50;"></div>
-                <span>Reads from NanoAOD</span>
-            </div>
-            <div class="legend-item">
-                <div class="symbol square" style="background: linear-gradient(to right, #d5db34 0%, #d5db34 25%, #ffffff 25%, #ffffff 100%); border: 1.5px solid #2c3e50;"></div>
-                <span>Reads from Ntuple</span>
-            </div>
-            <div class="legend-item">
-                <div class="symbol square" style="background: linear-gradient(to right, #ffffff 0%, #ffffff 75%, #3498db 75%, #3498db 100%); border: 1.5px solid #2c3e50;"></div>
-                <span>Writes to Ntuple</span>
-            </div>
-            <div class="legend-item">
-                <div class="symbol parent-box"></div>
-                <span>Group</span>
-            </div>
-            <div class="legend-item">
-                <div class="symbol octagon" style="background: #fac370; border: 1.5px solid #ffaa00;"></div>
-                <span>Filter</span>
-            </div>
-            <div class="legend-item">
-                <div class="symbol square" style="border: 4px dashed #8e24aa; background: rgba(218, 112, 214, 0.15);"></div>
-                <span>Vector</span>
-            </div>
-            <div class="legend-item">
-                <div class="symbol square" style="background: #f7a5f8; border: 1.5px solid #f84cfa;"></div>
-                <span>Stump</span>
+    <div id="ui-content">
+        <div id="selector-group"></div>
+
+        <div class="row">
+            <select id="select-shift" onchange="applyShift()">
+                <option value="">No Shift Selection</option>
+            </select>
+        </div>
+
+        <div class="row" style="margin-top: 12px;">
+            <input type="text" id="searchInput" placeholder="Regex (e.g. ^gen_.*_mm$)" onkeyup="if(event.key === 'Enter') runSearch()">
+        </div>
+        <div class="row">
+            <button onclick="runSearch()">Search</button>
+            <button class="cancel-btn" onclick="cancelSearch()">Cancel</button>
+            <button class="nav-btn" id="prevBtn" onclick="moveFocus(-1)" disabled>←</button>
+            <button class="nav-btn" id="nextBtn" onclick="moveFocus(1)" disabled>→</button>
+        </div>
+
+        <div id="legend">
+            <div class="legend-title">Graph Legend</div>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="symbol square" style="background: linear-gradient(to right, #3498db 0%, #3498db 25%, #ffffff 25%, #ffffff 100%); border: 1.5px solid #2c3e50;"></div>
+                    <span>Reads from NanoAOD</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol square" style="background: linear-gradient(to right, #d5db34 0%, #d5db34 25%, #ffffff 25%, #ffffff 100%); border: 1.5px solid #2c3e50;"></div>
+                    <span>Reads from Ntuple</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol square" style="background: linear-gradient(to right, #ffffff 0%, #ffffff 75%, #3498db 75%, #3498db 100%); border: 1.5px solid #2c3e50;"></div>
+                    <span>Writes to Ntuple</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol parent-box"></div>
+                    <span>Group</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol octagon" style="background: #fac370; border: 1.5px solid #ffaa00;"></div>
+                    <span>Filter</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol square" style="border: 4px dashed #8e24aa; background: rgba(218, 112, 214, 0.15);"></div>
+                    <span>Vector</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol square" style="background: #f7a5f8; border: 1.5px solid #f84cfa;"></div>
+                    <span>Stump</span>
+                </div>
             </div>
         </div>
+        <div id="status"></div>
     </div>
-    <div id="status"></div>
 </div>
 
 <div id="sidebar">
@@ -234,6 +247,7 @@
 
 <div id="reset-ui"><button class="reset-btn" onclick="resetView()">Reset View</button></div>
 <div id="cy"></div>
+
 <script>
 let cy;
 let searchResults = [];
@@ -242,9 +256,26 @@ let familyIndex = {};
 let familyResults = [];
 let metaData;
 
-
-/* Add date to force reload instead of cache */
 const CONFIG_URL = "build/visualization/DAG_files.json?v=" + Date.now();
+
+// UI Toggle Function
+function toggleUI() {
+    const content = document.getElementById("ui-content");
+    const btn = document.getElementById("toggle-ui-btn");
+    if (content.style.display === "none") {
+        content.style.display = "block";
+        btn.innerText = "Hide";
+    } else {
+        content.style.display = "none";
+        btn.innerText = "Show";
+    }
+}
+
+// Helper to resolve edge vs node family names safely
+function resolveFamilyName(famName) {
+    if (familyIndex[famName]) return famName;
+    return famName;
+}
 
 // Load config to fill drop-down menus
 async function loadConfig() {
@@ -266,7 +297,6 @@ async function loadConfig() {
       opt.innerText = val;
       select.appendChild(opt);
     });
-    // select first value for each key by default
     select.onchange = switchDataset;
     container.appendChild(select);
   });
@@ -274,7 +304,6 @@ async function loadConfig() {
   switchDataset();
 }
 
-// Innit graph with selected dataset
 function switchDataset() {
   const era = document.getElementById("select-era").value;
   const sample = document.getElementById("select-sample").value;
@@ -285,46 +314,82 @@ function switchDataset() {
 }
 
 async function initGraph(fileName) {
-  // Destroy previous graph
   if (cy) cy.destroy();
-
   document.getElementById("status").innerText = "Loading " + fileName + "...";
 
-  // Add date to force reload instead of cache
-  const response = await fetch(
-    `build/visualization/${fileName}.json?v=${Date.now()}`,
-  );
+  const response = await fetch(`build/visualization/${fileName}.json?v=${Date.now()}`);
   const DAGData = await response.json();
 
-  const elementsData = DAGData.elementData;
-
-  elementsData.forEach((e) => {
-    if (!e.data) throw new Error(`Missing data field on element`);
-    if (!e.data.family) throw new Error(`Missing family on element ID: ${e.data.id || 'unknown'}`);
-  });
-
-  metaData = DAGData.metaData;
-  if (!metaData) throw new Error("DAG Data is missing metaData object entirely.");
-
+  metaData = DAGData; 
   familyIndex = {};
+  const elementsData = [];
 
-  // Index edges as set from Edge Family Register
-  if (metaData.edgeFamilyRegister) {
-      for (const [fam, obj] of Object.entries(metaData.edgeFamilyRegister)) {
-          familyIndex[fam] = new Set(obj.members);
+  // 1. HYDRATE REAL NODES directly from nodeFamilyRegister
+  if (metaData.nodeFamilyRegister) {
+      for (const [nodeId, meta] of Object.entries(metaData.nodeFamilyRegister)) {
+          let is_in_str = "";
+          if (meta.file_in) {
+              if (meta.file_in.NanoAOD && meta.file_in.NanoAOD.length > 0) is_in_str += "NanoAOD ";
+              if (meta.file_in.Ntuple && meta.file_in.Ntuple.length > 0) is_in_str += "Ntuple";
+          }
+
+          elementsData.push({
+              data: {
+                  id: nodeId,
+                  family: nodeId, 
+                  label: meta.name || nodeId,
+                  parent: meta.parent,
+                  type: meta.type || "Producer",
+                  is_in: is_in_str.trim(),
+                  is_out: meta.file_out && meta.file_out.length > 0
+              }
+          });
+
+          familyIndex[nodeId] = new Set([nodeId]);
       }
   }
 
-  // Scan all elements to ensure node families and any non-registered families are indexed
-  elementsData.forEach((e) => {
-      const fam = e.data.family;
-      if (!familyIndex[fam]) {
-          familyIndex[fam] = new Set();
-      }
-      familyIndex[fam].add(e.data.id);
-  });
+  // 2. HYDRATE PROXIES & EDGES from edgeFamilyRegister
+  if (metaData.edgeFamilyRegister) {
+      for (const [famId, famData] of Object.entries(metaData.edgeFamilyRegister)) {
+          familyIndex[famId] = new Set();
 
-  // Construct cytoscape graph
+          // Push Proxy Nodes
+          if (famData.nodes) {
+              for (const [nodeId, nodeMeta] of Object.entries(famData.nodes)) {
+                  elementsData.push({
+                      data: {
+                          id: nodeId,
+                          family: famId,
+                          label: famData.name || famId,
+                          parent: nodeMeta.parent,
+                          type: "proxy"
+                      }
+                  });
+                  familyIndex[famId].add(nodeId);
+              }
+          }
+
+          // Push Logical Edges
+          if (famData.edges) {
+              for (const [edgeId, edgeMeta] of Object.entries(famData.edges)) {
+                  elementsData.push({
+                      data: {
+                          id: edgeId,
+                          family: famId,
+                          description: famData.name || famId,
+                          source: edgeMeta.source,
+                          target: edgeMeta.target,
+                          type: edgeMeta.type,
+                          width: edgeMeta.width
+                      }
+                  });
+                  familyIndex[famId].add(edgeId);
+              }
+          }
+      }
+  }
+
   cy = cytoscape({
     container: document.getElementById("cy"),
     elements: elementsData,
@@ -394,24 +459,24 @@ async function initGraph(fileName) {
           "background-gradient-direction": "to-right",
         },
       },
-      {
-        selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"]',
-        style: {
-          "background-fill": "linear-gradient",
-          "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ffffff #ffffff",
-          "background-gradient-stop-positions": "0 7.5 7.5 15 15 100",
-          "background-gradient-direction": "to-right",
-        },
-      },
-      {
-        selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"][?is_out]',
-        style: {
-          "background-fill": "linear-gradient",
-          "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ffffff #ffffff #3498db #3498db",
-          "background-gradient-stop-positions": "0 7.5 7.5 15 15 85 85 100",
-          "background-gradient-direction": "to-right",
-        },
-      },
+      // {
+      //   selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"]',
+      //   style: {
+      //     "background-fill": "linear-gradient",
+      //     "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ffffff #ffffff",
+      //     "background-gradient-stop-positions": "0 7.5 7.5 15 15 100",
+      //     "background-gradient-direction": "to-right",
+      //   },
+      // },
+      // {
+      //   selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"][?is_out]',
+      //   style: {
+      //     "background-fill": "linear-gradient",
+      //     "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ffffff #ffffff #3498db #3498db",
+      //     "background-gradient-stop-positions": "0 7.5 7.5 15 15 85 85 100",
+      //     "background-gradient-direction": "to-right",
+      //   },
+      // },
 
       /* Group styles */
       {
@@ -455,17 +520,18 @@ async function initGraph(fileName) {
         style: { shape: "octagon", "background-color": "#fac370", "border-color": "#ffaa00" },
       },
       {
-        selector: 'node[type="filter"][?is_in], node[type="filter"][is_in *= "NanoAOD"]',
+        selector: 'node[type="filter"][is_in *= "NanoAOD"]',
         style: { "background-gradient-stop-colors": "#3498db #3498db #fac370 #fac370" },
       },
       {
         selector: 'node[type="filter"][is_in *= "Ntuple"]',
         style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #fac370 #fac370" },
       },
-      {
-        selector: 'node[type="filter"][is_in *= "NanoAOD"][is_in *= "Ntuple"]',
-        style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #fac370 #fac370", "background-gradient-stop-positions": "0 7.5 7.5 15 15 100" },
-      },
+      // {
+      //   selector: 'node[type="filter"][is_in *= "Ntuple"][is_in *= "Ntuple"]',
+      //   "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #fac370 #fac370",
+      //   "background-gradient-stop-positions": "0 7.5 7.5 15 15 100",
+      // },
 
       /* Stump Colors Overrides */
       {
@@ -480,11 +546,11 @@ async function initGraph(fileName) {
         selector: 'node[type="stump"][is_in *= "Ntuple"]',
         style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f7a5f8 #f7a5f8" },
       },
-      {
-        selector: 'node[type="stump"][is_in *= "NanoAOD"][is_in *= "Ntuple"]',
-        style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #f7a5f8 #f7a5f8", "background-gradient-stop-positions": "0 7.5 7.5 15 15 100" },
-      },
-
+      // {
+      //   selector: 'node[type="stump"][is_in *= "Ntuple"][is_in *= "Ntuple"]',
+      //   "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #f7a5f8 #f7a5f8",
+      //   "background-gradient-stop-positions": "0 7.5 7.5 15 15 100",
+      // },
       /* Proxy Styles */
       {
         selector: 'node[type="proxy"]',
@@ -505,6 +571,25 @@ async function initGraph(fileName) {
           "text-max-width": 80,
         },
       },
+      
+      /* Shift Overrides for node interior. Overrides basic styles, overwritten by highlighting and search. */
+      { selector: "node.shift-affected", style: { "background-color": "#f6b1ac"} },
+      { selector: "node[?is_out].shift-affected", style: { "background-gradient-stop-colors": "#f6b1ac #f6b1ac #3498db #3498db" } },
+      { selector: "node[is_in *= 'NanoAOD'].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #f6b1ac #f6b1ac" } },
+      { selector: "node[is_in *= 'NanoAOD'][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #f6b1ac #f6b1ac #3498db #3498db" } },
+      { selector: "node[is_in *= 'Ntuple'].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f6b1ac #f6b1ac" } },
+      { selector: "node[is_in *= 'Ntuple'][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f6b1ac #f6b1ac #3498db #3498db" } },
+      // { selector: "node[is_in *= 'NanoAOD'][is_in *= 'Ntuple'].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #f6b1ac #f6b1ac" } },
+      // { selector: "node[is_in *= 'NanoAOD'][is_in *= 'Ntuple'][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #f6b1ac #f6b1ac #3498db #3498db" } },
+
+      { selector: "node.shift-head", style: { "background-color": "#ec6d5f"} },
+      { selector: "node[?is_out].shift-head", style: { "background-gradient-stop-colors": "#ec6d5f #ec6d5f #3498db #3498db" } },
+      { selector: "node[is_in *= 'NanoAOD'].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #ec6d5f #ec6d5f" } },
+      { selector: "node[is_in *= 'NanoAOD'][?is_out].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #ec6d5f #ec6d5f #3498db #3498db" } },
+      { selector: "node[is_in *= 'Ntuple'].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #ec6d5f #ec6d5f" } },
+      { selector: "node[is_in *= 'Ntuple'][?is_out].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #ec6d5f #ec6d5f #3498db #3498db" } },
+      // { selector: "node[is_in *= 'NanoAOD'][is_in *= 'Ntuple'].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ec6d5f #ec6d5f" } },
+      // { selector: "node[is_in *= 'NanoAOD'][is_in *= 'Ntuple'][?is_out].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ec6d5f #ec6d5f #3498db #3498db" } },
 
       /* Edges */
       {
@@ -519,15 +604,17 @@ async function initGraph(fileName) {
       { selector: 'edge[type="twig"]', style: { "curve-style": "bezier" } },
       { selector: 'edge[type="leaf"]', style: { "curve-style": "bezier", "target-arrow-shape": "triangle" }, },
 
-      /* Highlights */
+      /* Search Highlight (Muted Green) - Overridden by activeFocus below */
       {
         selector: "node.highlighted",
         style: { "background-color": "#9cea95", "border-color": "#2e7d32", "border-width": 3, "z-index": 99 }
       },
       {
         selector: "edge.highlighted",
-        style: { "line-color": "#2e7d32", "target-arrow-color": "#2e7d32", width: 3, "z-index": 99 }
+        style: { "line-color": "#2e7d32", "target-arrow-color": "#2e7d32", "width": 3, "z-index": 99 }
       },
+
+      /* Active Focus (Vibrant Green) Gradients Overrides */
       {
         selector: "node[?is_out].highlighted",
         style: { "background-gradient-stop-colors": "#9cea95 #9cea95 #3498db #3498db" }
@@ -552,20 +639,22 @@ async function initGraph(fileName) {
         selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"].highlighted',
         style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #9cea95 #9cea95" }
       },
-      {
-        selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"][?is_out].highlighted',
-        style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #9cea95 #9cea95 #3498db #3498db" }
-      },
+      // {
+      //   selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"][?is_out].highlighted',
+      //   style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #9cea95 #9cea95 #3498db #3498db" }
+      // },
 
-      /* Active Focus */
+      /* User Selection (Active Focus - Solid Green) */
       {
         selector: "node.activeFocus",
-        style: { "background-color": "#6ae35f", "border-color": "#27ae60", color: "#000000", "z-index": 1000 }
+        style: { "background-color": "#6ae35f", "border-color": "#2ecc71", "border-width": 4, "color": "#000000", "z-index": 1000 }
       },
       {
         selector: "edge.activeFocus",
-        style: { "line-color": "#2ecc71", "target-arrow-color": "#27ae60", "target-arrow-shape": "triangle", width: 4, "z-index": 1001 }
+        style: { "line-color": "#2ecc71", "target-arrow-color": "#2ecc71", "target-arrow-shape": "triangle", "width": 4, "z-index": 1001 }
       },
+
+      /* Active Focus Gradients Overrides */
       {
         selector: "node[?is_out].activeFocus",
         style: { "background-gradient-stop-colors": "#6ae35f #6ae35f #3498db #3498db" }
@@ -590,28 +679,16 @@ async function initGraph(fileName) {
         selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"].activeFocus',
         style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #6ae35f #6ae35f" }
       },
-      {
-        selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"][?is_out].activeFocus',
-        style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #6ae35f #6ae35f #3498db #3498db" }
-      },
+      // {
+      //   selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"][?is_out].activeFocus',
+      //   style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #6ae35f #6ae35f #3498db #3498db" }
+      // },
 
-      /* Parent/Proxy Highlight & Active */
-      {
-        selector: ":parent.highlighted",
-        style: { "background-fill": "solid", "background-color": "#7af16f", "background-opacity": 0.25 }
-      },
-      {
-        selector: ":parent.activeFocus",
-        style: { "background-fill": "solid", "background-color": "#2ecc71", "background-opacity": 0.4 }
-      },
-      {
-        selector: 'node[type="proxy"].highlighted',
-        style: { "background-fill": "solid", "background-color": "#9cea95", "border-color": "#2e7d32", color: "#000" }
-      },
-      {
-        selector: 'node[type="proxy"].activeFocus',
-        style: { "background-fill": "solid", "background-color": "#6ae35f", "border-color": "#27ae60", color: "#000" }
-      }
+      /* Shift Overrides for node borders and edges. Overrides everything else. */
+      { selector: "node.shift-affected", style: {"border-color": "#e74c3c", "border-width": 2.5 } },
+      { selector: "edge.shift-affected", style: { "line-color": "#e74c3c", "target-arrow-color": "#e74c3c", "width": 3, "z-index": 50 } },
+      { selector: "node.shift-head", style: {"border-color": "#c0392b", "border-width": 4, "z-index": 60 } },
+      { selector: "edge.shift-head", style: { "line-color": "#c0392b", "target-arrow-color": "#c0392b", "width": 4, "z-index": 60 } },
     ],
     layout: {
       name: "elk",
@@ -625,13 +702,67 @@ async function initGraph(fileName) {
   });
 
   // Setup interactions for the graph
+  populateShiftDropdown();
   setupInteractions();
   // Reset the search
   cancelSearch();
   document.getElementById("status").innerText = "";
 }
 
-// Update the sidebar information based on the selected family cytoscape elements/metadata
+function populateShiftDropdown() {
+  const shiftSelect = document.getElementById("select-shift");
+  shiftSelect.innerHTML = '<option value="">No Shift Selection</option>';
+  
+  if (metaData && metaData.shiftRegistry) {
+      Object.keys(metaData.shiftRegistry).forEach(shiftName => {
+          const opt = document.createElement("option");
+          opt.value = shiftName;
+          opt.innerText = shiftName;
+          shiftSelect.appendChild(opt);
+      });
+  }
+}
+
+function applyShift() {
+  // Clear previous shifts
+  cy.elements().removeClass("shift-head shift-affected");
+  const shiftName = document.getElementById("select-shift").value;
+  
+  if (!shiftName || !metaData.shiftRegistry || !metaData.shiftRegistry[shiftName]) return;
+
+  const shiftData = metaData.shiftRegistry[shiftName];
+  let headEles = cy.collection();
+
+  // 1. Identify Head elements
+  if (shiftData.heads) {
+      shiftData.heads.forEach(rawHeadFam => {
+          const headFam = resolveFamilyName(rawHeadFam);
+          const ids = familyIndex[headFam];
+          if (ids) {
+              const elements = cy.collection([...ids].map(id => cy.getElementById(id)));
+              headEles = headEles.union(elements);
+          } else {
+             const el = cy.getElementById(headFam);
+             if (el.length > 0) {
+                 headEles = headEles.union(el);
+             }
+          }
+      });
+  }
+
+  // 2. Apply styles and traverse graph
+  if (headEles.length > 0) {
+      headEles.addClass("shift-head");
+      
+      // Find all downstream elements automatically
+      const affectedEles = headEles.successors();
+      affectedEles.addClass("shift-affected");
+      
+      // Jump to first headNode
+      cy.animate({ center: { eles: headEles[0] }, zoom: 1.3, duration: 350 });
+  }
+}
+
 function updateSidebar(familyEles, famName) {
   const sidebarContent = document.getElementById("sidebar-content");
 
@@ -645,7 +776,7 @@ function updateSidebar(familyEles, famName) {
   // Focus familyHead node for edges and node itself for nodes
   let headId;
   if (isEdge) {
-      headId = metaData.edgeFamilyRegister[famName].familyHead;
+      headId = [...familyIndex[famName]].find(id => cy.getElementById(id).data('source') && !cy.getElementById(id).data('source').startsWith('proxy')) || [...familyIndex[famName]][0];
   } else {
       headId = [...familyIndex[famName]][0];
   }
@@ -662,9 +793,7 @@ function updateSidebar(familyEles, famName) {
   let html = ``;
 
   // Get Type (defaults to "Producer" for nodes)
-  const type = headData.type === "proxy"
-    ? null
-    : (headData.type || "Producer");
+  const type = headData.type === "proxy" ? null : (headData.type || "Producer");
 
   if (type) {
     html += `<div class="sidebar-section">
@@ -693,25 +822,26 @@ function updateSidebar(familyEles, famName) {
     // Parent Node (Interactive)
     if (headData.parent) {
         const parentNode = cy.getElementById(headData.parent);
-        if (parentNode.length === 0) throw new Error("Parent node referenced but missing: " + headData.parent);
-        const parentFam = parentNode.data("family");
-        html += renderFamilyLinkList("Parent", new Set([parentFam]));
+        if (parentNode.length > 0) {
+            const parentFam = parentNode.data("family") || headData.parent;
+            html += renderFamilyLinkList("Parent", new Set([parentFam]));
+        }
     }
 
     const famInfo = isNode ? metaData.nodeFamilyRegister[famName] : null;
 
-    if (famInfo && famInfo.node_call_data) {
+    if (famInfo && famInfo.node_call) {
         // Call
         html += `<div class="sidebar-section">`;
         html += `<div class="sidebar-subtitle">Producer Call</div>`;
-        html += `<div class="detail-row"><span class="detail-value" style="color: #3498db;">${famInfo.node_call_data.call}</span></div>`;
+        html += `<div class="detail-row"><span class="detail-value" style="color: #3498db;">${famInfo.node_call}</span></div>`;
         html += `</div>`;
 
         // Configuration Parameters
-        if (famInfo.node_call_data.configs && Object.keys(famInfo.node_call_data.configs).length > 0) {
+        if (famInfo.node_call_configs && Object.keys(famInfo.node_call_configs).length > 0) {
             html += `<div class="sidebar-section">
                        <div class="sidebar-subtitle">Producer configs</div>`;
-            for (const [key, val] of Object.entries(famInfo.node_call_data.configs)) {
+            for (const [key, val] of Object.entries(famInfo.node_call_configs)) {
                 html += `<div class="detail-row">
                            <span class="detail-label">${key}</span>
                            <span class="detail-value">${typeof val === 'object' ? JSON.stringify(val) : val}</span>
@@ -838,7 +968,7 @@ function focusFamily(famName) {
   // Focus familyHead node for edges and node itself for nodes
   let headId;
   if (isEdge) {
-      headId = metaData.edgeFamilyRegister[famName].familyHead;
+      headId = [...familyIndex[famName]][0];
   } else {
       headId = [...familyIndex[famName]][0];
   }
@@ -893,21 +1023,15 @@ function updateUI() {
 function getDisplayName(famName) {
   const edgeInfo = metaData.edgeFamilyRegister?.[famName];
   if (edgeInfo) {
-      const head = cy.getElementById(edgeInfo.familyHead);
-      if (head.length === 0) throw new Error("Missing head for edge family: " + famName);
-      return head.data("label") || head.data("description") || famName;
+      return edgeInfo.name || famName;
   }
 
   const nodeInfo = metaData.nodeFamilyRegister?.[famName];
-  if (nodeInfo || familyIndex[famName]) {
-      const ids = familyIndex[famName];
-      if (!ids || ids.size === 0) throw new Error("Family index empty for node: " + famName);
-      const head = cy.getElementById([...ids][0]);
-      if (head.length === 0) throw new Error("Missing cytoscape node for registered index: " + [...ids][0]);
-      return head.data("label") || head.data("description") || famName;
+  if (nodeInfo) {
+      return nodeInfo.name || famName;
   }
 
-  throw new Error("Could not find display name for unregistered family: " + famName);
+  return famName;
 }
 
 // Run regex search through name, call, file_in, file_out
@@ -932,7 +1056,7 @@ function runSearch() {
   // Search call, file_in, file_out in node-type family metadata
   if (metaData && metaData.nodeFamilyRegister) {
     for (const [famName, famInfo] of Object.entries(metaData.nodeFamilyRegister)) {
-      if (famInfo.node_call_data && famInfo.node_call_data.call && regex.test(famInfo.node_call_data.call)) {
+      if (famInfo.node_call && regex.test(famInfo.node_call)) {
         matchedFamilies.add(famName);
         continue;
       }
