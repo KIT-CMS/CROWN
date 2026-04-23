@@ -24,6 +24,7 @@ def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=F
         else:
             # Add Ntuple quantities for friends
             is_friend_config = False
+            shifted_inputs = None
             if hasattr(configuration, "input_quantities_mapping"):
                 external_inputs = configuration.input_quantities_mapping[active_scope][
                     ""
@@ -42,7 +43,7 @@ def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=F
                 active_scope,
                 DAG_dir,
                 is_friend_config=is_friend_config,
-                shifted_inputs=shifted_inputs,  # type: ignore
+                shifted_inputs=shifted_inputs,
                 debugging=debugging,
             )
             # Generate and save graph for each scope separately
