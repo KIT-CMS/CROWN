@@ -9,8 +9,8 @@ from code_generation.producer import Producer, ProducerGroup
 Muon_1_Reco_SF = Producer(
     name="Muon_1_Reco_SF",
     call="""physicsobject::muon::scalefactor::Reco(
-        {df}, 
-        correctionManager, 
+        {df},
+        correctionManager,
         {output},
         {input},
         "{muon_sf_file}",
@@ -24,8 +24,8 @@ Muon_1_Reco_SF = Producer(
 Muon_1_ID_SF = Producer(
     name="Muon_1_ID_SF",
     call="""physicsobject::muon::scalefactor::Id(
-        {df}, 
-        correctionManager, 
+        {df},
+        correctionManager,
         {output},
         {input},
         "{muon_sf_file}",
@@ -39,8 +39,8 @@ Muon_1_ID_SF = Producer(
 Muon_1_Iso_SF = Producer(
     name="Muon_1_Iso_SF",
     call="""physicsobject::muon::scalefactor::Iso(
-        {df}, 
-        correctionManager, 
+        {df},
+        correctionManager,
         {output},
         {input},
         "{muon_sf_file}",
@@ -55,8 +55,8 @@ Muon_1_Iso_SF = Producer(
 Muon_2_Reco_SF = Producer(
     name="Muon_2_Reco_SF",
     call="""physicsobject::muon::scalefactor::Reco(
-        {df}, 
-        correctionManager, 
+        {df},
+        correctionManager,
         {output},
         {input},
         "{muon_sf_file}",
@@ -70,8 +70,8 @@ Muon_2_Reco_SF = Producer(
 Muon_2_ID_SF = Producer(
     name="Muon_2_ID_SF",
     call="""physicsobject::muon::scalefactor::Id(
-        {df}, 
-        correctionManager, 
+        {df},
+        correctionManager,
         {output},
         {input},
         "{muon_sf_file}",
@@ -85,8 +85,8 @@ Muon_2_ID_SF = Producer(
 Muon_2_Iso_SF = Producer(
     name="Muon_2_Iso_SF",
     call="""physicsobject::muon::scalefactor::Iso(
-        {df}, 
-        correctionManager, 
+        {df},
+        correctionManager,
         {output},
         {input},
         "{muon_sf_file}",

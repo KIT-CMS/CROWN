@@ -79,6 +79,7 @@ MetFilter = VectorProducer(
     output=None,
     scopes=["global"],
     vec_configs=["met_filters"],
+    is_filter=True,
 )
 
 Lumi = Producer(
