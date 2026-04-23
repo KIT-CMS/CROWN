@@ -781,21 +781,12 @@ class GraphParser:
 
         for shift, shift_configs in aggregated_shifts.items():
             shift_heads = set()
-            shift_affected = {"edges": set(), "nodes": set()}
             for shift_cfg in shift_configs:
                 for node, node_data in self.node_family_register.items():
                     if shift_cfg in node_data["node_call_configs"]:
                         shift_heads.add(node)
-
-            ds_dat = {"edges": set(), "nodes": set()}
-            for node in shift_heads:
-                ds_dat = self.get_downstream(node)
-                shift_affected["edges"].update(ds_dat["edges"])
-                shift_affected["nodes"].update(ds_dat["nodes"])
-            shift_affected["edges"].update(ds_dat["edges"])
             self.shift_registry[shift] = {
                 "heads": list(shift_heads),
-                "affected": {"edges": list(shift_affected["edges"]), "nodes": list(shift_affected["nodes"])},
             }
 
     def get_downstream(self, source_node, downstream=None):
