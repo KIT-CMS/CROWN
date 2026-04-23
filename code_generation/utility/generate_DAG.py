@@ -25,9 +25,16 @@ def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=F
             # Add Ntuple quantities for friends
             is_friend_config = False
             if hasattr(configuration, "input_quantities_mapping"):
-                external_inputs = configuration.input_quantities_mapping[
-                    active_scope
-                ][""]
+                external_inputs = configuration.input_quantities_mapping[active_scope][
+                    ""
+                ]
+                shifted_inputs = {
+                    shift: e_in
+                    for shift, e_in in configuration.input_quantities_mapping[
+                        active_scope
+                    ].items()
+                    if shift != ""
+                }
                 is_friend_config = True
             graph = GraphParser(
                 configuration,
@@ -35,6 +42,7 @@ def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=F
                 active_scope,
                 DAG_dir,
                 is_friend_config=is_friend_config,
+                shifted_inputs=shifted_inputs,  # type: ignore
                 debugging=debugging,
             )
             # Generate and save graph for each scope separately
@@ -55,6 +63,7 @@ class GraphParser:
         active_scope,
         DAG_dir="",
         is_friend_config=False,
+        shifted_inputs=None,
         debugging=False,
     ):
         """Initialize the GraphParser object.
@@ -75,6 +84,7 @@ class GraphParser:
             self.scopes = ["global", self.active_scope]
         self.external_inputs = external_inputs
         self.is_friend_config = is_friend_config
+        self.shifted_inputs = shifted_inputs
         self.debugging = debugging
         self.connections = defaultdict(lambda: defaultdict(list))
         self.edges = []
@@ -97,10 +107,8 @@ class GraphParser:
             lambda: {
                 "name": None,
                 "familyHead": None,
-                "nodes": defaultdict(dict), 
-                "edges": defaultdict(dict), 
-                # Nodes: id, parent, 
-                # Edges: id, source, target, type, width
+                "nodes": defaultdict(dict),
+                "edges": defaultdict(dict),
             }
         )
         self.shift_registry = defaultdict()
@@ -165,10 +173,7 @@ class GraphParser:
 
         # Check outputs for ambiguous assignments (multiple origins for the same output)
         all_keys = list(
-            set(
-                list(self.outputs["global"].keys())
-                + list(self.outputs[scope].keys())
-            )
+            set(list(self.outputs["global"].keys()) + list(self.outputs[scope].keys()))
         )
         for key in all_keys:
             total_output_nodes = self.outputs["global"].get(key, []) + self.outputs[
@@ -327,7 +332,7 @@ class GraphParser:
                 scope=scope,
                 parent=group_id,
                 is_filter=producer.is_filter,
-                node_call=call, 
+                node_call=call,
                 node_call_configs=config_data,
             )
             self.add_input(input_name, vector_id, scope)
@@ -468,7 +473,7 @@ class GraphParser:
             parent=parent,
             is_filter=producer.is_filter,
             node_call=call,
-            node_call_configs=config_data
+            node_call_configs=config_data,
         )
         # BaseFilter don't have outputs
         for n in set(producer.input[scope]):
@@ -659,7 +664,7 @@ class GraphParser:
                         start_idx,
                         start_idx,
                         0,
-                        relative_targets[0][0], # type: ignore
+                        relative_targets[0][0],  # type: ignore
                     )
 
     def get_ancestors(self, node_name):
@@ -773,6 +778,12 @@ class GraphParser:
         aggregated_shifts = defaultdict(defaultdict)
         for scope in self.scopes:
             for shift, value in self.config.shifts[scope].items():
+                # Strip "__" of shift name
+                if not shift[0:2] == "__":
+                    raise ValueError(
+                        f"Shift names must start with '__' -> Shift {shift}"
+                    )
+                shift = shift[2:]
                 merger = aggregated_shifts[shift]
                 conflict = merger.keys() & value.keys() and merger != value
                 if conflict:
@@ -785,9 +796,14 @@ class GraphParser:
                 for node, node_data in self.node_family_register.items():
                     if shift_cfg in node_data["node_call_configs"]:
                         shift_heads.add(node)
+            if self.shifted_inputs:
+                shifted_inputs = self.shifted_inputs[shift]
+            else:
+                shifted_inputs = []
             self.shift_registry[shift] = {
                 "heads": list(shift_heads),
                 "shift_configs": shift_configs,
+                "shifted_inputs": shifted_inputs,
             }
 
     def get_downstream(self, source_node, downstream=None):
@@ -832,7 +848,7 @@ class GraphParser:
                 "vec_close",
             }
         else:
-            ignore = set(ignore) # type: ignore
+            ignore = set(ignore)  # type: ignore
 
         pattern = r"\{(\w+)\}"
         matches = re.findall(pattern, call)
@@ -915,9 +931,9 @@ class GraphParser:
         if node_type and is_filter:
             raise ValueError("Cannot specify both node_type and is_filter")
         if is_filter:
-            node_type = "filter"   
+            node_type = "filter"
         if not name:
-            name = id_name     
+            name = id_name
         if scope:
             id_name = f"{scope}_{id_name}"
         if parent:
@@ -939,7 +955,9 @@ class GraphParser:
                 self.node_family_register[family]["type"] = node_type
             if node_call:
                 self.node_family_register[family]["node_call"] = node_call
-                self.node_family_register[family]["node_call_configs"] = node_call_configs
+                self.node_family_register[family][
+                    "node_call_configs"
+                ] = node_call_configs
 
     def add_connection(self, source, target, name):
         """Log a relational connection locally between a source and a target.
