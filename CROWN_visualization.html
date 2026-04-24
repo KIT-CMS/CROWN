@@ -260,7 +260,7 @@
     <div id="sidebar-content"></div>
 </div>
 
-<div id="reset-ui"><button class="reset-btn" onclick="resetView()">Reset View</button></div>
+<div id="reset-ui"><button class="reset-btn" onclick="resetView()">Reset</button></div>
 <div id="cy"></div>
 
 <script>
@@ -519,7 +519,9 @@ async function initGraph(fileName) {
           "border-style": "dashed",
           "border-width": 4,
           "text-valign": "top",
-          padding: "20px",
+          "color": "#1565c0",
+          "font-size": 18,
+          padding: "10px",
           events: "no",
         },
       },
@@ -531,6 +533,8 @@ async function initGraph(fileName) {
           "border-color": "#4a4a4a",
           "background-color": "#d1d1d1",
           "background-opacity": 0.2,
+          "font-size": 28,
+          "color": "#000000",
         },
       },
       {
@@ -541,6 +545,7 @@ async function initGraph(fileName) {
           "border-color": "#8e24aa",
           "background-color": "#da70d6",
           "background-opacity": 0.15,
+          "color": "#73178c",
         },
       },
 
@@ -664,7 +669,7 @@ async function initGraph(fileName) {
       },
       {
         selector: "edge.activeFocus",
-        style: { "line-color": "#2ecc71", "target-arrow-color": "#2ecc71", "target-arrow-shape": "triangle", "width": 4, "z-index": 1001 }
+        style: { "line-color": "#2ecc71", "target-arrow-color": "#2ecc71", "width": 4, "z-index": 1001 }
       },
 
       /* Active Focus Gradients Overrides */
@@ -705,7 +710,6 @@ async function initGraph(fileName) {
         algorithm: "layered",
         direction: "RIGHT",
         hierarchyHandling: "INCLUDE_CHILDREN",
-        nodeNodeBetweenLayers: "120",
       },
     },
   });
@@ -724,7 +728,7 @@ function renderGlobalIO(affectedIns = new Set(), affectedOuts = new Set()) {
         Array.from(itemsSet).sort().forEach(item => {
             const isAffected = highlightSet && highlightSet.has(item);
             if (isAffected) {
-                listHTML += `<li style="color: #e74c3c; font-weight: bold;">${item}</li>`;
+                listHTML += `<li style="color: #e74c3c; font-weight: bold;"> → ${item}</li>`;
             } else {
                 listHTML += `<li>${item}</li>`;
             }
@@ -868,12 +872,12 @@ function updateSidebar(familyEles, famName) {
 
   let html = ``;
 
-  const type = headData.type === "proxy" ? null : (headData.type || "Producer");
+  const type = headData.type === "proxy" ? null : ["branch", "twig", "leaf"].includes(headData.type) ? "Quantity" : headData.type === "vector" ? "Vector Group" : (headData.type || "Producer");
 
   if (type) {
     html += `<div class="sidebar-section">
                 <span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 11px; text-transform: uppercase; font-weight: 700; display: inline-block; width: max-content;">
-                  Type: ${type}
+                  ${type}
                 </span>
             </div>`;
   }
@@ -1162,7 +1166,21 @@ function runSearch() {
 }
 
 function resetView() {
-  cy.animate({ fit: { padding: 40 }, duration: 500 });
+  // Reset graph viewport
+  cy.animate({
+    fit: { padding: 40 },
+    duration: 500
+  });
+
+  // Clear search
+  cancelSearch();
+
+  // Reset shift dropdown to "No Shift Selection"
+  const shiftSelect = document.getElementById("select-shift");
+  shiftSelect.value = "";
+
+  // Reapply shift logic so highlights are cleared
+  applyShift();
 }
 
 window.onload = loadConfig;
