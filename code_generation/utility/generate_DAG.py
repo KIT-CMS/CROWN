@@ -1010,7 +1010,10 @@ class GraphParser:
 
         # Copy visualization file to build dir
         script_current_dir = Path(__file__).parent.resolve()
-        shutil.copy(f"{script_current_dir}/CROWN_visualization.html", f"{self.DAG_dir}")
+        source = script_current_dir / "CROWN_visualization.html"
+        target = Path(self.DAG_dir) / "index.html"
+        if not target.exists():
+            shutil.copy(source, target)
 
         # Write DAG data to json
         with open(path, "w") as f:
