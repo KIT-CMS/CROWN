@@ -1,7 +1,8 @@
 from math import sqrt
 import re
 import json
-import os
+import shutil
+from pathlib import Path
 from collections import defaultdict
 from code_generation.quantity import QuantityGroup
 from code_generation.helpers import is_empty
@@ -997,8 +998,8 @@ class GraphParser:
         """
         path = f"{name}_{self.config.era}_{self.config.sample}_{self.active_scope}.json"
         if self.DAG_dir:
-            path = os.path.join(self.DAG_dir, path)
-            os.makedirs(self.DAG_dir, exist_ok=True)
+            path = Path(self.DAG_dir) / path
+            Path(self.DAG_dir).mkdir(parents=True, exist_ok=True)
 
         # Compile DAG data with metadata
         full_data = {
@@ -1007,13 +1008,17 @@ class GraphParser:
             "shiftRegistry": self.shift_registry,
         }
 
+        # Copy visualization file to build dir
+        script_current_dir = Path(__file__).parent.resolve()
+        shutil.copy(f"{script_current_dir}/CROWN_visualization.html", f"{self.DAG_dir}")
+
         # Write DAG data to json
         with open(path, "w") as f:
             json.dump(full_data, f, indent=4)
 
         # Update master DAG file list
         self.update_DAG_file_list(
-            os.path.join(self.DAG_dir, "DAG_files.json"),
+            Path(self.DAG_dir) / "DAG_files.json",
             self.config.era,
             self.config.sample,
             self.active_scope,
@@ -1030,7 +1035,7 @@ class GraphParser:
             new_sample (str): The sample identifier to check/add.
             new_scope (str): The scope string to check/add.
         """
-        if os.path.exists(config_path):
+        if Path(config_path).exists():
             with open(config_path, "r") as f:
                 try:
                     data = json.load(f)

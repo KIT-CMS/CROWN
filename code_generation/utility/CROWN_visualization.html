@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Physics Analysis Graph Explorer</title>
+    <title>CROWN Graph Explorer</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/elkjs@0.9.3/lib/elk.bundled.js"></script>
@@ -232,16 +232,20 @@
                     <span>Writes to Ntuple</span>
                 </div>
                 <div class="legend-item">
+                    <div class="symbol square" style="background: #f6b1ac; border: 1.5px solid #e74c3c;"></div>
+                    <span>Affected by Shift</span>
+                </div>
+                <div class="legend-item">
                     <div class="symbol parent-box"></div>
                     <span>Group</span>
                 </div>
                 <div class="legend-item">
-                    <div class="symbol octagon" style="background: #fac370; border: 1.5px solid #ffaa00;"></div>
-                    <span>Filter</span>
+                    <div class="symbol square" style="border: 4px dashed #8e24aa; background: rgba(218, 112, 214, 0.15);"></div>
+                    <span>Vector Group</span>
                 </div>
                 <div class="legend-item">
-                    <div class="symbol square" style="border: 4px dashed #8e24aa; background: rgba(218, 112, 214, 0.15);"></div>
-                    <span>Vector</span>
+                    <div class="symbol octagon" style="background: #fac370; border: 1.5px solid #ffaa00;"></div>
+                    <span>Filter</span>
                 </div>
                 <div class="legend-item">
                     <div class="symbol square" style="background: #f7a5f8; border: 1.5px solid #f84cfa;"></div>
@@ -272,7 +276,8 @@ let familyResults = [];
 let metaData;
 let globalIOData = { nanoIn: new Set(), ntupleIn: new Set(), ntupleOut: new Set() };
 
-const CONFIG_URL = "build/visualization/DAG_files.json?v=" + Date.now();
+// Date.now() is used to invalidate the cache
+const CONFIG_URL = "DAG_files.json?v=" + Date.now();
 
 // UI Toggle Function
 function toggleUI() {
@@ -292,7 +297,7 @@ function getFamilyHead(famName) {
     const isEdge = metaData.edgeFamilyRegister && metaData.edgeFamilyRegister[famName];
     const ids = familyIndex[famName];
     if (!ids) return null;
-    
+
     if (isEdge) {
         const headId = [...ids].find(id => {
             const el = cy.getElementById(id);
@@ -345,10 +350,11 @@ async function initGraph(fileName) {
   if (cy) cy.destroy();
   document.getElementById("status").innerText = "Loading " + fileName + "...";
 
-  const response = await fetch(`build/visualization/${fileName}.json?v=${Date.now()}`);
+  // Date.now() is used to invalidate the cache
+  const response = await fetch(`${fileName}.json?v=${Date.now()}`);
   const DAGData = await response.json();
 
-  metaData = DAGData; 
+  metaData = DAGData;
   familyIndex = {};
   globalIOData = { nanoIn: new Set(), ntupleIn: new Set(), ntupleOut: new Set() };
   const elementsData = [];
@@ -374,7 +380,7 @@ async function initGraph(fileName) {
           elementsData.push({
               data: {
                   id: nodeId,
-                  family: nodeId, 
+                  family: nodeId,
                   label: meta.name || nodeId,
                   parent: meta.parent,
                   type: meta.type || "Producer",
@@ -498,15 +504,6 @@ async function initGraph(fileName) {
           "background-gradient-direction": "to-right",
         },
       },
-      {
-        selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"]',
-        style: {
-          "background-fill": "linear-gradient",
-          "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ffffff #ffffff",
-          "background-gradient-stop-positions": "0 7.5 7.5 15 15 100",
-          "background-gradient-direction": "to-right",
-        },
-      },
 
       /* Group styles */
       {
@@ -597,7 +594,7 @@ async function initGraph(fileName) {
           "text-max-width": 80,
         },
       },
-      
+
       /* Shift Overrides for node interior. Overrides basic styles, overwritten by highlighting and search. */
       { selector: "node.shift-affected", style: { "background-color": "#f6b1ac"} },
       { selector: "node[?is_out].shift-affected", style: { "background-gradient-stop-colors": "#f6b1ac #f6b1ac #3498db #3498db" } },
@@ -657,10 +654,6 @@ async function initGraph(fileName) {
         selector: 'node[is_in *= "Ntuple"][?is_out].highlighted',
         style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #9cea95 #9cea95 #3498db #3498db" }
       },
-      {
-        selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"].highlighted',
-        style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #9cea95 #9cea95" }
-      },
 
       /* User Selection (Active Focus - Solid Green) */
       {
@@ -692,10 +685,6 @@ async function initGraph(fileName) {
       {
         selector: 'node[is_in *= "Ntuple"][?is_out].activeFocus',
         style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #6ae35f #6ae35f #3498db #3498db" }
-      },
-      {
-        selector: 'node[is_in *= "NanoAOD"][is_in *= "Ntuple"].activeFocus',
-        style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #6ae35f #6ae35f" }
       },
 
       /* Shift Overrides for node borders and edges. Overrides everything else. */
@@ -753,7 +742,7 @@ function renderGlobalIO(affectedIns = new Set(), affectedOuts = new Set()) {
 function populateShiftDropdown() {
   const shiftSelect = document.getElementById("select-shift");
   shiftSelect.innerHTML = '<option value="">No Shift Selection</option>';
-  
+
   if (metaData && metaData.shiftRegistry) {
       Object.keys(metaData.shiftRegistry).forEach(shiftName => {
           const opt = document.createElement("option");
@@ -770,7 +759,7 @@ function applyShift() {
   const shiftName = document.getElementById("select-shift").value;
   let affectedOuts = new Set();
   let affectedIns = new Set();
-  
+
   if (!shiftName || !metaData.shiftRegistry || !metaData.shiftRegistry[shiftName]) {
       // Restore default state, clear IO highlights, refresh sidebar
       const activeEle = cy.elements(".activeFocus").first();
@@ -801,7 +790,7 @@ function applyShift() {
   if (shiftData.shifted_inputs && shiftData.shifted_inputs.length > 0) {
       const shiftedInputsSet = new Set(shiftData.shifted_inputs);
       shiftData.shifted_inputs.forEach(i => affectedIns.add(i)); // Track for Global UI
-      
+
       cy.nodes().forEach(n => {
           const famInfo = metaData.nodeFamilyRegister[n.data('family')];
           if (famInfo && famInfo.file_in) {
@@ -833,7 +822,7 @@ function applyShift() {
           famInfo.file_out.forEach(o => affectedOuts.add(o));
       }
   });
-  
+
   // Jump to first relevant node
   if (headEles.length > 0) {
       cy.animate({ center: { eles: headEles[0] }, zoom: 1.3, duration: 350 });
@@ -907,7 +896,7 @@ function updateSidebar(familyEles, famName) {
     // Shift Diff Validation Check
     const activeShiftName = document.getElementById("select-shift").value;
     const activeShift = activeShiftName ? metaData.shiftRegistry[activeShiftName] : null;
-    const isHeadOfActiveShift = headNode.hasClass("shift-head"); 
+    const isHeadOfActiveShift = headNode.hasClass("shift-head");
     const isAffectedNode = headNode.hasClass("shift-head") || headNode.hasClass("shift-affected");
 
     // Gather specific inputs affected by this shift to pass to the renderer
@@ -935,7 +924,7 @@ function updateSidebar(familyEles, famName) {
                         <div style="display: flex; flex-direction: column; gap: 2px;">
                             <span style="text-decoration: line-through; color: #7f8c8d; font-size: 0.95em;">${displayVal}</span>
                             <div style="color: #e74c3c; font-weight: bold; display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 1.2em;">&#10142;</span> 
+                                <span style="font-size: 1.2em;">&#10142;</span>
                                 <span>${displayNew}</span>
                             </div>
                         </div>`;
@@ -1061,7 +1050,7 @@ function focusFamily(famName) {
   if (!ids) throw new Error("No IDs mapped in index for family: " + famName);
 
   cy.elements().removeClass("activeFocus");
-  
+
   // Fast Set filter instead of array.map mapping
   const collection = cy.filter(ele => ids.has(ele.id()));
   collection.addClass("activeFocus");
@@ -1146,7 +1135,7 @@ function runSearch() {
   }
 
   familyResults = [...matchedFamilies].map((f) => ({ famName: f }));
-  
+
   // Fast Collection Addition
   const highlightSet = new Set();
   familyResults.forEach((res) => {
