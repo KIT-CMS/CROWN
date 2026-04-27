@@ -2,10 +2,13 @@ from math import sqrt
 import re
 import json
 import shutil
+import logging
 from pathlib import Path
 from collections import defaultdict
 from code_generation.quantity import QuantityGroup
 from code_generation.helpers import is_empty
+
+log = logging.getLogger(__name__)
 
 
 def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=False):
@@ -157,8 +160,7 @@ class GraphParser:
             ValueError: If an output has multiple origins (ambiguous assignments).
         """
         if not is_empty(self.config.producers[scope]):
-            if self.debugging:
-                print(f"\nFor scope {scope}:")
+            log.debug(f"For scope {scope}:")
             # Add top level scope node
             self.add_node(
                 id_name="scope",
@@ -182,9 +184,7 @@ class GraphParser:
                 scope
             ].get(key, [])
             if len(set(total_output_nodes)) != 1:
-                raise ValueError(
-                    f"Output {key} has multiple origins: {total_output_nodes}"
-                )
+                log.exception(stack_info=True, msg=f"Output {key} has multiple origins: {total_output_nodes}")
 
         # Determine nodes writing to Ntuple by tracing configured scope outputs back to their producers
         if hasattr(self.config, "outputs") and scope in self.config.outputs:
@@ -244,7 +244,7 @@ class GraphParser:
                 producer=producer, parent=parent, scope=scope, align=align
             )
         else:
-            raise NotImplementedError(f"Unknown Producer class {class_name}")
+            log.exception(stack_info=True, msg=f"Unknown Producer class {class_name}")
 
     def parse_VectorProducer(self, producer, parent, scope, align=""):
         """Map legacy vector configurations to graph nodes and inputs using regex.
@@ -262,11 +262,8 @@ class GraphParser:
         Raises:
             NotImplementedError: If the producer call does not have legacy support.
         """
-        if self.debugging:
-            print(align + f"Adding VectorProducer: {producer.name}")
-        print(
-            f"!!! {producer.name} is a legacy producer and should be replaced with ExtendedVectorProducer !!!"
-        )
+        log.debug(f"{align}Adding VectorProducer: {producer.name}")
+        log.warning(f"!!! {producer.name} is a legacy producer and should be replaced with ExtendedVectorProducer !!!")
 
         # Only accept whitelisted calls for legacy support
         if producer.call.startswith("event::filter::Flag"):
@@ -274,9 +271,7 @@ class GraphParser:
                 producer=producer, parent=parent, scope=scope, align=align
             )
         else:
-            raise NotImplementedError(
-                f"The call {producer.call} does not have legacy support."
-            )
+            log.exception(stack_info=True, msg=f"The call {producer.call} does not have legacy support.")
 
     def parse_Flag_from_call(self, producer, parent, scope, align=""):
         """Extract vector configurations from a legacy producer's call string using regex.
@@ -300,12 +295,11 @@ class GraphParser:
         if match:
             input_vec_config = match.group(1)
         else:
-            raise ValueError(f"Input vector config could not be parsed from {call}")
+            log.exception(stack_info=True, msg=f"Input vector config could not be parsed from {call}")
+            input_vec_config = None
 
         if input_vec_config not in producer.vec_configs:
-            raise ValueError(
-                f"Input name from {call} not in producer vector configs {producer.vec_configs}"
-            )
+            log.exception(stack_info=True, msg=f"Input name from {call} not in producer vector configs {producer.vec_configs}")
         # Determine the index of the input vector config from the call
         vec_input_index = producer.vec_configs.index(input_vec_config)
         call = producer.call
@@ -326,8 +320,7 @@ class GraphParser:
             vector_name = f"{producer.name}_{i_c}"
             vector_config_dict = {vc: cc for vc, cc in zip(producer.vec_configs, c)}
             config_data = self.extract_configs(call, scope, vector_config_dict)
-            if self.debugging:
-                print(align + "    " + f"Adding Filter: {vector_name}")
+            log.debug(f"{align}    Adding Filter: {vector_name}")
             self.add_node(
                 id_name=vector_id,
                 name=vector_name,
@@ -341,9 +334,7 @@ class GraphParser:
 
             # outputs are not supported for this legacy producer
             if isinstance(producer.output, list):
-                raise NotImplementedError(
-                    "List outputs for legacy parsed calls are not supported."
-                )
+                log.exception(stack_info=True, msg="List outputs for legacy parsed calls are not supported.")
 
     def parse_ExtendedVectorProducer(self, producer, parent, scope, align=""):
         """Parse an ExtendedVectorProducer class instance into graph nodes, inputs, and outputs.
@@ -354,8 +345,7 @@ class GraphParser:
             scope (str): The active scope.
             align (str, optional): Debug print alignment spacing. Defaults to "".
         """
-        if self.debugging:
-            print(align + f"Adding ExtendedVectorProducer: {producer.name}")
+        log.debug(f"{align}Adding ExtendedVectorProducer: {producer.name}")
         group_id = f"{producer.name}_v"
         self.add_node(
             id_name=group_id,
@@ -373,8 +363,7 @@ class GraphParser:
             vector_id = f"{group_id}_{i_c}"
             vector_name = f"{producer.name}_{i_c}"
             config_data = self.extract_configs(call, scope, c)
-            if self.debugging:
-                print(align + "    " + f"Adding Producer: {vector_name}")
+            log.debug(f"{align}    Adding Producer: {vector_name}")
             self.add_node(
                 id_name=vector_id,
                 name=vector_name,
@@ -388,8 +377,7 @@ class GraphParser:
             if isinstance(producer.input[scope], list):
                 for n in set(producer.input[scope]):
                     self.add_input(n.name, vector_id, scope)
-                    if self.debugging:
-                        print(align + "        " + f"Adding Input: {n.name}")
+                    log.debug(f"{align}        Adding Input: {n.name}")
 
             if isinstance(producer.output, list):
                 vec_output = c[producer.outputname]
@@ -397,8 +385,7 @@ class GraphParser:
                     producer.outputname
                 )
                 self.add_output(vec_output, vector_id, scope)
-                if self.debugging:
-                    print(align + "        " + f"Adding Output: {vec_output}")
+                log.debug(f"{align}        Adding Output: {vec_output}")
 
     def parse_ProducerGroup(self, producer, parent, scope, align=""):
         """Parse a ProducerGroup class into graph nodes and recursively route its producers.
@@ -409,8 +396,7 @@ class GraphParser:
             scope (str): The active scope.
             align (str, optional): Debug print alignment spacing. Defaults to "".
         """
-        if self.debugging:
-            print(align + f"Adding ProducerGroup: {producer.name}")
+        log.debug(f"{align}Adding ProducerGroup: {producer.name}")
 
         group_id = f"{producer.name}_g"
         self.add_node(
@@ -435,8 +421,7 @@ class GraphParser:
             scope (str): The active scope.
             align (str, optional): Debug print alignment spacing. Defaults to "".
         """
-        if self.debugging:
-            print(align + f"Adding Filter Group: {producer.name}")
+        log.debug(f"{align}Adding Filter Group: {producer.name}")
 
         group_id = f"{producer.name}_f"
         self.add_node(
@@ -462,11 +447,8 @@ class GraphParser:
             scope (str): The active scope.
             align (str, optional): Debug print alignment spacing. Defaults to "".
         """
-        if self.debugging:
-            print(align + f"Adding BaseFilter: {producer.name}")
-        print(
-            f"!!! {producer.name} is a legacy producer and should be replaced with Filter !!!"
-        )
+        log.debug(f"{align}Adding BaseFilter: {producer.name}")
+        log.warning(f"!!! {producer.name} is a legacy producer and should be replaced with Filter !!!")
         call = producer.call
         config_data = self.extract_configs(call, scope)
         self.add_node(
@@ -480,8 +462,7 @@ class GraphParser:
         # BaseFilter don't have outputs
         for n in set(producer.input[scope]):
             self.add_input(n.name, producer.name, scope)
-            if self.debugging:
-                print(align + "    " + f"Adding Input: {n.name}")
+            log.debug(f"{align}    Adding Input: {n.name}")
 
     def parse_Producer(self, producer, parent, scope, align=""):
         """Parse a generic Producer class into graph nodes, inputs, and outputs.
@@ -492,8 +473,7 @@ class GraphParser:
             scope (str): The active scope.
             align (str, optional): Debug print alignment spacing. Defaults to "".
         """
-        if self.debugging:
-            print(align + f"Adding Producer: {producer.name}")
+        log.debug(f"{align}Adding Producer: {producer.name}")
         call = producer.call
         config_data = self.extract_configs(call, scope)
         self.add_node(
@@ -508,14 +488,12 @@ class GraphParser:
         if isinstance(producer.input[scope], list):
             for n in set(producer.input[scope]):
                 self.add_input(n.name, producer.name, scope)
-                if self.debugging:
-                    print(align + "    " + f"Adding Input: {n.name}")
+                log.debug(f"{align}    Adding Input: {n.name}")
 
         if isinstance(producer.output, list):
             for n in set(producer.output):
                 self.add_output(n.name, producer.name, scope)
-                if self.debugging:
-                    print(align + "    " + f"Adding Output: {n.name}")
+                log.debug(f"{align}    Adding Output: {n.name}")
 
     def set_is_out(self, scope, req_out):
         """Designate a node as the source of an Ntuple output.
@@ -533,18 +511,14 @@ class GraphParser:
         )
         if len(producers) > 0:
             if len(producers) != 1:
-                raise ValueError(f"Num producers for out {req_out}: {len(producers)}")
+                log.exception(stack_info=True, msg=f"Num producers for out {req_out}: {len(producers)}")
             if self.node_family_register.get(producers[0]):
                 self.node_family_register[producers[0]]["file_out"].append(req_out)
             else:
-                raise ValueError(
-                    f"Source {producers[0]} is neither part of {scope} nor global scope."
-                )
+                log.exception(stack_info=True, msg=f"Source {producers[0]} is neither part of {scope} nor global scope.")
         else:
             if not (req_out in self.external_inputs):
-                raise ValueError(
-                    f"Requested output {req_out} is not provided by NanoAOD/Ntuple."
-                )
+                log.exception(stack_info=True, msg=f"Requested output {req_out} is not provided by NanoAOD/Ntuple.")
 
     def assemble_connections(self):
         """Resolve mappings to construct the actual connecting edges in the DAG.
@@ -581,17 +555,12 @@ class GraphParser:
                                 "NanoAOD"
                             ].append(req_input)
                     else:
-                        raise ValueError(
-                            f"Input {req_input} is missing from NanoAOD/Ntuple and producers."
-                        )
+                        log.exception(stack_info=True, msg=f"Input {req_input} is missing from NanoAOD/Ntuple and producers.")
 
                 # Create connections grouped by source node
                 for source_node, input_names in compose.items():
                     for input_name in input_names:
-                        if self.debugging:
-                            print(
-                                f"Adding Connection {input_name} from {source_node} to {target_node}"
-                            )
+                        log.debug(f"Adding Connection {input_name} from {source_node} to {target_node}")
                         self.add_connection(
                             source=source_node, target=target_node, name=input_name
                         )
@@ -615,17 +584,8 @@ class GraphParser:
                     proxy_node_name = f"proxy_{name}_{location}"
                     proxy_edge_name = f"proxyedge_{name}_{location}"
                     leaf_edge_name = f"{name}_{target}"
-                    if self.debugging:
-                        print(f"Label at {location}")
-                        print(
-                            f"Adding proxy node {proxy_node_name} with parent {location}"
-                        )
-                        print(
-                            f"Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight 1"
-                        )
-                        print(
-                            f"Adding final edge {leaf_edge_name} from {proxy_node_name} to {target} with weight 1"
-                        )
+                    log.debug(f"Label at {location}")
+                    log.debug(f"    Adding proxy node {proxy_node_name} with parent {location}")
                     self.add_node(
                         id_name=proxy_node_name,
                         name=name,
@@ -633,6 +593,7 @@ class GraphParser:
                         node_type="proxy",
                         family=f"edge_{name}",
                     )
+                    log.debug(f"    Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight 1")
                     self.add_edge(
                         source=source,
                         target=proxy_node_name,
@@ -641,6 +602,7 @@ class GraphParser:
                         edge_type="twig",
                         family=f"edge_{name}",
                     )
+                    log.debug(f"    Adding final edge {leaf_edge_name} from {proxy_node_name} to {target} with weight 1")
                     self.add_edge(
                         source=proxy_node_name,
                         target=target,
@@ -705,7 +667,7 @@ class GraphParser:
                     + target_hist[i:]
                 )
 
-    def construct_proxies(self, name, data, valid_idx, tot_idx, rank, source):
+    def construct_proxies(self, name, data, valid_idx, tot_idx, rank, source, align=""):
         """Recursively build proxy nodes and edges to visually structure bundled connections.
 
         Args:
@@ -726,12 +688,8 @@ class GraphParser:
             proxy_loc = data[valid_idx[0]][rank - 1]
             proxy_node_name = f"proxy_{name}_{proxy_loc}"
             proxy_edge_name = f"proxyedge_{name}_{proxy_loc}"
-            if self.debugging:
-                print(f"Junktion at {proxy_loc}")
-                print(f"Adding proxy node {proxy_node_name} with parent {proxy_loc}")
-                print(
-                    f"Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight {len(valid_idx)}"
-                )
+            log.debug(f"{align}Junction at {proxy_loc}")
+            log.debug(f"{align}    Adding proxy node {proxy_node_name} with parent {proxy_loc}")
             self.add_node(
                 id_name=proxy_node_name,
                 name=name,
@@ -739,6 +697,7 @@ class GraphParser:
                 node_type="proxy",
                 family=f"edge_{name}",
             )
+            log.debug(f"{align}    Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight {len(valid_idx)}")
             self.add_edge(
                 source=source,
                 target=proxy_node_name,
@@ -756,10 +715,7 @@ class GraphParser:
                     # Add leaf edge if only 1 connection remains
                     leaf_name = data[part_idx[0]][-1]
                     leaf_edge_name = f"{name}_{leaf_name}"
-                    if self.debugging:
-                        print(
-                            f"Adding final edge {leaf_edge_name} from {proxy_node_name} to {leaf_name} with weight 1"
-                        )
+                    log.debug(f"{align}    Adding final edge {leaf_edge_name} from {proxy_node_name} to {leaf_name} with weight 1")
                     self.add_edge(
                         source=proxy_node_name,
                         target=leaf_name,
@@ -771,7 +727,7 @@ class GraphParser:
                 else:
                     # Go deeper if more than 1 connection remains
                     self.construct_proxies(
-                        name, data, part_idx, tot_idx, rank + 1, proxy_node_name
+                        name, data, part_idx, tot_idx, rank + 1, proxy_node_name, align="    "
                     )
 
     def compile_shift_registry(self):
@@ -782,14 +738,12 @@ class GraphParser:
             for shift, value in self.config.shifts[scope].items():
                 # Strip "__" of shift name
                 if not shift[0:2] == "__":
-                    raise ValueError(
-                        f"Shift names must start with '__' -> Shift {shift}"
-                    )
+                    log.exception(stack_info=True, msg=f"Shift names must start with '__' -> Shift {shift}")
                 shift = shift[2:]
                 merger = aggregated_shifts[shift]
                 conflict = merger.keys() & value.keys() and merger != value
                 if conflict:
-                    raise ValueError(f"Merge conflict on keys: {conflict}")
+                    log.exception(stack_info=True, msg=f"Merge conflict on keys: {conflict}")
                 merger |= value
 
         for shift, shift_configs in aggregated_shifts.items():
@@ -865,7 +819,7 @@ class GraphParser:
             elif not is_empty(self.config.config_parameters[scope].get(c)):
                 config_dict[c] = self.config.config_parameters[scope][c]
             else:
-                raise ValueError(f"Unknown config parameter {c}")
+                log.exception(stack_info=True, msg=f"Unknown config parameter {c}")
         return config_dict
 
     def add_output(self, output_name, output_node, scope):
@@ -881,7 +835,7 @@ class GraphParser:
         """
         node_id = f"{scope}_{output_node}"
         if node_id in self.outputs[scope][output_name]:
-            raise ValueError(f"Node {node_id} already exists in output nodes.")
+            log.exception(stack_info=True, msg=f"Node {node_id} already exists in output nodes.")
         self.outputs[scope][output_name].append(node_id)
 
     def add_input(self, input_name, input_node, scope):
@@ -897,7 +851,7 @@ class GraphParser:
         """
         scoped_input = f"{scope}_{input_node}"
         if input_name in self.inputs[scope][scoped_input]:
-            raise ValueError(f"Input {input_name} already exists in inputs.")
+            log.exception(stack_info=True, msg=f"Input {input_name} already exists in inputs.")
         self.inputs[scope][scoped_input].append(input_name)
 
     def add_node(
@@ -931,7 +885,7 @@ class GraphParser:
                         or if a full ID already exists within the standard family register.
         """
         if node_type and is_filter:
-            raise ValueError("Cannot specify both node_type and is_filter")
+            log.exception(stack_info=True, msg="Cannot specify both node_type and is_filter")
         if is_filter:
             node_type = "filter"
         if not name:
@@ -949,7 +903,7 @@ class GraphParser:
         else:
             family = id_name
             if self.node_family_register.get(id_name):
-                raise ValueError(f"Node {id_name} already exists in family register")
+                log.exception(stack_info=True, msg=f"Node {id_name} already exists in family register")
             self.node_family_register[family]["name"] = name
             if parent:
                 self.node_family_register[family]["parent"] = parent
@@ -1056,5 +1010,4 @@ class GraphParser:
         with open(config_path, "w") as f:
             json.dump(data, f, indent=4)
 
-        if self.debugging:
-            print(f"Updated {config_path} with {new_era}/{new_sample}/{new_scope}")
+        log.debug(f"Updated {config_path} with {new_era}/{new_sample}/{new_scope}")
