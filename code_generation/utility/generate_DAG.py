@@ -184,7 +184,10 @@ class GraphParser:
                 scope
             ].get(key, [])
             if len(set(total_output_nodes)) != 1:
-                log.exception(stack_info=True, msg=f"Output {key} has multiple origins: {total_output_nodes}")
+                log.exception(
+                    stack_info=True,
+                    msg=f"Output {key} has multiple origins: {total_output_nodes}",
+                )
 
         # Determine nodes writing to Ntuple by tracing configured scope outputs back to their producers
         if hasattr(self.config, "outputs") and scope in self.config.outputs:
@@ -263,7 +266,9 @@ class GraphParser:
             NotImplementedError: If the producer call does not have legacy support.
         """
         log.debug(f"{align}Adding VectorProducer: {producer.name}")
-        log.warning(f"!!! {producer.name} is a legacy producer and should be replaced with ExtendedVectorProducer !!!")
+        log.warning(
+            f"!!! {producer.name} is a legacy producer and should be replaced with ExtendedVectorProducer !!!"
+        )
 
         # Only accept whitelisted calls for legacy support
         if producer.call.startswith("event::filter::Flag"):
@@ -271,7 +276,10 @@ class GraphParser:
                 producer=producer, parent=parent, scope=scope, align=align
             )
         else:
-            log.exception(stack_info=True, msg=f"The call {producer.call} does not have legacy support.")
+            log.exception(
+                stack_info=True,
+                msg=f"The call {producer.call} does not have legacy support.",
+            )
 
     def parse_Flag_from_call(self, producer, parent, scope, align=""):
         """Extract vector configurations from a legacy producer's call string using regex.
@@ -295,11 +303,17 @@ class GraphParser:
         if match:
             input_vec_config = match.group(1)
         else:
-            log.exception(stack_info=True, msg=f"Input vector config could not be parsed from {call}")
+            log.exception(
+                stack_info=True,
+                msg=f"Input vector config could not be parsed from {call}",
+            )
             input_vec_config = None
 
         if input_vec_config not in producer.vec_configs:
-            log.exception(stack_info=True, msg=f"Input name from {call} not in producer vector configs {producer.vec_configs}")
+            log.exception(
+                stack_info=True,
+                msg=f"Input name from {call} not in producer vector configs {producer.vec_configs}",
+            )
         # Determine the index of the input vector config from the call
         vec_input_index = producer.vec_configs.index(input_vec_config)
         call = producer.call
@@ -334,7 +348,10 @@ class GraphParser:
 
             # outputs are not supported for this legacy producer
             if isinstance(producer.output, list):
-                log.exception(stack_info=True, msg="List outputs for legacy parsed calls are not supported.")
+                log.exception(
+                    stack_info=True,
+                    msg="List outputs for legacy parsed calls are not supported.",
+                )
 
     def parse_ExtendedVectorProducer(self, producer, parent, scope, align=""):
         """Parse an ExtendedVectorProducer class instance into graph nodes, inputs, and outputs.
@@ -448,7 +465,9 @@ class GraphParser:
             align (str, optional): Debug print alignment spacing. Defaults to "".
         """
         log.debug(f"{align}Adding BaseFilter: {producer.name}")
-        log.warning(f"!!! {producer.name} is a legacy producer and should be replaced with Filter !!!")
+        log.warning(
+            f"!!! {producer.name} is a legacy producer and should be replaced with Filter !!!"
+        )
         call = producer.call
         config_data = self.extract_configs(call, scope)
         self.add_node(
@@ -511,14 +530,23 @@ class GraphParser:
         )
         if len(producers) > 0:
             if len(producers) != 1:
-                log.exception(stack_info=True, msg=f"Num producers for out {req_out}: {len(producers)}")
+                log.exception(
+                    stack_info=True,
+                    msg=f"Num producers for out {req_out}: {len(producers)}",
+                )
             if self.node_family_register.get(producers[0]):
                 self.node_family_register[producers[0]]["file_out"].append(req_out)
             else:
-                log.exception(stack_info=True, msg=f"Source {producers[0]} is neither part of {scope} nor global scope.")
+                log.exception(
+                    stack_info=True,
+                    msg=f"Source {producers[0]} is neither part of {scope} nor global scope.",
+                )
         else:
             if not (req_out in self.external_inputs):
-                log.exception(stack_info=True, msg=f"Requested output {req_out} is not provided by NanoAOD/Ntuple.")
+                log.exception(
+                    stack_info=True,
+                    msg=f"Requested output {req_out} is not provided by NanoAOD/Ntuple.",
+                )
 
     def assemble_connections(self):
         """Resolve mappings to construct the actual connecting edges in the DAG.
@@ -555,12 +583,17 @@ class GraphParser:
                                 "NanoAOD"
                             ].append(req_input)
                     else:
-                        log.exception(stack_info=True, msg=f"Input {req_input} is missing from NanoAOD/Ntuple and producers.")
+                        log.exception(
+                            stack_info=True,
+                            msg=f"Input {req_input} is missing from NanoAOD/Ntuple and producers.",
+                        )
 
                 # Create connections grouped by source node
                 for source_node, input_names in compose.items():
                     for input_name in input_names:
-                        log.debug(f"Adding Connection {input_name} from {source_node} to {target_node}")
+                        log.debug(
+                            f"Adding Connection {input_name} from {source_node} to {target_node}"
+                        )
                         self.add_connection(
                             source=source_node, target=target_node, name=input_name
                         )
@@ -585,7 +618,9 @@ class GraphParser:
                     proxy_edge_name = f"proxyedge_{name}_{location}"
                     leaf_edge_name = f"{name}_{target}"
                     log.debug(f"Label at {location}")
-                    log.debug(f"    Adding proxy node {proxy_node_name} with parent {location}")
+                    log.debug(
+                        f"    Adding proxy node {proxy_node_name} with parent {location}"
+                    )
                     self.add_node(
                         id_name=proxy_node_name,
                         name=name,
@@ -593,7 +628,9 @@ class GraphParser:
                         node_type="proxy",
                         family=f"edge_{name}",
                     )
-                    log.debug(f"    Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight 1")
+                    log.debug(
+                        f"    Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight 1"
+                    )
                     self.add_edge(
                         source=source,
                         target=proxy_node_name,
@@ -602,7 +639,9 @@ class GraphParser:
                         edge_type="twig",
                         family=f"edge_{name}",
                     )
-                    log.debug(f"    Adding final edge {leaf_edge_name} from {proxy_node_name} to {target} with weight 1")
+                    log.debug(
+                        f"    Adding final edge {leaf_edge_name} from {proxy_node_name} to {target} with weight 1"
+                    )
                     self.add_edge(
                         source=proxy_node_name,
                         target=target,
@@ -689,7 +728,9 @@ class GraphParser:
             proxy_node_name = f"proxy_{name}_{proxy_loc}"
             proxy_edge_name = f"proxyedge_{name}_{proxy_loc}"
             log.debug(f"{align}Junction at {proxy_loc}")
-            log.debug(f"{align}    Adding proxy node {proxy_node_name} with parent {proxy_loc}")
+            log.debug(
+                f"{align}    Adding proxy node {proxy_node_name} with parent {proxy_loc}"
+            )
             self.add_node(
                 id_name=proxy_node_name,
                 name=name,
@@ -697,7 +738,9 @@ class GraphParser:
                 node_type="proxy",
                 family=f"edge_{name}",
             )
-            log.debug(f"{align}    Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight {len(valid_idx)}")
+            log.debug(
+                f"{align}    Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight {len(valid_idx)}"
+            )
             self.add_edge(
                 source=source,
                 target=proxy_node_name,
@@ -715,7 +758,9 @@ class GraphParser:
                     # Add leaf edge if only 1 connection remains
                     leaf_name = data[part_idx[0]][-1]
                     leaf_edge_name = f"{name}_{leaf_name}"
-                    log.debug(f"{align}    Adding final edge {leaf_edge_name} from {proxy_node_name} to {leaf_name} with weight 1")
+                    log.debug(
+                        f"{align}    Adding final edge {leaf_edge_name} from {proxy_node_name} to {leaf_name} with weight 1"
+                    )
                     self.add_edge(
                         source=proxy_node_name,
                         target=leaf_name,
@@ -727,7 +772,13 @@ class GraphParser:
                 else:
                     # Go deeper if more than 1 connection remains
                     self.construct_proxies(
-                        name, data, part_idx, tot_idx, rank + 1, proxy_node_name, align="    "
+                        name,
+                        data,
+                        part_idx,
+                        tot_idx,
+                        rank + 1,
+                        proxy_node_name,
+                        align="    ",
                     )
 
     def compile_shift_registry(self):
@@ -738,12 +789,17 @@ class GraphParser:
             for shift, value in self.config.shifts[scope].items():
                 # Strip "__" of shift name
                 if not shift[0:2] == "__":
-                    log.exception(stack_info=True, msg=f"Shift names must start with '__' -> Shift {shift}")
+                    log.exception(
+                        stack_info=True,
+                        msg=f"Shift names must start with '__' -> Shift {shift}",
+                    )
                 shift = shift[2:]
                 merger = aggregated_shifts[shift]
                 conflict = merger.keys() & value.keys() and merger != value
                 if conflict:
-                    log.exception(stack_info=True, msg=f"Merge conflict on keys: {conflict}")
+                    log.exception(
+                        stack_info=True, msg=f"Merge conflict on keys: {conflict}"
+                    )
                 merger |= value
 
         for shift, shift_configs in aggregated_shifts.items():
@@ -835,7 +891,9 @@ class GraphParser:
         """
         node_id = f"{scope}_{output_node}"
         if node_id in self.outputs[scope][output_name]:
-            log.exception(stack_info=True, msg=f"Node {node_id} already exists in output nodes.")
+            log.exception(
+                stack_info=True, msg=f"Node {node_id} already exists in output nodes."
+            )
         self.outputs[scope][output_name].append(node_id)
 
     def add_input(self, input_name, input_node, scope):
@@ -851,7 +909,9 @@ class GraphParser:
         """
         scoped_input = f"{scope}_{input_node}"
         if input_name in self.inputs[scope][scoped_input]:
-            log.exception(stack_info=True, msg=f"Input {input_name} already exists in inputs.")
+            log.exception(
+                stack_info=True, msg=f"Input {input_name} already exists in inputs."
+            )
         self.inputs[scope][scoped_input].append(input_name)
 
     def add_node(
@@ -885,7 +945,9 @@ class GraphParser:
                         or if a full ID already exists within the standard family register.
         """
         if node_type and is_filter:
-            log.exception(stack_info=True, msg="Cannot specify both node_type and is_filter")
+            log.exception(
+                stack_info=True, msg="Cannot specify both node_type and is_filter"
+            )
         if is_filter:
             node_type = "filter"
         if not name:
@@ -903,7 +965,10 @@ class GraphParser:
         else:
             family = id_name
             if self.node_family_register.get(id_name):
-                log.exception(stack_info=True, msg=f"Node {id_name} already exists in family register")
+                log.exception(
+                    stack_info=True,
+                    msg=f"Node {id_name} already exists in family register",
+                )
             self.node_family_register[family]["name"] = name
             if parent:
                 self.node_family_register[family]["parent"] = parent
