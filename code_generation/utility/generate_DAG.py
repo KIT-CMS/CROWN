@@ -11,7 +11,7 @@ from code_generation.helpers import is_empty
 log = logging.getLogger(__name__)
 
 
-def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=False):
+def create_graph(configuration, external_inputs, DAG_dir, json_name):
     """Instantiate a GraphParser and execute DAG generation.
 
     Args:
@@ -19,7 +19,6 @@ def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=F
         external_inputs (list): List of external input quantities from NanoAOD.
         DAG_dir (str): Directory where the generated DAG JSON files will be saved.
         json_name (str): The base name for the output JSON file.
-        debugging (bool, optional): If True, prints detailed debugging information. Defaults to False.
     """
     for active_scope in configuration.scopes:
         # Skip global scope as it is included in all other scopes
@@ -48,7 +47,6 @@ def create_graph(configuration, external_inputs, DAG_dir, json_name, debugging=F
                 DAG_dir,
                 is_friend_config=is_friend_config,
                 shifted_inputs=shifted_inputs,
-                debugging=debugging,
             )
             # Generate and save graph for each scope separately
             graph.generate_graph()
@@ -69,7 +67,6 @@ class GraphParser:
         DAG_dir="",
         is_friend_config=False,
         shifted_inputs=None,
-        debugging=False,
     ):
         """Initialize the GraphParser object.
 
@@ -79,7 +76,6 @@ class GraphParser:
             active_scope (str): The specific scope being parsed in addition to the global scope.
             DAG_dir (str, optional): The directory for saving DAG files. Defaults to "".
             is_friend_config (bool, optional): Indicates if it's a friend configuration. Defaults to False.
-            debugging (bool, optional): Enables debug print statements. Defaults to False.
         """
         self.config = config
         self.active_scope = active_scope
@@ -90,7 +86,6 @@ class GraphParser:
         self.external_inputs = external_inputs
         self.is_friend_config = is_friend_config
         self.shifted_inputs = shifted_inputs
-        self.debugging = debugging
         self.connections = defaultdict(lambda: defaultdict(list))
         self.edges = []
         self.inputs = defaultdict(lambda: defaultdict(list))
