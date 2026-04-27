@@ -90,6 +90,7 @@ class GraphParser:
         self.edges = []
         self.inputs = defaultdict(lambda: defaultdict(list))
         self.outputs = defaultdict(lambda: defaultdict(list))
+        self.direct_in_to_out = []
         self.vec_output_mappings = {}
         self.node_family_register = defaultdict(
             lambda: {
@@ -537,10 +538,13 @@ class GraphParser:
                     msg=f"Source {producers[0]} is neither part of {scope} nor global scope.",
                 )
         else:
-            if not (req_out in self.external_inputs):
+            if req_out in self.external_inputs:
+                log.debug(f"Requested output quantity {req_out} provided by NanoAOD/Ntuple.")
+                self.direct_in_to_out.append(req_out)
+            else:
                 log.exception(
                     stack_info=True,
-                    msg=f"Requested output {req_out} is not provided by NanoAOD/Ntuple.",
+                    msg=f"Requested output quantity {req_out} not provided by NanoAOD/Ntuple.",
                 )
 
     def assemble_connections(self):
@@ -1015,10 +1019,17 @@ class GraphParser:
             path = Path(self.DAG_dir) / path
             Path(self.DAG_dir).mkdir(parents=True, exist_ok=True)
 
+        # Set direct input/output type (Currently uniform across all input data)
+        if self.is_friend_config:
+            direct_in_to_out_type = "Ntuple"
+        else:
+            direct_in_to_out_type = "NanoAOD"
+
         # Compile DAG data with metadata
         full_data = {
             "nodeFamilyRegister": self.node_family_register,
             "edgeFamilyRegister": self.edge_family_register,
+            "directInputOutput": {"members": self.direct_in_to_out, "type": direct_in_to_out_type},
             "shiftRegistry": self.shift_registry,
         }
 
@@ -1032,6 +1043,7 @@ class GraphParser:
         # Write DAG data to json
         with open(path, "w") as f:
             json.dump(full_data, f, indent=4)
+        log.info(f"Generated DAG file for {self.config.era}/{self.config.sample}/{self.active_scope}: {path}")
 
         # Update master DAG file list
         self.update_DAG_file_list(
