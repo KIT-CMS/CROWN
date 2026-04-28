@@ -66,7 +66,7 @@ inline auto CombineFlags(ROOT::RDF::RNode df, const std::string &outputname,
 
 namespace quantity {
 /**
- * @brief This function creates a flag column based on a quantity. 
+ * @brief This function creates a flag column based on a quantity.
  * The flag is set to `true` if the quantity value is even and `false`
  * if it is odd. This can be useful for splitting datasets into two subsets.
  *
@@ -79,12 +79,13 @@ namespace quantity {
  * @return a dataframe with the new flag column
  */
 template <typename T>
-inline ROOT::RDF::RNode
-EvenOddFlag(ROOT::RDF::RNode df, const std::string &outputname,
-            const std::string &quantity) {
-    return df.Define(outputname, [](const T &quantity) {
-        return (quantity % 2 == 0) ? true : false;
-    }, {quantity});
+inline ROOT::RDF::RNode EvenOddFlag(ROOT::RDF::RNode df,
+                                    const std::string &outputname,
+                                    const std::string &quantity) {
+    return df.Define(
+        outputname,
+        [](const T &quantity) { return (quantity % 2 == 0) ? true : false; },
+        {quantity});
 }
 
 /**
@@ -843,7 +844,8 @@ inline ROOT::RDF::RNode Flag(ROOT::RDF::RNode df, const std::string &filtername,
 
 /**
  * @brief This function applies a filter to the input dataframe based on a
- * boolean flag column. It returns only the rows where the flag value is `false`.
+ * boolean flag column. It returns only the rows where the flag value is
+ * `false`.
  *
  * @param df input dataframe
  * @param filtername name of the filter to be applied (used in the dataframe

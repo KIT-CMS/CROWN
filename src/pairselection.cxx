@@ -111,8 +111,8 @@ ROOT::RDF::RNode buildgenpair(ROOT::RDF::RNode df,
  mother particle.
  *
  * @param df the Dataframe
- * @param outputname name of the new column containing the index of the two selected gen
- particles
+ * @param outputname name of the new column containing the index of the two
+ selected gen particles
  * @param statusflags the column containing the status flags of the gen
  particles
  * @param status the column containing the status of the genparticles (status=1
