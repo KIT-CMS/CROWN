@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# Configuration
 APPLY_FIXES=false
-
-# Parse CLI arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --apply) APPLY_FIXES=true ;;

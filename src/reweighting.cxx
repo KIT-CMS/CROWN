@@ -65,8 +65,8 @@ Pileup(ROOT::RDF::RNode df,
  * weight.
  *
  * Depending on the selected ISR and FSR value, a specific index has to be
- * identified. The mapping between the index and the ISR and FSR values is: ISR
- * | FSR        | index
+ * identified. The mapping between the index and the ISR and FSR values is:
+ *  ISR       | FSR        | index
  * -----------|------------|---------
  *  2.0       | 1.0        | 0
  *  1.0       | 2.0        | 1
@@ -141,7 +141,8 @@ ROOT::RDF::RNode PartonShower(ROOT::RDF::RNode df,
  *
  * Depending on the selected \f$\mu_R\f$ and \f$\mu_F\f$ value, a specific index
  * has to be identified. The mapping between the index and the \f$\mu_R\f$ and
- * \f$\mu_F\f$ values is: mu_f       | mu_r        | index
+ * \f$\mu_F\f$ values is:
+ *  mu_f       | mu_r        | index
  * ------------|-------------|---------
  *  0.5        | 0.5         | 0
  *  1.0        | 0.5         | 1
@@ -363,7 +364,7 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df, const std::string &outputname,
                        const std::string &genparticles_status_flags,
                        const std::string &genparticles_pt) {
     // In nanoAODv12 the type of genparticle status flags was changed to
-    // UShort_t For v9 compatibility a type casting is applied
+    // UShort_t. For v9 compatibility a type casting is applied.
     auto [df1, genparticles_status_flags_column] =
         utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
             df, genparticles_status_flags + "_v12",

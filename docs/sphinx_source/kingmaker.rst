@@ -35,7 +35,13 @@ The setup script has also additional options:
     -l, --list                List available workflows
     -h, --help                Show this help message
 
-It is possible that the session failes to connect to the remote scheduler after some time. The ```set_luigiport``` function can be used to connect the scheduler to a new port (see PR https://github.com/KIT-CMS/KingMaker/pull/77).
+It is possible that the session failes to connect to the remote scheduler after some time.
+After ``source setup.sh`` is run, the scheduler is running on a random port, which is stored in the ``LUIGIPORT`` environment variable.
+If the connection to the scheduler is lost, a new port can be set using the following command:
+
+.. code-block:: bash
+
+    set_luigiport
 
 
 Management of samples

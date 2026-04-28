@@ -78,6 +78,8 @@ It is also possible to use an alternative container instead of the default (``/c
 
    bash init.sh -c "<container>"
 
+If the container argument is set to ``none``, it is expected that you currently are in an environment where the framework can be used without a container, e.g. a local machine with all dependencies installed or a conda environment.
+
 Finally, with the ``-d``/``--dry-run`` argument the analysis configuration is cloned, but the container is not started.
 
 Running the framework
@@ -122,6 +124,7 @@ Compile the executable using
 
    make install -j 8
 
+Since CROWN profits from the parallelization of the build process, the number of threads can and should be set using the :code:`-j` option.
 After the compilation, the CROWN executable can be found in the :code:`build/bin` folder. The executable can be used via a single output file followed by an arbitrary number of input files.
 
 .. code-block:: console

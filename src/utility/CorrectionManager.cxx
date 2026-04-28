@@ -109,6 +109,7 @@ CorrectionManager::loadCompoundCorrection(const std::string &filePath,
  * stored in the CorrectionManager.
  *
  * @param filePath The path to the json file
+ *
  * @return const nlohmann::json
  */
 const nlohmann::json *CorrectionManager::loadjson(const std::string &filePath) {

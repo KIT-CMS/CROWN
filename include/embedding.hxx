@@ -50,7 +50,7 @@ PtCorrection(ROOT::RDF::RNode df,
 ROOT::RDF::RNode
 Scalefactor(ROOT::RDF::RNode df,
             correctionManager::CorrectionManager &correction_manager,
-            const std::string &output, const std::string &pt,
+            const std::string &outputname, const std::string &pt,
             const std::string &eta, const std::string &sf_file,
             const std::string &sf_name, const std::string correction_type,
             const float &extrapolation_factor = 1.0);

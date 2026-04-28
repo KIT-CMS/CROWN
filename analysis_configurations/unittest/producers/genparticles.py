@@ -7,42 +7,42 @@ from code_generation.producer import Producer, ProducerGroup
 ####################
 MTGenPair = Producer(
     name="MTGenPair",
-    call="ditau_pairselection::buildgenpair({df}, {input}, {output})",
+    call="ditau_pairselection::buildgenpair({df}, {output}, {input})",
     input=[q.dileptonpair, nanoAOD.Muon_genPartIdx, nanoAOD.Tau_genPartIdx],
     output=[q.gen_dileptonpair],
     scopes=["mt"],
 )
 ETGenPair = Producer(
     name="ETGenPair",
-    call="ditau_pairselection::buildgenpair({df}, {input}, {output})",
+    call="ditau_pairselection::buildgenpair({df}, {output}, {input})",
     input=[q.dileptonpair, nanoAOD.Electron_genPartIdx, nanoAOD.Tau_genPartIdx],
     output=[q.gen_dileptonpair],
     scopes=["et"],
 )
 TTGenPair = Producer(
     name="TTGenPair",
-    call="ditau_pairselection::buildgenpair({df}, {input}, {output})",
+    call="ditau_pairselection::buildgenpair({df}, {output}, {input})",
     input=[q.dileptonpair, nanoAOD.Tau_genPartIdx, nanoAOD.Tau_genPartIdx],
     output=[q.gen_dileptonpair],
     scopes=["tt"],
 )
 EMGenPair = Producer(
     name="EMGenPair",
-    call="ditau_pairselection::buildgenpair({df}, {input}, {output})",
+    call="ditau_pairselection::buildgenpair({df}, {output}, {input})",
     input=[q.dileptonpair, nanoAOD.Electron_genPartIdx, nanoAOD.Muon_genPartIdx],
     output=[q.gen_dileptonpair],
     scopes=["em"],
 )
 MMGenPair = Producer(
     name="MMGenPair",
-    call="ditau_pairselection::buildgenpair({df}, {input}, {output})",
+    call="ditau_pairselection::buildgenpair({df}, {output}, {input})",
     input=[q.dileptonpair, nanoAOD.Muon_genPartIdx, nanoAOD.Muon_genPartIdx],
     output=[q.gen_dileptonpair],
     scopes=["mm"],
 )
 EEGenPair = Producer(
     name="EEGenPair",
-    call="ditau_pairselection::buildgenpair({df}, {input}, {output})",
+    call="ditau_pairselection::buildgenpair({df}, {output}, {input})",
     input=[q.dileptonpair, nanoAOD.Electron_genPartIdx, nanoAOD.Electron_genPartIdx],
     output=[q.gen_dileptonpair],
     scopes=["ee"],
@@ -50,9 +50,9 @@ EEGenPair = Producer(
 MMTrueGenPair = Producer(
     name="GenPair",
     call="""ditau_pairselection::buildtruegenpair(
-        {df}, 
-        {input}, 
-        {output}, 
+        {df},
+        {output},
+        {input},
         {truegen_mother_pdgid}, 
         {truegen_daughter_1_pdgid}, 
         {truegen_daugher_2_pdgid})

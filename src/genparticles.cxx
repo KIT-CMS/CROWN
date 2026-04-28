@@ -248,7 +248,7 @@ ROOT::RDF::RNode GetVisibleBoson(
 
     if (!is_data) {
         // In nanoAODv12 the type of genparticle status flags was changed to
-        // UShort_t For v9 compatibility a type casting is applied
+        // UShort_t. For v9 compatibility a type casting is applied.
         auto [df1, genparticles_status_flags_column] =
             utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
                 df, genparticles_status_flags + "_v12",
@@ -293,8 +293,8 @@ ROOT::RDF::RNode HadronicGenTaus(ROOT::RDF::RNode df,
                                  const std::string &genparticles_status_flags,
                                  const std::string &genparticles_mother_index) {
     // In nanoAODv12 the type of genparticle status flags / mother index were
-    // changed to UShort_t / Short_t For v9 compatibility a type casting is
-    // applied
+    // changed to UShort_t / Short_t. For v9 compatibility a type casting is
+    // applied.
     auto [df1, genparticles_status_flags_column] =
         utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
             df, genparticles_status_flags + "_v12",
@@ -470,7 +470,7 @@ ROOT::RDF::RNode GenMatching(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &genparticles_mass,
                              const std::string &reco_had_tau) {
     // In nanoAODv12 the type of genparticle status flags was changed to
-    // UShort_t For v9 compatibility a type casting is applied
+    // UShort_t. For v9 compatibility a type casting is applied.
     auto [df1, genparticles_status_flags_column] =
         utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
             df, genparticles_status_flags + "_v12",
@@ -671,8 +671,8 @@ ROOT::RDF::RNode GenMatching(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &genparticles_mass,
                              const std::string &reco_had_tau) {
     // In nanoAODv12 the type of genparticle status flags / mother index were
-    // changed to UShort_t / Short_t For v9 compatibility a type casting is
-    // applied
+    // changed to UShort_t / Short_t. For v9 compatibility a type casting is
+    // applied.
     auto [df1, genparticles_status_flags_column] =
         utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
             df, genparticles_status_flags + "_v12",
