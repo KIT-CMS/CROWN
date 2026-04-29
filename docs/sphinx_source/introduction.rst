@@ -38,13 +38,13 @@ and set up the container environment
 
 .. code-block:: console
 
-   bash init.sh
+   source init.sh
 
 After this, the framework is ready to use, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the ``-a``/``--analysis`` argument and the name of the analysis to your ``init.sh`` command. So e.g. to set up the `tau` Analysis, you can do so by running
 
 .. code-block:: console
 
-   bash init.sh -a tau
+   source init.sh -a tau
 
 The following list shows all currently available analyses that can be set up.
 
@@ -76,7 +76,7 @@ It is also possible to use an alternative container instead of the default (``/c
 
 .. code-block:: console
 
-   bash init.sh -c "<container>"
+   source init.sh -c "<container>"
 
 If the container argument is set to ``none``, it is expected that you currently are in an environment where the framework can be used without a container, e.g. a local machine with all dependencies installed or a conda environment.
 
