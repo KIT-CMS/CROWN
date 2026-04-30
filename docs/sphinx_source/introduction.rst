@@ -34,19 +34,19 @@ First, clone the Repository
 
    git clone --recurse-submodules git@github.com:KIT-CMS/CROWN.git
 
-and source the current LCG stack
+and set up the container environment
 
 .. code-block:: console
 
    source init.sh
 
-After this, the framework is installed, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the name of the analysis to your ``init.sh`` command. So e.g. to set up the `tau` Analysis, you can do so by running
+After this, the framework is ready to use, but without any analysis, other than the example analysis. If you want to set up a specific analysis, you can do so by adding the ``-a``/``--analysis`` argument and the name of the analysis to your ``init.sh`` command. So e.g. to set up the `tau` Analysis, you can do so by running
 
 .. code-block:: console
 
-   source init.sh tau
+   source init.sh -a tau
 
-The following list shows all currently available analyses that can be set up. If you want to include your own analysis, it needs to be added to the ``init.sh`` script. 
+The following list shows all currently available analyses that can be set up.
 
 .. list-table:: Available Analyses Configurations for CROWN
    :widths: 25 150
@@ -68,6 +68,19 @@ The following list shows all currently available analyses that can be set up. If
      - https://github.com/KIT-CMS/XYHBBTauTauAnalysis-CROWN
    * - ``haa``
      - https://github.com/KIT-CMS/HaaAnalysis-CROWN
+
+The same list is also provided by the ``-l``/``--list`` argument of the ``init.sh`` script.
+If you want to include your own analysis, it needs to be added to the ``init.sh`` script.
+
+It is also possible to use an alternative container instead of the default (``/cvmfs/unpacked.cern.ch/registry.hub.docker.com/tvoigtlaender/kingmaker_standalone:V1.5``), by using the ``-c``/``--container`` argument.
+
+.. code-block:: console
+
+   source init.sh -c "<container>"
+
+If the container argument is set to ``none``, it is expected that you currently are in an environment where the framework can be used without a container, e.g. a local machine with all dependencies installed or a conda environment.
+
+Finally, with the ``-d``/``--dry-run`` argument the analysis configuration is cloned, but the container is not started.
 
 Running the framework
 **********************
@@ -111,9 +124,7 @@ Compile the executable using
 
    make install -j 8
 
-The recommended build system is using regular UNIX build files, however, as an additional option, the ninja build system (https://ninja-build.org/) can be used for CROWN. To use ninja, set :code:`export CMAKE_GENERATOR="Ninja"` in the :code:`init.sh` as env variable, and then use the :code:`ninja install -j 8` command to compile the executable. Since CROWN profits from the parallelization of the build process, the number of threads can and should be set using the :code:`-j` option.
-
-
+Since CROWN profits from the parallelization of the build process, the number of threads can and should be set using the :code:`-j` option.
 After the compilation, the CROWN executable can be found in the :code:`build/bin` folder. The executable can be used via a single output file followed by an arbitrary number of input files.
 
 .. code-block:: console
