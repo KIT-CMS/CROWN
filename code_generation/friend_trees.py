@@ -144,10 +144,7 @@ class FriendTreeConfiguration(Configuration):
         metadata: Dict[str, Any] = {},
     ) -> Dict[str, Dict[str, List[str]]]:
         def update_input_information(existing_data, new_data):
-            # if existing_data == {}:
-            #     return new_data
-            # else:
-            # otherwise we have to merge the contents, while not overwriting existing data
+            # Merge contents, while not overwriting existing data
             for scope in new_data.keys():
                 if scope not in existing_data.keys():
                     existing_data[scope] = {}
@@ -156,6 +153,7 @@ class FriendTreeConfiguration(Configuration):
                         existing_data[scope][shift] = []
                     for quantity in new_data[scope][shift]:
                         if quantity not in existing_data[scope][shift]:
+                            # Add origin config to quantity for naviagation with multifriends
                             existing_data[scope][shift].append((quantity, metadata["metadata"]["config"]))
             return existing_data
 
