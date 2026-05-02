@@ -25,15 +25,15 @@ The setup script has also additional options:
     Usage: source setup.sh [options]
 
     Options:
-    -a, --analysis ANALYSIS    Specify the analysis workflow to use
+    -w, --workflow WORKFLOW     Specify the workflow to use
                                 [default: KingMaker]
-    -c, --crown-analysis NAME  Specify CROWN analysis to check out (only with KingMaker workflow)
+    -a, --analysis NAME         Specify CROWN analysis to check out (only with KingMaker workflow)
                                 [default: plain CROWN]
                                 Available analyses: https://crown.readthedocs.io/en/latest/introduction.html#id1
-    -e, --env-path PATH       Specify custom environment path
+    -e, --env-path PATH         Specify custom environment path
                                 [default: auto-detected]
-    -l, --list                List available workflows
-    -h, --help                Show this help message
+    -l, --list                  List available workflows
+    -h, --help                  Show this help message
 
 It is possible that the session failes to connect to the remote scheduler after some time.
 After ``source setup.sh`` is run, the scheduler is running on a random port, which is stored in the ``LUIGIPORT`` environment variable.
