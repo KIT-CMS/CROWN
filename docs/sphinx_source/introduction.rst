@@ -72,13 +72,14 @@ The following list shows all currently available analyses that can be set up.
 The same list is also provided by the ``-l``/``--list`` argument of the ``init.sh`` script.
 If you want to include your own analysis, it needs to be added to the ``init.sh`` script.
 
-It is also possible to use an alternative container instead of the default (``/cvmfs/unpacked.cern.ch/registry.hub.docker.com/tvoigtlaender/kingmaker_standalone:V1.5``), by using the ``-c``/``--container`` argument.
+It is also possible to use an alternative container instead of the default (``/cvmfs/unpacked.cern.ch/registry.hub.docker.com/kingmakerimages/kingmaker_standalone:V1``), by using the ``-c``/``--container`` argument.
 
 .. code-block:: console
 
    source init.sh -c "<container>"
 
 If the container argument is set to ``none``, it is expected that you currently are in an environment where the framework can be used without a container, e.g. a local machine with all dependencies installed or a conda environment.
+Additionally, the container can be set to ``lcg``, which will use the LCG stack environment instead of the default container. 
 
 Finally, with the ``-d``/``--dry-run`` argument the analysis configuration is cloned, but the container is not started.
 

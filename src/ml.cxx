@@ -21,7 +21,7 @@
 #include <iostream>
 #include <memory>
 #include <nlohmann/json.hpp>
-#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
+#include <onnxruntime_cxx_api.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

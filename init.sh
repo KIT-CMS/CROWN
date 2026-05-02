@@ -7,7 +7,7 @@ action() {
 
     # --- Define defaults ---
     DEFAULT_CROWN_ANALYSIS=""
-    DEFAULT_CONTAINER="/cvmfs/unpacked.cern.ch/registry.hub.docker.com/tvoigtlaender/kingmaker_standalone:V1.5"
+    DEFAULT_CONTAINER="/cvmfs/unpacked.cern.ch/registry.hub.docker.com/kingmakerimages/kingmaker_standalone:V1"
     DEFAULT_DRY_RUN=false
     CROWN_ANALYSIS=${DEFAULT_CROWN_ANALYSIS}
     CONTAINER=${DEFAULT_CONTAINER}
@@ -117,6 +117,9 @@ action() {
         export CCACHE_DIR=${ANALYSIS_PATH}/.cache/ccache;
         export CMAKE_GENERATOR='Unix Makefiles';
         export EXTRA_CLING_ARGS='-O2';
+    elif [[ "$CONTAINER" == "lcg" ]]; then
+        echo "Initializing LCG stack environment..."
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_108/x86_64-el9-gcc15-opt/setup.sh
     else
         # --- Get the absolute path of the parent git repository ---
         # checks/git-status.sh fails if top level git directory is not mounted in
