@@ -55,7 +55,6 @@ def create_graph(configuration, NanoAOD_inputs, DAG_dir, json_name):
                     if shift != ""
                 }
             else:
-                external_inputs = NanoAOD_inputs
                 shifted_inputs = None
             graph = GraphParser(
                 configuration,
