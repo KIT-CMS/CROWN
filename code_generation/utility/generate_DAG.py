@@ -7,16 +7,19 @@ from pathlib import Path
 from collections import defaultdict
 from code_generation.quantity import QuantityGroup
 from code_generation.helpers import is_empty
+from typing import Never
 
 log = logging.getLogger(__name__)
+def log_and_fail(msg: str) -> Never:
+    log.exception(msg, stack_info=True)
+    raise RuntimeError(msg)
 
-
-def create_graph(configuration, external_inputs, DAG_dir, json_name):
+def create_graph(configuration, NanoAOD_inputs, DAG_dir, json_name):
     """Instantiate a GraphParser and execute DAG generation.
 
     Args:
         configuration (object): The configuration object containing scopes and producers.
-        external_inputs (list): List of external input quantities from NanoAOD.
+        NanoAOD_inputs (list): List of NanoAOD input quantities.
         DAG_dir (str): Directory where the generated DAG JSON files will be saved.
         json_name (str): The base name for the output JSON file.
     """
@@ -26,20 +29,34 @@ def create_graph(configuration, external_inputs, DAG_dir, json_name):
             pass
         else:
             # Add Ntuple quantities for friends
-            is_friend_config = False
-            shifted_inputs = None
+
+            if type(configuration).__name__ == "FriendTreeConfiguration":
+                external_inputs = {}
+                is_friend_config = True
+            elif type(configuration).__name__ == "Configuration":
+                external_inputs = {"NanoAOD": NanoAOD_inputs}
+                is_friend_config = False
+            else:
+                log_and_fail(f"Unknown configuration type: {type(configuration).__name__}")
+
             if hasattr(configuration, "input_quantities_mapping"):
-                external_inputs = configuration.input_quantities_mapping[active_scope][
+                if not is_friend_config:
+                    log_and_fail("input_quantities_mapping is only supported for friend configurations.")
+                external_inputs_tuples = configuration.input_quantities_mapping[active_scope][
                     ""
                 ]
+                config_sources = defaultdict(list)
+                for quantity, config in external_inputs_tuples:
+                    config_sources[config].append(quantity)
+                external_inputs.update(config_sources)
                 shifted_inputs = {
-                    shift: e_in
-                    for shift, e_in in configuration.input_quantities_mapping[
-                        active_scope
-                    ].items()
+                    shift: [original for original, *_ in e_in]
+                    for shift, e_in in configuration.input_quantities_mapping[active_scope].items()
                     if shift != ""
                 }
-                is_friend_config = True
+            else:
+                external_inputs = NanoAOD_inputs
+                shifted_inputs = None
             graph = GraphParser(
                 configuration,
                 external_inputs,
@@ -90,30 +107,20 @@ class GraphParser:
         self.edges = []
         self.inputs = defaultdict(lambda: defaultdict(list))
         self.outputs = defaultdict(lambda: defaultdict(list))
-        self.direct_in_to_out = []
+        self.direct_in_to_out = {}
         self.vec_output_mappings = {}
-        self.node_family_register = defaultdict(
+        self.node_register = defaultdict(
             lambda: {
-                # "id": None,
                 "name": None,
                 "parent": None,
                 "type": None,
-                "file_in": {"NanoAOD": [], "Ntuple": []},
+                "file_in": defaultdict(list),
                 "file_out": [],
                 "node_call": None,
                 "node_call_configs": {},
             }
         )
-        self.edge_family_register = defaultdict(
-            lambda: {
-                "name": None,
-                "familyHead": None,
-                "nodes": defaultdict(dict),
-                "edges": defaultdict(dict),
-            }
-        )
         self.shift_registry = defaultdict()
-        # self.DAG_data = None
         self.DAG_dir = DAG_dir
 
     def generate_graph(self):
@@ -133,16 +140,13 @@ class GraphParser:
         # Identify nodes without a specific type and without any outgoing connections
         # This excludes filters, groups, vector groups, and scopes.
         # While they are only defined afterwards this also excludes proxy nodes and edges (branch, twig, leaf).
-        for node_id, node_data in self.node_family_register.items():
+        for node_id, node_data in self.node_register.items():
             if (
                 not node_data.get("type")
                 and is_empty(node_data.get("file_out"))
                 and node_id not in self.connections
             ):
                 node_data["type"] = "stump"
-
-        # Bundle edges for quantities with multiple targets
-        self.bundle_edges()
 
         self.compile_shift_registry()
 
@@ -180,10 +184,7 @@ class GraphParser:
                 scope
             ].get(key, [])
             if len(set(total_output_nodes)) != 1:
-                log.exception(
-                    stack_info=True,
-                    msg=f"Output {key} has multiple origins: {total_output_nodes}",
-                )
+                log_and_fail(f"Output {key} has multiple origins: {total_output_nodes}")
 
         # Determine nodes writing to Ntuple by tracing configured scope outputs back to their producers
         if hasattr(self.config, "outputs") and scope in self.config.outputs:
@@ -243,7 +244,7 @@ class GraphParser:
                 producer=producer, parent=parent, scope=scope, align=align
             )
         else:
-            log.exception(stack_info=True, msg=f"Unknown Producer class {class_name}")
+            log_and_fail(f"Unknown Producer class {class_name}")
 
     def parse_VectorProducer(self, producer, parent, scope, align=""):
         """Map legacy vector configurations to graph nodes and inputs using regex.
@@ -272,10 +273,7 @@ class GraphParser:
                 producer=producer, parent=parent, scope=scope, align=align
             )
         else:
-            log.exception(
-                stack_info=True,
-                msg=f"The call {producer.call} does not have legacy support.",
-            )
+            log_and_fail(f"The call {producer.call} does not have legacy support.")
 
     def parse_Flag_from_call(self, producer, parent, scope, align=""):
         """Extract vector configurations from a legacy producer's call string using regex.
@@ -299,17 +297,11 @@ class GraphParser:
         if match:
             input_vec_config = match.group(1)
         else:
-            log.exception(
-                stack_info=True,
-                msg=f"Input vector config could not be parsed from {call}",
-            )
+            log_and_fail(f"Input vector config could not be parsed from {call}")
             input_vec_config = None
 
         if input_vec_config not in producer.vec_configs:
-            log.exception(
-                stack_info=True,
-                msg=f"Input name from {call} not in producer vector configs {producer.vec_configs}",
-            )
+            log_and_fail(f"Input name from {call} not in producer vector configs {producer.vec_configs}")
         # Determine the index of the input vector config from the call
         vec_input_index = producer.vec_configs.index(input_vec_config)
         call = producer.call
@@ -344,10 +336,7 @@ class GraphParser:
 
             # outputs are not supported for this legacy producer
             if isinstance(producer.output, list):
-                log.exception(
-                    stack_info=True,
-                    msg="List outputs for legacy parsed calls are not supported.",
-                )
+                log_and_fail("List outputs for legacy parsed calls are not supported.")
 
     def parse_ExtendedVectorProducer(self, producer, parent, scope, align=""):
         """Parse an ExtendedVectorProducer class instance into graph nodes, inputs, and outputs.
@@ -526,26 +515,25 @@ class GraphParser:
         )
         if len(producers) > 0:
             if len(producers) != 1:
-                log.exception(
-                    stack_info=True,
-                    msg=f"Num producers for out {req_out}: {len(producers)}",
-                )
-            if self.node_family_register.get(producers[0]):
-                self.node_family_register[producers[0]]["file_out"].append(req_out)
+                log_and_fail(f"Num producers for out {req_out}: {len(producers)}")
+            if self.node_register.get(producers[0]):
+                self.node_register[producers[0]]["file_out"].append(req_out)
             else:
-                log.exception(
-                    stack_info=True,
-                    msg=f"Source {producers[0]} is neither part of {scope} nor global scope.",
-                )
+                log_and_fail(f"Source {producers[0]} is neither part of {scope} nor global scope.")
         else:
-            if req_out in self.external_inputs:
-                log.debug(f"Requested output quantity {req_out} provided by NanoAOD/Ntuple.")
-                self.direct_in_to_out.append(req_out)
+            if req_out in set().union(*self.external_inputs.values()):
+                if self.is_friend_config:
+                    keys = [k for k, values in self.external_inputs.items() if req_out in values]
+                    if len(keys) > 1:
+                        log.warning(f"Input {req_out} available from multiple sources {keys}. Picking the first one {keys[0]}.")
+                    quantity_source = keys[0]
+                    log.debug(f"Requested output quantity {req_out} provided by {quantity_source} Ntuple.")
+                    self.direct_in_to_out[req_out] = quantity_source
+                else:
+                    log.debug(f"Requested output quantity {req_out} provided by NanoAOD.")
+                    self.direct_in_to_out[req_out] = "NanoAOD"
             else:
-                log.exception(
-                    stack_info=True,
-                    msg=f"Requested output quantity {req_out} not provided by NanoAOD/Ntuple.",
-                )
+                log_and_fail(f"Requested output quantity {req_out} not provided by NanoAOD/Ntuple.")
 
     def assemble_connections(self):
         """Resolve mappings to construct the actual connecting edges in the DAG.
@@ -556,6 +544,7 @@ class GraphParser:
         Raises:
             ValueError: If an input is entirely missing from both external sources and internal producers.
         """
+        all_external_inputs = set().union(*self.external_inputs.values())
         for scope in self.scopes:
             # Assemble connections by iterating through all nodes
             # {target_node: [required_inputs]} is matched to {input: [source_nodes]}
@@ -571,21 +560,18 @@ class GraphParser:
                     elif self.outputs[scope].get(req_input):
                         source = self.outputs[scope][req_input][0]
                         compose[source].append(req_input)
-                    elif req_input in self.external_inputs:
+                    elif req_input in all_external_inputs:
+                        # CROWN friend production may only read quantities from CROWN Ntuples
                         if self.is_friend_config:
-                            # CROWN friend production may only read quantities from  CROWN Ntuples
-                            self.node_family_register[target_node]["file_in"][
-                                "Ntuple"
-                            ].append(req_input)
+                            keys = [k for k, values in self.external_inputs.items() if req_input in values]
+                            if len(keys) > 1:
+                                log.warning(f"Input {req_input} available from multiple sources {keys}. Picking the first one {keys[0]}.")
+                            quantity_source = keys[0]
+                            self.node_register[target_node]["file_in"][quantity_source].append(req_input)
                         else:
-                            self.node_family_register[target_node]["file_in"][
-                                "NanoAOD"
-                            ].append(req_input)
+                            self.node_register[target_node]["file_in"]["NanoAOD"].append(req_input)
                     else:
-                        log.exception(
-                            stack_info=True,
-                            msg=f"Input {req_input} is missing from NanoAOD/Ntuple and producers.",
-                        )
+                        log_and_fail(f"Input {req_input} is missing from NanoAOD/Ntuple and producers.")
 
                 # Create connections grouped by source node
                 for source_node, input_names in compose.items():
@@ -597,189 +583,6 @@ class GraphParser:
                             source=source_node, target=target_node, name=input_name
                         )
 
-    def bundle_edges(self):
-        """Group connections based on common target locations to reduce clutter.
-
-        Creates structural proxy nodes and dynamic edge weighting based on the
-        number of overlapping connections.
-        """
-        # Apply bundling for each quantity separately
-        for source, dt in self.connections.items():
-            # Inner and outer loop as each source may have multiple output quantities
-            # And each quantity may be used by multiple target nodes
-            for name, targets in dt.items():
-                if len(targets) == 1:
-                    # Simplified case: only one target
-                    # One proxy node near source for edge label
-                    target = targets[0]
-                    location = self.node_family_register[source].get("parent")
-                    proxy_node_name = f"proxy_{name}_{location}"
-                    proxy_edge_name = f"proxyedge_{name}_{location}"
-                    leaf_edge_name = f"{name}_{target}"
-                    log.debug(f"Label at {location}")
-                    log.debug(
-                        f"    Adding proxy node {proxy_node_name} with parent {location}"
-                    )
-                    self.add_node(
-                        id_name=proxy_node_name,
-                        name=name,
-                        parent=location,
-                        node_type="proxy",
-                        family=f"edge_{name}",
-                    )
-                    log.debug(
-                        f"    Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight 1"
-                    )
-                    self.add_edge(
-                        source=source,
-                        target=proxy_node_name,
-                        edge_id=proxy_edge_name,
-                        weight=1,
-                        edge_type="twig",
-                        family=f"edge_{name}",
-                    )
-                    log.debug(
-                        f"    Adding final edge {leaf_edge_name} from {proxy_node_name} to {target} with weight 1"
-                    )
-                    self.add_edge(
-                        source=proxy_node_name,
-                        target=target,
-                        edge_id=leaf_edge_name,
-                        weight=1,
-                        edge_type="leaf",
-                        family=f"edge_{name}",
-                    )
-                else:
-                    # More than one target: Resolved through relative path bundling
-                    # Determine location relative to root
-                    source_history = self.get_ancestors(source)
-                    # Convert to relative path to source node
-                    relative_targets = [
-                        self.get_relative(source_history, self.get_ancestors(target))
-                        for target in targets
-                    ]
-                    # bundle based on relative location
-                    start_idx = list(range(len(relative_targets)))
-                    self.construct_proxies(
-                        name,
-                        relative_targets,
-                        start_idx,
-                        start_idx,
-                        0,
-                        relative_targets[0][0],  # type: ignore
-                    )
-
-    def get_ancestors(self, node_name):
-        """Traverse upwards to return a recursive list of a given node's parents.
-
-        Args:
-            node_name (str): The ID of the target node.
-
-        Returns:
-            list: A list of parent IDs sequentially ending with the requested node.
-        """
-        parent = self.node_family_register[node_name].get("parent")
-        if not parent:
-            return ["root", node_name]
-        else:
-            return self.get_ancestors(parent) + [node_name]
-
-    def get_relative(self, source_hist, target_hist):
-        """Calculate the relative path from a source tree path to a target tree path.
-
-        Args:
-            source_hist (list): The list of ancestors for the source node.
-            target_hist (list): The list of ancestors for the target node.
-
-        Returns:
-            list: The calculated relative path traversing upwards to the common ancestor and back down.
-        """
-        min_len = min(len(source_hist), len(target_hist))
-        # Find first non-matching element
-        for i in range(min_len):
-            if source_hist[i] != target_hist[i]:
-                # Return shortest path
-                return (
-                    list(reversed(source_hist[i:]))
-                    + [source_hist[i - 1]]
-                    + target_hist[i:]
-                )
-
-    def construct_proxies(self, name, data, valid_idx, tot_idx, rank, source, align=""):
-        """Recursively build proxy nodes and edges to visually structure bundled connections.
-
-        Args:
-            name (str): The name identifier of the bundled connection.
-            data (list): Path history data.
-            valid_idx (list): Currently valid indices within the data structure.
-            tot_idx (list): Total valid indices at the root operation.
-            rank (int): The current depth/rank in the path resolution.
-            source (str): The source node to tie the current proxy branch to.
-        """
-        # Get slice by current rank in path
-        data_slice = [data[i][rank] for i in tot_idx if i in valid_idx]
-        if len(set(data_slice)) <= 1:
-            # Go to next rank if no edge splits off
-            self.construct_proxies(name, data, valid_idx, tot_idx, rank + 1, source)
-        else:
-            # Add a proxy node at the previous (matching) rank
-            proxy_loc = data[valid_idx[0]][rank - 1]
-            proxy_node_name = f"proxy_{name}_{proxy_loc}"
-            proxy_edge_name = f"proxyedge_{name}_{proxy_loc}"
-            log.debug(f"{align}Junction at {proxy_loc}")
-            log.debug(
-                f"{align}    Adding proxy node {proxy_node_name} with parent {proxy_loc}"
-            )
-            self.add_node(
-                id_name=proxy_node_name,
-                name=name,
-                parent=proxy_loc,
-                node_type="proxy",
-                family=f"edge_{name}",
-            )
-            log.debug(
-                f"{align}    Adding proxy edge {proxy_edge_name} from {source} to {proxy_node_name} with weight {len(valid_idx)}"
-            )
-            self.add_edge(
-                source=source,
-                target=proxy_node_name,
-                edge_id=proxy_edge_name,
-                weight=len(valid_idx),
-                edge_type="branch",
-                family=f"edge_{name}",
-            )
-            # Run bundling algorithm for each branch recursively
-            # Edges now start at proxy
-            for val in set(data_slice):
-                # Calculate number of connections in the branch
-                part_idx = [valid_idx[i] for i, d in enumerate(data_slice) if d == val]
-                if len(part_idx) <= 1:
-                    # Add leaf edge if only 1 connection remains
-                    leaf_name = data[part_idx[0]][-1]
-                    leaf_edge_name = f"{name}_{leaf_name}"
-                    log.debug(
-                        f"{align}    Adding final edge {leaf_edge_name} from {proxy_node_name} to {leaf_name} with weight 1"
-                    )
-                    self.add_edge(
-                        source=proxy_node_name,
-                        target=leaf_name,
-                        edge_id=leaf_edge_name,
-                        weight=1,
-                        edge_type="leaf",
-                        family=f"edge_{name}",
-                    )
-                else:
-                    # Go deeper if more than 1 connection remains
-                    self.construct_proxies(
-                        name,
-                        data,
-                        part_idx,
-                        tot_idx,
-                        rank + 1,
-                        proxy_node_name,
-                        align="    ",
-                    )
-
     def compile_shift_registry(self):
         # Aggregate all shifts
         # Fails if configurations would be overwritten by another scope
@@ -788,23 +591,18 @@ class GraphParser:
             for shift, value in self.config.shifts[scope].items():
                 # Strip "__" of shift name
                 if not shift[0:2] == "__":
-                    log.exception(
-                        stack_info=True,
-                        msg=f"Shift names must start with '__' -> Shift {shift}",
-                    )
+                    log_and_fail(f"Shift names must start with '__' -> Shift {shift}")
                 shift = shift[2:]
                 merger = aggregated_shifts[shift]
                 conflict = merger.keys() & value.keys() and merger != value
                 if conflict:
-                    log.exception(
-                        stack_info=True, msg=f"Merge conflict on keys: {conflict}"
-                    )
+                    log_and_fail(f"Merge conflict on keys: {conflict}")
                 merger |= value
 
         for shift, shift_configs in aggregated_shifts.items():
             shift_heads = set()
             for shift_cfg in shift_configs:
-                for node, node_data in self.node_family_register.items():
+                for node, node_data in self.node_register.items():
                     if shift_cfg in node_data["node_call_configs"]:
                         shift_heads.add(node)
             if self.shifted_inputs:
@@ -874,7 +672,7 @@ class GraphParser:
             elif not is_empty(self.config.config_parameters[scope].get(c)):
                 config_dict[c] = self.config.config_parameters[scope][c]
             else:
-                log.exception(stack_info=True, msg=f"Unknown config parameter {c}")
+                log_and_fail(f"Unknown config parameter {c}")
         return config_dict
 
     def add_output(self, output_name, output_node, scope):
@@ -890,9 +688,7 @@ class GraphParser:
         """
         node_id = f"{scope}_{output_node}"
         if node_id in self.outputs[scope][output_name]:
-            log.exception(
-                stack_info=True, msg=f"Node {node_id} already exists in output nodes."
-            )
+            log_and_fail(f"Node {node_id} already exists in output nodes.")
         self.outputs[scope][output_name].append(node_id)
 
     def add_input(self, input_name, input_node, scope):
@@ -908,9 +704,7 @@ class GraphParser:
         """
         scoped_input = f"{scope}_{input_node}"
         if input_name in self.inputs[scope][scoped_input]:
-            log.exception(
-                stack_info=True, msg=f"Input {input_name} already exists in inputs."
-            )
+            log_and_fail(f"Input {input_name} already exists in inputs.")
         self.inputs[scope][scoped_input].append(input_name)
 
     def add_node(
@@ -944,9 +738,7 @@ class GraphParser:
                         or if a full ID already exists within the standard family register.
         """
         if node_type and is_filter:
-            log.exception(
-                stack_info=True, msg="Cannot specify both node_type and is_filter"
-            )
+            log_and_fail("Cannot specify both node_type and is_filter")
         if is_filter:
             node_type = "filter"
         if not name:
@@ -956,28 +748,18 @@ class GraphParser:
         if parent:
             if scope:
                 parent = f"{scope}_{parent}"
-        if family:
-            if not self.edge_family_register[family]["familyHead"]:
-                self.edge_family_register[family]["familyHead"] = id_name
-                self.edge_family_register[family]["name"] = name
-            self.edge_family_register[family]["nodes"][id_name]["parent"] = parent
-        else:
-            family = id_name
-            if self.node_family_register.get(id_name):
-                log.exception(
-                    stack_info=True,
-                    msg=f"Node {id_name} already exists in family register",
-                )
-            self.node_family_register[family]["name"] = name
-            if parent:
-                self.node_family_register[family]["parent"] = parent
-            if node_type:
-                self.node_family_register[family]["type"] = node_type
-            if node_call:
-                self.node_family_register[family]["node_call"] = node_call
-                self.node_family_register[family][
-                    "node_call_configs"
-                ] = node_call_configs
+        if self.node_register.get(id_name):
+            log_and_fail(f"Node {id_name} already exists in node register")
+        self.node_register[id_name]["name"] = name
+        if parent:
+            self.node_register[id_name]["parent"] = parent
+        if node_type:
+            self.node_register[id_name]["type"] = node_type
+        if node_call:
+            self.node_register[id_name]["node_call"] = node_call
+            self.node_register[id_name][
+                "node_call_configs"
+            ] = node_call_configs
 
     def add_connection(self, source, target, name):
         """Log a relational connection locally between a source and a target.
@@ -988,23 +770,6 @@ class GraphParser:
             name (str): Connection quantity label.
         """
         self.connections[source][name].append(target)
-
-    def add_edge(self, source, target, edge_id, weight, edge_type, family):
-        """Create a directional edge drawing parameters for JSON structure export.
-
-        Args:
-            source (str): The ID of the node the edge originates from.
-            target (str): The ID of the node the edge points towards.
-            edge_id (str): The unique ID constructed for this specific edge string.
-            name (str): Label describing the edge payload.
-            weight (int/float): The raw volume/scale of the edge, formatted later as sqrt(weight).
-            edge_type (str): Structural descriptor indicating behavior (e.g., leaf, branch, twig).
-            family (str): Tie-in key for grouping in the edge family register.
-        """
-        self.edge_family_register[family]["edges"][edge_id]["source"] = source
-        self.edge_family_register[family]["edges"][edge_id]["target"] = target
-        self.edge_family_register[family]["edges"][edge_id]["type"] = edge_type
-        self.edge_family_register[family]["edges"][edge_id]["width"] = sqrt(weight)
 
     def save_graph(self, name):
         """Compile the DAG data structures, inject metadata, and export to a JSON file.
@@ -1019,17 +784,11 @@ class GraphParser:
             path = Path(self.DAG_dir) / path
             Path(self.DAG_dir).mkdir(parents=True, exist_ok=True)
 
-        # Set direct input/output type (Currently uniform across all input data)
-        if self.is_friend_config:
-            direct_in_to_out_type = "Ntuple"
-        else:
-            direct_in_to_out_type = "NanoAOD"
-
         # Compile DAG data with metadata
         full_data = {
-            "nodeFamilyRegister": self.node_family_register,
-            "edgeFamilyRegister": self.edge_family_register,
-            "directInputOutput": {"members": self.direct_in_to_out, "type": direct_in_to_out_type},
+            "nodeRegister": self.node_register,
+            "edgeRegister": self.connections,
+            "directInputOutput": self.direct_in_to_out,
             "shiftRegistry": self.shift_registry,
         }
 
