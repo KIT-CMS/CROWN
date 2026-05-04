@@ -13,7 +13,9 @@ if(DEFINED ENV{LCG_VERSION})
                            REALPATH)
     get_filename_component(ONNX_RUNTIME_INCLUDE_PATH
                            ${ONNX_RUNTIME_LIB_PATH}/../../include REALPATH)
-    message(STATUS "ONNXRuntime include path: ${ONNX_RUNTIME_INCLUDE_PATH}/onnxruntime")
+    message(
+      STATUS
+        "ONNXRuntime include path: ${ONNX_RUNTIME_INCLUDE_PATH}/onnxruntime")
     include_directories("${ONNX_RUNTIME_INCLUDE_PATH}/onnxruntime")
   endif()
 
@@ -38,11 +40,10 @@ else()
   endif()
 
   # Try Conda-style headers first
-  set(ONNX_RUNTIME_INCLUDE_PATH $ENV{CONDA_PREFIX}/include/onnxruntime/core/session)
+  set(ONNX_RUNTIME_INCLUDE_PATH
+      $ENV{CONDA_PREFIX}/include/onnxruntime/core/session)
 
-  if(EXISTS
-     ${ONNX_RUNTIME_INCLUDE_PATH}/onnxruntime_cxx_api.h
-  )
+  if(EXISTS ${ONNX_RUNTIME_INCLUDE_PATH}/onnxruntime_cxx_api.h)
     message(STATUS "Found Conda-style ONNXRuntime headers")
   else()
     # Fallback: pip-installed headers in site-packages
