@@ -85,8 +85,8 @@ int main(int argc, char *argv[]) {
     for (int i = 2; i < argc; i++) {
         input_files.push_back(std::string(argv[i]));
         // Check if the input file exists and is readable, also get the number
-        // of events, using a timeout of 30 seconds
-        TFile *f1 = TFile::Open(argv[i], "TIMEOUT=30");
+        // of events, using a timeout of 120 seconds
+        TFile *f1 = TFile::Open(argv[i], "TIMEOUT=120");
         if (!f1 || f1->IsZombie()) {
             Logger::get("main")->critical("File {} does not exist or is not "
                                           "readable",

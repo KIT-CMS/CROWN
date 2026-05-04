@@ -49,7 +49,7 @@ namespace ROOTLogNS = ROOT::Experimental;
 
 int validate_rootfile(std::string file, std::string &basetree) {
     int nevents = 0;
-    TFile *f1 = TFile::Open(file.c_str(), "TIMEOUT=30");
+    TFile *f1 = TFile::Open(file.c_str(), "TIMEOUT=120");
     if (!f1 || f1->IsZombie()) {
         Logger::get("main")->critical("File {} does not exist or is not "
                                       "readable",
