@@ -1988,7 +1988,7 @@ BtaggingMultipleWP(
             // A custom value 'N' is used in the case the jet does not pass
             // the loosest working point for the given b jet tagging algorithm.
             std::string btag_wp = "N";
-            for (const auto& wp : btag_wp_names) {
+            for (const auto& wp : wp_names) {
                 if (btag_value.at(i) >= wp_map.at(wp)) {
                     btag_wp = wp;
                     break;
@@ -2039,9 +2039,13 @@ BtaggingMultipleWP(
                     jet_sf[wp] = 1.0;
                     jet_eff[wp] = 1.0;
                 }
+                Logger::get(logger_name)->debug(
+                    "got SFs {} (WP {})", jet_sf[wp], wp
+                );
+                Logger::get(logger_name)->debug(
+                    "got efficiencies {} (WP {})", jet_eff[wp], wp
+                );
             }
-            Logger::get(logger_name)->debug("got SFs {}", jet_sf);
-            Logger::get(logger_name)->debug("got efficiencies {}", jet_eff);
 
             // Multiply this jet's contribution to the event scale factor based
             // on the working point it passes.
