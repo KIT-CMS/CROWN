@@ -1892,6 +1892,7 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                    const std::string &jet_veto_mask, const std::string &sf_file,
                    const std::string &sf_name, const std::string &sf_wp_name,
                    const std::string &eff_file, const std::string &eff_name,
+                   const std::string &sample_type,
                    const std::string &variation) {
     // Set the logger name for better readability in debug messages
     const std::string logger_name =
@@ -1929,7 +1930,7 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
             df, flavor + "_v12", "ROOT::VecOps::RVec<UChar_t>", flavor);
 
     auto b_tagging_sf = [eff_evaluator, sf_evaluator, wp_map, wp_names,
-                         variation,
+                         variation, sample_type,
                          logger_name](const ROOT::RVec<float> &etas,
                                       const ROOT::RVec<float> &pts,
                                       const ROOT::RVec<float> &btag_value,
@@ -1996,7 +1997,8 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                         {variation, wp, flavors.at(i), std::abs(etas.at(i)),
                          pts.at(i)});
                     jet_eff[wp] = eff_evaluator->evaluate(
-                        {wp, flavors.at(i), std::abs(etas.at(i)), pts.at(i)});
+                        {sample_type, wp, flavors.at(i), std::abs(etas.at(i)),
+                         pts.at(i)});
                 } else {
                     jet_sf[wp] = 1.0;
                     jet_eff[wp] = 1.0;

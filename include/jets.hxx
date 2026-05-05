@@ -151,6 +151,7 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                    const std::string &jet_veto_mask, const std::string &sf_file,
                    const std::string &sf_name, const std::string &sf_wp_name,
                    const std::string &eff_file, const std::string &eff_name,
+                   const std::string &sample_type,
                    const std::string &variation);
 } // end namespace scalefactor
 } // end namespace jet
