@@ -1893,8 +1893,7 @@ BtaggingMultipleWP(
     const std::string &sf_wp_name,
     const std::string &eff_file,
     const std::string &eff_name,
-    const std::string &variation,
-    const std::string &btag_wp
+    const std::string &variation
 ) {
     // Set the logger name for better readability in debug messages
     const std::string logger_name =
@@ -1911,16 +1910,19 @@ BtaggingMultipleWP(
     // Get evaluators for SF, WP definitions, and  from correctionlib files
     auto sf_evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     auto wp_evaluator = correction_manager.loadCorrection(sf_file, sf_wp_name);
-    auto sf_evaluator = correction_manager.loadCorrection(eff_file, eff_name);
+    auto eff_evaluator = correction_manager.loadCorrection(eff_file, eff_name);
 
     // Define a map between the b-tagging working point name and the
     // corresponding discriminator cut value. A custom value 'N' is used in the
-    // case the jet does not pass the loosest working point.
-    std::map<std::string, float> btag_wp_map;
-    for (const auto& wp : {"T", "M", "L"}) {
-        btag_wp_map[wp] = wp_evaluator->evaluate({wp});
+    // case the jet does not pass the loosest working point. Note that the list
+    // of working point names must be ordered from the tightest to the loosest
+    // one.
+    std::vector<std::string> wp_names = {"T", "M", "L"};
+    std::map<std::string, float> wp_map;
+    for (const auto& wp : wp_names) {
+        wp_map[wp] = wp_evaluator->evaluate({wp});
     };
-    btag_wp_map["N"] = -10.0;
+    wp_map["N"] = -10.0;
 
     // In nanoAODv12 the type of jet flavor was changed to UChar_t
     // For v9 compatibility a type casting is applied
@@ -1932,7 +1934,8 @@ BtaggingMultipleWP(
     auto b_tagging_sf = [
         eff_evaluator,
         sf_evaluator,
-        btag_wp_map,
+        wp_map,
+        wp_names,
         variation,
         logger_name
     ](
@@ -1979,8 +1982,8 @@ BtaggingMultipleWP(
             // A custom value 'N' is used in the case the jet does not pass
             // the loosest working point for the given b jet tagging algorithm.
             std::string btag_wp = "N";
-            for (const auto& [wp, cut] : btag_wp_map) {
-                if (btag_value.at(i) >= cut) {
+            for (const auto& wp : btag_wp_names) {
+                if (btag_value.at(i) >= wp_map.at(wp)) {
                     btag_wp = wp;
                     break;
                 }
@@ -2059,7 +2062,9 @@ BtaggingMultipleWP(
                 Logger::get(logger_name)->error(
                     "Arrived at unexpected b tagging working point {}", btag_wp
                 );
-                throw std::runtime_error();
+                throw std::runtime_error(
+                    "Arrived at unexpected b tagging working point " + btag_wp
+                );
             }
 
             // Debug message for this jet's contribution to the event scale 
@@ -2074,7 +2079,7 @@ BtaggingMultipleWP(
 
         // Debug message for event scale factor after all jets have been
         // processed
-        Logger::get(logger_name)->debug("Event Scale Factor {}", sf);
+        Logger::get(logger_name)->debug("event scale factor: {}", sf);
 
         return sf;
     };
