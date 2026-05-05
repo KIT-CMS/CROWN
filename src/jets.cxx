@@ -1844,6 +1844,256 @@ BtaggingWP(ROOT::RDF::RNode df,
     return df2;
 }
 
+/**
+ * @brief This function calculates the b-tagging scale factor. The scale 
+ * factor corrects inconsistencies in the b-tagging efficiency between data and
+ * simulation. The scale factors are loaded from a correctionlib file 
+ * using a specified scale factor name and variation.
+ *
+ * This producer can be used to evaluate working point based scale factors. It is
+ * defined based on scale factors provided by BTV POG for Run3 2024.
+ *
+ * More information from BTV POG can be found here https://btv-wiki.docs.cern.ch/ScaleFactors/
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * correction file
+ * @param outputname name of the output column containing the b-tagging scale factor
+ * @param pt name of the column containing the transverse momenta of jets
+ * @param eta name of the column containing the pseudorapidity of jets
+ * @param flavor name of the column containing the flavors of jets, usually used
+ * flavors are: 5=b-jet, 4=c-jet, 0=light jet (g, u, d, s)
+ * @param jet_mask name of the column containing the mask for good/selected jets
+ * @param bjet_mask name of the column containing the mask for good/selected b-jets
+ * @param jet_veto_mask name of the column containing the veto mask for 
+ * overlapping jets (e.g. with selected lepton pairs)
+ * @param sf_file path to the file with the b-tagging scale factors
+ * @param sf_name name of the b-tagging scale factor correction e.g. "deepJet_shape"
+ * @param variation name the scale factor variation, available values:
+ * central, down_*, up_* (* name of specific variation)
+ * @param btag_wp string that specifies the b-tagging working point used in an
+ * analysis e.g. "L", "M", "T", ...
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+BtaggingMultipleWP(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname,
+    const std::string &pt, 
+    const std::string &eta,
+    const std::string &btag_value,
+    const std::string &flavor,
+    const std::string &jet_mask,
+    const std::string &bjet_mask,
+    const std::string &jet_veto_mask,
+    const std::string &sf_file,
+    const std::string &sf_name,
+    const std::string &sf_wp_name,
+    const std::string &eff_file,
+    const std::string &eff_name,
+    const std::string &variation,
+    const std::string &btag_wp
+) {
+    // Set the logger name for better readability in debug messages
+    const std::string logger_name =
+        "physicsobject::jet::scalefactor::BtaggingMultipleWP";
+
+    // Debug messages for loading corrections
+    Logger::get(logger_name)->debug(
+        "Setting up functions for multiple WP setup with correctionlib"
+    );
+    Logger::get(logger_name)->debug("correction cset name {}", sf_name);
+    Logger::get(logger_name)->debug("working point cset name {}", sf_wp_name);
+    Logger::get(logger_name)->debug("efficiency cset name {}", eff_name);
+
+    // Get evaluators for SF, WP definitions, and  from correctionlib files
+    auto sf_evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    auto wp_evaluator = correction_manager.loadCorrection(sf_file, sf_wp_name);
+    auto sf_evaluator = correction_manager.loadCorrection(eff_file, eff_name);
+
+    // Define a map between the b-tagging working point name and the
+    // corresponding discriminator cut value. A custom value 'N' is used in the
+    // case the jet does not pass the loosest working point.
+    std::map<std::string, float> btag_wp_map;
+    for (const auto& wp : {"T", "M", "L"}) {
+        btag_wp_map[wp] = wp_evaluator->evaluate({wp});
+    };
+    btag_wp_map["N"] = -10.0;
+
+    // In nanoAODv12 the type of jet flavor was changed to UChar_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, flavor_column_v12] = utility::Cast<
+        ROOT::RVec<UChar_t>,
+        ROOT::RVec<Int_t>
+    >(df, flavor+"_v12", "ROOT::VecOps::RVec<UChar_t>", flavor);
+
+    auto b_tagging_sf = [
+        eff_evaluator,
+        sf_evaluator,
+        btag_wp_map,
+        variation,
+        logger_name
+    ](
+        const ROOT::RVec<float> &etas,
+        const ROOT::RVec<float> &pts,
+        const ROOT::RVec<float> &btag_value,
+        const ROOT::RVec<UChar_t> &flavors_v12,
+        const ROOT::RVec<int> &jet_mask,
+        const ROOT::RVec<int> &bjet_mask,
+        const ROOT::RVec<int> &jet_veto_mask
+    ) {
+
+        Logger::get(logger_name)->debug(
+            "calculate b jet tagging event weight in multiple WP setup"
+        );
+        Logger::get(logger_name)->debug("variation name {}", variation);
+
+        // Define the event scale factor
+        float sf = 1.0;
+
+        // Cast flavor column to integers
+        auto flavors = static_cast<ROOT::RVec<int>>(flavors_v12);
+
+        for (int i = 0; i < pts.size(); i++) {
+            Logger::get(logger_name)->debug(
+                "SF - pt {}, eta {}, b tagging score {}, flavor {}",
+                pts.at(i),
+                etas.at(i),
+                btag_value.at(i),
+                flavors.at(i)
+            );
+
+            // Skip jets that do not pass the jet/b jet selection
+            if (!
+                (
+                    (jet_mask.at(i) || bjet_mask.at(i))
+                    && jet_veto_mask.at(i)
+                )
+            ) {
+                continue;
+            }
+
+            // Get the passed b jet tagging working point for this jet
+            // A custom value 'N' is used in the case the jet does not pass
+            // the loosest working point for the given b jet tagging algorithm.
+            std::string btag_wp = "N";
+            for (const auto& [wp, cut] : btag_wp_map) {
+                if (btag_value.at(i) >= cut) {
+                    btag_wp = wp;
+                    break;
+                }
+            }
+            Logger::get(logger_name)->debug(
+                "b tagging score {}, passes WP {}", btag_value.at(i), btag_wp
+            );
+
+            // Define list of b tagging working point scale factors needed for
+            // this jet
+            std::vector<std::string> wps = {};
+            if (btag_wp == "T") {
+                wps = {"T"};
+            } else if (btag_wp == "M") {
+                wps = {"M", "T"};
+            } else if (btag_wp == "L") {
+                wps = {"L", "M"};
+            } else {
+                wps = {"L"};
+            }
+
+            // Obtain scale factors in the phase space where they are
+            // well-defined
+            std::map<std::string, float> jet_eff;
+            std::map<std::string, float> jet_sf;
+            for (const auto& wp : wps) {
+                if (
+                    pts.at(i) >= 20.0
+                    && pts.at(i) < 10000.0
+                    && std::abs(etas.at(i)) < 2.5
+                    && btag_value.at(i) >= 0
+                ) {
+                    jet_sf[wp] = sf_evaluator->evaluate({
+                        variation,
+                        wp,
+                        flavors.at(i),
+                        std::abs(etas.at(i)),
+                        pts.at(i)
+                    });
+                    jet_eff[wp] = eff_evaluator->evaluate({
+                        wp,
+                        flavors.at(i),
+                        std::abs(etas.at(i)),
+                        pts.at(i)
+                    });
+                } else {
+                    jet_sf[wp] = 1.0;
+                    jet_eff[wp] = 1.0;
+                }
+            }
+            Logger::get(logger_name)->debug("got SFs {}", jet_sf);
+            Logger::get(logger_name)->debug("got efficiencies {}", jet_eff);
+
+            // Multiply this jet's contribution to the event scale factor based
+            // on the working point it passes.
+            float jet_comp = 1.0;
+            if (btag_wp == "T") {
+                jet_comp = jet_sf["T"];
+            } else if (btag_wp == "M") {
+                jet_comp = (
+                    jet_sf["M"] * jet_eff["M"] - jet_sf["T"] * jet_eff["T"]
+                ) / (
+                    jet_eff["M"] - jet_eff["T"]
+                );
+            } else if (btag_wp == "L") {
+                jet_comp = (
+                    jet_sf["L"] * jet_eff["L"] - jet_sf["M"] * jet_eff["M"]
+                ) / (
+                    jet_eff["L"] - jet_eff["M"]
+                );
+            } else if (btag_wp == "N") {
+                jet_comp = (
+                    1.0 - jet_sf["L"] * jet_eff["L"]) / (1.0 - jet_eff["L"]
+                );
+            } else {
+                Logger::get(logger_name)->error(
+                    "Arrived at unexpected b tagging working point {}", btag_wp
+                );
+                throw std::runtime_error();
+            }
+
+            // Debug message for this jet's contribution to the event scale 
+            // factor
+            Logger::get(logger_name)->debug(
+                "Jet contribution to event b tagging SF {}", jet_comp
+            );
+
+            // Multiply the jet's contribution to the event scale factor
+            sf *= jet_comp;
+        };
+
+        // Debug message for event scale factor after all jets have been
+        // processed
+        Logger::get(logger_name)->debug("Event Scale Factor {}", sf);
+
+        return sf;
+    };
+
+    return df1.Define(
+        outputname,
+        b_tagging_sf,
+        {
+            pt,
+            eta,
+            btag_value,
+            flavor_column_v12,
+            jet_mask,
+            bjet_mask,
+            jet_veto_mask
+        }
+    );
+}
+
 } // end namespace scalefactor
 } // end namespace jet
 } // end namespace physicsobject
