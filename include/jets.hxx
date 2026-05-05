@@ -142,24 +142,16 @@ BtaggingWP(ROOT::RDF::RNode df,
            const std::string &sf_name, const std::string &variation,
            const std::string &btag_wp);
 ROOT::RDF::RNode
-BtaggingMultipleWP(
-    ROOT::RDF::RNode df,
-    correctionManager::CorrectionManager &correction_manager,
-    const std::string &outputname,
-    const std::string &pt, 
-    const std::string &eta,
-    const std::string &btag_value,
-    const std::string &flavor,
-    const std::string &jet_mask,
-    const std::string &bjet_mask,
-    const std::string &jet_veto_mask,
-    const std::string &sf_file,
-    const std::string &sf_name,
-    const std::string &sf_wp_name,
-    const std::string &eff_file,
-    const std::string &eff_name,
-    const std::string &variation
-);
+BtaggingMultipleWP(ROOT::RDF::RNode df,
+                   correctionManager::CorrectionManager &correction_manager,
+                   const std::string &outputname, const std::string &pt,
+                   const std::string &eta, const std::string &btag_value,
+                   const std::string &flavor, const std::string &jet_mask,
+                   const std::string &bjet_mask,
+                   const std::string &jet_veto_mask, const std::string &sf_file,
+                   const std::string &sf_name, const std::string &sf_wp_name,
+                   const std::string &eff_file, const std::string &eff_name,
+                   const std::string &variation);
 } // end namespace scalefactor
 } // end namespace jet
 } // end namespace physicsobject
