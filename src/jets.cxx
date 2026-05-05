@@ -1845,34 +1845,40 @@ BtaggingWP(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief This function calculates the b-tagging scale factor. The scale 
- * factor corrects inconsistencies in the b-tagging efficiency between data and
+ * @brief This function calculates the event b jet tagging scale factor for 
+ * a setup with multiple working points. The scale factor corrects
+ * inconsistencies in the b-tagging efficiency between data and
  * simulation. The scale factors are loaded from a correctionlib file 
- * using a specified scale factor name and variation.
+ * using a specified scale factor name and variation. In addition, tagging
+ * efficiencies of the jets are loaded from a separate correctionlib file to be
+ * able to apply the appropriate scale factor.
  *
- * This producer can be used to evaluate working point based scale factors. It is
- * defined based on scale factors provided by BTV POG for Run3 2024.
- *
- * More information from BTV POG can be found here https://btv-wiki.docs.cern.ch/ScaleFactors/
+ * The procedure follows the recommendations of the BTV group:
+ * https://btv-wiki.docs.cern.ch/PerformanceCalibration/fixedWPSFRecommendations/#scale-factor-recommendations-for-event-reweighting
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
- * correction file
- * @param outputname name of the output column containing the b-tagging scale factor
+ *     correction file
+ * @param outputname name of the output column containing the b-tagging scale
+ *     factor
  * @param pt name of the column containing the transverse momenta of jets
  * @param eta name of the column containing the pseudorapidity of jets
+ * @param btag_value name of the column containing the btag scores of jets
  * @param flavor name of the column containing the flavors of jets, usually used
- * flavors are: 5=b-jet, 4=c-jet, 0=light jet (g, u, d, s)
+ *     flavors are: 5=b-jet, 4=c-jet, 0=light jet (g, u, d, s)
  * @param jet_mask name of the column containing the mask for good/selected jets
- * @param bjet_mask name of the column containing the mask for good/selected b-jets
+ * @param bjet_mask name of the column containing the mask for good/selected
+ *      b-jets
  * @param jet_veto_mask name of the column containing the veto mask for 
- * overlapping jets (e.g. with selected lepton pairs)
+ *     overlapping jets (e.g. with selected lepton pairs)
  * @param sf_file path to the file with the b-tagging scale factors
- * @param sf_name name of the b-tagging scale factor correction e.g. "deepJet_shape"
+ * @param sf_name name of the b-tagging scale factor correction
+ * @param sf_wp_name name of the correction set containing the b tagging score
+ *     cuts for the different working points
+ * @param eff_file path to the file with the b jet tagging efficiencies
+ * @param eff_name name of the b jet tagging efficiency correction set
  * @param variation name the scale factor variation, available values:
- * central, down_*, up_* (* name of specific variation)
- * @param btag_wp string that specifies the b-tagging working point used in an
- * analysis e.g. "L", "M", "T", ...
+ *     central, down_*, up_* (* name of specific variation)
  *
  * @return a new dataframe containing the new column
  */
@@ -2065,6 +2071,14 @@ BtaggingMultipleWP(
                 throw std::runtime_error(
                     "Arrived at unexpected b tagging working point " + btag_wp
                 );
+            }
+
+            // Force the SF to a positive value, set it to unity otherwise
+            if (jet_comp < 0.0) {
+                Logger::get(logger_name)->debug(
+                    "got negative jet contribution {}, set it to 1.0", jet_comp
+                );
+                jet_comp = 1.0;
             }
 
             // Debug message for this jet's contribution to the event scale 
