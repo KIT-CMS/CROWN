@@ -1813,7 +1813,7 @@ BtaggingWP(ROOT::RDF::RNode df,
     // case the jet does not pass the loosest working point. Note that the list
     // of working point names must be ordered from the tightest to the loosest
     // one.
-    float btag_wp_cut = wp_evaluator->evaluate({btag_wp});
+    float btag_wp_cut = wp_evaluator->evaluate({btag_wp_name});
 
     // In nanoAODv12 the type of jet flavor was changed to UChar_t
     // For v9 compatibility a type casting is applied
