@@ -109,7 +109,7 @@ class Producer:
         - {vec_open} : will be replaced by the opening bracket of the vector
         - {vec_close} : will be replaced by the closing bracket of the vector
         """
-        regex = "\{([A-Za-z0-9_]+)\}"
+        regex = r"\{([A-Za-z0-9_]+)\}"
         reserved_parameters = [
             "output",
             "input",

@@ -1,5 +1,5 @@
-#ifndef GUARD_LOGGER_H
-#define GUARD_LOGGER_H
+#ifndef GUARDLOGGER_H
+#define GUARDLOGGER_H
 
 #include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>
@@ -168,4 +168,4 @@ class Logger {
     std::map<std::string, std::shared_ptr<spdlog::logger>> _loggers;
 };
 
-#endif /* GUARD_LOGGER_H */
+#endif /* GUARDLOGGER_H */

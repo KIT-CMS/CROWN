@@ -1,5 +1,5 @@
-#ifndef GUARD_ROOFUNCTORTHREADSAFE_H
-#define GUARD_ROOFUNCTORTHREADSAFE_H
+#ifndef GUARDROOFUNCTORTHREADSAFE_H
+#define GUARDROOFUNCTORTHREADSAFE_H
 
 #include "RooFunctor.h"
 #include "RooWorkspace.h"
@@ -140,4 +140,4 @@ inline auto loadFunctor(const std::string &workspace_name,
     return functor;
 }
 
-#endif /* GUARD_ROOFUNCTORTHREADSAFE_H */
+#endif /* GUARDROOFUNCTORTHREADSAFE_H */

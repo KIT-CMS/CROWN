@@ -38,8 +38,8 @@ elif [[ "$distro" == "RedHatEnterprise" || "$distro" == "Alma" || "$distro" == "
         echo "Unsupported CentOS version, exiting..."
         return 0
     elif [[ ${os_version:0:1} == "9" ]]; then # elif uname -a | grep -E 'el8' -q
-        echo "Loading LCG_107/x86_64-el9-gcc13-dbg"
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_107/x86_64-el9-gcc13-dbg/setup.sh
+        echo "Loading LCG_108/x86_64-el9-gcc15-opt"
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_108/x86_64-el9-gcc15-opt/setup.sh
     else
         echo "Unsupported CentOS version, exiting..."
         return 0

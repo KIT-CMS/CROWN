@@ -14,7 +14,7 @@
 #include <nlohmann/json.hpp>
 #include <regex>
 
-typedef std::bitset<30> IntBits;
+typedef std::bitset<20> IntBits;
 
 namespace trigger {
 

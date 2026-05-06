@@ -1,9 +1,6 @@
 #ifndef GUARD_SESSION_MANAGER
 #define GUARD_SESSION_MANAGER
 
-// #ifndef GUARD_ONNX_SESSION_MANAGER
-// #define GUARD_ONNX_SESSION_MANAGER
-
 #include "Logger.hxx"
 #include <memory>
 #include <onnxruntime/onnxruntime_cxx_api.h>
@@ -44,11 +41,6 @@ namespace onnxhelper {
 void prepare_model(Ort::Session *session, std::vector<int64_t> &input_node_dims,
                    std::vector<int64_t> &output_node_dims, int &num_input_nodes,
                    int &num_output_nodes);
-// void prepare_model(Ort::Session *session,
-//                    Ort::AllocatorWithDefaultOptions allocator,
-//                    std::vector<int64_t> &input_node_dims,
-//                    std::vector<int64_t> &output_node_dims, int &num_input_nodes,
-//                    int &num_output_nodes);
 
 std::vector<float> run_interference(Ort::Session *session,
                                     Ort::AllocatorWithDefaultOptions allocator,
@@ -61,4 +53,3 @@ std::vector<float> run_interference(Ort::Session *session,
 } // namespace onnxhelper
 
 #endif /* GUARD_SESSION_MANAGER */
-// #endif /* GUARD_ONNX_SESSION_MANAGER */
