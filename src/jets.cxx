@@ -1788,10 +1788,11 @@ BtaggingWP(ROOT::RDF::RNode df,
            const std::string &eta, const std::string &btag_value,
            const std::string &flavor, const std::string &jet_mask,
            const std::string &bjet_mask, const std::string &jet_veto_mask,
-           const std::string &sf_file, const std::string &sf_name,
-           const std::string &sf_wp_name, const std::string &eff_file,
-           const std::string &eff_name, const std::string &sample_type,
-           const std::string &variation, const std::string &btag_wp_name) {
+           const std::string &sf_file, const std::string &sf_bc_name,
+           const std::string &sf_lf_name, const std::string &sf_wp_name,
+           const std::string &eff_file, const std::string &eff_name,
+           const std::string &sample_type, const std::string &variation,
+           const std::string &btag_wp_name) {
     // Set the logger name for better readability in debug messages
     const std::string logger_name =
         "physicsobject::jet::scalefactor::BtaggingWP";
@@ -1799,12 +1800,18 @@ BtaggingWP(ROOT::RDF::RNode df,
     // Debug messages for loading corrections
     Logger::get(logger_name)
         ->debug("Setting up functions for single WP setup with correctionlib");
-    Logger::get(logger_name)->debug("correction cset name {}", sf_name);
+    Logger::get(logger_name)
+        ->debug("b/c jet correction cset name {}", sf_bc_name);
+    Logger::get(logger_name)
+        ->debug("light-flavor jet correction cset name {}", sf_lf_name);
     Logger::get(logger_name)->debug("working point cset name {}", sf_wp_name);
     Logger::get(logger_name)->debug("efficiency cset name {}", eff_name);
 
     // Get evaluators for SF, WP definitions, and  from correctionlib files
-    auto sf_evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    auto sf_bc_evaluator =
+        correction_manager.loadCorrection(sf_file, sf_bc_name);
+    auto sf_lf_evaluator =
+        correction_manager.loadCorrection(sf_file, sf_lf_name);
     auto wp_evaluator = correction_manager.loadCorrection(sf_file, sf_wp_name);
     auto eff_evaluator = correction_manager.loadCorrection(eff_file, eff_name);
 
@@ -1821,10 +1828,10 @@ BtaggingWP(ROOT::RDF::RNode df,
         utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
             df, flavor + "_v12", "ROOT::VecOps::RVec<UChar_t>", flavor);
 
-    auto b_tagging_sf = [eff_evaluator, sf_evaluator, btag_wp_cut, btag_wp_name,
-                         variation, sample_type,
-                         logger_name](const ROOT::RVec<float> &etas,
-                                      const ROOT::RVec<float> &pts,
+    auto b_tagging_sf = [eff_evaluator, sf_bc_evaluator, sf_lf_evaluator,
+                         btag_wp_cut, btag_wp_name, variation, sample_type,
+                         logger_name](const ROOT::RVec<float> &pts,
+                                      const ROOT::RVec<float> &etas,
                                       const ROOT::RVec<float> &btag_value,
                                       const ROOT::RVec<UChar_t> &flavors_v12,
                                       const ROOT::RVec<int> &jet_mask,
@@ -1842,12 +1849,30 @@ BtaggingWP(ROOT::RDF::RNode df,
 
         for (int i = 0; i < pts.size(); i++) {
             Logger::get(logger_name)
-                ->debug("SF - pt {}, eta {}, b tagging score {}, flavor {}",
+                ->debug("Run on jet with pt {}, eta {}, b tagging score {}, "
+                        "flavor {}",
                         pts.at(i), etas.at(i), btag_value.at(i), flavors.at(i));
 
             // Skip jets that do not pass the jet/b jet selection
             if (!((jet_mask.at(i) || bjet_mask.at(i)) && jet_veto_mask.at(i))) {
                 continue;
+            }
+
+            // Switch to the correct evaluator for light-flavor or for b/c jets
+            const correction::Correction *sf_evaluator;
+            if (flavors.at(i) == 5 || flavors.at(i) == 4) {
+                Logger::get(logger_name)
+                    ->debug("using b/c jet scale factor evaluator");
+                sf_evaluator = sf_bc_evaluator;
+            } else if (flavors.at(i) == 0) {
+                Logger::get(logger_name)
+                    ->debug("using light-flavor jet scale factor evaluator");
+                sf_evaluator = sf_lf_evaluator;
+            } else {
+                Logger::get(logger_name)
+                    ->error("jet flavor {} not recognized, skipping this jet",
+                            flavors.at(i));
+                throw std::runtime_error("jet flavor not recognized");
             }
 
             // Obtain scale factors in the phase space where they are
@@ -1983,8 +2008,8 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
 
     auto b_tagging_sf = [eff_evaluator, sf_evaluator, wp_map, wp_names,
                          variation, sample_type,
-                         logger_name](const ROOT::RVec<float> &etas,
-                                      const ROOT::RVec<float> &pts,
+                         logger_name](const ROOT::RVec<float> &pts,
+                                      const ROOT::RVec<float> &etas,
                                       const ROOT::RVec<float> &btag_value,
                                       const ROOT::RVec<UChar_t> &flavors_v12,
                                       const ROOT::RVec<int> &jet_mask,
@@ -2003,7 +2028,8 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
 
         for (int i = 0; i < pts.size(); i++) {
             Logger::get(logger_name)
-                ->debug("SF - pt {}, eta {}, b tagging score {}, flavor {}",
+                ->debug("Run on jet with pt {}, eta {}, b tagging score {}, "
+                        "flavor {}",
                         pts.at(i), etas.at(i), btag_value.at(i), flavors.at(i));
 
             // Skip jets that do not pass the jet/b jet selection
