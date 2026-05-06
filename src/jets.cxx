@@ -1856,12 +1856,12 @@ BtaggingWP(ROOT::RDF::RNode df,
             float jet_sf = 1.0;
             if (pts.at(i) >= 20.0 && pts.at(i) < 10000.0 &&
                 std::abs(etas.at(i)) < 2.5 && btag_value.at(i) >= 0) {
-                jet_sf =
-                    sf_evaluator->evaluate({variation, btag_wp_name, flavors.at(i),
-                                            std::abs(etas.at(i)), pts.at(i)});
-                jet_eff =
-                    eff_evaluator->evaluate({sample_type, btag_wp_name, flavors.at(i),
-                                             std::abs(etas.at(i)), pts.at(i)});
+                jet_sf = sf_evaluator->evaluate(
+                    {variation, btag_wp_name, flavors.at(i),
+                     std::abs(etas.at(i)), pts.at(i)});
+                jet_eff = eff_evaluator->evaluate(
+                    {sample_type, btag_wp_name, flavors.at(i),
+                     std::abs(etas.at(i)), pts.at(i)});
             }
             Logger::get(logger_name)->debug("got SF {}", jet_sf);
             Logger::get(logger_name)->debug("got efficiency {}", jet_eff);
