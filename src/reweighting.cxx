@@ -68,14 +68,13 @@ Pileup(ROOT::RDF::RNode df,
  *
  * @return a new dataframe containing the new column
  *
- * @note This function is intended only for cases where the pileup weights are not
- * available in the correction files.
+ * @note This function is intended only for cases where the pileup weights are
+ * not available in the correction files.
  */
-ROOT::RDF::RNode PUWeightROOT(ROOT::RDF::RNode df, const std::string &outputname,
-                           const std::string &truePUMean,
-                           const std::string &datafilename,
-                           const std::string &mcfilename,
-                           const std::string &histname) {
+ROOT::RDF::RNode
+PUWeightROOT(ROOT::RDF::RNode df, const std::string &outputname,
+             const std::string &truePUMean, const std::string &datafilename,
+             const std::string &mcfilename, const std::string &histname) {
     // Open files and get histograms
     std::unique_ptr<TFile> datafile(TFile::Open(datafilename.c_str(), "READ"));
     std::unique_ptr<TFile> mcfile(TFile::Open(mcfilename.c_str(), "READ"));
@@ -87,10 +86,10 @@ ROOT::RDF::RNode PUWeightROOT(ROOT::RDF::RNode df, const std::string &outputname
     std::shared_ptr<TH1D> mchist((TH1D *)mcfile->Get(histname.c_str()));
     if (!datahist)
         throw std::runtime_error("Could not find histogram " + histname +
-                                  " in data file: " + datafilename);
+                                 " in data file: " + datafilename);
     if (!mchist)
         throw std::runtime_error("Could not find histogram " + histname +
-                                  " in MC file: " + mcfilename);
+                                 " in MC file: " + mcfilename);
     datahist->SetDirectory(0);
     mchist->SetDirectory(0);
     datahist->Scale(1.0 / datahist->Integral());
@@ -575,8 +574,8 @@ ZBosonPt(ROOT::RDF::RNode df,
  *
  * @return a new dataframe containing the new column
  *
- * @note The function is intended for Run 2 analysis. In Run 3 Zpt corrections are
- * handled through correctionlib, see the function below.
+ * @note The function is intended for Run 2 analysis. In Run 3 Zpt corrections
+ * are handled through correctionlib, see the function below.
  */
 ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df, const std::string &outputname,
                          const std::string &gen_boson,
