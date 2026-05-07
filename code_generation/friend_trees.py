@@ -154,7 +154,7 @@ class FriendTreeConfiguration(Configuration):
                     for quantity in new_data[scope][shift]:
                         if quantity not in existing_data[scope][shift]:
                             # Add origin config to quantity for naviagation with multifriends
-                            existing_data[scope][shift].append((quantity, metadata["metadata"]["config"]))
+                            existing_data[scope][shift].append((quantity, metadata["config"]))
             return existing_data
 
         # first check if the input is a root file or a json file
@@ -222,7 +222,7 @@ class FriendTreeConfiguration(Configuration):
         log.debug(
             f"Reading quantities information took {round(time() - start,2)} seconds"
         )
-        return {list(self.selected_scopes)[0]: data}, metadata
+        return {list(self.selected_scopes)[0]: data}, metadata["metadata"]
 
     def _readout_input_json_file(
         self, input_file: str
