@@ -1,8 +1,10 @@
 The Correction Manager
 =======================
 
-With CROWN 0.4, we introduce the Correction Manager, a new feature that signifiantly improves the initial setup time of the dataframe when running a CROWN executable. The ``correctionManager::CorrectionManager`` is a global object, that is responsible for loading correction files. This object is always called ``correctionManager``. If a correction file is already loaded, the ``correctionManager`` will not load it again but instead return a pointer to the already loaded correction file. This way, the same correction file is not loaded multiple times, which can save a lot of time when running a CROWN executable.
-
+With CROWN 0.4, we introduce the Correction Manager, a new feature that signifiantly improves the initial setup time of the dataframe when running a CROWN executable. 
+The ``correctionManager::CorrectionManager`` is a global object, that is responsible for loading correction files. 
+This object is always called ``correctionManager``. If a correction file is already loaded, the ``correctionManager`` will not load it again but instead return a pointer to the already loaded correction file. 
+This way, the same correction file is not loaded multiple times, which can save a lot of time when running a CROWN executable.
 
 Supported Correction Files
 ****************************
@@ -14,6 +16,19 @@ For now, the CorrectionManager supports the following correction files:
 - json files using the :cpp:func:`correctionManager::CorrectionManager::loadjson` function
 
 A Documentation of all Correction Manager functions can be found in :ref:`Namespace: Correctionmanager`
+
+Centrally provided Correction Files for CMS Analyses
+******************************************************
+
+In CMS analyses, many correction files are centrally provided by the CMS collaboration.
+A list of all available correction files can be found on the CMS Analysis Corrections Wiki:
+https://cms-analysis-corrections.docs.cern.ch/
+
+The easiest way to access these correction files in CROWN is to use ``cvmfs``. 
+All POGs provide their correction files on cvmfs under the path: ``/cvmfs/cms-griddata.cern.ch/cat/metadata/*``.
+The exact paths for each correction can be found in the CMS Analysis Corrections Wiki linked above.
+
+The old way of accessing the correction files via the ``jsonPOG-integration`` repository is deprecated and will be removed in future versions of CROWN.
 
 Required Changes
 ******************
@@ -51,7 +66,8 @@ Old Function
 
 .. code-block:: cpp
 
-    ROOT::RDF::RNode Pileup(ROOT::RDF::RNode df, const std::string &outputname,
+    ROOT::RDF::RNode Pileup(ROOT::RDF::RNode df, 
+                            const std::string &outputname,
                             const std::string &true_pileup_number,
                             const std::string &corr_file,
                             const std::string &corr_name,
@@ -73,11 +89,13 @@ New Function
 
 .. code-block:: cpp
 
-    ROOT::RDF::RNode
-    Pileup(ROOT::RDF::RNode df, correctionManager::CorrectionManager &correction_manager,
-            const std::string &weightname, const std::string &true_pileup_number,
-            const std::string &corr_file, const std::string &corr_name,
-            const std::string &variation) {
+    ROOT::RDF::RNode Pileup(ROOT::RDF::RNode df,
+                            correctionManager::CorrectionManager &correction_manager,
+                            const std::string &outputname,
+                            const std::string &true_pileup_number,
+                            const std::string &corr_file,
+                            const std::string &corr_name,
+                            const std::string &variation) {
         auto evaluator = correction_manager.loadCorrection(corr_file, corr_name); // new loading function
         auto df1 =
             df.Define(outputname,

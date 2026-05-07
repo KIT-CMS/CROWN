@@ -2,7 +2,6 @@ from ..quantities import output as q
 from code_generation.producer import Producer, ProducerGroup
 from code_generation.producer import ExtendedVectorProducer
 
-
 ############################
 # Muon ID, ISO SF
 # The readout is done via correctionlib
@@ -153,17 +152,18 @@ Tau_1_VsJetTauID_SF = ExtendedVectorProducer(
 Tau_1_VsEleTauID_SF = ExtendedVectorProducer(
     name="Tau_1_VsEleTauID_SF",
     call="""physicsobject::tau::scalefactor::Id_vsEle(
-        {df}, 
-        correctionManager, 
-        {output}, 
-        {input}, 
-        "{tau_sf_file}", 
+        {df},
+        correctionManager,
+        {output},
+        {input},
+        "{tau_sf_file}",
         "{tau_id_discriminator}",
-        "{vsele_tau_id_WP}", 
-        "{tau_sf_vsele_barrel}", 
+        "{vsele_tau_id_WP}",
+        "{era}",
+        "{tau_sf_vsele_barrel}",
         "{tau_sf_vsele_endcap}")
         """,
-    input=[q.eta_1, q.gen_match_1],
+    input=[q.eta_1, q.tau_decaymode_1, q.gen_match_1],
     output="tau_1_vsele_sf_outputname",
     scope=["tt"],
     vec_config="vsele_tau_id",
@@ -177,11 +177,14 @@ Tau_1_VsMuTauID_SF = ExtendedVectorProducer(
         {input}, 
         "{tau_sf_file}", 
         "{tau_id_discriminator}",
-        "{vsmu_tau_id_WP}", 
-        "{tau_sf_vsmu_wheel1}", 
-        "{tau_sf_vsmu_wheel2}", 
-        "{tau_sf_vsmu_wheel3}", 
-        "{tau_sf_vsmu_wheel4}", 
+        "{vsmu_tau_id_WP}",
+        "{tau_vsmu_vseleWP}",
+        "{tau_vsmu_vsjetWP}",
+        "{era}",
+        "{tau_sf_vsmu_wheel1}",
+        "{tau_sf_vsmu_wheel2}",
+        "{tau_sf_vsmu_wheel3}",
+        "{tau_sf_vsmu_wheel4}",
         "{tau_sf_vsmu_wheel5}")
         """,
     input=[q.eta_1, q.gen_match_1],
@@ -238,17 +241,18 @@ Tau_2_VsJetTauID_tt_SF = ExtendedVectorProducer(
 Tau_2_VsEleTauID_SF = ExtendedVectorProducer(
     name="Tau_2_VsEleTauID_SF",
     call="""physicsobject::tau::scalefactor::Id_vsEle(
-        {df}, 
-        correctionManager, 
-        {output}, 
-        {input}, 
-        "{tau_sf_file}", 
+        {df},
+        correctionManager,
+        {output},
+        {input},
+        "{tau_sf_file}",
         "{tau_id_discriminator}",
-        "{vsele_tau_id_WP}", 
-        "{tau_sf_vsele_barrel}", 
+        "{vsele_tau_id_WP}",
+        "{era}",
+        "{tau_sf_vsele_barrel}",
         "{tau_sf_vsele_endcap}")
         """,
-    input=[q.eta_2, q.gen_match_2],
+    input=[q.eta_2, q.tau_decaymode_2, q.gen_match_2],
     output="tau_2_vsele_sf_outputname",
     scope=["et", "mt", "tt"],
     vec_config="vsele_tau_id",
@@ -262,7 +266,10 @@ Tau_2_VsMuTauID_SF = ExtendedVectorProducer(
         {input}, 
         "{tau_sf_file}", 
         "{tau_id_discriminator}",
-        "{vsmu_tau_id_WP}", 
+        "{vsmu_tau_id_WP}",
+        "{tau_vsmu_vseleWP}",
+        "{tau_vsmu_vsjetWP}",
+        "{era}", 
         "{tau_sf_vsmu_wheel1}", 
         "{tau_sf_vsmu_wheel2}", 
         "{tau_sf_vsmu_wheel3}", 

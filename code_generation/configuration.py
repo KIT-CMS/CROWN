@@ -155,12 +155,33 @@ class Configuration(object):
         """
         sample_parameters: Dict[str, bool] = {}
         for sampletype in self.available_sample_types:
-            if self.sample == sampletype:
+            if self.sample == sampletype or self.sample.startswith(sampletype + "_"):
                 sample_parameters["is_{}".format(sampletype)] = True
             else:
                 sample_parameters["is_{}".format(sampletype)] = False
         for scope in self.scopes:
             self.config_parameters[scope].update(sample_parameters)
+
+    def _set_era_parameters(self) -> None:
+        """
+        Helper function to add era variables to the configuration.
+        The variables look like ``${era}`` and can be used in all producer
+        calls to check the era of the sample.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        era_parameters: Dict[str, str] = {}
+        for era in self.available_eras:
+            if self.era == era:
+                era_parameters["era"] = era
+            else:
+                continue
+        for scope in self.scopes:
+            self.config_parameters[scope].update(era_parameters)
 
     def setup_defaults(self) -> None:
         """
@@ -191,6 +212,7 @@ class Configuration(object):
             self.config_parameters[scope] = {}
             self.available_shifts[scope] = set()
         self._set_sample_parameters()
+        self._set_era_parameters()
 
     def add_config_parameters(
         self, scopes: Union[str, List[str]], parameters: TConfiguration
@@ -372,16 +394,16 @@ class Configuration(object):
                         if scope in shift.get_scopes():
                             self._add_available_shift(shift, scope)
                             shift.apply(scope)
-                            self.shifts[scope][
-                                shift.shiftname
-                            ] = self.resolve_modifiers(shift.get_shift_config(scope))
+                            self.shifts[scope][shift.shiftname] = (
+                                self.resolve_modifiers(shift.get_shift_config(scope))
+                            )
                         else:
                             self._add_available_shift(shift, scope)
                             shift.apply(self.global_scope)
-                            self.shifts[scope][
-                                shift.shiftname
-                            ] = self.resolve_modifiers(
-                                shift.get_shift_config(self.global_scope)
+                            self.shifts[scope][shift.shiftname] = (
+                                self.resolve_modifiers(
+                                    shift.get_shift_config(self.global_scope)
+                                )
                             )
                 else:
                     for scope in scopes_to_shift:

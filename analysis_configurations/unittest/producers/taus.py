@@ -2,7 +2,6 @@ from ..quantities import output as q
 from ..quantities import nanoAOD as nanoAOD
 from code_generation.producer import Producer, ProducerGroup
 
-
 #############
 # Tau ID cuts
 #############

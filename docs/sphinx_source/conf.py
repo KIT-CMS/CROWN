@@ -94,6 +94,7 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.napoleon",
     "sphinx.ext.coverage",
+    "sphinx.ext.graphviz",
 ]
 # ...
 

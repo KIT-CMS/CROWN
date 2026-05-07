@@ -272,6 +272,8 @@ def build_config(
             "tau_sf_vsjet_tau1000toinf": "nom",
             "tau_vsjet_sf_dependence": "pt",  # or "dm", "eta"
             "tau_vsjet_vseleWP": "VVLoose",
+            "tau_vsmu_vseleWP": "VVLoose",
+            "tau_vsmu_vsjetWP": "Medium",
         },
     )
     # TT tau id sf variations
@@ -284,6 +286,8 @@ def build_config(
             "tau_sf_vsjet_tauDM11": "nom",
             "tau_vsjet_sf_dependence": "dm",  # or "dm", "eta"
             "tau_vsjet_vseleWP": "VVLoose",
+            "tau_vsmu_vseleWP": "VVLoose",
+            "tau_vsmu_vsjetWP": "Medium",
         },
     )
     # MT / ET tau selection

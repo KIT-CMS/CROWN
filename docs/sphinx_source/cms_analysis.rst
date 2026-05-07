@@ -19,6 +19,7 @@ The information is collected in either a CERN Twiki page or wiki docs:
 .. admonition:: Tau POG
     
    | Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/Tau
+   | Wiki docs: https://tau-wiki.docs.cern.ch/
 
 .. admonition:: JetMET POG
     
@@ -44,9 +45,9 @@ evaluate them using ``correctionlib``. This tool is used in CROWN.
 
 .. admonition:: json POG
 
-   | CMS repository: https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration
+   | CMS Wiki (corrections): https://cms-analysis-corrections.docs.cern.ch/
    | Correctionlib docs: https://cms-nanoaod.github.io/correctionlib/
 
-Further, common analysis recommendations, which is not of significant relevance for 
-CROWN but for the following analysis steps like CMS plotting style, naming of systematic 
+Further, common analysis recommendations, which are not specifically relevant for
+CROWN but for the subsequent analysis steps like CMS plotting style, naming of systematic
 uncertainties or statistical tools, can be found here: https://cms-analysis.docs.cern.ch/

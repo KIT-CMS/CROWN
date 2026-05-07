@@ -1,6 +1,6 @@
 [submodule "data/jsonpog-integration"]
 	path = data/jsonpog-integration
-	url = ssh://git@gitlab.cern.ch:7999/cms-nanoAOD/jsonpog-integration.git
+	url = ssh://git@gitlab.cern.ch:7999/cms-crossPOG/jsonpog-integration.git
 [submodule "data/hleprare"]
 	path = data/hleprare
 	url = ssh://git@gitlab.cern.ch:7999/cms-higgs-leprare/hleprare.git

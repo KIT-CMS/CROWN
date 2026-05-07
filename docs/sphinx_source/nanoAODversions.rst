@@ -37,7 +37,9 @@ To use e.g. the NanoAOD v9 branches, the file should contain:
 Version differences
 -------------------
 
-CMS has different versions of the nanoAOD format, with each data-taking run typically introducing a new version that includes updates, bug fixes, or new features. 
+CMS has different versions of the nanoAOD format, with each data-taking run typically introducing a new version that includes updates, bug fixes, or new features.
+A CMS documentation of the various nanoAOD versions and there branches can be found here: https://cms-xpog.docs.cern.ch/autoDoc/
+
 For Run-2, the UL datasets were fully reprocessed using nanoAODv9. In Run-3, a new nanoAOD version is introduced each year, starting with nanoAODv12. 
 The expected "final" version for both Run-2 and Run-3 will be nanoAODv15. 
 However, these version updates also bring changes to branch data types in the nanoAODs. Since C++ code in CROWN requires explicit type definitions, 

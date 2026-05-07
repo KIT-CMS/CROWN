@@ -7,9 +7,9 @@
 
 const int default_int = -10;
 const float default_float = -10.0;
-// casting this default UChar_t to an int results in a value of 246 
-// which should still be out of range for the usual use cases 
-const UChar_t default_uchar = -10; 
+// casting this default UChar_t to an int results in a value of 246
+// which should still be out of range for the usual use cases
+const UChar_t default_uchar = -10;
 const bool default_bool = false;
 const auto default_lorentzvector = ROOT::Math::PtEtaPhiMVector(0., 0., 0., 0.);
 

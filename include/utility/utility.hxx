@@ -15,43 +15,40 @@
 namespace utility {
 
 /**
- * @brief This function takes a column and casts it from type `I` to 
- * another type `O`. 
+ * @brief This function takes a column and casts it from type `I` to
+ * another type `O`.
  *
- * @note This functionality is mainly used to mitigate type changes 
+ * @note This functionality is mainly used to mitigate type changes
  * between nanoAOD versions.
  *
  * @tparam O type of the output column
  * @tparam I type of the input column
  * @param df input dataframe
- * @param outputname name of the output column containing the recasted 
+ * @param outputname name of the output column containing the recasted
  * column
- * @param outputtype string with the type of the output column 
- * @param column name of the column that should be recasted to another 
+ * @param outputtype string with the type of the output column
+ * @param column name of the column that should be recasted to another
  * type
  *
  * @return a new dataframe with the new column
  */
-template<typename O, typename I>
-inline std::pair<ROOT::RDF::RNode, std::string> Cast(ROOT::RDF::RNode df,
-                            const std::string &outputname,
-                            const std::string &outputtype,
-                            const std::string &column) {
+template <typename O, typename I>
+inline std::pair<ROOT::RDF::RNode, std::string>
+Cast(ROOT::RDF::RNode df, const std::string &outputname,
+     const std::string &outputtype, const std::string &column) {
     auto new_df = df;
     auto new_col = column;
     auto inputtype = df.GetColumnType(column);
-    
+
     if (inputtype != outputtype) {
         new_col = outputname;
         auto cols = df.GetColumnNames();
-        // check if the column is already defined, this is relevant for systematic
-        // variations were this Define would be done multiple times
+        // check if the column is already defined, this is relevant for
+        // systematic variations were this Define would be done multiple times
         if (std::find(cols.begin(), cols.end(), outputname) == cols.end()) {
             new_df = df.Define(
                 outputname,
-                [] (const I& values) {
-                    return static_cast<O>(values);
-                },
+                [](const I &values) { return static_cast<O>(values); },
                 {column});
         }
     }
@@ -85,20 +82,20 @@ inline bool ApproxEqual(double value1, double value2, double maxDelta = 1e-5) {
 }
 
 /**
- * @brief This function extracts and returns the last element from a tuple 
- * containing a variable number of arguments. The function uses `std::get` 
- * to access the last element of the tuple, allowing you to retrieve the 
+ * @brief This function extracts and returns the last element from a tuple
+ * containing a variable number of arguments. The function uses `std::get`
+ * to access the last element of the tuple, allowing you to retrieve the
  * last argument without knowing its type or index beforehand.
  *
  * @param args input tuple containing the arguments
- * 
+ *
  * @return last element of the tuple
  */
 template <typename... Args>
-constexpr auto extractLastArgument(const std::tuple<Args...>& args) {
+constexpr auto extractLastArgument(const std::tuple<Args...> &args) {
     constexpr size_t N = sizeof...(Args);
     // Extract last argument
-    return std::get<N - 1>(args);  
+    return std::get<N - 1>(args);
 }
 
 /**
@@ -112,7 +109,7 @@ constexpr auto extractLastArgument(const std::tuple<Args...>& args) {
  * @return vector of strings with all elements except the last one
  */
 template <typename... Args>
-constexpr auto popLastArgument(const std::tuple<Args...>& args) {
+constexpr auto popLastArgument(const std::tuple<Args...> &args) {
     constexpr size_t N = sizeof...(Args);
     auto buildVector = [&]<std::size_t... Is>(std::index_sequence<Is...>) {
         return std::vector<std::string>{std::get<Is>(args)...};
@@ -202,8 +199,8 @@ EvaluateWorkspaceFunction(ROOT::RDF::RNode df, const std::string &outputname,
     appendParameterPackToVector(InputList, inputs...);
     const auto nInputs = sizeof...(Inputs);
     Logger::get("EvaluateWorkspaceFunction")->debug("nInputs: {} ", nInputs);
-    auto df1 = df.Define(
-        outputname, PassAsVec<nInputs, float>(getValue), InputList);
+    auto df1 =
+        df.Define(outputname, PassAsVec<nInputs, float>(getValue), InputList);
     return df1;
 }
 } // end namespace utility
