@@ -144,7 +144,6 @@ action() {
             -B /etc/grid-security/certificates \
             -B "${GIT_ROOT}:${GIT_ROOT}" \
             -B "${HOME}:${HOME}" \
-            -B /cvmfs:/cvmfs \
             "${CONTAINER}" \
             bash -c "${INT_CMD}"
     fi
