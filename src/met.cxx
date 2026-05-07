@@ -3,18 +3,18 @@
 
 #include "../include/RecoilCorrections/MetSystematics.hxx"
 #include "../include/RecoilCorrections/RecoilCorrector.hxx"
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/event.hxx"
 #include "../include/defaults.hxx"
+#include "../include/event.hxx"
+#include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "bitset"
+#include "correction.h"
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include <cmath>
-#include "correction.h"
 
 typedef std::bitset<20> IntBits;
 
@@ -24,13 +24,15 @@ namespace met {
  * @brief This function is used to apply recoil corrections on a given sample.
  * It is only recommented to apply it to single boson samples, like Z, W or
  * Higgs boson. The corrections are provided by the HLepRare group. For more
- * information on how the recoil corrections were calculated and have to be used,
- * check out [this presentation](https://indico.cern.ch/event/1583951/contributions/6751916/attachments/3159171/5612627/HLepRare_25.10.22.pdf). 
- * and the HLepRare group [documentation](https://cms-higgs-leprare.docs.cern.ch/htt-common/V_recoil/).
+ * information on how the recoil corrections were calculated and have to be
+ * used, check out [this
+ * presentation](https://indico.cern.ch/event/1583951/contributions/6751916/attachments/3159171/5612627/HLepRare_25.10.22.pdf).
+ * and the HLepRare group
+ * [documentation](https://cms-higgs-leprare.docs.cern.ch/htt-common/V_recoil/).
  *
- * @note This function is intended to be used in Run3 where recoil corrections are
- * provided in json files to be read by correctionlib. For Run2 recoil correction
- * see the overloaded version of this function.
+ * @note This function is intended to be used in Run3 where recoil corrections
+ * are provided in json files to be read by correctionlib. For Run2 recoil
+ * correction see the overloaded version of this function.
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
@@ -42,14 +44,16 @@ namespace met {
  * Lorentz vector
  * @param p4_vis_gen_boson name of the column containing the visible part of
  * the generator-level boson Lorentz vector
- * @param n_jets name of the column containing the number of good jets in an event 
+ * @param n_jets name of the column containing the number of good jets in an
+ * event
  * @param corr_file path to the json file with the recoil corrections
  * @param corr_name name of the recoil correction, this is the first part of the
  * correction string in the json file (e.g. "Recoil_correction")
- * @param method method to be used to apply the corrections, possible options are
- * "Rescaling", "QuantileMapHist" and "Uncertainty" (second part of the correction string)
- * @param order order of the used DY samples: "LO" for madgraph, "NLO" for amc\@nlo,
- * "NNLO" for powheg
+ * @param method method to be used to apply the corrections, possible options
+ * are "Rescaling", "QuantileMapHist" and "Uncertainty" (second part of the
+ * correction string)
+ * @param order order of the used DY samples: "LO" for madgraph, "NLO" for
+ * amc\@nlo, "NNLO" for powheg
  * @param variation name of the variation that should be evaluated, options are
  * "nom", "RespUp", "RespDown", "ResolUp", "ResolDown". This is only used if
  * `method` is set to "Uncertainty".
@@ -58,107 +62,149 @@ namespace met {
  *
  * @return a new dataframe containing the new MET column
  */
-ROOT::RDF::RNode RecoilCorrection(
-    ROOT::RDF::RNode df, correctionManager::CorrectionManager &correction_manager,
-    const std::string &outputname,
-    const std::string &p4_met, const std::string &p4_gen_boson,
-    const std::string &p4_vis_gen_boson, const std::string &n_jets,
-    const std::string &corr_file, const std::string &corr_name,
-    const std::string &method, const std::string &order,
-    const std::string &variation, bool apply_correction) {
+ROOT::RDF::RNode
+RecoilCorrection(ROOT::RDF::RNode df,
+                 correctionManager::CorrectionManager &correction_manager,
+                 const std::string &outputname, const std::string &p4_met,
+                 const std::string &p4_gen_boson,
+                 const std::string &p4_vis_gen_boson, const std::string &n_jets,
+                 const std::string &corr_file, const std::string &corr_name,
+                 const std::string &method, const std::string &order,
+                 const std::string &variation, bool apply_correction) {
     if (apply_correction) {
-        Logger::get("met::RecoilCorrection")->debug("Will run recoil corrections with correctionlib");
-        
+        Logger::get("met::RecoilCorrection")
+            ->debug("Will run recoil corrections with correctionlib");
+
         // Rescaling method is the only recommended method for outside
         // -150 GeV < UPara, UPerp < 150 GeV
-        auto RecoilCorr = correction_manager.loadCorrection(corr_file, corr_name + "_" + method);
+        auto RecoilCorr = correction_manager.loadCorrection(
+            corr_file, corr_name + "_" + method);
 
         auto Correction = [RecoilCorr, order, method, variation](
-                            ROOT::Math::PtEtaPhiMVector &met,
-                            ROOT::Math::PtEtaPhiMVector &gen_boson,
-                            ROOT::Math::PtEtaPhiMVector &vis_gen_boson,
-                            const int &n_jets) {
-            // For Run3 jets with pT > 30 GeV and |eta| < 2.5 or pT > 50 GeV outside the tracker region
-            // need to be considered (avoid jet horn region)
-            // type of n_jets needs to be a float for the correctionlib evaluation
+                              ROOT::Math::PtEtaPhiMVector &met,
+                              ROOT::Math::PtEtaPhiMVector &gen_boson,
+                              ROOT::Math::PtEtaPhiMVector &vis_gen_boson,
+                              const int &n_jets) {
+            // For Run3 jets with pT > 30 GeV and |eta| < 2.5 or pT > 50 GeV
+            // outside the tracker region need to be considered (avoid jet horn
+            // region) type of n_jets needs to be a float for the correctionlib
+            // evaluation
             float nJets = static_cast<float>(n_jets);
-            float genPt = gen_boson.Pt();  // generator Z(W) pT
+            float genPt = gen_boson.Pt(); // generator Z(W) pT
             ROOT::Math::PtEtaPhiMVector met_new;
 
             Logger::get("met::RecoilCorrection")->debug("Corrector Inputs");
             Logger::get("met::RecoilCorrection")->debug("N jets {} ", nJets);
-            Logger::get("met::RecoilCorrection")->debug("gen. boson Px {} ", gen_boson.Px());
-            Logger::get("met::RecoilCorrection")->debug("gen. boson Py {} ", gen_boson.Py());
-            Logger::get("met::RecoilCorrection")->debug("vis. gen. boson Px {} ", vis_gen_boson.Px());
-            Logger::get("met::RecoilCorrection")->debug("vis. gen. boson Py {} ", vis_gen_boson.Py());
-            Logger::get("met::RecoilCorrection")->debug("old MET X {} ", met.Px());
-            Logger::get("met::RecoilCorrection")->debug("old MET Y {} ", met.Py());
-            Logger::get("met::RecoilCorrection")->debug("old MET {} ", met.Pt());
+            Logger::get("met::RecoilCorrection")
+                ->debug("gen. boson Px {} ", gen_boson.Px());
+            Logger::get("met::RecoilCorrection")
+                ->debug("gen. boson Py {} ", gen_boson.Py());
+            Logger::get("met::RecoilCorrection")
+                ->debug("vis. gen. boson Px {} ", vis_gen_boson.Px());
+            Logger::get("met::RecoilCorrection")
+                ->debug("vis. gen. boson Py {} ", vis_gen_boson.Py());
+            Logger::get("met::RecoilCorrection")
+                ->debug("old MET X {} ", met.Px());
+            Logger::get("met::RecoilCorrection")
+                ->debug("old MET Y {} ", met.Py());
+            Logger::get("met::RecoilCorrection")
+                ->debug("old MET {} ", met.Pt());
 
             if (std::isnan(met.Px()) || std::isnan(met.Py())) {
-                Logger::get("met::RecoilCorrection")->debug("NaN detected in MET, returning uncorrected MET");
+                Logger::get("met::RecoilCorrection")
+                    ->debug("NaN detected in MET, returning uncorrected MET");
                 return met;
-            } 
-            else {
+            } else {
                 if (method == "Rescaling" || method == "QuantileMapHist") {
-                    ROOT::Math::PtEtaPhiMVector U = met + vis_gen_boson - gen_boson;
+                    ROOT::Math::PtEtaPhiMVector U =
+                        met + vis_gen_boson - gen_boson;
                     float dPhi_U = U.Phi() - gen_boson.Phi();
                     float Upara = U.Pt() * std::cos(dPhi_U);
                     float Uperp = U.Pt() * std::sin(dPhi_U);
-                    Logger::get("met::RecoilCorrection")->debug("dPhi_U {} ", dPhi_U);
-                    Logger::get("met::RecoilCorrection")->debug("Upara {} ", Upara);
-                    Logger::get("met::RecoilCorrection")->debug("Uperp {} ", Uperp);
+                    Logger::get("met::RecoilCorrection")
+                        ->debug("dPhi_U {} ", dPhi_U);
+                    Logger::get("met::RecoilCorrection")
+                        ->debug("Upara {} ", Upara);
+                    Logger::get("met::RecoilCorrection")
+                        ->debug("Uperp {} ", Uperp);
 
-                    float Upara_new = RecoilCorr->evaluate({order, nJets, genPt, "Upara", Upara});
-                    float Uperp_new = RecoilCorr->evaluate({order, nJets, genPt, "Uperp", Uperp});
-                    Logger::get("met::RecoilCorrection")->debug("Upara_new {} ", Upara_new);
-                    Logger::get("met::RecoilCorrection")->debug("Uperp_new {} ", Uperp_new);
-                    
-                    float Upt_new = std::sqrt(Upara_new*Upara_new + Uperp_new*Uperp_new);
-                    float Uphi_new = std::atan2(Uperp_new, Upara_new) + gen_boson.Phi();
-                    Logger::get("met::RecoilCorrection")->debug("Upt_new {} ", Upt_new);
-                    Logger::get("met::RecoilCorrection")->debug("Uphi_new {} ", Uphi_new);
+                    float Upara_new = RecoilCorr->evaluate(
+                        {order, nJets, genPt, "Upara", Upara});
+                    float Uperp_new = RecoilCorr->evaluate(
+                        {order, nJets, genPt, "Uperp", Uperp});
+                    Logger::get("met::RecoilCorrection")
+                        ->debug("Upara_new {} ", Upara_new);
+                    Logger::get("met::RecoilCorrection")
+                        ->debug("Uperp_new {} ", Uperp_new);
 
-                    ROOT::Math::PtEtaPhiMVector U_new = ROOT::Math::PtEtaPhiMVector(Upt_new, 0., Uphi_new, 0.);
+                    float Upt_new = std::sqrt(Upara_new * Upara_new +
+                                              Uperp_new * Uperp_new);
+                    float Uphi_new =
+                        std::atan2(Uperp_new, Upara_new) + gen_boson.Phi();
+                    Logger::get("met::RecoilCorrection")
+                        ->debug("Upt_new {} ", Upt_new);
+                    Logger::get("met::RecoilCorrection")
+                        ->debug("Uphi_new {} ", Uphi_new);
+
+                    ROOT::Math::PtEtaPhiMVector U_new =
+                        ROOT::Math::PtEtaPhiMVector(Upt_new, 0., Uphi_new, 0.);
                     met_new = U_new - vis_gen_boson + gen_boson;
-                }
-                else if (method == "Uncertainty") {
-                    if (std::set<std::string>{"RespUp", "RespDown", "ResolUp", "ResolDown"}.count(variation)) {
-                        ROOT::Math::PtEtaPhiMVector H = - met - vis_gen_boson;
+                } else if (method == "Uncertainty") {
+                    if (std::set<std::string>{"RespUp", "RespDown", "ResolUp",
+                                              "ResolDown"}
+                            .count(variation)) {
+                        ROOT::Math::PtEtaPhiMVector H = -met - vis_gen_boson;
                         float dPhi_H = H.Phi() - gen_boson.Phi();
                         float Hpara = H.Pt() * std::cos(dPhi_H);
                         float Hperp = H.Pt() * std::sin(dPhi_H);
 
-                        float Hpara_new = RecoilCorr->evaluate({order, nJets, genPt, "Hpara", Hpara, variation});
-                        float Hperp_new = RecoilCorr->evaluate({order, nJets, genPt, "Hperp", Hperp, variation});
+                        float Hpara_new = RecoilCorr->evaluate(
+                            {order, nJets, genPt, "Hpara", Hpara, variation});
+                        float Hperp_new = RecoilCorr->evaluate(
+                            {order, nJets, genPt, "Hperp", Hperp, variation});
 
-                        float Hpt_new = std::sqrt(Hpara_new*Hpara_new + Hperp_new*Hperp_new);
-                        float Hphi_new = std::atan2(Hperp_new, Hpara_new) + gen_boson.Phi();
-                        if (Hphi_new > M_PI) Hphi_new -= 2*M_PI;
-                        if (Hphi_new < -M_PI) Hphi_new += 2*M_PI;
-                        ROOT::Math::PtEtaPhiMVector H_new = ROOT::Math::PtEtaPhiMVector(Hpt_new, 0., Hphi_new, 0.);
-                        met_new = - H_new - vis_gen_boson;
-                    }
-                    else {
+                        float Hpt_new = std::sqrt(Hpara_new * Hpara_new +
+                                                  Hperp_new * Hperp_new);
+                        float Hphi_new =
+                            std::atan2(Hperp_new, Hpara_new) + gen_boson.Phi();
+                        if (Hphi_new > M_PI)
+                            Hphi_new -= 2 * M_PI;
+                        if (Hphi_new < -M_PI)
+                            Hphi_new += 2 * M_PI;
+                        ROOT::Math::PtEtaPhiMVector H_new =
+                            ROOT::Math::PtEtaPhiMVector(Hpt_new, 0., Hphi_new,
+                                                        0.);
+                        met_new = -H_new - vis_gen_boson;
+                    } else {
                         Logger::get("met::RecoilCorrection")
-                            ->error("Variation {} not known. Choose either 'RespUp', 'RespDown', 'ResolUp' or 'ResolDown'", variation);
-                        throw std::runtime_error("Invalid variation for Recoil corrections");
+                            ->error("Variation {} not known. Choose either "
+                                    "'RespUp', 'RespDown', 'ResolUp' or "
+                                    "'ResolDown'",
+                                    variation);
+                        throw std::runtime_error(
+                            "Invalid variation for Recoil corrections");
                     }
-                }
-                else if (method == "QuantileMapFit") {
+                } else if (method == "QuantileMapFit") {
                     Logger::get("met::RecoilCorrection")
-                        ->debug("QuantileMapFit method not yet implemented, returning uncorrected MET");
+                        ->debug("QuantileMapFit method not yet implemented, "
+                                "returning uncorrected MET");
                     return met;
-                }
-                else {
+                } else {
                     Logger::get("met::RecoilCorrection")
-                        ->error("Method {} not known. Choose either 'Rescaling', 'QuantileMapHist' or 'Uncertainty'", method);
-                    throw std::runtime_error("Invalid method for Recoil corrections");
+                        ->error(
+                            "Method {} not known. Choose either 'Rescaling', "
+                            "'QuantileMapHist' or 'Uncertainty'",
+                            method);
+                    throw std::runtime_error(
+                        "Invalid method for Recoil corrections");
                 }
-                
-                Logger::get("met::RecoilCorrection")->debug("corrected MET X {} ", met_new.Px());
-                Logger::get("met::RecoilCorrection")->debug("corrected MET Y {} ", met_new.Py());
-                Logger::get("met::RecoilCorrection")->debug("corrected MET {} ", met_new.Pt());
+
+                Logger::get("met::RecoilCorrection")
+                    ->debug("corrected MET X {} ", met_new.Px());
+                Logger::get("met::RecoilCorrection")
+                    ->debug("corrected MET Y {} ", met_new.Py());
+                Logger::get("met::RecoilCorrection")
+                    ->debug("corrected MET {} ", met_new.Pt());
                 return met_new;
             }
         };
@@ -167,7 +213,8 @@ ROOT::RDF::RNode RecoilCorrection(
     } else {
         // if we do not apply the recoil corrections, just rename the met
         // column to the new outputname and dont change anything else
-        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, p4_met);
+        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(
+            df, outputname, p4_met);
     }
 }
 
@@ -204,15 +251,17 @@ ROOT::RDF::RNode RecoilCorrection(
  * analyses of Run2. They are not up to standard with the correctionlib json
  * format, therefore, to be used with caution.
  */
-ROOT::RDF::RNode RecoilCorrection(
-    ROOT::RDF::RNode df, const std::string &outputname,
-    const std::string &p4_met, const std::string &p4_gen_boson,
-    const std::string &p4_vis_gen_boson, const std::string &jet_pt,
-    const std::string &corr_file, const std::string &syst_file,
-    const bool apply_correction, const bool resolution, const bool response,
-    const bool shift_up, const bool shift_down, const bool is_Wjets) {
+ROOT::RDF::RNode
+RecoilCorrection(ROOT::RDF::RNode df, const std::string &outputname,
+                 const std::string &p4_met, const std::string &p4_gen_boson,
+                 const std::string &p4_vis_gen_boson, const std::string &jet_pt,
+                 const std::string &corr_file, const std::string &syst_file,
+                 const bool apply_correction, const bool resolution,
+                 const bool response, const bool shift_up,
+                 const bool shift_down, const bool is_Wjets) {
     if (apply_correction) {
-        Logger::get("met::RecoilCorrection")->debug("Will run recoil corrections");
+        Logger::get("met::RecoilCorrection")
+            ->debug("Will run recoil corrections");
         const auto corrector = new RecoilCorrector(corr_file);
         const auto systematics = new MetSystematic(syst_file);
         auto shiftType = MetSystematic::SysShift::Nominal;
@@ -245,8 +294,8 @@ ROOT::RDF::RNode RecoilCorrection(
             float correctedMetX = 0.;
             float correctedMetY = 0.;
             ROOT::Math::PtEtaPhiMVector corrected_met;
-            float genPx = gen_boson.Px();  // generator Z(W) px
-            float genPy = gen_boson.Py();  // generator Z(W) py
+            float genPx = gen_boson.Px();     // generator Z(W) px
+            float genPy = gen_boson.Py();     // generator Z(W) py
             float visPx = vis_gen_boson.Px(); // visible (generator) Z(W) px
             float visPy = vis_gen_boson.Py(); // visible (generator) Z(W) py
             Logger::get("met::RecoilCorrection")->debug("Corrector Inputs");
@@ -257,7 +306,8 @@ ROOT::RDF::RNode RecoilCorrection(
             Logger::get("met::RecoilCorrection")->debug("visPy {} ", visPy);
             Logger::get("met::RecoilCorrection")->debug("MetX {} ", MetX);
             Logger::get("met::RecoilCorrection")->debug("MetY {} ", MetY);
-            Logger::get("met::RecoilCorrection")->debug("old met {} ", met.Pt());
+            Logger::get("met::RecoilCorrection")
+                ->debug("old met {} ", met.Pt());
             corrector->CorrectWithHist(MetX, MetY, genPx, genPy, visPx, visPy,
                                        nJets30, correctedMetX, correctedMetY);
             Logger::get("met::RecoilCorrection")
@@ -287,13 +337,14 @@ ROOT::RDF::RNode RecoilCorrection(
     } else {
         // if we do not apply the recoil corrections, just rename the met
         // column to the new outputname and dont change anything else
-        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, p4_met);
+        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(
+            df, outputname, p4_met);
     }
 }
 
 /**
- * @brief This function applies MET \f$\phi\f$ corrections as provided by JME POG
- * for Run2 in correction JSON files.
+ * @brief This function applies MET \f$\phi\f$ corrections as provided by JME
+ * POG for Run2 in correction JSON files.
  *
  * @param df input dataframe
  * @param outputname name of the new column containing the corrected MET Lorentz
@@ -303,20 +354,21 @@ ROOT::RDF::RNode RecoilCorrection(
  * in the event
  * @param run name of the column containing the run number
  * @param corr_file path to the file containing the correction
- * @param corr_name name of the correction to be applied, e.g. "metphicorr_pfmet_mc",
- * possible options are "puppimet" instead of "pfmet" or "data" instead of "mc"
+ * @param corr_name name of the correction to be applied, e.g.
+ * "metphicorr_pfmet_mc", possible options are "puppimet" instead of "pfmet" or
+ * "data" instead of "mc"
  *
  * @return a dataframe with the new column containing the corrected MET Lorentz
  * vector
  *
- * @note This function is only valid for Run2 data and MC. For Run3 the overloaded
- * version of this function should be used.
+ * @note This function is only valid for Run2 data and MC. For Run3 the
+ * overloaded version of this function should be used.
  */
 ROOT::RDF::RNode
 METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
-       const std::string &p4_met, const std::string &n_pv,
-       const std::string &run, const std::string &corr_file,
-       const std::string &corr_name) {
+                 const std::string &p4_met, const std::string &n_pv,
+                 const std::string &run, const std::string &corr_file,
+                 const std::string &corr_name) {
 
     auto evaluator_met_pt =
         correction::CorrectionSet::from_file(corr_file)->at("pt_" + corr_name);
@@ -324,8 +376,8 @@ METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
         correction::CorrectionSet::from_file(corr_file)->at("phi_" + corr_name);
 
     auto xyCorrection = [evaluator_met_pt, evaluator_met_phi](
-                      const ROOT::Math::PtEtaPhiMVector &met,
-                      const int npv, const UInt_t run) {
+                            const ROOT::Math::PtEtaPhiMVector &met,
+                            const int npv, const UInt_t run) {
         Logger::get("met::METPhiCorrection")
             ->debug("before: pt {} phi {}", met.Pt(), met.Phi());
 
@@ -350,8 +402,8 @@ METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief This function applies MET \f$\phi\f$ corrections as provided by JME POG
- * for Run3 in correction JSON files.
+ * @brief This function applies MET \f$\phi\f$ corrections as provided by JME
+ * POG for Run3 in correction JSON files.
  *
  * @param df input dataframe
  * @param outputname name of the new column containing the corrected MET Lorentz
@@ -360,9 +412,10 @@ METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
  * @param n_pv name of the column containing the number of primary vertices
  * in the event
  * @param corr_file path to the file containing the correction
- * @param corr_name name of the correction to be applied, e.g. "met_xy_corrections"
- * @param met_type type of the MET, possible options are "PuppiMET" and "MET" (for
- * PF)
+ * @param corr_name name of the correction to be applied, e.g.
+ * "met_xy_corrections"
+ * @param met_type type of the MET, possible options are "PuppiMET" and "MET"
+ * (for PF)
  * @param era data-taking period, possible options are e.g. "2022", "2022EE",
  * "2023", "2023BPix"
  * @param is_mc boolean indicating whether the sample is MC or data
@@ -374,52 +427,52 @@ METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
  * @return a dataframe with the new column containing the corrected MET Lorentz
  * vector
  *
- * @note This function is only valid for Run3 data and MC. For Run2 the overloaded
- * version of this function should be used.
+ * @note This function is only valid for Run3 data and MC. For Run2 the
+ * overloaded version of this function should be used.
  */
 ROOT::RDF::RNode
 METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
-       const std::string &p4_met, const std::string &n_pv,
-       const std::string &corr_file, const std::string &corr_name,
-       const std::string &met_type, const std::string &era,
-       const bool is_mc, const std::string &stat_variation,
-       const std::string &pileup_variation) {
+                 const std::string &p4_met, const std::string &n_pv,
+                 const std::string &corr_file, const std::string &corr_name,
+                 const std::string &met_type, const std::string &era,
+                 const bool is_mc, const std::string &stat_variation,
+                 const std::string &pileup_variation) {
 
     auto evaluator =
         correction::CorrectionSet::from_file(corr_file)->at(corr_name);
 
     const std::string data_mc_key = is_mc ? "MC" : "DATA";
-    const std::string pt_key = stat_variation != "nom" ?
-                               "pt_stat_" + stat_variation : "pt";
-    const std::string phi_key = stat_variation != "nom" ?
-                                "phi_stat_" + stat_variation : "phi";
+    const std::string pt_key =
+        stat_variation != "nom" ? "pt_stat_" + stat_variation : "pt";
+    const std::string phi_key =
+        stat_variation != "nom" ? "phi_stat_" + stat_variation : "phi";
 
-    auto xyCorrection = [evaluator, met_type, era, data_mc_key,
-                         pt_key, phi_key, pileup_variation](
-                      const ROOT::Math::PtEtaPhiMVector &met,
-                      const int npv) {
-        Logger::get("met::METPhiCorrection")
-            ->debug("before: pt {} phi {}", met.Pt(), met.Phi());
+    auto xyCorrection =
+        [evaluator, met_type, era, data_mc_key, pt_key, phi_key,
+         pileup_variation](const ROOT::Math::PtEtaPhiMVector &met,
+                           const int npv) {
+            Logger::get("met::METPhiCorrection")
+                ->debug("before: pt {} phi {}", met.Pt(), met.Phi());
 
-        double corr_met_pt = evaluator->evaluate(
-            {pt_key, met_type, era, data_mc_key, pileup_variation,
-             met.Pt(), met.Phi(), float(npv)});
-        double corr_met_phi = evaluator->evaluate(
-            {phi_key, met_type, era, data_mc_key, pileup_variation,
-             met.Pt(), met.Phi(), float(npv)});
+            double corr_met_pt = evaluator->evaluate(
+                {pt_key, met_type, era, data_mc_key, pileup_variation, met.Pt(),
+                 met.Phi(), float(npv)});
+            double corr_met_phi = evaluator->evaluate(
+                {phi_key, met_type, era, data_mc_key, pileup_variation,
+                 met.Pt(), met.Phi(), float(npv)});
 
-        double corr_met_X = corr_met_pt * cos(corr_met_phi);
-        double corr_met_Y = corr_met_pt * sin(corr_met_phi);
-        ROOT::Math::PtEtaPhiMVector corr_met;
-        corr_met.SetPxPyPzE(
-            corr_met_X, corr_met_Y, 0,
-            std::sqrt(corr_met_X * corr_met_X + corr_met_Y * corr_met_Y));
+            double corr_met_X = corr_met_pt * cos(corr_met_phi);
+            double corr_met_Y = corr_met_pt * sin(corr_met_phi);
+            ROOT::Math::PtEtaPhiMVector corr_met;
+            corr_met.SetPxPyPzE(
+                corr_met_X, corr_met_Y, 0,
+                std::sqrt(corr_met_X * corr_met_X + corr_met_Y * corr_met_Y));
 
-        Logger::get("met::METPhiCorrection")
-            ->debug("after: pt {} phi {}", corr_met.Pt(), corr_met.Phi());
+            Logger::get("met::METPhiCorrection")
+                ->debug("after: pt {} phi {}", corr_met.Pt(), corr_met.Phi());
 
-        return corr_met;
-    };
+            return corr_met;
+        };
     return df.Define(outputname, xyCorrection, {p4_met, n_pv});
 }
 
@@ -430,15 +483,18 @@ METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
  * This function combines information from both corrected and uncorrected jets
  * to update the MET vector. It concatenates jet kinematic variables and
  * electromagnetic fractions, then applies Type-1 corrections by subtracting
- * the difference between fully corrected and L1-corrected jet transverse momenta
- * for jets passing selection criteria. Only jets with $p_T > 15$ GeV and
+ * the difference between fully corrected and L1-corrected jet transverse
+ * momenta for jets passing selection criteria. Only jets with $p_T > 15$ GeV
+ * and
  * $\mathrm{EmEF} < 0.9$ are propagated to MET.
  *
  * @note To be used for v15 nanoAOD samples to both data and MC.
  *
  * @param df input dataframe
- * @param outputname name of the new column containing the corrected MET Lorentz vector
- * @param raw_met name of the column with the initial/uncorrected MET Lorentz vector
+ * @param outputname name of the new column containing the corrected MET Lorentz
+ * vector
+ * @param raw_met name of the column with the initial/uncorrected MET Lorentz
+ * vector
  * @param jet_pt_l1corr name of the column with L1-corrected jet $p_T$'s
  * @param jet_pt_corr name of the column with fully corrected jet $p_T$'s
  * @param jet_phi name of the column with jet $\phi$'s
@@ -458,67 +514,68 @@ METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
  * @return a new dataframe with the new MET column
  */
 ROOT::RDF::RNode
-Type1Correction(ROOT::RDF::RNode df,
-        const std::string &outputname,
-        const std::string &raw_met,
-        const std::string &jet_pt_l1corr,
-        const std::string &jet_pt_corr,
-        const std::string &jet_phi,
-        const std::string &jet_muon_subtr_delta_phi,
-        const std::string &jet_ch_em_ef,
-        const std::string &jet_ne_em_ef,
-        const std::string &low_pt_jet_phi,
-        const std::string &low_pt_jet_muon_subtr_delta_phi,
-        const std::string &low_pt_jet_em_ef) {
+Type1Correction(ROOT::RDF::RNode df, const std::string &outputname,
+                const std::string &raw_met, const std::string &jet_pt_l1corr,
+                const std::string &jet_pt_corr, const std::string &jet_phi,
+                const std::string &jet_muon_subtr_delta_phi,
+                const std::string &jet_ch_em_ef,
+                const std::string &jet_ne_em_ef,
+                const std::string &low_pt_jet_phi,
+                const std::string &low_pt_jet_muon_subtr_delta_phi,
+                const std::string &low_pt_jet_em_ef) {
 
-    auto correction_lambda = [](const ROOT::Math::PtEtaPhiMVector &raw_met,
-                                const ROOT::RVec<float> &jet_L1_pts,
-                                const ROOT::RVec<float> &jet_corr_pts,
-                                const ROOT::RVec<float> &jet_phis,
-                                const ROOT::RVec<float> &jet_muon_subtr_delta_phis,
-                                const ROOT::RVec<float> &jet_ch_em_efs,
-                                const ROOT::RVec<float> &jet_ne_em_efs,
-                                const ROOT::RVec<float> &low_pt_jet_phis,
-                                const ROOT::RVec<float> &low_pt_jet_muon_subtr_delta_phis,
-                                const ROOT::RVec<float> &low_pt_jet_em_efs) {
+    auto correction_lambda =
+        [](const ROOT::Math::PtEtaPhiMVector &raw_met,
+           const ROOT::RVec<float> &jet_L1_pts,
+           const ROOT::RVec<float> &jet_corr_pts,
+           const ROOT::RVec<float> &jet_phis,
+           const ROOT::RVec<float> &jet_muon_subtr_delta_phis,
+           const ROOT::RVec<float> &jet_ch_em_efs,
+           const ROOT::RVec<float> &jet_ne_em_efs,
+           const ROOT::RVec<float> &low_pt_jet_phis,
+           const ROOT::RVec<float> &low_pt_jet_muon_subtr_delta_phis,
+           const ROOT::RVec<float> &low_pt_jet_em_efs) {
+            float MetX = raw_met.Px();
+            float MetY = raw_met.Py();
+            ROOT::Math::PtEtaPhiMVector corrected_met;
 
-        float MetX = raw_met.Px();
-        float MetY = raw_met.Py();
-        ROOT::Math::PtEtaPhiMVector corrected_met;
+            ROOT::RVec<float> phis(jet_corr_pts.size());
+            phis = ROOT::VecOps::Concatenate(
+                jet_phis + jet_muon_subtr_delta_phis,
+                low_pt_jet_phis + low_pt_jet_muon_subtr_delta_phis);
 
-        ROOT::RVec<float> phis(jet_corr_pts.size());
-        phis = ROOT::VecOps::Concatenate(jet_phis + jet_muon_subtr_delta_phis, low_pt_jet_phis + low_pt_jet_muon_subtr_delta_phis);
+            ROOT::RVec<float> jet_em_efs(jet_ch_em_efs.size());
+            jet_em_efs = jet_ch_em_efs + jet_ne_em_efs;
+            ROOT::RVec<float> em_efs(jet_corr_pts.size());
+            em_efs = ROOT::VecOps::Concatenate(jet_em_efs, low_pt_jet_em_efs);
 
-        ROOT::RVec<float> jet_em_efs(jet_ch_em_efs.size());
-        jet_em_efs = jet_ch_em_efs + jet_ne_em_efs;
-        ROOT::RVec<float> em_efs(jet_corr_pts.size());
-        em_efs = ROOT::VecOps::Concatenate(jet_em_efs, low_pt_jet_em_efs);
-
-        for (std::size_t i = 0; i < jet_corr_pts.size(); ++i) {
-            // --- Type-1 jet selection ---
-            // only propagate objects above the given pt threshold
-            if (jet_corr_pts.at(i) > 15.0 && em_efs.at(i) < 0.9) {
-                // Apply (full − L1) to MET
-                float dpt = (jet_corr_pts.at(i) - jet_L1_pts.at(i));
-                MetX -= dpt * std::cos(phis.at(i));
-                MetY -= dpt * std::sin(phis.at(i));
+            for (std::size_t i = 0; i < jet_corr_pts.size(); ++i) {
+                // --- Type-1 jet selection ---
+                // only propagate objects above the given pt threshold
+                if (jet_corr_pts.at(i) > 15.0 && em_efs.at(i) < 0.9) {
+                    // Apply (full − L1) to MET
+                    float dpt = (jet_corr_pts.at(i) - jet_L1_pts.at(i));
+                    MetX -= dpt * std::cos(phis.at(i));
+                    MetY -= dpt * std::sin(phis.at(i));
+                }
             }
-        }
 
-        corrected_met.SetPxPyPzE(MetX, MetY, 0,
-                                    std::sqrt(MetX * MetX + MetY * MetY));
-        Logger::get("met::Type1Correction")->debug("old met {}, phi {}", raw_met.Pt(), raw_met.Phi());
-        Logger::get("met::Type1Correction")
-            ->debug("corrected met {}, phi {}", corrected_met.Pt(), corrected_met.Phi());
+            corrected_met.SetPxPyPzE(MetX, MetY, 0,
+                                     std::sqrt(MetX * MetX + MetY * MetY));
+            Logger::get("met::Type1Correction")
+                ->debug("old met {}, phi {}", raw_met.Pt(), raw_met.Phi());
+            Logger::get("met::Type1Correction")
+                ->debug("corrected met {}, phi {}", corrected_met.Pt(),
+                        corrected_met.Phi());
 
-        return corrected_met;
-    };
+            return corrected_met;
+        };
 
-    auto df1 = df.Define(outputname, correction_lambda, 
-                            {raw_met, jet_pt_l1corr, jet_pt_corr, jet_phi, 
-                             jet_muon_subtr_delta_phi, jet_ch_em_ef, jet_ne_em_ef,
-                             low_pt_jet_phi, low_pt_jet_muon_subtr_delta_phi,
-                             low_pt_jet_em_ef});
+    auto df1 = df.Define(outputname, correction_lambda,
+                         {raw_met, jet_pt_l1corr, jet_pt_corr, jet_phi,
+                          jet_muon_subtr_delta_phi, jet_ch_em_ef, jet_ne_em_ef,
+                          low_pt_jet_phi, low_pt_jet_muon_subtr_delta_phi,
+                          low_pt_jet_em_ef});
     return df1;
 }
 
@@ -529,15 +586,17 @@ Type1Correction(ROOT::RDF::RNode df,
  * This function combines information from both corrected and uncorrected jets
  * to update the MET vector. It concatenates jet kinematic variables and
  * electromagnetic fractions, then applies Type-1 corrections by subtracting
- * the difference between fully corrected and L1-corrected jet transverse momenta
- * for jets passing selection criteria. Only jets with $p_T > 15$ GeV and
- * $\mathrm{EmEF} < 0.9$ are propagated to MET.
+ * the difference between fully corrected and L1-corrected jet transverse
+ * momenta for jets passing selection criteria. Only jets with $p_T > 15$ GeV
+ * and $\mathrm{EmEF} < 0.9$ are propagated to MET.
  *
  * @note To be used for v9/v12 nanoAOD samples to both data and MC.
  *
  * @param df input dataframe
- * @param outputname name of the new column containing the corrected MET Lorentz vector
- * @param raw_met name of the column with the initial/uncorrected MET Lorentz vector
+ * @param outputname name of the new column containing the corrected MET Lorentz
+ * vector
+ * @param raw_met name of the column with the initial/uncorrected MET Lorentz
+ * vector
  * @param jet_pt_l1corr name of the column with L1-corrected jet $p_T$'s
  * @param jet_pt_corr name of the column with fully corrected jet $p_T$'s
  * @param jet_phi name of the column with jet $\phi$'s
@@ -550,15 +609,12 @@ Type1Correction(ROOT::RDF::RNode df,
  * @return A new DataFrame with the corrected MET column.
  */
 ROOT::RDF::RNode
-Type1Correction(ROOT::RDF::RNode df,
-        const std::string &outputname,
-        const std::string &raw_met,
-        const std::string &jet_pt_l1corr,
-        const std::string &jet_pt_corr,
-        const std::string &jet_phi,
-        const std::string &jet_ch_em_ef,
-        const std::string &jet_ne_em_ef,
-        const std::string &low_pt_jet_phi) {
+Type1Correction(ROOT::RDF::RNode df, const std::string &outputname,
+                const std::string &raw_met, const std::string &jet_pt_l1corr,
+                const std::string &jet_pt_corr, const std::string &jet_phi,
+                const std::string &jet_ch_em_ef,
+                const std::string &jet_ne_em_ef,
+                const std::string &low_pt_jet_phi) {
 
     auto correction_lambda = [](const ROOT::Math::PtEtaPhiMVector &raw_met,
                                 const ROOT::RVec<float> &jet_L1_pts,
@@ -567,7 +623,6 @@ Type1Correction(ROOT::RDF::RNode df,
                                 const ROOT::RVec<float> &jet_ch_em_efs,
                                 const ROOT::RVec<float> &jet_ne_em_efs,
                                 const ROOT::RVec<float> &low_pt_jet_phis) {
-
         float MetX = raw_met.Px();
         float MetY = raw_met.Py();
         ROOT::Math::PtEtaPhiMVector corrected_met;
@@ -577,7 +632,8 @@ Type1Correction(ROOT::RDF::RNode df,
 
         ROOT::RVec<float> jet_em_efs(jet_ch_em_efs.size());
         jet_em_efs = jet_ch_em_efs + jet_ne_em_efs;
-        // Setting low pT jets to 0 to always be true for the EmEF < 0.9 condition
+        // Setting low pT jets to 0 to always be true for the EmEF < 0.9
+        // condition
         ROOT::RVec<float> low_pt_jet_em_efs(low_pt_jet_phis.size(), 0.0);
         ROOT::RVec<float> em_efs(jet_corr_pts.size());
         em_efs = ROOT::VecOps::Concatenate(jet_em_efs, low_pt_jet_em_efs);
@@ -594,17 +650,19 @@ Type1Correction(ROOT::RDF::RNode df,
         }
 
         corrected_met.SetPxPyPzE(MetX, MetY, 0,
-                                    std::sqrt(MetX * MetX + MetY * MetY));
-        Logger::get("met::Type1Correction")->debug("old met {}, phi {}", raw_met.Pt(), raw_met.Phi());
+                                 std::sqrt(MetX * MetX + MetY * MetY));
         Logger::get("met::Type1Correction")
-            ->debug("corrected met {}, phi {}", corrected_met.Pt(), corrected_met.Phi());
+            ->debug("old met {}, phi {}", raw_met.Pt(), raw_met.Phi());
+        Logger::get("met::Type1Correction")
+            ->debug("corrected met {}, phi {}", corrected_met.Pt(),
+                    corrected_met.Phi());
 
         return corrected_met;
     };
 
-    auto df1 = df.Define(outputname, correction_lambda, 
-                        {raw_met, jet_pt_l1corr, jet_pt_corr, jet_phi, 
-                            jet_ch_em_ef, jet_ne_em_ef, low_pt_jet_phi});
+    auto df1 = df.Define(outputname, correction_lambda,
+                         {raw_met, jet_pt_l1corr, jet_pt_corr, jet_phi,
+                          jet_ch_em_ef, jet_ne_em_ef, low_pt_jet_phi});
     return df1;
 }
 
@@ -614,17 +672,19 @@ namespace physicsobject {
 
 /**
  * @brief This function propagates object corrections to the MET based on
- * vectors of physics objects. The objects can be e.g. a collection/vector of jets.
- * If the energy of an object is corrected/changed (e.g. via some scale factor) or
- * due to a shift, this change in energy has to be propagated to the MET vector, and
- * the MET vector has to be adapted accordingly. The MET is recalculated via
+ * vectors of physics objects. The objects can be e.g. a collection/vector of
+ * jets. If the energy of an object is corrected/changed (e.g. via some scale
+ * factor) or due to a shift, this change in energy has to be propagated to the
+ * MET vector, and the MET vector has to be adapted accordingly. The MET is
+ * recalculated via
  *
  * \f[
  *  E_{T,miss,x}^{\text{corrected}} = E_{T,miss,x} + p_{x,\text{object}}
  *        - p_{x,\text{object}}^{\text{corrected}} \\
  *  E_{T,miss,y}^{\text{corrected}} = E_{T,miss,y} + p_{y,\text{object}}
  *        - p_{y,\text{object}}^{\text{corrected}} \\
- *  E_{T,miss}^{\text{corrected}} = \sqrt{E_{T,miss,x}^{\text{corrected}} * E_{T,miss,x}^{\text{corrected}}
+ *  E_{T,miss}^{\text{corrected}} = \sqrt{E_{T,miss,x}^{\text{corrected}} *
+ * E_{T,miss,x}^{\text{corrected}}
  *        + E_{T,miss,y}^{\text{corrected}} * E_{T,miss,y}^{\text{corrected}}}
  * \f]
  *
@@ -648,33 +708,35 @@ namespace physicsobject {
  * objects
  * @param phi name of the column containing \f$\phi\f$ vector of the uncorrected
  * objects
- * @param mass name of the column containing mass vector of the uncorrected objects
+ * @param mass name of the column containing mass vector of the uncorrected
+ * objects
  * @param apply_propagation boolean indicating whether the propagation should be
  * applied or just the original MET vector should be returned
- * @param min_pt minimal \f$p_T\f$, the corrected object has to have in order for
- * the MET propagation to be applied
+ * @param min_pt minimal \f$p_T\f$, the corrected object has to have in order
+ * for the MET propagation to be applied
  *
  * @return a dataframe with the new column containing the corrected MET Lorentz
  * vector
  */
-ROOT::RDF::RNode PropagateToMET(
-    ROOT::RDF::RNode df, const std::string &outputname, const std::string &p4_met,
-    const std::string &pt_corrected, const std::string &eta_corrected,
-    const std::string &phi_corrected, const std::string &mass_corrected,
-    const std::string &pt, const std::string &eta,
-    const std::string &phi, const std::string &mass,
-    bool apply_propagation, float min_pt) {
+ROOT::RDF::RNode
+PropagateToMET(ROOT::RDF::RNode df, const std::string &outputname,
+               const std::string &p4_met, const std::string &pt_corrected,
+               const std::string &eta_corrected,
+               const std::string &phi_corrected,
+               const std::string &mass_corrected, const std::string &pt,
+               const std::string &eta, const std::string &phi,
+               const std::string &mass, bool apply_propagation, float min_pt) {
     // propagate objects corrections to MET, since we can have an arbitrary
     // amount of objects, this has to be done per event
     auto scaleMet = [min_pt](const ROOT::Math::PtEtaPhiMVector &met,
-                                 const ROOT::RVec<float> &pts_corrected,
-                                 const ROOT::RVec<float> &etas_corrected,
-                                 const ROOT::RVec<float> &phis_corrected,
-                                 const ROOT::RVec<float> &masses_corrected,
-                                 const ROOT::RVec<float> &pts,
-                                 const ROOT::RVec<float> &etas,
-                                 const ROOT::RVec<float> &phis,
-                                 const ROOT::RVec<float> &masses) {
+                             const ROOT::RVec<float> &pts_corrected,
+                             const ROOT::RVec<float> &etas_corrected,
+                             const ROOT::RVec<float> &phis_corrected,
+                             const ROOT::RVec<float> &masses_corrected,
+                             const ROOT::RVec<float> &pts,
+                             const ROOT::RVec<float> &etas,
+                             const ROOT::RVec<float> &phis,
+                             const ROOT::RVec<float> &masses) {
         ROOT::Math::PtEtaPhiMVector corrected_met;
         ROOT::Math::PtEtaPhiMVector uncorrected_object;
         ROOT::Math::PtEtaPhiMVector corrected_object;
@@ -705,20 +767,21 @@ ROOT::RDF::RNode PropagateToMET(
             ->debug("MetX {}, MetY {}", MetX, MetY);
         corrected_met.SetPxPyPzE(MetX, MetY, 0,
                                  std::sqrt(MetX * MetX + MetY * MetY));
-        Logger::get("physicsobject::PropagateToMET")->debug("old met {}", met.Pt());
+        Logger::get("physicsobject::PropagateToMET")
+            ->debug("old met {}", met.Pt());
         Logger::get("physicsobject::PropagateToMET")
             ->debug("corrected met {}", corrected_met.Pt());
         return corrected_met;
     };
     if (apply_propagation) {
         return df.Define(outputname, scaleMet,
-                         {p4_met, pt_corrected, eta_corrected,
-                          phi_corrected, mass_corrected, pt,
-                          eta, phi, mass});
+                         {p4_met, pt_corrected, eta_corrected, phi_corrected,
+                          mass_corrected, pt, eta, phi, mass});
     } else {
         // if we do not apply the propagation, just rename the met column to
         // the new outputname and dont change anything else
-        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(df, outputname, p4_met);
+        return event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>(
+            df, outputname, p4_met);
     }
 }
 } // end namespace physicsobject
