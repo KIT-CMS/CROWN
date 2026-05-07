@@ -6,7 +6,7 @@ import json
 import os
 from time import time
 from code_generation.configuration import Configuration
-from typing import List, Union, Dict, Set
+from typing import List, Union, Dict, Set, Tuple, Any
 
 from code_generation.exceptions import (
     ConfigurationError,
@@ -141,21 +141,20 @@ class FriendTreeConfiguration(Configuration):
     def _readout_input_information(
         self,
         input_information_list: Union[List[str], List[Dict[str, List[str]]]],
+        metadata: Dict[str, Any] = {},
     ) -> Dict[str, Dict[str, List[str]]]:
         def update_input_information(existing_data, new_data):
-            if existing_data == {}:
-                return new_data
-            else:
-                # otherwise we have to merge the contents, while not overwriting existing data
-                for scope in new_data.keys():
-                    if scope not in existing_data.keys():
-                        existing_data[scope] = {}
-                    for shift in new_data[scope].keys():
-                        if shift not in existing_data[scope].keys():
-                            existing_data[scope][shift] = []
-                        for quantity in new_data[scope][shift]:
-                            if quantity not in existing_data[scope][shift]:
-                                existing_data[scope][shift].append(quantity)
+            # Merge contents, while not overwriting existing data
+            for scope in new_data.keys():
+                if scope not in existing_data.keys():
+                    existing_data[scope] = {}
+                for shift in new_data[scope].keys():
+                    if shift not in existing_data[scope].keys():
+                        existing_data[scope][shift] = []
+                    for quantity in new_data[scope][shift]:
+                        if quantity not in existing_data[scope][shift]:
+                            # Add origin config to quantity for naviagation with multifriends
+                            existing_data[scope][shift].append((quantity, metadata["config"]))
             return existing_data
 
         # first check if the input is a root file or a json file
@@ -164,13 +163,11 @@ class FriendTreeConfiguration(Configuration):
             log.info(f"adding input information from {input_information}")
             if isinstance(input_information, str):
                 if input_information.endswith(".root"):
-                    data = update_input_information(
-                        data, self._readout_input_root_file(input_information)
-                    )
+                    shift_map, metadata = self._readout_input_root_file(input_information)
+                    data = update_input_information(data, shift_map)
                 elif input_information.endswith(".json"):
-                    data = update_input_information(
-                        data, self._readout_input_json_file(input_information)
-                    )
+                    shift_map, metadata = self._readout_input_json_file(input_information)
+                    data = update_input_information(data, shift_map)
                 else:
                     error_message = f"\n      Input information file {input_information} is not a json or root file \n"
                     error_message += (
@@ -183,7 +180,7 @@ class FriendTreeConfiguration(Configuration):
 
     def _readout_input_root_file(
         self, input_file: str
-    ) -> Dict[str, Dict[str, List[str]]]:
+    ) -> Tuple[Dict[str, Dict[str, List[str]]], Dict[str, Any]]:
         """Read the shift_quantities_map from the input root file and return it as a dictionary
 
         Args:
@@ -207,7 +204,7 @@ class FriendTreeConfiguration(Configuration):
         if not os.path.exists(lib_path):
             log.error(f"Missing library: {lib_path}")
         # Evaluate ROOT-specific return codes
-        result = ROOT.gSystem.Load(lib_path)
+        result = ROOT.gSystem.Load(lib_path) # type: ignore
         if result < 0:
             err_type = (
                 "Version mismatch"
@@ -217,19 +214,19 @@ class FriendTreeConfiguration(Configuration):
             log.error(f"Load failed ({result}): {err_type} for {lib_path}")
 
         f = ROOT.TFile.Open(input_file)  # type: ignore
-        name = "shift_quantities_map"
-        m = f.Get(name)
+        m = f.Get("shift_quantities_map")
         for shift, quantities in m:
             data[str(shift)] = [str(quantity) for quantity in quantities]
+        metadata = json.loads(f.Get("metadata").GetString().Data())
         f.Close()
         log.debug(
             f"Reading quantities information took {round(time() - start,2)} seconds"
         )
-        return {list(self.selected_scopes)[0]: data}
+        return {list(self.selected_scopes)[0]: data}, metadata["metadata"]
 
     def _readout_input_json_file(
         self, input_file: str
-    ) -> Dict[str, Dict[str, List[str]]]:
+    ) ->  Tuple[Dict[str, Dict[str, List[str]]], Dict[str, Any]]:
         """Read the shift_quantities_map from the input json file and return it as a dictionary
 
         Args:
@@ -240,26 +237,26 @@ class FriendTreeConfiguration(Configuration):
         """
         with open(input_file) as f:
             data = json.load(f)
+        quantity_data = data["quantities"]
+        metadata = data["metadata"]
         # json file structure is: {era: {sampletype: {scope: {shift: [quantities]}}}
-        if self.era not in data:
+        if self.era not in quantity_data or self.era != metadata["era"]:
             errorstring = (
                 f"Era {self.era} not found in input information file {input_file}.\n"
             )
-            errorstring += f"Available eras are: {data.keys()}"
+            errorstring += f"Available eras are: {quantity_data.keys()}"
             raise ConfigurationError(errorstring)
-        if self.sample not in data[self.era].keys():
+        if self.sample not in quantity_data[self.era].keys() or self.sample != metadata["sample_type"]:
             errorstring = f"Sampletype {self.sample} not found in input information file {input_file}.\n"
-            errorstring += f"Available sampletypes are: {data[self.era].keys()}"
+            errorstring += f"Available sampletypes are: {quantity_data[self.era].keys()}"
             raise ConfigurationError(errorstring)
         if not set(self.selected_scopes).issubset(
-            set(data[self.era][self.sample].keys())
+            set(quantity_data[self.era][self.sample].keys())
         ):
             errorstring = f"Scopes {self.selected_scopes} not found in input information file {input_file}.\n"
-            errorstring += f"Available scopes are: {data[self.era][self.sample].keys()}"
+            errorstring += f"Available scopes are: {quantity_data[self.era][self.sample].keys()}"
             raise ConfigurationError(errorstring)
-        else:
-            data = data[self.era][self.sample]
-        return data
+        return quantity_data[self.era][self.sample], metadata
 
     def optimize(self) -> None:
         """
@@ -375,7 +372,7 @@ class FriendTreeConfiguration(Configuration):
                     [x.name for x in producer.get_outputs(scope)]
                 )
             # get all available inputs
-            for input_quantitiy in self.input_quantities_mapping[scope][""]:
+            for input_quantitiy, quantity_origin in self.input_quantities_mapping[scope][""]:
                 available_inputs.add(input_quantitiy)
             # now check if all inputs are available
             missing_inputs = required_inputs - available_inputs
