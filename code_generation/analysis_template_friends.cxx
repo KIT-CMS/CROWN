@@ -31,7 +31,7 @@
 #include <TTree.h>
 #include <TVector.h>
 #include <filesystem>
-#include <onnxruntime_cxx_api.h>
+#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
 #include <regex>
 #include <string>
 
