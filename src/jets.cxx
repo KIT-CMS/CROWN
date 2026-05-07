@@ -1854,7 +1854,29 @@ BtaggingWP(ROOT::RDF::RNode df,
                         pts.at(i), etas.at(i), btag_value.at(i), flavors.at(i));
 
             // Skip jets that do not pass the jet/b jet selection
-            if (!((jet_mask.at(i) || bjet_mask.at(i)) && jet_veto_mask.at(i))) {
+            if (
+                !(
+                    (jet_mask.at(i) || bjet_mask.at(i))
+                    && jet_veto_mask.at(i)
+                )
+            ) {
+                Logger::get(logger_name)
+                    ->debug("Skip jet that does not pass selection criteria");
+                continue;
+            }
+
+            // Skip jets out of the acceptance of the phase space in which the
+            // corrections have been calculated
+            if (
+                !(
+                    pts.at(i) >= 20.0
+                    && pts.at(i) < 10000.0
+                    && std::abs(etas.at(i)) < 2.5
+                    && btag_value.at(i) >= 0
+                )
+            ) {
+                Logger::get(logger_name)
+                    ->debug("Skip jet that is out of validity of corrections");
                 continue;
             }
 
@@ -1877,17 +1899,21 @@ BtaggingWP(ROOT::RDF::RNode df,
 
             // Obtain scale factors in the phase space where they are
             // well-defined
-            float jet_eff = 1.0;
-            float jet_sf = 1.0;
-            if (pts.at(i) >= 20.0 && pts.at(i) < 10000.0 &&
-                std::abs(etas.at(i)) < 2.5 && btag_value.at(i) >= 0) {
-                jet_sf = sf_evaluator->evaluate(
-                    {variation, btag_wp_name, flavors.at(i),
-                     std::abs(etas.at(i)), pts.at(i)});
-                jet_eff = eff_evaluator->evaluate(
-                    {sample_type, btag_wp_name, flavors.at(i),
-                     std::abs(etas.at(i)), pts.at(i)});
+            float jet_sf = sf_evaluator->evaluate(
+                {variation, btag_wp_name, flavors.at(i),
+                 std::abs(etas.at(i)), pts.at(i)});
+            float jet_eff = eff_evaluator->evaluate(
+                {sample_type, btag_wp_name, flavors.at(i),
+                 std::abs(etas.at(i)), pts.at(i)});
+
+            // Clip efficiency to avoid division by 0
+            if (jet_eff >= 0.999) {
+                jet_eff = 0.999;
+            } else if (jet_eff <= 0.001) {
+                jet_eff = 0.001;
             }
+
+            // Log values of the scale factor and efficiency per jet
             Logger::get(logger_name)->debug("got SF {}", jet_sf);
             Logger::get(logger_name)->debug("got efficiency {}", jet_eff);
 
@@ -2039,7 +2065,29 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                         pts.at(i), etas.at(i), btag_value.at(i), flavors.at(i));
 
             // Skip jets that do not pass the jet/b jet selection
-            if (!((jet_mask.at(i) || bjet_mask.at(i)) && jet_veto_mask.at(i))) {
+            if (
+                !(
+                    (jet_mask.at(i) || bjet_mask.at(i))
+                    && jet_veto_mask.at(i)
+                )
+            ) {
+                Logger::get(logger_name)
+                    ->debug("Skip jet that does not pass selection criteria");
+                continue;
+            }
+
+            // Skip jets out of the acceptance of the phase space in which the
+            // corrections have been calculated
+            if (
+                !(
+                    pts.at(i) >= 20.0
+                    && pts.at(i) < 10000.0
+                    && std::abs(etas.at(i)) < 2.5
+                    && btag_value.at(i) >= 0
+                )
+            ) {
+                Logger::get(logger_name)
+                    ->debug("Skip jet that is out of validity of corrections");
                 continue;
             }
 
@@ -2092,22 +2140,26 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
             std::map<std::string, float> jet_eff;
             std::map<std::string, float> jet_sf;
             for (const auto &wp : wps) {
-                if (pts.at(i) >= 20.0 && pts.at(i) < 10000.0 &&
-                    std::abs(etas.at(i)) < 2.5 && btag_value.at(i) >= 0) {
-                    jet_sf[wp] = sf_evaluator->evaluate(
-                        {variation, wp, flavors.at(i), std::abs(etas.at(i)),
-                         pts.at(i)});
-                    jet_eff[wp] = eff_evaluator->evaluate(
-                        {sample_type, wp, flavors.at(i), std::abs(etas.at(i)),
-                         pts.at(i)});
-                } else {
-                    jet_sf[wp] = 1.0;
-                    jet_eff[wp] = 1.0;
+                // Get the scale factors from the correction sets
+                jet_sf[wp] = sf_evaluator->evaluate(
+                    {variation, wp, flavors.at(i), std::abs(etas.at(i)),
+                     pts.at(i)});
+                jet_eff[wp] = eff_evaluator->evaluate(
+                    {sample_type, wp, flavors.at(i), std::abs(etas.at(i)),
+                     pts.at(i)});
+
+                // Clip efficiency to avoid division by 0
+                if (jet_eff[wp] >= 0.999) {
+                    jet_eff[wp] = 0.999;
+                } else if (jet_eff[wp] <= 0.001) {
+                    jet_eff[wp] = 0.001;
                 }
+
+                // Log the values of scale factor and efficiency for this jet
                 Logger::get(logger_name)
-                    ->debug("got SFs {} (WP {})", jet_sf[wp], wp);
+                    ->debug("got SF {} (WP {})", jet_sf[wp], wp);
                 Logger::get(logger_name)
-                    ->debug("got efficiencies {} (WP {})", jet_eff[wp], wp);
+                    ->debug("got efficiency {} (WP {})", jet_eff[wp], wp);
             }
 
             // Multiply this jet's contribution to the event scale factor based
