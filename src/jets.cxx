@@ -1886,33 +1886,58 @@ BtaggingWP(ROOT::RDF::RNode df,
                 throw std::runtime_error("jet flavor not recognized");
             }
 
-            // Obtain scale factors in the phase space where they are
-            // well-defined
+            // Get the scale factor and the efficiency
             float jet_sf =
                 sf_evaluator->evaluate({variation, btag_wp_name, flavors.at(i),
                                         std::abs(etas.at(i)), pts.at(i)});
-            float jet_eff = eff_evaluator->evaluate(
-                {sample_type, btag_wp_name, flavors.at(i), std::abs(etas.at(i)),
-                 pts.at(i)});
+            float jet_eff =
+                eff_evaluator->evaluate({sample_type, btag_wp_name, flavors.at(i),
+                                         std::abs(etas.at(i)), pts.at(i)});
 
-            // Clip efficiency to avoid division by 0
-            if (jet_eff >= 0.999) {
-                jet_eff = 0.999;
-            } else if (jet_eff <= 0.001) {
-                jet_eff = 0.001;
-            }
-
-            // Log values of the scale factor and efficiency per jet
+            // Log the values of scale factor and efficiency for this jet
             Logger::get(logger_name)->debug("got SF {}", jet_sf);
             Logger::get(logger_name)->debug("got efficiency {}", jet_eff);
 
             // Multiply this jet's contribution to the event scale factor based
             // on the working point it passes.
-            float jet_comp = 1.0;
+            float num = 1.0;
+            float denom = 1.0;
             if (btag_value.at(i) >= btag_wp_cut) {
-                jet_comp = jet_sf;
+                // We only need to define the numerator here
+                num = jet_sf;
             } else {
-                jet_comp = (1.0 - jet_sf * jet_eff) / (1.0 - jet_eff);
+                // Define numerator and denominator
+                num = 1.0 - jet_sf * jet_eff;
+                denom = 1.0 - jet_eff;
+            }
+
+            // Handle edge cases where the denominator is not positive: Set
+            // the efficiency difference to 1 (TODO is this well-justified?)
+            if (denom <= 0) {
+                Logger::get(logger_name)
+                    ->debug("got negative denominator {}, set it to 1.0",
+                            denom);
+                denom = 1.0;
+            }
+
+            // Calculate the jet contribution
+            auto jet_comp = num / denom;
+
+            // Handle edge cases where the whole SF is negative, set it to 1
+            // unity
+            if (jet_comp <= 0.0) {
+                Logger::get(logger_name)
+                    ->debug("got nonpositve jet contribution {}, set it to 1.0",
+                            jet_comp);
+                jet_comp = 1.0;
+            }
+
+            // Emit a warning if the SF is extremely negative, extremely
+            // positive, or nan.
+            if (std::isnan(jet_comp) || !std::isfinite(jet_comp)) {
+                Logger::get(logger_name)
+                    ->warn("got invalid jet contribution {} to b tagging SF",
+                           jet_comp);
             }
 
             // Debug message for this jet's contribution to the event scale
@@ -2140,19 +2165,25 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
 
             // Multiply this jet's contribution to the event scale factor based
             // on the working point it passes.
-            float jet_comp = 1.0;
+            float num = 1.0;
+            float denom = 1.0;
             if (btag_wp == "XXT") {
-                jet_comp = jet_sf["XXT"];
+                // We only need to define the numerator here
+                num = jet_sf["XXT"];
             } else if ((btag_wp == "XT") || (btag_wp == "T") ||
                        (btag_wp == "M") || (btag_wp == "L")) {
+                // Get the name of the lower and the upper edge of the WP
+                // bin
                 auto low_wp = wps[0];
                 auto high_wp = wps[1];
-                jet_comp = (jet_sf[low_wp] * jet_eff[low_wp] -
-                            jet_sf[high_wp] * jet_eff[high_wp]) /
-                           (jet_eff[low_wp] - jet_eff[high_wp]);
+
+                // Define numerator and denominator
+                num = jet_sf[low_wp] * jet_eff[low_wp] - jet_sf[high_wp] * jet_eff[high_wp];
+                denom = jet_eff[low_wp] - jet_eff[high_wp];
             } else if (btag_wp == "N") {
-                jet_comp =
-                    (1.0 - jet_sf["L"] * jet_eff["L"]) / (1.0 - jet_eff["L"]);
+                // Define numerator and denominator
+                num = 1.0 - jet_sf["L"] * jet_eff["L"];
+                denom = 1.0 - jet_eff["L"];
             } else {
                 Logger::get(logger_name)
                     ->error("Arrived at unexpected b tagging working point {}",
@@ -2161,10 +2192,23 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                     "Arrived at unexpected b tagging working point " + btag_wp);
             }
 
-            // Force the SF to a positive value, set it to unity otherwise
-            if (jet_comp < 0.0) {
+            // Handle edge cases where the denominator is not positive: Set
+            // the efficiency difference to 1 (TODO is this well-justified?)
+            if (denom <= 0) {
                 Logger::get(logger_name)
-                    ->debug("got negative jet contribution {}, set it to 1.0",
+                    ->debug("got negative denominator {}, set it to 1.0",
+                            denom);
+                denom = 1.0;
+            }
+
+            // Calculate the jet contribution
+            auto jet_comp = num / denom;
+
+            // Handle edge cases where the whole SF is negative, set it to 1
+            // unity
+            if (jet_comp <= 0.0) {
+                Logger::get(logger_name)
+                    ->debug("got nonpositve jet contribution {}, set it to 1.0",
                             jet_comp);
                 jet_comp = 1.0;
             }
