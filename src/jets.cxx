@@ -2143,17 +2143,13 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
             float jet_comp = 1.0;
             if (btag_wp == "XXT") {
                 jet_comp = jet_sf["XXT"];
-            } else if (
-                (btag_wp == "XT")
-                || (btag_wp == "T")
-                || (btag_wp == "M")
-                || (btag_wp == "L")
-            ) {
+            } else if ((btag_wp == "XT") || (btag_wp == "T") ||
+                       (btag_wp == "M") || (btag_wp == "L")) {
                 auto low_wp = wps[0];
                 auto high_wp = wps[1];
-                jet_comp =
-                    (jet_sf[low_wp] * jet_eff[low_wp] - jet_sf[high_wp] * jet_eff[high_wp]) /
-                    (jet_eff[low_wp] - jet_eff[high_wp]);
+                jet_comp = (jet_sf[low_wp] * jet_eff[low_wp] -
+                            jet_sf[high_wp] * jet_eff[high_wp]) /
+                           (jet_eff[low_wp] - jet_eff[high_wp]);
             } else if (btag_wp == "N") {
                 jet_comp =
                     (1.0 - jet_sf["L"] * jet_eff["L"]) / (1.0 - jet_eff["L"]);
@@ -2178,7 +2174,7 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
             if (std::isnan(jet_comp) || !std::isfinite(jet_comp)) {
                 Logger::get(logger_name)
                     ->warn("got invalid jet contribution {} to b tagging SF",
-                            jet_comp);
+                           jet_comp);
             }
 
             // Debug message for this jet's contribution to the event scale
