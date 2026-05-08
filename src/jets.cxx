@@ -2014,7 +2014,7 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
     // case the jet does not pass the loosest working point. Note that the list
     // of working point names must be ordered from the tightest to the loosest
     // one.
-    std::vector<std::string> wp_names = {"T", "M", "L"};
+    std::vector<std::string> wp_names = {"XXT", "XT", "T", "M", "L"};
     std::map<std::string, float> wp_map;
     for (const auto &wp : wp_names) {
         wp_map[wp] = wp_evaluator->evaluate({wp});
@@ -2101,10 +2101,15 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                         btag_wp);
 
             // Define list of b tagging working point scale factors needed for
-            // this jet
+            // this jet; the list must be sorted from the looser to
+            // the tighter WPs.
             std::vector<std::string> wps = {};
-            if (btag_wp == "T") {
-                wps = {"T"};
+            } else if (btag_wp == "XXT") {
+                wps = {"XXT"};
+            } else if (btag_wp == "XT") {
+                wps = {"XT", "XXT"};
+            } else if (btag_wp == "T") {
+                wps = {"T", "XT"};
             } else if (btag_wp == "M") {
                 wps = {"M", "T"};
             } else if (btag_wp == "L") {
@@ -2143,16 +2148,19 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
             // Multiply this jet's contribution to the event scale factor based
             // on the working point it passes.
             float jet_comp = 1.0;
-            if (btag_wp == "T") {
-                jet_comp = jet_sf["T"];
-            } else if (btag_wp == "M") {
+            if (btag_wp == "XXT") {
+                jet_comp = jet_sf["XXT"];
+            } else if (
+                (btag_wp == "XT")
+                || (btag_wp == "T")
+                || (btag_wp == "M")
+                || (btag_wp == "L")
+            ) {
+                auto low_wp = wps[0];
+                auto high_wp = wps[1];
                 jet_comp =
-                    (jet_sf["M"] * jet_eff["M"] - jet_sf["T"] * jet_eff["T"]) /
-                    (jet_eff["M"] - jet_eff["T"]);
-            } else if (btag_wp == "L") {
-                jet_comp =
-                    (jet_sf["L"] * jet_eff["L"] - jet_sf["M"] * jet_eff["M"]) /
-                    (jet_eff["L"] - jet_eff["M"]);
+                    (jet_sf[low_wp] * jet_eff[low_wp] - jet_sf[high_wp] * jet_eff[high_wp]) /
+                    (jet_eff[low_wp] - jet_eff[high_wp]);
             } else if (btag_wp == "N") {
                 jet_comp =
                     (1.0 - jet_sf["L"] * jet_eff["L"]) / (1.0 - jet_eff["L"]);
@@ -2170,6 +2178,14 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                     ->debug("got negative jet contribution {}, set it to 1.0",
                             jet_comp);
                 jet_comp = 1.0;
+            }
+
+            // Emit a warning if the SF is extremely negative, extremely
+            // positive, or nan.
+            if (std::isnan(jet_comp) || !std::isfinite(jet_comp)) {
+                Logger::get(logger_name)
+                    ->warning("got invalid jet contribution {} to b tagging SF",
+                            jet_comp);
             }
 
             // Debug message for this jet's contribution to the event scale
