@@ -106,7 +106,7 @@ class GraphParser:
         self.edges = []
         self.inputs = defaultdict(lambda: defaultdict(list))
         self.outputs = defaultdict(lambda: defaultdict(list))
-        self.direct_in_to_out = defaultdict(dict)
+        self.direct_in_to_out = defaultdict(list)
         self.vec_output_mappings = {}
         self.node_register = defaultdict(
             lambda: {
@@ -527,10 +527,10 @@ class GraphParser:
                         log.warning(f"Input {req_out} available from multiple sources {keys}. Picking the first one {keys[0]}.")
                     quantity_source = keys[0]
                     log.debug(f"Requested output quantity {req_out} provided by {quantity_source} Ntuple.")
-                    self.direct_in_to_out[quantity_source] = req_out
+                    self.direct_in_to_out[quantity_source].append(req_out)
                 else:
                     log.debug(f"Requested output quantity {req_out} provided by NanoAOD.")
-                    self.direct_in_to_out["NanoAOD"] = req_out
+                    self.direct_in_to_out["NanoAOD"].append(req_out)
             else:
                 log_and_fail(f"Requested output quantity {req_out} not provided by NanoAOD/Ntuple.")
 
