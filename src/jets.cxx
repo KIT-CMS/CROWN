@@ -2104,7 +2104,7 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
             // this jet; the list must be sorted from the looser to
             // the tighter WPs.
             std::vector<std::string> wps = {};
-            } else if (btag_wp == "XXT") {
+            if (btag_wp == "XXT") {
                 wps = {"XXT"};
             } else if (btag_wp == "XT") {
                 wps = {"XT", "XXT"};
@@ -2130,13 +2130,6 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                 jet_eff[wp] =
                     eff_evaluator->evaluate({sample_type, wp, flavors.at(i),
                                              std::abs(etas.at(i)), pts.at(i)});
-
-                // Clip efficiency to avoid division by 0
-                if (jet_eff[wp] >= 0.999) {
-                    jet_eff[wp] = 0.999;
-                } else if (jet_eff[wp] <= 0.001) {
-                    jet_eff[wp] = 0.001;
-                }
 
                 // Log the values of scale factor and efficiency for this jet
                 Logger::get(logger_name)
