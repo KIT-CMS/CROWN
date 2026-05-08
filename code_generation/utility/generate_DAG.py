@@ -1,4 +1,3 @@
-from math import sqrt
 import re
 import json
 import shutil
@@ -10,9 +9,12 @@ from code_generation.helpers import is_empty
 from typing import Never
 
 log = logging.getLogger(__name__)
+
+
 def log_and_fail(msg: str) -> Never:
     log.exception(msg, stack_info=True)
     raise RuntimeError(msg)
+
 
 def create_graph(configuration, NanoAOD_inputs, DAG_dir, json_name):
     """Instantiate a GraphParser and execute DAG generation.
@@ -37,21 +39,27 @@ def create_graph(configuration, NanoAOD_inputs, DAG_dir, json_name):
                 external_inputs = {"NanoAOD": NanoAOD_inputs}
                 is_friend_config = False
             else:
-                log_and_fail(f"Unknown configuration type: {type(configuration).__name__}")
+                log_and_fail(
+                    f"Unknown configuration type: {type(configuration).__name__}"
+                )
 
             if hasattr(configuration, "input_quantities_mapping"):
                 if not is_friend_config:
-                    log_and_fail("input_quantities_mapping is only supported for friend configurations.")
-                external_inputs_tuples = configuration.input_quantities_mapping[active_scope][
-                    ""
-                ]
+                    log_and_fail(
+                        "input_quantities_mapping is only supported for friend configurations."
+                    )
+                external_inputs_tuples = configuration.input_quantities_mapping[
+                    active_scope
+                ][""]
                 config_sources = defaultdict(list)
                 for quantity, config in external_inputs_tuples:
                     config_sources[config].append(quantity)
                 external_inputs.update(config_sources)
                 shifted_inputs = {
                     shift: [original for original, *_ in e_in]
-                    for shift, e_in in configuration.input_quantities_mapping[active_scope].items()
+                    for shift, e_in in configuration.input_quantities_mapping[
+                        active_scope
+                    ].items()
                     if shift != ""
                 }
             else:
@@ -297,10 +305,11 @@ class GraphParser:
             input_vec_config = match.group(1)
         else:
             log_and_fail(f"Input vector config could not be parsed from {call}")
-            input_vec_config = None
 
         if input_vec_config not in producer.vec_configs:
-            log_and_fail(f"Input name from {call} not in producer vector configs {producer.vec_configs}")
+            log_and_fail(
+                f"Input name from {call} not in producer vector configs {producer.vec_configs}"
+            )
         # Determine the index of the input vector config from the call
         vec_input_index = producer.vec_configs.index(input_vec_config)
         call = producer.call
@@ -518,21 +527,35 @@ class GraphParser:
             if self.node_register.get(producers[0]):
                 self.node_register[producers[0]]["file_out"].append(req_out)
             else:
-                log_and_fail(f"Source {producers[0]} is neither part of {scope} nor global scope.")
+                log_and_fail(
+                    f"Source {producers[0]} is neither part of {scope} nor global scope."
+                )
         else:
             if req_out in set().union(*self.external_inputs.values()):
                 if self.is_friend_config:
-                    keys = [k for k, values in self.external_inputs.items() if req_out in values]
+                    keys = [
+                        k
+                        for k, values in self.external_inputs.items()
+                        if req_out in values
+                    ]
                     if len(keys) > 1:
-                        log.warning(f"Input {req_out} available from multiple sources {keys}. Picking the first one {keys[0]}.")
+                        log.warning(
+                            f"Input {req_out} available from multiple sources {keys}. Picking the first one {keys[0]}."
+                        )
                     quantity_source = keys[0]
-                    log.debug(f"Requested output quantity {req_out} provided by {quantity_source} Ntuple.")
+                    log.debug(
+                        f"Requested output quantity {req_out} provided by {quantity_source} Ntuple."
+                    )
                     self.direct_in_to_out[quantity_source].append(req_out)
                 else:
-                    log.debug(f"Requested output quantity {req_out} provided by NanoAOD.")
+                    log.debug(
+                        f"Requested output quantity {req_out} provided by NanoAOD."
+                    )
                     self.direct_in_to_out["NanoAOD"].append(req_out)
             else:
-                log_and_fail(f"Requested output quantity {req_out} not provided by NanoAOD/Ntuple.")
+                log_and_fail(
+                    f"Requested output quantity {req_out} not provided by NanoAOD/Ntuple."
+                )
 
     def assemble_connections(self):
         """Resolve mappings to construct the actual connecting edges in the DAG.
@@ -562,15 +585,27 @@ class GraphParser:
                     elif req_input in all_external_inputs:
                         # CROWN friend production may only read quantities from CROWN Ntuples
                         if self.is_friend_config:
-                            keys = [k for k, values in self.external_inputs.items() if req_input in values]
+                            keys = [
+                                k
+                                for k, values in self.external_inputs.items()
+                                if req_input in values
+                            ]
                             if len(keys) > 1:
-                                log.warning(f"Input {req_input} available from multiple sources {keys}. Picking the first one {keys[0]}.")
+                                log.warning(
+                                    f"Input {req_input} available from multiple sources {keys}. Picking the first one {keys[0]}."
+                                )
                             quantity_source = keys[0]
-                            self.node_register[target_node]["file_in"][quantity_source].append(req_input)
+                            self.node_register[target_node]["file_in"][
+                                quantity_source
+                            ].append(req_input)
                         else:
-                            self.node_register[target_node]["file_in"]["NanoAOD"].append(req_input)
+                            self.node_register[target_node]["file_in"][
+                                "NanoAOD"
+                            ].append(req_input)
                     else:
-                        log_and_fail(f"Input {req_input} is missing from NanoAOD/Ntuple and producers.")
+                        log_and_fail(
+                            f"Input {req_input} is missing from NanoAOD/Ntuple and producers."
+                        )
 
                 # Create connections grouped by source node
                 for source_node, input_names in compose.items():
@@ -756,9 +791,7 @@ class GraphParser:
             self.node_register[id_name]["type"] = node_type
         if node_call:
             self.node_register[id_name]["node_call"] = node_call
-            self.node_register[id_name][
-                "node_call_configs"
-            ] = node_call_configs
+            self.node_register[id_name]["node_call_configs"] = node_call_configs
 
     def add_connection(self, source, target, name):
         """Log a relational connection locally between a source and a target.
@@ -801,7 +834,9 @@ class GraphParser:
         # Write DAG data to json
         with open(path, "w") as f:
             json.dump(full_data, f, indent=4)
-        log.info(f"Generated DAG file for {self.config.era}/{self.config.sample}/{self.active_scope}: {path}")
+        log.info(
+            f"Generated DAG file for {self.config.era}/{self.config.sample}/{self.active_scope}: {path}"
+        )
 
         # Update master DAG file list
         self.update_DAG_file_list(
