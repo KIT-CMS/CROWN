@@ -2184,7 +2184,7 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
             // positive, or nan.
             if (std::isnan(jet_comp) || !std::isfinite(jet_comp)) {
                 Logger::get(logger_name)
-                    ->warning("got invalid jet contribution {} to b tagging SF",
+                    ->warn("got invalid jet contribution {} to b tagging SF",
                             jet_comp);
             }
 
