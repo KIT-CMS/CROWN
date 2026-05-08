@@ -12,7 +12,11 @@
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; background: #fcfcfc; }
 
         /* UI Layer */
-        #search-container { position: absolute; top: 20px; left: 20px; z-index: 10; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 340px; border: 1px solid #e0e0e0; transition: height 0.3s; }
+        #search-container { position: absolute; top: 20px; left: 20px; z-index: 10; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 340px; border: 1px solid #e0e0e0; transition: height 0.3s; display: flex; flex-direction: column; max-height: 90vh; }
+        
+        #ui-content { overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
+        #ui-content::-webkit-scrollbar { width: 4px; }
+        #ui-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
 
         /* Drop-down selectors */
         #selector-group { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
@@ -26,7 +30,6 @@
         /* Buttons */
         button { padding: 8px 12px; cursor: pointer; border: none; border-radius: 4px; background: #2c3e50; color: white; font-weight: 600; font-size: 13px; }
         button:hover { background: #34495e; }
-
         .nav-btn { background: #3498db; flex: 1; }
         .cancel-btn { background: #95a5a6; }
         .nav-btn:disabled { background: #d5d8dc; cursor: not-allowed; }
@@ -36,11 +39,27 @@
         #status.error { color: #e74c3c; }
         #status:empty { display: none; margin: 0; min-height: 0; }
 
-        /* Global IO Dropdowns (Unified) */
+        /* Global IO Dropdowns & Filter Toggles */
         details.global-io-dropdown { margin-top: 12px; font-size: 11px; border: 1px solid #eee; border-radius: 4px; }
         details.global-io-dropdown summary { cursor: pointer; font-weight: bold; color: #2c3e50; padding: 8px; background: #ecf0f1; border-radius: 4px; outline: none; }
         details.global-io-dropdown[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: 1px solid #ddd; }
-        .global-io-content { padding: 8px; background: white; max-height: 250px; overflow-y: auto; }
+        .global-io-content { padding: 8px; background: white; max-height: 300px; overflow-y: auto; }
+        
+        .toggle-all-btn { width: 100%; background: #34495e; color: white; padding: 6px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 10px; transition: background 0.2s;}
+        .toggle-all-btn:hover:not(:disabled) { background: #2c3e50; }
+        .toggle-all-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+
+        .toggle-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+        .toggle-btn { background: #2ecc71; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; border: 2px solid transparent; font-family: monospace; transition: all 0.2s; }
+        .toggle-btn:hover:not(:disabled) { filter: brightness(1.1); }
+        .toggle-btn.excluded { background: #ecf0f1; color: #7f8c8d; text-decoration: line-through; border-color: #bdc3c7; }
+        .toggle-btn.shifted { border-color: #e74c3c; font-weight: bold; background: #fdf2f1; color: #c0392b; }
+        .toggle-btn.excluded.shifted { background: #f2d7d5; color: #e74c3c; border-color: #e74c3c; text-decoration: line-through; }
+        .toggle-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .apply-btn { width: 100%; margin-top: 12px; background: #e67e22; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 11px;}
+        .apply-btn:hover { background: #d35400; }
+        .apply-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
 
         /* Reset Button */
         #reset-ui { position: absolute; bottom: 20px; left: 20px; z-index: 10; }
@@ -51,120 +70,22 @@
 
         /* Sidebar Overlay */
         #sidebar {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 320px;
-            bottom: 20px;
-            background: rgba(30, 39, 46, 0.96);
-            padding: 24px;
-            border-radius: 12px;
-            color: white;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: -4px 0 25px rgba(0,0,0,0.3);
-            display: none;
-            flex-direction: column;
-            gap: 20px;
-            overflow-y: auto;
-            transition: all 0.3s ease;
+            position: absolute; top: 20px; right: 20px; width: 320px; bottom: 20px; background: rgba(30, 39, 46, 0.96); padding: 24px; border-radius: 12px; color: white; z-index: 100; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); box-shadow: -4px 0 25px rgba(0,0,0,0.3); display: none; flex-direction: column; gap: 20px; overflow-y: auto; transition: all 0.3s ease;
         }
 
-        .sidebar-header {
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 12px;
-            margin-bottom: 5px;
-        }
-
-        .sidebar-header h2 {
-            margin: 0;
-            font-size: 18px;
-            color: #ecf0f1;
-            word-wrap: break-word;
-        }
-
-        .sidebar-section {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 20px;
-        }
-
-        .sidebar-subtitle {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #3498db;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-        }
-
-        .node-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .detail-box {
-            background: #ffffff;
-            color: #2c3e50;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 12px;
-            word-wrap: break-word;
-            border-left: 4px solid #3498db;
-        }
-
-        .simple-list {
-            list-style-type: square;
-            padding-left: 18px;
-            margin: 0;
-            color: #bdc3c7;
-            font-family: 'Cascadia Code', monospace;
-            font-size: 11px;
-            word-wrap: break-word;
-        }
-        .simple-list li {
-            margin-bottom: 4px;
-        }
-
-        .detail-row {
-            font-size: 13px;
-            display: flex;
-            flex-direction: column;
-            background: rgba(255,255,255,0.05);
-            padding: 10px;
-            border-radius: 6px;
-            gap: 4px;
-        }
-
-        .detail-label {
-            color: #95a5a6;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .detail-value {
-            color: #fff;
-            font-family: 'Cascadia Code', monospace;
-            word-wrap: break-word;
-            font-size: 13px;
-        }
-
-        .clickable {
-            cursor: pointer;
-            transition: background 0.2s, border-color 0.2s;
-        }
-
-        .clickable:hover {
-            background: #e3f2fd !important;
-            border-left-color: #1e88e5 !important;
-            color: #0d47a1 !important;
-        }
+        .sidebar-header { border-bottom: 2px solid #3498db; padding-bottom: 12px; margin-bottom: 5px; }
+        .sidebar-header h2 { margin: 0; font-size: 18px; color: #ecf0f1; word-wrap: break-word; }
+        .sidebar-section { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+        .sidebar-subtitle { font-size: 11px; text-transform: uppercase; color: #3498db; font-weight: 800; letter-spacing: 1.5px; }
+        .node-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+        .detail-box { background: #ffffff; color: #2c3e50; padding: 8px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; word-wrap: break-word; border-left: 4px solid #3498db; }
+        .simple-list { list-style-type: square; padding-left: 18px; margin: 0; color: #bdc3c7; font-family: 'Cascadia Code', monospace; font-size: 11px; word-wrap: break-word; }
+        .simple-list li { margin-bottom: 4px; }
+        .detail-row { font-size: 13px; display: flex; flex-direction: column; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; gap: 4px; }
+        .detail-label { color: #95a5a6; font-size: 11px; font-weight: 700; }
+        .detail-value { color: #fff; font-family: 'Cascadia Code', monospace; word-wrap: break-word; font-size: 13px; }
+        .clickable { cursor: pointer; transition: background 0.2s, border-color 0.2s; }
+        .clickable:hover { background: #e3f2fd !important; border-left-color: #1e88e5 !important; color: #0d47a1 !important; }
 
         #sidebar::-webkit-scrollbar { width: 6px; }
         #sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
@@ -189,7 +110,6 @@
 
     <div id="ui-content">
         <div id="selector-group"></div>
-
         <div class="row" style="margin-top: 12px;">
             <input type="text" id="searchInput" placeholder="Regex (e.g. ^gen_.*_mm$)" onkeyup="if(event.key === 'Enter') runSearch()">
         </div>
@@ -208,13 +128,21 @@
 
         <details class="global-io-dropdown">
             <summary>Input Quantities</summary>
+            <div style="padding: 8px 8px 0px;">
+                <button id="toggle-all-in-btn" class="toggle-all-btn" onclick="toggleAll('in')">Toggle All Inputs</button>
+            </div>
             <div id="global-input-content" class="global-io-content"></div>
         </details>
 
         <details class="global-io-dropdown">
             <summary>Output Quantities</summary>
+            <div style="padding: 8px 8px 0px;">
+                <button id="toggle-all-out-btn" class="toggle-all-btn" onclick="toggleAll('out')">Toggle All Outputs</button>
+            </div>
             <div id="global-output-content" class="global-io-content"></div>
         </details>
+        
+        <button id="apply-btn" class="apply-btn" onclick="applyGraphFilters()" disabled>Apply</button>
 
         <div id="legend">
             <div class="legend-title">Graph Legend</div>
@@ -229,7 +157,7 @@
                 </div>
                 <div class="legend-item">
                     <div class="symbol square" style="background: linear-gradient(to right, #ffffff 0%, #ffffff 75%, #3498db 75%, #3498db 100%); border: 1.5px solid #2c3e50;"></div>
-                    <span>Writes to Ntuple</span>
+                    <span>Writes to file</span>
                 </div>
                 <div class="legend-item">
                     <div class="symbol square" style="background: #f6b1ac; border: 1.5px solid #e74c3c;"></div>
@@ -268,62 +196,110 @@
 <div id="cy"></div>
 
 <script>
-let cy;
-let searchResults = [];
-let currentIndex = -1;
-let familyIndex = {};
-let familyResults = [];
+let cy, cyMaster;
+let searchResults = [], familyResults = [], currentIndex = -1;
 let metaData;
-let globalIOData = { nanoIn: new Set(), ntupleIn: new Set(), ntupleOut: new Set() };
+let globalIOData = { inputs: {}, outputs: new Set() };
 
-// Date.now() is used to invalidate the cache
+// Filtering states
+let excludedInputsState = new Set(), excludedOutputsState = new Set();
+let activeExcludedInputs = new Set(), activeExcludedOutputs = new Set();
+let lastAffectedIns = new Set(), lastAffectedOuts = new Set();
+
 const CONFIG_URL = "DAG_files.json?v=" + Date.now();
 
-// UI Toggle Function
+const CY_STYLES = [
+    { selector: "node", style: { label: "data(label)", "text-valign": "center", "background-color": "#ffffff", "border-width": 1.5, "border-color": "#2c3e50", shape: "rectangle", width: "label", height: "label", padding: "12px", "font-size": "11px", "z-index": 10 } },
+    
+    /* Dynamic IO Booleans */
+    { selector: "node[?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 85 85 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_nano_in]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#3498db #3498db #ffffff #ffffff", "background-gradient-stop-positions": "0 15 15 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_nano_in][?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#3498db #3498db #ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 15 15 85 85 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_other_in]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#d5db34 #d5db34 #ffffff #ffffff", "background-gradient-stop-positions": "0 15 15 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_other_in][?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#d5db34 #d5db34 #ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 15 15 85 85 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_nano_in][?is_other_in]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ffffff #ffffff", "background-gradient-stop-positions": "0 7.5 7.5 15 15 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_nano_in][?is_other_in][?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 7.5 7.5 15 15 85 85 100", "background-gradient-direction": "to-right" } },
+
+    { selector: ":parent", style: { "background-fill": "solid", "background-opacity": 0.1, "background-color": "#1e88e5", "border-color": "#1e88e5", "border-style": "dashed", "border-width": 4, "text-valign": "top", "color": "#1565c0", "font-size": 18, padding: "10px", events: "no" } },
+    { selector: 'node[type="scope"]', style: { "border-style": "solid", "border-width": 4, "border-color": "#4a4a4a", "background-color": "#d1d1d1", "background-opacity": 0.2, "font-size": 28, "color": "#000000" } },
+    { selector: 'node[type="vector"]', style: { "border-style": "dashed", "border-width": 4, "border-color": "#8e24aa", "background-color": "#da70d6", "background-opacity": 0.15, "color": "#73178c" } },
+    { selector: 'node[type="filter"]', style: { shape: "octagon", "background-color": "#fac370", "border-color": "#ffaa00" } },
+    { selector: 'node[type="filter"][?is_in], node[type="filter"][?is_nano_in]', style: { "background-gradient-stop-colors": "#3498db #3498db #fac370 #fac370" } },
+    { selector: 'node[type="filter"][?is_other_in]', style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #fac370 #fac370" } },
+    { selector: 'node[type="stump"]', style: { "background-color": "#f7a5f8", "border-color": "#f84cfa" } },
+    { selector: 'node[type="stump"][?is_nano_in]', style: { "background-gradient-stop-colors": "#3498db #3498db #f7a5f8 #f7a5f8" } },
+    { selector: 'node[type="stump"][?is_other_in]', style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f7a5f8 #f7a5f8" } },
+    { selector: 'node[type="proxy"]', style: { label: "data(label)", width: "label", height: "label", padding: 6, "background-color": "#fff9c4", "background-opacity": 1, "border-width": 1.5, "border-color": "#d4c96a", color: "#333", "font-size": 10, "text-valign": "center", "text-halign": "center", "text-wrap": "wrap", "text-max-width": 80 } },
+    
+    /* Shift Overrides */
+    { selector: "node.shift-affected", style: { "background-color": "#f6b1ac"} },
+    { selector: "node[?is_out].shift-affected", style: { "background-gradient-stop-colors": "#f6b1ac #f6b1ac #3498db #3498db" } },
+    { selector: "node[?is_nano_in].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #f6b1ac #f6b1ac" } },
+    { selector: "node[?is_nano_in][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #f6b1ac #f6b1ac #3498db #3498db" } },
+    { selector: "node[?is_other_in].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f6b1ac #f6b1ac" } },
+    { selector: "node[?is_other_in][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f6b1ac #f6b1ac #3498db #3498db" } },
+    { selector: "node[?is_nano_in][?is_other_in].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #f6b1ac #f6b1ac" } },
+    { selector: "node[?is_nano_in][?is_other_in][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #f6b1ac #f6b1ac #3498db #3498db" } },
+
+    { selector: "node.shift-head", style: { "background-color": "#ec6d5f"} },
+    { selector: "node[?is_out].shift-head", style: { "background-gradient-stop-colors": "#ec6d5f #ec6d5f #3498db #3498db" } },
+    { selector: "node[?is_nano_in].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #ec6d5f #ec6d5f" } },
+    { selector: "node[?is_nano_in][?is_out].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #ec6d5f #ec6d5f #3498db #3498db" } },
+    { selector: "node[?is_other_in].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #ec6d5f #ec6d5f" } },
+    { selector: "node[?is_other_in][?is_out].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #ec6d5f #ec6d5f #3498db #3498db" } },
+    { selector: "node[?is_nano_in][?is_other_in].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ec6d5f #ec6d5f" } },
+    { selector: "node[?is_nano_in][?is_other_in][?is_out].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ec6d5f #ec6d5f #3498db #3498db" } },
+
+    { selector: "edge", style: { "curve-style": "unbundled-bezier", "line-color": "#6e7070", width: "data(width)", "target-arrow-shape": "none" } },
+    { selector: 'edge[type="twig"]', style: { "curve-style": "bezier" } },
+    { selector: 'edge[type="leaf"]', style: { "curve-style": "bezier", "target-arrow-shape": "triangle" } },
+    
+    /* Highlight Overrides */
+    { selector: "node.highlighted", style: { "background-color": "#9cea95", "border-color": "#2e7d32", "border-width": 3, "z-index": 99 } },
+    { selector: "edge.highlighted", style: { "line-color": "#2e7d32", "target-arrow-color": "#2e7d32", "width": 3, "z-index": 99 } },
+    { selector: "node[?is_out].highlighted", style: { "background-gradient-stop-colors": "#9cea95 #9cea95 #3498db #3498db" } },
+    { selector: "node[?is_nano_in].highlighted", style: { "background-gradient-stop-colors": "#3498db #3498db #9cea95 #9cea95" } },
+    { selector: "node[?is_nano_in][?is_out].highlighted", style: { "background-gradient-stop-colors": "#3498db #3498db #9cea95 #9cea95 #3498db #3498db" } },
+    { selector: "node[?is_other_in].highlighted", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #9cea95 #9cea95" } },
+    { selector: "node[?is_other_in][?is_out].highlighted", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #9cea95 #9cea95 #3498db #3498db" } },
+    { selector: "node[?is_nano_in][?is_other_in].highlighted", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #9cea95 #9cea95" } },
+
+    /* Active Focus Overrides */
+    { selector: "node.activeFocus", style: { "background-color": "#6ae35f", "border-color": "#2ecc71", "border-width": 4, "color": "#000000", "z-index": 1000 } },
+    { selector: "edge.activeFocus", style: { "line-color": "#2ecc71", "target-arrow-color": "#2ecc71", "width": 4, "z-index": 1001 } },
+    { selector: "node[?is_out].activeFocus", style: { "background-gradient-stop-colors": "#6ae35f #6ae35f #3498db #3498db" } },
+    { selector: "node[?is_nano_in].activeFocus", style: { "background-gradient-stop-colors": "#3498db #3498db #6ae35f #6ae35f" } },
+    { selector: "node[?is_nano_in][?is_out].activeFocus", style: { "background-gradient-stop-colors": "#3498db #3498db #6ae35f #6ae35f #3498db #3498db" } },
+    { selector: "node[?is_other_in].activeFocus", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #6ae35f #6ae35f" } },
+    { selector: "node[?is_other_in][?is_out].activeFocus", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #6ae35f #6ae35f #3498db #3498db" } },
+    { selector: "node[?is_nano_in][?is_other_in].activeFocus", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #6ae35f #6ae35f" } },
+
+    { selector: "node.shift-affected", style: {"border-color": "#e74c3c", "border-width": 2.5 } },
+    { selector: "edge.shift-affected", style: { "line-color": "#e74c3c", "target-arrow-color": "#e74c3c", "width": 3, "z-index": 50 } },
+    { selector: "node.shift-head", style: {"border-color": "#c0392b", "border-width": 4, "z-index": 60 } },
+    { selector: "edge.shift-head", style: { "line-color": "#c0392b", "target-arrow-color": "#c0392b", "width": 4, "z-index": 60 } },
+    
+    { selector: '.hidden', style: { 'display': 'none' } }
+];
+
 function toggleUI() {
     const content = document.getElementById("ui-content");
     const btn = document.getElementById("toggle-ui-btn");
-    if (content.style.display === "none") {
-        content.style.display = "block";
-        btn.innerText = "Hide";
-    } else {
-        content.style.display = "none";
-        btn.innerText = "Show";
-    }
+    content.style.display = content.style.display === "none" ? "block" : "none";
+    btn.innerText = content.style.display === "none" ? "Show" : "Hide";
 }
 
-// Unified helper to get the "Head" node for a family
-function getFamilyHead(famName) {
-    const isEdge = metaData.edgeFamilyRegister && metaData.edgeFamilyRegister[famName];
-    const ids = familyIndex[famName];
-    if (!ids) return null;
-
-    if (isEdge) {
-        const headId = [...ids].find(id => {
-            const el = cy.getElementById(id);
-            return el.length > 0 && el.isEdge() && el.source().data('type') !== 'proxy';
-        });
-        return headId || [...ids][0];
-    }
-    return [...ids][0];
-}
-
-// Load config to fill drop-down menus
 async function loadConfig() {
     try {
         const response = await fetch(CONFIG_URL);
         if (!response.ok) throw new Error("Could not find DAG_files.json");
         const config = await response.json();
-
         const container = document.getElementById("selector-group");
         container.innerHTML = "";
 
-        const keys = ["era", "sample", "scope"];
-
-        keys.forEach((key) => {
+        ["era", "sample", "scope"].forEach((key) => {
             const select = document.createElement("select");
             select.id = `select-${key}`;
-
             if(config[key]) {
                 config[key].forEach((val) => {
                     const opt = document.createElement("option");
@@ -335,7 +311,6 @@ async function loadConfig() {
                 container.appendChild(select);
             }
         });
-
         switchDataset();
     } catch (err) {
         document.getElementById("status").innerText = "Error: " + err.message;
@@ -347,400 +322,106 @@ function switchDataset() {
     const eraSelect = document.getElementById("select-era");
     const sampleSelect = document.getElementById("select-sample");
     const scopeSelect = document.getElementById("select-scope");
-
     if (!eraSelect || !sampleSelect || !scopeSelect) return;
 
-    const era = eraSelect.value;
-    const sample = sampleSelect.value;
-    const scope = scopeSelect.value;
-
-    const filename = `CROWNelements_${era}_${sample}_${scope}`;
-    initGraph(filename);
+    initGraph(`CROWNelements_${eraSelect.value}_${sampleSelect.value}_${scopeSelect.value}`);
 }
 
 async function initGraph(fileName) {
     if (cy) cy.destroy();
+    if (cyMaster) cyMaster.destroy();
+    
     document.getElementById("status").innerText = "Loading " + fileName + "...";
+    excludedInputsState.clear(); excludedOutputsState.clear();
+    activeExcludedInputs.clear(); activeExcludedOutputs.clear();
+    document.getElementById("apply-btn").disabled = true;
 
     try {
-        // Date.now() is used to invalidate the cache
         const response = await fetch(`${fileName}.json?v=${Date.now()}`);
         if (!response.ok) throw new Error("Could not find data for selection");
-        const DAGData = await response.json();
+        metaData = await response.json();
+        
+        globalIOData = { inputs: {}, outputs: new Set() };
+        const masterElements = [];
 
-        metaData = DAGData;
-        familyIndex = {};
-        globalIOData = { nanoIn: new Set(), ntupleIn: new Set(), ntupleOut: new Set() };
-        const elementsData = [];
-
-        // 1. Hydrate directInputOutput arrays
-        if (metaData.directInputOutput && metaData.directInputOutput.members) {
-            const ioType = metaData.directInputOutput.type; // "NanoAOD" or "Ntuple"
-            const members = metaData.directInputOutput.members;
-
-            members.forEach(item => {
-                // Register as Input based on the specified type
-                if (ioType === "NanoAOD") {
-                    globalIOData.nanoIn.add(item);
-                } else if (ioType === "Ntuple") {
-                    globalIOData.ntupleIn.add(item);
-                } else {
-                    document.getElementById("status").innerText = "Error: Invalid directInputOutput type: " + ioType;
-                    document.getElementById("status").className = "error";
-                }
-                // Always register as an Output
-                globalIOData.ntupleOut.add(item);
-            });
+        // 1. Direct IO processing via dynamic objects
+        if (metaData.directInputOutput) {
+            for (const [source, members] of Object.entries(metaData.directInputOutput)) {
+                if (!globalIOData.inputs[source]) globalIOData.inputs[source] = new Set();
+                members.forEach(item => {
+                    globalIOData.inputs[source].add(item);
+                    globalIOData.outputs.add(item);
+                });
+            }
         }
 
-        // 2. Hydrate nodes from nodeFamilyRegister
-        if (metaData.nodeFamilyRegister) {
-            for (const [nodeId, meta] of Object.entries(metaData.nodeFamilyRegister)) {
-                let is_in_str = "";
+        // 2. Hydrate Base Nodes
+        if (metaData.nodeRegister) {
+            for (const [nodeId, meta] of Object.entries(metaData.nodeRegister)) {
+                let is_nano_in = false;
+                let is_other_in = false;
+                let in_list = [];
+
                 if (meta.file_in) {
-                    if (meta.file_in.NanoAOD && meta.file_in.NanoAOD.length > 0) {
-                        is_in_str += "NanoAOD ";
-                        meta.file_in.NanoAOD.forEach(item => globalIOData.nanoIn.add(item));
-                    }
-                    if (meta.file_in.Ntuple && meta.file_in.Ntuple.length > 0) {
-                        is_in_str += "Ntuple";
-                        meta.file_in.Ntuple.forEach(item => globalIOData.ntupleIn.add(item));
+                    for (const [source, items] of Object.entries(meta.file_in)) {
+                        if (!globalIOData.inputs[source]) globalIOData.inputs[source] = new Set();
+                        items.forEach(item => {
+                            globalIOData.inputs[source].add(item);
+                            in_list.push(item);
+                        });
+                        if (source === "NanoAOD") is_nano_in = true;
+                        else if (items.length > 0) is_other_in = true;
                     }
                 }
-                if (meta.file_out && meta.file_out.length > 0) {
-                    meta.file_out.forEach(item => globalIOData.ntupleOut.add(item));
+                
+                if (meta.file_out) {
+                    meta.file_out.forEach(item => globalIOData.outputs.add(item));
                 }
 
-                elementsData.push({
+                masterElements.push({
                     data: {
                         id: nodeId,
                         family: nodeId,
                         label: meta.name || nodeId,
                         parent: meta.parent,
                         type: meta.type || "Producer",
-                        is_in: is_in_str.trim(),
+                        is_in: in_list.length > 0,
+                        is_nano_in: is_nano_in,
+                        is_other_in: is_other_in,
                         is_out: meta.file_out && meta.file_out.length > 0
                     }
                 });
-
-                familyIndex[nodeId] = new Set([nodeId]);
             }
         }
 
-        // Render the initial generic Global I/O Menu
+        // 3. Hydrate Raw Edges (For Master Traversal)
+        if (metaData.edgeRegister) {
+            for (const [source, qties] of Object.entries(metaData.edgeRegister)) {
+                for (const [qty, targets] of Object.entries(qties)) {
+                    for (const target of targets) {
+                        masterElements.push({ data: { id: `raw_${source}_${target}_${qty}`, source: source, target: target } });
+                    }
+                }
+            }
+        }
+
         renderGlobalIO();
+        populateShiftDropdown();
+        document.getElementById("status").innerText = "";
 
-        // 3. HYDRATE PROXIES & EDGES from edgeFamilyRegister
-        if (metaData.edgeFamilyRegister) {
-            for (const [famId, famData] of Object.entries(metaData.edgeFamilyRegister)) {
-                familyIndex[famId] = new Set();
+        // Build Headless Master Graph
+        cyMaster = cytoscape({ headless: true, elements: masterElements });
 
-                if (famData.nodes) {
-                    for (const [nodeId, nodeMeta] of Object.entries(famData.nodes)) {
-                        elementsData.push({
-                            data: {
-                                id: nodeId,
-                                family: famId,
-                                label: famData.name || famId,
-                                parent: nodeMeta.parent,
-                                type: "proxy"
-                            }
-                        });
-                        familyIndex[famId].add(nodeId);
-                    }
-                }
-
-                if (famData.edges) {
-                    for (const [edgeId, edgeMeta] of Object.entries(famData.edges)) {
-                        elementsData.push({
-                            data: {
-                                id: edgeId,
-                                family: famId,
-                                description: famData.name || famId,
-                                source: edgeMeta.source,
-                                target: edgeMeta.target,
-                                type: edgeMeta.type,
-                                width: edgeMeta.width
-                            }
-                        });
-                        familyIndex[famId].add(edgeId);
-                    }
-                }
-            }
-        }
-
+        // Initialize Visual Graph shell
         cy = cytoscape({
             container: document.getElementById("cy"),
-            elements: elementsData,
+            style: CY_STYLES,
             autoungrabify: true,
-            wheelSensitivity: 0.15,
-            style: [
-                {
-                    selector: "node",
-                    style: {
-                        label: "data(label)",
-                        "text-valign": "center",
-                        "background-color": "#ffffff",
-                        "border-width": 1.5,
-                        "border-color": "#2c3e50",
-                        shape: "rectangle",
-                        width: "label",
-                        height: "label",
-                        padding: "12px",
-                        "font-size": "11px",
-                        "z-index": 10,
-                    },
-                },
-
-                /* I/O Styles */
-                {
-                    selector: "node[?is_out]",
-                    style: {
-                        "background-fill": "linear-gradient",
-                        "background-gradient-stop-colors": "#ffffff #ffffff #3498db #3498db",
-                        "background-gradient-stop-positions": "0 85 85 100",
-                        "background-gradient-direction": "to-right",
-                    },
-                },
-                {
-                    selector: "node[is_in *= 'NanoAOD']",
-                    style: {
-                        "background-fill": "linear-gradient",
-                        "background-gradient-stop-colors": "#3498db #3498db #ffffff #ffffff",
-                        "background-gradient-stop-positions": "0 15 15 100",
-                        "background-gradient-direction": "to-right",
-                    },
-                },
-                {
-                    selector: "node[is_in *= 'NanoAOD'][?is_out]",
-                    style: {
-                        "background-fill": "linear-gradient",
-                        "background-gradient-stop-colors": "#3498db #3498db #ffffff #ffffff #3498db #3498db",
-                        "background-gradient-stop-positions": "0 15 15 85 85 100",
-                        "background-gradient-direction": "to-right",
-                    },
-                },
-                {
-                    selector: 'node[is_in *= "Ntuple"]',
-                    style: {
-                        "background-fill": "linear-gradient",
-                        "background-gradient-stop-colors": "#d5db34 #d5db34 #ffffff #ffffff",
-                        "background-gradient-stop-positions": "0 15 15 100",
-                        "background-gradient-direction": "to-right",
-                    },
-                },
-                {
-                    selector: 'node[is_in *= "Ntuple"][?is_out]',
-                    style: {
-                        "background-fill": "linear-gradient",
-                        "background-gradient-stop-colors": "#d5db34 #d5db34 #ffffff #ffffff #3498db #3498db",
-                        "background-gradient-stop-positions": "0 15 15 85 85 100",
-                        "background-gradient-direction": "to-right",
-                    },
-                },
-
-                /* Group styles */
-                {
-                    selector: ":parent",
-                    style: {
-                        "background-fill": "solid",
-                        "background-opacity": 0.1,
-                        "background-color": "#1e88e5",
-                        "border-color": "#1e88e5",
-                        "border-style": "dashed",
-                        "border-width": 4,
-                        "text-valign": "top",
-                        "color": "#1565c0",
-                        "font-size": 18,
-                        padding: "10px",
-                        events: "no",
-                    },
-                },
-                {
-                    selector: 'node[type="scope"]',
-                    style: {
-                        "border-style": "solid",
-                        "border-width": 4,
-                        "border-color": "#4a4a4a",
-                        "background-color": "#d1d1d1",
-                        "background-opacity": 0.2,
-                        "font-size": 28,
-                        "color": "#000000",
-                    },
-                },
-                {
-                    selector: 'node[type="vector"]',
-                    style: {
-                        "border-style": "dashed",
-                        "border-width": 4,
-                        "border-color": "#8e24aa",
-                        "background-color": "#da70d6",
-                        "background-opacity": 0.15,
-                        "color": "#73178c",
-                    },
-                },
-
-                /* Filter Colors Overrides */
-                {
-                    selector: 'node[type="filter"]',
-                    style: { shape: "octagon", "background-color": "#fac370", "border-color": "#ffaa00" },
-                },
-                {
-                    selector: 'node[type="filter"][?is_in], node[type="filter"][is_in *= "NanoAOD"]',
-                    style: { "background-gradient-stop-colors": "#3498db #3498db #fac370 #fac370" },
-                },
-                {
-                    selector: 'node[type="filter"][is_in *= "Ntuple"]',
-                    style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #fac370 #fac370" },
-                },
-
-                /* Stump Colors Overrides */
-                {
-                    selector: 'node[type="stump"]',
-                    style: { "background-color": "#f7a5f8", "border-color": "#f84cfa" },
-                },
-                {
-                    selector: 'node[type="stump"][is_in *= "NanoAOD"]',
-                    style: { "background-gradient-stop-colors": "#3498db #3498db #f7a5f8 #f7a5f8" },
-                },
-                {
-                    selector: 'node[type="stump"][is_in *= "Ntuple"]',
-                    style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f7a5f8 #f7a5f8" },
-                },
-
-                /* Proxy Styles */
-                {
-                    selector: 'node[type="proxy"]',
-                    style: {
-                        label: "data(label)",
-                        width: "label",
-                        height: "label",
-                        padding: 6,
-                        "background-color": "#fff9c4",
-                        "background-opacity": 1,
-                        "border-width": 1.5,
-                        "border-color": "#d4c96a",
-                        color: "#333",
-                        "font-size": 10,
-                        "text-valign": "center",
-                        "text-halign": "center",
-                        "text-wrap": "wrap",
-                        "text-max-width": 80,
-                    },
-                },
-
-                /* Shift Overrides for node interior. Overrides basic styles, overwritten by highlighting and search. */
-                { selector: "node.shift-affected", style: { "background-color": "#f6b1ac"} },
-                { selector: "node[?is_out].shift-affected", style: { "background-gradient-stop-colors": "#f6b1ac #f6b1ac #3498db #3498db" } },
-                { selector: "node[is_in *= 'NanoAOD'].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #f6b1ac #f6b1ac" } },
-                { selector: "node[is_in *= 'NanoAOD'][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #f6b1ac #f6b1ac #3498db #3498db" } },
-                { selector: "node[is_in *= 'Ntuple'].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f6b1ac #f6b1ac" } },
-                { selector: "node[is_in *= 'Ntuple'][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f6b1ac #f6b1ac #3498db #3498db" } },
-
-                { selector: "node.shift-head", style: { "background-color": "#ec6d5f"} },
-                { selector: "node[?is_out].shift-head", style: { "background-gradient-stop-colors": "#ec6d5f #ec6d5f #3498db #3498db" } },
-                { selector: "node[is_in *= 'NanoAOD'].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #ec6d5f #ec6d5f" } },
-                { selector: "node[is_in *= 'NanoAOD'][?is_out].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #ec6d5f #ec6d5f #3498db #3498db" } },
-                { selector: "node[is_in *= 'Ntuple'].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #ec6d5f #ec6d5f" } },
-                { selector: "node[is_in *= 'Ntuple'][?is_out].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #ec6d5f #ec6d5f #3498db #3498db" } },
-
-                /* Edges */
-                {
-                    selector: "edge",
-                    style: {
-                        "curve-style": "unbundled-bezier",
-                        "line-color": "#6e7070",
-                        width: "data(width)",
-                        "target-arrow-shape": "none",
-                    },
-                },
-                { selector: 'edge[type="twig"]', style: { "curve-style": "bezier" } },
-                { selector: 'edge[type="leaf"]', style: { "curve-style": "bezier", "target-arrow-shape": "triangle" }, },
-
-                /* Search Highlight (Muted Green) - Overridden by activeFocus below */
-                {
-                    selector: "node.highlighted",
-                    style: { "background-color": "#9cea95", "border-color": "#2e7d32", "border-width": 3, "z-index": 99 }
-                },
-                {
-                    selector: "edge.highlighted",
-                    style: { "line-color": "#2e7d32", "target-arrow-color": "#2e7d32", "width": 3, "z-index": 99 }
-                },
-
-                /* Active Focus (Vibrant Green) Gradients Overrides */
-                {
-                    selector: "node[?is_out].highlighted",
-                    style: { "background-gradient-stop-colors": "#9cea95 #9cea95 #3498db #3498db" }
-                },
-                {
-                    selector: "node[is_in *= 'NanoAOD'].highlighted",
-                    style: { "background-gradient-stop-colors": "#3498db #3498db #9cea95 #9cea95" }
-                },
-                {
-                    selector: "node[is_in *= 'NanoAOD'][?is_out].highlighted",
-                    style: { "background-gradient-stop-colors": "#3498db #3498db #9cea95 #9cea95 #3498db #3498db" }
-                },
-                {
-                    selector: 'node[is_in *= "Ntuple"].highlighted',
-                    style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #9cea95 #9cea95" }
-                },
-                {
-                    selector: 'node[is_in *= "Ntuple"][?is_out].highlighted',
-                    style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #9cea95 #9cea95 #3498db #3498db" }
-                },
-
-                /* User Selection (Active Focus - Solid Green) */
-                {
-                    selector: "node.activeFocus",
-                    style: { "background-color": "#6ae35f", "border-color": "#2ecc71", "border-width": 4, "color": "#000000", "z-index": 1000 }
-                },
-                {
-                    selector: "edge.activeFocus",
-                    style: { "line-color": "#2ecc71", "target-arrow-color": "#2ecc71", "width": 4, "z-index": 1001 }
-                },
-
-                /* Active Focus Gradients Overrides */
-                {
-                    selector: "node[?is_out].activeFocus",
-                    style: { "background-gradient-stop-colors": "#6ae35f #6ae35f #3498db #3498db" }
-                },
-                {
-                    selector: "node[is_in *= 'NanoAOD'].activeFocus",
-                    style: { "background-gradient-stop-colors": "#3498db #3498db #6ae35f #6ae35f" }
-                },
-                {
-                    selector: "node[is_in *= 'NanoAOD'][?is_out].activeFocus",
-                    style: { "background-gradient-stop-colors": "#3498db #3498db #6ae35f #6ae35f #3498db #3498db" }
-                },
-                {
-                    selector: 'node[is_in *= "Ntuple"].activeFocus',
-                    style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #6ae35f #6ae35f" }
-                },
-                {
-                    selector: 'node[is_in *= "Ntuple"][?is_out].activeFocus',
-                    style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #6ae35f #6ae35f #3498db #3498db" }
-                },
-
-                /* Shift Overrides for node borders and edges. Overrides everything else. */
-                { selector: "node.shift-affected", style: {"border-color": "#e74c3c", "border-width": 2.5 } },
-                { selector: "edge.shift-affected", style: { "line-color": "#e74c3c", "target-arrow-color": "#e74c3c", "width": 3, "z-index": 50 } },
-                { selector: "node.shift-head", style: {"border-color": "#c0392b", "border-width": 4, "z-index": 60 } },
-                { selector: "edge.shift-head", style: { "line-color": "#c0392b", "target-arrow-color": "#c0392b", "width": 4, "z-index": 60 } },
-            ],
-            layout: {
-                name: "elk",
-                elk: {
-                    algorithm: "layered",
-                    direction: "RIGHT",
-                    hierarchyHandling: "INCLUDE_CHILDREN",
-                },
-            },
+            wheelSensitivity: 0.15
         });
 
-        populateShiftDropdown();
         setupInteractions();
-        cancelSearch();
-        document.getElementById("status").innerText = "";
+        applyGraphFilters(); // Triggers initial bundle and render
 
     } catch (err) {
         document.getElementById("status").innerText = err.message;
@@ -748,37 +429,251 @@ async function initGraph(fileName) {
     }
 }
 
-function renderGlobalIO(affectedIns = new Set(), affectedOuts = new Set()) {
-    const createListHTML = (title, itemsSet, highlightSet) => {
-        if (itemsSet.size === 0) return "";
+// Client-Side Bundling Logic (Virtual Trie)
+function bundleEdgesClientSide(connections, nodeRegister) {
+    const elements = [];
+    const createdProxies = new Set();
+    const ancestorCache = {};
 
-        const listItems = Array.from(itemsSet).sort().map(item => {
-            return (highlightSet && highlightSet.has(item))
-                ? `<li style="color: #e74c3c; font-weight: bold;"> → ${item}</li>`
-                : `<li>${item}</li>`;
-        }).join('');
-
-        return `<div style="color:#3498db; font-weight:800; text-transform:uppercase; margin-top:8px; margin-bottom:4px;">${title}</div>
-                <ul style="margin: 0; padding-left: 20px; color: #2c3e50;">${listItems}</ul>`;
+    const getAncestors = (id) => {
+        if (ancestorCache[id]) return ancestorCache[id];
+        let path = [id];
+        let curr = nodeRegister[id];
+        while (curr && curr.parent) {
+            path.unshift(curr.parent);
+            curr = nodeRegister[curr.parent];
+        }
+        path.unshift("root");
+        ancestorCache[id] = path;
+        return path;
     };
 
-    const container_in = document.getElementById("global-input-content");
-    const container_out = document.getElementById("global-output-content");
+    const addEdge = (source, target, id, weight, type, family) => {
+        elements.push({ data: { id, source, target, type, width: Math.sqrt(weight), family } });
+    };
+
+    const addProxy = (id, parent, name, family) => {
+        if (!createdProxies.has(id)) {
+            elements.push({ data: { id, parent: parent === 'root' ? null : parent, type: 'proxy', label: name, family } });
+            createdProxies.add(id);
+        }
+    };
+
+    const constructProxies = (name, data, validIdx, totIdx, rank, source) => {
+        const dataSlice = totIdx.filter(i => validIdx.includes(i)).map(i => data[i][rank]);
+        const uniqueVals = [...new Set(dataSlice)];
+        
+        if (uniqueVals.length <= 1) {
+            constructProxies(name, data, validIdx, totIdx, rank + 1, source);
+        } else {
+            const proxyLoc = data[validIdx[0]][rank - 1];
+            const proxyId = `proxy_${name}_${proxyLoc}`;
+            addProxy(proxyId, proxyLoc, name, `edge_${name}`);
+            addEdge(source, proxyId, `proxyedge_${name}_${proxyLoc}_${source}`, validIdx.length, 'branch', `edge_${name}`);
+            
+            uniqueVals.forEach(val => {
+                const partIdx = validIdx.filter((v, i) => dataSlice[i] === val);
+                if (partIdx.length <= 1) {
+                    const leafName = data[partIdx[0]][data[partIdx[0]].length - 1];
+                    addEdge(proxyId, leafName, `${name}_${leafName}_${proxyId}`, 1, 'leaf', `edge_${name}`);
+                } else {
+                    constructProxies(name, data, partIdx, totIdx, rank + 1, proxyId);
+                }
+            });
+        }
+    };
+
+    for (const [source, qties] of Object.entries(connections)) {
+        for (const [name, targets] of Object.entries(qties)) {
+            if (targets.length === 1) {
+                const target = targets[0];
+                const location = nodeRegister[source]?.parent || "root";
+                const proxyId = `proxy_${name}_${location}`;
+                addProxy(proxyId, location, name, `edge_${name}`);
+                addEdge(source, proxyId, `proxyedge_${name}_${location}_${source}`, 1, 'twig', `edge_${name}`);
+                addEdge(proxyId, target, `${name}_${target}_${proxyId}`, 1, 'leaf', `edge_${name}`);
+            } else {
+                const sourceHist = getAncestors(source);
+                const relativeTargets = targets.map(target => {
+                    const targetHist = getAncestors(target);
+                    const minLen = Math.min(sourceHist.length, targetHist.length);
+                    for (let i = 0; i < minLen; i++) {
+                        if (sourceHist[i] !== targetHist[i]) {
+                            return [...sourceHist.slice(i).reverse(), sourceHist[i - 1], ...targetHist.slice(i)];
+                        }
+                    }
+                    return [...sourceHist.reverse(), ...targetHist];
+                });
+                const startIdx = relativeTargets.map((_, i) => i);
+                constructProxies(name, relativeTargets, startIdx, startIdx, 0, relativeTargets[0][0]);
+            }
+        }
+    }
+    return elements;
+}
+
+function applyGraphFilters() {
+    activeExcludedInputs = new Set(excludedInputsState);
+    activeExcludedOutputs = new Set(excludedOutputsState);
+    document.getElementById("apply-btn").disabled = true;
+
+    let visibleMasterNodes = cyMaster.nodes();
+
+    // 1. Inputs filtering
+    if (activeExcludedInputs.size > 0) {
+        let invalidSources = cyMaster.collection();
+        let validSources = cyMaster.collection();
+
+        cyMaster.nodes().forEach(n => {
+            const famInfo = metaData.nodeRegister[n.id()];
+            if (famInfo && famInfo.file_in) {
+                const allIn = Object.values(famInfo.file_in).flat();
+                if (allIn.length > 0) {
+                    if (allIn.every(inVar => activeExcludedInputs.has(inVar))) {
+                        invalidSources = invalidSources.union(n);
+                    }
+                    if (allIn.some(inVar => !activeExcludedInputs.has(inVar))) {
+                        validSources = validSources.union(n);
+                    }
+                }
+            }
+        });
+
+        // Hide nodes reachable by invalid sources EXCEPT those also reachable by valid sources
+        let reachableFromInvalid = invalidSources.union(invalidSources.successors());
+        let reachableFromValid = validSources.union(validSources.successors());
+        let hiddenByInputs = reachableFromInvalid.difference(reachableFromValid);
+        
+        visibleMasterNodes = visibleMasterNodes.difference(hiddenByInputs);
+    }
+
+    // 2. Outputs filtering
+    if (activeExcludedOutputs.size > 0) {
+        let validTerminals = cyMaster.collection();
+        cyMaster.nodes().forEach(n => {
+            const famInfo = metaData.nodeRegister[n.id()];
+            if (famInfo && famInfo.file_out && famInfo.file_out.length > 0) {
+                if (famInfo.file_out.some(out => !activeExcludedOutputs.has(out))) {
+                    validTerminals = validTerminals.union(n);
+                }
+            }
+        });
+        let validNodes = validTerminals.union(validTerminals.predecessors());
+        
+        // Use mathematical intersection so graphs are correctly pruned or rendered empty if disjointed
+        visibleMasterNodes = visibleMasterNodes.intersection(validNodes);
+    }
+
+    // 3. Parent Node Visibility
+    // We determine parent visibility solely by checking if they contain any visible base nodes.
+    let visibleBaseNodes = visibleMasterNodes.filter(n => !n.isParent());
+    let finalVisibleNodes = visibleBaseNodes.union(visibleBaseNodes.ancestors());
+    const visibleNodeIds = new Set(finalVisibleNodes.map(n => n.id()));
+
+    // 4. Filter connections to ONLY include visible source & targets
+    const visibleConnections = {};
+    if(metaData.edgeRegister) {
+        for (const [source, qties] of Object.entries(metaData.edgeRegister)) {
+            if (!visibleNodeIds.has(source)) continue;
+            for (const [qty, targets] of Object.entries(qties)) {
+                const validTargets = targets.filter(t => visibleNodeIds.has(t));
+                if (validTargets.length > 0) {
+                    if (!visibleConnections[source]) visibleConnections[source] = {};
+                    visibleConnections[source][qty] = validTargets;
+                }
+            }
+        }
+    }
+
+    // 5. Bundle Edges Client Side
+    const bundledElements = bundleEdgesClientSide(visibleConnections, metaData.nodeRegister);
+
+    // 6. Build visual elements array (Visible Nodes + Bundled Proxies/Edges)
+    const visualElements = [];
+    finalVisibleNodes.forEach(n => visualElements.push({ data: Object.assign({}, n.data()) }));
+    bundledElements.forEach(e => visualElements.push(e));
+
+    // 7. Push to Cytoscape and Run Layout
+    cy.batch(() => {
+        cy.elements().remove();
+        cy.add(visualElements);
+    });
+
+    cy.layout({ name: "elk", animate: true, animationDuration: 300, elk: { algorithm: "layered", direction: "RIGHT", hierarchyHandling: "INCLUDE_CHILDREN" } }).run();
+    
+    applyShift(); // Re-apply highlights to the new graph structure
+
+    // Reapply search if active
+    if (document.getElementById("searchInput").value) {
+        runSearch();
+    } else {
+        cancelSearch();
+    }
+}
+
+function toggleAll(type) {
+    let allItems = new Set();
+    if (type === 'in') {
+        Object.values(globalIOData.inputs).forEach(set => set.forEach(i => allItems.add(i)));
+        if (excludedInputsState.size === allItems.size) {
+            excludedInputsState.clear();
+        } else {
+            allItems.forEach(i => excludedInputsState.add(i));
+        }
+    } else {
+        globalIOData.outputs.forEach(i => allItems.add(i));
+        if (excludedOutputsState.size === allItems.size) {
+            excludedOutputsState.clear();
+        } else {
+            allItems.forEach(i => excludedOutputsState.add(i));
+        }
+    }
+    document.getElementById("apply-btn").disabled = false;
+    renderGlobalIO(lastAffectedIns, lastAffectedOuts);
+}
+
+function toggleIO(type, item) {
+    if (type === 'in') {
+        if (excludedInputsState.has(item)) excludedInputsState.delete(item);
+        else excludedInputsState.add(item);
+    } else {
+        if (excludedOutputsState.has(item)) excludedOutputsState.delete(item);
+        else excludedOutputsState.add(item);
+    }
+    document.getElementById("apply-btn").disabled = false;
+    renderGlobalIO(lastAffectedIns, lastAffectedOuts); 
+}
+
+function renderGlobalIO(affectedIns = new Set(), affectedOuts = new Set()) {
+    const createToggleHTML = (title, itemsSet, highlightSet, ioType) => {
+        if (itemsSet.size === 0) return "";
+        const stateSet = ioType === 'in' ? excludedInputsState : excludedOutputsState;
+
+        const toggles = Array.from(itemsSet).sort().map(item => {
+            const isExcluded = stateSet.has(item);
+            const isShifted = highlightSet && highlightSet.has(item);
+            let classes = ['toggle-btn'];
+            if (isExcluded) classes.push('excluded');
+            if (isShifted) classes.push('shifted');
+            return `<button class="${classes.join(' ')}" onclick="toggleIO('${ioType}', '${item}')">${item}</button>`;
+        }).join('');
+
+        return `<div style="color:#3498db; font-weight:800; text-transform:uppercase; margin-top:8px; margin-bottom:4px;">${title}</div><div class="toggle-container">${toggles}</div>`;
+    };
+
     let html_in = "";
-    let html_out = "";
+    for (const [source, items] of Object.entries(globalIOData.inputs)) {
+        html_in += createToggleHTML(`Reads from ${source}`, items, affectedIns, 'in');
+    }
+    document.getElementById("global-input-content").innerHTML = html_in;
 
-    html_in += createListHTML("Reads from NanoAOD", globalIOData.nanoIn, affectedIns);
-    html_in += createListHTML("Reads from Ntuple", globalIOData.ntupleIn, affectedIns);
-    html_out += createListHTML("Writes to Ntuple", globalIOData.ntupleOut, affectedOuts);
-
-    container_in.innerHTML = html_in;
-    container_out.innerHTML = html_out;
+    document.getElementById("global-output-content").innerHTML = 
+        createToggleHTML("Writes to file", globalIOData.outputs, affectedOuts, 'out');
 }
 
 function populateShiftDropdown() {
     const shiftSelect = document.getElementById("select-shift");
     shiftSelect.innerHTML = '<option value="">No Shift Selection</option>';
-
     if (metaData && metaData.shiftRegistry) {
         Object.keys(metaData.shiftRegistry).forEach(shiftName => {
             const opt = document.createElement("option");
@@ -790,67 +685,49 @@ function populateShiftDropdown() {
 }
 
 function applyShift() {
-    // Clear previous shifts
     cy.elements().removeClass("shift-head shift-affected");
     const shiftName = document.getElementById("select-shift").value;
     let affectedOuts = new Set();
     let affectedIns = new Set();
 
     if (!shiftName || !metaData.shiftRegistry || !metaData.shiftRegistry[shiftName]) {
-        // Restore default state, clear IO highlights, refresh sidebar
         const activeEles = cy.elements(".activeFocus");
-        if (activeEles.nonempty()) {
-            updateSidebar(activeEles, activeEles[0].data("family"));
-        }
+        if (activeEles.nonempty()) updateSidebar(activeEles, activeEles[0].data("family"));
+        lastAffectedIns = affectedIns; lastAffectedOuts = affectedOuts;
         renderGlobalIO(affectedIns, affectedOuts);
         return;
     }
 
     const shiftData = metaData.shiftRegistry[shiftName];
-    let allAffected = cy.collection();
-    let headEles = cy.collection();
-    let inputAffectedEles = cy.collection();
+    let allAffected = cy.collection(), headEles = cy.collection(), inputAffectedEles = cy.collection();
 
-    // 1. Identify Head elements via O(1) collection filter
     if (shiftData.heads) {
         shiftData.heads.forEach(headFam => {
-            const ids = familyIndex[headFam];
-            if (ids) {
-                headEles = headEles.union(cy.filter(ele => ids.has(ele.id())));
-            } else {
-              const el = cy.getElementById(headFam);
-              if (el.length > 0) headEles = headEles.union(el);
-            }
+            const el = cy.getElementById(headFam);
+            if (el.length > 0) headEles = headEles.union(el);
         });
     }
 
-    // 2. Identify elements affected by shifted_inputs
     if (shiftData.shifted_inputs && shiftData.shifted_inputs.length > 0) {
         const shiftedInputsSet = new Set(shiftData.shifted_inputs);
-
         shiftData.shifted_inputs.forEach(i => {
-            affectedIns.add(i); // Track for Global UI
-
-            // If shifted input is a direct member, it automatically shifts the output
-            if (metaData.directInputOutput && metaData.directInputOutput.members) {
-                if (metaData.directInputOutput.members.includes(i)) {
-                    affectedOuts.add(i);
-                }
+            affectedIns.add(i); 
+            
+            if (metaData.directInputOutput) {
+                const allDirect = Object.values(metaData.directInputOutput).flat();
+                if (allDirect.includes(i)) affectedOuts.add(i);
             }
         });
 
         cy.nodes().forEach(n => {
-            const famInfo = metaData.nodeFamilyRegister[n.data('family')];
+            const famInfo = metaData.nodeRegister[n.data('family')];
             if (famInfo && famInfo.file_in) {
-                const allIn = [...(famInfo.file_in.NanoAOD || []), ...(famInfo.file_in.Ntuple || [])];
-                if (allIn.some(inVar => shiftedInputsSet.has(inVar))) {
-                    inputAffectedEles = inputAffectedEles.union(n);
-                }
+                const allIn = Object.values(famInfo.file_in).flat();
+                if (allIn.some(inVar => shiftedInputsSet.has(inVar))) inputAffectedEles = inputAffectedEles.union(n);
             }
         });
     }
 
-    // 3. Apply styles and gather downstream nodes
     if (headEles.length > 0) {
         headEles.addClass("shift-head");
         allAffected = allAffected.union(headEles).union(headEles.successors());
@@ -860,128 +737,98 @@ function applyShift() {
         allAffected = allAffected.union(inputAffectedEles).union(inputAffectedEles.successors());
     }
 
-    // Any node that is in allAffected but NOT a head node gets the 'shift-affected' class
     allAffected.difference(headEles).addClass("shift-affected");
 
-    // Extract all file_out variables for the Global I/O Red Highlight
     allAffected.nodes().forEach(n => {
-        const famInfo = metaData.nodeFamilyRegister[n.data('family')];
-        if (famInfo && famInfo.file_out) {
-            famInfo.file_out.forEach(o => affectedOuts.add(o));
-        }
+        const famInfo = metaData.nodeRegister[n.data('family')];
+        if (famInfo && famInfo.file_out) famInfo.file_out.forEach(o => affectedOuts.add(o));
     });
 
-    // Jump to first relevant node
-    if (headEles.length > 0) {
-        cy.animate({ center: { eles: headEles[0] }, zoom: 1.3, duration: 350 });
-    } else if (inputAffectedEles.length > 0) {
-        cy.animate({ center: { eles: inputAffectedEles[0] }, zoom: 1.3, duration: 350 });
-    }
+    if (headEles.length > 0) cy.animate({ center: { eles: headEles[0] }, zoom: 1.3, duration: 350 });
+    else if (inputAffectedEles.length > 0) cy.animate({ center: { eles: inputAffectedEles[0] }, zoom: 1.3, duration: 350 });
 
-    // 4. Reload sidebar for existing selection to show shifted values
     const activeEle = cy.elements(".activeFocus").first();
-    if (activeEle.length > 0) {
-        updateSidebar(cy.elements(".activeFocus"), activeEle.data("family"));
-    }
+    if (activeEle.length > 0) updateSidebar(cy.elements(".activeFocus"), activeEle.data("family"));
 
-    // 5. Highlight the Input/Output Quantities lists
+    lastAffectedIns = affectedIns; lastAffectedOuts = affectedOuts;
     renderGlobalIO(affectedIns, affectedOuts);
 }
 
 function updateSidebar(familyEles, famName) {
     const sidebarContent = document.getElementById("sidebar-content");
+    const isEdge = famName.startsWith("edge_");
+    const isNode = metaData.nodeRegister && metaData.nodeRegister[famName];
 
-    const isEdge = metaData.edgeFamilyRegister && metaData.edgeFamilyRegister[famName];
-    const isNode = metaData.nodeFamilyRegister && metaData.nodeFamilyRegister[famName];
+    let headNode;
+    if (isNode) headNode = cy.getElementById(famName);
+    else if (isEdge) headNode = cy.elements().filter(e => e.data('family') === famName && e.isEdge()).first();
+    else throw new Error("Family not found: " + famName);
 
-    if (!isEdge && !isNode && !familyIndex[famName]) {
-        throw new Error("Family not found in registers or index: " + famName);
+    if (headNode.length === 0) {
+        sidebarContent.innerHTML = "<div style='color:#e74c3c;'>Element currently filtered out.</div>";
+        return;
     }
-
-    const headId = getFamilyHead(famName);
-    const headNode = cy.getElementById(headId);
-    if (headNode.length === 0) throw new Error("Head element missing from cytoscape graph: " + headId);
 
     const headData = headNode.data();
-
-    document.getElementById("sidebar-title").innerText = headData.label || headData.description || famName;
-    sidebarContent.innerHTML = "";
-
-    let html = ``;
+    document.getElementById("sidebar-title").innerText = headData.label || headData.description || (isEdge ? famName.substring(5) : famName);
+    sidebarContent.innerHTML = ``;
 
     const type = headData.type === "proxy" ? null : ["branch", "twig", "leaf"].includes(headData.type) ? "Quantity" : headData.type === "vector" ? "Vector Group" : (headData.type || "Producer");
-
-    if (type) {
-        html += `<div class="sidebar-section">
-                    <span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 11px; text-transform: uppercase; font-weight: 700; display: inline-block; width: max-content;">
-                        ${type}
-                    </span>
-                </div>`;
-    }
+    let html = type ? `<div class="sidebar-section"><span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 11px; text-transform: uppercase; font-weight: 700; display: inline-block; width: max-content;">${type}</span></div>` : "";
 
     if (isEdge) {
-        let sourceFams = new Set();
-        let targetFams = new Set();
-
-        familyEles.edges().forEach(e => {
-            if (e.source().data('type') !== 'proxy') sourceFams.add(e.source().data("family"));
-            if (e.target().data('type') !== 'proxy') targetFams.add(e.target().data("family"));
-        });
-
-        html += renderFamilyLinkList("Quantity source", sourceFams);
-        html += renderFamilyLinkList("Quantity targets", targetFams);
-
-    } else {
-        if (headData.parent) {
-            const parentNode = cy.getElementById(headData.parent);
-            if (parentNode.length > 0) {
-                const parentFam = parentNode.data("family") || headData.parent;
-                html += renderFamilyLinkList("Parent", new Set([parentFam]));
+        const qtyName = famName.substring(5);
+        let sourceFams = new Set(), targetFams = new Set();
+        
+        if(metaData.edgeRegister) {
+            for (const [source, qties] of Object.entries(metaData.edgeRegister)) {
+                if (qties[qtyName]) {
+                    if (cy.getElementById(source).length > 0) {
+                        sourceFams.add(source);
+                        qties[qtyName].forEach(t => { if(cy.getElementById(t).length > 0) targetFams.add(t) });
+                    }
+                }
             }
         }
-        const famInfo = isNode ? metaData.nodeFamilyRegister[famName] : null;
-
-        // Shift Diff Validation Check
+        html += renderFamilyLinkList("Quantity source", sourceFams);
+        html += renderFamilyLinkList("Quantity targets", targetFams);
+    } else {
+        if (headData.parent && cy.getElementById(headData.parent).length > 0) {
+            html += renderFamilyLinkList("Parent", new Set([headData.parent]));
+        }
+        const famInfo = isNode ? metaData.nodeRegister[famName] : null;
         const activeShiftName = document.getElementById("select-shift").value;
         const activeShift = activeShiftName ? metaData.shiftRegistry[activeShiftName] : null;
         const isHeadOfActiveShift = headNode.hasClass("shift-head");
         const isAffectedNode = headNode.hasClass("shift-head") || headNode.hasClass("shift-affected");
-
-        // Gather specific inputs affected by this shift to pass to the renderer
         const shiftedInputsSet = activeShift && activeShift.shifted_inputs ? new Set(activeShift.shifted_inputs) : new Set();
 
+        // Find Hidden Upstream Sources to Inject as "Producer" Read (Using Source Name)
+        let hiddenIncomingSources = new Set();
+        if (metaData.edgeRegister) {
+            for (const [source, qties] of Object.entries(metaData.edgeRegister)) {
+                for (const [qty, targets] of Object.entries(qties)) {
+                    if (targets.includes(famName)) {
+                        // Check if upstream source is currently hidden from visual graph
+                        if (cy.getElementById(source).length === 0) {
+                            hiddenIncomingSources.add(getDisplayName(source));
+                        }
+                    }
+                }
+            }
+        }
+
         if (famInfo && famInfo.node_call) {
-            html += `<div class="sidebar-section">`;
-            html += `<div class="sidebar-subtitle">Producer Call</div>`;
-            html += `<div class="detail-row"><span class="detail-value" style="color: #3498db;">${famInfo.node_call}</span></div>`;
-            html += `</div>`;
-
+            html += `<div class="sidebar-section"><div class="sidebar-subtitle">Producer Call</div><div class="detail-row"><span class="detail-value" style="color: #3498db;">${famInfo.node_call}</span></div></div>`;
             if (famInfo.node_call_configs && Object.keys(famInfo.node_call_configs).length > 0) {
-                html += `<div class="sidebar-section">
-                            <div class="sidebar-subtitle">Producer configs</div>`;
-
+                html += `<div class="sidebar-section"><div class="sidebar-subtitle">Producer configs</div>`;
                 for (let [key, val] of Object.entries(famInfo.node_call_configs)) {
                     let displayVal = typeof val === 'object' ? JSON.stringify(val) : val;
-
-                    // Shift Delta Formatting
                     if (isHeadOfActiveShift && activeShift && activeShift.shift_configs && key in activeShift.shift_configs) {
                         const newVal = activeShift.shift_configs[key];
-                        const displayNew = typeof newVal === 'object' ? JSON.stringify(newVal) : newVal;
-
-                        displayVal = `
-                            <div style="display: flex; flex-direction: column; gap: 2px;">
-                                <span style="text-decoration: line-through; color: #7f8c8d; font-size: 0.95em;">${displayVal}</span>
-                                <div style="color: #e74c3c; font-weight: bold; display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-size: 1.2em;">&#10142;</span>
-                                    <span>${displayNew}</span>
-                                </div>
-                            </div>`;
+                        displayVal = `<div style="display: flex; flex-direction: column; gap: 2px;"><span style="text-decoration: line-through; color: #7f8c8d; font-size: 0.95em;">${displayVal}</span><div style="color: #e74c3c; font-weight: bold; display: flex; align-items: center; gap: 8px;"><span style="font-size: 1.2em;">&#10142;</span><span>${typeof newVal === 'object' ? JSON.stringify(newVal) : newVal}</span></div></div>`;
                     }
-
-                    html += `<div class="detail-row">
-                                <span class="detail-label">${key}</span>
-                                <span class="detail-value">${displayVal}</span>
-                            </div>`;
+                    html += `<div class="detail-row"><span class="detail-label">${key}</span><span class="detail-value">${displayVal}</span></div>`;
                 }
                 html += `</div>`;
             }
@@ -989,37 +836,33 @@ function updateSidebar(familyEles, famName) {
 
         let inFams = new Set(), outFams = new Set();
         headNode.connectedEdges().forEach(e => {
-            const edgeFam = e.data("family");
-            if (e.target().id() === headNode.id()) {
-                inFams.add(edgeFam);
-            } else {
-                outFams.add(edgeFam);
-            }
+            if (e.target().id() === headNode.id()) inFams.add(e.data("family"));
+            else outFams.add(e.data("family"));
         });
 
         html += renderFamilyLinkList("Required Quantities", inFams);
         html += renderFamilyLinkList("Produced Quantities", outFams);
 
         if (famInfo) {
-            if (famInfo.file_in && (famInfo.file_in.NanoAOD?.length > 0 || famInfo.file_in.Ntuple?.length > 0)) {
-                html += `<div class="sidebar-section">
-                            <div class="sidebar-subtitle">Reads from file</div>`;
-                if (famInfo.file_in.NanoAOD && famInfo.file_in.NanoAOD.length > 0) {
-                    html += renderSubList("NanoAOD", new Set(famInfo.file_in.NanoAOD), shiftedInputsSet);
+            let readsFromFileHtml = "";
+            if (famInfo.file_in && Object.keys(famInfo.file_in).length > 0) {
+                for (const [source, items] of Object.entries(famInfo.file_in)) {
+                    if (items.length > 0) {
+                        readsFromFileHtml += renderSubList(source, new Set(items), shiftedInputsSet);
+                    }
                 }
-                if (famInfo.file_in.Ntuple && famInfo.file_in.Ntuple.length > 0) {
-                    html += renderSubList("Ntuple", new Set(famInfo.file_in.Ntuple), shiftedInputsSet);
-                }
-                html += `</div>`;
+            }
+            if (hiddenIncomingSources.size > 0) {
+                readsFromFileHtml += renderSubList("Producer", hiddenIncomingSources, shiftedInputsSet);
+            }
+
+            if (readsFromFileHtml !== "") {
+                html += `<div class="sidebar-section"><div class="sidebar-subtitle">Reads from</div>${readsFromFileHtml}</div>`;
             }
 
             if (famInfo.file_out && famInfo.file_out.length > 0) {
-                // If the node itself is affected, ALL its file outputs are affected
                 const outHighlightSet = isAffectedNode ? new Set(famInfo.file_out) : new Set();
-                html += `<div class="sidebar-section">
-                            <div class="sidebar-subtitle">Writes to file</div>
-                            ${renderSubList("Ntuple", new Set(famInfo.file_out), outHighlightSet)}
-                        </div>`;
+                html += `<div class="sidebar-section"><div class="sidebar-subtitle">Writes to file</div>${renderSubList("Ntuple", new Set(famInfo.file_out), outHighlightSet)}</div>`;
             }
         }
     }
@@ -1030,57 +873,28 @@ function updateSidebar(familyEles, famName) {
 
 function renderFamilyLinkList(title, famSet) {
     if (famSet.size === 0) return "";
-
-    let html = `<div class="sidebar-section">
-                    <div class="sidebar-subtitle">${title}</div>
-                    <ul class="node-list">`;
-
-    const sortedFams = Array.from(famSet).sort((a, b) => {
-        const nameA = getDisplayName(a);
-        const nameB = getDisplayName(b);
-        return nameA.localeCompare(nameB);
+    let html = `<div class="sidebar-section"><div class="sidebar-subtitle">${title}</div><ul class="node-list">`;
+    Array.from(famSet).sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b))).forEach(f => {
+        html += `<li><div class="detail-box clickable" onclick="focusFamily('${f}')">${getDisplayName(f)}</div></li>`;
     });
-
-    sortedFams.forEach(f => {
-        const dName = getDisplayName(f);
-        html += `<li><div class="detail-box clickable" onclick="focusFamily('${f}')">${dName}</div></li>`;
-    });
-
-    html += `</ul></div>`;
-    return html;
+    return html + `</ul></div>`;
 }
 
 function renderSubList(title, set, highlightSet = new Set()) {
     if (set.size === 0) return "";
-
-    const listItems = Array.from(set).sort().map(l => {
-        return highlightSet.has(l)
-            ? `<li style="color: #e74c3c; font-weight: bold;">${l}</li>`
-            : `<li>${l}</li>`;
-    }).join('');
-
-    return `<div style="margin-top: 4px;">
-                <div class="detail-label" style="color: #bdc3c7; margin-bottom: 2px;">${title}</div>
-                <ul class="simple-list">${listItems}</ul>
-            </div>`;
+    const listItems = Array.from(set).sort().map(l => highlightSet.has(l) ? `<li style="color: #e74c3c; font-weight: bold;">${l}</li>` : `<li>${l}</li>`).join('');
+    return `<div style="margin-top: 4px;"><div class="detail-label" style="color: #bdc3c7; margin-bottom: 2px;">${title}</div><ul class="simple-list">${listItems}</ul></div>`;
 }
 
 function setupInteractions() {
-    cy.on("tap", "node, edge", function (evt) {
-        focusFamily(evt.target.data("family"));
-    });
-
+    cy.on("tap", "node, edge", function (evt) { focusFamily(evt.target.data("family")); });
     cy.on("tap", function (evt) {
-        if (evt.target === cy) {
-            document.getElementById("sidebar").style.display = "none";
-            cy.elements().removeClass("activeFocus");
-        }
+        if (evt.target === cy) { document.getElementById("sidebar").style.display = "none"; cy.elements().removeClass("activeFocus"); }
     });
 }
 
 function moveFocus(dir) {
     if (familyResults.length === 0) return;
-
     currentIndex = (currentIndex + dir + familyResults.length) % familyResults.length;
     focusFamily(familyResults[currentIndex].famName);
 }
@@ -1088,60 +902,43 @@ function moveFocus(dir) {
 function cancelSearch() {
     document.getElementById("searchInput").value = "";
     cy.elements().removeClass("highlighted activeFocus");
-    searchResults = [];
-    familyResults = [];
-    currentIndex = -1;
+    searchResults = []; familyResults = []; currentIndex = -1;
     document.getElementById("sidebar").style.display = "none";
     updateUI();
 }
 
 function focusFamily(famName) {
-    const ids = familyIndex[famName];
-    if (!ids) throw new Error("No IDs mapped in index for family: " + famName);
-
     cy.elements().removeClass("activeFocus");
-
-    let collection = cy.collection();
-    ids.forEach(id => collection = collection.union(cy.$id(id)));
-    collection.addClass("activeFocus");
-
-    const headId = getFamilyHead(famName);
-    const headEle = cy.getElementById(headId);
-    if (headEle.length > 0) {
-        cy.animate({ center: { eles: headEle }, zoom: 1.3, duration: 350 });
+    let collection = cy.elements().filter(e => e.data('family') === famName);
+    
+    if(collection.empty()) { 
+        const el = cy.getElementById(famName);
+        if(el.length > 0) collection = collection.union(el);
+        else return; 
     }
+
+    collection.addClass("activeFocus");
+    
+    const headNode = collection.filter('node').first();
+    if (headNode.length > 0) cy.animate({ center: { eles: headNode }, zoom: 1.3, duration: 350 });
 
     updateSidebar(collection, famName);
-
     const searchIdx = familyResults.findIndex(res => res.famName === famName);
-    if (searchIdx !== -1) {
-        currentIndex = searchIdx;
-        updateUI();
-    }
+    if (searchIdx !== -1) { currentIndex = searchIdx; updateUI(); }
 }
 
 function updateUI() {
     const count = familyResults.length;
     const input = document.getElementById("searchInput").value;
-    const statusEl = document.getElementById("status");
-
-    statusEl.innerText = input ? `${currentIndex + 1} / ${count}` : "";
-
+    document.getElementById("status").innerText = input ? `${currentIndex + 1} / ${count}` : "";
     document.getElementById("prevBtn").disabled = count === 0;
     document.getElementById("nextBtn").disabled = count === 0;
 }
 
 function getDisplayName(famName) {
-    const edgeInfo = metaData.edgeFamilyRegister?.[famName];
-    if (edgeInfo) {
-        return edgeInfo.name || famName;
-    }
-
-    const nodeInfo = metaData.nodeFamilyRegister?.[famName];
-    if (nodeInfo) {
-        return nodeInfo.name || famName;
-    }
-
+    if (famName.startsWith('edge_')) return famName.substring(5);
+    const nodeInfo = metaData.nodeRegister?.[famName];
+    if (nodeInfo) return nodeInfo.name || famName;
     return famName;
 }
 
@@ -1149,46 +946,33 @@ function runSearch() {
     const query = document.getElementById("searchInput").value;
     if (!query) return cancelSearch();
 
-    const regex = new RegExp(query, "i"); // Added "i" for case-insensitive search
+    const regex = new RegExp(query, "i");
     cy.elements().removeClass("highlighted activeFocus");
     const matchedFamilies = new Set();
 
-    // 1. Search Node Register
-    if (metaData.nodeFamilyRegister) {
-        for (const [famName, famInfo] of Object.entries(metaData.nodeFamilyRegister)) {
-            const searchString = [
-                famName,
-                famInfo.name,
-                famInfo.node_call,
-                ...(famInfo.file_in?.NanoAOD || []),
-                ...(famInfo.file_in?.Ntuple || []),
-                ...(famInfo.file_out || [])
-            ].filter(Boolean).join(" "); // Mash searchable data into one string
-
+    if (metaData.nodeRegister) {
+        for (const [famName, famInfo] of Object.entries(metaData.nodeRegister)) {
+            const allIn = famInfo.file_in ? Object.values(famInfo.file_in).flat() : [];
+            const searchString = [famName, famInfo.name, famInfo.node_call, ...allIn, ...(famInfo.file_out || [])].filter(Boolean).join(" ");
             if (regex.test(searchString)) matchedFamilies.add(famName);
         }
     }
-
-    // 2. Search Edge Register
-    if (metaData.edgeFamilyRegister) {
-        for (const [famName, famInfo] of Object.entries(metaData.edgeFamilyRegister)) {
-            if (regex.test(famName) || regex.test(famInfo.name)) matchedFamilies.add(famName);
+    
+    if (metaData.edgeRegister) {
+        for (const [source, qties] of Object.entries(metaData.edgeRegister)) {
+            for (const qty of Object.keys(qties)) {
+                if (regex.test(`edge_${qty}`) || regex.test(qty)) matchedFamilies.add(`edge_${qty}`);
+            }
         }
     }
 
-    familyResults = [...matchedFamilies].map(famName => ({ famName }));
+    familyResults = [...matchedFamilies].map(famName => ({ famName })).filter(res => cy.elements().filter(e => e.data('family') === res.famName).length > 0);
 
-    // 3. Highlight results
-    const highlightSet = new Set();
-    familyResults.forEach(res => {
-        if (familyIndex[res.famName]) familyIndex[res.famName].forEach(id => highlightSet.add(id));
-    });
+    const highlightSet = cy.collection();
+    familyResults.forEach(res => { highlightSet.merge(cy.elements().filter(e => e.data('family') === res.famName)); });
 
-    if (highlightSet.size > 0) {
-        let searchCollection = cy.collection();
-        highlightSet.forEach(id => searchCollection = searchCollection.union(cy.$id(id)));
-        searchCollection.addClass("highlighted");
-
+    if (highlightSet.length > 0) {
+        highlightSet.addClass("highlighted");
         currentIndex = -1;
         moveFocus(1);
     } else {
@@ -1198,25 +982,14 @@ function runSearch() {
 }
 
 function resetView() {
-    // Reset graph viewport
-    cy.animate({
-        fit: { padding: 40 },
-        duration: 500
-    });
-
-    // Clear search
+    cy.animate({ fit: { padding: 40 }, duration: 500 });
     cancelSearch();
-
-    // Reset shift dropdown to "No Shift Selection"
-    const shiftSelect = document.getElementById("select-shift");
-    shiftSelect.value = "";
-
-    // Reapply shift logic so highlights are cleared
-    applyShift();
+    document.getElementById("select-shift").value = "";
+    excludedInputsState.clear(); excludedOutputsState.clear();
+    applyGraphFilters(); 
 }
 
 window.onload = loadConfig;
-
 </script>
 </body>
 </html>
