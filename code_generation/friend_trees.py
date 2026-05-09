@@ -154,7 +154,9 @@ class FriendTreeConfiguration(Configuration):
                     for quantity in new_data[scope][shift]:
                         if quantity not in existing_data[scope][shift]:
                             # Add origin config to quantity for naviagation with multifriends
-                            existing_data[scope][shift].append((quantity, metadata["config"]))
+                            existing_data[scope][shift].append(
+                                (quantity, metadata["config"])
+                            )
             return existing_data
 
         # first check if the input is a root file or a json file
@@ -163,10 +165,14 @@ class FriendTreeConfiguration(Configuration):
             log.info(f"adding input information from {input_information}")
             if isinstance(input_information, str):
                 if input_information.endswith(".root"):
-                    shift_map, metadata = self._readout_input_root_file(input_information)
+                    shift_map, metadata = self._readout_input_root_file(
+                        input_information
+                    )
                     data = update_input_information(data, shift_map)
                 elif input_information.endswith(".json"):
-                    shift_map, metadata = self._readout_input_json_file(input_information)
+                    shift_map, metadata = self._readout_input_json_file(
+                        input_information
+                    )
                     data = update_input_information(data, shift_map)
                 else:
                     error_message = f"\n      Input information file {input_information} is not a json or root file \n"
@@ -204,7 +210,7 @@ class FriendTreeConfiguration(Configuration):
         if not os.path.exists(lib_path):
             log.error(f"Missing library: {lib_path}")
         # Evaluate ROOT-specific return codes
-        result = ROOT.gSystem.Load(lib_path) # type: ignore
+        result = ROOT.gSystem.Load(lib_path)  # type: ignore
         if result < 0:
             err_type = (
                 "Version mismatch"
@@ -226,7 +232,7 @@ class FriendTreeConfiguration(Configuration):
 
     def _readout_input_json_file(
         self, input_file: str
-    ) ->  Tuple[Dict[str, Dict[str, List[str]]], Dict[str, Any]]:
+    ) -> Tuple[Dict[str, Dict[str, List[str]]], Dict[str, Any]]:
         """Read the shift_quantities_map from the input json file and return it as a dictionary
 
         Args:
@@ -246,15 +252,22 @@ class FriendTreeConfiguration(Configuration):
             )
             errorstring += f"Available eras are: {quantity_data.keys()}"
             raise ConfigurationError(errorstring)
-        if self.sample not in quantity_data[self.era].keys() or self.sample != metadata["sample_type"]:
+        if (
+            self.sample not in quantity_data[self.era].keys()
+            or self.sample != metadata["sample_type"]
+        ):
             errorstring = f"Sampletype {self.sample} not found in input information file {input_file}.\n"
-            errorstring += f"Available sampletypes are: {quantity_data[self.era].keys()}"
+            errorstring += (
+                f"Available sampletypes are: {quantity_data[self.era].keys()}"
+            )
             raise ConfigurationError(errorstring)
         if not set(self.selected_scopes).issubset(
             set(quantity_data[self.era][self.sample].keys())
         ):
             errorstring = f"Scopes {self.selected_scopes} not found in input information file {input_file}.\n"
-            errorstring += f"Available scopes are: {quantity_data[self.era][self.sample].keys()}"
+            errorstring += (
+                f"Available scopes are: {quantity_data[self.era][self.sample].keys()}"
+            )
             raise ConfigurationError(errorstring)
         return quantity_data[self.era][self.sample], metadata
 
@@ -372,7 +385,9 @@ class FriendTreeConfiguration(Configuration):
                     [x.name for x in producer.get_outputs(scope)]
                 )
             # get all available inputs
-            for input_quantitiy, quantity_origin in self.input_quantities_mapping[scope][""]:
+            for input_quantitiy, quantity_origin in self.input_quantities_mapping[
+                scope
+            ][""]:
                 available_inputs.add(input_quantitiy)
             # now check if all inputs are available
             missing_inputs = required_inputs - available_inputs

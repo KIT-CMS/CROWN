@@ -391,9 +391,7 @@ class CodeGenerator(object):
                 .replace("// {MULTITHREADING}", threadcall)
                 .replace("// {DEBUGLEVEL}", self.set_debug_flag())
                 .replace("{ERATAG}", '"{}"'.format(self.configuration.era))
-                .replace(
-                    "{SAMPLETAG}", '"{}"'.format(self.configuration.sample)
-                )
+                .replace("{SAMPLETAG}", '"{}"'.format(self.configuration.sample))
                 .replace("{ANALYSISTAG}", '"{}"'.format(self.analysis_name))
                 .replace("{CONFIGTAG}", '"{}"'.format(self.config_name))
                 .replace("{OUTPUT_QUANTITIES}", self.set_output_quantities())
