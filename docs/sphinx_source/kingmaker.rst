@@ -358,7 +358,7 @@ The ``problematic_eras`` option is used to define eras, where only one file per 
 
 For a more complete description of the different options, please refer to the overcomplete configuration in the law repository (https://github.com/riga/law/blob/master/law.cfg.example).
 
-A KingMaker specific option is ``force_repack_tarball``. If this option is set to ``True``, the tarball will be repacked and reuploaded to the dCache, even if it already exists.
+A KingMaker specific option is ``force_repack_tarball``. If this option is set to ``True``, the tarball will be repacked and reuploaded to the remote storage, even if it already exists.
 This can be useful, if inbetween running workflow steps the KingMaker code significantly changes.
 Since the tarball with the workflow code is built at the beginning of the first workflow run and then reused for the following workflow runs, changes are not automatically propagated to the remote tarball.
 The default is ``False`` since such changes are not common.
