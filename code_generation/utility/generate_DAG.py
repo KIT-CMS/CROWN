@@ -639,7 +639,7 @@ class GraphParser:
                 for node, node_data in self.node_register.items():
                     if shift_cfg in node_data["node_call_configs"]:
                         shift_heads.add(node)
-            if self.shifted_inputs:
+            if self.shifted_inputs and shift in self.shifted_inputs:
                 shifted_inputs = self.shifted_inputs[shift]
             else:
                 shifted_inputs = []

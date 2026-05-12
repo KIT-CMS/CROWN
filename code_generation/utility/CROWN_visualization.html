@@ -99,6 +99,7 @@
         .octagon {clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);}
         .square { border-radius: 2px; }
         .parent-box { border: 2px dashed #1e88e5; background: rgba(30, 136, 229, 0.1); }
+        .vector-box { border: 2px dashed #8e24aa; background: rgba(218, 112, 214, 0.15); };
     </style>
 </head>
 <body>
@@ -148,16 +149,16 @@
             <div class="legend-title">Graph Legend</div>
             <div class="legend-grid">
                 <div class="legend-item">
-                    <div class="symbol square" style="background: linear-gradient(to right, #3498db 0%, #3498db 25%, #ffffff 25%, #ffffff 100%); border: 1.5px solid #2c3e50;"></div>
+                    <div class="symbol square" style="background: linear-gradient(to right, #d5db34 0%, #d5db34 25%, #ffffff 25%, #ffffff 100%); border: 1.5px solid #2c3e50;"></div>
                     <span>Reads from NanoAOD</span>
                 </div>
                 <div class="legend-item">
-                    <div class="symbol square" style="background: linear-gradient(to right, #d5db34 0%, #d5db34 25%, #ffffff 25%, #ffffff 100%); border: 1.5px solid #2c3e50;"></div>
+                    <div class="symbol square" style="background: linear-gradient(to right, #3498db 0%, #3498db 25%, #ffffff 25%, #ffffff 100%); border: 1.5px solid #2c3e50;"></div>
                     <span>Reads from Ntuple</span>
                 </div>
                 <div class="legend-item">
                     <div class="symbol square" style="background: linear-gradient(to right, #ffffff 0%, #ffffff 75%, #3498db 75%, #3498db 100%); border: 1.5px solid #2c3e50;"></div>
-                    <span>Writes to file</span>
+                    <span>Writes to Ntuple</span>
                 </div>
                 <div class="legend-item">
                     <div class="symbol square" style="background: #f6b1ac; border: 1.5px solid #e74c3c;"></div>
@@ -168,7 +169,7 @@
                     <span>Group</span>
                 </div>
                 <div class="legend-item">
-                    <div class="symbol square" style="border: 4px dashed #8e24aa; background: rgba(218, 112, 214, 0.15);"></div>
+                    <div class="symbol vector-box"></div>
                     <span>Vector Group</span>
                 </div>
                 <div class="legend-item">
@@ -213,42 +214,42 @@ const CY_STYLES = [
     
     /* Dynamic IO Booleans */
     { selector: "node[?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 85 85 100", "background-gradient-direction": "to-right" } },
-    { selector: "node[?is_nano_in]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#3498db #3498db #ffffff #ffffff", "background-gradient-stop-positions": "0 15 15 100", "background-gradient-direction": "to-right" } },
-    { selector: "node[?is_nano_in][?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#3498db #3498db #ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 15 15 85 85 100", "background-gradient-direction": "to-right" } },
-    { selector: "node[?is_other_in]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#d5db34 #d5db34 #ffffff #ffffff", "background-gradient-stop-positions": "0 15 15 100", "background-gradient-direction": "to-right" } },
-    { selector: "node[?is_other_in][?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#d5db34 #d5db34 #ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 15 15 85 85 100", "background-gradient-direction": "to-right" } },
-    { selector: "node[?is_nano_in][?is_other_in]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ffffff #ffffff", "background-gradient-stop-positions": "0 7.5 7.5 15 15 100", "background-gradient-direction": "to-right" } },
-    { selector: "node[?is_nano_in][?is_other_in][?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 7.5 7.5 15 15 85 85 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_nano_in]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#d5db34 #d5db34 #ffffff #ffffff", "background-gradient-stop-positions": "0 15 15 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_nano_in][?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#d5db34 #d5db34 #ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 15 15 85 85 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_other_in]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#3498db #3498db #ffffff #ffffff", "background-gradient-stop-positions": "0 15 15 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_other_in][?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#3498db #3498db #ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 15 15 85 85 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_nano_in][?is_other_in]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #ffffff #ffffff", "background-gradient-stop-positions": "0 7.5 7.5 15 15 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_nano_in][?is_other_in][?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 7.5 7.5 15 15 85 85 100", "background-gradient-direction": "to-right" } },
 
     { selector: ":parent", style: { "background-fill": "solid", "background-opacity": 0.1, "background-color": "#1e88e5", "border-color": "#1e88e5", "border-style": "dashed", "border-width": 4, "text-valign": "top", "color": "#1565c0", "font-size": 18, padding: "10px", events: "no" } },
     { selector: 'node[type="scope"]', style: { "border-style": "solid", "border-width": 4, "border-color": "#4a4a4a", "background-color": "#d1d1d1", "background-opacity": 0.2, "font-size": 28, "color": "#000000" } },
     { selector: 'node[type="vector"]', style: { "border-style": "dashed", "border-width": 4, "border-color": "#8e24aa", "background-color": "#da70d6", "background-opacity": 0.15, "color": "#73178c" } },
     { selector: 'node[type="filter"]', style: { shape: "octagon", "background-color": "#fac370", "border-color": "#ffaa00" } },
-    { selector: 'node[type="filter"][?is_in], node[type="filter"][?is_nano_in]', style: { "background-gradient-stop-colors": "#3498db #3498db #fac370 #fac370" } },
-    { selector: 'node[type="filter"][?is_other_in]', style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #fac370 #fac370" } },
+    { selector: 'node[type="filter"][?is_in], node[type="filter"][?is_nano_in]', style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #fac370 #fac370" } },
+    { selector: 'node[type="filter"][?is_other_in]', style: { "background-gradient-stop-colors": "#3498db #3498db #fac370 #fac370" } },
     { selector: 'node[type="stump"]', style: { "background-color": "#f7a5f8", "border-color": "#f84cfa" } },
-    { selector: 'node[type="stump"][?is_nano_in]', style: { "background-gradient-stop-colors": "#3498db #3498db #f7a5f8 #f7a5f8" } },
-    { selector: 'node[type="stump"][?is_other_in]', style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f7a5f8 #f7a5f8" } },
+    { selector: 'node[type="stump"][?is_nano_in]', style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f7a5f8 #f7a5f8" } },
+    { selector: 'node[type="stump"][?is_other_in]', style: { "background-gradient-stop-colors": "#3498db #3498db #f7a5f8 #f7a5f8" } },
     { selector: 'node[type="proxy"]', style: { label: "data(label)", width: "label", height: "label", padding: 6, "background-color": "#fff9c4", "background-opacity": 1, "border-width": 1.5, "border-color": "#d4c96a", color: "#333", "font-size": 10, "text-valign": "center", "text-halign": "center", "text-wrap": "wrap", "text-max-width": 80 } },
     
     /* Shift Overrides */
     { selector: "node.shift-affected", style: { "background-color": "#f6b1ac"} },
     { selector: "node[?is_out].shift-affected", style: { "background-gradient-stop-colors": "#f6b1ac #f6b1ac #3498db #3498db" } },
-    { selector: "node[?is_nano_in].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #f6b1ac #f6b1ac" } },
-    { selector: "node[?is_nano_in][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #f6b1ac #f6b1ac #3498db #3498db" } },
-    { selector: "node[?is_other_in].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f6b1ac #f6b1ac" } },
-    { selector: "node[?is_other_in][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f6b1ac #f6b1ac #3498db #3498db" } },
-    { selector: "node[?is_nano_in][?is_other_in].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #f6b1ac #f6b1ac" } },
-    { selector: "node[?is_nano_in][?is_other_in][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #f6b1ac #f6b1ac #3498db #3498db" } },
+    { selector: "node[?is_nano_in].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f6b1ac #f6b1ac" } },
+    { selector: "node[?is_nano_in][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f6b1ac #f6b1ac #3498db #3498db" } },
+    { selector: "node[?is_other_in].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #f6b1ac #f6b1ac" } },
+    { selector: "node[?is_other_in][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #f6b1ac #f6b1ac #3498db #3498db" } },
+    { selector: "node[?is_nano_in][?is_other_in].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #f6b1ac #f6b1ac" } },
+    { selector: "node[?is_nano_in][?is_other_in][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #f6b1ac #f6b1ac #3498db #3498db" } },
 
     { selector: "node.shift-head", style: { "background-color": "#ec6d5f"} },
     { selector: "node[?is_out].shift-head", style: { "background-gradient-stop-colors": "#ec6d5f #ec6d5f #3498db #3498db" } },
-    { selector: "node[?is_nano_in].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #ec6d5f #ec6d5f" } },
-    { selector: "node[?is_nano_in][?is_out].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #ec6d5f #ec6d5f #3498db #3498db" } },
-    { selector: "node[?is_other_in].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #ec6d5f #ec6d5f" } },
-    { selector: "node[?is_other_in][?is_out].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #ec6d5f #ec6d5f #3498db #3498db" } },
-    { selector: "node[?is_nano_in][?is_other_in].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ec6d5f #ec6d5f" } },
-    { selector: "node[?is_nano_in][?is_other_in][?is_out].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #ec6d5f #ec6d5f #3498db #3498db" } },
+    { selector: "node[?is_nano_in].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #ec6d5f #ec6d5f" } },
+    { selector: "node[?is_nano_in][?is_out].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #ec6d5f #ec6d5f #3498db #3498db" } },
+    { selector: "node[?is_other_in].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #ec6d5f #ec6d5f" } },
+    { selector: "node[?is_other_in][?is_out].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #ec6d5f #ec6d5f #3498db #3498db" } },
+    { selector: "node[?is_nano_in][?is_other_in].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #ec6d5f #ec6d5f" } },
+    { selector: "node[?is_nano_in][?is_other_in][?is_out].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #ec6d5f #ec6d5f #3498db #3498db" } },
 
     { selector: "edge", style: { "curve-style": "unbundled-bezier", "line-color": "#6e7070", width: "data(width)", "target-arrow-shape": "none" } },
     { selector: 'edge[type="twig"]', style: { "curve-style": "bezier" } },
@@ -258,21 +259,21 @@ const CY_STYLES = [
     { selector: "node.highlighted", style: { "background-color": "#9cea95", "border-color": "#2e7d32", "border-width": 3, "z-index": 99 } },
     { selector: "edge.highlighted", style: { "line-color": "#2e7d32", "target-arrow-color": "#2e7d32", "width": 3, "z-index": 99 } },
     { selector: "node[?is_out].highlighted", style: { "background-gradient-stop-colors": "#9cea95 #9cea95 #3498db #3498db" } },
-    { selector: "node[?is_nano_in].highlighted", style: { "background-gradient-stop-colors": "#3498db #3498db #9cea95 #9cea95" } },
-    { selector: "node[?is_nano_in][?is_out].highlighted", style: { "background-gradient-stop-colors": "#3498db #3498db #9cea95 #9cea95 #3498db #3498db" } },
-    { selector: "node[?is_other_in].highlighted", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #9cea95 #9cea95" } },
-    { selector: "node[?is_other_in][?is_out].highlighted", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #9cea95 #9cea95 #3498db #3498db" } },
-    { selector: "node[?is_nano_in][?is_other_in].highlighted", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #9cea95 #9cea95" } },
+    { selector: "node[?is_nano_in].highlighted", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #9cea95 #9cea95" } },
+    { selector: "node[?is_nano_in][?is_out].highlighted", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #9cea95 #9cea95 #3498db #3498db" } },
+    { selector: "node[?is_other_in].highlighted", style: { "background-gradient-stop-colors": "#3498db #3498db #9cea95 #9cea95" } },
+    { selector: "node[?is_other_in][?is_out].highlighted", style: { "background-gradient-stop-colors": "#3498db #3498db #9cea95 #9cea95 #3498db #3498db" } },
+    { selector: "node[?is_nano_in][?is_other_in].highlighted", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #9cea95 #9cea95" } },
 
     /* Active Focus Overrides */
     { selector: "node.activeFocus", style: { "background-color": "#6ae35f", "border-color": "#2ecc71", "border-width": 4, "color": "#000000", "z-index": 1000 } },
     { selector: "edge.activeFocus", style: { "line-color": "#2ecc71", "target-arrow-color": "#2ecc71", "width": 4, "z-index": 1001 } },
     { selector: "node[?is_out].activeFocus", style: { "background-gradient-stop-colors": "#6ae35f #6ae35f #3498db #3498db" } },
-    { selector: "node[?is_nano_in].activeFocus", style: { "background-gradient-stop-colors": "#3498db #3498db #6ae35f #6ae35f" } },
-    { selector: "node[?is_nano_in][?is_out].activeFocus", style: { "background-gradient-stop-colors": "#3498db #3498db #6ae35f #6ae35f #3498db #3498db" } },
-    { selector: "node[?is_other_in].activeFocus", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #6ae35f #6ae35f" } },
-    { selector: "node[?is_other_in][?is_out].activeFocus", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #6ae35f #6ae35f #3498db #3498db" } },
-    { selector: "node[?is_nano_in][?is_other_in].activeFocus", style: { "background-gradient-stop-colors": "#3498db #3498db #d5db34 #d5db34 #6ae35f #6ae35f" } },
+    { selector: "node[?is_nano_in].activeFocus", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #6ae35f #6ae35f" } },
+    { selector: "node[?is_nano_in][?is_out].activeFocus", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #6ae35f #6ae35f #3498db #3498db" } },
+    { selector: "node[?is_other_in].activeFocus", style: { "background-gradient-stop-colors": "#3498db #3498db #6ae35f #6ae35f" } },
+    { selector: "node[?is_other_in][?is_out].activeFocus", style: { "background-gradient-stop-colors": "#3498db #3498db #6ae35f #6ae35f #3498db #3498db" } },
+    { selector: "node[?is_nano_in][?is_other_in].activeFocus", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #6ae35f #6ae35f" } },
 
     { selector: "node.shift-affected", style: {"border-color": "#e74c3c", "border-width": 2.5 } },
     { selector: "edge.shift-affected", style: { "line-color": "#e74c3c", "target-arrow-color": "#e74c3c", "width": 3, "z-index": 50 } },
@@ -668,7 +669,7 @@ function renderGlobalIO(affectedIns = new Set(), affectedOuts = new Set()) {
     document.getElementById("global-input-content").innerHTML = html_in;
 
     document.getElementById("global-output-content").innerHTML = 
-        createToggleHTML("Writes to file", globalIOData.outputs, affectedOuts, 'out');
+        createToggleHTML("Writes to Ntuple", globalIOData.outputs, affectedOuts, 'out');
 }
 
 function populateShiftDropdown() {
@@ -862,7 +863,7 @@ function updateSidebar(familyEles, famName) {
 
             if (famInfo.file_out && famInfo.file_out.length > 0) {
                 const outHighlightSet = isAffectedNode ? new Set(famInfo.file_out) : new Set();
-                html += `<div class="sidebar-section"><div class="sidebar-subtitle">Writes to file</div>${renderSubList("Ntuple", new Set(famInfo.file_out), outHighlightSet)}</div>`;
+                html += `<div class="sidebar-section"><div class="sidebar-subtitle">Writes to</div>${renderSubList("Ntuple", new Set(famInfo.file_out), outHighlightSet)}</div>`;
             }
         }
     }
