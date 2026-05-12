@@ -1890,9 +1890,9 @@ BtaggingWP(ROOT::RDF::RNode df,
             float jet_sf =
                 sf_evaluator->evaluate({variation, btag_wp_name, flavors.at(i),
                                         std::abs(etas.at(i)), pts.at(i)});
-            float jet_eff =
-                eff_evaluator->evaluate({sample_type, btag_wp_name, flavors.at(i),
-                                         std::abs(etas.at(i)), pts.at(i)});
+            float jet_eff = eff_evaluator->evaluate(
+                {sample_type, btag_wp_name, flavors.at(i), std::abs(etas.at(i)),
+                 pts.at(i)});
 
             // Log the values of scale factor and efficiency for this jet
             Logger::get(logger_name)->debug("got SF {}", jet_sf);
@@ -2178,7 +2178,8 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                 auto high_wp = wps[1];
 
                 // Define numerator and denominator
-                num = jet_sf[low_wp] * jet_eff[low_wp] - jet_sf[high_wp] * jet_eff[high_wp];
+                num = jet_sf[low_wp] * jet_eff[low_wp] -
+                      jet_sf[high_wp] * jet_eff[high_wp];
                 denom = jet_eff[low_wp] - jet_eff[high_wp];
             } else if (btag_wp == "N") {
                 // Define numerator and denominator
