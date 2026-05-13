@@ -1,0 +1,5 @@
+# Files ignored by the format check
+# templates
+code_generation/analysis_template.cxx
+code_generation/analysis_template_friends.cxx
+code_generation/subset_template.cxx

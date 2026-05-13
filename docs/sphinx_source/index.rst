@@ -7,7 +7,7 @@ The **C** ++-based **RO** OT **W** orkflow for **N** -tuples (CROWN) is a fast n
    To get started with CROWN, go here: :ref:`Getting started`.
 
 .. note::
-  To get started with an ntuple production workflow that uses CROWN, go here: :ref:`Workflow Management`.
+  To get started with an ntuple production workflow that uses CROWN, go here: :ref:`Kingmaker Workflow Management`.
 
 .. note::
    To read about recent changes and new features, go here: :ref:`changelog`.

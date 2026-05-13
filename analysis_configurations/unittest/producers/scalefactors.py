@@ -2,7 +2,6 @@ from ..quantities import output as q
 from code_generation.producer import Producer, ProducerGroup
 from code_generation.producer import ExtendedVectorProducer
 
-
 ############################
 # Muon ID, ISO SF
 # The readout is done via correctionlib
@@ -157,11 +156,11 @@ Tau_1_VsEleTauID_SF = ExtendedVectorProducer(
         correctionManager,
         {output},
         {input},
-        "{tau_sf_file}", 
+        "{tau_sf_file}",
         "{tau_id_discriminator}",
         "{vsele_tau_id_WP}",
         "{era}",
-        "{tau_sf_vsele_barrel}", 
+        "{tau_sf_vsele_barrel}",
         "{tau_sf_vsele_endcap}")
         """,
     input=[q.eta_1, q.tau_decaymode_1, q.gen_match_1],
@@ -246,11 +245,11 @@ Tau_2_VsEleTauID_SF = ExtendedVectorProducer(
         correctionManager,
         {output},
         {input},
-        "{tau_sf_file}", 
+        "{tau_sf_file}",
         "{tau_id_discriminator}",
         "{vsele_tau_id_WP}",
         "{era}",
-        "{tau_sf_vsele_barrel}", 
+        "{tau_sf_vsele_barrel}",
         "{tau_sf_vsele_endcap}")
         """,
     input=[q.eta_2, q.tau_decaymode_2, q.gen_match_2],
