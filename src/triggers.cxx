@@ -92,10 +92,11 @@ bool matchParticle(
     ROOT::RVec<float> &triggerobject_phis, ROOT::RVec<int> &triggerobject_ids,
     ROOT::RVec<int> &triggerobject_filterbits, const float &pt_threshold,
     const float &eta_threshold, const int &trigger_particle_id_value,
-    const int &trigger_bit_value, const float &deltaR_threshold) {
+    const std::vector<int> &trigger_bit_value, const float &deltaR_threshold) {
     Logger::get("trigger::matchParticle")->debug("Checking Triggerobjects");
     Logger::get("trigger::matchParticle")
         ->debug("Total number of triggerobjects: {}", triggerobject_pts.size());
+    
     for (std::size_t idx = 0; idx < triggerobject_pts.size(); ++idx) {
         Logger::get("trigger::matchParticle")
             ->debug("Triggerobject Nr. {}", idx);
@@ -109,9 +110,18 @@ bool matchParticle(
         bool eta = abs(particle.eta()) < eta_threshold;
         // if you don't want to do bit matching here, the trigger_bit_value
         // has to be set to -1
-        bool bit =
-            (trigger_bit_value == -1) ||
-            (IntBits(triggerobject_filterbits[idx]).test(trigger_bit_value));
+        // otherwise, check if all bits in the vector are set
+        bool bit = true;
+        if (!trigger_bit_value.empty()) {
+            IntBits bits(triggerobject_filterbits[idx]);
+            for (int bit_value : trigger_bit_value) {
+                if (bit_value == -1) continue;
+                if (!bits.test(bit_value)) {
+                    bit = false;
+                    break;
+                }
+            }
+        }
         bool id = triggerobject_ids[idx] == trigger_particle_id_value;
 
         Logger::get("trigger::matchParticle")
@@ -130,8 +140,15 @@ bool matchParticle(
         Logger::get("trigger::matchParticle")
             ->debug("id value: {}", triggerobject_ids[idx]);
 
+        // Format vector of filter bits as string
+        std::string bit_values_str = "[";
+        for (size_t i = 0; i < trigger_bit_value.size(); ++i) {
+            if (i > 0) bit_values_str += ", ";
+            bit_values_str += std::to_string(trigger_bit_value[i]);
+        }
+        bit_values_str += "]";
         Logger::get("trigger::matchParticle")
-            ->debug("trigger_bit_value: {}, Check: {}", trigger_bit_value, bit);
+            ->debug("trigger_bit_value: {}, Check: {}", bit_values_str, bit);
         Logger::get("trigger::matchParticle")
             ->debug("bit value: {}", IntBits(triggerobject_filterbits[idx]));
 
@@ -163,6 +180,7 @@ bool matchParticle(
     }
     return false;
 };
+
 /**
  * @brief This function generates a trigger flag based on an HLT path and
  * trigger object matching for a selected object. This relies on the
@@ -213,7 +231,7 @@ ROOT::RDF::RNode SingleObjectFlag(
     const std::string &triggerobject_id,
     const std::string &triggerobject_filterbit, const std::string &hlt_path,
     const float &pt_threshold, const float &eta_threshold,
-    const int &trigger_particle_id_value, const int &trigger_bit_value,
+    const int &trigger_particle_id_value, const std::vector<int> &trigger_bit_value,
     const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
@@ -343,7 +361,7 @@ ROOT::RDF::RNode SingleObjectFlag(
     const std::string &triggerobject_id,
     const std::string &triggerobject_filterbit, const float &pt_threshold,
     const float &eta_threshold, const int &trigger_particle_id_value,
-    const int &trigger_bit_value, const float &deltaR_threshold) {
+    const std::vector<int> &trigger_bit_value, const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] =
@@ -453,8 +471,10 @@ ROOT::RDF::RNode DoubleObjectFlag(
     const float &pt_threshold_1, const float &pt_threshold_2,
     const float &eta_threshold_1, const float &eta_threshold_2,
     const int &trigger_particle_id_value_1,
-    const int &trigger_particle_id_value_2, const int &trigger_bit_value_1,
-    const int &trigger_bit_value_2, const float &deltaR_threshold) {
+    const int &trigger_particle_id_value_2,
+    const std::vector<int> &trigger_bit_value_1,
+    const std::vector<int> &trigger_bit_value_2,
+    const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] =
@@ -602,6 +622,8 @@ ROOT::RDF::RNode DoubleObjectFlag(
  * object and the tested object in order to be considered a match
  *
  * @return a new dataframe containing the trigger flag column
+ *
+ * @note this function is used for embedding samples
  */
 ROOT::RDF::RNode DoubleObjectFlag(
     ROOT::RDF::RNode df, const std::string &outputname,
@@ -611,8 +633,10 @@ ROOT::RDF::RNode DoubleObjectFlag(
     const std::string &triggerobject_filterbit, const float &pt_threshold_1,
     const float &pt_threshold_2, const float &eta_threshold_1,
     const float &eta_threshold_2, const int &trigger_particle_id_value_1,
-    const int &trigger_particle_id_value_2, const int &trigger_bit_value_1,
-    const int &trigger_bit_value_2, const float &deltaR_threshold) {
+    const int &trigger_particle_id_value_2,
+    const std::vector<int> &trigger_bit_value_1,
+    const std::vector<int> &trigger_bit_value_2,
+    const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] =

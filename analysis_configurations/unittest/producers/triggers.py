@@ -15,7 +15,7 @@ MMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
         "{hlt_path}", 
         {ptcut}, {etacut}, 
         {trigger_particle_id}, 
-        {filterbit}, 
+        {vec_open}{filterbit}{vec_close}, 
         {max_deltaR_triggermatch})
         """,
     input=[
@@ -40,7 +40,7 @@ MTGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
         {ptcut}, 
         {etacut}, 
         {trigger_particle_id}, 
-        {filterbit}, 
+        {vec_open}{filterbit}{vec_close}, 
         {max_deltaR_triggermatch})
         """,
     input=[
@@ -65,7 +65,7 @@ ETGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
         {ptcut}, 
         {etacut}, 
         {trigger_particle_id}, 
-        {filterbit}, 
+        {vec_open}{filterbit}{vec_close}, 
         {max_deltaR_triggermatch})
         """,
     input=[
@@ -90,7 +90,7 @@ EMGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
         {ptcut}, 
         {etacut}, 
         {trigger_particle_id}, 
-        {filterbit}, 
+        {vec_open}{filterbit}{vec_close}, 
         {max_deltaR_triggermatch})
         """,
     input=[
@@ -115,7 +115,7 @@ GenerateSingleLeadingTauTriggerFlags = ExtendedVectorProducer(
         {ptcut}, 
         {etacut}, 
         {trigger_particle_id}, 
-        {filterbit}, 
+        {vec_open}{filterbit}{vec_close}, 
         {max_deltaR_triggermatch})
         """,
     input=[
@@ -140,7 +140,7 @@ GenerateSingleTrailingTauTriggerFlags = ExtendedVectorProducer(
         {ptcut}, 
         {etacut}, 
         {trigger_particle_id}, 
-        {filterbit}, 
+        {vec_open}{filterbit}{vec_close}, 
         {max_deltaR_triggermatch})
         """,
     input=[
@@ -165,7 +165,7 @@ EMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
         {ptcut}, 
         {etacut}, 
         {trigger_particle_id}, 
-        {filterbit}, 
+        {vec_open}{filterbit}{vec_close}, 
         {max_deltaR_triggermatch})
         """,
     input=[
@@ -193,8 +193,8 @@ MTGenerateCrossTriggerFlags = ExtendedVectorProducer(
         {p2_etacut}, 
         {p1_trigger_particle_id}, 
         {p2_trigger_particle_id}, 
-        {p1_filterbit}, 
-        {p2_filterbit}, 
+        {vec_open}{p1_filterbit}{vec_close},
+        {vec_open}{p2_filterbit}{vec_close},
         {max_deltaR_triggermatch})
         """,
     input=[
@@ -223,8 +223,8 @@ ETGenerateCrossTriggerFlags = ExtendedVectorProducer(
         {p2_etacut}, 
         {p1_trigger_particle_id}, 
         {p2_trigger_particle_id}, 
-        {p1_filterbit}, 
-        {p2_filterbit}, 
+        {vec_open}{p1_filterbit}{vec_close},
+        {vec_open}{p2_filterbit}{vec_close},
         {max_deltaR_triggermatch})
         """,
     input=[
@@ -253,8 +253,8 @@ TTGenerateDoubleTriggerFlags = ExtendedVectorProducer(
         {p2_etacut}, 
         {p1_trigger_particle_id}, 
         {p2_trigger_particle_id}, 
-        {p1_filterbit}, 
-        {p2_filterbit}, 
+        {vec_open}{p1_filterbit}{vec_close},
+        {vec_open}{p2_filterbit}{vec_close},
         {max_deltaR_triggermatch})
         """,
     input=[
@@ -283,8 +283,8 @@ EMGenerateCrossTriggerFlags = ExtendedVectorProducer(
         {p2_etacut}, 
         {p1_trigger_particle_id}, 
         {p2_trigger_particle_id}, 
-        {p1_filterbit}, 
-        {p2_filterbit}, 
+        {vec_open}{p1_filterbit}{vec_close},
+        {vec_open}{p2_filterbit}{vec_close},
         {max_deltaR_triggermatch})
         """,
     input=[
