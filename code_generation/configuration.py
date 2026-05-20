@@ -165,7 +165,7 @@ class Configuration(object):
             sample_parameters["is_data"] = False
         if "dyjets" in self.sample:
             sample_parameters["is_dyjets"] = True
-        else: 
+        else:
             sample_parameters["is_dyjets"] = False
         if "wjets" in self.sample:
             sample_parameters["is_wjets"] = True
