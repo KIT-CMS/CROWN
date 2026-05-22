@@ -115,7 +115,7 @@ bool matchParticle(
         bool bit = true;
         if (!trigger_bit_values.empty()) {
             IntBits bits(triggerobject_filterbits[idx]);
-            for (int bit_value : trigger_bit_value) {
+            for (int bit_value : trigger_bit_values) {
                 if (bit_value == -1)
                     continue;
                 if (!bits.test(bit_value)) {
