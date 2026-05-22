@@ -462,6 +462,80 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
+ * @brief This function is used to calculate an event weight to correct the top
+ * quark \f$p_T\f$ mismodeling in simulated \f$t\bar{t}\f$ events. The
+ * correction is provided by the Top POG and in case of this function the
+ * calculated weight corrects NLO simulation (POWHEG+Pythia8) to data.
+ *
+ * For reference: https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting#How_to_practically_apply_default
+ *
+ * The weight is calculated as \f$w=\sqrt{SF(t)\cdot SF(\bar{t})}\f$
+ *
+ * with \f$SF= 0.103\cdot\exp(-0.0118\cdot p_T) - 0.000134\cdot p_T + 0.973\f$
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column containing the derived event
+ * weight
+ * @param genparticles_pdg_id name of the column containing the PDG IDs of the
+ * generator particles
+ * @param genparticles_status_flags name of the column containing the status
+ * flags of the generator particles, where bit 13 contains the isLastCopy flag
+ * @param genparticles_pt name of the column containing the pt of the generator
+ * particles
+ *
+ * @return a new dataframe containing the new column
+ *
+ * @note The Top POG also provides other reweighting functions, e.g. for NNLO to
+ * data or NLO to NNLO which could be preferred depending on the use case.
+ */
+ROOT::RDF::RNode TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
+                       const std::string &genparticles_pdg_id,
+                       const std::string &genparticles_status_flags,
+                       const std::string &genparticles_pt) {
+    // In nanoAODv12 the type of genparticle status flags was changed to
+    // UShort_t. For v9 compatibility a type casting is applied.
+    auto [df1, genparticles_status_flags_column] =
+        utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, genparticles_status_flags + "_v12",
+            "ROOT::VecOps::RVec<UShort_t>", genparticles_status_flags);
+
+    auto ttbarreweightlambda = [](const ROOT::RVec<int> pdg_ids,
+                                  const ROOT::RVec<UShort_t> status_flags_v12,
+                                  const ROOT::RVec<float> pts) {
+        auto status_flags = static_cast<ROOT::RVec<int>>(status_flags_v12);
+        std::vector<float> top_pts;
+        for (size_t i = 0; i < pdg_ids.size(); i++) {
+            if (std::abs(pdg_ids[i]) == 6 && ((status_flags[i] >> 13) & 1) == 1)
+                top_pts.push_back(pts[i]);
+        }
+        if (top_pts.size() != 2) {
+            std::cout << top_pts.size();
+            Logger::get("event::reweighting::TopPt")
+                ->error("TTbar reweighting applied to event with not exactly "
+                        "two top quarks. Probably due to wrong sample type. "
+                        "n_top: {}",
+                        top_pts.size());
+            throw std::runtime_error("Bad number of top quarks.");
+        }
+        const float parameter_a = 0.103;
+        const float parameter_b = -0.0118;
+        const float parameter_c = -0.000134;
+        const float parameter_d = 0.973;
+        const float w1 = sqrt((parameter_a * exp(parameter_b * top_pts[0]) + parameter_c * top_pts[0] + parameter_d) *
+                    (parameter_a * exp(parameter_b * top_pts[1]) + parameter_c * top_pts[1] + parameter_d));
+        const float parameter_e = 0.991;
+        const float parameter_f = 0.000075;
+        const float w2 = sqrt((parameter_e + parameter_f * top_pts[0]) *
+                    (parameter_e + parameter_f * top_pts[1]));
+        return w1 * w2;
+    };
+    auto df2 = df1.Define(outputname, ttbarreweightlambda,
+                          {genparticles_pdg_id,
+                           genparticles_status_flags_column, genparticles_pt});
+    return df2;
+}
+
+/**
  * @brief This function is used to calculate an event weight to correct the Z
  * boson
  * \f$p_T\f$. These corrections are recommended especially
