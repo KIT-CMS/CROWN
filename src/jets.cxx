@@ -724,7 +724,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             float reso =
                 jet_energy_resolution(etas.at(i), corrected_pts.at(i), rho);
             float reso_sf = 1.0;
-            if (std::stoi(era.substr(0, 4)) <= 2018) { // run 2 case
+            if (std::stoi(era.substr(0, 4)) <= 2018) {
+                // run 2 case
                 reso_sf = jer_sf_evaluator->evaluate({etas.at(i), jer_shift});
             } else {
                 // run 3 case
