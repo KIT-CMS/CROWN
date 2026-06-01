@@ -1346,13 +1346,13 @@ namespace scalefactor {
  */
 ROOT::RDF::RNode
 Id_vsJet(ROOT::RDF::RNode df,
-            correctionManager::CorrectionManager &correction_manager,
-            const std::string &outputname, const std::string &pt,
-            const std::string &decay_mode, const std::string &gen_match,
-            const std::string &sf_file, const std::string &sf_name,
-            const std::vector<int> &selected_dms, const std::string &wp,
-            const std::string &vsele_wp, const std::string &sf_dependence,
-            const std::string &variation) {
+         correctionManager::CorrectionManager &correction_manager,
+         const std::string &outputname, const std::string &pt,
+         const std::string &decay_mode, const std::string &gen_match,
+         const std::string &sf_file, const std::string &sf_name,
+         const std::vector<int> &selected_dms, const std::string &wp,
+         const std::string &vsele_wp, const std::string &sf_dependence,
+         const std::string &variation) {
 
     Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")
         ->debug("Setting up function for tau id vsJet sf");
@@ -1361,9 +1361,9 @@ Id_vsJet(ROOT::RDF::RNode df,
 
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     auto sf_calculator = [evaluator, wp, vsele_wp, variation, sf_dependence,
-                          selected_dms,sf_name]
-                          (const float &pt, const int &decay_mode,
-                                   const int &gen_match) {
+                          selected_dms, sf_name](const float &pt,
+                                                  const int &decay_mode,
+                                                  const int &gen_match) {
         Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")
             ->debug("ID - decayMode {}", decay_mode);
         // only calculate SFs for allowed tau decay modes (also excludes default
@@ -1378,8 +1378,9 @@ Id_vsJet(ROOT::RDF::RNode df,
                     "vsele_wp {}, variation {}, sf_dependence {}",
                     sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
                     variation, sf_dependence);
-            sf = evaluator->evaluate({pt, decay_mode, gen_match, wp,
-                                        vsele_wp, variation, sf_dependence});
+            sf = evaluator->evaluate(
+                {pt, decay_mode, gen_match, wp, vsele_wp, variation,
+                 sf_dependence});
         }
         Logger::get("physicsobject::tau::scalefactor::Id_vsJet_lt")
             ->debug("Scale Factor {}", sf);
@@ -1799,19 +1800,20 @@ Id_vsEle(ROOT::RDF::RNode df,
     Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
         ->debug("ID - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator =
-        [evaluator, era, wp, variation, sf_name]
-        (const float &eta, const int &dm, const int &gen_match) {
+    auto sf_calculator = [evaluator, era, wp, variation, sf_name](
+        const float &eta, const int &dm, const int &gen_match) {
             double sf = 1.;
             Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
-                ->debug("ID {} - eta {}, dm {}, gen_match {}, wp {}, "
-                        "variation_barrel {}",
-                        sf_name, eta, dm, gen_match, wp, variation);
+                ->debug(
+                    "ID {} - eta {}, dm {}, gen_match {}, wp {}, "
+                    "variation_barrel {}",
+                    sf_name, eta, dm, gen_match, wp, variation);
             if (sf_name == "DeepTau2017v2p1VSe") {
                 // SFs for DeepTau2017v2p1 depend on eta
                 sf = evaluator->evaluate({eta, gen_match, wp, variation});
             } else {
-                sf = evaluator->evaluate({eta, dm, gen_match, wp, variation});
+                sf =
+                    evaluator->evaluate({eta, dm, gen_match, wp, variation});
             }
             Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
                 ->debug("Scale Factor {}", sf);
