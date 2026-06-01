@@ -13,6 +13,9 @@ action() {
     CONTAINER=${DEFAULT_CONTAINER}
     DRY_RUN=${DEFAULT_DRY_RUN}
 
+    # weird behaviour if base conda environment is present when running on samples
+    conda deactivate
+
     # --- Parse arguments ---
     while [[ $# -gt 0 ]]; do
         case $1 in

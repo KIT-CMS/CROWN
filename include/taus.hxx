@@ -34,6 +34,15 @@ ROOT::RDF::RNode PtCorrectionMC(
     const std::string &variation_gentau_dm10,
     const std::string &variation_gentau_dm11,
     const std::string &id_vs_jet_wp = "", const std::string &id_vs_ele_wp = "");
+ROOT::RDF::RNode PtCorrectionMC(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname, const std::string &pt,
+    const std::string &eta, const std::string &decay_mode,
+    const std::string &gen_match, const std::string &es_file,
+    const std::string &correction_name, const std::string &id_algorithm,
+    const std::vector<int> &selected_dms, const std::string &variation,
+    const std::string &id_vs_jet_wp = "", const std::string &id_vs_ele_wp = "");
 ROOT::RDF::RNode
 PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
                        correctionManager::CorrectionManager &correction_manager,
@@ -121,6 +130,15 @@ ROOT::RDF::RNode IDFlag_v12(ROOT::RDF::RNode df, const std::string &outputname,
 namespace scalefactor {
 
 ROOT::RDF::RNode
+Id_vsJet(ROOT::RDF::RNode df,
+         correctionManager::CorrectionManager &correction_manager,
+         const std::string &outputname, const std::string &pt,
+         const std::string &decay_mode, const std::string &gen_match,
+         const std::string &sf_file, const std::string &sf_name,
+         const std::vector<int> &selected_dms,
+         const std::string &wp, const std::string &vsele_wp,
+         const std::string &sf_dependence, const std::string &variation);
+ROOT::RDF::RNode
 Id_vsJet_lt(ROOT::RDF::RNode df,
             correctionManager::CorrectionManager &correction_manager,
             const std::string &outputname, const std::string &pt,
@@ -166,8 +184,24 @@ Id_vsEle(ROOT::RDF::RNode df,
          const std::string &decay_mode, const std::string &gen_match,
          const std::string &sf_file, const std::string &sf_name,
          const std::string &wp, const std::string &era,
+         const std::string &variation);
+ROOT::RDF::RNode
+Id_vsEle(ROOT::RDF::RNode df,
+         correctionManager::CorrectionManager &correction_manager,
+         const std::string &outputname, const std::string &eta,
+         const std::string &decay_mode, const std::string &gen_match,
+         const std::string &sf_file, const std::string &sf_name,
+         const std::string &wp, const std::string &era,
          const std::string &variation_barrel,
          const std::string &variation_endcap);
+ROOT::RDF::RNode
+Id_vsMu(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname, const std::string &eta,
+        const std::string &gen_match, const std::string &sf_file,
+        const std::string &sf_name, const std::string &wp,
+        const std::string &wp_ele, const std::string &wp_jet,
+        const std::string &era, const std::string &variation);
 ROOT::RDF::RNode
 Id_vsMu(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
