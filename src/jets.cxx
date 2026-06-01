@@ -87,7 +87,6 @@ ROOT::RDF::RNode RawPt(ROOT::RDF::RNode df, const std::string &outputname,
  * (e.g., "AK4PFchs", "AK4PUPPI")
  * @param jes_tag tag for the JES correction campaign
  * (e.g., "Summer19UL18_V5_MC", "Summer24Prompt24_V2_DATA")
- * @param era name of the era being processed (e.g., "2018", "2022preEE")
  *
  * @return a newdataframe with a two new column of L1 corrected jet \f$p_T\f$'s
  *
@@ -703,7 +702,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             float reso =
                 jet_energy_resolution(etas.at(i), corrected_pts.at(i), rho);
             float reso_sf = 1.0;
-            if (std::stoi(era.substr(0, 4)) <= 2018) { // run 2 case
+            if (std::stoi(era.substr(0, 4)) <= 2018) {
+                // run 2 case
                 reso_sf = jer_sf_evaluator->evaluate({etas.at(i), jer_shift});
             } else {
                 // run 3 case

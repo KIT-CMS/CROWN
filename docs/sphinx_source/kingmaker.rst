@@ -1,5 +1,5 @@
 Kingmaker Workflow Management
-===================
+=============================
 
 KingMaker is a workflow management for producing ntuples with the CROWN framework. The workflow management is based on law (https://github.com/riga/law), which uses luigi (https://github.com/spotify/luigi) as the backend. Kingmaker is used to orchestrate the production of ntuples and friend trees for the CROWN framework. The workflow is designed to be flexible and can be adapted to different analyses. Kingmaker takes care of building all required CROWN executables, submitting jobs to a batch system and writing the output to a remote storage. On top of that, Kingmaker can be used to generate FriendTrees, which can be used to store additional information to extend the ntuples. A sample manager is provided to manage the samples and keep track of the individual input files that have to be processed.
 
@@ -13,7 +13,7 @@ Setup
 
 .. code-block:: bash
 
-    git clone --recurse-submodules git@github.com:KIT-CMS/KingMaker.git
+    git clone git@github.com:KIT-CMS/KingMaker.git
     cd KingMaker
     source setup.sh
 
@@ -321,7 +321,16 @@ The ``KingMaker_luigi.cfg`` file contains the configuration of the different tas
     scopes = mt,et
     shifts = None
 
-Here, the ``wlcg_path`` option should be set to the same path, as the ``base`` path in the ``KingMaker_law.cfg``. The different ``htcondor_`` parameters have to be adopted according to the requirements of the batch system. For the different tasks, that are run remotely, different job requirements can be set. The ``files_per_task`` option defines the number of files to be processed per task. The ``scopes`` and ``shifts`` options define the scopes and shifts to be used. These two parameters can also be provided as command line arguments, which is the recommended way. Here ``CROWNRun`` and ``CROWNFriends`` as an example:
+Here, the ``wlcg_path`` option should be set to the same path, as the ``base`` path in the ``KingMaker_law.cfg``.
+The different ``htcondor_`` parameters have to be adopted according to the requirements of the batch system.
+For the different tasks, that are run remotely, different job requirements can be set.
+The ``files_per_task`` option defines the number of files to be processed per task.
+The number of files per task can also be customly set to a specific sample type via the ``custom_files_per_task`` option.
+This will overwrite the default value set by ``files_per_task`` for the specified sample type, e.g. ``custom_files_per_task = {"ttbar": 3, "wjets": 20}``.
+The sample types are defined in the [KingMaker database](https://github.com/KIT-CMS/KingMaker_sample_database).
+The ``scopes`` and ``shifts`` options define the scopes and shifts to be used.
+These two parameters can also be provided as command line arguments, which is the recommended way.
+Here ``CROWNRun`` and ``CROWNFriends`` as an example:
 
 .. code-block::
 
@@ -348,6 +357,26 @@ The ``problematic_eras`` option is used to define eras, where only one file per 
     For friend trees, multiprocessing is not possible, since the resulting friend tree must have the same order as the input tree. Therefore, the ``htcondor_request_cpus`` option has to be set to 1, which will disable multiprocessing.
 
 For a more complete description of the different options, please refer to the overcomplete configuration in the law repository (https://github.com/riga/law/blob/master/law.cfg.example).
+
+A KingMaker specific option is ``force_repack_tarball``. If this option is set to ``True``, the tarball will be repacked and reuploaded to the remote storage, even if it already exists.
+This can be useful, if inbetween running workflow steps the KingMaker code significantly changes.
+Since the tarball with the workflow code is built at the beginning of the first workflow run and then reused for the following workflow runs, changes are not automatically propagated to the remote tarball.
+The default is ``False`` since such changes are not common.
+
+An important configuration option that can be defined is ``[logging]``.
+Here, the logging level can be set, which is useful for debugging purposes.
+The default is ``INFO``, which provides a good balance between verbosity and information.
+For debugging purposes, it can be set to ``DEBUG``, which will provide more detailed information about the workflow execution.
+For example:
+
+.. code-block::
+    
+    [logging]
+    law: DEBUG
+    luigi-interface: DEBUG
+    gfal2: DEBUG
+    xrootd.stat: DEBUG
+
 
 Local debugging
 -----------------------

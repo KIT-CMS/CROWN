@@ -57,14 +57,15 @@ Pileup(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief Function used to read out pileup weights from root files
+ * @brief Function used to read out pileup weights from root files.
  *
- * @param df The input dataframe
- * @param weightname name of the derived weight
+ * @param df input dataframe
+ * @param outputname name of the derived weight
  * @param truePUMean name of the column containing the true PU mean of simulated
  * events
- * @param filename path to the rootfile
- * @param histogramname name of the histogram stored in the rootfile
+ * @param datafilename path to the data rootfile
+ * @param mcfilename path to the MC rootfile
+ * @param histname name of the histogram stored in the rootfile
  *
  * @return a new dataframe containing the new column
  *
