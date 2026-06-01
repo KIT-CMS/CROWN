@@ -489,7 +489,8 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df, const std::string &outputname,
  * @note The Top POG also provides other reweighting functions, e.g. for NNLO to
  * data or NLO to NNLO which could be preferred depending on the use case.
  */
-ROOT::RDF::RNode TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
+ROOT::RDF::RNode TopPtRun3(ROOT::RDF::RNode df,
+                       const std::string &outputname,
                        const std::string &genparticles_pdg_id,
                        const std::string &genparticles_status_flags,
                        const std::string &genparticles_pt) {
@@ -522,12 +523,15 @@ ROOT::RDF::RNode TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
         const float parameter_b = -0.0118;
         const float parameter_c = -0.000134;
         const float parameter_d = 0.973;
-        const float w1 = sqrt((parameter_a * exp(parameter_b * top_pts[0]) + parameter_c * top_pts[0] + parameter_d) *
-                    (parameter_a * exp(parameter_b * top_pts[1]) + parameter_c * top_pts[1] + parameter_d));
+        const float w1 = sqrt(
+            (parameter_a * exp(parameter_b * top_pts[0]) +
+             parameter_c * top_pts[0] + parameter_d) *
+            (parameter_a * exp(parameter_b * top_pts[1]) +
+             parameter_c * top_pts[1] + parameter_d));
         const float parameter_e = 0.991;
         const float parameter_f = 0.000075;
         const float w2 = sqrt((parameter_e + parameter_f * top_pts[0]) *
-                    (parameter_e + parameter_f * top_pts[1]));
+                               (parameter_e + parameter_f * top_pts[1]));
         return w1 * w2;
     };
     auto df2 = df1.Define(outputname, ttbarreweightlambda,
