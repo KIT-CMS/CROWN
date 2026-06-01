@@ -13,8 +13,10 @@ action() {
     CONTAINER=${DEFAULT_CONTAINER}
     DRY_RUN=${DEFAULT_DRY_RUN}
 
-    # weird behaviour if base conda environment is present when running on samples
-    conda deactivate
+    # weird behaviour if any conda environment is present when running on samples
+    while [[ -n "$CONDA_DEFAULT_ENV" ]]; do
+        conda deactivate
+    done
 
     # --- Parse arguments ---
     while [[ $# -gt 0 ]]; do
