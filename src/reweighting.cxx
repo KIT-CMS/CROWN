@@ -489,11 +489,11 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df, const std::string &outputname,
  * @note The Top POG also provides other reweighting functions, e.g. for NNLO to
  * data or NLO to NNLO which could be preferred depending on the use case.
  */
-ROOT::RDF::RNode TopPtRun3(ROOT::RDF::RNode df,
-                       const std::string &outputname,
-                       const std::string &genparticles_pdg_id,
-                       const std::string &genparticles_status_flags,
-                       const std::string &genparticles_pt) {
+ROOT::RDF::RNode
+TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
+          const std::string &genparticles_pdg_id,
+          const std::string &genparticles_status_flags,
+          const std::string &genparticles_pt) {
     // In nanoAODv12 the type of genparticle status flags was changed to
     // UShort_t. For v9 compatibility a type casting is applied.
     auto [df1, genparticles_status_flags_column] =
