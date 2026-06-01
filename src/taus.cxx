@@ -442,8 +442,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             // application of the correction, set the correction factor to 1
             // otherwise
             float correction_factor = 1.0;
-            if (std::find(selected_dms.begin(), selected_dms.end(), decay_mode) !=
-                selected_dms.end())  {
+            if (std::find(selected_dms.begin(), selected_dms.end(),
+                          decay_mode) != selected_dms.end()) {
                 correction_factor = evaluator->evaluate(
                         {pt, abs_eta, decay_mode, gen_match, id_algorithm,
                          id_vs_jet_wp, id_vs_ele_wp, variation});
@@ -1812,8 +1812,7 @@ Id_vsEle(ROOT::RDF::RNode df,
                 // SFs for DeepTau2017v2p1 depend on eta
                 sf = evaluator->evaluate({eta, gen_match, wp, variation});
             } else {
-                sf =
-                    evaluator->evaluate({eta, dm, gen_match, wp, variation});
+                sf = evaluator->evaluate({eta, dm, gen_match, wp, variation});
             }
             Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
                 ->debug("Scale Factor {}", sf);
@@ -1982,14 +1981,14 @@ Id_vsEle(ROOT::RDF::RNode df,
  * @note This function uses only one variation, as recommended by Tau POG for the
  * latest corrections for NanoAOD v12 and above.
  */
-ROOT::RDF::RNode Id_vsMu(
-    ROOT::RDF::RNode df,
-    correctionManager::CorrectionManager &correction_manager,
-    const std::string &outputname, const std::string &eta,
-    const std::string &gen_match, const std::string &sf_file,
-    const std::string &sf_name, const std::string &wp,
-    const std::string &wp_ele, const std::string &wp_jet,
-    const std::string &era, const std::string &variation) {
+ROOT::RDF::RNode
+Id_vsMu(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname, const std::string &eta,
+        const std::string &gen_match, const std::string &sf_file,
+        const std::string &sf_name, const std::string &wp,
+        const std::string &wp_ele, const std::string &wp_jet,
+        const std::string &era, const std::string &variation) {
 
     
     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")

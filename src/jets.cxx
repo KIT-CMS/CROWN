@@ -366,10 +366,13 @@ ROOT::RDF::RNode PtCorrectionL2L3(
             if (!is_data) {
                 float pt_scale_sf = 1.0;
                 if (jes_shift != 0.0) {
-                    if (jes_shift_source != "HEMIssue" && jes_shift_source != "nom") {
+                    if (jes_shift_source != "HEMIssue" &&
+                        jes_shift_source != "nom") {
                         pt_scale_sf =
-                            1. + jes_shift * jet_energy_scale_shifts->evaluate(
-                                {etas.at(i), pt_corr});
+                            1. +
+                            jes_shift *
+                                jet_energy_scale_shifts->evaluate(
+                                    {etas.at(i), pt_corr});
                         Logger::get("physicsobject::jet::PtCorrectionL2L3")
                             ->debug("JES shift of jet pt by {} for single source "
                                     "with SF {}",
