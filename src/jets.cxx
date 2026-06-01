@@ -253,7 +253,7 @@ ROOT::RDF::RNode PtCorrectionL2L3(
     const std::string &jer_seed, const std::string &run,
     const std::string &jec_file, const std::string &jec_algo,
     const std::string &jes_tag,
-    const std::vector<std::string> &jes_shift_sources,
+    const std::string &jes_shift_source,
     const std::string &jer_tag, const int &jes_shift,
     const std::string &jer_shift, const std::string &era) {
 
@@ -275,15 +275,13 @@ ROOT::RDF::RNode PtCorrectionL2L3(
             df, jet_id + "_v12", "ROOT::VecOps::RVec<UChar_t>", jet_id);
 
     // systematic sources
-    std::vector<correction::Correction *> jet_energy_scale_shifts;
-    for (const auto &source : jes_shift_sources) {
-        if (source != "" && source != "HEMIssue") {
-            auto jes_source_evaluator = const_cast<correction::Correction *>(
-                correction_manager.loadCorrection(
-                    jec_file, jes_tag + "_" + source + "_" + jec_algo));
-            jet_energy_scale_shifts.push_back(jes_source_evaluator);
-        }
-    };
+    correction::Correction * jet_energy_scale_shifts;
+    if (jes_shift_source != "nom" && jes_shift_source != "HEMIssue") {
+        auto jes_source_evaluator = const_cast<correction::Correction *>(
+            correction_manager.loadCorrection(
+                jec_file, jes_tag + "_" + jes_shift_source + "_" + jec_algo));
+        jet_energy_scale_shifts = jes_source_evaluator;
+    }
 
     // loading jet energy correction scale factor function
     auto jes_l2_evaluator = correction_manager.loadCorrection(
@@ -333,7 +331,7 @@ ROOT::RDF::RNode PtCorrectionL2L3(
 
     auto correction_lambda = [jet_energy_scale_shifts, jet_energy_scale_sf,
                               jet_energy_resolution, jer_sf_evaluator,
-                              jes_shift_sources, jes_shift, jer_shift,
+                              jes_shift_source, jes_shift, jer_shift,
                               jet_radius, era, is_data](
                                  const ROOT::RVec<float> &pts,
                                  const ROOT::RVec<float> &etas,
@@ -370,34 +368,15 @@ ROOT::RDF::RNode PtCorrectionL2L3(
             if (!is_data) {
                 float pt_scale_sf = 1.0;
                 if (jes_shift != 0.0) {
-                    if (jes_shift_sources.at(0) != "HEMIssue") {
-                        if (jet_energy_scale_shifts.size() == 1) {
-                            pt_scale_sf =
-                                1. +
-                                jes_shift *
-                                    jet_energy_scale_shifts.at(0)->evaluate(
-                                        {etas.at(i), pt_corr});
-                            Logger::get("physicsobject::jet::PtCorrectionL2L3")
-                                ->debug("JES shift of jet pt by {} for single "
-                                        "source "
-                                        "with SF {}",
-                                        jes_shift, pt_scale_sf);
-                        } else {
-                            float quad_sum = 0.;
-                            for (const auto &evaluator :
-                                 jet_energy_scale_shifts) {
-                                quad_sum += std::pow(
-                                    evaluator->evaluate({etas.at(i), pt_corr}),
-                                    2.0);
-                            }
-                            pt_scale_sf = 1. + jes_shift * std::sqrt(quad_sum);
-                            Logger::get("physicsobject::jet::PtCorrectionL2L3")
-                                ->debug(
-                                    "JES shift of jet pt by {} for multiple "
-                                    "sources with SF {}",
+                    if (jes_shift_source != "HEMIssue" && jes_shift_source != "nom") {
+                        pt_scale_sf =
+                            1. + jes_shift * jet_energy_scale_shifts->evaluate(
+                                    {etas.at(i), pt_corr});
+                        Logger::get("physicsobject::jet::PtCorrectionL2L3")
+                            ->debug("JES shift of jet pt by {} for single source "
+                                    "with SF {}",
                                     jes_shift, pt_scale_sf);
-                        }
-                    } else if (jes_shift_sources.at(0) == "HEMIssue") {
+                    } else if (jes_shift_source == "HEMIssue" && jes_shift_source != "nom") {
                         // IDs are only present for the jet collection, not low
                         // pt jets
                         if (i < ids.size()) {

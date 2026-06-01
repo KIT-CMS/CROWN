@@ -34,7 +34,7 @@ ROOT::RDF::RNode PtCorrectionL2L3(
     const std::string &jer_seed, const std::string &run,
     const std::string &jec_file, const std::string &jec_algo,
     const std::string &jes_tag,
-    const std::vector<std::string> &jes_shift_sources,
+    const std::string &jes_shift_source,
     const std::string &jer_tag, const int &jes_shift,
     const std::string &jer_shift, const std::string &era);
 ROOT::RDF::RNode
