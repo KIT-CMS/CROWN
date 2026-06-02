@@ -26,7 +26,7 @@ JetPtCorrection = ProducerGroup(
         {jet_jec_file}, 
         {jet_jec_algo}, 
         {jet_jes_tag}, 
-        {jet_jes_sources}, 
+        {jet_jes_source}, 
         {jet_jer_tag}, 
         {jet_reapplyJES}, 
         {jet_jes_shift}, 
