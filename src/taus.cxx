@@ -307,50 +307,19 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * The correction depends on the physical origin of the tau (electron fake, muon
  * fake, or genuine tau), the decay mode, the \f$p_T\f$, and the pseudorapidity.
  *
- * For Run 3 analyses, the corrections are calculated for different working
+ * For NanoAOD v12 and above corrections, these are calculated for different working
  * points of the `DeepTau` algorithm, regarding the identification against
- * jets and against electrons. This is not the case for Run 2 analyses. This
- * function can be used for both Run 2 and Run 3 analyses. For Run 2 analyses,
- * the values of `id_vs_jet_wp` and `id_vs_ele_wp` can be set to `""`
- * to obtain the corrections.
+ * jets and against electrons.
  *
- * The uncertainty scheme is split into nine different uncertainty sources:
- * - For electrons faking taus, four uncertainty sources are considered, split
- *   by the decay modes 0 and 1, and by whether the tau is found in the barrel
- *   or the endcap region.
- * - For muons faking taus, one inclusive uncertainty source is considered.
- * - For genuine taus, four uncertainty sources are considered, split by the
- *   decay modes 0, 1, 10, and 11.
- * For each source, the variation can be set individually. The variations can
- * take the values ``nom``, ``up``, or ``down``.
+ * The uncertainty schemenot split anymore in this producer.
+ * See the producer above for the split uncertainty treatment.
  *
  * The correction procedure is taken from the officially recommendation of the
  * TauPOG:
  *
  * The implementation of this function is based on the TAU POG
  * [recommendations for Run
- * 2](https://twiki.cern.ch/twiki/bin/viewauth/CMS/TauIDRecommendationForRun2)
- * and [recommendations for Run
  * 3](https://twiki.cern.ch/twiki/bin/view/CMS/TauIDRecommendationForRun3).
- *
- * The specification of the correctionlib files used to evaluate the corrections
- * can be found here:
- * -
- * [2016preVFP](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2016preVFP_UL_tau.html)
- * -
- * [2016postVFP](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2016postVFP_UL_tau.html)
- * -
- * [2017](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2017_UL_tau.html)
- * -
- * [2018](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2018_UL_tau.html)
- * -
- * [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2022_Summer22_tau_DeepTau2018v2p5_2022_preEE.html)
- * -
- * [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2022_Summer22EE_tau_DeepTau2018v2p5_2022_postEE.html)
- * -
- * [2023preBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2023_Summer23_tau_DeepTau2018v2p5_2023_preBPix.html)
- * -
- * [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2023_Summer23BPix_tau_DeepTau2018v2p5_2023_postBPix.html)
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
@@ -366,35 +335,13 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * @param es_file path to the correction file for the energy scale correction
  * @param correction_name name of the correction in `es_file`
  * @param id_algorithm identification algorithm used for hadronic tau ID
- * @param id_vs_jet_wp working point for the identification against jets; set to
- * `""` if the corrections do not depend on this parameter
+ * @param id_vs_jet_wp working point for the identification against jets; 
  * @param id_vs_ele_wp working point for the identification against electrons;
- * set to `""` if the corrections do not depend on this parameter
- * @param variation_efake_dm0_barrel variation for electron faking a tau for
- * decay mode 0 in the barrel region, options are "nom", "up", "down"
- * @param variation_efake_dm1_barrel variation for electron faking a tau for
- * decay mode 1 in the barrel region, options are "nom", "up", "down"
- * @param variation_efake_dm0_endcap variation for electron faking a tau for
- * decay mode 0 in the endcap regionefake_, options are "nom", "up", "down"
- * @param variation_efake_dm1_endcap variation for electron faking a tau for
- * decay mode 1 in the endcap region, options are "nom", "up", "down"
- * @param variation_mufake variation for muon faking a tau, options are "nom",
- * "up", "down"
- * @param variation_gentau_dm0 variation for genuine tau for decay mode 0,
- * options are "nom", "up", "down"
- * @param variation_gentau_dm1 variation for genuine tau for decay mode 1,
- * options are "nom", "up", "down"
- * @param variation_gentau_dm10 variation for genuine tau for decay mode 10,
- * options are "nom", "up", "down"
- * @param variation_gentau_dm11 variation for genuine tau for decay mode 11,
- * options are "nom", "up", "down"
+ * @param variation options are "nom", "up", "down"
  *
  * @return a dataframe containing the corrected transverse momenta
  *
- * @note This function is intended to be used for Run 3 analyses. In Run 3,
- * the tau energy scale corrections also depend on the DeepTau working points
- * for ID vs. electrons and vs. jets. An overloaded version of this function
- * exists for this purpose.
+ * @note This function is intended to be used for v12 and above correstions. 
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
@@ -406,8 +353,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &id_algorithm,
                const std::vector<int> &selected_dms,
                const std::string &variation,
-               const std::string &id_vs_jet_wp = "",
-               const std::string &id_vs_ele_wp = "") {
+               const std::string &id_vs_jet_wp,
+               const std::string &id_vs_ele_wp) {
     // In nanoAODv12 the type of tau decay mode was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, decay_mode_column] =
@@ -438,9 +385,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             auto gen_match = gen_matches.at(i);
 
             // evaluate the correction factor
-            // ensure that the tau fulfills the selection criteria for
-            // application of the correction, set the correction factor to 1
-            // otherwise
+            // ensure that the tau dm matches the ones selected
             float correction_factor = 1.0;
             if (std::find(selected_dms.begin(), selected_dms.end(),
                           decay_mode) != selected_dms.end()) {
@@ -1773,18 +1718,12 @@ Id_vsJet(ROOT::RDF::RNode df,
  * @param sf_file path to the file with the tau scale factors
  * @param sf_name name of the tau scale factor for the vsEle ID correction
  * @param wp working point of the vsEle ID
- * @param variation_barrel name of the scale factor variation for the barrel
- * region
- * (\f$|\eta| <1.46\f$), "nom" for nominal and "up"/"down" the up/down variation
- * @param variation_endcap name of the scale factor variation for the endcap
- * region
- * (\f$1.558 \leq |\eta| <2.3\f$), "nom" for nominal and "up"/"down" the up/down
- * variation
+ * @param variation name of the scale factor variation 
  *
  * @return a new dataframe containing the new column
  *
- * @note This function handles both Run 2 and 3 behaviour with only one variation
- * as recommended by Tau POG latest corrections.
+ * @note This function handles NanoAOD v12 and above behaviour with only one variation
+ * as recommended by Tau POG (DeepTau2018v2p5).
  */
 ROOT::RDF::RNode
 Id_vsEle(ROOT::RDF::RNode df,
@@ -1808,12 +1747,7 @@ Id_vsEle(ROOT::RDF::RNode df,
                     "ID {} - eta {}, dm {}, gen_match {}, wp {}, "
                     "variation_barrel {}",
                     sf_name, eta, dm, gen_match, wp, variation);
-            if (sf_name == "DeepTau2017v2p1VSe") {
-                // SFs for DeepTau2017v2p1 depend on eta
-                sf = evaluator->evaluate({eta, gen_match, wp, variation});
-            } else {
-                sf = evaluator->evaluate({eta, dm, gen_match, wp, variation});
-            }
+            sf = evaluator->evaluate({eta, dm, gen_match, wp, variation});
             Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
                 ->debug("Scale Factor {}", sf);
             return sf;
