@@ -789,8 +789,10 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                             pt_scale_sf = 0.8;
                         else if (etas.at(i) > (-3.) && etas.at(i) <= (-2.5))
                             pt_scale_sf = 0.65;
+                    }
                 }
             }
+            // does this count???
             corrected_pts.at(i) *= pt_scale_sf;
             Logger::get("physicsobject::jet::PtCorrectionMC")
                 ->debug("JES shift of jet pt from {} to {} ",
