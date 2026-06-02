@@ -103,6 +103,88 @@ std::string get_tes_variation(const float &abs_eta, const int &decay_mode,
 }
 
 /**
+ * @brief Helper to get the variation of the tau pt scale correction to use in
+ * the correctionlib evaluator, depending on the absolute pseudorapidity, decay
+ * mode, and gen match of the tau. If no criterion for any of the variations is
+ * matched, the nominal shift "nom" is returned.
+ *
+ * @param decay_mode decay mode of the tau
+ * @param gen_match gen match of the tau
+ * @param variation_efake_dm0 variation for electron faking a tau with
+ * decay mode 0 
+ * @param variation_efake_dm1 variation for electron faking a tau with
+ * decay mode 1
+ * @param variation_efake_dm10 variation for electron faking a tau with
+ * decay mode 10
+ * @param variation_efake_dm11 variation for electron faking a tau with
+ * decay mode 11
+ * @param variation_mufake variation for muon faking a tau
+ * @param variation_gentau_dm0 variation for genuine tau with decay mode 0
+ * @param variation_gentau_dm1 variation for genuine tau with decay mode 1
+ * @param variation_gentau_dm10 variation for genuine tau with decay mode 10
+ * @param variation_gentau_dm11 variation for genuine tau with decay mode 11
+ *
+ * @return the variation to use in the correctionlib evaluator
+ */
+std::string get_tes_variation(const int &decay_mode,
+                              const int &gen_match,
+                              const std::string &variation_efake_dm0,
+                              const std::string &variation_efake_dm1,
+                              const std::string &variation_efake_dm10,
+                              const std::string &variation_efake_dm11,
+                              const std::string &variation_mufake,
+                              const std::string &variation_gentau_dm0,
+                              const std::string &variation_gentau_dm1,
+                              const std::string &variation_gentau_dm10,
+                              const std::string &variation_gentau_dm11) {
+
+    // set the variation depending on the gen match, decay mode, and eta
+    // for uncovered cases, "nom" is returned
+    std::string variation = "nom";
+    if ((gen_match == 1) || (gen_match == 3)) {
+
+        // energy scale correction for an electron faking a tau
+        if (decay_mode == 0) {
+            variation = variation_efake_dm0;
+        } else if (decay_mode == 1) {
+            variation = variation_efake_dm1;
+        } else if (decay_mode == 10) {
+            variation = variation_efake_dm10;
+        } else if (decay_mode == 11) {
+            variation = variation_efake_dm11;
+        }
+    }
+
+    } else if ((gen_match == 2) || (gen_match == 4)) {
+
+        // energy scale correction for a muon faking a tau
+        // no need to separate by DM since the value is always +-1%
+        variation = variation_mufake;
+
+    } else if (gen_match == 5) {
+
+        // energy scale correction for a genuine tau
+        if (decay_mode == 0) {
+            variation = variation_gentau_dm0;
+        } else if (decay_mode == 1) {
+            variation = variation_gentau_dm1;
+        } else if (decay_mode == 10) {
+            variation = variation_gentau_dm10;
+        } else if (decay_mode == 11) {
+            variation = variation_gentau_dm11;
+        }
+    }
+
+    // debug information
+    Logger::get("physicsobject::tau::get_tes_variation")
+        ->debug("variation for tau abs eta {}, decaymode {}, gen match {}: "
+                "variation {}",
+                decay_mode, gen_match, variation);
+
+    return variation;
+}
+
+/**
  * @brief This function applies a transverse momentum (\f$p_T\f$) correction to
  * hadronic taus in MC simulations.
  *
@@ -206,6 +288,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &gen_match, const std::string &es_file,
                const std::string &correction_name,
                const std::string &id_algorithm,
+               const std::vector<int> &selected_dms,
                const std::string &variation_efake_dm0_barrel,
                const std::string &variation_efake_dm1_barrel,
                const std::string &variation_efake_dm0_endcap,
@@ -215,8 +298,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &variation_gentau_dm1,
                const std::string &variation_gentau_dm10,
                const std::string &variation_gentau_dm11,
-               const std::string &id_vs_jet_wp = "",
-               const std::string &id_vs_ele_wp = "") {
+               const std::string &id_vs_jet_wp,
+               const std::string &id_vs_ele_wp) {
     // In nanoAODv12 the type of tau decay mode was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, decay_mode_column] =
@@ -232,7 +315,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                               variation_efake_dm0_endcap,
                               variation_efake_dm1_endcap, variation_mufake,
                               variation_gentau_dm0, variation_gentau_dm1,
-                              variation_gentau_dm10, variation_gentau_dm11](
+                              variation_gentau_dm10, variation_gentau_dm11, 
+                              selected_dms](
                                  const ROOT::RVec<float> &pts,
                                  const ROOT::RVec<float> &etas,
                                  const ROOT::RVec<UChar_t> &decay_modes_v12,
@@ -251,10 +335,9 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             auto decay_mode = decay_modes.at(i);
             auto gen_match = gen_matches.at(i);
 
-            // set the variation depending on the gen match, decay mode, and
-            // barrel/endcap region
-            std::string variation = get_tes_variation(
-                abs_eta, decay_mode, gen_match, variation_efake_dm0_barrel,
+            // set the variation depending on the gen match and decay mode
+            std::string variation = get_tes_variation( //abs_eta, 
+                decay_mode, gen_match, variation_efake_dm0_barrel,
                 variation_efake_dm1_barrel, variation_efake_dm0_endcap,
                 variation_efake_dm1_endcap, variation_mufake,
                 variation_gentau_dm0, variation_gentau_dm1,
@@ -265,19 +348,11 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             // application of the correction, set the correction factor to 1
             // otherwise
             float correction_factor = 1.0;
-            const std::unordered_set<int> valid_modes = {0, 1, 10, 11};
-            if (valid_modes.count(decay_mode)) {
-                if ((id_vs_jet_wp == "") && (id_vs_ele_wp == "")) {
-                    correction_factor =
-                        evaluator->evaluate({pt, abs_eta, decay_mode, gen_match,
-                                             id_algorithm, variation});
-                } else {
-                    correction_factor = evaluator->evaluate(
-                        {pt, abs_eta, decay_mode, gen_match, id_algorithm,
-                         id_vs_jet_wp, id_vs_ele_wp, variation});
-                }
-            } else {
-                correction_factor = 1.0;
+            if (std::find(selected_dms.begin(), selected_dms.end(),
+                          decay_mode) != selected_dms.end()) {
+                correction_factor = evaluator->evaluate(
+                    {pt, abs_eta, decay_mode, gen_match, id_algorithm,
+                        id_vs_jet_wp, id_vs_ele_wp, variation});
             }
 
             // calculate the corrected pt
@@ -1718,81 +1793,6 @@ Id_vsJet(ROOT::RDF::RNode df,
  * @param sf_file path to the file with the tau scale factors
  * @param sf_name name of the tau scale factor for the vsEle ID correction
  * @param wp working point of the vsEle ID
- * @param variation name of the scale factor variation 
- *
- * @return a new dataframe containing the new column
- *
- * @note This function handles NanoAOD v12 and above behaviour with only one variation
- * as recommended by Tau POG (DeepTau2018v2p5).
- */
-ROOT::RDF::RNode
-Id_vsEle(ROOT::RDF::RNode df,
-         correctionManager::CorrectionManager &correction_manager,
-         const std::string &outputname, const std::string &eta,
-         const std::string &decay_mode, const std::string &gen_match,
-         const std::string &sf_file, const std::string &sf_name,
-         const std::string &wp, const std::string &era,
-         const std::string &variation) {
-
-    Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
-        ->debug("Setting up function for tau id vsEle sf");
-    Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
-        ->debug("ID - Name {}", sf_name);
-    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, era, wp, variation, sf_name](
-        const float &eta, const int &dm, const int &gen_match) {
-            double sf = 1.;
-            Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
-                ->debug(
-                    "ID {} - eta {}, dm {}, gen_match {}, wp {}, "
-                    "variation_barrel {}",
-                    sf_name, eta, dm, gen_match, wp, variation);
-            sf = evaluator->evaluate({eta, dm, gen_match, wp, variation});
-            Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
-                ->debug("Scale Factor {}", sf);
-            return sf;
-        };
-    auto df1 =
-        df.Define(outputname, sf_calculator, {eta, decay_mode, gen_match});
-    return df1;
-}
-
-/**
- * @brief This function calculates scale factors (SFs) for tau identification
- * (ID) against electrons (`vsEle`). The scale factors are loaded from a
- * correctionlib file using a specified scale factor name and variation. The
- * variation and the scale factor itself is binned in pseudorapidities of
- * hadronic taus for this function.
- *
- * Description of the bit map used to define the tau ID against electrons
- * working points of the DeepTau v2.1 tagger. vsElectrons | Value | Bit (value
- * used in the config)
- * ------------------------------------|-------|-------
- * no ID selection (takes every tau)   |  0    | -
- * VVVLoose                            |  1    | 1
- * VVLoose                             |  2    | 2
- * VLoose                              |  4    | 3
- * Loose                               |  8    | 4
- * Medium                              |  16   | 5
- * Tight                               |  32   | 6
- * VTight                              |  64   | 7
- * VVTight                             |  128  | 8
- *
- * @param df input dataframe
- * @param correction_manager correction manager responsible for loading the
- * tau scale factor file
- * @param outputname name of the output column containing the vsEle ID scale
- * factor
- * @param eta name of the column containing the pseudorapidity of a tau
- * @param decay_mode name of the column containing the decay mode of the tau
- * @param gen_match name of the column with the matching information of the
- * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt
- * mu, 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
- * @param era data-taking era, e.g. "2017" or "2018", needed to set the eta
- * boundaries for the endcap region
- * @param sf_file path to the file with the tau scale factors
- * @param sf_name name of the tau scale factor for the vsEle ID correction
- * @param wp working point of the vsEle ID
  * @param variation name of the scale factor variation
  *
  * @return a new dataframe containing the new column
@@ -1825,7 +1825,6 @@ Id_vsEle(ROOT::RDF::RNode df,
             double min_abs_eta_endcap = 1.558;
             double max_abs_eta_endcap = 2.3;
             if (std::stoi(era.substr(0, 4)) >= 2022)
-                max_abs_eta_barrel = 1.5;
                 max_abs_eta_endcap = 2.5;
 
             // exclude default values due to tau energy correction shifts below
@@ -1856,7 +1855,7 @@ Id_vsEle(ROOT::RDF::RNode df,
                     if (std::abs(eta) < max_abs_eta_barrel) {
                         sf = evaluator->evaluate(
                             {eta, dm, gen_match, wp, variation_barrel});
-                    } else if (std::abs(eta) >= max_abs_eta_barrel &&
+                    } else if (std::abs(eta) >= min_abs_eta_endcap &&
                                std::abs(eta) < max_abs_eta_endcap) {
                         sf = evaluator->evaluate(
                             {eta, dm, gen_match, wp, variation_endcap});
@@ -1871,85 +1870,6 @@ Id_vsEle(ROOT::RDF::RNode df,
         };
     auto df1 =
         df.Define(outputname, sf_calculator, {eta, decay_mode, gen_match});
-    return df1;
-}
-
-/**
- * @brief This function calculates scale factors (SFs) for tau identification
- * (ID) against muons (`vsMu`). The scale factors are loaded from a
- * correctionlib file using a specified scale factor name and variation. The
- * variation and the scale factor itself is binned in pseudorapidities of
- * hadronic taus for this function.
- *
- * Description of the bit map used to define the tau ID against muons working
- * points of the DeepTau v2.1 tagger. vsMuons                             |
- * Value | Bit (value used in the config)
- * ------------------------------------|-------|-------
- * no ID selection (takes every tau)   |  0    | -
- * VLoose                              |  1    | 1
- * Loose                               |  2    | 2
- * Medium                              |  4    | 3
- * Tight                               |  8    | 4
- *
- * @param df input dataframe
- * @param correction_manager correction manager responsible for loading the
- * tau scale factor file
- * @param outputname name of the output column containing the vsMu ID scale
- * factor
- * @param eta name of the column containing the pseudorapidity of a tau
- * @param gen_match name of the column with the matching information of the
- * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt
- * mu, 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
- * @param sf_file path to the file with the tau scale factors
- * @param sf_name name of the tau scale factor for the vsMu ID correction
- * @param wp working point of the vsMu ID
- * @param wp_ele working point of the vsEle ID
- * @param wp_jet working point of the vsJet ID
- * @param era string defining the currently processed era, needed due to
- * different kind of scale factor dependencies introduced by TAU POG for
- * different eras
- * @param variation name of the scale factor variation 
- *
- * @return a new dataframe containing the new column
- *
- * @note This function uses only one variation, as recommended by Tau POG for the
- * latest corrections for NanoAOD v12 and above.
- */
-ROOT::RDF::RNode
-Id_vsMu(ROOT::RDF::RNode df,
-        correctionManager::CorrectionManager &correction_manager,
-        const std::string &outputname, const std::string &eta,
-        const std::string &gen_match, const std::string &sf_file,
-        const std::string &sf_name, const std::string &wp,
-        const std::string &wp_ele, const std::string &wp_jet,
-        const std::string &era, const std::string &variation) {
-
-    
-    Logger::get("physicsobject::tau::scalefactor::Id_vsMu")
-        ->debug("Setting up function for tau id vsMu sf");
-    Logger::get("physicsobject::tau::scalefactor::Id_vsMu")
-        ->debug("ID - Name {}", sf_name);
-    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, wp, wp_ele, wp_jet, era, variation,
-                          sf_name](const float &eta, const int &gen_match) {
-        double sf = 1.;
-        Logger::get("physicsobject::tau::scalefactor::Id_vsMu")
-            ->debug(
-                "ID {} - eta {}, gen_match {}, wp {}, variation {}",
-                sf_name, eta, gen_match, wp, variation);
-
-        if (era == "2024" || era == "2025") { 
-            // this is currently hardcoded following the correction json
-            sf = evaluator->evaluate(
-                {eta, gen_match, wp, wp_ele, wp_jet, variation});
-        } else {
-            sf = evaluator->evaluate({eta, gen_match, wp, variation});
-        }
-        Logger::get("physicsobject::tau::scalefactor::Id_vsMu")
-            ->debug("Scale Factor {}", sf);
-        return sf;
-    };
-    auto df1 = df.Define(outputname, sf_calculator, {eta, gen_match});
     return df1;
 }
 
@@ -2021,7 +1941,7 @@ ROOT::RDF::RNode Id_vsMu(
         {0.8f, variation_wheel3},
         {1.2f, variation_wheel4},
         {1.7f, variation_wheel5},
-        {2.4f, variation_wheel5}, // 2.4 to cover full muon system acceptance
+        {2.5f, variation_wheel5}, // 2.5 to cover full muon system acceptance
                                   // for Run 3 taus should not affect Run 2
                                   // analyses, which cut on |eta| < 2.3
     };
