@@ -468,12 +468,6 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df, const std::string &outputname,
  * correction is provided by the Top POG and in case of this function the
  * calculated weight corrects NLO simulation (POWHEG+Pythia8) to data.
  *
- * For reference: https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting#How_to_practically_apply_default
- *
- * The weight is calculated as \f$w=\sqrt{SF(t)\cdot SF(\bar{t})}\f$
- *
- * with \f$SF= 0.103\cdot\exp(-0.0118\cdot p_T) - 0.000134\cdot p_T + 0.973\f$
- *
  * @param df input dataframe
  * @param outputname name of the output column containing the derived event
  * weight
@@ -486,8 +480,7 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df, const std::string &outputname,
  *
  * @return a new dataframe containing the new column
  *
- * @note The Top POG also provides other reweighting functions, e.g. for NNLO to
- * data or NLO to NNLO which could be preferred depending on the use case.
+ * @note This follows the new recommendations from TOP PAG in AN 2025 050 for Run 3.
  */
 ROOT::RDF::RNode
 TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
@@ -523,6 +516,7 @@ TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
         const float parameter_b = -0.0118;
         const float parameter_c = -0.000134;
         const float parameter_d = 0.973;
+        // weight extracted for run 2 
         const float w1 = sqrt(
             (parameter_a * exp(parameter_b * top_pts[0]) +
              parameter_c * top_pts[0] + parameter_d) *
@@ -530,6 +524,7 @@ TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
              parameter_c * top_pts[1] + parameter_d));
         const float parameter_e = 0.991;
         const float parameter_f = 0.000075;
+        // weight between run2 and run 3 centre of mass
         const float w2 = sqrt((parameter_e + parameter_f * top_pts[0]) *
                                (parameter_e + parameter_f * top_pts[1]));
         return w1 * w2;
