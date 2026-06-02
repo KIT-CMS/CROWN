@@ -223,7 +223,7 @@ ROOT::RDF::RNode PtCorrectionL1(
  * (e.g., "AK4PFchs", "AK4PUPPI")
  * @param jes_tag tag for the JES correction campaign
  * (e.g., "Summer19UL18_V5_MC", "Summer24Prompt24_V2_DATA")
- * @param jes_shift_sources list of JES shift sources for systematic
+ * @param jes_shift_source JES shift source for systematic
  * uncertainties
  * @param jer_tag tag of the JER correction campaign (e.g.,
  * "Summer19UL18_JRV2_MC")
@@ -563,7 +563,7 @@ ROOT::RDF::RNode PtCorrectionL2L3(
  * "AK8PFPuppi")
  * @param jes_tag tag of the JES correction campaign (e.g.,
  * "Summer19UL18_V5_MC")
- * @param jes_shift_sources list of JES shift sources for systematic
+ * @param jes_shift_source JES shift source for systematic
  * uncertainties
  * @param jer_tag tag of the JER correction campaign (e.g.,
  * "Summer19UL18_JRV2_MC")
@@ -601,7 +601,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &rho, const std::string &jer_seed,
                const std::string &jec_file, const std::string &jec_algo,
                const std::string &jes_tag,
-               const std::vector<std::string> &jes_shift_sources,
+               const std::string &jes_shift_source,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
                const std::string &era,
@@ -617,16 +617,14 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     if (jec_algo.find("AK8") != std::string::npos) {
         jet_radius = 0.8;
     }
-    // loading JES variations
-    std::vector<correction::Correction *> jet_energy_scale_shifts;
-    for (const auto &source : jes_shift_sources) {
-        if (source != "" && source != "HEMIssue") {
-            auto jes_source_evaluator = const_cast<correction::Correction *>(
-                correction_manager.loadCorrection(
-                    jec_file, jes_tag + "_" + source + "_" + jec_algo));
-            jet_energy_scale_shifts.push_back(jes_source_evaluator);
-        }
-    };
+    // systematic sources
+    correction::Correction *jet_energy_scale_shifts;
+    if (jes_shift_source != "nom" && jes_shift_source != "HEMIssue") {
+        auto jes_source_evaluator = const_cast<correction::Correction *>(
+            correction_manager.loadCorrection(
+                jec_file, jes_tag + "_" + jes_shift_source + "_" + jec_algo));
+        jet_energy_scale_shifts = jes_source_evaluator;
+    }
     // loading jet energy correction scale factor function
     auto jes_l1_evaluator = correction_manager.loadCorrection(
         jec_file, jes_tag + "_L1FastJet_" + jec_algo);
@@ -668,7 +666,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     // lambda run with dataframe
     auto correction_lambda = [reapply_jes, jet_energy_scale_shifts,
                               jet_energy_scale_sf, jet_energy_resolution,
-                              jer_sf_evaluator, jes_shift_sources, jes_shift,
+                              jer_sf_evaluator, jes_shift_source, jes_shift,
                               jer_shift, jet_radius, era,
                               no_jer_for_unmatched_forward_jets](
                                  const ROOT::RVec<float> &pts,
@@ -771,34 +769,19 @@ PtCorrectionMC(ROOT::RDF::RNode df,
 
             float pt_scale_sf = 1.0;
             if (jes_shift != 0.0) {
-                if (jes_shift_sources.at(0) != "HEMIssue") {
-                    // Differentiate between single source and combined source
-                    // for reduced scheme
-                    if (jet_energy_scale_shifts.size() == 1) {
-                        pt_scale_sf =
-                            1. +
-                            jes_shift * jet_energy_scale_shifts.at(0)->evaluate(
-                                            {etas.at(i), corrected_pts.at(i)});
-                        Logger::get("physicsobject::jet::PtCorrectionMC")
-                            ->debug(
-                                "JES shift of jet pt by {} for single source "
-                                "with SF {}",
-                                jes_shift, pt_scale_sf);
-                    } else {
-                        float quad_sum = 0.;
-                        for (const auto &evaluator : jet_energy_scale_shifts) {
-                            quad_sum +=
-                                std::pow(evaluator->evaluate(
-                                             {etas.at(i), corrected_pts.at(i)}),
-                                         2.0);
-                        }
-                        pt_scale_sf = 1. + jes_shift * std::sqrt(quad_sum);
-                        Logger::get("physicsobject::jet::PtCorrectionMC")
-                            ->debug("JES shift of jet pt by {} for multiple "
-                                    "sources with SF {}",
-                                    jes_shift, pt_scale_sf);
-                    }
-                } else if (jes_shift_sources.at(0) == "HEMIssue") {
+                if (jes_shift_source != "HEMIssue" &&
+                        jes_shift_source != "nom") {
+                    pt_scale_sf =
+                        1. +
+                        jes_shift * jet_energy_scale_shifts.at(0)->evaluate(
+                                        {etas.at(i), corrected_pts.at(i)});
+                    Logger::get("physicsobject::jet::PtCorrectionMC")
+                        ->debug(
+                            "JES shift of jet pt by {} for single source "
+                            "with SF {}",
+                            jes_shift, pt_scale_sf);
+                } else if (jes_shift_source == "HEMIssue" &&
+                        jes_shift_source != "nom") {
                     if (jes_shift == (-1.) && corrected_pts.at(i) > 15. &&
                         phis.at(i) > (-1.57) && phis.at(i) < (-0.87) &&
                         ids.at(i) == 2) {
@@ -806,7 +789,6 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                             pt_scale_sf = 0.8;
                         else if (etas.at(i) > (-3.) && etas.at(i) <= (-2.5))
                             pt_scale_sf = 0.65;
-                    }
                 }
             }
             corrected_pts.at(i) *= pt_scale_sf;
