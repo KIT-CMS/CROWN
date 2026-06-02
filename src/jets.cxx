@@ -773,7 +773,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                         jes_shift_source != "nom") {
                     pt_scale_sf =
                         1. +
-                        jes_shift * jet_energy_scale_shifts.at(0)->evaluate(
+                        jes_shift * jet_energy_scale_shifts->evaluate(
                                         {etas.at(i), corrected_pts.at(i)});
                     Logger::get("physicsobject::jet::PtCorrectionMC")
                         ->debug(
