@@ -153,7 +153,6 @@ std::string get_tes_variation(const int &decay_mode,
         } else if (decay_mode == 11) {
             variation = variation_efake_dm11;
         }
-    }
 
     } else if ((gen_match == 2) || (gen_match == 4)) {
 
@@ -177,7 +176,7 @@ std::string get_tes_variation(const int &decay_mode,
 
     // debug information
     Logger::get("physicsobject::tau::get_tes_variation")
-        ->debug("variation for tau abs eta {}, decaymode {}, gen match {}: "
+        ->debug("variation for tau decaymode {}, gen match {}: "
                 "variation {}",
                 decay_mode, gen_match, variation);
 
