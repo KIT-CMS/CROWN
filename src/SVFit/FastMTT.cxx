@@ -335,10 +335,9 @@ FastMTT::run(const std::vector<fastmtt::MeasuredTauLepton> &measuredTauLeptons,
     FastMTT::initialize();
     bestP4 = LorentzVector();
     if (measuredTauLeptons.size() != 2) {
-        Logger::get("FastMTT")->debug(
-            "Number of MeasuredTauLepton is {} a user should pass exactly two leptons.", 
-            measuredTauLeptons.size()
-        );
+        Logger::get("FastMTT")->debug("Number of MeasuredTauLepton is {} a "
+                                      "user should pass exactly two leptons.",
+                                      measuredTauLeptons.size());
         return ROOT::Math::PtEtaPhiMVector();
     }
     std::vector<fastmtt::MeasuredTauLepton> sortedMeasuredTauLeptons =
