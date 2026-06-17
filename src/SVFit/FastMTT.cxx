@@ -258,8 +258,9 @@ double Likelihood::metTF(const LorentzVector &metP4, const LorentzVector &nuP4,
     double covDet = invCovMETxx * invCovMETyy - invCovMETxy * invCovMETyx;
 
     if (std::abs(covDet) < 1E-10) {
-        std::cerr << "Error: Cannot invert MET covariance Matrix (det=0) !!"
-                  << "METx: " << aMETy << " METy: " << aMETy << std::endl;
+        Logger::get("FastMTT")->debug(
+            "Cannot invert MET covariance Matrix (det=0) !! METx: {} METy: {}",
+            aMETx, aMETy);
         return 0;
     }
     double const_MET = 1. / (2. * M_PI * TMath::Sqrt(covDet));
@@ -334,9 +335,9 @@ FastMTT::run(const std::vector<fastmtt::MeasuredTauLepton> &measuredTauLeptons,
     FastMTT::initialize();
     bestP4 = LorentzVector();
     if (measuredTauLeptons.size() != 2) {
-        std::cout << "Number of MeasuredTauLepton is "
-                  << measuredTauLeptons.size()
-                  << " a user shouls pass exactly two leptons." << std::endl;
+        Logger::get("FastMTT")->debug("Number of MeasuredTauLepton is {} a "
+                                      "user should pass exactly two leptons.",
+                                      measuredTauLeptons.size());
         return ROOT::Math::PtEtaPhiMVector();
     }
     std::vector<fastmtt::MeasuredTauLepton> sortedMeasuredTauLeptons =

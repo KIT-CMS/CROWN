@@ -74,7 +74,7 @@ class FriendTreeConfiguration(Configuration):
         if self.global_scope in self.scopes:
             self.scopes.remove(self.global_scope)
         self.global_scope = None
-        log.warn(f"Selected scopes: {self.selected_scopes}")
+        log.warning(f"Selected scopes: {self.selected_scopes}")
         # if more than one scope is specified, raise an error
         if len(self.selected_scopes) > 1:
             raise ConfigurationError(
@@ -385,10 +385,10 @@ class FriendTreeConfiguration(Configuration):
                     [x.name for x in producer.get_outputs(scope)]
                 )
             # get all available inputs
-            for input_quantitiy, quantity_origin in self.input_quantities_mapping[
+            for input_quantity, _ in self.input_quantities_mapping[
                 scope
             ][""]:
-                available_inputs.add(input_quantitiy)
+                available_inputs.add(input_quantity)
             # now check if all inputs are available
             missing_inputs = required_inputs - available_inputs
             if len(missing_inputs) > 0:

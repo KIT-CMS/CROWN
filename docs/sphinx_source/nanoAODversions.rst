@@ -15,7 +15,7 @@ To use the script, run:
 
   python code_generation/utility/generate_nanoaod_branches.py -i <input_root_file(s)> -o <output_python_file>
 
-Replace ``<input_root_file(s)>`` with one or more NanoAOD ROOT files (comma-separated) of the wanted 
+Replace ``<input_root_file(s)>`` with one or more NanoAOD ROOT files (space-separated) of the wanted 
 nanoAOD version, and ``<output_python_file>`` with the desired output Python file. The script will 
 parse the input files, extract all available branches and their metadata, and write them to the output 
 file for use in CROWN.

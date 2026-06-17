@@ -79,8 +79,9 @@ namespace trigger {
  * be below in order to be considered a match
  * @param trigger_particle_id_value trigger object ID value that should be
  * tested
- * @param trigger_bit_value trigger object filter bit position that should be
- * tested. If no bit matching is desired, set this value to -1.
+ * @param trigger_bit_values list of trigger object filter bit positions that
+ * should be tested. If no bit matching is desired, set this value to -1 or an
+ * empty vector.
  * @param deltaR_threshold maximum \f$\Delta R\f$ value between the trigger
  * object and the tested object in order to be considered a match
  *
@@ -92,10 +93,11 @@ bool matchParticle(
     ROOT::RVec<float> &triggerobject_phis, ROOT::RVec<int> &triggerobject_ids,
     ROOT::RVec<int> &triggerobject_filterbits, const float &pt_threshold,
     const float &eta_threshold, const int &trigger_particle_id_value,
-    const int &trigger_bit_value, const float &deltaR_threshold) {
+    const std::vector<int> &trigger_bit_values, const float &deltaR_threshold) {
     Logger::get("trigger::matchParticle")->debug("Checking Triggerobjects");
     Logger::get("trigger::matchParticle")
         ->debug("Total number of triggerobjects: {}", triggerobject_pts.size());
+
     for (std::size_t idx = 0; idx < triggerobject_pts.size(); ++idx) {
         Logger::get("trigger::matchParticle")
             ->debug("Triggerobject Nr. {}", idx);
@@ -107,11 +109,21 @@ bool matchParticle(
                       deltaR_threshold;
         bool pt = particle.pt() > pt_threshold;
         bool eta = abs(particle.eta()) < eta_threshold;
-        // if you don't want to do bit matching here, the trigger_bit_value
-        // has to be set to -1
-        bool bit =
-            (trigger_bit_value == -1) ||
-            (IntBits(triggerobject_filterbits[idx]).test(trigger_bit_value));
+        // if you don't want to do bit matching here, the trigger_bit_values
+        // has to be set to -1 or an empty vector
+        // otherwise, check if all bits in the vector are set
+        bool bit = true;
+        if (!trigger_bit_values.empty()) {
+            IntBits bits(triggerobject_filterbits[idx]);
+            for (int bit_value : trigger_bit_values) {
+                if (bit_value == -1)
+                    continue;
+                if (!bits.test(bit_value)) {
+                    bit = false;
+                    break;
+                }
+            }
+        }
         bool id = triggerobject_ids[idx] == trigger_particle_id_value;
 
         Logger::get("trigger::matchParticle")
@@ -130,8 +142,16 @@ bool matchParticle(
         Logger::get("trigger::matchParticle")
             ->debug("id value: {}", triggerobject_ids[idx]);
 
+        // Format vector of filter bits as string
+        std::string bit_values_str = "[";
+        for (size_t i = 0; i < trigger_bit_values.size(); ++i) {
+            if (i > 0)
+                bit_values_str += ", ";
+            bit_values_str += std::to_string(trigger_bit_values[i]);
+        }
+        bit_values_str += "]";
         Logger::get("trigger::matchParticle")
-            ->debug("trigger_bit_value: {}, Check: {}", trigger_bit_value, bit);
+            ->debug("trigger_bit_values: {}, Check: {}", bit_values_str, bit);
         Logger::get("trigger::matchParticle")
             ->debug("bit value: {}", IntBits(triggerobject_filterbits[idx]));
 
@@ -163,6 +183,7 @@ bool matchParticle(
     }
     return false;
 };
+
 /**
  * @brief This function generates a trigger flag based on an HLT path and
  * trigger object matching for a selected object. This relies on the
@@ -199,8 +220,9 @@ bool matchParticle(
  * be below in order to be considered a match
  * @param trigger_particle_id_value trigger object ID value that should be
  * tested
- * @param trigger_bit_value trigger object filter bit position that should be
- * tested. If no bit matching is desired, set this value to -1.
+ * @param trigger_bit_values list of trigger object filter bit positions that
+ * should be tested. If no bit matching is desired, set this value to -1 or an
+ * empty vector.
  * @param deltaR_threshold maximum \f$\Delta R\f$ value between the trigger
  * object and the tested object in order to be considered a match
  *
@@ -213,8 +235,8 @@ ROOT::RDF::RNode SingleObjectFlag(
     const std::string &triggerobject_id,
     const std::string &triggerobject_filterbit, const std::string &hlt_path,
     const float &pt_threshold, const float &eta_threshold,
-    const int &trigger_particle_id_value, const int &trigger_bit_value,
-    const float &deltaR_threshold) {
+    const int &trigger_particle_id_value,
+    const std::vector<int> &trigger_bit_values, const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] =
@@ -230,7 +252,7 @@ ROOT::RDF::RNode SingleObjectFlag(
 
     auto trigger_matching =
         [pt_threshold, eta_threshold, trigger_particle_id_value,
-         trigger_bit_value, deltaR_threshold](
+         trigger_bit_values, deltaR_threshold](
             bool hlt_path_match, const ROOT::Math::PtEtaPhiMVector &particle,
             ROOT::RVec<float> triggerobject_pts,
             ROOT::RVec<float> triggerobject_etas,
@@ -250,7 +272,7 @@ ROOT::RDF::RNode SingleObjectFlag(
                     particle, triggerobject_pts, triggerobject_etas,
                     triggerobject_phis, triggerobject_ids,
                     triggerobject_filterbits, pt_threshold, eta_threshold,
-                    trigger_particle_id_value, trigger_bit_value,
+                    trigger_particle_id_value, trigger_bit_values,
                     deltaR_threshold);
             }
             bool result = hlt_path_match & match_result;
@@ -329,8 +351,9 @@ ROOT::RDF::RNode SingleObjectFlag(
  * be below in order to be considered a match
  * @param trigger_particle_id_value trigger object ID value that should be
  * tested
- * @param trigger_bit_value trigger object filter bit position that should be
- * tested. If no bit matching is desired, set this value to -1.
+ * @param trigger_bit_values list of trigger object filter bit positions that
+ * should be tested. If no bit matching is desired, set this value to -1 or an
+ * empty vector.
  * @param deltaR_threshold maximum \f$\Delta R\f$ value between the trigger
  * object and the tested object in order to be considered a match
  *
@@ -343,7 +366,7 @@ ROOT::RDF::RNode SingleObjectFlag(
     const std::string &triggerobject_id,
     const std::string &triggerobject_filterbit, const float &pt_threshold,
     const float &eta_threshold, const int &trigger_particle_id_value,
-    const int &trigger_bit_value, const float &deltaR_threshold) {
+    const std::vector<int> &trigger_bit_values, const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] =
@@ -359,7 +382,7 @@ ROOT::RDF::RNode SingleObjectFlag(
 
     auto trigger_matching =
         [pt_threshold, eta_threshold, trigger_particle_id_value,
-         trigger_bit_value,
+         trigger_bit_values,
          deltaR_threshold](const ROOT::Math::PtEtaPhiMVector &particle,
                            ROOT::RVec<float> triggerobject_pts,
                            ROOT::RVec<float> triggerobject_etas,
@@ -376,7 +399,7 @@ ROOT::RDF::RNode SingleObjectFlag(
                 particle, triggerobject_pts, triggerobject_etas,
                 triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
                 pt_threshold, eta_threshold, trigger_particle_id_value,
-                trigger_bit_value, deltaR_threshold);
+                trigger_bit_values, deltaR_threshold);
             Logger::get("trigger::SingleObjectFlag")
                 ->debug("---> Matching: {}", match_result);
             return match_result;
@@ -433,12 +456,12 @@ ROOT::RDF::RNode SingleObjectFlag(
  * tested for the first object
  * @param trigger_particle_id_value_2 trigger object ID value that should be
  * tested for the second object
- * @param trigger_bit_value_1 trigger object filter bit position that should be
- * tested for the first object. If no bit matching is desired, set this value
- * to -1.
- * @param trigger_bit_value_2 trigger object filter bit position that should be
- * tested for the second object. If no bit matching is desired, set this value
- * to -1.
+ * @param trigger_bit_values_1 list of trigger object filter bit positions that
+ * should be tested for the first object. If no bit matching is desired, set
+ * this value to -1 or an empty vector.
+ * @param trigger_bit_values_2 list of trigger object filter bit positions that
+ * should be tested for the second object. If no bit matching is desired, set
+ * this value to -1 or an empty vector.
  * @param deltaR_threshold maximum \f$\Delta R\f$ value between the trigger
  * object and the tested object in order to be considered a match
  *
@@ -453,8 +476,10 @@ ROOT::RDF::RNode DoubleObjectFlag(
     const float &pt_threshold_1, const float &pt_threshold_2,
     const float &eta_threshold_1, const float &eta_threshold_2,
     const int &trigger_particle_id_value_1,
-    const int &trigger_particle_id_value_2, const int &trigger_bit_value_1,
-    const int &trigger_bit_value_2, const float &deltaR_threshold) {
+    const int &trigger_particle_id_value_2,
+    const std::vector<int> &trigger_bit_values_1,
+    const std::vector<int> &trigger_bit_values_2,
+    const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] =
@@ -470,8 +495,8 @@ ROOT::RDF::RNode DoubleObjectFlag(
 
     auto trigger_matching = [pt_threshold_1, pt_threshold_2, eta_threshold_1,
                              eta_threshold_2, trigger_particle_id_value_1,
-                             trigger_particle_id_value_2, trigger_bit_value_1,
-                             trigger_bit_value_2, deltaR_threshold](
+                             trigger_particle_id_value_2, trigger_bit_values_1,
+                             trigger_bit_values_2, deltaR_threshold](
                                 bool hlt_path_match,
                                 const ROOT::Math::PtEtaPhiMVector &particle_1,
                                 const ROOT::Math::PtEtaPhiMVector &particle_2,
@@ -496,13 +521,13 @@ ROOT::RDF::RNode DoubleObjectFlag(
                 particle_1, triggerobject_pts, triggerobject_etas,
                 triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
                 pt_threshold_1, eta_threshold_1, trigger_particle_id_value_1,
-                trigger_bit_value_1, deltaR_threshold);
+                trigger_bit_values_1, deltaR_threshold);
             Logger::get("trigger::DoubleObjectFlag")->debug("Second particle");
             match_result_p2 = matchParticle(
                 particle_2, triggerobject_pts, triggerobject_etas,
                 triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
                 pt_threshold_2, eta_threshold_2, trigger_particle_id_value_2,
-                trigger_bit_value_2, deltaR_threshold);
+                trigger_bit_values_2, deltaR_threshold);
         }
 
         bool result = hlt_path_match & match_result_p1 & match_result_p2;
@@ -592,16 +617,18 @@ ROOT::RDF::RNode DoubleObjectFlag(
  * tested for the first object
  * @param trigger_particle_id_value_2 trigger object ID value that should be
  * tested for the second object
- * @param trigger_bit_value_1 trigger object filter bit position that should be
- * tested for the first object. If no bit matching is desired, set this value
- * to -1.
- * @param trigger_bit_value_2 trigger object filter bit position that should be
- * tested for the second object. If no bit matching is desired, set this value
- * to -1.
+ * @param trigger_bit_values_1 list of trigger object filter bit positions that
+ * should be tested for the first object. If no bit matching is desired, set
+ * this value to -1 or an empty vector.
+ * @param trigger_bit_values_2 list of trigger object filter bit positions that
+ * should be tested for the second object. If no bit matching is desired, set
+ * this value to -1 or an empty vector.
  * @param deltaR_threshold maximum \f$\Delta R\f$ value between the trigger
  * object and the tested object in order to be considered a match
  *
  * @return a new dataframe containing the trigger flag column
+ *
+ * @note this function is used for embedding samples
  */
 ROOT::RDF::RNode DoubleObjectFlag(
     ROOT::RDF::RNode df, const std::string &outputname,
@@ -611,8 +638,10 @@ ROOT::RDF::RNode DoubleObjectFlag(
     const std::string &triggerobject_filterbit, const float &pt_threshold_1,
     const float &pt_threshold_2, const float &eta_threshold_1,
     const float &eta_threshold_2, const int &trigger_particle_id_value_1,
-    const int &trigger_particle_id_value_2, const int &trigger_bit_value_1,
-    const int &trigger_bit_value_2, const float &deltaR_threshold) {
+    const int &trigger_particle_id_value_2,
+    const std::vector<int> &trigger_bit_values_1,
+    const std::vector<int> &trigger_bit_values_2,
+    const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] =
@@ -629,7 +658,7 @@ ROOT::RDF::RNode DoubleObjectFlag(
     auto trigger_matching =
         [pt_threshold_1, pt_threshold_2, eta_threshold_1, eta_threshold_2,
          trigger_particle_id_value_1, trigger_particle_id_value_2,
-         trigger_bit_value_1, trigger_bit_value_2,
+         trigger_bit_values_1, trigger_bit_values_2,
          deltaR_threshold](const ROOT::Math::PtEtaPhiMVector &particle_1,
                            const ROOT::Math::PtEtaPhiMVector &particle_2,
                            ROOT::RVec<float> triggerobject_pts,
@@ -648,13 +677,13 @@ ROOT::RDF::RNode DoubleObjectFlag(
                 particle_1, triggerobject_pts, triggerobject_etas,
                 triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
                 pt_threshold_1, eta_threshold_1, trigger_particle_id_value_1,
-                trigger_bit_value_1, deltaR_threshold);
+                trigger_bit_values_1, deltaR_threshold);
             Logger::get("trigger::DoubleObjectFlag")->debug("Second particle");
             bool match_result_p2 = matchParticle(
                 particle_2, triggerobject_pts, triggerobject_etas,
                 triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
                 pt_threshold_2, eta_threshold_2, trigger_particle_id_value_2,
-                trigger_bit_value_2, deltaR_threshold);
+                trigger_bit_values_2, deltaR_threshold);
             bool result = match_result_p1 & match_result_p2;
             Logger::get("trigger::DoubleObjectFlag")
                 ->debug("---> Matching p1: {}", match_result_p1);
