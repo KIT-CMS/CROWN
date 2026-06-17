@@ -385,9 +385,7 @@ class FriendTreeConfiguration(Configuration):
                     [x.name for x in producer.get_outputs(scope)]
                 )
             # get all available inputs
-            for input_quantity, _ in self.input_quantities_mapping[
-                scope
-            ][""]:
+            for input_quantity, _ in self.input_quantities_mapping[scope][""]:
                 available_inputs.add(input_quantity)
             # now check if all inputs are available
             missing_inputs = required_inputs - available_inputs
