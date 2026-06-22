@@ -53,7 +53,7 @@ A FriendTree is generated using a FriendTreeConfiguration. Such a configuration 
         }
     }
 
-The metadata of the provided quantities map is checked for consistency regarding the analysis, the name of the main config, the sample type, and the sample era. If any of these should not match between the provided maps and the requested configuration, then the camke process is stopped.
+The metadata of the provided quantities map is checked for consistency regarding the analysis, the name of the main config, the sample type, and the sample era. If any of these should not match between the provided maps and the requested configuration, then the cmake process is stopped.
 
 The recommended way of producing FriendTrees is to use a workflow tool, that manages the submission of jobs, generation of tarballs and organizing the output. One possible workflow tool choice is KingMaker (https://github.com/KIT-CMS/KingMaker). A more detailed description of the KingMaker workflow can be found in :ref:`Kingmaker Workflow Management`.
 

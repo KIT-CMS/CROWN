@@ -1,7 +1,7 @@
 Changelog
 ==========
 
-#TODO
+#TODO Version 0.5.0 release
 
 May 2024 - Version 0.4.0
 

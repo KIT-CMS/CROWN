@@ -225,7 +225,7 @@ For the production of friend trees, the same options as for the production of nt
 Some additional options are required:
 
 - ``--friend-config``: The friend config file to be used. The friend config file contains the information about the friend trees to be produced like the producers to be run and the output branches that should be saved to the friend trees. The friend config file needs to be located in the ``CROWN/analysis_configurations/<analysis>/`` folder.
-- ``--friend-name``: The name or tag of the friend tree to be produced. The name can be different from the friend config file name and can be seen as a tag for a friend tree production. The resulting friend trees will be stored in the ``/<base>/<production-tag>/ CROWNFriend/<friend-name>/`` folder.
+- ``--friend-name``: The name or tag of the friend tree to be produced. The name can be different from the friend config file name and can be seen as a tag for a friend tree production. The resulting friend trees will be stored in the ``/<base>/<production-tag>/CROWNFriend/<friend-name>/`` folder.
 
 The resulting folder structure for the command listed above will be
 
@@ -249,13 +249,13 @@ If the requested friend tree depends on additional friend trees the ``--friend-m
 
 .. code-block:: bash
 
-    law run ProduceNtuples --analysis template_analysis --config template_config --production-tag test_production_v1 --friend-config template_multifriend_config --friend-name test_multifriend_v1 --friend-mapping '{"template_multifriend_config":{"requires":["template_friend_config"]}}' --sample-list samples.txt --nanoAOD-version nanoAOD_v9 --scopes mm --shifts None --workers 8
+    law run ProduceNtuples --analysis template_analysis --config template_config --production-tag test_production_v1 --friend-config template_multifriend_config --friend-name test_multifriend_v1 --friend-mapping '{"template_multifriend_config":{"friend_name":"test_multifriend_v1","requires":["template_friend_config"]},"template_friend_config":{"friend_name":"test_friend_v1"}}' --sample-list samples.txt --nanoAOD-version nanoAOD_v9 --scopes mm --shifts None --workers 8
 
 contains an additional option ``--friend-mapping``: A dictionary of friend configurations and their required friends with an optional ``friend_name`` for the required friend tree. This mapping can also be provided in the form of a yaml file like the example ``processor/tasks/minimal_multifriend_map_example.yaml``. If the required friend trees are already produced, their production will be skipped. If the dictionary is provided via the comand line, it has to be provided as a JSON string. An example is given below:
 
 .. code-block:: python
 
-    --friend-mapping '{"template_multifriend_config":{"friend_name":"test_multifriend_v1","requires":["template_friend_config"]},"template_friend_config":{"friend_name":"test_friend_v1"}'
+    --friend-mapping '{"template_multifriend_config":{"friend_name":"test_multifriend_v1","requires":["template_friend_config"]},"template_friend_config":{"friend_name":"test_friend_v1"}}'
 
 As an example, the command listed above will produce not only ntuples for all samples specified in ``samples.txt`` using the ``template_config`` but also the friend tree ``test_friend_v1`` based on the ``template_friend_config``. Both inputs will then be used, to produce the final friend tree ``test_multifriend_v1`` based on the ``template_multifriend_config``. The resulting folder structure will be
 
@@ -270,6 +270,7 @@ As an example, the command listed above will produce not only ntuples for all sa
 
 with the example ``friend_mapping`` mentioned above. The config file name is used as the friend name if no ``friend_name`` is provided for a friend in the mapping or the command line arguments. If a friend config is required by a selected friend config, but not mentioned in the mapping, then the required config is added without requirements and with the default name.
 
+As long as the provided yaml file or dict string to `--friend-mapping` contains all required information like the friend name and friend requirements, the options `--friend-config` and `--friend-name` don't need to be specified. An example of such a yaml file is e.g. ``processor/tasks/multifriend_map_example.yaml``. This can also be used for normal friend production without additional friend requirements.
 
 KingMaker Configuration
 -----------------------

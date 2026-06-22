@@ -157,13 +157,13 @@ To read the mapping from an Ntuple, the python function listed below may be used
     #
     # data = load_crown_mapping(
     #     "test.root",
-    #     libdir="build/lib",
+    #     libdir=".cache",
     #     by_shift=True,
     # )
     #
     # data, metadata = load_crown_mapping(
     #     "test.root",
-    #     libdir="build/lib",
+    #     libdir=".cache",
     #     by_shift=True,
     #     load_metadata=True,
     # )
