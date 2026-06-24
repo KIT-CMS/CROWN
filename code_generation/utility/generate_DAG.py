@@ -17,13 +17,15 @@ def log_and_fail(msg: str) -> Never:
 
 
 def create_graph(configuration, NanoAOD_inputs, DAG_dir, json_name):
-    """Instantiate a GraphParser and execute DAG generation.
+    """
+    Instantiate a GraphParser and execute DAG generation.
 
     Args:
         configuration (object): The configuration object containing scopes and producers.
         NanoAOD_inputs (list): List of NanoAOD input quantities.
         DAG_dir (str): Directory where the generated DAG JSON files will be saved.
         json_name (str): The base name for the output JSON file.
+
     """
     for active_scope in configuration.scopes:
         # Skip global scope as it is included in all other scopes
@@ -78,7 +80,9 @@ def create_graph(configuration, NanoAOD_inputs, DAG_dir, json_name):
 
 
 class GraphParser:
-    """Parses configuration data to generate Directed Acyclic Graphs (DAGs).
+
+    """
+    Parses configuration data to generate Directed Acyclic Graphs (DAGs).
 
     Represents the dependencies and flow of producers, filters, and I/O.
     """
@@ -92,7 +96,8 @@ class GraphParser:
         is_friend_config=False,
         shifted_inputs=None,
     ):
-        """Initialize the GraphParser object.
+        """
+        Initialize the GraphParser object.
 
         Args:
             config (object): The configuration object.
@@ -100,6 +105,8 @@ class GraphParser:
             active_scope (str): The specific scope being parsed in addition to the global scope.
             DAG_dir (str, optional): The directory for saving DAG files. Defaults to "".
             is_friend_config (bool, optional): Indicates if it's a friend configuration. Defaults to False.
+            shifted_inputs (dict, optional): Mapping of shift names to shifted input quantities. Defaults to None.
+
         """
         self.config = config
         self.active_scope = active_scope
@@ -131,7 +138,8 @@ class GraphParser:
         self.DAG_dir = DAG_dir
 
     def generate_graph(self):
-        """Execute the main orchestration to generate nodes and edges.
+        """
+        Execute the main orchestration to generate nodes and edges.
 
         Iterates through all scopes of the configuration, builds the DAG components,
         verifies output ambiguity, bundles edges, and generates formatting metadata
@@ -158,13 +166,15 @@ class GraphParser:
         self.compile_shift_registry()
 
     def parse_scope_producers(self, scope):
-        """Parse producers and outputs for a specific scope.
+        """
+        Parse producers and outputs for a specific scope.
 
         Args:
             scope (str): The scope name to process.
 
         Raises:
             ValueError: If an output has multiple origins (ambiguous assignments).
+
         """
         if not is_empty(self.config.producers[scope]):
             log.debug(f"For scope {scope}:")
@@ -213,7 +223,8 @@ class GraphParser:
                     self.set_is_out(scope, output.name)
 
     def parse_Producer_routing(self, producer, parent, scope, align=""):
-        """Route parsing logic based on the specific producer class type.
+        """
+        Route parsing logic based on the specific producer class type.
 
         Args:
             producer (object): The producer instance to be parsed.
@@ -223,6 +234,7 @@ class GraphParser:
 
         Raises:
             NotImplementedError: If the producer's class is unknown.
+
         """
         class_name = producer.__class__.__name__
 
@@ -254,11 +266,11 @@ class GraphParser:
             log_and_fail(f"Unknown Producer class {class_name}")
 
     def parse_VectorProducer(self, producer, parent, scope, align=""):
-        """Map legacy vector configurations to graph nodes and inputs using regex.
+        """
+        Map legacy vector configurations to graph nodes and inputs using regex.
 
-        Note:
-            Currently only supports 'event::filter::Flag'. This is a legacy function
-            and producers should be migrated to ExtendedVectorProducer.
+        Only supports 'event::filter::Flag'. This is a legacy function
+        and producers should be migrated to ExtendedVectorProducer.
 
         Args:
             producer (object): The legacy vector producer instance.
@@ -268,6 +280,7 @@ class GraphParser:
 
         Raises:
             NotImplementedError: If the producer call does not have legacy support.
+
         """
         log.debug(f"{align}Adding VectorProducer: {producer.name}")
         log.warning(
@@ -283,7 +296,8 @@ class GraphParser:
             log_and_fail(f"The call {producer.call} does not have legacy support.")
 
     def parse_Flag_from_call(self, producer, parent, scope, align=""):
-        """Extract vector configurations from a legacy producer's call string using regex.
+        """
+        Extract vector configurations from a legacy producer's call string using regex.
 
         Args:
             producer (object): The legacy flag producer instance.
@@ -294,6 +308,7 @@ class GraphParser:
         Raises:
             ValueError: If input vector configs cannot be parsed or matched.
             NotImplementedError: If list outputs are used (unsupported in legacy).
+
         """
         group_id = f"{producer.name}_v"
         call = producer.call
@@ -347,13 +362,15 @@ class GraphParser:
                 log_and_fail("List outputs for legacy parsed calls are not supported.")
 
     def parse_ExtendedVectorProducer(self, producer, parent, scope, align=""):
-        """Parse an ExtendedVectorProducer class instance into graph nodes, inputs, and outputs.
+        """
+        Parse an ExtendedVectorProducer class instance into graph nodes, inputs, and outputs.
 
         Args:
             producer (object): The ExtendedVectorProducer instance.
             parent (str): The ID of the parent node.
             scope (str): The active scope.
             align (str, optional): Debug print alignment spacing. Defaults to "".
+
         """
         log.debug(f"{align}Adding ExtendedVectorProducer: {producer.name}")
         group_id = f"{producer.name}_v"
@@ -398,13 +415,15 @@ class GraphParser:
                 log.debug(f"{align}        Adding Output: {vec_output}")
 
     def parse_ProducerGroup(self, producer, parent, scope, align=""):
-        """Parse a ProducerGroup class into graph nodes and recursively route its producers.
+        """
+        Parse a ProducerGroup class into graph nodes and recursively route its producers.
 
         Args:
             producer (object): The ProducerGroup instance.
             parent (str): The ID of the parent node.
             scope (str): The active scope.
             align (str, optional): Debug print alignment spacing. Defaults to "".
+
         """
         log.debug(f"{align}Adding ProducerGroup: {producer.name}")
 
@@ -423,13 +442,15 @@ class GraphParser:
             )
 
     def parse_Filter(self, producer, parent, scope, align=""):
-        """Parse a Filter class into graph nodes and recursively route its components.
+        """
+        Parse a Filter class into graph nodes and recursively route its components.
 
         Args:
             producer (object): The Filter instance.
             parent (str): The ID of the parent node.
             scope (str): The active scope.
             align (str, optional): Debug print alignment spacing. Defaults to "".
+
         """
         log.debug(f"{align}Adding Filter Group: {producer.name}")
 
@@ -449,13 +470,15 @@ class GraphParser:
             )
 
     def parse_BaseFilter(self, producer, parent, scope, align=""):
-        """Parse a legacy BaseFilter class into graph nodes and inputs.
+        """
+        Parse a legacy BaseFilter class into graph nodes and inputs.
 
         Args:
             producer (object): The legacy BaseFilter instance.
             parent (str): The ID of the parent node.
             scope (str): The active scope.
             align (str, optional): Debug print alignment spacing. Defaults to "".
+
         """
         log.debug(f"{align}Adding BaseFilter: {producer.name}")
         log.warning(
@@ -477,13 +500,15 @@ class GraphParser:
             log.debug(f"{align}    Adding Input: {n.name}")
 
     def parse_Producer(self, producer, parent, scope, align=""):
-        """Parse a generic Producer class into graph nodes, inputs, and outputs.
+        """
+        Parse a generic Producer class into graph nodes, inputs, and outputs.
 
         Args:
             producer (object): The Producer instance.
             parent (str): The ID of the parent node.
             scope (str): The active scope.
             align (str, optional): Debug print alignment spacing. Defaults to "".
+
         """
         log.debug(f"{align}Adding Producer: {producer.name}")
         call = producer.call
@@ -508,7 +533,8 @@ class GraphParser:
                 log.debug(f"{align}    Adding Output: {n.name}")
 
     def set_is_out(self, scope, req_out):
-        """Designate a node as the source of an Ntuple output.
+        """
+        Designate a node as the source of an Ntuple output.
 
         Args:
             scope (str): The active scope.
@@ -517,6 +543,7 @@ class GraphParser:
         Raises:
             ValueError: If the number of producers is invalid, the source is missing,
                         or the output is not provided by NanoAOD/Ntuple.
+
         """
         producers = self.outputs[scope].get(req_out, []) + self.outputs["global"].get(
             req_out, []
@@ -558,13 +585,15 @@ class GraphParser:
                 )
 
     def assemble_connections(self):
-        """Resolve mappings to construct the actual connecting edges in the DAG.
+        """
+        Resolve mappings to construct the actual connecting edges in the DAG.
 
         Determines the precise source of each input requirement, whether it
         originates from another Producer, NanoAOD, or Ntuple.
 
         Raises:
             ValueError: If an input is entirely missing from both external sources and internal producers.
+
         """
         all_external_inputs = set().union(*self.external_inputs.values())
         for scope in self.scopes:
@@ -618,6 +647,16 @@ class GraphParser:
                         )
 
     def compile_shift_registry(self):
+        """
+        Aggregate shift configurations and map them to affected graph nodes.
+
+        Iterates over all scopes to collect shifts, validates naming conventions,
+        resolves conflicts, and populates the shift registry with heads and configs.
+
+        Raises:
+            RuntimeError: If shift names do not start with '__', or if merge conflicts occur.
+
+        """
         # Aggregate all shifts
         # Fails if configurations would be overwritten by another scope
         aggregated_shifts = defaultdict(defaultdict)
@@ -650,6 +689,18 @@ class GraphParser:
             }
 
     def get_downstream(self, source_node, downstream=None):
+        """
+        Recursively collect all downstream nodes and edges from a source node.
+
+        Args:
+            source_node (str): The ID of the node to start traversal from.
+            downstream (dict, optional): Accumulated result dict with 'edges' and 'nodes' sets.
+                Defaults to None, in which case a new dict is created.
+
+        Returns:
+            dict: A dictionary with keys 'edges' (set of edge IDs) and 'nodes' (set of node IDs).
+
+        """
         # Get all downstream nodes
         if downstream is None:
             downstream = {"edges": set(), "nodes": set()}
@@ -665,7 +716,8 @@ class GraphParser:
         return downstream
 
     def extract_configs(self, call, scope, vector_configs=None, ignore=None):
-        """Parse out explicit configuration string replacements from a call parameter.
+        """
+        Parse out explicit configuration string replacements from a call parameter.
 
         Args:
             call (str): The raw call string containing formatting templates.
@@ -678,6 +730,7 @@ class GraphParser:
 
         Raises:
             ValueError: If an unknown configuration parameter is encountered.
+
         """
         # Ignore parameters that are not config parameters
         if is_empty(ignore):
@@ -710,7 +763,8 @@ class GraphParser:
         return config_dict
 
     def add_output(self, output_name, output_node, scope):
-        """Register a node internally as the generator of a specific output.
+        """
+        Register a node internally as the generator of a specific output.
 
         Args:
             output_name (str): The name of the output being produced.
@@ -719,6 +773,7 @@ class GraphParser:
 
         Raises:
             ValueError: If the node is already registered for this specific output.
+
         """
         node_id = f"{scope}_{output_node}"
         if node_id in self.outputs[scope][output_name]:
@@ -726,7 +781,8 @@ class GraphParser:
         self.outputs[scope][output_name].append(node_id)
 
     def add_input(self, input_name, input_node, scope):
-        """Register a node internally as requiring a specific input dependency.
+        """
+        Register a node internally as requiring a specific input dependency.
 
         Args:
             input_name (str): The name of the required input.
@@ -735,6 +791,7 @@ class GraphParser:
 
         Raises:
             ValueError: If the input is already registered for this node.
+
         """
         scoped_input = f"{scope}_{input_node}"
         if input_name in self.inputs[scope][scoped_input]:
@@ -753,7 +810,8 @@ class GraphParser:
         node_call=None,
         node_call_configs=None,
     ):
-        """Create a standardized node object and append it to the graph's internal list.
+        """
+        Create a standardized node object and append it to the graph's internal list.
 
         Also manages appending metadata to the node and edge family registers.
 
@@ -765,11 +823,13 @@ class GraphParser:
             node_type (str, optional): Specific class or type of the node. Defaults to None.
             is_filter (bool, optional): Indicates if the node acts as a filter. Defaults to False.
             family (str, optional): Ties the node to a grouping/proxy family. Defaults to None.
-            node_call_data (dict, optional): Stores string call and extraction data. Defaults to None.
+            node_call (str, optional): The raw call string of the node. Defaults to None.
+            node_call_configs (dict, optional): Extracted configuration data for the call. Defaults to None.
 
         Raises:
             ValueError: If conflicting args (node_type and is_filter) are supplied,
                         or if a full ID already exists within the standard family register.
+
         """
         if node_type and is_filter:
             log_and_fail("Cannot specify both node_type and is_filter")
@@ -794,22 +854,26 @@ class GraphParser:
             self.node_register[id_name]["node_call_configs"] = node_call_configs
 
     def add_connection(self, source, target, name):
-        """Log a relational connection locally between a source and a target.
+        """
+        Log a relational connection locally between a source and a target.
 
         Args:
             source (str): ID of the source node providing data.
             target (str): ID of the target node consuming data.
             name (str): Connection quantity label.
+
         """
         self.connections[source][name].append(target)
 
     def save_graph(self, name):
-        """Compile the DAG data structures, inject metadata, and export to a JSON file.
+        """
+        Compile the DAG data structures, inject metadata, and export to a JSON file.
 
         Also triggers an automatic update to the overarching DAG file tracker.
 
         Args:
             name (str): The base filename used to construct the final exported JSON path.
+
         """
         path = f"{name}_{self.config.era}_{self.config.sample}_{self.active_scope}.json"
         if self.DAG_dir:
@@ -847,7 +911,8 @@ class GraphParser:
         )
 
     def update_DAG_file_list(self, config_path, new_era, new_sample, new_scope):
-        """Maintain and append to the master JSON manifest tracking generated DAG elements.
+        """
+        Maintain and append to the master JSON manifest tracking generated DAG elements.
 
         Prevents duplicates while verifying the registration of distinct eras, samples, and scopes.
 
@@ -856,6 +921,7 @@ class GraphParser:
             new_era (str/int): The era identifier to check/add.
             new_sample (str): The sample identifier to check/add.
             new_scope (str): The scope string to check/add.
+
         """
         if Path(config_path).exists():
             with open(config_path, "r") as f:
