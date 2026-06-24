@@ -80,7 +80,6 @@ def create_graph(configuration, NanoAOD_inputs, DAG_dir, json_name):
 
 
 class GraphParser:
-
     """
     Parses configuration data to generate Directed Acyclic Graphs (DAGs).
 
