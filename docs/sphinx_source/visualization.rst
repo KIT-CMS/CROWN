@@ -41,21 +41,26 @@ After running the ``create_graph`` function, the DAG can be visualized by openin
 
 Use with KingMaker is supported with no additional changes necessary.
 
-
 Node Legend
 -----------
+
 The visualization is intended to provide a complete overview of the configuration and the dependencies between the different producers and quantities. Each node in the DAG represents a producer, with the labeled edges representing the quantity requirements between them. The width of the edges represents for how many producers a quantity is required.
 
 Bounding boxes represent the groupings of the configuration.
-* **Scopes:** Indicated by grey outlines.
-* **Producer Groups:** Indicated by blue dashed boxes.
-* **Vector Groups:** Indicated by purple dashed boxes.
+
+   * **Scopes:** Indicated by grey outlines.
+   * **Producer Groups:** Indicated by blue dashed boxes.
+   * **Vector Groups:** Indicated by purple dashed boxes.
 
 Nodes utilize specific shapes and colors to denote their function and data sources:
-* **Producers (Rectangles):** Core C++ function calls. Colored sides indicate file I/O (reads/writes). Yellow left edges represent the need for NanoAOD inputs, while blue left edges represent the need for Ntuples inputs derived from other CROWN configurations. Similarly, right blue edges illustrate that the producer contributes a quantity to the output file.
-* **Filters (Orange Octagons):** Nodes that remove events based on input quantities. Therefore, they do not have output quantities and only have incoming edges.
-* **Unused Producers (Pink Nodes):** Producers with no clear purpose, as they do not provide an output quantity or the produced quantity is unused. As vector producers cannot be clearly identified as producers or filters by object type alone, they have to be designated as filters during the producer definition with the ``is_filter`` parameter or will otherwise be marked as pink nodes.
-* **Quantities (Yellow Labels and Edges):** Physics quantities produced by one producer and utilized by one or more subsequent producers.
+
+   * **Producers (Rectangles):** Core C++ function calls. Colored sides indicate file I/O (reads/writes). Yellow left edges represent the need for NanoAOD inputs, while blue left edges represent the need for Ntuples inputs derived from other CROWN configurations. Similarly, right blue edges illustrate that the producer contributes a quantity to the output file.
+
+   * **Filters (Orange Octagons):** Nodes that remove events based on input quantities. Therefore, they do not have output quantities and only have incoming edges. By default, all producers that contain :code:`filter::` in their call are designated as filters. Alternatively, the producer flag :code:`is_filter` can be used to designate a producer as a filter.
+
+   * **Unused Producers (Pink Nodes):** Producers with no clear purpose, as they do not provide an output quantity or the produced quantity is unused. Producers already designated as Filters are excempt from this type.
+
+   * **Quantities (Yellow Labels and Edges):** Physics quantities produced by one producer and utilized by one or more subsequent producers.
 
 Object Inspection
 -----------------
@@ -69,9 +74,12 @@ UI Controls
 -----------
 The UI provides several controls to customize the visualization. 
 
-* **Dataset Selection:** The dropdown menu in the top row allow for the selection of the ``era``, ``sample type``, and ``scope`` to be visualized, based on the data in the ``DAG_files.json`` file.
-* **Search & Navigation:** The regex-based search bar allows for searching for specific producers or quantities by name. For producers this also includes the producer call string and quantities read from/written to a file. The left and right arrow buttons can be used to jump between matching search results, and the cancel button can be used to clear the search.
-* **Shift Selection:** The shift drop down menu allows for the selection of a systematic shift. When a shift is selected, the graph will automatically center on the affected head node. It highlights all directly affected producers, as well as all downstream producers that are affected by the shift in red. In addition the specific config parameter changed by the shift is shown in the sidebar when clicking on a producer. Downstream shifts of Friend configs take shifted input quantities into account.
-* **I/O Filtering:** The input and output quantities menus show the set of inputs and outputs relevant for the current visualization. Any input/output affected by an active shift is highlighted in red. In addition, both input and output visibility can be toggled to reduce the visual complexity. Any node that does not directly interact with the toggled inputs/outputs is removed from the visualization upon clicking "Apply". 
+   * **Dataset Selection:** The dropdown menu in the top row allow for the selection of the :code:`era`, :code:`sample type`, and :code:`scope` to be visualized, based on the data in the :code:`DAG_files.json` file.
+
+   * **Search & Navigation:** The regex-based search bar allows for searching for specific producers or quantities by name. For producers this also includes the producer call string and quantities read from/written to a file. The left and right arrow buttons can be used to jump between matching search results, and the cancel button can be used to clear the search.
+
+   * **Shift Selection:** The shift drop down menu allows for the selection of a systematic shift. When a shift is selected, the graph will automatically center on the affected head node. It highlights all directly affected producers, as well as all downstream producers that are affected by the shift in red. In addition the specific config parameter changed by the shift is shown in the sidebar when clicking on a producer. Downstream shifts of Friend configs take shifted input quantities into account.
+
+   * **I/O Filtering:** The input and output quantities menus show the set of inputs and outputs relevant for the current visualization. Any input/output affected by an active shift is highlighted in red. In addition, both input and output visibility can be toggled to reduce the visual complexity. Any node that does not directly interact with the toggled inputs/outputs is removed from the visualization upon clicking ``Apply``.
 
 The control UI also includes a question mark button at the top for a quick reminder of the UI controls, and a hide button to hide the control UI. Finally, the reset button in the bottom left corner can be used to reset all UI settings and return to the default visualization state.
