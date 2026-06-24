@@ -37,7 +37,7 @@ Each call of the ``create_graph`` function performs three actions:
 2. It creates a JSON file with the DAG information for each ``scope`` in the configuration. The name of the JSON files is formatted as ``<DAG_dir>/<json_name>_<era>_<sample_type>_<scope>.json``.
 3. It copies the ``CROWN_visualization.html`` file from the CROWN repository to the ``DAG_dir`` and renames it to ``index.html``.
 
-After running the ``create_graph`` function, the DAG can be visualized by opening the directory in a web browser. The easiest ways to do this is to rely on preexisting webservers like ``https://web.etp.kit.edu/`` or to use the ``python -m http.server`` command in the terminal and navigate to the ``DAG_dir`` directory. An example for the visualization of the ``tau`` analysis can be found at ``https://web.etp.kit.edu/~tvoigtlaender/CROWN_visualization/tau/main/``.
+After running the ``create_graph`` function, the DAG can be visualized by opening the directory in a web browser. The easiest ways to do this is to rely on preexisting webservers like ``https://web.etp.kit.edu/`` or to use the ``python -m http.server`` command in the terminal and navigate to the ``DAG_dir`` directory. An example for the visualization of the ``tau`` analysis can be found at ``https://web.etp.kit.edu/~tvoigtlaender/CROWN_visualization/main/``.
 
 Use with KingMaker is supported with no additional changes necessary.
 
