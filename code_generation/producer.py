@@ -395,7 +395,6 @@ class VectorProducer(Producer):
 
         """
         self.name = name
-        
         super().__init__(name, call, input, output, scopes, is_filter)
         self.vec_configs = vec_configs
 
