@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CROWN Graph Explorer</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/elkjs@0.9.3/lib/elk.bundled.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-elk@2.1.0/dist/cytoscape-elk.min.js"></script>
+
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; background: #fcfcfc; }
+
+        /* UI Layer */
+        #search-container { position: absolute; top: 20px; left: 20px; z-index: 10; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 340px; border: 1px solid #e0e0e0; transition: height 0.3s; display: flex; flex-direction: column; max-height: 90vh; }
+        
+        #ui-content { overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
+        #ui-content::-webkit-scrollbar { width: 4px; }
+        #ui-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+        /* Drop-down selectors */
+        #selector-group { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+        #selector-group select, #select-shift { flex: 1; min-width: 0; padding: 8px 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-size: 12px; cursor: pointer; }
+
+        /* Search bar */
+        .row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-family: 'Cascadia Code', 'Courier New', monospace; outline: none; }
+        input:focus { border-color: #3498db; }
+
+        /* Buttons */
+        button { padding: 8px 12px; cursor: pointer; border: none; border-radius: 4px; background: #2c3e50; color: white; font-weight: 600; font-size: 13px; }
+        button:hover { background: #34495e; }
+        .nav-btn { background: #3498db; padding: 8px; width: 30px; }
+        .cancel-btn { background: #95a5a6; flex: 1; }
+        .nav-btn:disabled { background: #d5d8dc; cursor: not-allowed; }
+
+        /* Status message */
+        #status { text-align: center; font-size: 11px; color: #7f8c8d; font-weight: bold; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        #status.error { color: #e74c3c; }
+        #status:empty { display: none; margin: 0; min-height: 0; }
+
+        /* Global IO Dropdowns & Filter Toggles */
+        details.global-io-dropdown { margin-top: 12px; font-size: 11px; border: 1px solid #eee; border-radius: 4px; }
+        details.global-io-dropdown summary { cursor: pointer; font-weight: bold; color: #2c3e50; padding: 8px; background: #ecf0f1; border-radius: 4px; outline: none; }
+        details.global-io-dropdown[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: 1px solid #ddd; }
+        .global-io-content { padding: 8px; background: white; max-height: 300px; overflow-y: auto; }
+        
+        .toggle-all-btn { width: 100%; background: #34495e; color: white; padding: 6px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 10px; transition: background 0.2s;}
+        .toggle-all-btn:hover:not(:disabled) { background: #2c3e50; }
+        .toggle-all-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+
+        .toggle-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+        .toggle-btn { background: #2ecc71; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; border: 2px solid transparent; font-family: monospace; transition: all 0.2s; }
+        .toggle-btn:hover:not(:disabled) { filter: brightness(1.1); }
+        .toggle-btn.excluded { background: #ecf0f1; color: #7f8c8d; text-decoration: line-through; border-color: #bdc3c7; }
+        .toggle-btn.shifted { border-color: #e74c3c; font-weight: bold; background: #fdf2f1; color: #c0392b; }
+        .toggle-btn.excluded.shifted { background: #f2d7d5; color: #e74c3c; border-color: #e74c3c; text-decoration: line-through; }
+        .toggle-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .apply-btn { width: 100%; margin-top: 12px; background: #e67e22; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 11px;}
+        .apply-btn:hover { background: #d35400; }
+        .apply-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+
+        /* Reset Button */
+        #reset-ui { position: absolute; bottom: 20px; left: 20px; z-index: 10; }
+        .reset-btn { background: #e74c3c; padding: 12px 20px; border-radius: 30px; color: white; font-weight: bold; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); border:none; cursor:pointer;}
+
+        /* Main Graph */
+        #cy { width: 100vw; height: 100vh; z-index: 1; }
+
+        /* Sidebar Overlay */
+        #sidebar {
+            position: absolute; top: 20px; right: 20px; width: 320px; bottom: 20px; background: rgba(30, 39, 46, 0.96); padding: 24px; border-radius: 12px; color: white; z-index: 100; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); box-shadow: -4px 0 25px rgba(0,0,0,0.3); display: none; flex-direction: column; gap: 20px; overflow-y: auto; transition: all 0.3s ease;
+        }
+
+        .sidebar-header { border-bottom: 2px solid #3498db; padding-bottom: 12px; margin-bottom: 5px; }
+        .sidebar-header h2 { margin: 0; font-size: 18px; color: #ecf0f1; word-wrap: break-word; }
+        .sidebar-section { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+        .sidebar-subtitle { font-size: 11px; text-transform: uppercase; color: #3498db; font-weight: 800; letter-spacing: 1.5px; }
+        .node-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+        .detail-box { background: #ffffff; color: #2c3e50; padding: 8px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; word-wrap: break-word; border-left: 4px solid #3498db; }
+        .simple-list { list-style-type: square; padding-left: 18px; margin: 0; color: #bdc3c7; font-family: 'Cascadia Code', monospace; font-size: 11px; word-wrap: break-word; }
+        .simple-list li { margin-bottom: 4px; }
+        .detail-row { font-size: 13px; display: flex; flex-direction: column; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; gap: 4px; }
+        .detail-label { color: #95a5a6; font-size: 11px; font-weight: 700; }
+        .detail-value { color: #fff; font-family: 'Cascadia Code', monospace; word-wrap: break-word; font-size: 13px; }
+        .clickable { cursor: pointer; transition: background 0.2s, border-color 0.2s; }
+        .clickable:hover { background: #e3f2fd !important; border-left-color: #1e88e5 !important; color: #0d47a1 !important; }
+
+        #sidebar::-webkit-scrollbar { width: 6px; }
+        #sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+        /* Legend Styling */
+        #legend { margin-top: 15px; padding-top: 12px; border-top: 1px solid #eee; }
+        .legend-title { font-size: 10px; text-transform: uppercase; font-weight: 800; color: #95a5a6; margin-bottom: 10px; letter-spacing: 1px; }
+        .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 8px; margin-top: 5px; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #2c3e50; white-space: nowrap; }
+        .symbol { width: 16px; height: 16px; flex-shrink: 0; box-sizing: border-box; }
+        .octagon {clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);}
+        .square { border-radius: 2px; }
+        .parent-box { border: 2px dashed #1e88e5; background: rgba(30, 136, 229, 0.1); }
+        .vector-box { border: 2px dashed #8e24aa; background: rgba(218, 112, 214, 0.15); };
+
+        /* Help Modal & Overlay */
+        #help-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1999; display: none; backdrop-filter: blur(3px); }
+        #help-modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 550px; max-width: 90vw; max-height: 85vh; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 2000; display: none; overflow-y: auto; color: #2c3e50; }
+        #help-modal h2 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        #help-modal h3 { color: #3498db; font-size: 14px; margin-bottom: 6px; margin-top: 18px; }
+        #help-modal p { font-size: 13px; line-height: 1.5; color: #34495e; margin: 4px 0; }
+        #help-modal ul { font-size: 13px; color: #34495e; padding-left: 20px; margin: 4px 0; }
+        #help-modal li { margin-bottom: 6px; }
+        .help-close-btn { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
+        .help-close-btn:hover { background: #c0392b; }
+    </style>
+</head>
+<body>
+<div id="help-overlay" onclick="toggleHelp()"></div>
+<div id="help-modal">
+    <h2>Graph Explorer Help <button class="help-close-btn" onclick="toggleHelp()">Close</button></h2>
+    
+    <h3>🔍 Search & Navigation</h3>
+    <p>Use the search bar to find nodes by name, function call, or their file inputs/outputs. Use the <strong>&larr;</strong> and <strong>&rarr;</strong> arrows to jump between matching elements.</p>
+
+    <h3>📤 Input/Output Filters</h3>
+    <p>Toggle specific input or output quantities to simplify the graph. Only nodes that directly connect the active inputs and outputs will remain visible. Click <strong>Apply</strong> to apply the selection.</p>
+
+    <h3>🪾 Shift Selection</h3>
+    <p>Select a systematic shift from the dropdown. The graph will center on the affected head node, and all modified properties and downstream quantities will be highlighted in <span style="color: #e74c3c; font-weight: bold;">red</span>.</p>
+
+    <h3>🧭 Structural Elements</h3>
+    <ul>
+        <li><strong>Producers (Rectangles):</strong> Core C++ function calls. Colored sides indicate file I/O (reads/writes).</li>
+        <li><strong>Groups (Dashed boxes):</strong> Logical groupings of Producers. Purple outlines represent Vector Groups.</li>
+        <li><strong>Filters (Orange Octagons):</strong> Nodes that remove events.</li>
+        <li><strong>Quantities (Yellow Labels):</strong> Physics Quantities produced by one Producer and used by one or more others.</li>
+    </ul>
+
+    <h3>🪪 Sidebar Insights</h3>
+    <p>Clicking any node or edge opens the sidebar containing:</p>
+    <ul>
+        <li><strong>Element Type:</strong> The type of the selected Element.</li>
+        <li><strong>Parent:</strong> Which Group the selected Element belongs to.</li>
+        <li><strong>Producer Call & Configs:</strong> The actual C++ code execution and arguments.</li>
+        <li><strong>Quantity Source & Targets:</strong> For Quantities, shows the origin and destination(s).</li>
+        <li><strong>Required & Produced Quantities:</strong> For Producers, shows the Quantities that are required and produced by the C++ function call.</li>
+        <li><strong>Reads from / Writes to:</strong> Explicit file IO. "Filtered Source" indicates that the data comes from a producer currently hidden by your active filters.</li>
+    </ul>
+</div>
+
+<div id="search-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <h3 style="margin: 0; font-size: 14px; color: #2c3e50;">Controls</h3>
+            <button onclick="toggleHelp()" style="background: #3498db; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Help">?</button>
+        </div>
+        <button id="toggle-ui-btn" onclick="toggleUI()" style="padding: 4px 8px; font-size: 11px; background: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7;">Hide</button>
+    </div>
+
+    <div id="ui-content">
+        <div id="selector-group"></div>
+        <div class="row" style="margin-top: 12px;">
+            <input type="text" id="searchInput" placeholder="Regex (e.g. ^gen_.*_mm$)" onkeyup="if(event.key === 'Enter') runSearch()">
+        </div>
+        <div class="row">
+            <button style="flex: 1;" onclick="runSearch()">Search</button>
+            <button class="cancel-btn" onclick="cancelSearch()">Cancel</button>
+            <button class="nav-btn" id="prevBtn" onclick="moveFocus(-1)" disabled>←</button>
+            <span id="search-status" style="display: inline-block; width: 60px; text-align: center; font-size: 11px; font-weight: bold; color: #7f8c8d; font-family: monospace;"></span>
+            <button class="nav-btn" id="nextBtn" onclick="moveFocus(1)" disabled>→</button>
+        </div>
+
+        <div class="row">
+            <select id="select-shift" onchange="applyShift()">
+                <option value="">No Shift Selection</option>
+            </select>
+        </div>
+
+        <details class="global-io-dropdown">
+            <summary>Input Quantities</summary>
+            <div style="padding: 8px 8px 0px;">
+                <button id="toggle-all-in-btn" class="toggle-all-btn" onclick="toggleAll('in')">Toggle All Inputs</button>
+            </div>
+            <div id="global-input-content" class="global-io-content"></div>
+        </details>
+
+        <details class="global-io-dropdown">
+            <summary>Output Quantities</summary>
+            <div style="padding: 8px 8px 0px;">
+                <button id="toggle-all-out-btn" class="toggle-all-btn" onclick="toggleAll('out')">Toggle All Outputs</button>
+            </div>
+            <div id="global-output-content" class="global-io-content"></div>
+        </details>
+        
+        <button id="apply-btn" class="apply-btn" onclick="applyGraphFilters()" disabled>Apply</button>
+
+        <div id="legend">
+            <div class="legend-title">Graph Legend</div>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="symbol square" style="background: linear-gradient(to right, #d5db34 0%, #d5db34 25%, #ffffff 25%, #ffffff 100%); border: 1.5px solid #2c3e50;"></div>
+                    <span>Reads from NanoAOD</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol square" style="background: linear-gradient(to right, #3498db 0%, #3498db 25%, #ffffff 25%, #ffffff 100%); border: 1.5px solid #2c3e50;"></div>
+                    <span>Reads from Ntuple</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol square" style="background: linear-gradient(to right, #ffffff 0%, #ffffff 75%, #3498db 75%, #3498db 100%); border: 1.5px solid #2c3e50;"></div>
+                    <span>Writes to Ntuple</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol square" style="background: #f6b1ac; border: 1.5px solid #e74c3c;"></div>
+                    <span>Affected by Shift</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol parent-box"></div>
+                    <span>Group</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol vector-box"></div>
+                    <span>Vector Group</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol octagon" style="background: #fac370; border: 1.5px solid #ffaa00;"></div>
+                    <span>Filter</span>
+                </div>
+                <div class="legend-item">
+                    <div class="symbol square" style="background: #f7a5f8; border: 1.5px solid #f84cfa;"></div>
+                    <span>Unused Producer</span>
+                </div>
+            </div>
+        </div>
+        <div id="status"></div>
+    </div>
+</div>
+
+<div id="sidebar">
+    <div class="sidebar-header">
+        <h2 id="sidebar-title">Family Name</h2>
+    </div>
+    <div id="sidebar-content"></div>
+</div>
+
+<div id="reset-ui"><button class="reset-btn" onclick="resetView()">Reset</button></div>
+<div id="cy"></div>
+
+<script>
+let cy, cyMaster;
+let searchResults = [], familyResults = [], currentIndex = -1;
+let metaData;
+let globalIOData = { inputs: {}, outputs: new Set() };
+
+// Filtering states
+let excludedInputsState = new Set(), excludedOutputsState = new Set();
+let activeExcludedInputs = new Set(), activeExcludedOutputs = new Set();
+let lastAffectedIns = new Set(), lastAffectedOuts = new Set();
+
+const CONFIG_URL = "DAG_files.json?v=" + Date.now();
+
+const CY_STYLES = [
+    { selector: "node", style: { label: "data(label)", "text-valign": "center", "background-color": "#ffffff", "border-width": 1.5, "border-color": "#2c3e50", shape: "rectangle", width: "label", height: "label", padding: "12px", "font-size": "11px", "z-index": 10 } },
+    
+    /* Dynamic IO Booleans */
+    { selector: "node[?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 85 85 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_nano_in]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#d5db34 #d5db34 #ffffff #ffffff", "background-gradient-stop-positions": "0 15 15 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_nano_in][?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#d5db34 #d5db34 #ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 15 15 85 85 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_other_in]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#3498db #3498db #ffffff #ffffff", "background-gradient-stop-positions": "0 15 15 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_other_in][?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#3498db #3498db #ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 15 15 85 85 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_nano_in][?is_other_in]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #ffffff #ffffff", "background-gradient-stop-positions": "0 7.5 7.5 15 15 100", "background-gradient-direction": "to-right" } },
+    { selector: "node[?is_nano_in][?is_other_in][?is_out]", style: { "background-fill": "linear-gradient", "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #ffffff #ffffff #3498db #3498db", "background-gradient-stop-positions": "0 7.5 7.5 15 15 85 85 100", "background-gradient-direction": "to-right" } },
+
+    { selector: ":parent", style: { "background-fill": "solid", "background-opacity": 0.1, "background-color": "#1e88e5", "border-color": "#1e88e5", "border-style": "dashed", "border-width": 4, "text-valign": "top", "color": "#1565c0", "font-size": 18, padding: "10px", events: "no" } },
+    { selector: 'node[type="scope"]', style: { "border-style": "solid", "border-width": 4, "border-color": "#4a4a4a", "background-color": "#d1d1d1", "background-opacity": 0.2, "font-size": 28, "color": "#000000" } },
+    { selector: 'node[type="vector"]', style: { "border-style": "dashed", "border-width": 4, "border-color": "#8e24aa", "background-color": "#da70d6", "background-opacity": 0.15, "color": "#73178c" } },
+    { selector: 'node[type="filter"]', style: { shape: "octagon", "background-color": "#fac370", "border-color": "#ffaa00" } },
+    { selector: 'node[type="filter"][?is_in], node[type="filter"][?is_nano_in]', style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #fac370 #fac370" } },
+    { selector: 'node[type="filter"][?is_other_in]', style: { "background-gradient-stop-colors": "#3498db #3498db #fac370 #fac370" } },
+    { selector: 'node[type="stump"]', style: { "background-color": "#f7a5f8", "border-color": "#f84cfa" } },
+    { selector: 'node[type="stump"][?is_nano_in]', style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f7a5f8 #f7a5f8" } },
+    { selector: 'node[type="stump"][?is_other_in]', style: { "background-gradient-stop-colors": "#3498db #3498db #f7a5f8 #f7a5f8" } },
+    { selector: 'node[type="proxy"]', style: { label: "data(label)", width: "label", height: "label", padding: 6, "background-color": "#fff9c4", "background-opacity": 1, "border-width": 1.5, "border-color": "#d4c96a", color: "#333", "font-size": 10, "text-valign": "center", "text-halign": "center", "text-wrap": "wrap", "text-max-width": 80 } },
+    
+    /* Shift Overrides */
+    { selector: "node.shift-affected", style: { "background-color": "#f6b1ac"} },
+    { selector: "node[?is_out].shift-affected", style: { "background-gradient-stop-colors": "#f6b1ac #f6b1ac #3498db #3498db" } },
+    { selector: "node[?is_nano_in].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f6b1ac #f6b1ac" } },
+    { selector: "node[?is_nano_in][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #f6b1ac #f6b1ac #3498db #3498db" } },
+    { selector: "node[?is_other_in].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #f6b1ac #f6b1ac" } },
+    { selector: "node[?is_other_in][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#3498db #3498db #f6b1ac #f6b1ac #3498db #3498db" } },
+    { selector: "node[?is_nano_in][?is_other_in].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #f6b1ac #f6b1ac" } },
+    { selector: "node[?is_nano_in][?is_other_in][?is_out].shift-affected", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #f6b1ac #f6b1ac #3498db #3498db" } },
+
+    { selector: "node.shift-head", style: { "background-color": "#ec6d5f"} },
+    { selector: "node[?is_out].shift-head", style: { "background-gradient-stop-colors": "#ec6d5f #ec6d5f #3498db #3498db" } },
+    { selector: "node[?is_nano_in].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #ec6d5f #ec6d5f" } },
+    { selector: "node[?is_nano_in][?is_out].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #ec6d5f #ec6d5f #3498db #3498db" } },
+    { selector: "node[?is_other_in].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #ec6d5f #ec6d5f" } },
+    { selector: "node[?is_other_in][?is_out].shift-head", style: { "background-gradient-stop-colors": "#3498db #3498db #ec6d5f #ec6d5f #3498db #3498db" } },
+    { selector: "node[?is_nano_in][?is_other_in].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #ec6d5f #ec6d5f" } },
+    { selector: "node[?is_nano_in][?is_other_in][?is_out].shift-head", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #ec6d5f #ec6d5f #3498db #3498db" } },
+
+    { selector: "edge", style: { "curve-style": "unbundled-bezier", "line-color": "#6e7070", width: "data(width)", "target-arrow-shape": "none" } },
+    { selector: 'edge[type="twig"]', style: { "curve-style": "bezier" } },
+    { selector: 'edge[type="leaf"]', style: { "curve-style": "bezier", "target-arrow-shape": "triangle" } },
+    
+    /* Highlight Overrides */
+    { selector: "node.highlighted", style: { "background-color": "#9cea95", "border-color": "#2e7d32", "border-width": 3, "z-index": 99 } },
+    { selector: "edge.highlighted", style: { "line-color": "#2e7d32", "target-arrow-color": "#2e7d32", "width": 3, "z-index": 99 } },
+    { selector: "node[?is_out].highlighted", style: { "background-gradient-stop-colors": "#9cea95 #9cea95 #3498db #3498db" } },
+    { selector: "node[?is_nano_in].highlighted", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #9cea95 #9cea95" } },
+    { selector: "node[?is_nano_in][?is_out].highlighted", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #9cea95 #9cea95 #3498db #3498db" } },
+    { selector: "node[?is_other_in].highlighted", style: { "background-gradient-stop-colors": "#3498db #3498db #9cea95 #9cea95" } },
+    { selector: "node[?is_other_in][?is_out].highlighted", style: { "background-gradient-stop-colors": "#3498db #3498db #9cea95 #9cea95 #3498db #3498db" } },
+    { selector: "node[?is_nano_in][?is_other_in].highlighted", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #9cea95 #9cea95" } },
+
+    /* Active Focus Overrides */
+    { selector: "node.activeFocus", style: { "background-color": "#6ae35f", "border-color": "#2ecc71", "border-width": 4, "color": "#000000", "z-index": 1000 } },
+    { selector: "edge.activeFocus", style: { "line-color": "#2ecc71", "target-arrow-color": "#2ecc71", "width": 4, "z-index": 1001 } },
+    { selector: "node[?is_out].activeFocus", style: { "background-gradient-stop-colors": "#6ae35f #6ae35f #3498db #3498db" } },
+    { selector: "node[?is_nano_in].activeFocus", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #6ae35f #6ae35f" } },
+    { selector: "node[?is_nano_in][?is_out].activeFocus", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #6ae35f #6ae35f #3498db #3498db" } },
+    { selector: "node[?is_other_in].activeFocus", style: { "background-gradient-stop-colors": "#3498db #3498db #6ae35f #6ae35f" } },
+    { selector: "node[?is_other_in][?is_out].activeFocus", style: { "background-gradient-stop-colors": "#3498db #3498db #6ae35f #6ae35f #3498db #3498db" } },
+    { selector: "node[?is_nano_in][?is_other_in].activeFocus", style: { "background-gradient-stop-colors": "#d5db34 #d5db34 #3498db #3498db #6ae35f #6ae35f" } },
+
+    { selector: "node.shift-affected", style: {"border-color": "#e74c3c", "border-width": 2.5 } },
+    { selector: "edge.shift-affected", style: { "line-color": "#e74c3c", "target-arrow-color": "#e74c3c", "width": 3, "z-index": 50 } },
+    { selector: "node.shift-head", style: {"border-color": "#c0392b", "border-width": 4, "z-index": 60 } },
+    { selector: "edge.shift-head", style: { "line-color": "#c0392b", "target-arrow-color": "#c0392b", "width": 4, "z-index": 60 } },
+    
+    { selector: '.hidden', style: { 'display': 'none' } }
+];
+
+function toggleHelp() {
+    const modal = document.getElementById("help-modal");
+    const overlay = document.getElementById("help-overlay");
+    if (modal.style.display === "block") {
+        modal.style.display = "none";
+        overlay.style.display = "none";
+    } else {
+        modal.style.display = "block";
+        overlay.style.display = "block";
+    }
+}
+
+function toggleUI() {
+    const content = document.getElementById("ui-content");
+    const btn = document.getElementById("toggle-ui-btn");
+    content.style.display = content.style.display === "none" ? "block" : "none";
+    btn.innerText = content.style.display === "none" ? "Show" : "Hide";
+}
+
+async function loadConfig() {
+    try {
+        const response = await fetch(CONFIG_URL);
+        if (!response.ok) throw new Error("Could not find DAG_files.json");
+        const config = await response.json();
+        const container = document.getElementById("selector-group");
+        container.innerHTML = "";
+
+        ["era", "sample", "scope"].forEach((key) => {
+            const select = document.createElement("select");
+            select.id = `select-${key}`;
+            if(config[key]) {
+                config[key].forEach((val) => {
+                    const opt = document.createElement("option");
+                    opt.value = val;
+                    opt.innerText = val;
+                    select.appendChild(opt);
+                });
+                select.onchange = switchDataset;
+                container.appendChild(select);
+            }
+        });
+        switchDataset();
+    } catch (err) {
+        document.getElementById("status").innerText = "Error: " + err.message;
+        document.getElementById("status").className = "error";
+    }
+}
+
+function switchDataset() {
+    const eraSelect = document.getElementById("select-era");
+    const sampleSelect = document.getElementById("select-sample");
+    const scopeSelect = document.getElementById("select-scope");
+    if (!eraSelect || !sampleSelect || !scopeSelect) return;
+
+    initGraph(`CROWNelements_${eraSelect.value}_${sampleSelect.value}_${scopeSelect.value}`);
+}
+
+async function initGraph(fileName) {
+    if (cy) cy.destroy();
+    if (cyMaster) cyMaster.destroy();
+    
+    document.getElementById("status").innerText = "Loading " + fileName + "...";
+    excludedInputsState.clear(); excludedOutputsState.clear();
+    activeExcludedInputs.clear(); activeExcludedOutputs.clear();
+    document.getElementById("apply-btn").disabled = true;
+
+    try {
+        const response = await fetch(`${fileName}.json?v=${Date.now()}`);
+        if (!response.ok) throw new Error("Could not find data for selection");
+        metaData = await response.json();
+        
+        globalIOData = { inputs: {}, outputs: new Set() };
+        const masterElements = [];
+
+        if (metaData.directInputOutput) {
+            for (const [source, members] of Object.entries(metaData.directInputOutput)) {
+                if (!globalIOData.inputs[source]) globalIOData.inputs[source] = new Set();
+                members.forEach(item => {
+                    globalIOData.inputs[source].add(item);
+                    globalIOData.outputs.add(item);
+                });
+            }
+        }
+
+        if (metaData.nodeRegister) {
+            for (const [nodeId, meta] of Object.entries(metaData.nodeRegister)) {
+                let is_nano_in = false;
+                let is_other_in = false;
+                let in_list = [];
+
+                if (meta.file_in) {
+                    for (const [source, items] of Object.entries(meta.file_in)) {
+                        if (!globalIOData.inputs[source]) globalIOData.inputs[source] = new Set();
+                        items.forEach(item => {
+                            globalIOData.inputs[source].add(item);
+                            in_list.push(item);
+                        });
+                        if (source === "NanoAOD") is_nano_in = true;
+                        else if (items.length > 0) is_other_in = true;
+                    }
+                }
+                
+                if (meta.file_out) {
+                    meta.file_out.forEach(item => globalIOData.outputs.add(item));
+                }
+
+                masterElements.push({
+                    data: {
+                        id: nodeId,
+                        family: nodeId,
+                        label: meta.name || nodeId,
+                        parent: meta.parent,
+                        type: meta.type || "Producer",
+                        is_in: in_list.length > 0,
+                        is_nano_in: is_nano_in,
+                        is_other_in: is_other_in,
+                        is_out: meta.file_out && meta.file_out.length > 0
+                    }
+                });
+            }
+        }
+
+        if (metaData.edgeRegister) {
+            for (const [source, qties] of Object.entries(metaData.edgeRegister)) {
+                for (const [qty, targets] of Object.entries(qties)) {
+                    for (const target of targets) {
+                        masterElements.push({ data: { id: `raw_${source}_${target}_${qty}`, source: source, target: target } });
+                    }
+                }
+            }
+        }
+
+        renderGlobalIO();
+        populateShiftDropdown();
+        document.getElementById("status").innerText = "";
+
+        cyMaster = cytoscape({ headless: true, elements: masterElements });
+
+        cy = cytoscape({
+            container: document.getElementById("cy"),
+            style: CY_STYLES,
+            autoungrabify: true,
+            wheelSensitivity: 0.15
+        });
+
+        setupInteractions();
+        applyGraphFilters(); 
+
+    } catch (err) {
+        document.getElementById("status").innerText = err.message;
+        document.getElementById("status").className = "error";
+    }
+}
+
+function bundleEdgesClientSide(connections, nodeRegister) {
+    const elements = [];
+    const createdProxies = new Set();
+    const ancestorCache = {};
+
+    const getAncestors = (id) => {
+        if (ancestorCache[id]) return ancestorCache[id];
+        let path = [id];
+        let curr = nodeRegister[id];
+        while (curr && curr.parent) {
+            path.unshift(curr.parent);
+            curr = nodeRegister[curr.parent];
+        }
+        path.unshift("root");
+        ancestorCache[id] = path;
+        return path;
+    };
+
+    const addEdge = (source, target, id, weight, type, family) => {
+        elements.push({ data: { id, source, target, type, width: Math.sqrt(weight), family } });
+    };
+
+    const addProxy = (id, parent, name, family) => {
+        if (!createdProxies.has(id)) {
+            elements.push({ data: { id, parent: parent === 'root' ? null : parent, type: 'proxy', label: name, family } });
+            createdProxies.add(id);
+        }
+    };
+
+    const constructProxies = (name, data, validIdx, totIdx, rank, source) => {
+        const dataSlice = totIdx.filter(i => validIdx.includes(i)).map(i => data[i][rank]);
+        const uniqueVals = [...new Set(dataSlice)];
+        
+        if (uniqueVals.length <= 1) {
+            constructProxies(name, data, validIdx, totIdx, rank + 1, source);
+        } else {
+            const proxyLoc = data[validIdx[0]][rank - 1];
+            const proxyId = `proxy_${name}_${proxyLoc}`;
+            addProxy(proxyId, proxyLoc, name, `edge_${name}`);
+            addEdge(source, proxyId, `proxyedge_${name}_${proxyLoc}_${source}`, validIdx.length, 'branch', `edge_${name}`);
+            
+            uniqueVals.forEach(val => {
+                const partIdx = validIdx.filter((v, i) => dataSlice[i] === val);
+                if (partIdx.length <= 1) {
+                    const leafName = data[partIdx[0]][data[partIdx[0]].length - 1];
+                    addEdge(proxyId, leafName, `${name}_${leafName}_${proxyId}`, 1, 'leaf', `edge_${name}`);
+                } else {
+                    constructProxies(name, data, partIdx, totIdx, rank + 1, proxyId);
+                }
+            });
+        }
+    };
+
+    for (const [source, qties] of Object.entries(connections)) {
+        for (const [name, targets] of Object.entries(qties)) {
+            if (targets.length === 1) {
+                const target = targets[0];
+                const location = nodeRegister[source]?.parent || "root";
+                const proxyId = `proxy_${name}_${location}`;
+                addProxy(proxyId, location, name, `edge_${name}`);
+                addEdge(source, proxyId, `proxyedge_${name}_${location}_${source}`, 1, 'twig', `edge_${name}`);
+                addEdge(proxyId, target, `${name}_${target}_${proxyId}`, 1, 'leaf', `edge_${name}`);
+            } else {
+                const sourceHist = getAncestors(source);
+                const relativeTargets = targets.map(target => {
+                    const targetHist = getAncestors(target);
+                    const minLen = Math.min(sourceHist.length, targetHist.length);
+                    for (let i = 0; i < minLen; i++) {
+                        if (sourceHist[i] !== targetHist[i]) {
+                            return [...sourceHist.slice(i).reverse(), sourceHist[i - 1], ...targetHist.slice(i)];
+                        }
+                    }
+                    return [...sourceHist.reverse(), ...targetHist];
+                });
+                const startIdx = relativeTargets.map((_, i) => i);
+                constructProxies(name, relativeTargets, startIdx, startIdx, 0, relativeTargets[0][0]);
+            }
+        }
+    }
+    return elements;
+}
+
+function applyGraphFilters() {
+    activeExcludedInputs = new Set(excludedInputsState);
+    activeExcludedOutputs = new Set(excludedOutputsState);
+    document.getElementById("apply-btn").disabled = true;
+
+    let visibleMasterNodes = cyMaster.nodes();
+
+    // 1. Inputs filtering
+    if (activeExcludedInputs.size > 0) {
+        let invalidSources = cyMaster.collection();
+        let validSources = cyMaster.collection();
+
+        cyMaster.nodes().forEach(n => {
+            const famInfo = metaData.nodeRegister[n.id()];
+            if (famInfo && famInfo.file_in) {
+                const allIn = Object.values(famInfo.file_in).flat();
+                if (allIn.length > 0) {
+                    if (allIn.every(inVar => activeExcludedInputs.has(inVar))) {
+                        invalidSources = invalidSources.union(n);
+                    }
+                    if (allIn.some(inVar => !activeExcludedInputs.has(inVar))) {
+                        validSources = validSources.union(n);
+                    }
+                }
+            }
+        });
+
+        let reachableFromInvalid = invalidSources.union(invalidSources.successors());
+        let reachableFromValid = validSources.union(validSources.successors());
+        let hiddenByInputs = reachableFromInvalid.difference(reachableFromValid);
+        
+        visibleMasterNodes = visibleMasterNodes.difference(hiddenByInputs);
+    }
+
+    // 2. Outputs filtering
+    if (activeExcludedOutputs.size > 0) {
+        let validTerminals = cyMaster.collection();
+        cyMaster.nodes().forEach(n => {
+            const famInfo = metaData.nodeRegister[n.id()];
+            if (famInfo && famInfo.file_out && famInfo.file_out.length > 0) {
+                if (famInfo.file_out.some(out => !activeExcludedOutputs.has(out))) {
+                    validTerminals = validTerminals.union(n);
+                }
+            }
+        });
+        let validNodes = validTerminals.union(validTerminals.predecessors());
+        
+        visibleMasterNodes = visibleMasterNodes.intersection(validNodes);
+    }
+
+    // 3. Parent Node Visibility
+    let visibleBaseNodes = visibleMasterNodes.filter(n => !n.isParent());
+    let finalVisibleNodes = visibleBaseNodes.union(visibleBaseNodes.ancestors());
+    const visibleNodeIds = new Set(finalVisibleNodes.map(n => n.id()));
+
+    // 4. Filter connections
+    const visibleConnections = {};
+    if(metaData.edgeRegister) {
+        for (const [source, qties] of Object.entries(metaData.edgeRegister)) {
+            if (!visibleNodeIds.has(source)) continue;
+            for (const [qty, targets] of Object.entries(qties)) {
+                const validTargets = targets.filter(t => visibleNodeIds.has(t));
+                if (validTargets.length > 0) {
+                    if (!visibleConnections[source]) visibleConnections[source] = {};
+                    visibleConnections[source][qty] = validTargets;
+                }
+            }
+        }
+    }
+
+    // 5. Bundle Edges Client Side
+    const bundledElements = bundleEdgesClientSide(visibleConnections, metaData.nodeRegister);
+
+    // 6. Build visual elements array
+    const visualElements = [];
+    finalVisibleNodes.forEach(n => visualElements.push({ data: Object.assign({}, n.data()) }));
+    bundledElements.forEach(e => visualElements.push(e));
+
+    // 7. Push to Cytoscape and Run Layout
+    cy.batch(() => {
+        cy.elements().remove();
+        cy.add(visualElements);
+    });
+
+    cy.layout({ name: "elk", animate: true, animationDuration: 300, elk: { algorithm: "layered", direction: "RIGHT", hierarchyHandling: "INCLUDE_CHILDREN" } }).run();
+    
+    applyShift(); 
+
+    // Reapply search if active
+    if (document.getElementById("searchInput").value) {
+        runSearch();
+    }
+}
+
+function toggleAll(type) {
+    let allItems = new Set();
+    if (type === 'in') {
+        Object.values(globalIOData.inputs).forEach(set => set.forEach(i => allItems.add(i)));
+        if (excludedInputsState.size === allItems.size) {
+            excludedInputsState.clear();
+        } else {
+            allItems.forEach(i => excludedInputsState.add(i));
+        }
+    } else {
+        globalIOData.outputs.forEach(i => allItems.add(i));
+        if (excludedOutputsState.size === allItems.size) {
+            excludedOutputsState.clear();
+        } else {
+            allItems.forEach(i => excludedOutputsState.add(i));
+        }
+    }
+    document.getElementById("apply-btn").disabled = false;
+    renderGlobalIO(lastAffectedIns, lastAffectedOuts);
+}
+
+function toggleIO(type, item) {
+    if (type === 'in') {
+        if (excludedInputsState.has(item)) excludedInputsState.delete(item);
+        else excludedInputsState.add(item);
+    } else {
+        if (excludedOutputsState.has(item)) excludedOutputsState.delete(item);
+        else excludedOutputsState.add(item);
+    }
+    document.getElementById("apply-btn").disabled = false;
+    renderGlobalIO(lastAffectedIns, lastAffectedOuts); 
+}
+
+function renderGlobalIO(affectedIns = new Set(), affectedOuts = new Set()) {
+    const createToggleHTML = (title, itemsSet, highlightSet, ioType) => {
+        if (itemsSet.size === 0) return "";
+        const stateSet = ioType === 'in' ? excludedInputsState : excludedOutputsState;
+
+        const toggles = Array.from(itemsSet).sort().map(item => {
+            const isExcluded = stateSet.has(item);
+            const isShifted = highlightSet && highlightSet.has(item);
+            let classes = ['toggle-btn'];
+            if (isExcluded) classes.push('excluded');
+            if (isShifted) classes.push('shifted');
+            return `<button class="${classes.join(' ')}" onclick="toggleIO('${ioType}', '${item}')">${item}</button>`;
+        }).join('');
+
+        return `<div style="color:#3498db; font-weight:800; text-transform:uppercase; margin-top:8px; margin-bottom:4px;">${title}</div><div class="toggle-container">${toggles}</div>`;
+    };
+
+    let html_in = "";
+    for (const [source, items] of Object.entries(globalIOData.inputs)) {
+        html_in += createToggleHTML(`Reads from ${source}`, items, affectedIns, 'in');
+    }
+    document.getElementById("global-input-content").innerHTML = html_in;
+
+    document.getElementById("global-output-content").innerHTML = 
+        createToggleHTML("Writes to Ntuple", globalIOData.outputs, affectedOuts, 'out');
+}
+
+function populateShiftDropdown() {
+    const shiftSelect = document.getElementById("select-shift");
+    shiftSelect.innerHTML = '<option value="">No Shift Selection</option>';
+    if (metaData && metaData.shiftRegistry) {
+        Object.keys(metaData.shiftRegistry).forEach(shiftName => {
+            const opt = document.createElement("option");
+            opt.value = shiftName;
+            opt.innerText = shiftName;
+            shiftSelect.appendChild(opt);
+        });
+    }
+}
+
+function applyShift() {
+    cy.elements().removeClass("shift-head shift-affected");
+    const shiftName = document.getElementById("select-shift").value;
+    let affectedOuts = new Set();
+    let affectedIns = new Set();
+
+    if (!shiftName || !metaData.shiftRegistry || !metaData.shiftRegistry[shiftName]) {
+        const activeEles = cy.elements(".activeFocus");
+        if (activeEles.nonempty()) updateSidebar(activeEles, activeEles[0].data("family"));
+        lastAffectedIns = affectedIns; lastAffectedOuts = affectedOuts;
+        renderGlobalIO(affectedIns, affectedOuts);
+        return;
+    }
+
+    const shiftData = metaData.shiftRegistry[shiftName];
+    let allAffected = cy.collection(), headEles = cy.collection(), inputAffectedEles = cy.collection();
+
+    if (shiftData.heads) {
+        shiftData.heads.forEach(headFam => {
+            const el = cy.getElementById(headFam);
+            if (el.length > 0) headEles = headEles.union(el);
+        });
+    }
+
+    if (shiftData.shifted_inputs && shiftData.shifted_inputs.length > 0) {
+        const shiftedInputsSet = new Set(shiftData.shifted_inputs);
+        shiftData.shifted_inputs.forEach(i => {
+            affectedIns.add(i); 
+            
+            if (metaData.directInputOutput) {
+                const allDirect = Object.values(metaData.directInputOutput).flat();
+                if (allDirect.includes(i)) affectedOuts.add(i);
+            }
+        });
+
+        cy.nodes().forEach(n => {
+            const famInfo = metaData.nodeRegister[n.data('family')];
+            if (famInfo && famInfo.file_in) {
+                const allIn = Object.values(famInfo.file_in).flat();
+                if (allIn.some(inVar => shiftedInputsSet.has(inVar))) inputAffectedEles = inputAffectedEles.union(n);
+            }
+        });
+    }
+
+    if (headEles.length > 0) {
+        headEles.addClass("shift-head");
+        allAffected = allAffected.union(headEles).union(headEles.successors());
+    }
+
+    if (inputAffectedEles.length > 0) {
+        allAffected = allAffected.union(inputAffectedEles).union(inputAffectedEles.successors());
+    }
+
+    allAffected.difference(headEles).addClass("shift-affected");
+
+    allAffected.nodes().forEach(n => {
+        const famInfo = metaData.nodeRegister[n.data('family')];
+        if (famInfo && famInfo.file_out) famInfo.file_out.forEach(o => affectedOuts.add(o));
+    });
+
+    if (headEles.length > 0) cy.animate({ center: { eles: headEles[0] }, zoom: 1.3, duration: 350 });
+    else if (inputAffectedEles.length > 0) cy.animate({ center: { eles: inputAffectedEles[0] }, zoom: 1.3, duration: 350 });
+
+    const activeEle = cy.elements(".activeFocus").first();
+    if (activeEle.length > 0) updateSidebar(cy.elements(".activeFocus"), activeEle.data("family"));
+
+    lastAffectedIns = affectedIns; lastAffectedOuts = affectedOuts;
+    renderGlobalIO(affectedIns, affectedOuts);
+}
+
+function updateSidebar(familyEles, famName) {
+    const sidebarContent = document.getElementById("sidebar-content");
+    const isEdge = famName.startsWith("edge_");
+    const isNode = metaData.nodeRegister && metaData.nodeRegister[famName];
+
+    let headNode;
+    if (isNode) headNode = cy.getElementById(famName);
+    else if (isEdge) headNode = cy.elements().filter(e => e.data('family') === famName && e.isEdge()).first();
+    else throw new Error("Family not found: " + famName);
+
+    if (headNode.length === 0) {
+        sidebarContent.innerHTML = "<div style='color:#e74c3c;'>Element currently filtered out.</div>";
+        return;
+    }
+
+    const headData = headNode.data();
+    document.getElementById("sidebar-title").innerText = headData.label || headData.description || (isEdge ? famName.substring(5) : famName);
+    sidebarContent.innerHTML = ``;
+
+    const type = headData.type === "proxy" ? null : ["branch", "twig", "leaf"].includes(headData.type) ? "Quantity" : headData.type === "vector" ? "Vector Group" : (headData.type || "Producer");
+    let html = type ? `<div class="sidebar-section"><span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 11px; text-transform: uppercase; font-weight: 700; display: inline-block; width: max-content;">${type}</span></div>` : "";
+
+    if (isEdge) {
+        const qtyName = famName.substring(5);
+        let sourceFams = new Set(), targetFams = new Set();
+        
+        if(metaData.edgeRegister) {
+            for (const [source, qties] of Object.entries(metaData.edgeRegister)) {
+                if (qties[qtyName]) {
+                    if (cy.getElementById(source).length > 0) {
+                        sourceFams.add(source);
+                        qties[qtyName].forEach(t => { if(cy.getElementById(t).length > 0) targetFams.add(t) });
+                    }
+                }
+            }
+        }
+        html += renderFamilyLinkList("Quantity source", sourceFams);
+        html += renderFamilyLinkList("Quantity targets", targetFams);
+    } else {
+        if (headData.parent && cy.getElementById(headData.parent).length > 0) {
+            html += renderFamilyLinkList("Parent", new Set([headData.parent]));
+        }
+        const famInfo = isNode ? metaData.nodeRegister[famName] : null;
+        const activeShiftName = document.getElementById("select-shift").value;
+        const activeShift = activeShiftName ? metaData.shiftRegistry[activeShiftName] : null;
+        const isHeadOfActiveShift = headNode.hasClass("shift-head");
+        const isAffectedNode = headNode.hasClass("shift-head") || headNode.hasClass("shift-affected");
+        const shiftedInputsSet = activeShift && activeShift.shifted_inputs ? new Set(activeShift.shifted_inputs) : new Set();
+
+        let hiddenIncomingSources = new Set();
+        if (metaData.edgeRegister) {
+            for (const [source, qties] of Object.entries(metaData.edgeRegister)) {
+                for (const [qty, targets] of Object.entries(qties)) {
+                    if (targets.includes(famName)) {
+                        if (cy.getElementById(source).length === 0) {
+                            hiddenIncomingSources.add(getDisplayName(source));
+                        }
+                    }
+                }
+            }
+        }
+
+        if (famInfo && famInfo.node_call) {
+            html += `<div class="sidebar-section"><div class="sidebar-subtitle">Producer Call</div><div class="detail-row"><span class="detail-value" style="color: #3498db;">${famInfo.node_call}</span></div></div>`;
+            if (famInfo.node_call_configs && Object.keys(famInfo.node_call_configs).length > 0) {
+                html += `<div class="sidebar-section"><div class="sidebar-subtitle">Producer configs</div>`;
+                for (let [key, val] of Object.entries(famInfo.node_call_configs)) {
+                    let displayVal = typeof val === 'object' ? JSON.stringify(val) : val;
+                    if (isHeadOfActiveShift && activeShift && activeShift.shift_configs && key in activeShift.shift_configs) {
+                        const newVal = activeShift.shift_configs[key];
+                        displayVal = `<div style="display: flex; flex-direction: column; gap: 2px;"><span style="text-decoration: line-through; color: #7f8c8d; font-size: 0.95em;">${displayVal}</span><div style="color: #e74c3c; font-weight: bold; display: flex; align-items: center; gap: 8px;"><span style="font-size: 1.2em;">&#10142;</span><span>${typeof newVal === 'object' ? JSON.stringify(newVal) : newVal}</span></div></div>`;
+                    }
+                    html += `<div class="detail-row"><span class="detail-label">${key}</span><span class="detail-value">${displayVal}</span></div>`;
+                }
+                html += `</div>`;
+            }
+        }
+
+        let inFams = new Set(), outFams = new Set();
+        headNode.connectedEdges().forEach(e => {
+            if (e.target().id() === headNode.id()) inFams.add(e.data("family"));
+            else outFams.add(e.data("family"));
+        });
+
+        html += renderFamilyLinkList("Required Quantities", inFams);
+        html += renderFamilyLinkList("Produced Quantities", outFams);
+
+        if (famInfo) {
+            let readsFromFileHtml = "";
+            if (famInfo.file_in && Object.keys(famInfo.file_in).length > 0) {
+                for (const [source, items] of Object.entries(famInfo.file_in)) {
+                    if (items.length > 0) {
+                        readsFromFileHtml += renderSubList(source, new Set(items), shiftedInputsSet);
+                    }
+                }
+            }
+            if (hiddenIncomingSources.size > 0) {
+                readsFromFileHtml += renderSubList("Filtered Source Producer", hiddenIncomingSources, shiftedInputsSet);
+            }
+
+            if (readsFromFileHtml !== "") {
+                html += `<div class="sidebar-section"><div class="sidebar-subtitle">Reads from</div>${readsFromFileHtml}</div>`;
+            }
+
+            if (famInfo.file_out && famInfo.file_out.length > 0) {
+                const outHighlightSet = isAffectedNode ? new Set(famInfo.file_out) : new Set();
+                html += `<div class="sidebar-section"><div class="sidebar-subtitle">Writes to file</div>${renderSubList("Ntuple", new Set(famInfo.file_out), outHighlightSet)}</div>`;
+            }
+        }
+    }
+
+    sidebarContent.innerHTML = html;
+    document.getElementById("sidebar").style.display = "flex";
+}
+
+function renderFamilyLinkList(title, famSet) {
+    if (famSet.size === 0) return "";
+    let html = `<div class="sidebar-section"><div class="sidebar-subtitle">${title}</div><ul class="node-list">`;
+    Array.from(famSet).sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b))).forEach(f => {
+        html += `<li><div class="detail-box clickable" onclick="focusFamily('${f}')">${getDisplayName(f)}</div></li>`;
+    });
+    return html + `</ul></div>`;
+}
+
+function renderSubList(title, set, highlightSet = new Set()) {
+    if (set.size === 0) return "";
+    const listItems = Array.from(set).sort().map(l => highlightSet.has(l) ? `<li style="color: #e74c3c; font-weight: bold;">${l}</li>` : `<li>${l}</li>`).join('');
+    return `<div style="margin-top: 4px;"><div class="detail-label" style="color: #bdc3c7; margin-bottom: 2px;">${title}</div><ul class="simple-list">${listItems}</ul></div>`;
+}
+
+function setupInteractions() {
+    cy.on("tap", "node, edge", function (evt) { focusFamily(evt.target.data("family")); });
+    cy.on("tap", function (evt) {
+        if (evt.target === cy) { document.getElementById("sidebar").style.display = "none"; cy.elements().removeClass("activeFocus"); }
+    });
+}
+
+function moveFocus(dir) {
+    if (familyResults.length === 0) return;
+    currentIndex = (currentIndex + dir + familyResults.length) % familyResults.length;
+    focusFamily(familyResults[currentIndex].famName);
+}
+
+function cancelSearch() {
+    document.getElementById("searchInput").value = "";
+    cy.elements().removeClass("highlighted activeFocus");
+    searchResults = []; familyResults = []; currentIndex = -1;
+    document.getElementById("sidebar").style.display = "none";
+    updateUI();
+}
+
+function focusFamily(famName) {
+    cy.elements().removeClass("activeFocus");
+    let collection = cy.elements().filter(e => e.data('family') === famName);
+    
+    if(collection.empty()) { 
+        const el = cy.getElementById(famName);
+        if(el.length > 0) collection = collection.union(el);
+        else return; 
+    }
+
+    collection.addClass("activeFocus");
+    
+    const headNode = collection.filter('node').first();
+    if (headNode.length > 0) cy.animate({ center: { eles: headNode }, zoom: 1.3, duration: 350 });
+
+    updateSidebar(collection, famName);
+    const searchIdx = familyResults.findIndex(res => res.famName === famName);
+    if (searchIdx !== -1) { currentIndex = searchIdx; updateUI(); }
+}
+
+function updateUI() {
+    const count = familyResults.length;
+    const input = document.getElementById("searchInput").value;
+    const searchStatusEl = document.getElementById("search-status");
+    searchStatusEl.innerText = input && count > 0 ? `${currentIndex + 1} / ${count}` : "";
+    document.getElementById("prevBtn").disabled = count === 0;
+    document.getElementById("nextBtn").disabled = count === 0;
+}
+
+function getDisplayName(famName) {
+    if (famName.startsWith('edge_')) return famName.substring(5);
+    const nodeInfo = metaData.nodeRegister?.[famName];
+    if (nodeInfo) return nodeInfo.name || famName;
+    return famName;
+}
+
+function runSearch() {
+    const query = document.getElementById("searchInput").value;
+    if (!query) return cancelSearch();
+
+    const regex = new RegExp(query, "i");
+    cy.elements().removeClass("highlighted activeFocus");
+    const matchedFamilies = new Set();
+
+    if (metaData.nodeRegister) {
+        for (const [famName, famInfo] of Object.entries(metaData.nodeRegister)) {
+            const allIn = famInfo.file_in ? Object.values(famInfo.file_in).flat() : [];
+            const searchString = [famName, famInfo.name, famInfo.node_call, ...allIn, ...(famInfo.file_out || [])].filter(Boolean).join(" ");
+            if (regex.test(searchString)) matchedFamilies.add(famName);
+        }
+    }
+    
+    if (metaData.edgeRegister) {
+        for (const [source, qties] of Object.entries(metaData.edgeRegister)) {
+            for (const qty of Object.keys(qties)) {
+                if (regex.test(`edge_${qty}`) || regex.test(qty)) matchedFamilies.add(`edge_${qty}`);
+            }
+        }
+    }
+
+    familyResults = [...matchedFamilies].map(famName => ({ famName })).filter(res => cy.elements().filter(e => e.data('family') === res.famName).length > 0);
+
+    const highlightSet = cy.collection();
+    familyResults.forEach(res => { highlightSet.merge(cy.elements().filter(e => e.data('family') === res.famName)); });
+
+    if (highlightSet.length > 0) {
+        highlightSet.addClass("highlighted");
+        currentIndex = -1;
+        moveFocus(1);
+    } else {
+        currentIndex = -1;
+        updateUI();
+    }
+}
+
+function resetView() {
+    cy.animate({ fit: { padding: 40 }, duration: 500 });
+    cancelSearch();
+    document.getElementById("select-shift").value = "";
+    excludedInputsState.clear(); excludedOutputsState.clear();
+    applyGraphFilters(); 
+}
+
+window.onload = loadConfig;
+</script>
+</body>
+</html>
