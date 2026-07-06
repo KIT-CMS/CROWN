@@ -466,7 +466,24 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df, const std::string &outputname,
  * @brief This function is used to calculate an event weight to correct the top
  * quark \f$p_T\f$ mismodeling in simulated \f$t\bar{t}\f$ events. The
  * correction is provided by the Top POG and in case of this function the
- * calculated weight corrects NLO simulation (POWHEG+Pythia8) to data.
+ * calculated weight corrects NLO simulation (POWHEG+Pythia8) to NNLO.
+ *
+ * For reference: https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting
+ *
+ * The weight is calculated as \f$w=\sqrt{SF(t)\cdot SF(\bar{t})}\f$
+ *
+ * with \f$SF= 0.103\cdot\exp(-0.0118\cdot p_T)-0.000134\cdot p_T+0.973.\f$
+ *
+ * Futher this weight is multiplied with a correction factor to account for the
+ * changed center of mass energy between Run 2 and Run 3. The correction factor
+ * is calculated as
+ *
+ * \f$SF=0.991+0.000075\cdot p_T\f$
+ *
+ * and is applied to each top quark individually same as the first weight. The
+ * final weight it then calculated as
+ *
+ * \f$w_{total}=w\cdot *w_{corr}\f$
  *
  * @param df input dataframe
  * @param outputname name of the output column containing the derived event
@@ -480,13 +497,13 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df, const std::string &outputname,
  *
  * @return a new dataframe containing the new column
  *
- * @note This follows the new recommendations from TOP PAG in AN 2025 050 for Run 3.
+ * @note This follows the new recommendations from TOP PAG in AN-2025-050 for
+ * Run 3.
  */
-ROOT::RDF::RNode
-TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
-          const std::string &genparticles_pdg_id,
-          const std::string &genparticles_status_flags,
-          const std::string &genparticles_pt) {
+ROOT::RDF::RNode TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
+                           const std::string &genparticles_pdg_id,
+                           const std::string &genparticles_status_flags,
+                           const std::string &genparticles_pt) {
     // In nanoAODv12 the type of genparticle status flags was changed to
     // UShort_t. For v9 compatibility a type casting is applied.
     auto [df1, genparticles_status_flags_column] =
@@ -505,7 +522,7 @@ TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
         }
         if (top_pts.size() != 2) {
             std::cout << top_pts.size();
-            Logger::get("event::reweighting::TopPt")
+            Logger::get("event::reweighting::TopPtRun3")
                 ->error("TTbar reweighting applied to event with not exactly "
                         "two top quarks. Probably due to wrong sample type. "
                         "n_top: {}",
@@ -516,17 +533,16 @@ TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
         const float parameter_b = -0.0118;
         const float parameter_c = -0.000134;
         const float parameter_d = 0.973;
-        // weight extracted for run 2 
-        const float w1 = sqrt(
-            (parameter_a * exp(parameter_b * top_pts[0]) +
-             parameter_c * top_pts[0] + parameter_d) *
-            (parameter_a * exp(parameter_b * top_pts[1]) +
-             parameter_c * top_pts[1] + parameter_d));
+        // weight extracted for run 2
+        const float w1 = sqrt((parameter_a * exp(parameter_b * top_pts[0]) +
+                               parameter_c * top_pts[0] + parameter_d) *
+                              (parameter_a * exp(parameter_b * top_pts[1]) +
+                               parameter_c * top_pts[1] + parameter_d));
         const float parameter_e = 0.991;
         const float parameter_f = 0.000075;
         // weight between run2 and run 3 centre of mass
         const float w2 = sqrt((parameter_e + parameter_f * top_pts[0]) *
-                               (parameter_e + parameter_f * top_pts[1]));
+                              (parameter_e + parameter_f * top_pts[1]));
         return w1 * w2;
     };
     auto df2 = df1.Define(outputname, ttbarreweightlambda,

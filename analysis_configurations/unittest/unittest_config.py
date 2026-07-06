@@ -133,9 +133,9 @@ def build_config(
             ),
             "jet_puid_max_pt": 50,  # recommended to apply puID only for jets below 50 GeV
             "jet_reapplyJES": False,
-            "jet_jes_sources": '"nom"',
+            "jet_jes_source": "nom",
             "jet_jes_shift": 0,
-            "jet_jer_shift": '"nom"',  # or '"up"', '"down"'
+            "jet_jer_shift": "nom",  # or "up", "down"
             "jet_jer_master_seed": 42,
             "jet_jec_file": EraModifier(
                 {
@@ -916,14 +916,14 @@ def build_config(
     #########################
     # Jet energy resolution
     #########################
-    JEC_sources = '{"Total"}'
+    JEC_sources = "Total"
     configuration.add_shift(
         SystematicShift(
             name="jesUncTotalUp",
             shift_config={
                 "global": {
                     "jet_jes_shift": 1,
-                    "jet_jes_sources": JEC_sources,
+                    "jet_jes_source": JEC_sources,
                 }
             },
             producers={
@@ -940,7 +940,7 @@ def build_config(
             shift_config={
                 "global": {
                     "jet_jes_shift": -1,
-                    "jet_jes_sources": JEC_sources,
+                    "jet_jes_source": JEC_sources,
                 }
             },
             producers={

@@ -111,7 +111,7 @@ std::string get_tes_variation(const float &abs_eta, const int &decay_mode,
  * @param decay_mode decay mode of the tau
  * @param gen_match gen match of the tau
  * @param variation_efake_dm0 variation for electron faking a tau with
- * decay mode 0 
+ * decay mode 0
  * @param variation_efake_dm1 variation for electron faking a tau with
  * decay mode 1
  * @param variation_efake_dm10 variation for electron faking a tau with
@@ -126,38 +126,39 @@ std::string get_tes_variation(const float &abs_eta, const int &decay_mode,
  *
  * @return the variation to use in the correctionlib evaluator
  */
-std::string get_tes_variation(const float &eta, const float &pt,
-                              const int &decay_mode, const int &gen_match,
-                              const std::string &variation_efake_dm0_barrel,
-                              const std::string &variation_efake_dm1_barrel,
-                              const std::string &variation_efake_dm10_barrel,
-                              const std::string &variation_efake_dm11_barrel,
-                              const std::string &variation_efake_dm0_endcap,
-                              const std::string &variation_efake_dm1_endcap,
-                              const std::string &variation_efake_dm10_endcap,
-                              const std::string &variation_efake_dm11_endcap,
-                              const std::string &variation_mufake_dm0,
-                              const std::string &variation_mufake_dm1,
-                              const std::string &variation_mufake_dm10,
-                              const std::string &variation_mufake_dm11,
-                              const std::string &variation_gentau_dm0_pt20to40,
-                              const std::string &variation_gentau_dm0_pt40to60,
-                              const std::string &variation_gentau_dm0_pt60toInf,
-                              const std::string &variation_gentau_dm1_pt20to40,
-                              const std::string &variation_gentau_dm1_pt40to60,
-                              const std::string &variation_gentau_dm1_pt60toInf,
-                              const std::string &variation_gentau_dm10_pt20to40,
-                              const std::string &variation_gentau_dm10_pt40to60,
-                              const std::string &variation_gentau_dm10_pt60toInf,
-                              const std::string &variation_gentau_dm11_pt20to40,
-                              const std::string &variation_gentau_dm11_pt40to60,
-                              const std::string &variation_gentau_dm11_pt60toInf) {
+std::string
+get_tes_variation(const float &eta, const float &pt, const int &decay_mode,
+                  const int &gen_match,
+                  const std::string &variation_efake_dm0_barrel,
+                  const std::string &variation_efake_dm1_barrel,
+                  const std::string &variation_efake_dm10_barrel,
+                  const std::string &variation_efake_dm11_barrel,
+                  const std::string &variation_efake_dm0_endcap,
+                  const std::string &variation_efake_dm1_endcap,
+                  const std::string &variation_efake_dm10_endcap,
+                  const std::string &variation_efake_dm11_endcap,
+                  const std::string &variation_mufake_dm0,
+                  const std::string &variation_mufake_dm1,
+                  const std::string &variation_mufake_dm10,
+                  const std::string &variation_mufake_dm11,
+                  const std::string &variation_gentau_dm0_pt20to40,
+                  const std::string &variation_gentau_dm0_pt40to60,
+                  const std::string &variation_gentau_dm0_pt60toInf,
+                  const std::string &variation_gentau_dm1_pt20to40,
+                  const std::string &variation_gentau_dm1_pt40to60,
+                  const std::string &variation_gentau_dm1_pt60toInf,
+                  const std::string &variation_gentau_dm10_pt20to40,
+                  const std::string &variation_gentau_dm10_pt40to60,
+                  const std::string &variation_gentau_dm10_pt60toInf,
+                  const std::string &variation_gentau_dm11_pt20to40,
+                  const std::string &variation_gentau_dm11_pt40to60,
+                  const std::string &variation_gentau_dm11_pt60toInf) {
 
     double max_abs_eta_barrel = 1.46;
     double min_abs_eta_endcap = 1.558;
     double max_abs_eta_endcap = 2.5; // 2.3 for run2 but selected in config
 
-    const float pt_cut_low  = 40.0f;
+    const float pt_cut_low = 40.0f;
     const float pt_cut_high = 60.0f;
 
     std::string variation = "nom";
@@ -177,8 +178,7 @@ std::string get_tes_variation(const float &eta, const float &pt,
             }
         }
 
-        else if (eta >= min_abs_eta_endcap &&
-                eta < max_abs_eta_endcap) {
+        else if (eta >= min_abs_eta_endcap && eta < max_abs_eta_endcap) {
             if (decay_mode == 0) {
                 variation = variation_efake_dm0_endcap;
             } else if (decay_mode == 1) {
@@ -257,7 +257,7 @@ std::string get_tes_variation(const float &eta, const float &pt,
  * @param decay_mode decay mode of the tau
  * @param gen_match gen match of the tau
  * @param variation_efake_dm0 variation for electron faking a tau with
- * decay mode 0 
+ * decay mode 0
  * @param variation_efake_dm1 variation for electron faking a tau with
  * decay mode 1
  * @param variation_efake_dm10 variation for electron faking a tau with
@@ -272,8 +272,8 @@ std::string get_tes_variation(const float &eta, const float &pt,
  *
  * @return the variation to use in the correctionlib evaluator
  */
-std::string get_tes_variation(const float &eta, 
-                              const int &decay_mode, const int &gen_match,
+std::string get_tes_variation(const float &eta, const int &decay_mode,
+                              const int &gen_match,
                               const std::string &variation_efake_dm0_barrel,
                               const std::string &variation_efake_dm1_barrel,
                               const std::string &variation_efake_dm10_barrel,
@@ -312,8 +312,7 @@ std::string get_tes_variation(const float &eta,
             }
         }
 
-        else if (eta >= min_abs_eta_endcap &&
-                eta < max_abs_eta_endcap) {
+        else if (eta >= min_abs_eta_endcap && eta < max_abs_eta_endcap) {
             if (decay_mode == 0) {
                 variation = variation_efake_dm0_endcap;
             } else if (decay_mode == 1) {
@@ -370,7 +369,7 @@ std::string get_tes_variation(const float &eta,
  * @param decay_mode decay mode of the tau
  * @param gen_match gen match of the tau
  * @param variation_efake_dm0 variation for electron faking a tau with
- * decay mode 0 
+ * decay mode 0
  * @param variation_efake_dm1 variation for electron faking a tau with
  * decay mode 1
  * @param variation_efake_dm10 variation for electron faking a tau with
@@ -385,17 +384,16 @@ std::string get_tes_variation(const float &eta,
  *
  * @return the variation to use in the correctionlib evaluator
  */
-std::string get_vsele_variation(const int &decay_mode,
-                              const float &eta,
-                              const std::string &era,
-                              const std::string &variation_dm0_barrel,
-                              const std::string &variation_dm1_barrel,
-                              const std::string &variation_dm10_barrel,
-                              const std::string &variation_dm11_barrel,
-                              const std::string &variation_dm0_endcap,
-                              const std::string &variation_dm1_endcap,
-                              const std::string &variation_dm10_endcap,
-                              const std::string &variation_dm11_endcap) {
+std::string get_vsele_variation(const int &decay_mode, const float &eta,
+                                const std::string &era,
+                                const std::string &variation_dm0_barrel,
+                                const std::string &variation_dm1_barrel,
+                                const std::string &variation_dm10_barrel,
+                                const std::string &variation_dm11_barrel,
+                                const std::string &variation_dm0_endcap,
+                                const std::string &variation_dm1_endcap,
+                                const std::string &variation_dm10_endcap,
+                                const std::string &variation_dm11_endcap) {
 
     // set the variation depending on the gen match, decay mode, and eta
     // for uncovered cases, "nom" is returned
@@ -417,8 +415,7 @@ std::string get_vsele_variation(const int &decay_mode,
         }
     }
 
-    else if (eta >= min_abs_eta_endcap &&
-            eta < max_abs_eta_endcap) {
+    else if (eta >= min_abs_eta_endcap && eta < max_abs_eta_endcap) {
         if (decay_mode == 0) {
             variation = variation_dm0_endcap;
         } else if (decay_mode == 1) {
@@ -542,8 +539,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &eta, const std::string &decay_mode,
                const std::string &gen_match, const std::string &es_file,
                const std::string &correction_name,
-               const std::string &id_algorithm,
-               const std::string &id_vs_jet_wp,
+               const std::string &id_algorithm, const std::string &id_vs_jet_wp,
                const std::string &id_vs_ele_wp,
                const std::vector<int> &selected_dms,
                const std::string &variation_efake_dm0_barrel,
@@ -579,104 +575,86 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     auto evaluator =
         correction_manager.loadCorrection(es_file, correction_name);
 
-    auto correction_lambda = [evaluator, id_algorithm, id_vs_jet_wp,
-                                id_vs_ele_wp, selected_dms,
-                                variation_efake_dm0_barrel,
-                                variation_efake_dm1_barrel,
-                                variation_efake_dm10_barrel,
-                                variation_efake_dm11_barrel,
-                                variation_efake_dm0_endcap,
-                                variation_efake_dm1_endcap,
-                                variation_efake_dm10_endcap,
-                                variation_efake_dm11_endcap,
-                                variation_mufake_dm0,
-                                variation_mufake_dm1,
-                                variation_mufake_dm10,
-                                variation_mufake_dm11,
-                                variation_gentau_dm0_pt20to40,
-                                variation_gentau_dm0_pt40to60,
-                                variation_gentau_dm0_pt60toInf,
-                                variation_gentau_dm1_pt20to40,
-                                variation_gentau_dm1_pt40to60,
-                                variation_gentau_dm1_pt60toInf,
-                                variation_gentau_dm10_pt20to40,
-                                variation_gentau_dm10_pt40to60,
-                                variation_gentau_dm10_pt60toInf,
-                                variation_gentau_dm11_pt20to40,
-                                variation_gentau_dm11_pt40to60,
-                                variation_gentau_dm11_pt60toInf](
-                                 const ROOT::RVec<float> &pts,
-                                 const ROOT::RVec<float> &etas,
-                                 const ROOT::RVec<UChar_t> &decay_modes_v12,
-                                 const ROOT::RVec<UChar_t> &gen_matches_char) {
-        // convert decay modes and gen matches to integers
-        auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
-        auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
+    auto correction_lambda =
+        [evaluator, id_algorithm, id_vs_jet_wp, id_vs_ele_wp, selected_dms,
+         variation_efake_dm0_barrel, variation_efake_dm1_barrel,
+         variation_efake_dm10_barrel, variation_efake_dm11_barrel,
+         variation_efake_dm0_endcap, variation_efake_dm1_endcap,
+         variation_efake_dm10_endcap, variation_efake_dm11_endcap,
+         variation_mufake_dm0, variation_mufake_dm1, variation_mufake_dm10,
+         variation_mufake_dm11, variation_gentau_dm0_pt20to40,
+         variation_gentau_dm0_pt40to60, variation_gentau_dm0_pt60toInf,
+         variation_gentau_dm1_pt20to40, variation_gentau_dm1_pt40to60,
+         variation_gentau_dm1_pt60toInf, variation_gentau_dm10_pt20to40,
+         variation_gentau_dm10_pt40to60, variation_gentau_dm10_pt60toInf,
+         variation_gentau_dm11_pt20to40, variation_gentau_dm11_pt40to60,
+         variation_gentau_dm11_pt60toInf](
+            const ROOT::RVec<float> &pts, const ROOT::RVec<float> &etas,
+            const ROOT::RVec<UChar_t> &decay_modes_v12,
+            const ROOT::RVec<UChar_t> &gen_matches_char) {
+            // convert decay modes and gen matches to integers
+            auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
+            auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
 
-        // container for corrected pts
-        ROOT::RVec<float> corrected_pts(pts.size());
+            // container for corrected pts
+            ROOT::RVec<float> corrected_pts(pts.size());
 
-        for (int i = 0; i < pts.size(); i++) {
-            // get tau variables that we need for scale factor evaluation
-            auto pt = pts.at(i);
-            auto abs_eta = std::abs(etas.at(i));
-            auto decay_mode = decay_modes.at(i);
-            auto gen_match = gen_matches.at(i);
+            for (int i = 0; i < pts.size(); i++) {
+                // get tau variables that we need for scale factor evaluation
+                auto pt = pts.at(i);
+                auto abs_eta = std::abs(etas.at(i));
+                auto decay_mode = decay_modes.at(i);
+                auto gen_match = gen_matches.at(i);
 
-            // set the variation depending on the gen match and decay mode
-            std::string variation = get_tes_variation(
-                abs_eta, pt, decay_mode, gen_match,
-                variation_efake_dm0_barrel,
-                variation_efake_dm1_barrel,
-                variation_efake_dm10_barrel,
-                variation_efake_dm11_barrel,
-                variation_efake_dm0_endcap,
-                variation_efake_dm1_endcap,
-                variation_efake_dm10_endcap,
-                variation_efake_dm11_endcap,
-                variation_mufake_dm0,
-                variation_mufake_dm1,
-                variation_mufake_dm10,
-                variation_mufake_dm11,
-                variation_gentau_dm0_pt20to40,
-                variation_gentau_dm0_pt40to60,
-                variation_gentau_dm0_pt60toInf,
-                variation_gentau_dm1_pt20to40,
-                variation_gentau_dm1_pt40to60,
-                variation_gentau_dm1_pt60toInf,
-                variation_gentau_dm10_pt20to40,
-                variation_gentau_dm10_pt40to60,
-                variation_gentau_dm10_pt60toInf,
-                variation_gentau_dm11_pt20to40,
-                variation_gentau_dm11_pt40to60,
-                variation_gentau_dm11_pt60toInf);
+                // set the variation depending on the gen match and decay mode
+                std::string variation = get_tes_variation(
+                    abs_eta, pt, decay_mode, gen_match,
+                    variation_efake_dm0_barrel, variation_efake_dm1_barrel,
+                    variation_efake_dm10_barrel, variation_efake_dm11_barrel,
+                    variation_efake_dm0_endcap, variation_efake_dm1_endcap,
+                    variation_efake_dm10_endcap, variation_efake_dm11_endcap,
+                    variation_mufake_dm0, variation_mufake_dm1,
+                    variation_mufake_dm10, variation_mufake_dm11,
+                    variation_gentau_dm0_pt20to40,
+                    variation_gentau_dm0_pt40to60,
+                    variation_gentau_dm0_pt60toInf,
+                    variation_gentau_dm1_pt20to40,
+                    variation_gentau_dm1_pt40to60,
+                    variation_gentau_dm1_pt60toInf,
+                    variation_gentau_dm10_pt20to40,
+                    variation_gentau_dm10_pt40to60,
+                    variation_gentau_dm10_pt60toInf,
+                    variation_gentau_dm11_pt20to40,
+                    variation_gentau_dm11_pt40to60,
+                    variation_gentau_dm11_pt60toInf);
 
-            // evaluate the correction factor
-            // ensure that the tau fulfills the selection criteria for
-            // application of the correction, set the correction factor to 1
-            // otherwise
-            float correction_factor = 1.0;
-            if (std::find(selected_dms.begin(), selected_dms.end(),
-                          decay_mode) != selected_dms.end()) {
-                correction_factor = evaluator->evaluate(
-                    {pt, abs_eta, decay_mode, gen_match, id_algorithm,
-                        id_vs_jet_wp, id_vs_ele_wp, variation});
-            }
+                // evaluate the correction factor
+                // ensure that the tau fulfills the selection criteria for
+                // application of the correction, set the correction factor to 1
+                // otherwise
+                float correction_factor = 1.0;
+                if (std::find(selected_dms.begin(), selected_dms.end(),
+                              decay_mode) != selected_dms.end()) {
+                    correction_factor = evaluator->evaluate(
+                        {pt, abs_eta, decay_mode, gen_match, id_algorithm,
+                         id_vs_jet_wp, id_vs_ele_wp, variation});
+                }
 
-            // calculate the corrected pt
-            corrected_pts[i] = pt * correction_factor;
+                // calculate the corrected pt
+                corrected_pts[i] = pt * correction_factor;
 
-            // debug information
-            Logger::get("physicsobject::tau::PtCorrectionMC")
-                ->debug("apply tau pt correction to tau pt {}, decaymode {}, "
+                // debug information
+                Logger::get("physicsobject::tau::PtCorrectionMC")
+                    ->debug(
+                        "apply tau pt correction to tau pt {}, decaymode {}, "
                         "gen match {}, variation {} --> corrected pt {}, "
                         "correction factor {}",
                         pt, decay_mode, gen_match, variation,
                         corrected_pts.at(i), correction_factor);
-        }
+            }
 
-        return corrected_pts;
-    };
+            return corrected_pts;
+        };
 
     auto df2 = df1.Define(outputname, correction_lambda,
                           {pt, eta, decay_mode_column, gen_match});
@@ -786,8 +764,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &eta, const std::string &decay_mode,
                const std::string &gen_match, const std::string &es_file,
                const std::string &correction_name,
-               const std::string &id_algorithm,
-               const std::string &id_vs_jet_wp,
+               const std::string &id_algorithm, const std::string &id_vs_jet_wp,
                const std::string &id_vs_ele_wp,
                const std::vector<int> &selected_dms,
                const std::string &variation_efake_dm0_barrel,
@@ -815,88 +792,71 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     auto evaluator =
         correction_manager.loadCorrection(es_file, correction_name);
 
-    auto correction_lambda = [evaluator, id_algorithm, id_vs_jet_wp,
-                                id_vs_ele_wp, selected_dms,
-                                variation_efake_dm0_barrel,
-                                variation_efake_dm1_barrel,
-                                variation_efake_dm10_barrel,
-                                variation_efake_dm11_barrel,
-                                variation_efake_dm0_endcap,
-                                variation_efake_dm1_endcap,
-                                variation_efake_dm10_endcap,
-                                variation_efake_dm11_endcap,
-                                variation_mufake_dm0,
-                                variation_mufake_dm1,
-                                variation_mufake_dm10,
-                                variation_mufake_dm11,
-                                variation_gentau_dm0,
-                                variation_gentau_dm1,
-                                variation_gentau_dm10,
-                                variation_gentau_dm11](
-                                 const ROOT::RVec<float> &pts,
-                                 const ROOT::RVec<float> &etas,
-                                 const ROOT::RVec<UChar_t> &decay_modes_v12,
-                                 const ROOT::RVec<UChar_t> &gen_matches_char) {
-        // convert decay modes and gen matches to integers
-        auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
-        auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
+    auto correction_lambda =
+        [evaluator, id_algorithm, id_vs_jet_wp, id_vs_ele_wp, selected_dms,
+         variation_efake_dm0_barrel, variation_efake_dm1_barrel,
+         variation_efake_dm10_barrel, variation_efake_dm11_barrel,
+         variation_efake_dm0_endcap, variation_efake_dm1_endcap,
+         variation_efake_dm10_endcap, variation_efake_dm11_endcap,
+         variation_mufake_dm0, variation_mufake_dm1, variation_mufake_dm10,
+         variation_mufake_dm11, variation_gentau_dm0, variation_gentau_dm1,
+         variation_gentau_dm10, variation_gentau_dm11](
+            const ROOT::RVec<float> &pts, const ROOT::RVec<float> &etas,
+            const ROOT::RVec<UChar_t> &decay_modes_v12,
+            const ROOT::RVec<UChar_t> &gen_matches_char) {
+            // convert decay modes and gen matches to integers
+            auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
+            auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
 
-        // container for corrected pts
-        ROOT::RVec<float> corrected_pts(pts.size());
+            // container for corrected pts
+            ROOT::RVec<float> corrected_pts(pts.size());
 
-        for (int i = 0; i < pts.size(); i++) {
-            // get tau variables that we need for scale factor evaluation
-            auto pt = pts.at(i);
-            auto abs_eta = std::abs(etas.at(i));
-            auto decay_mode = decay_modes.at(i);
-            auto gen_match = gen_matches.at(i);
+            for (int i = 0; i < pts.size(); i++) {
+                // get tau variables that we need for scale factor evaluation
+                auto pt = pts.at(i);
+                auto abs_eta = std::abs(etas.at(i));
+                auto decay_mode = decay_modes.at(i);
+                auto gen_match = gen_matches.at(i);
 
-            // set the variation depending on the gen match and decay mode
-            std::string variation = get_tes_variation(
-                abs_eta, decay_mode, gen_match, 
-                variation_efake_dm0_barrel,
-                variation_efake_dm1_barrel,
-                variation_efake_dm10_barrel,
-                variation_efake_dm11_barrel,
-                variation_efake_dm0_endcap,
-                variation_efake_dm1_endcap,
-                variation_efake_dm10_endcap,
-                variation_efake_dm11_endcap,
-                variation_mufake_dm0,
-                variation_mufake_dm1,
-                variation_mufake_dm10,
-                variation_mufake_dm11,
-                variation_gentau_dm0,
-                variation_gentau_dm1,
-                variation_gentau_dm10,
-                variation_gentau_dm11);
+                // set the variation depending on the gen match and decay mode
+                std::string variation = get_tes_variation(
+                    abs_eta, decay_mode, gen_match, variation_efake_dm0_barrel,
+                    variation_efake_dm1_barrel, variation_efake_dm10_barrel,
+                    variation_efake_dm11_barrel, variation_efake_dm0_endcap,
+                    variation_efake_dm1_endcap, variation_efake_dm10_endcap,
+                    variation_efake_dm11_endcap, variation_mufake_dm0,
+                    variation_mufake_dm1, variation_mufake_dm10,
+                    variation_mufake_dm11, variation_gentau_dm0,
+                    variation_gentau_dm1, variation_gentau_dm10,
+                    variation_gentau_dm11);
 
-            // evaluate the correction factor
-            // ensure that the tau fulfills the selection criteria for
-            // application of the correction, set the correction factor to 1
-            // otherwise
-            float correction_factor = 1.0;
-            if (std::find(selected_dms.begin(), selected_dms.end(),
-                          decay_mode) != selected_dms.end()) {
-                correction_factor = evaluator->evaluate(
-                    {pt, abs_eta, decay_mode, gen_match, id_algorithm,
-                        id_vs_jet_wp, id_vs_ele_wp, variation});
-            }
+                // evaluate the correction factor
+                // ensure that the tau fulfills the selection criteria for
+                // application of the correction, set the correction factor to 1
+                // otherwise
+                float correction_factor = 1.0;
+                if (std::find(selected_dms.begin(), selected_dms.end(),
+                              decay_mode) != selected_dms.end()) {
+                    correction_factor = evaluator->evaluate(
+                        {pt, abs_eta, decay_mode, gen_match, id_algorithm,
+                         id_vs_jet_wp, id_vs_ele_wp, variation});
+                }
 
-            // calculate the corrected pt
-            corrected_pts[i] = pt * correction_factor;
+                // calculate the corrected pt
+                corrected_pts[i] = pt * correction_factor;
 
-            // debug information
-            Logger::get("physicsobject::tau::PtCorrectionMC")
-                ->debug("apply tau pt correction to tau pt {}, decaymode {}, "
+                // debug information
+                Logger::get("physicsobject::tau::PtCorrectionMC")
+                    ->debug(
+                        "apply tau pt correction to tau pt {}, decaymode {}, "
                         "gen match {}, variation {} --> corrected pt {}, "
                         "correction factor {}",
                         pt, decay_mode, gen_match, variation,
                         corrected_pts.at(i), correction_factor);
-        }
+            }
 
-        return corrected_pts;
-    };
+            return corrected_pts;
+        };
 
     auto df2 = df1.Define(outputname, correction_lambda,
                           {pt, eta, decay_mode_column, gen_match});
@@ -1006,8 +966,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &eta, const std::string &decay_mode,
                const std::string &gen_match, const std::string &es_file,
                const std::string &correction_name,
-               const std::string &id_algorithm,
-               const std::string &id_vs_jet_wp,
+               const std::string &id_algorithm, const std::string &id_vs_jet_wp,
                const std::string &id_vs_ele_wp,
                const std::vector<int> &selected_dms,
                const std::string &variation_efake_dm0_barrel,
@@ -1028,66 +987,64 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     auto evaluator =
         correction_manager.loadCorrection(es_file, correction_name);
 
-    auto correction_lambda = [evaluator, id_algorithm, id_vs_jet_wp,
-                              id_vs_ele_wp, variation_efake_dm0_barrel,
-                              variation_efake_dm1_barrel,
-                              variation_efake_dm0_endcap,
-                              variation_efake_dm1_endcap, variation_mufake,
-                              variation_gentau_dm0, variation_gentau_dm1,
-                              variation_gentau_dm10, variation_gentau_dm11, 
-                              selected_dms](
-                                 const ROOT::RVec<float> &pts,
-                                 const ROOT::RVec<float> &etas,
-                                 const ROOT::RVec<UChar_t> &decay_modes_v12,
-                                 const ROOT::RVec<UChar_t> &gen_matches_char) {
-        // convert decay modes and gen matches to integers
-        auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
-        auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
+    auto correction_lambda =
+        [evaluator, id_algorithm, id_vs_jet_wp, id_vs_ele_wp,
+         variation_efake_dm0_barrel, variation_efake_dm1_barrel,
+         variation_efake_dm0_endcap, variation_efake_dm1_endcap,
+         variation_mufake, variation_gentau_dm0, variation_gentau_dm1,
+         variation_gentau_dm10, variation_gentau_dm11, selected_dms](
+            const ROOT::RVec<float> &pts, const ROOT::RVec<float> &etas,
+            const ROOT::RVec<UChar_t> &decay_modes_v12,
+            const ROOT::RVec<UChar_t> &gen_matches_char) {
+            // convert decay modes and gen matches to integers
+            auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
+            auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
 
-        // container for corrected pts
-        ROOT::RVec<float> corrected_pts(pts.size());
+            // container for corrected pts
+            ROOT::RVec<float> corrected_pts(pts.size());
 
-        for (int i = 0; i < pts.size(); i++) {
-            // get tau variables that we need for scale factor evaluation
-            auto pt = pts.at(i);
-            auto abs_eta = std::abs(etas.at(i));
-            auto decay_mode = decay_modes.at(i);
-            auto gen_match = gen_matches.at(i);
+            for (int i = 0; i < pts.size(); i++) {
+                // get tau variables that we need for scale factor evaluation
+                auto pt = pts.at(i);
+                auto abs_eta = std::abs(etas.at(i));
+                auto decay_mode = decay_modes.at(i);
+                auto gen_match = gen_matches.at(i);
 
-            // set the variation depending on the gen match and decay mode
-            std::string variation = get_tes_variation( abs_eta, 
-                decay_mode, gen_match, variation_efake_dm0_barrel,
-                variation_efake_dm1_barrel, variation_efake_dm0_endcap,
-                variation_efake_dm1_endcap, variation_mufake,
-                variation_gentau_dm0, variation_gentau_dm1,
-                variation_gentau_dm10, variation_gentau_dm11);
+                // set the variation depending on the gen match and decay mode
+                std::string variation = get_tes_variation(
+                    abs_eta, decay_mode, gen_match, variation_efake_dm0_barrel,
+                    variation_efake_dm1_barrel, variation_efake_dm0_endcap,
+                    variation_efake_dm1_endcap, variation_mufake,
+                    variation_gentau_dm0, variation_gentau_dm1,
+                    variation_gentau_dm10, variation_gentau_dm11);
 
-            // evaluate the correction factor
-            // ensure that the tau fulfills the selection criteria for
-            // application of the correction, set the correction factor to 1
-            // otherwise
-            float correction_factor = 1.0;
-            if (std::find(selected_dms.begin(), selected_dms.end(),
-                          decay_mode) != selected_dms.end()) {
-                correction_factor = evaluator->evaluate(
-                    {pt, abs_eta, decay_mode, gen_match, id_algorithm,
-                        id_vs_jet_wp, id_vs_ele_wp, variation});
-            }
+                // evaluate the correction factor
+                // ensure that the tau fulfills the selection criteria for
+                // application of the correction, set the correction factor to 1
+                // otherwise
+                float correction_factor = 1.0;
+                if (std::find(selected_dms.begin(), selected_dms.end(),
+                              decay_mode) != selected_dms.end()) {
+                    correction_factor = evaluator->evaluate(
+                        {pt, abs_eta, decay_mode, gen_match, id_algorithm,
+                         id_vs_jet_wp, id_vs_ele_wp, variation});
+                }
 
-            // calculate the corrected pt
-            corrected_pts[i] = pt * correction_factor;
+                // calculate the corrected pt
+                corrected_pts[i] = pt * correction_factor;
 
-            // debug information
-            Logger::get("physicsobject::tau::PtCorrectionMC")
-                ->debug("apply tau pt correction to tau pt {}, decaymode {}, "
+                // debug information
+                Logger::get("physicsobject::tau::PtCorrectionMC")
+                    ->debug(
+                        "apply tau pt correction to tau pt {}, decaymode {}, "
                         "gen match {}, variation {} --> corrected pt {}, "
                         "correction factor {}",
                         pt, decay_mode, gen_match, variation,
                         corrected_pts.at(i), correction_factor);
-        }
+            }
 
-        return corrected_pts;
-    };
+            return corrected_pts;
+        };
 
     auto df2 = df1.Define(outputname, correction_lambda,
                           {pt, eta, decay_mode_column, gen_match});
@@ -1156,16 +1113,16 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  */
 ROOT::RDF::RNode
 PtCorrectionMC_efake(ROOT::RDF::RNode df,
-                       correctionManager::CorrectionManager &correction_manager,
-                       const std::string &outputname, const std::string &pt,
-                       const std::string &eta, const std::string &decay_mode,
-                       const std::string &gen_match, const std::string &es_file,
-                       const std::string &correction_name,
-                       const std::string &id_algorithm,
-                       const std::string &variation_dm0_barrel,
-                       const std::string &variation_dm1_barrel,
-                       const std::string &variation_dm0_endcap,
-                       const std::string &variation_dm1_endcap) {
+                     correctionManager::CorrectionManager &correction_manager,
+                     const std::string &outputname, const std::string &pt,
+                     const std::string &eta, const std::string &decay_mode,
+                     const std::string &gen_match, const std::string &es_file,
+                     const std::string &correction_name,
+                     const std::string &id_algorithm,
+                     const std::string &variation_dm0_barrel,
+                     const std::string &variation_dm1_barrel,
+                     const std::string &variation_dm0_endcap,
+                     const std::string &variation_dm1_endcap) {
     // In nanoAODv12 the type of tau decay mode was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, decay_mode_column] =
@@ -2473,51 +2430,42 @@ Id_vsEle(ROOT::RDF::RNode df,
     Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
         ->debug("ID - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator =
-        [evaluator, era, wp, 
-            variation_DM0_barrel,
-            variation_DM1_barrel,
-            variation_DM10_barrel,
-            variation_DM11_barrel,
-            variation_DM0_endcap,
-            variation_DM1_endcap,
-            variation_DM10_endcap,
-            variation_DM11_endcap, sf_name]
-            (const float &eta, const int &decay_mode, const int &gen_match) {
-            double sf = 1.;
+    auto sf_calculator = [evaluator, era, wp, variation_DM0_barrel,
+                          variation_DM1_barrel, variation_DM10_barrel,
+                          variation_DM11_barrel, variation_DM0_endcap,
+                          variation_DM1_endcap, variation_DM10_endcap,
+                          variation_DM11_endcap,
+                          sf_name](const float &eta, const int &decay_mode,
+                                   const int &gen_match) {
+        double sf = 1.;
 
-            float abs_eta = std::abs(eta);
-            if (abs_eta < 2.5) {
-                Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
-                    ->debug("ID {} - eta {}, dm {}, gen_match {}, wp {}, ",
-                            sf_name, abs_eta, decay_mode, gen_match, wp);
-                // the eta cuts are taken from the correctionlib json file to
-                // define barrel and endcap
-                std::string variation = get_vsele_variation(
-                    decay_mode, abs_eta, era, 
-                    variation_DM0_barrel,
-                    variation_DM1_barrel,
-                    variation_DM10_barrel,
-                    variation_DM11_barrel,
-                    variation_DM0_endcap,
-                    variation_DM1_endcap,
-                    variation_DM10_endcap,
-                    variation_DM11_endcap);
-
-                if (sf_name == "DeepTau2017v2p1VSe") {
-                    // SFs for DeepTau2017v2p1 depend on eta
-                    sf = evaluator->evaluate(
-                            {abs_eta, gen_match, wp, variation});
-                } else {
-                    // SFs for DeepTau2018v2p5 depend on eta and the decay mode
-                    sf = evaluator->evaluate(
-                            {abs_eta, decay_mode, gen_match, wp, variation});
-                }
-            }
+        float abs_eta = std::abs(eta);
+        if (abs_eta < 2.5) {
             Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
-                ->debug("Scale Factor {}", sf);
-            return sf;
-        };
+                ->debug("ID {} - eta {}, dm {}, gen_match {}, wp {}, ", sf_name,
+                        abs_eta, decay_mode, gen_match, wp);
+            // the eta cuts are taken from the correctionlib json file to
+            // define barrel and endcap
+            std::string variation = get_vsele_variation(
+                decay_mode, abs_eta, era, variation_DM0_barrel,
+                variation_DM1_barrel, variation_DM10_barrel,
+                variation_DM11_barrel, variation_DM0_endcap,
+                variation_DM1_endcap, variation_DM10_endcap,
+                variation_DM11_endcap);
+
+            if (sf_name == "DeepTau2017v2p1VSe") {
+                // SFs for DeepTau2017v2p1 depend on eta
+                sf = evaluator->evaluate({abs_eta, gen_match, wp, variation});
+            } else {
+                // SFs for DeepTau2018v2p5 depend on eta and the decay mode
+                sf = evaluator->evaluate(
+                    {abs_eta, decay_mode, gen_match, wp, variation});
+            }
+        }
+        Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
+            ->debug("Scale Factor {}", sf);
+        return sf;
+    };
     auto df1 =
         df.Define(outputname, sf_calculator, {eta, decay_mode, gen_match});
     return df1;
@@ -2580,58 +2528,59 @@ Id_vsEle(ROOT::RDF::RNode df,
     Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
         ->debug("ID - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator =
-        [evaluator, era, wp, variation_barrel, variation_endcap,
-         sf_name](const float &eta, const int &dm, const int &gen_match) {
-            double sf = 1.;
+    auto sf_calculator = [evaluator, era, wp, variation_barrel,
+                          variation_endcap,
+                          sf_name](const float &eta, const int &dm,
+                                   const int &gen_match) {
+        double sf = 1.;
 
-            // set edges of barrel and endcap region
+        // set edges of barrel and endcap region
 
-            double max_abs_eta_barrel = 1.46;
-            double min_abs_eta_endcap = 1.558;
-            double max_abs_eta_endcap = 2.5; // 2.3 for run2 but selected in config
+        double max_abs_eta_barrel = 1.46;
+        double min_abs_eta_endcap = 1.558;
+        double max_abs_eta_endcap = 2.5; // 2.3 for run2 but selected in config
 
-            // exclude default values due to tau energy correction shifts below
-            // good tau pt selection
-            if (eta > -5.0) {
-                Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
-                    ->debug("ID {} - eta {}, dm {}, gen_match {}, wp {}, "
-                            "variation_barrel "
-                            "{}, variation_endcap {}",
-                            sf_name, eta, dm, gen_match, wp, variation_barrel,
-                            variation_endcap);
-                // the eta cuts are taken from the correctionlib json file to
-                // define barrel and endcap
-                if (sf_name == "DeepTau2017v2p1VSe") {
-                    // SFs for DeepTau2017v2p1 depend on eta
-                    if (std::abs(eta) < max_abs_eta_barrel) {
-                        sf = evaluator->evaluate(
-                            {eta, gen_match, wp, variation_barrel});
-                    } else if (std::abs(eta) >= min_abs_eta_endcap &&
-                               std::abs(eta) < max_abs_eta_endcap) {
-                        sf = evaluator->evaluate(
-                            {eta, gen_match, wp, variation_endcap});
-                    } else {
-                        sf = 1.;
-                    }
+        // exclude default values due to tau energy correction shifts below
+        // good tau pt selection
+        if (eta > -5.0) {
+            Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
+                ->debug("ID {} - eta {}, dm {}, gen_match {}, wp {}, "
+                        "variation_barrel "
+                        "{}, variation_endcap {}",
+                        sf_name, eta, dm, gen_match, wp, variation_barrel,
+                        variation_endcap);
+            // the eta cuts are taken from the correctionlib json file to
+            // define barrel and endcap
+            if (sf_name == "DeepTau2017v2p1VSe") {
+                // SFs for DeepTau2017v2p1 depend on eta
+                if (std::abs(eta) < max_abs_eta_barrel) {
+                    sf = evaluator->evaluate(
+                        {eta, gen_match, wp, variation_barrel});
+                } else if (std::abs(eta) >= min_abs_eta_endcap &&
+                           std::abs(eta) < max_abs_eta_endcap) {
+                    sf = evaluator->evaluate(
+                        {eta, gen_match, wp, variation_endcap});
                 } else {
-                    // SFs for DeepTau2018v2p5 depend on eta and the decay mode
-                    if (std::abs(eta) < max_abs_eta_barrel) {
-                        sf = evaluator->evaluate(
-                            {eta, dm, gen_match, wp, variation_barrel});
-                    } else if (std::abs(eta) >= min_abs_eta_endcap &&
-                               std::abs(eta) < max_abs_eta_endcap) {
-                        sf = evaluator->evaluate(
-                            {eta, dm, gen_match, wp, variation_endcap});
-                    } else {
-                        sf = 1.;
-                    }
+                    sf = 1.;
+                }
+            } else {
+                // SFs for DeepTau2018v2p5 depend on eta and the decay mode
+                if (std::abs(eta) < max_abs_eta_barrel) {
+                    sf = evaluator->evaluate(
+                        {eta, dm, gen_match, wp, variation_barrel});
+                } else if (std::abs(eta) >= min_abs_eta_endcap &&
+                           std::abs(eta) < max_abs_eta_endcap) {
+                    sf = evaluator->evaluate(
+                        {eta, dm, gen_match, wp, variation_endcap});
+                } else {
+                    sf = 1.;
                 }
             }
-            Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
-                ->debug("Scale Factor {}", sf);
-            return sf;
-        };
+        }
+        Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
+            ->debug("Scale Factor {}", sf);
+        return sf;
+    };
     auto df1 =
         df.Define(outputname, sf_calculator, {eta, decay_mode, gen_match});
     return df1;
@@ -2738,7 +2687,8 @@ ROOT::RDF::RNode Id_vsMu(
                         ->debug(
                             "ID {} - eta {}, gen_match {}, wp {}, variation {}",
                             sf_name, abs_eta, gen_match, wp, variation);
-                    sf = evaluator->evaluate({abs_eta, gen_match, wp, variation});
+                    sf = evaluator->evaluate(
+                        {abs_eta, gen_match, wp, variation});
                 }
             }
         }
