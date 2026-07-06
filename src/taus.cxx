@@ -1112,7 +1112,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * `physicsobject::tau::TauCorrectionMC` instead.
  */
 ROOT::RDF::RNode
-PtCorrectionMC_efake(ROOT::RDF::RNode df,
+PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
                      correctionManager::CorrectionManager &correction_manager,
                      const std::string &outputname, const std::string &pt,
                      const std::string &eta, const std::string &decay_mode,
@@ -1181,7 +1181,7 @@ PtCorrectionMC_efake(ROOT::RDF::RNode df,
                 } else {
                     corrected_pts[i] = pts.at(i);
                 }
-                Logger::get("physicsobject::tau::PtCorrectionMC_efake")
+                Logger::get("physicsobject::tau::PtCorrectionMC_eleFake")
                     ->debug("tau pt before {}, tau pt after {}", pts.at(i),
                             corrected_pts.at(i));
             }
