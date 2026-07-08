@@ -13,9 +13,9 @@ ROOT::RDF::RNode PtCorrectionL1(
     correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname_L1, const std::string &outputname_L1_T1MET,
     const std::string &jet_raw_pt, const std::string &jet_eta,
-    const std::string &jet_phi, const std::string &jet_area,
+    const std::string &jet_area,
     const std::string &jet_raw_muonfactor, const std::string &lowpt_jet_raw_pt,
-    const std::string &lowpt_jet_eta, const std::string &lowpt_jet_phi,
+    const std::string &lowpt_jet_eta,
     const std::string &lowpt_jet_area,
     const std::string &lowpt_jet_raw_muonfactor, const std::string &rho,
     const std::string &jec_file, const std::string &jec_algo,
@@ -34,7 +34,7 @@ ROOT::RDF::RNode PtCorrectionL2L3(
     const std::string &jer_seed, const std::string &run,
     const std::string &jec_file, const std::string &jec_algo,
     const std::string &jes_tag,
-    const std::vector<std::string> &jes_shift_sources,
+    const std::string &jes_shift_source,
     const std::string &jer_tag, const int &jes_shift,
     const std::string &jer_shift, const std::string &era);
 ROOT::RDF::RNode
@@ -48,7 +48,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &rho, const std::string &jer_seed,
                const std::string &jec_file, const std::string &jec_algo,
                const std::string &jes_tag,
-               const std::vector<std::string> &jes_shift_sources,
+               const std::string &jes_shift_source,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
                const std::string &era,
@@ -111,6 +111,13 @@ PatchedIDNanoV12(ROOT::RDF::RNode df, const std::string &outputname,
                  const std::string &jet_ne_em_ef, const std::string &jet_mu_ef,
                  const std::string &jet_ch_em_ef);
 ROOT::RDF::RNode
+PseudoID(ROOT::RDF::RNode df,
+   const std::string &outputname, const std::string &jet_eta,
+   const std::string &jet_ch_h_ef, const std::string &jet_ne_h_ef,
+   const std::string &jet_ch_em_ef, const std::string &jet_ne_em_ef,
+   const std::string &jet_mu_ef, const std::string &jet_ch_mult,
+   const std::string &jet_ne_mult, const std::string &era);
+ROOT::RDF::RNode
 ID(ROOT::RDF::RNode df,
    correctionManager::CorrectionManager &correction_manager,
    const std::string &outputname, const std::string &jet_eta,
@@ -136,11 +143,26 @@ ROOT::RDF::RNode
 BtaggingWP(ROOT::RDF::RNode df,
            correctionManager::CorrectionManager &correction_manager,
            const std::string &outputname, const std::string &pt,
-           const std::string &eta, const std::string &flavor,
-           const std::string &jet_mask, const std::string &bjet_mask,
-           const std::string &jet_veto_mask, const std::string &sf_file,
-           const std::string &sf_name, const std::string &variation,
-           const std::string &btag_wp);
+           const std::string &eta, const std::string &btag_value,
+           const std::string &flavor, const std::string &jet_mask,
+           const std::string &bjet_mask, const std::string &jet_veto_mask,
+           const std::string &sf_file, const std::string &sf_bc_name,
+           const std::string &sf_lf_name, const std::string &sf_wp_name,
+           const std::string &eff_file, const std::string &eff_name,
+           const std::string &sample_type, const std::string &variation,
+           const std::string &btag_wp_name);
+ROOT::RDF::RNode
+BtaggingMultipleWP(ROOT::RDF::RNode df,
+                   correctionManager::CorrectionManager &correction_manager,
+                   const std::string &outputname, const std::string &pt,
+                   const std::string &eta, const std::string &btag_value,
+                   const std::string &flavor, const std::string &jet_mask,
+                   const std::string &bjet_mask,
+                   const std::string &jet_veto_mask, const std::string &sf_file,
+                   const std::string &sf_bc_name, const std::string &sf_lf_name,
+                   const std::string &sf_wp_name, const std::string &eff_file,
+                   const std::string &eff_name, const std::string &sample_type,
+                   const std::string &variation);
 } // end namespace scalefactor
 } // end namespace jet
 } // end namespace physicsobject

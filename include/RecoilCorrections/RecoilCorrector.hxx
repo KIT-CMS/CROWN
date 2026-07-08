@@ -28,7 +28,7 @@ class RecoilCorrector {
         if (bins.size() < 2) {
             return 0;
         }
-        for (size_t iB = 0; iB < bins.size(); ++iB) {
+        for (size_t iB = 0; iB < bins.size() - 1; ++iB) {
             if (x >= bins[iB] && x < bins[iB + 1])
                 return iB;
         }

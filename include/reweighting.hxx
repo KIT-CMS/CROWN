@@ -30,6 +30,16 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df, const std::string &outputname,
                        const std::string &genparticles_status_flags,
                        const std::string &genparticles_pt);
 ROOT::RDF::RNode
+TopPt_13_0_TeV(ROOT::RDF::RNode df, const std::string &outputname,
+          const std::string &genparticles_pdg_id,
+          const std::string &genparticles_status_flags,
+          const std::string &genparticles_pt);
+ROOT::RDF::RNode
+TopPt_13_6_TeV(ROOT::RDF::RNode df, const std::string &outputname,
+          const std::string &genparticles_pdg_id,
+          const std::string &genparticles_status_flags,
+          const std::string &genparticles_pt);
+ROOT::RDF::RNode
 ZBosonPt(ROOT::RDF::RNode df,
          correctionManager::CorrectionManager &correction_manager,
          const std::string &outputname, const std::string &gen_boson,

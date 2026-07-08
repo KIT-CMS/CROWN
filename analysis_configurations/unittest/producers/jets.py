@@ -93,7 +93,7 @@ JetEnergyCorrection = ProducerGroup(
 )
 JetPtCut = Producer(
     name="JetPtCut",
-    call="physicsobject::CutMin<float>({df}, {output}, {input}, {min_jet_pt})",
+    call="physicsobject::CutMin<float>({df}, {output}, {input}, {min_jet_pt_loose})",
     input=[q.Jet_pt_corrected],
     output=[],
     scopes=["global"],
