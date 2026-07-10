@@ -1,7 +1,7 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 
 import logging
-from typing import Any, Dict, List, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Set, Tuple, Union
 
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.producer import (
@@ -11,9 +11,110 @@ from code_generation.producer import (
     TProducerStore,
 )
 from code_generation.quantity import NanoAODQuantity
-from code_generation.helpers import is_empty
+from code_generation.helpers import is_empty, CONTEXT_REGISTRY, defaults
 
 log = logging.getLogger(__name__)
+
+
+def get_adjusted_add_shift_SystematicShift(configuration: Any) -> Callable:
+    """Factory function that returns an add_shift method bound to a Configuration object.
+    
+    This function creates a closure that simplifies adding systematic shifts to a configuration.
+    It supports both simple shift configurations (shift_key + shift_map) and complex configurations
+    (shift_config dict). Context-aware defaults can be set using the defaults() context manager.
+    
+    Args:
+        configuration: The Configuration object to which shifts will be added
+        
+    Returns:
+        A callable add_shift function
+        
+    Example:
+        add_shift = get_adjusted_add_shift_SystematicShift(config)
+        
+        # Simple usage with shift_key and shift_map
+        add_shift(
+            name='jes',
+            scopes='tau_tau',
+            shift_key='scale',
+            shift_map={'Up': [1.1], 'Down': [0.9]},
+            producers=[producer]
+        )
+        
+        # Complex usage with shift_config
+        add_shift(
+            name='btag',
+            shift_config={
+                'Up': {'btag_sf': [1.1]},
+                'Down': {'btag_sf': [0.9]}
+            },
+            producers={'tau_tau': [producer]}
+        )
+        
+        # Using context manager
+        with defaults(scopes='tau_tau', shift_key='scale'):
+            add_shift(
+                name='jes',
+                shift_map={'Up': [1.1], 'Down': [0.9]},
+                producers=[producer]
+            )
+    """
+    def add_shift(
+        # those can be set via the context manager defaults
+        name: Union[str, None] = None,
+        scopes: Union[str, Tuple[str, ...]] = None,
+        shift_key: str = None,
+        shift_map: Dict[str, Any] = None,
+        producers: Union[Dict[Union[str, Tuple[str, ...]], List[object]], List[object]] = None,
+        ignore_producers: Union[None, Dict[str, Any]] = None,
+        samples: Union[str, List[str], None] = None,
+        exclude_samples: Union[str, List[str], None] = None,
+        # this can be set explicetly to capture more complex shift configurations (together with producers)
+        shift_config: Union[Dict[str, Any], None] = None,
+    ):
+        # if shift_config is set it overrides shift_key and shift_map
+        # if producers is procided as a dict it ignores scopes
+
+        name = name or CONTEXT_REGISTRY["name"].get()
+        scopes = scopes or CONTEXT_REGISTRY["scopes"].get()
+        shift_key = shift_key or CONTEXT_REGISTRY["shift_key"].get()
+        shift_map = shift_map or CONTEXT_REGISTRY["shift_map"].get()
+        producers = producers or CONTEXT_REGISTRY["producers"].get()
+
+        to_be_checked = (
+            [name, shift_config, producers]
+            if shift_config is not None and isinstance(producers, dict)
+            else [name, scopes, shift_key, shift_map, producers]
+        )
+
+        if any(it is None for it in to_be_checked):
+            raise ValueError(
+                "scopes, shift_key, shift_map, and producers must be set."
+            )
+
+        for direction, value in shift_map.items() if shift_map else shift_config.items():
+            configuration.add_shift(
+                SystematicShift(
+                    name=f"{name}{direction}",
+                    shift_config=shift_config[direction] if shift_config else {
+                        scopes: (
+                            dict(zip(shift_key, value))
+                            if (
+                                isinstance(shift_key, (list, tuple)) and
+                                isinstance(value, (list, tuple)) and
+                                len(shift_key) == len(value)
+                            )
+                            else {shift_key: value}
+                        )
+                    },
+                    producers=producers if isinstance(producers, dict) else {scopes: producers},
+                    ignore_producers=ignore_producers or CONTEXT_REGISTRY["ignore_producers"].get() or {},
+                ),
+                samples=samples or CONTEXT_REGISTRY["samples"].get(),
+                exclude_samples=exclude_samples or CONTEXT_REGISTRY["exclude_samples"].get(),
+            )
+    return add_shift
+
 
 TConfiguration = Dict[
     str,

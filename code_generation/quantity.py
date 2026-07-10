@@ -2,13 +2,14 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 
 import logging
 from typing import Dict, List, Set, Union
+from code_generation.helpers import get_variable_name
 
 log = logging.getLogger(__name__)
 
 
 class Quantity:
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self, name: Union[str, None] = None):
+        self.name = name or get_variable_name() 
         self.shifts: Dict[str, Set[str]] = {}
         self.ignored_shifts: Dict[str, Set[str]] = {}
         self.children: Dict[str, List[Quantity]] = {}
@@ -251,8 +252,8 @@ class NanoAODQuantity(Quantity):
     are therefore shielded from using them directly as a output.
     """
 
-    def __init__(self, name: str):
-        super().__init__(name)
+    def __init__(self, name: Union[str, None] = None):
+        super().__init__(name or get_variable_name())
         self.shifted_naming: Dict[str, str] = {}
 
     def reserve_scope(self, scope: str) -> None:
