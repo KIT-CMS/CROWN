@@ -1090,3 +1090,111 @@ TProducerInput = Union[Producer, ProducerGroup, List[Union[Producer, ProducerGro
 TProducerSet = Union[Producer, ProducerGroup, Set[Union[Producer, ProducerGroup]]]
 TProducerStore = Dict[str, List[Union[Producer, ProducerGroup]]]
 TProducerListStore = Dict[str, TProducerStore]
+
+
+RUN2_ERAS: frozenset = frozenset(
+    {"2016preVFP", "2016postVFP", "2017", "2018"}
+)
+
+# Default nanoAOD version used for each era when no explicit version is given.
+ERA_NANOAOD_VERSION_DEFAULTS: Dict[str, str] = {
+    "2016preVFP":   "v9",
+    "2016postVFP":  "v9",
+    "2017":         "v9",
+    "2018":         "v9",
+    "2022preEE":    "v12",
+    "2022postEE":   "v12",
+    "2023preBPix":  "v12",
+    "2023postBPix": "v12",
+    "2024":         "v15",
+    "2025":         "v15",
+}
+
+class VersionedProducer:
+    """Base class for grouping era- or version-dependent variants of one producer.
+
+    Works with all producer types (``Producer``, ``ProducerGroup``,
+    ``VectorProducer``, ``ExtendedVectorProducer``, ``Filter``, ``BaseFilter``).
+    Subclasses declare the variants as class attributes, optionally nested under
+    ``run2`` / ``run3`` inner classes.  Call :meth:`get` to retrieve the variant
+    that matches an era (and optionally an explicit nanoAOD version).
+
+    All inner producers are automatically renamed to the outer class name so that
+    every variant writes the same column name into the output ntuple.
+
+    Example::
+
+        class JetEnergyCorrection(VersionedProducer):
+            # ProducerGroup variant
+            class run2:
+                v9  = ProducerGroup(subproducers=[...])
+            class run3:
+                v12 = ProducerGroup(subproducers=[...])
+                v15 = ProducerGroup(subproducers=[...])
+
+        class ElectronPtCorrection(VersionedProducer):
+            # Plain Producer variant — same pattern
+            class run2:
+                v9  = Producer(call=..., input=[...], output=[...])
+            # without run dependence no nesting needed
+            v15 = Producer(call=..., input=[...], output=[...])
+
+        # In the analysis config:
+        jets.JetEnergyCorrection.get(era)          # auto-selects version from era
+        jets.JetEnergyCorrection.get(era, "v12")   # explicit version override
+
+    Resolution order
+    ----------------
+    1. Determine ``run = "run2"`` or ``"run3"`` from *era*.
+    2. If the class has a ``run2`` / ``run3`` attribute, descend into it;
+       otherwise operate on the class itself.
+    3. If the resulting object is already a producer (not a nested class),
+       return it directly.
+    4. Look up *version* (or the era default from :data:`ERA_NANOAOD_VERSION_DEFAULTS`)
+       as an attribute of the object.
+    """
+
+    @classmethod
+    def get(cls, era: str, version: Union[str, None] = None) -> Any:
+        """Return the producer variant for *era* (and optional *version*).
+
+        Args:
+            era:     Data-taking era string, e.g. ``'2018'`` or ``'2024'``.
+            version: Explicit variant key, e.g. ``'v9'``, ``'v12'``, ``'v15'``.
+                     Falls back to :data:`ERA_NANOAOD_VERSION_DEFAULTS` when ``None``.
+
+        Raises:
+            ValueError: When no matching variant is found.
+        """
+        run = "run2" if era in RUN2_ERAS else "run3"
+        obj = getattr(cls, run) if hasattr(cls, run) else cls
+
+        # If the run attribute is already a producer, return it directly
+        if not isinstance(obj, type):
+            return obj
+
+        target_version = version if version is not None else ERA_NANOAOD_VERSION_DEFAULTS.get(era)
+        if target_version is not None and hasattr(obj, target_version):
+            return getattr(obj, target_version)
+
+        available = [k for k in obj.__dict__ if not k.startswith("_")]
+        raise ValueError(
+            f"{cls.__name__}.get('{era}'): no producer found for version "
+            f"'{target_version}'. Available: {available}"
+        )
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Rename inner producers to the outer class name on class creation."""
+        super().__init_subclass__(**kwargs)
+        for key, val in cls.__dict__.items():
+            if key.startswith("_"):
+                continue
+            if hasattr(val, "name") and val.name == key:
+                val.name = cls.__name__
+            elif isinstance(val, type):
+                # One level of nesting (run2 / run3 inner classes)
+                for subkey, subval in val.__dict__.items():
+                    if subkey.startswith("_"):
+                        continue
+                    if hasattr(subval, "name") and subval.name == subkey:
+                        subval.name = cls.__name__
