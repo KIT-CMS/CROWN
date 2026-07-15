@@ -31,12 +31,12 @@ class Producer:
         self,
         name: Union[str, None] = None,
         call: Union[str, None] = None,
-        input: Union[
+        input: Union[  # pylint: disable=redefined-builtin
             List[q.Quantity], Dict[str, List[q.Quantity]], None
-        ] = None,  # pylint: disable=redefined-builtin
-        output: Union[
+        ] = None,
+        output: Union[  # pylint: disable=redefined-builtin
             List[q.Quantity], None
-        ] = None,  # pylint: disable=redefined-builtin
+        ] = None,
         scopes: Union[List[str], None] = None,
         is_filter: bool = False,
     ):
@@ -403,12 +403,12 @@ class VectorProducer(Producer):
         self,
         name: Union[str, None] = None,
         call: Union[str, None] = None,
-        input: Union[
+        input: Union[  # pylint: disable=redefined-builtin
             List[q.Quantity], Dict[str, List[q.Quantity]], None
-        ] = None,  # pylint: disable=redefined-builtin
-        output: Union[
+        ] = None,
+        output: Union[  # pylint: disable=redefined-builtin
             List[q.Quantity], None
-        ] = None,  # pylint: disable=redefined-builtin
+        ] = None,
         scopes: Union[List[str], None] = None,
         vec_configs: Union[List[str], None] = None,
         is_filter: bool = False,
@@ -526,9 +526,9 @@ class ExtendedVectorProducer(Producer):
         self,
         name: Union[str, None] = None,
         call: Union[str, None] = None,
-        input: Union[
+        input: Union[  # pylint: disable=redefined-builtin
             List[q.Quantity], Dict[str, List[q.Quantity]], None
-        ] = None,  # pylint: disable=redefined-builtin
+        ] = None,
         output: Union[str, None] = None,  # pylint: disable=redefined-builtin
         scope: Union[List[str], str, None] = None,
         vec_config: Union[str, None] = None,
@@ -653,9 +653,9 @@ class BaseFilter(Producer):
         self,
         name: Union[str, None] = None,
         call: Union[str, None] = None,
-        input: Union[
+        input: Union[  # pylint: disable=redefined-builtin
             List[q.Quantity], Dict[str, List[q.Quantity]], None
-        ] = None,  # pylint: disable=redefined-builtin
+        ] = None,
         scopes: Union[List[str], None] = None,
     ):
         """A BaseFilter is a Producer which does not produce any output, but is used to filter events.
@@ -745,12 +745,12 @@ class ProducerGroup:
         self,
         name: Union[str, None] = None,
         call: Union[str, None] = None,
-        input: Union[
+        input: Union[  # pylint: disable=redefined-builtin
             List[q.Quantity], Dict[str, List[q.Quantity]], None
-        ] = None,  # pylint: disable=redefined-builtin
-        output: Union[
+        ] = None,
+        output: Union[  # pylint: disable=redefined-builtin
             List[q.Quantity], None
-        ] = None,  # pylint: disable=redefined-builtin
+        ] = None,
         scopes: Union[List[str], None] = None,
         subproducers: Union[
             List[Producer | ProducerGroup],
@@ -1040,9 +1040,9 @@ class Filter(ProducerGroup):
         self,
         name: Union[str, None] = None,
         call: Union[str, None] = None,
-        input: Union[
+        input: Union[  # pylint: disable=redefined-builtin
             List[q.Quantity], Dict[str, List[q.Quantity]], None
-        ] = None,  # pylint: disable=redefined-builtin
+        ] = None,
         scopes: Union[List[str], None] = None,
         subproducers: Union[
             List[Producer | ProducerGroup],
