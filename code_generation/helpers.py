@@ -31,14 +31,14 @@ CONTEXT_REGISTRY: Dict[str, contextvars.ContextVar] = {
 @contextmanager
 def defaults(**kwargs: Any) -> Generator[None, None, None]:
     """Context manager for setting default values for producer and systematic shift configuration.
-    
+
     Args:
         **kwargs: Default values to set for various parameters
-        
+
     Example:
         with defaults(scopes=['global'], call='myFunction({input})'):
             producer = Producer(...)
-            
+
         with defaults(shift_key='scale', shift_map={'Up': [1.1], 'Down': [0.9]}):
             add_shift(name='jes', producers=[producer])
     """
@@ -77,10 +77,10 @@ def is_empty(value: Any) -> bool:
 
 def get_variable_name() -> str:
     """Automatically determine the variable name from the calling context.
-    
+
     Returns:
         The variable name being assigned to
-        
+
     Raises:
         RuntimeError: If variable name cannot be determined from context
     """
@@ -96,6 +96,7 @@ def get_variable_name() -> str:
 
 class MissingValue(Exception):
     """Exception raised when a required value is missing."""
+
     def __init__(self, variable_name: str):
         super().__init__(
             f"Missing value for variable '{variable_name}'. "
@@ -106,6 +107,7 @@ class MissingValue(Exception):
 
 class NameNotDetermined(Exception):
     """Exception raised when the name cannot be automatically determined."""
+
     def __init__(self):
         super().__init__(
             "Name could not be determined. "

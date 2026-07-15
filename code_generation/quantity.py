@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 class Quantity:
     def __init__(self, name: Union[str, None] = None):
-        self.name = name or get_variable_name() 
+        self.name = name or get_variable_name()
         self.shifts: Dict[str, Set[str]] = {}
         self.ignored_shifts: Dict[str, Set[str]] = {}
         self.children: Dict[str, List[Quantity]] = {}

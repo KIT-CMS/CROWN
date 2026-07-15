@@ -8,7 +8,13 @@ from code_generation.exceptions import (
     InvalidProducerConfigurationError,
     ConfigurationError,
 )
-from code_generation.helpers import is_empty, get_variable_name, CONTEXT_REGISTRY, defaults, MissingValue, NameNotDetermined
+from code_generation.helpers import (
+    is_empty,
+    get_variable_name,
+    CONTEXT_REGISTRY,
+    MissingValue,
+    NameNotDetermined,
+)
 
 import code_generation.quantity as q
 
@@ -44,21 +50,21 @@ class Producer:
         """
         # Auto-detect name if not provided
         name = name or get_variable_name()
-        
+
         # Get context-aware defaults
         call = call if call is not None else CONTEXT_REGISTRY["call"].get()
         scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
         input = input if input is not None else CONTEXT_REGISTRY["input"].get()
         output = output if output is not None else CONTEXT_REGISTRY["output"].get()
-        
+
         # Validate required parameters
         if name is None:
             raise NameNotDetermined
-        
+
         for key, value in [("call", call), ("input", input), ("scopes", scopes)]:
             if value is None:
                 raise MissingValue(key)
-        
+
         log.debug("Setting up a new producer {}".format(name))
 
         # sanity checks
@@ -413,22 +419,31 @@ class VectorProducer(Producer):
         """
         # Auto-detect name if not provided
         name = name or get_variable_name()
-        
+
         # Get context-aware defaults
         call = call if call is not None else CONTEXT_REGISTRY["call"].get()
         input = input if input is not None else CONTEXT_REGISTRY["input"].get()
         output = output if output is not None else CONTEXT_REGISTRY["output"].get()
         scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
-        vec_configs = vec_configs if vec_configs is not None else CONTEXT_REGISTRY["vec_configs"].get()
-        
+        vec_configs = (
+            vec_configs
+            if vec_configs is not None
+            else CONTEXT_REGISTRY["vec_configs"].get()
+        )
+
         # Validate required parameters
         if name is None:
             raise NameNotDetermined
-        
-        for key, value in [("call", call), ("input", input), ("scopes", scopes), ("vec_configs", vec_configs)]:
+
+        for key, value in [
+            ("call", call),
+            ("input", input),
+            ("scopes", scopes),
+            ("vec_configs", vec_configs),
+        ]:
             if value is None:
                 raise MissingValue(key)
-        
+
         self.name = name
         super().__init__(name, call, input, output, scopes, is_filter)
         self.vec_configs = vec_configs
@@ -523,22 +538,32 @@ class ExtendedVectorProducer(Producer):
         """
         # Auto-detect name if not provided
         name = name or get_variable_name()
-        
+
         # Get context-aware defaults
         call = call if call is not None else CONTEXT_REGISTRY["call"].get()
         input = input if input is not None else CONTEXT_REGISTRY["input"].get()
         output = output if output is not None else CONTEXT_REGISTRY["output"].get()
         scope = scope if scope is not None else CONTEXT_REGISTRY["scopes"].get()
-        vec_config = vec_config if vec_config is not None else CONTEXT_REGISTRY["vec_configs"].get()
-        
+        vec_config = (
+            vec_config
+            if vec_config is not None
+            else CONTEXT_REGISTRY["vec_configs"].get()
+        )
+
         # Validate required parameters
         if name is None:
             raise NameNotDetermined
-        
-        for key, value in [("scope", scope), ("input", input), ("output", output), ("vec_config", vec_config), ("call", call)]:
+
+        for key, value in [
+            ("scope", scope),
+            ("input", input),
+            ("output", output),
+            ("vec_config", vec_config),
+            ("call", call),
+        ]:
             if value is None:
                 raise MissingValue(key)
-        
+
         # we create a Quantity Group, which is updated during the writecalls() step
         self.outputname = output
         self.vec_config = vec_config
@@ -634,20 +659,20 @@ class BaseFilter(Producer):
         """
         # Auto-detect name if not provided
         name = name or get_variable_name()
-        
+
         # Get context-aware defaults
         call = call if call is not None else CONTEXT_REGISTRY["call"].get()
         input = input if input is not None else CONTEXT_REGISTRY["input"].get()
         scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
-        
+
         # Validate required parameters
         if name is None:
             raise NameNotDetermined
-        
+
         for key, value in [("call", call), ("input", input), ("scopes", scopes)]:
             if value is None:
                 raise MissingValue(key)
-        
+
         super().__init__(name, call, input, None, scopes, True)
 
     def __str__(self) -> str:
@@ -729,22 +754,26 @@ class ProducerGroup:
         """
         # Auto-detect name if not provided
         name = name or get_variable_name()
-        
+
         # Get context-aware defaults
         call = call if call is not None else CONTEXT_REGISTRY["call"].get()
         input = input if input is not None else CONTEXT_REGISTRY["input"].get()
         output = output if output is not None else CONTEXT_REGISTRY["output"].get()
         scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
-        subproducers = subproducers if subproducers is not None else CONTEXT_REGISTRY["subproducers"].get()
-        
+        subproducers = (
+            subproducers
+            if subproducers is not None
+            else CONTEXT_REGISTRY["subproducers"].get()
+        )
+
         # Validate required parameters
         if name is None:
             raise NameNotDetermined
-        
+
         for key, value in [("scopes", scopes), ("subproducers", subproducers)]:
             if value is None:
                 raise MissingValue(key)
-        
+
         self.name = name
         self.call = call
         self.output = output
@@ -1014,21 +1043,30 @@ class Filter(ProducerGroup):
         """
         # Auto-detect name if not provided
         name = name or get_variable_name()
-        
+
         # Get context-aware defaults
         call = call if call is not None else CONTEXT_REGISTRY["call"].get()
         input = input if input is not None else CONTEXT_REGISTRY["input"].get()
         scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
-        subproducers = subproducers if subproducers is not None else CONTEXT_REGISTRY["subproducers"].get()
-        
+        subproducers = (
+            subproducers
+            if subproducers is not None
+            else CONTEXT_REGISTRY["subproducers"].get()
+        )
+
         # Validate required parameters
         if name is None:
             raise NameNotDetermined
-        
-        for key, value in [("call", call), ("input", input), ("scopes", scopes), ("subproducers", subproducers)]:
+
+        for key, value in [
+            ("call", call),
+            ("input", input),
+            ("scopes", scopes),
+            ("subproducers", subproducers),
+        ]:
             if value is None:
                 raise MissingValue(key)
-        
+
         self.__class__.PG_count = ProducerGroup.PG_count
         super().__init__(name, call, input, None, scopes, subproducers)
         ProducerGroup.PG_count = self.__class__.PG_count
@@ -1092,23 +1130,22 @@ TProducerStore = Dict[str, List[Union[Producer, ProducerGroup]]]
 TProducerListStore = Dict[str, TProducerStore]
 
 
-RUN2_ERAS: frozenset = frozenset(
-    {"2016preVFP", "2016postVFP", "2017", "2018"}
-)
+RUN2_ERAS: frozenset = frozenset({"2016preVFP", "2016postVFP", "2017", "2018"})
 
 # Default nanoAOD version used for each era when no explicit version is given.
 ERA_NANOAOD_VERSION_DEFAULTS: Dict[str, str] = {
-    "2016preVFP":   "v9",
-    "2016postVFP":  "v9",
-    "2017":         "v9",
-    "2018":         "v9",
-    "2022preEE":    "v12",
-    "2022postEE":   "v12",
-    "2023preBPix":  "v12",
+    "2016preVFP": "v9",
+    "2016postVFP": "v9",
+    "2017": "v9",
+    "2018": "v9",
+    "2022preEE": "v12",
+    "2022postEE": "v12",
+    "2023preBPix": "v12",
     "2023postBPix": "v12",
-    "2024":         "v15",
-    "2025":         "v15",
+    "2024": "v15",
+    "2025": "v15",
 }
+
 
 class VersionedProducer:
     """Base class for grouping era- or version-dependent variants of one producer.
@@ -1173,7 +1210,9 @@ class VersionedProducer:
         if not isinstance(obj, type):
             return obj
 
-        target_version = version if version is not None else ERA_NANOAOD_VERSION_DEFAULTS.get(era)
+        target_version = (
+            version if version is not None else ERA_NANOAOD_VERSION_DEFAULTS.get(era)
+        )
         if target_version is not None and hasattr(obj, target_version):
             return getattr(obj, target_version)
 
