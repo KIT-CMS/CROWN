@@ -60,7 +60,7 @@ def get_adjusted_add_shift_SystematicShift(configuration: Any) -> Callable:
             )
     """
 
-    def add_shift(
+    def add_shift(  # pylint: disable=redefined-builtin
         name: Union[str, None] = None,
         scopes: Union[str, Tuple[str, ...]] = None,
         shift_key: str = None,
