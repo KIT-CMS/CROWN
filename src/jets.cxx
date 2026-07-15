@@ -325,10 +325,14 @@ ROOT::RDF::RNode PtCorrectionL2L3(
     auto jer_sf_evaluator = correction_manager.loadCorrection(
         jec_file, jer_tag + "_ScaleFactor_" + jec_algo);
 
+    // loading JER scale factor uncertainty function
+    auto jer_sf_unc_evaluator = correction_manager.loadCorrection(
+        jec_file, jer_tag + "_SFUncertainty_" + jec_algo);
+
     auto correction_lambda = [jet_energy_scale_shift, jet_energy_scale_sf,
                               jet_energy_resolution, jer_sf_evaluator,
-                              jes_shift_source, jes_shift, jer_shift,
-                              jet_radius, era, is_data](
+                              jer_sf_unc_evaluator, jes_shift_source,
+                              jes_shift, jer_shift, jet_radius, era, is_data](
                                  const ROOT::RVec<float> &pts,
                                  const ROOT::RVec<float> &etas,
                                  const ROOT::RVec<float> &phis,
@@ -395,13 +399,14 @@ ROOT::RDF::RNode PtCorrectionL2L3(
 
                 // --- JER (MC only) ---
                 float reso = jet_energy_resolution(etas.at(i), pt_corr, rho);
-                float reso_sf = 1.0;
-                if (era_year <= 2018) { // run 2 case
-                    reso_sf =
-                        jer_sf_evaluator->evaluate({etas.at(i), jer_shift});
-                } else { // run 3 case
-                    reso_sf = jer_sf_evaluator->evaluate(
-                        {etas.at(i), pt_corr, jer_shift});
+                float reso_sf =
+                    jer_sf_evaluator->evaluate({etas.at(i), pt_corr});
+                if (jer_shift == "up") {
+                    reso_sf *= (1. + jer_sf_unc_evaluator->evaluate(
+                        {etas.at(i), pt_corr}));
+                } else if (jer_shift == "down") {
+                    reso_sf *= (1. - jer_sf_unc_evaluator->evaluate(
+                        {etas.at(i), pt_corr}));
                 }
                 Logger::get("physicsobject::jet::PtCorrectionL2L3")
                     ->debug("Calculate JER {}: SF: {} resolution: {} ",
