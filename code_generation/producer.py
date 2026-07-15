@@ -52,45 +52,45 @@ class Producer:
         name = name or get_variable_name()
 
         # Get context-aware defaults
-        call = call if call is not None else CONTEXT_REGISTRY["call"].get()
-        scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
-        input = input if input is not None else CONTEXT_REGISTRY["input"].get()
-        output = output if output is not None else CONTEXT_REGISTRY["output"].get()
-
+        _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
+        _scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
+        _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
+        _output = output if output is not None else CONTEXT_REGISTRY["output"].get()
+        
         # Validate required parameters
         if name is None:
             raise NameNotDetermined
-
-        for key, value in [("call", call), ("input", input), ("scopes", scopes)]:
+        
+        for key, value in [("call", _call), ("input", _input), ("scopes", _scopes)]:
             if value is None:
                 raise MissingValue(key)
-
+        
         log.debug("Setting up a new producer {}".format(name))
 
         # sanity checks
-        if not isinstance(input, list) and not isinstance(input, dict):
+        if not isinstance(_input, list) and not isinstance(_input, dict):
             log.error(
                 "Exception (%s): Argument 'input' must be a list or a dict!" % name
             )
             raise Exception
-        if not isinstance(output, list) and output is not None:
+        if not isinstance(_output, list) and _output is not None:
             log.error(
                 "Exception (%s): Argument 'output' must be a list or None!" % name
             )
             raise Exception
         self.name: str = name
-        self.call: str = call
-        self.output: Union[List[q.Quantity], None] = output
-        self.scopes = scopes
+        self.call: str = _call
+        self.output: Union[List[q.Quantity], None] = _output
+        self.scopes = _scopes
         self.is_filter = True if "filter::" in self.call or is_filter else False
         self.parameters: Dict[str, Set[str]] = self.extract_parameters()
         # if input not given as dict and therfore not scope specific transform into dict with all scopes
-        if not isinstance(input, dict):
+        if not isinstance(_input, dict):
             inputdict = {}
             for scope in self.scopes:
-                inputdict[scope] = input.copy() if isinstance(input, list) else input
+                inputdict[scope] = _input.copy() if isinstance(_input, list) else _input
         else:
-            inputdict = input
+            inputdict = _input
         self.input: Dict[str, List[q.Quantity]] = inputdict
         # keep track of variable dependencies
         if not is_empty(self.output):
@@ -421,11 +421,11 @@ class VectorProducer(Producer):
         name = name or get_variable_name()
 
         # Get context-aware defaults
-        call = call if call is not None else CONTEXT_REGISTRY["call"].get()
-        input = input if input is not None else CONTEXT_REGISTRY["input"].get()
-        output = output if output is not None else CONTEXT_REGISTRY["output"].get()
-        scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
-        vec_configs = (
+        _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
+        _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
+        _output = output if output is not None else CONTEXT_REGISTRY["output"].get()
+        _scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
+        _vec_configs = (
             vec_configs
             if vec_configs is not None
             else CONTEXT_REGISTRY["vec_configs"].get()
@@ -436,17 +436,17 @@ class VectorProducer(Producer):
             raise NameNotDetermined
 
         for key, value in [
-            ("call", call),
-            ("input", input),
-            ("scopes", scopes),
-            ("vec_configs", vec_configs),
+            ("call", _call),
+            ("input", _input),
+            ("scopes", _scopes),
+            ("vec_configs", _vec_configs),
         ]:
             if value is None:
                 raise MissingValue(key)
 
         self.name = name
-        super().__init__(name, call, input, output, scopes, is_filter)
-        self.vec_configs = vec_configs
+        super().__init__(name, _call, _input, _output, _scopes, is_filter)
+        self.vec_configs = _vec_configs
 
     def __str__(self) -> str:
         return "VectorProducer: {}".format(self.name)
@@ -540,11 +540,11 @@ class ExtendedVectorProducer(Producer):
         name = name or get_variable_name()
 
         # Get context-aware defaults
-        call = call if call is not None else CONTEXT_REGISTRY["call"].get()
-        input = input if input is not None else CONTEXT_REGISTRY["input"].get()
-        output = output if output is not None else CONTEXT_REGISTRY["output"].get()
-        scope = scope if scope is not None else CONTEXT_REGISTRY["scopes"].get()
-        vec_config = (
+        _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
+        _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
+        _output = output if output is not None else CONTEXT_REGISTRY["output"].get()
+        _scope = scope if scope is not None else CONTEXT_REGISTRY["scopes"].get()
+        _vec_config = (
             vec_config
             if vec_config is not None
             else CONTEXT_REGISTRY["vec_configs"].get()
@@ -555,19 +555,19 @@ class ExtendedVectorProducer(Producer):
             raise NameNotDetermined
 
         for key, value in [
-            ("scope", scope),
-            ("input", input),
-            ("output", output),
-            ("vec_config", vec_config),
-            ("call", call),
+            ("scope", _scope),
+            ("input", _input),
+            ("output", _output),
+            ("vec_config", _vec_config),
+            ("call", _call),
         ]:
             if value is None:
                 raise MissingValue(key)
 
         # we create a Quantity Group, which is updated during the writecalls() step
-        self.outputname = output
-        self.vec_config = vec_config
-        if not isinstance(scope, list):
+        self.outputname = _output
+        self.vec_config = _vec_config
+        if not isinstance(_scope, list):
             scope = [scope]
         quantity_group = q.QuantityGroup(name)
         # set the vec config key of the quantity group
@@ -661,19 +661,19 @@ class BaseFilter(Producer):
         name = name or get_variable_name()
 
         # Get context-aware defaults
-        call = call if call is not None else CONTEXT_REGISTRY["call"].get()
-        input = input if input is not None else CONTEXT_REGISTRY["input"].get()
-        scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
+        _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
+        _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
+        _scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
 
         # Validate required parameters
         if name is None:
             raise NameNotDetermined
 
-        for key, value in [("call", call), ("input", input), ("scopes", scopes)]:
+        for key, value in [("call", _call), ("input", _input), ("scopes", _scopes)]:
             if value is None:
                 raise MissingValue(key)
 
-        super().__init__(name, call, input, None, scopes, True)
+        super().__init__(name, _call, _input, None, _scopes, True)
 
     def __str__(self) -> str:
         return "BaseFilter: {}".format(self.name)
@@ -756,11 +756,11 @@ class ProducerGroup:
         name = name or get_variable_name()
 
         # Get context-aware defaults
-        call = call if call is not None else CONTEXT_REGISTRY["call"].get()
-        input = input if input is not None else CONTEXT_REGISTRY["input"].get()
-        output = output if output is not None else CONTEXT_REGISTRY["output"].get()
-        scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
-        subproducers = (
+        _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
+        _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
+        _output = output if output is not None else CONTEXT_REGISTRY["output"].get()
+        _scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
+        _subproducers = (
             subproducers
             if subproducers is not None
             else CONTEXT_REGISTRY["subproducers"].get()
@@ -770,32 +770,32 @@ class ProducerGroup:
         if name is None:
             raise NameNotDetermined
 
-        for key, value in [("scopes", scopes), ("subproducers", subproducers)]:
+        for key, value in [("scopes", _scopes), ("subproducers", _subproducers)]:
             if value is None:
                 raise MissingValue(key)
 
         self.name = name
-        self.call = call
-        self.output = output
-        self.scopes = scopes
+        self.call = _call
+        self.output = _output
+        self.scopes = _scopes
         self.producers: Dict[str, List[Producer | ProducerGroup]] = {}
         # if subproducers are given as dict and therefore scope specific transform into dict with all scopes
-        if not isinstance(subproducers, dict):
+        if not isinstance(_subproducers, dict):
             log.debug("Converting subproducer list to dictionary")
             for scope in self.scopes:
-                self.producers[scope] = [producer for producer in subproducers]
+                self.producers[scope] = [producer for producer in _subproducers]
         else:
-            self.producers = subproducers
+            self.producers = _subproducers
         # do a consistency check for the scopes
         self.check_producer_scopes()
         # if input not given as dict and therefore not scope specific transform into dict with all scopes
-        if not isinstance(input, dict):
+        if not isinstance(_input, dict):
             inputdict = {}
             for scope in self.scopes:
-                inputdict[scope] = input.copy() if isinstance(input, list) else input
+                inputdict[scope] = _input.copy() if isinstance(_input, list) else _input
             self.input = inputdict
         else:
-            self.input = dict(input)
+            self.input = dict(_input)
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
         if not is_empty(self.call):
             log.debug("Constructing {}".format(self.name))
@@ -1045,10 +1045,10 @@ class Filter(ProducerGroup):
         name = name or get_variable_name()
 
         # Get context-aware defaults
-        call = call if call is not None else CONTEXT_REGISTRY["call"].get()
-        input = input if input is not None else CONTEXT_REGISTRY["input"].get()
-        scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
-        subproducers = (
+        _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
+        _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
+        _scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
+        _subproducers = (
             subproducers
             if subproducers is not None
             else CONTEXT_REGISTRY["subproducers"].get()
@@ -1059,18 +1059,18 @@ class Filter(ProducerGroup):
             raise NameNotDetermined
 
         for key, value in [
-            ("call", call),
-            ("input", input),
-            ("scopes", scopes),
-            ("subproducers", subproducers),
+            ("call", _call),
+            ("input", _input),
+            ("scopes", _scopes),
+            ("subproducers", _subproducers),
         ]:
             if value is None:
                 raise MissingValue(key)
 
         self.__class__.PG_count = ProducerGroup.PG_count
-        super().__init__(name, call, input, None, scopes, subproducers)
+        super().__init__(name, _call, _input, None, _scopes, _subproducers)
         ProducerGroup.PG_count = self.__class__.PG_count
-        self.call: str = call
+        self.call: str = _call
 
     def __str__(self) -> str:
         return "Filter: {}".format(self.name)
