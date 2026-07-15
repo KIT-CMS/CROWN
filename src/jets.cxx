@@ -331,8 +331,8 @@ ROOT::RDF::RNode PtCorrectionL2L3(
 
     auto correction_lambda = [jet_energy_scale_shift, jet_energy_scale_sf,
                               jet_energy_resolution, jer_sf_evaluator,
-                              jer_sf_unc_evaluator, jes_shift_source,
-                              jes_shift, jer_shift, jet_radius, era, is_data](
+                              jer_sf_unc_evaluator, jes_shift_source, jes_shift,
+                              jer_shift, jet_radius, era, is_data](
                                  const ROOT::RVec<float> &pts,
                                  const ROOT::RVec<float> &etas,
                                  const ROOT::RVec<float> &phis,
@@ -403,10 +403,10 @@ ROOT::RDF::RNode PtCorrectionL2L3(
                     jer_sf_evaluator->evaluate({etas.at(i), pt_corr});
                 if (jer_shift == "up") {
                     reso_sf *= (1. + jer_sf_unc_evaluator->evaluate(
-                        {etas.at(i), pt_corr}));
+                                         {etas.at(i), pt_corr}));
                 } else if (jer_shift == "down") {
                     reso_sf *= (1. - jer_sf_unc_evaluator->evaluate(
-                        {etas.at(i), pt_corr}));
+                                         {etas.at(i), pt_corr}));
                 }
                 Logger::get("physicsobject::jet::PtCorrectionL2L3")
                     ->debug("Calculate JER {}: SF: {} resolution: {} ",
