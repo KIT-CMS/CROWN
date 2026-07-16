@@ -327,8 +327,13 @@ ROOT::RDF::RNode PtCorrectionL2L3(
     auto jer_sf_evaluator = correction_manager.loadCorrection(
         jec_file, jer_tag + "_ScaleFactor_" + jec_algo);
 
+
+    // loading JER scale factor uncertainty function
+    auto jer_sfunc_evaluator = correction_manager.loadCorrection(
+        jec_file, jer_tag + "_SFUncertainty_" + jec_algo);
+
     auto correction_lambda = [jet_energy_scale_shifts, jet_energy_scale_sf,
-                              jet_energy_resolution, jer_sf_evaluator,
+                              jet_energy_resolution, jer_sf_evaluator, jer_sfunc_evaluator,
                               jes_shift_source, jes_shift, jer_shift,
                               jet_radius, era, is_data](
                                  const ROOT::RVec<float> &pts,
@@ -399,13 +404,14 @@ ROOT::RDF::RNode PtCorrectionL2L3(
                 // --- JER (MC only) ---
                 float reso = jet_energy_resolution(etas.at(i), pt_corr, rho);
                 float reso_sf = 1.0;
-                if (era_year <= 2018) { // run 2 case
-                    reso_sf =
-                        jer_sf_evaluator->evaluate({etas.at(i), jer_shift});
-                } else { // run 3 case
-                    reso_sf = jer_sf_evaluator->evaluate(
-                        {etas.at(i), pt_corr, jer_shift});
-                }
+                float unc_sf = 0.0;
+                reso_sf = jer_sf_evaluator->evaluate({etas.at(i), pt_corr});
+                    
+                unc_sf = jer_sfunc_evaluator->evaluate({etas.at(i), pt_corr});
+
+                if (jer_shift == "up") reso_sf = reso_sf * (1 + unc_sf);
+                else if (jer_shift == "down") reso_sf = reso_sf * (1 - unc_sf);
+            
                 Logger::get("physicsobject::jet::PtCorrectionL2L3")
                     ->debug("Calculate JER {}: SF: {} resolution: {} ",
                             jer_shift, reso_sf, reso);

@@ -8,12 +8,216 @@
 #include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
-#include "RooFunctor.h"
-#include "RooWorkspace.h"
 #include "correction.h"
 
 namespace physicsobject {
 namespace muon {
+
+/**
+ * @brief This function defines a new column in the dataframe that contains the
+ * corrected transverse momentum (\f$p_T\f$) of a muon, using the Muon-POG
+ * `muonscarekit` scale-and-resolution ("ScaRe") corrections for Run3.
+ *
+ * The correction is taken from
+ * [MuonScaRe.py](https://gitlab.cern.ch/cms-muonPOG/muonscarekit/-/blob/master/scripts/MuonScaRe.py)
+ * and its application is taken from
+ * [apply_corrections_rdf.py](https://gitlab.cern.ch/cms-muonPOG/muonscarekit/-/blob/master/scripts/apply_corrections_rdf.py).
+ *
+ * A charge- and \f$(\eta,\phi)\f$-dependent scale correction (`pt_scale`) is
+ * applied to both data and MC. For MC, a resolution smearing (`pt_resol`) is
+ * additionally applied on top of the scale-corrected \f$p_T\f$, using a random
+ * number drawn from an asymmetric Crystal Ball distribution (`CrystalBall`,
+ * see `RoccoR.hxx`) and a residual data/MC resolution difference `k`. If
+ * `shift` requests a systematic variation ("SmearUp"/"SmearDown" for the
+ * scale uncertainty, "ResoUp"/"ResoDown" for the resolution uncertainty), the
+ * corresponding uncertainty (`pt_scale_var`/`pt_resol_var`) is propagated
+ * instead of the nominal correction. Muons corrected outside of
+ * `[min_muon_pt, 200]` GeV, or for which a correction evaluates to NaN or an
+ * unreasonable ratio to the input \f$p_T\f$, are reset to their pre-step
+ * value.
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * muon scale-and-resolution correction file
+ * @param outputname name of the new column containing the corrected \f$p_T\f$
+ * values
+ * @param pt name of the column containing the muon transverse momenta
+ * @param eta name of the column containing the muon eta values
+ * @param phi name of the column containing the muon phi values
+ * @param charge name of the column containing the muon charges
+ * @param n_tracker_layers name of the column containing the number of tracker
+ * layers
+ * @param lumi name of the column containing the luminosity block number
+ * @param event name of the column containing the event number
+ * @param min_muon_pt lower \f$p_T\f$ boundary below which a corrected value is
+ * considered invalid and reset to the input value
+ * @param scale_file path to the muonscarekit scale-and-resolution correction
+ * file
+ * @param shift name of the requested variation, "nom" for the nominal
+ * correction, "SmearUp"/"SmearDown" for the scale uncertainty, or
+ * "ResoUp"/"ResoDown" for the resolution uncertainty
+ * @param is_data flag that is `true` if the input is data and `false` if it
+ * is MC; resolution smearing is only applied to MC
+ *
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode
+PtCorrectionMC(ROOT::RDF::RNode df,
+                correctionManager::CorrectionManager &correction_manager,
+                const std::string &outputname,
+                const std::string &pt, const std::string &eta,
+                const std::string &phi, const std::string &charge,
+                const std::string &n_tracker_layers,
+                const std::string &lumi,
+                const std::string &event,
+                const float &min_muon_pt,
+                const std::string &scale_file,
+                const std::string &shift, bool is_data) {
+
+    std::string name = is_data ? "data" : "mc";
+
+    auto scale_evaluator_a = correction_manager.loadCorrection(
+        scale_file, "a_" + name);
+
+    auto scale_evaluator_m = correction_manager.loadCorrection(
+        scale_file, "m_" + name);
+
+    auto reso_evaluator_kmc = correction_manager.loadCorrection(
+        scale_file, "k_mc");
+
+    auto reso_evaluator_kdata = correction_manager.loadCorrection(
+        scale_file, "k_data");
+
+    auto reso_evaluator_cb = correction_manager.loadCorrection(
+        scale_file, "cb_params");
+
+    auto reso_evaluator_poly = correction_manager.loadCorrection(
+        scale_file, "poly_params");
+
+    auto smear_evaluator = correction_manager.loadCorrection(
+        scale_file, "RandomSmearing");
+
+    auto lambda = [scale_evaluator_a, scale_evaluator_m, reso_evaluator_kmc,
+                   reso_evaluator_kdata, reso_evaluator_cb,
+                   reso_evaluator_poly, smear_evaluator, min_muon_pt, shift,
+                   is_data](
+                      const ROOT::RVec<float> &pt,
+                      const ROOT::RVec<float> &eta,
+                      const ROOT::RVec<float> &phi,
+                      const ROOT::RVec<int> &charge,
+                      const ROOT::RVec<UChar_t> &n_tracker_layers,
+                      const unsigned int &lumi,
+                      const unsigned long long &event) {
+
+        ROOT::RVec<float> corrected_pts(pt.size());
+
+        for (std::size_t i = 0; i < pt.size(); ++i) {
+
+            float corr_pt = pt.at(i);
+            float smear_pt = pt.at(i);
+
+            float a_f = scale_evaluator_a->evaluate({eta.at(i), phi.at(i), "nom"});
+            float m_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "nom"});
+
+            // apply scale correction to both data and mc
+            smear_pt = 1. / (m_f / pt.at(i) + charge.at(i) * a_f);
+
+            if (smear_pt < min_muon_pt || smear_pt > 200.0 || std::isnan(smear_pt)) {
+                // set pt to initial value if correction is outside of valid boundaries
+                smear_pt = pt.at(i);
+            }
+
+            corr_pt = smear_pt;
+
+            if (is_data == false) {
+                // apply resolution smearing
+                float mean_f = reso_evaluator_cb->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 0});
+                float sigma_f = reso_evaluator_cb->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 1});
+                float n_f = reso_evaluator_cb->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 2});
+                float alpha_f = reso_evaluator_cb->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 3});
+
+                float rndm_f = smear_evaluator->evaluate(
+                    {static_cast<double>(event), static_cast<double>(lumi), phi.at(i)});
+
+                CrystalBall cb;
+                cb.m = mean_f;
+                cb.s = sigma_f;
+                cb.a = alpha_f;
+                cb.n = n_f;
+                cb.init();
+                float rndm = cb.invcdf(rndm_f);
+
+                float param0_f = reso_evaluator_poly->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 0});
+                float param1_f = reso_evaluator_poly->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 1});
+                float param2_f = reso_evaluator_poly->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 2});
+
+                float sigma_std = param0_f + param1_f * smear_pt + param2_f * smear_pt * smear_pt;
+                float std_dev = std::max(0.f, sigma_std);
+
+                float k_data_f = reso_evaluator_kdata->evaluate({std::abs(eta.at(i)), "nom"});
+                float k_mc_f = reso_evaluator_kmc->evaluate({std::abs(eta.at(i)), "nom"});
+                float k = 0.0;
+                if (k_mc_f < k_data_f) {
+                    k = std::sqrt(k_data_f * k_data_f - k_mc_f * k_mc_f);
+                }
+
+                float reso_pt = smear_pt * (1 + k * std_dev * rndm);
+
+                if (reso_pt < min_muon_pt || reso_pt > 200.0 || std::isnan(reso_pt)) {
+                    // set pt to initial value if correction is outside of valid boundaries
+                    reso_pt = smear_pt;
+                }
+
+                if (reso_pt / smear_pt > 2 || reso_pt / smear_pt < 0.1 || reso_pt < 0) {
+                    // set pt to initial value if correction is outside of valid boundaries,
+                    // not to be merged with the step before
+                    reso_pt = smear_pt;
+                }
+
+                corr_pt = reso_pt;
+
+                if (shift == "SmearUp" || shift == "SmearDown") {
+                    // apply scale uncertainty on top of the scale+reso corrected pt
+                    float stat_a_f = scale_evaluator_a->evaluate({eta.at(i), phi.at(i), "stat"});
+                    float stat_m_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "stat"});
+                    float stat_rho_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "rho_stat"});
+
+                    float unc = corr_pt * corr_pt * std::sqrt(
+                        stat_m_f * stat_m_f / (corr_pt * corr_pt) +
+                        stat_a_f * stat_a_f +
+                        2 * charge.at(i) * stat_rho_f * stat_m_f * stat_a_f / corr_pt);
+
+                    if (shift == "SmearUp") corr_pt = corr_pt + unc;
+                    else corr_pt = corr_pt - unc;
+                } else if (shift == "ResoUp" || shift == "ResoDown") {
+                    // apply resolution uncertainty on top of the scale corrected pt
+                    float k_unc_f = reso_evaluator_kmc->evaluate({std::abs(eta.at(i)), "stat"});
+
+                    if (k_mc_f > 0) {
+                        float std_x_cb = (reso_pt / smear_pt - 1) / k_mc_f;
+                        if (shift == "ResoUp") corr_pt = smear_pt * (1 + (k_mc_f + k_unc_f) * std_x_cb);
+                        else corr_pt = smear_pt * (1 + (k_mc_f - k_unc_f) * std_x_cb);
+                    }
+
+                    if (corr_pt / smear_pt > 2 || corr_pt / smear_pt < 0.1 || corr_pt < 0) corr_pt = smear_pt;
+                }
+
+            }
+
+            Logger::get("physicsobject::muon::PtCorrectionMC")
+                ->debug("muon pt before {}, muon pt after {} shift {}", pt.at(i),
+                        corr_pt, shift);
+
+            corrected_pts.at(i) = corr_pt;
+        }
+
+        return corrected_pts;
+    };
+
+    return df.Define(outputname, lambda,
+                     {pt, eta, phi, charge, n_tracker_layers,
+                      lumi, event});
+}
 
 /**
  * @brief This function defines a new column in the dataframe that contains the
