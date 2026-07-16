@@ -30,7 +30,7 @@ JetPtCorrection = ProducerGroup(
         {jet_jer_tag}, 
         {jet_reapplyJES}, 
         {jet_jes_shift}, 
-        {jet_jer_shift},
+        "{jet_jer_shift}",
         "{era}")
         """,
     input=[

@@ -21,27 +21,39 @@ A FriendTree is generated using a FriendTreeConfiguration. Such a configuration 
 .. code-block:: JSON
 
     {
-        "era_1": {
-            "sampletype_1": {
-                "scope_1": {
-                    "shift_1": [
-                        "id_tau_vsJet_VLoose_2",
-                        "id_tau_vsJet_VVLoose_2",
-                        "jphi_1",
-                        "q_2",
-                        "id_wgt_tau_vsEle_VLoose_2",
-                        "id_tau_vsEle_VTight_2",
-                        "extramuon_veto",
-                        "id_tau_vsJet_Tight_2",
-                        "mass_1",
-                        "puweight"
-                    ],
-                },
-            },
+        "quantities": {
+            "era_1": {
+                "sampletype_1": {
+                    "scope_1": {
+                        "shift_1": [
+                            "id_tau_vsJet_VLoose_2",
+                            "id_tau_vsJet_VVLoose_2",
+                            "jphi_1",
+                            "q_2",
+                            "id_wgt_tau_vsEle_VLoose_2",
+                            "id_tau_vsEle_VTight_2",
+                            "extramuon_veto",
+                            "id_tau_vsJet_Tight_2",
+                            "mass_1",
+                            "puweight"
+                        ]
+                    }
+                }
+            }
         },
+        "metadata": {
+            "analysis": "analysis_name",
+            "analysis_commit": "analysis_commit_hash",
+            "analysis_is_clean": true,
+            "commit": "CROWN_commit_hash",
+            "config": "config_name",
+            "era": "era_1",
+            "is_clean": true,
+            "sample_type": "sampletype_1"
+        }
     }
 
-
+The metadata of the provided quantities map is checked for consistency regarding the analysis, the name of the main config, the sample type, and the sample era. If any of these should not match between the provided maps and the requested configuration, then the cmake process is stopped.
 
 The recommended way of producing FriendTrees is to use a workflow tool, that manages the submission of jobs, generation of tarballs and organizing the output. One possible workflow tool choice is KingMaker (https://github.com/KIT-CMS/KingMaker). A more detailed description of the KingMaker workflow can be found in :ref:`Kingmaker Workflow Management`.
 

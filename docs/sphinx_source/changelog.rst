@@ -1,6 +1,8 @@
 Changelog
 ==========
 
+#TODO Version 0.5.0 release
+
 May 2024 - Version 0.4.0
 
 * Switch to ROOT 6.30, supporting now RHEL8 and RHEL9.

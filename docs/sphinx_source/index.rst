@@ -46,6 +46,7 @@ Documentation Content
    :maxdepth: 2
 
    introduction.rst
+   visualization.rst
    kingmaker.rst
    postprocessing.rst
    friend_trees.rst

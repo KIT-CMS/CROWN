@@ -1,0 +1,943 @@
+import re
+import json
+import shutil
+import logging
+from pathlib import Path
+from collections import defaultdict
+from code_generation.quantity import QuantityGroup
+from code_generation.helpers import is_empty
+from typing import Never
+
+log = logging.getLogger(__name__)
+
+
+def log_and_fail(msg: str) -> Never:
+    log.exception(msg, stack_info=True)
+    raise RuntimeError(msg)
+
+
+def create_graph(configuration, NanoAOD_inputs, DAG_dir, json_name):
+    """
+    Instantiate a GraphParser and execute DAG generation.
+
+    Args:
+        configuration (object): The configuration object containing scopes and producers.
+        NanoAOD_inputs (list): List of NanoAOD input quantities.
+        DAG_dir (str): Directory where the generated DAG JSON files will be saved.
+        json_name (str): The base name for the output JSON file.
+
+    """
+    for active_scope in configuration.scopes:
+        # Skip global scope as it is included in all other scopes
+        if active_scope == "global":
+            pass
+        else:
+            # Add Ntuple quantities for friends
+
+            if type(configuration).__name__ == "FriendTreeConfiguration":
+                external_inputs = {}
+                is_friend_config = True
+            elif type(configuration).__name__ == "Configuration":
+                external_inputs = {"NanoAOD": NanoAOD_inputs}
+                is_friend_config = False
+            else:
+                log_and_fail(
+                    f"Unknown configuration type: {type(configuration).__name__}"
+                )
+
+            if hasattr(configuration, "input_quantities_mapping"):
+                if not is_friend_config:
+                    log_and_fail(
+                        "input_quantities_mapping is only supported for friend configurations."
+                    )
+                external_inputs_tuples = configuration.input_quantities_mapping[
+                    active_scope
+                ][""]
+                config_sources = defaultdict(list)
+                for quantity, config in external_inputs_tuples:
+                    config_sources[config].append(quantity)
+                external_inputs.update(config_sources)
+                shifted_inputs = {
+                    shift: [original for original, *_ in e_in]
+                    for shift, e_in in configuration.input_quantities_mapping[
+                        active_scope
+                    ].items()
+                    if shift != ""
+                }
+            else:
+                shifted_inputs = None
+            graph = GraphParser(
+                configuration,
+                external_inputs,
+                active_scope,
+                DAG_dir,
+                is_friend_config=is_friend_config,
+                shifted_inputs=shifted_inputs,
+            )
+            # Generate and save graph for each scope separately
+            graph.generate_graph()
+            graph.save_graph(json_name)
+
+
+class GraphParser:
+    """
+    Parses configuration data to generate Directed Acyclic Graphs (DAGs).
+
+    Represents the dependencies and flow of producers, filters, and I/O.
+    """
+
+    def __init__(
+        self,
+        config,
+        external_inputs,
+        active_scope,
+        DAG_dir="",
+        is_friend_config=False,
+        shifted_inputs=None,
+    ):
+        """
+        Initialize the GraphParser object.
+
+        Args:
+            config (object): The configuration object.
+            external_inputs (list): List of external inputs required by the graph.
+            active_scope (str): The specific scope being parsed in addition to the global scope.
+            DAG_dir (str, optional): The directory for saving DAG files. Defaults to "".
+            is_friend_config (bool, optional): Indicates if it's a friend configuration. Defaults to False.
+            shifted_inputs (dict, optional): Mapping of shift names to shifted input quantities. Defaults to None.
+
+        """
+        self.config = config
+        self.active_scope = active_scope
+        if active_scope == "global":
+            self.scopes = ["global"]
+        else:
+            self.scopes = ["global", self.active_scope]
+        self.external_inputs = external_inputs
+        self.is_friend_config = is_friend_config
+        self.shifted_inputs = shifted_inputs
+        self.connections = defaultdict(lambda: defaultdict(list))
+        self.edges = []
+        self.inputs = defaultdict(lambda: defaultdict(list))
+        self.outputs = defaultdict(lambda: defaultdict(list))
+        self.direct_in_to_out = defaultdict(list)
+        self.vec_output_mappings = {}
+        self.node_register = defaultdict(
+            lambda: {
+                "name": None,
+                "parent": None,
+                "type": None,
+                "file_in": defaultdict(list),
+                "file_out": [],
+                "node_call": None,
+                "node_call_configs": {},
+            }
+        )
+        self.shift_registry = defaultdict()
+        self.DAG_dir = DAG_dir
+
+    def generate_graph(self):
+        """
+        Execute the main orchestration to generate nodes and edges.
+
+        Iterates through all scopes of the configuration, builds the DAG components,
+        verifies output ambiguity, bundles edges, and generates formatting metadata
+        for visualization tools like Cytoscape.
+        """
+        # Determine producers from configuration for global and active scope
+        for scope in self.scopes:
+            self.parse_scope_producers(scope)
+
+        # Derive connections from inputs/outputs
+        self.assemble_connections()
+
+        # Identify nodes without a specific type and without any outgoing connections
+        # This excludes filters, groups, vector groups, and scopes.
+        # While they are only defined afterwards this also excludes proxy nodes and edges (branch, twig, leaf).
+        for node_id, node_data in self.node_register.items():
+            if (
+                not node_data.get("type")
+                and is_empty(node_data.get("file_out"))
+                and node_id not in self.connections
+            ):
+                node_data["type"] = "stump"
+
+        self.compile_shift_registry()
+
+    def parse_scope_producers(self, scope):
+        """
+        Parse producers and outputs for a specific scope.
+
+        Args:
+            scope (str): The scope name to process.
+
+        Raises:
+            ValueError: If an output has multiple origins (ambiguous assignments).
+
+        """
+        if not is_empty(self.config.producers[scope]):
+            log.debug(f"For scope {scope}:")
+            # Add top level scope node
+            self.add_node(
+                id_name="scope",
+                name=f"{scope} scope",
+                scope=scope,
+                node_type="scope",
+            )
+
+        # Parse all producers in this scope
+        for p in self.config.producers[scope]:
+            self.parse_Producer_routing(
+                producer=p, parent="scope", scope=scope, align="    "
+            )
+
+        # Check outputs for ambiguous assignments (multiple origins for the same output)
+        all_keys = list(
+            set(list(self.outputs["global"].keys()) + list(self.outputs[scope].keys()))
+        )
+        for key in all_keys:
+            total_output_nodes = self.outputs["global"].get(key, []) + self.outputs[
+                scope
+            ].get(key, [])
+            if len(set(total_output_nodes)) != 1:
+                log_and_fail(f"Output {key} has multiple origins: {total_output_nodes}")
+
+        # Determine nodes writing to Ntuple by tracing configured scope outputs back to their producers
+        if hasattr(self.config, "outputs") and scope in self.config.outputs:
+            for output in self.config.outputs[scope]:
+                if isinstance(output, QuantityGroup):
+                    if output.vec_config in self.config.config_parameters.get(
+                        scope, {}
+                    ):
+                        vec_config = self.config.config_parameters[scope][
+                            output.vec_config
+                        ]
+                        vec_output_name = self.vec_output_mappings.get(output.name)
+                        if vec_output_name:
+                            for o in vec_config:
+                                req_out = o.get(vec_output_name)
+                                if req_out:
+                                    self.set_is_out(scope, req_out)
+                else:
+                    self.set_is_out(scope, output.name)
+
+    def parse_Producer_routing(self, producer, parent, scope, align=""):
+        """
+        Route parsing logic based on the specific producer class type.
+
+        Args:
+            producer (object): The producer instance to be parsed.
+            parent (str): The ID of the parent node.
+            scope (str): The active scope.
+            align (str, optional): Spacing string used for debug print alignment. Defaults to "".
+
+        Raises:
+            NotImplementedError: If the producer's class is unknown.
+
+        """
+        class_name = producer.__class__.__name__
+
+        if class_name == "VectorProducer":
+            self.parse_VectorProducer(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        elif class_name == "ExtendedVectorProducer":
+            self.parse_ExtendedVectorProducer(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        elif class_name == "ProducerGroup":
+            self.parse_ProducerGroup(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        elif class_name == "Filter":
+            self.parse_Filter(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        elif class_name == "BaseFilter":
+            self.parse_BaseFilter(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        elif class_name == "Producer":
+            self.parse_Producer(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        else:
+            log_and_fail(f"Unknown Producer class {class_name}")
+
+    def parse_VectorProducer(self, producer, parent, scope, align=""):
+        """
+        Map legacy vector configurations to graph nodes and inputs using regex.
+
+        Only supports 'event::filter::Flag'. This is a legacy function
+        and producers should be migrated to ExtendedVectorProducer.
+
+        Args:
+            producer (object): The legacy vector producer instance.
+            parent (str): The ID of the parent node.
+            scope (str): The active scope.
+            align (str, optional): Debug print alignment spacing. Defaults to "".
+
+        Raises:
+            NotImplementedError: If the producer call does not have legacy support.
+
+        """
+        log.debug(f"{align}Adding VectorProducer: {producer.name}")
+        log.warning(
+            f"!!! {producer.name} is a legacy producer and should be replaced with ExtendedVectorProducer !!!"
+        )
+
+        # Only accept whitelisted calls for legacy support
+        if producer.call.startswith("event::filter::Flag"):
+            self.parse_Flag_from_call(
+                producer=producer, parent=parent, scope=scope, align=align
+            )
+        else:
+            log_and_fail(f"The call {producer.call} does not have legacy support.")
+
+    def parse_Flag_from_call(self, producer, parent, scope, align=""):
+        """
+        Extract vector configurations from a legacy producer's call string using regex.
+
+        Args:
+            producer (object): The legacy flag producer instance.
+            parent (str): The ID of the parent node.
+            scope (str): The active scope.
+            align (str, optional): Debug print alignment spacing. Defaults to "".
+
+        Raises:
+            ValueError: If input vector configs cannot be parsed or matched.
+            NotImplementedError: If list outputs are used (unsupported in legacy).
+
+        """
+        group_id = f"{producer.name}_v"
+        call = producer.call
+        # Pattern consists of: event::filter::Flag(df, "Flag_name", "Flag_name")
+        pattern = r'event::filter::Flag\({df}, "{(.*)}", "{(.*)}"\)'
+        match = re.search(pattern, call)
+
+        if match:
+            input_vec_config = match.group(1)
+        else:
+            log_and_fail(f"Input vector config could not be parsed from {call}")
+
+        if input_vec_config not in producer.vec_configs:
+            log_and_fail(
+                f"Input name from {call} not in producer vector configs {producer.vec_configs}"
+            )
+        # Determine the index of the input vector config from the call
+        vec_input_index = producer.vec_configs.index(input_vec_config)
+        call = producer.call
+        self.add_node(
+            id_name=group_id,
+            name=producer.name,
+            scope=scope,
+            parent=parent,
+            node_type="vector",
+        )
+        vec_configs = [
+            self.config.config_parameters[scope][c] for c in producer.vec_configs
+        ]
+        # Loop over all vector configurations
+        for i_c, c in enumerate(zip(*vec_configs)):
+            input_name = c[vec_input_index]
+            vector_id = f"{group_id}_{i_c}"
+            vector_name = f"{producer.name}_{i_c}"
+            vector_config_dict = {vc: cc for vc, cc in zip(producer.vec_configs, c)}
+            config_data = self.extract_configs(call, scope, vector_config_dict)
+            log.debug(f"{align}    Adding Filter: {vector_name}")
+            self.add_node(
+                id_name=vector_id,
+                name=vector_name,
+                scope=scope,
+                parent=group_id,
+                is_filter=producer.is_filter,
+                node_call=call,
+                node_call_configs=config_data,
+            )
+            self.add_input(input_name, vector_id, scope)
+
+            # outputs are not supported for this legacy producer
+            if isinstance(producer.output, list):
+                log_and_fail("List outputs for legacy parsed calls are not supported.")
+
+    def parse_ExtendedVectorProducer(self, producer, parent, scope, align=""):
+        """
+        Parse an ExtendedVectorProducer class instance into graph nodes, inputs, and outputs.
+
+        Args:
+            producer (object): The ExtendedVectorProducer instance.
+            parent (str): The ID of the parent node.
+            scope (str): The active scope.
+            align (str, optional): Debug print alignment spacing. Defaults to "".
+
+        """
+        log.debug(f"{align}Adding ExtendedVectorProducer: {producer.name}")
+        group_id = f"{producer.name}_v"
+        self.add_node(
+            id_name=group_id,
+            name=producer.name,
+            scope=scope,
+            parent=parent,
+            node_type="vector",
+        )
+
+        # ExtendedVectorProducer is better defined and doesn't require regex
+        call = producer.call
+        vec_config = self.config.config_parameters[scope][producer.vec_config]
+        # Loop over all vector configurations
+        for i_c, c in enumerate(vec_config):
+            vector_id = f"{group_id}_{i_c}"
+            vector_name = f"{producer.name}_{i_c}"
+            config_data = self.extract_configs(call, scope, c)
+            log.debug(f"{align}    Adding Producer: {vector_name}")
+            self.add_node(
+                id_name=vector_id,
+                name=vector_name,
+                scope=scope,
+                parent=group_id,
+                is_filter=producer.is_filter,
+                node_call=call,
+                node_call_configs=config_data,
+            )
+
+            if isinstance(producer.input[scope], list):
+                for n in set(producer.input[scope]):
+                    self.add_input(n.name, vector_id, scope)
+                    log.debug(f"{align}        Adding Input: {n.name}")
+
+            if isinstance(producer.output, list):
+                vec_output = c[producer.outputname]
+                self.vec_output_mappings[producer.output_group.name] = (
+                    producer.outputname
+                )
+                self.add_output(vec_output, vector_id, scope)
+                log.debug(f"{align}        Adding Output: {vec_output}")
+
+    def parse_ProducerGroup(self, producer, parent, scope, align=""):
+        """
+        Parse a ProducerGroup class into graph nodes and recursively route its producers.
+
+        Args:
+            producer (object): The ProducerGroup instance.
+            parent (str): The ID of the parent node.
+            scope (str): The active scope.
+            align (str, optional): Debug print alignment spacing. Defaults to "".
+
+        """
+        log.debug(f"{align}Adding ProducerGroup: {producer.name}")
+
+        group_id = f"{producer.name}_g"
+        self.add_node(
+            id_name=group_id,
+            name=producer.name,
+            scope=scope,
+            parent=parent,
+            node_type="group",
+        )
+        # Add all producers in group recursively
+        for p in producer.producers[scope]:
+            self.parse_Producer_routing(
+                producer=p, parent=group_id, scope=scope, align=align + "    "
+            )
+
+    def parse_Filter(self, producer, parent, scope, align=""):
+        """
+        Parse a Filter class into graph nodes and recursively route its components.
+
+        Args:
+            producer (object): The Filter instance.
+            parent (str): The ID of the parent node.
+            scope (str): The active scope.
+            align (str, optional): Debug print alignment spacing. Defaults to "".
+
+        """
+        log.debug(f"{align}Adding Filter Group: {producer.name}")
+
+        group_id = f"{producer.name}_f"
+        self.add_node(
+            id_name=group_id,
+            name=producer.name,
+            scope=scope,
+            parent=parent,
+            node_type="group",
+        )
+
+        # Add all filters in group recursively
+        for p in producer.producers[scope]:
+            self.parse_Producer_routing(
+                producer=p, parent=group_id, scope=scope, align=align + "    "
+            )
+
+    def parse_BaseFilter(self, producer, parent, scope, align=""):
+        """
+        Parse a legacy BaseFilter class into graph nodes and inputs.
+
+        Args:
+            producer (object): The legacy BaseFilter instance.
+            parent (str): The ID of the parent node.
+            scope (str): The active scope.
+            align (str, optional): Debug print alignment spacing. Defaults to "".
+
+        """
+        log.debug(f"{align}Adding BaseFilter: {producer.name}")
+        log.warning(
+            f"!!! {producer.name} is a legacy producer and should be replaced with Filter !!!"
+        )
+        call = producer.call
+        config_data = self.extract_configs(call, scope)
+        self.add_node(
+            id_name=producer.name,
+            scope=scope,
+            parent=parent,
+            is_filter=producer.is_filter,
+            node_call=call,
+            node_call_configs=config_data,
+        )
+        # BaseFilter don't have outputs
+        for n in set(producer.input[scope]):
+            self.add_input(n.name, producer.name, scope)
+            log.debug(f"{align}    Adding Input: {n.name}")
+
+    def parse_Producer(self, producer, parent, scope, align=""):
+        """
+        Parse a generic Producer class into graph nodes, inputs, and outputs.
+
+        Args:
+            producer (object): The Producer instance.
+            parent (str): The ID of the parent node.
+            scope (str): The active scope.
+            align (str, optional): Debug print alignment spacing. Defaults to "".
+
+        """
+        log.debug(f"{align}Adding Producer: {producer.name}")
+        call = producer.call
+        config_data = self.extract_configs(call, scope)
+        self.add_node(
+            id_name=producer.name,
+            scope=scope,
+            parent=parent,
+            is_filter=producer.is_filter,
+            node_call=call,
+            node_call_configs=config_data,
+        )
+
+        if isinstance(producer.input[scope], list):
+            for n in set(producer.input[scope]):
+                self.add_input(n.name, producer.name, scope)
+                log.debug(f"{align}    Adding Input: {n.name}")
+
+        if isinstance(producer.output, list):
+            for n in set(producer.output):
+                self.add_output(n.name, producer.name, scope)
+                log.debug(f"{align}    Adding Output: {n.name}")
+
+    def set_is_out(self, scope, req_out):
+        """
+        Designate a node as the source of an Ntuple output.
+
+        Args:
+            scope (str): The active scope.
+            req_out (str): The name of the requested output quantity.
+
+        Raises:
+            ValueError: If the number of producers is invalid, the source is missing,
+                        or the output is not provided by NanoAOD/Ntuple.
+
+        """
+        producers = self.outputs[scope].get(req_out, []) + self.outputs["global"].get(
+            req_out, []
+        )
+        if len(producers) > 0:
+            if len(producers) != 1:
+                log_and_fail(f"Num producers for out {req_out}: {len(producers)}")
+            if self.node_register.get(producers[0]):
+                self.node_register[producers[0]]["file_out"].append(req_out)
+            else:
+                log_and_fail(
+                    f"Source {producers[0]} is neither part of {scope} nor global scope."
+                )
+        else:
+            if req_out in set().union(*self.external_inputs.values()):
+                if self.is_friend_config:
+                    keys = [
+                        k
+                        for k, values in self.external_inputs.items()
+                        if req_out in values
+                    ]
+                    if len(keys) > 1:
+                        log.warning(
+                            f"Input {req_out} available from multiple sources {keys}. Picking the first one {keys[0]}."
+                        )
+                    quantity_source = keys[0]
+                    log.debug(
+                        f"Requested output quantity {req_out} provided by {quantity_source} Ntuple."
+                    )
+                    self.direct_in_to_out[quantity_source].append(req_out)
+                else:
+                    log.debug(
+                        f"Requested output quantity {req_out} provided by NanoAOD."
+                    )
+                    self.direct_in_to_out["NanoAOD"].append(req_out)
+            else:
+                log_and_fail(
+                    f"Requested output quantity {req_out} not provided by NanoAOD/Ntuple."
+                )
+
+    def assemble_connections(self):
+        """
+        Resolve mappings to construct the actual connecting edges in the DAG.
+
+        Determines the precise source of each input requirement, whether it
+        originates from another Producer, NanoAOD, or Ntuple.
+
+        Raises:
+            ValueError: If an input is entirely missing from both external sources and internal producers.
+
+        """
+        all_external_inputs = set().union(*self.external_inputs.values())
+        for scope in self.scopes:
+            # Assemble connections by iterating through all nodes
+            # {target_node: [required_inputs]} is matched to {input: [source_nodes]}
+            # Connection is of shape {source: {required_inputs: [targets]}}
+            for target_node, required_inputs in self.inputs[scope].items():
+                compose = defaultdict(list)
+
+                # Determine where each input comes from
+                for req_input in required_inputs:
+                    if self.outputs["global"].get(req_input):
+                        source = self.outputs["global"][req_input][0]
+                        compose[source].append(req_input)
+                    elif self.outputs[scope].get(req_input):
+                        source = self.outputs[scope][req_input][0]
+                        compose[source].append(req_input)
+                    elif req_input in all_external_inputs:
+                        # CROWN friend production may only read quantities from CROWN Ntuples
+                        if self.is_friend_config:
+                            keys = [
+                                k
+                                for k, values in self.external_inputs.items()
+                                if req_input in values
+                            ]
+                            if len(keys) > 1:
+                                log.warning(
+                                    f"Input {req_input} available from multiple sources {keys}. Picking the first one {keys[0]}."
+                                )
+                            quantity_source = keys[0]
+                            self.node_register[target_node]["file_in"][
+                                quantity_source
+                            ].append(req_input)
+                        else:
+                            self.node_register[target_node]["file_in"][
+                                "NanoAOD"
+                            ].append(req_input)
+                    else:
+                        log_and_fail(
+                            f"Input {req_input} is missing from NanoAOD/Ntuple and producers."
+                        )
+
+                # Create connections grouped by source node
+                for source_node, input_names in compose.items():
+                    for input_name in input_names:
+                        log.debug(
+                            f"Adding Connection {input_name} from {source_node} to {target_node}"
+                        )
+                        self.add_connection(
+                            source=source_node, target=target_node, name=input_name
+                        )
+
+    def compile_shift_registry(self):
+        """
+        Aggregate shift configurations and map them to affected graph nodes.
+
+        Iterates over all scopes to collect shifts, validates naming conventions,
+        resolves conflicts, and populates the shift registry with heads and configs.
+
+        Raises:
+            RuntimeError: If shift names do not start with '__', or if merge conflicts occur.
+
+        """
+        # Aggregate all shifts
+        # Fails if configurations would be overwritten by another scope
+        aggregated_shifts = defaultdict(defaultdict)
+        for scope in self.scopes:
+            for shift, value in self.config.shifts[scope].items():
+                # Strip "__" of shift name
+                if not shift[0:2] == "__":
+                    log_and_fail(f"Shift names must start with '__' -> Shift {shift}")
+                shift = shift[2:]
+                merger = aggregated_shifts[shift]
+                conflict = merger.keys() & value.keys() and merger != value
+                if conflict:
+                    log_and_fail(f"Merge conflict on keys: {conflict}")
+                merger |= value
+
+        for shift, shift_configs in aggregated_shifts.items():
+            shift_heads = set()
+            for shift_cfg in shift_configs:
+                for node, node_data in self.node_register.items():
+                    if shift_cfg in node_data["node_call_configs"]:
+                        shift_heads.add(node)
+            if self.shifted_inputs and shift in self.shifted_inputs:
+                shifted_inputs = self.shifted_inputs[shift]
+            else:
+                shifted_inputs = []
+            self.shift_registry[shift] = {
+                "heads": list(shift_heads),
+                "shift_configs": shift_configs,
+                "shifted_inputs": shifted_inputs,
+            }
+
+    def get_downstream(self, source_node, downstream=None):
+        """
+        Recursively collect all downstream nodes and edges from a source node.
+
+        Args:
+            source_node (str): The ID of the node to start traversal from.
+            downstream (dict, optional): Accumulated result dict with 'edges' and 'nodes' sets.
+                Defaults to None, in which case a new dict is created.
+
+        Returns:
+            dict: A dictionary with keys 'edges' (set of edge IDs) and 'nodes' (set of node IDs).
+
+        """
+        # Get all downstream nodes
+        if downstream is None:
+            downstream = {"edges": set(), "nodes": set()}
+        for edge, nodes in self.connections[source_node].items():
+            downstream["edges"].add(f"edge_{edge}")
+            for node in nodes:
+                if node not in downstream["nodes"]:
+                    downstream["nodes"].add(node)
+                    ds_dat = self.get_downstream(node, downstream)
+                    downstream["edges"].update(ds_dat["edges"])
+                    downstream["nodes"].update(ds_dat["nodes"])
+
+        return downstream
+
+    def extract_configs(self, call, scope, vector_configs=None, ignore=None):
+        """
+        Parse out explicit configuration string replacements from a call parameter.
+
+        Args:
+            call (str): The raw call string containing formatting templates.
+            scope (str): The active scope context.
+            vector_configs (dict, optional): Specific vector configurations to prefer. Defaults to None.
+            ignore (set/list, optional): Strings/keys to ignore when extracting. Defaults to None.
+
+        Returns:
+            dict: The mapped configurations dict resolving template markers to true values.
+
+        Raises:
+            ValueError: If an unknown configuration parameter is encountered.
+
+        """
+        # Ignore parameters that are not config parameters
+        if is_empty(ignore):
+            ignore = {
+                "df",
+                "output",
+                "input",
+                "output_vec",
+                "input_vec",
+                "vec_open",
+                "vec_close",
+            }
+        else:
+            ignore = set(ignore)  # type: ignore
+
+        pattern = r"\{(\w+)\}"
+        matches = re.findall(pattern, call)
+
+        config_parameters = [m for m in matches if m not in ignore]
+
+        # Get config parameter values from vector or general configs
+        config_dict = {}
+        for c in config_parameters:
+            if vector_configs != None and not is_empty(vector_configs.get(c)):
+                config_dict[c] = vector_configs[c]
+            elif not is_empty(self.config.config_parameters[scope].get(c)):
+                config_dict[c] = self.config.config_parameters[scope][c]
+            else:
+                log_and_fail(f"Unknown config parameter {c}")
+        return config_dict
+
+    def add_output(self, output_name, output_node, scope):
+        """
+        Register a node internally as the generator of a specific output.
+
+        Args:
+            output_name (str): The name of the output being produced.
+            output_node (str): The ID of the node producing it.
+            scope (str): The active scope context.
+
+        Raises:
+            ValueError: If the node is already registered for this specific output.
+
+        """
+        node_id = f"{scope}_{output_node}"
+        if node_id in self.outputs[scope][output_name]:
+            log_and_fail(f"Node {node_id} already exists in output nodes.")
+        self.outputs[scope][output_name].append(node_id)
+
+    def add_input(self, input_name, input_node, scope):
+        """
+        Register a node internally as requiring a specific input dependency.
+
+        Args:
+            input_name (str): The name of the required input.
+            input_node (str): The ID of the node needing it.
+            scope (str): The active scope context.
+
+        Raises:
+            ValueError: If the input is already registered for this node.
+
+        """
+        scoped_input = f"{scope}_{input_node}"
+        if input_name in self.inputs[scope][scoped_input]:
+            log_and_fail(f"Input {input_name} already exists in inputs.")
+        self.inputs[scope][scoped_input].append(input_name)
+
+    def add_node(
+        self,
+        id_name,
+        name=None,
+        scope=None,
+        parent=None,
+        node_type=None,
+        is_filter=False,
+        family=None,
+        node_call=None,
+        node_call_configs=None,
+    ):
+        """
+        Create a standardized node object and append it to the graph's internal list.
+
+        Also manages appending metadata to the node and edge family registers.
+
+        Args:
+            id_name (str): The base string ID of the node.
+            name (str, optional): Visual label for the node. Defaults to id_name.
+            scope (str, optional): The active scope context. Defaults to None.
+            parent (str, optional): The ID of the parent node. Defaults to None.
+            node_type (str, optional): Specific class or type of the node. Defaults to None.
+            is_filter (bool, optional): Indicates if the node acts as a filter. Defaults to False.
+            family (str, optional): Ties the node to a grouping/proxy family. Defaults to None.
+            node_call (str, optional): The raw call string of the node. Defaults to None.
+            node_call_configs (dict, optional): Extracted configuration data for the call. Defaults to None.
+
+        Raises:
+            ValueError: If conflicting args (node_type and is_filter) are supplied,
+                        or if a full ID already exists within the standard family register.
+
+        """
+        if node_type and is_filter:
+            log_and_fail("Cannot specify both node_type and is_filter")
+        if is_filter:
+            node_type = "filter"
+        if not name:
+            name = id_name
+        if scope:
+            id_name = f"{scope}_{id_name}"
+        if parent:
+            if scope:
+                parent = f"{scope}_{parent}"
+        if self.node_register.get(id_name):
+            log_and_fail(f"Node {id_name} already exists in node register")
+        self.node_register[id_name]["name"] = name
+        if parent:
+            self.node_register[id_name]["parent"] = parent
+        if node_type:
+            self.node_register[id_name]["type"] = node_type
+        if node_call:
+            self.node_register[id_name]["node_call"] = node_call
+            self.node_register[id_name]["node_call_configs"] = node_call_configs
+
+    def add_connection(self, source, target, name):
+        """
+        Log a relational connection locally between a source and a target.
+
+        Args:
+            source (str): ID of the source node providing data.
+            target (str): ID of the target node consuming data.
+            name (str): Connection quantity label.
+
+        """
+        self.connections[source][name].append(target)
+
+    def save_graph(self, name):
+        """
+        Compile the DAG data structures, inject metadata, and export to a JSON file.
+
+        Also triggers an automatic update to the overarching DAG file tracker.
+
+        Args:
+            name (str): The base filename used to construct the final exported JSON path.
+
+        """
+        path = f"{name}_{self.config.era}_{self.config.sample}_{self.active_scope}.json"
+        if self.DAG_dir:
+            path = Path(self.DAG_dir) / path
+            Path(self.DAG_dir).mkdir(parents=True, exist_ok=True)
+
+        # Compile DAG data with metadata
+        full_data = {
+            "nodeRegister": self.node_register,
+            "edgeRegister": self.connections,
+            "directInputOutput": self.direct_in_to_out,
+            "shiftRegistry": self.shift_registry,
+        }
+
+        # Copy visualization file to build dir
+        script_current_dir = Path(__file__).parent.resolve()
+        source = script_current_dir / "CROWN_visualization.html"
+        target = Path(self.DAG_dir) / "index.html"
+        if not target.exists():
+            shutil.copy(source, target)
+
+        # Write DAG data to json
+        with open(path, "w") as f:
+            json.dump(full_data, f, indent=4)
+        log.info(
+            f"Generated DAG file for {self.config.era}/{self.config.sample}/{self.active_scope}: {path}"
+        )
+
+        # Update master DAG file list
+        self.update_DAG_file_list(
+            Path(self.DAG_dir) / "DAG_files.json",
+            self.config.era,
+            self.config.sample,
+            self.active_scope,
+        )
+
+    def update_DAG_file_list(self, config_path, new_era, new_sample, new_scope):
+        """
+        Maintain and append to the master JSON manifest tracking generated DAG elements.
+
+        Prevents duplicates while verifying the registration of distinct eras, samples, and scopes.
+
+        Args:
+            config_path (str): Filepath pointing to the master 'DAG_files.json'.
+            new_era (str/int): The era identifier to check/add.
+            new_sample (str): The sample identifier to check/add.
+            new_scope (str): The scope string to check/add.
+
+        """
+        if Path(config_path).exists():
+            with open(config_path, "r") as f:
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError:
+                    data = {"era": [], "sample": [], "scope": []}
+        else:
+            data = {"era": [], "sample": [], "scope": []}
+
+        # Update master DAG file data
+        data["era"] = sorted(list(set(data["era"] + [str(new_era)])))
+        data["sample"] = sorted(list(set(data["sample"] + [str(new_sample)])))
+        data["scope"] = sorted(list(set(data["scope"] + [str(new_scope)])))
+
+        # Write updated master DAG file data back
+        with open(config_path, "w") as f:
+            json.dump(data, f, indent=4)
+
+        log.debug(f"Updated {config_path} with {new_era}/{new_sample}/{new_scope}")

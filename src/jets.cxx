@@ -223,8 +223,7 @@ ROOT::RDF::RNode PtCorrectionL1(
  * (e.g., "AK4PFchs", "AK4PUPPI")
  * @param jes_tag tag for the JES correction campaign
  * (e.g., "Summer19UL18_V5_MC", "Summer24Prompt24_V2_DATA")
- * @param jes_shift_source JES shift source for systematic
- * uncertainties
+ * @param jes_shift_source JES shift source for systematic uncertainties
  * @param jer_tag tag of the JER correction campaign (e.g.,
  * "Summer19UL18_JRV2_MC")
  * @param jes_shift JES shift variation (0 = nominal, +/-1 = up/down)
@@ -273,12 +272,11 @@ ROOT::RDF::RNode PtCorrectionL2L3(
             df, jet_id + "_v12", "ROOT::VecOps::RVec<UChar_t>", jet_id);
 
     // systematic sources
-    correction::Correction *jet_energy_scale_shifts;
+    correction::Correction *jet_energy_scale_shift;
     if (jes_shift_source != "nom" && jes_shift_source != "HEMIssue") {
-        auto jes_source_evaluator = const_cast<correction::Correction *>(
+        jet_energy_scale_shift = const_cast<correction::Correction *>(
             correction_manager.loadCorrection(
                 jec_file, jes_tag + "_" + jes_shift_source + "_" + jec_algo));
-        jet_energy_scale_shifts = jes_source_evaluator;
     }
 
     // loading jet energy correction scale factor function
@@ -332,7 +330,7 @@ ROOT::RDF::RNode PtCorrectionL2L3(
     auto jer_sfunc_evaluator = correction_manager.loadCorrection(
         jec_file, jer_tag + "_SFUncertainty_" + jec_algo);
 
-    auto correction_lambda = [jet_energy_scale_shifts, jet_energy_scale_sf,
+    auto correction_lambda = [jet_energy_scale_shift, jet_energy_scale_sf,
                               jet_energy_resolution, jer_sf_evaluator, jer_sfunc_evaluator,
                               jes_shift_source, jes_shift, jer_shift,
                               jet_radius, era, is_data](
@@ -374,14 +372,13 @@ ROOT::RDF::RNode PtCorrectionL2L3(
                     if (jes_shift_source != "HEMIssue" &&
                         jes_shift_source != "nom") {
                         pt_scale_sf =
-                            1. +
-                            jes_shift *
-                                jet_energy_scale_shifts->evaluate(
-                                    {etas.at(i), pt_corr});
+                            1. + jes_shift * jet_energy_scale_shift->evaluate(
+                                                 {etas.at(i), pt_corr});
                         Logger::get("physicsobject::jet::PtCorrectionL2L3")
-                            ->debug("JES shift of jet pt by {} for single source "
-                                    "with SF {}",
-                                    jes_shift, pt_scale_sf);
+                            ->debug(
+                                "JES shift of jet pt by {} for single source "
+                                "with SF {}",
+                                jes_shift, pt_scale_sf);
                     } else if (jes_shift_source == "HEMIssue" &&
                                jes_shift_source != "nom") {
                         // IDs are only present for the jet collection, not low
@@ -569,8 +566,7 @@ ROOT::RDF::RNode PtCorrectionL2L3(
  * "AK8PFPuppi")
  * @param jes_tag tag of the JES correction campaign (e.g.,
  * "Summer19UL18_V5_MC")
- * @param jes_shift_source JES shift source for systematic
- * uncertainties
+ * @param jes_shift_source JES shift source for systematic uncertainties
  * @param jer_tag tag of the JER correction campaign (e.g.,
  * "Summer19UL18_JRV2_MC")
  * @param reapply_jes boolean flag to indicate whether to the JES correction
@@ -606,8 +602,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &gen_jet_eta, const std::string &gen_jet_phi,
                const std::string &rho, const std::string &jer_seed,
                const std::string &jec_file, const std::string &jec_algo,
-               const std::string &jes_tag,
-               const std::string &jes_shift_source,
+               const std::string &jes_tag, const std::string &jes_shift_source,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
                const std::string &era,
@@ -624,12 +619,11 @@ PtCorrectionMC(ROOT::RDF::RNode df,
         jet_radius = 0.8;
     }
     // systematic sources
-    correction::Correction *jet_energy_scale_shifts;
+    correction::Correction *jet_energy_scale_shift;
     if (jes_shift_source != "nom" && jes_shift_source != "HEMIssue") {
-        auto jes_source_evaluator = const_cast<correction::Correction *>(
+        jet_energy_scale_shift = const_cast<correction::Correction *>(
             correction_manager.loadCorrection(
                 jec_file, jes_tag + "_" + jes_shift_source + "_" + jec_algo));
-        jet_energy_scale_shifts = jes_source_evaluator;
     }
     // loading jet energy correction scale factor function
     auto jes_l1_evaluator = correction_manager.loadCorrection(
@@ -670,7 +664,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
         jec_file, jer_tag + "_ScaleFactor_" + jec_algo);
 
     // lambda run with dataframe
-    auto correction_lambda = [reapply_jes, jet_energy_scale_shifts,
+    auto correction_lambda = [reapply_jes, jet_energy_scale_shift,
                               jet_energy_scale_sf, jet_energy_resolution,
                               jer_sf_evaluator, jes_shift_source, jes_shift,
                               jer_shift, jet_radius, era,
@@ -776,18 +770,16 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             float pt_scale_sf = 1.0;
             if (jes_shift != 0.0) {
                 if (jes_shift_source != "HEMIssue" &&
-                        jes_shift_source != "nom") {
+                    jes_shift_source != "nom") {
                     pt_scale_sf =
-                        1. +
-                        jes_shift * jet_energy_scale_shifts->evaluate(
-                                        {etas.at(i), corrected_pts.at(i)});
+                        1. + jes_shift * jet_energy_scale_shift->evaluate(
+                                             {etas.at(i), corrected_pts.at(i)});
                     Logger::get("physicsobject::jet::PtCorrectionMC")
-                        ->debug(
-                            "JES shift of jet pt by {} for single source "
-                            "with SF {}",
-                            jes_shift, pt_scale_sf);
+                        ->debug("JES shift of jet pt by {} for single source "
+                                "with SF {}",
+                                jes_shift, pt_scale_sf);
                 } else if (jes_shift_source == "HEMIssue" &&
-                        jes_shift_source != "nom") {
+                           jes_shift_source != "nom") {
                     if (jes_shift == (-1.) && corrected_pts.at(i) > 15. &&
                         phis.at(i) > (-1.57) && phis.at(i) < (-0.87) &&
                         ids.at(i) == 2) {

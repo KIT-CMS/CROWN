@@ -33,8 +33,12 @@ ROOT::RDF::RNode PtCorrectionL2L3(
     const std::string &gen_jet_phi, const std::string &rho,
     const std::string &jer_seed, const std::string &run,
     const std::string &jec_file, const std::string &jec_algo,
+<<<<<<< HEAD
     const std::string &jes_tag,
     const std::string &jes_shift_source,
+=======
+    const std::string &jes_tag, const std::string &jes_shift_source,
+>>>>>>> c5e2cdd461ae739f43979721a3f593efea8ccc00
     const std::string &jer_tag, const int &jes_shift,
     const std::string &jer_shift, const std::string &era);
 ROOT::RDF::RNode
@@ -47,8 +51,12 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &gen_jet_eta, const std::string &gen_jet_phi,
                const std::string &rho, const std::string &jer_seed,
                const std::string &jec_file, const std::string &jec_algo,
+<<<<<<< HEAD
                const std::string &jes_tag,
                const std::string &jes_shift_source,
+=======
+               const std::string &jes_tag, const std::string &jes_shift_source,
+>>>>>>> c5e2cdd461ae739f43979721a3f593efea8ccc00
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
                const std::string &era,

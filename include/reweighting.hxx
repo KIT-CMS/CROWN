@@ -33,6 +33,10 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df, const std::string &outputname,
                        const std::string &genparticles_pdg_id,
                        const std::string &genparticles_status_flags,
                        const std::string &genparticles_pt);
+ROOT::RDF::RNode TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
+                           const std::string &genparticles_pdg_id,
+                           const std::string &genparticles_status_flags,
+                           const std::string &genparticles_pt);
 ROOT::RDF::RNode
 TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
           const std::string &genparticles_pdg_id,
