@@ -302,7 +302,8 @@ ROOT::RDF::RNode PtCorrectionL2L3(
         }
         if (is_data) {
             float _pt;
-            if (era == "2024" && pt < 30.0 && 2.0 < abs(eta) < 2.5)
+            if (era == "2024" && pt < 30.0 && 2.0 < std::abs(eta) &&
+                std::abs(eta) < 2.5)
                 _pt = 30.0;
             else
                 _pt = pt;
