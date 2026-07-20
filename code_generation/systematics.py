@@ -82,14 +82,30 @@ def get_adjusted_add_shift_SystematicShift(configuration: Any) -> Callable:
         _shift_map = shift_map or CONTEXT_REGISTRY["shift_map"].get()
         _producers = producers or CONTEXT_REGISTRY["producers"].get()
 
-        to_be_checked = (
-            [_name, shift_config, _producers]
-            if shift_config is not None and isinstance(_producers, dict)
-            else [_name, _scopes, _shift_key, _shift_map, _producers]
-        )
+        if shift_config is not None and isinstance(_producers, dict):
+            params_to_check = [
+                ("name", _name),
+                ("shift_config", shift_config),
+                ("producers", _producers),
+            ]
+        else:
+            params_to_check = [
+                ("name", _name),
+                ("scopes", _scopes),
+                ("shift_key", _shift_key),
+                ("shift_map", _shift_map),
+                ("producers", _producers),
+            ]
 
-        if any(it is None for it in to_be_checked):
-            raise ValueError("scopes, shift_key, shift_map, and producers must be set.")
+        missing_params = []
+        for param_name, param_value in params_to_check:
+            if param_value is None:
+                missing_params.append(param_name)
+
+        if missing_params:
+            raise ValueError(
+                f"Missing required parameters: {', '.join(missing_params)}."
+            )
 
         for direction, value in (
             _shift_map.items() if _shift_map else shift_config.items()

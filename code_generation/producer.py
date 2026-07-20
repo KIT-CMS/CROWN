@@ -530,7 +530,7 @@ class ExtendedVectorProducer(Producer):
             List[q.Quantity], Dict[str, List[q.Quantity]], None
         ] = None,
         output: Union[str, None] = None,  # pylint: disable=redefined-builtin
-        scope: Union[List[str], str, None] = None,
+        scopes: Union[List[str], str, None] = None,
         vec_config: Union[str, None] = None,
         is_filter: bool = False,
     ):
@@ -542,7 +542,7 @@ class ExtendedVectorProducer(Producer):
             input (Union[List[q.Quantity], Dict[str, List[q.Quantity]]]): The inputs of the producer, either a list of Quantity objects, or a dict with the scope as key and a list of Quantity objects as value
             output (Union[List[q.Quantity], None]): The outputs of the producer, either a list of Quantity objects, or None if the producer does not produce any output
             scopes (List[str]): The scopes in which the producer is to be called
-            vec_configs (List[str]): The key of the vec config in the config dict
+            vec_config (List[str]): The key of the vec config in the config dict
             is_filter (bool): True if the producer is an event filter
 
         """
@@ -553,11 +553,11 @@ class ExtendedVectorProducer(Producer):
         _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
         _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
         _output = output if output is not None else CONTEXT_REGISTRY["output"].get()
-        _scope = scope if scope is not None else CONTEXT_REGISTRY["scopes"].get()
+        _scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
         _vec_config = (
             vec_config
             if vec_config is not None
-            else CONTEXT_REGISTRY["vec_configs"].get()
+            else CONTEXT_REGISTRY["vec_config"].get()
         )
 
         # Validate required parameters
@@ -565,7 +565,7 @@ class ExtendedVectorProducer(Producer):
             raise NameNotDetermined
 
         for key, value in [
-            ("scope", _scope),
+            ("scopes", _scopes),
             ("input", _input),
             ("output", _output),
             ("vec_config", _vec_config),
@@ -577,12 +577,12 @@ class ExtendedVectorProducer(Producer):
         # we create a Quantity Group, which is updated during the writecalls() step
         self.outputname = _output
         self.vec_config = _vec_config
-        if not isinstance(_scope, list):
-            scope = [scope]
+        if not isinstance(_scopes, list):
+            _scopes = [_scopes]
         quantity_group = q.QuantityGroup(name)
         # set the vec config key of the quantity group
-        quantity_group.set_vec_config(vec_config)
-        super().__init__(name, call, input, [quantity_group], scope, is_filter)
+        quantity_group.set_vec_config(_vec_config)
+        super().__init__(name, _call, _input, [quantity_group], _scopes, is_filter)
         if is_empty(self.output):
             raise InvalidProducerConfigurationError(self.name)
         # add the vec config to the parameters of the producer
@@ -1210,7 +1210,14 @@ class VersionedProducer:
     """
 
     @classmethod
-    def get(cls, era: str, version: Union[str, None] = None) -> Any:
+    def get(cls, era: str, version: Union[str, None] = None) -> Union[
+        Producer,
+        ProducerGroup,
+        ExtendedVectorProducer,
+        VectorProducer,
+        BaseFilter,
+        Filter,
+    ]:
         """Return the producer variant for *era* (and optional *version*).
 
         Args:
@@ -1228,10 +1235,8 @@ class VersionedProducer:
         if not isinstance(obj, type):
             return obj
 
-        target_version = (
-            version if version is not None else ERA_NANOAOD_VERSION_DEFAULTS.get(era)
-        )
-        if target_version is not None and hasattr(obj, target_version):
+        target_version = version or ERA_NANOAOD_VERSION_DEFAULTS.get(era)
+        if target_version and hasattr(obj, target_version):
             return getattr(obj, target_version)
 
         available = [k for k in obj.__dict__ if not k.startswith("_")]

@@ -23,6 +23,7 @@ CONTEXT_REGISTRY: Dict[str, contextvars.ContextVar] = {
         "subproducers",
         "call",
         "output",
+        "vec_config",
         "vec_configs",
     ]
 }
@@ -82,7 +83,7 @@ def get_variable_name() -> str:
         The variable name being assigned to
 
     Raises:
-        RuntimeError: If variable name cannot be determined from context
+        NameNotDetermined: If variable name cannot be determined from context
     """
     frame = inspect.currentframe().f_back.f_back
     code_context = inspect.getframeinfo(frame).code_context
@@ -91,7 +92,7 @@ def get_variable_name() -> str:
         match = re.match(r"([\w\d_]+)\s*(=|:=)", call_line)
         if match:
             return match.group(1)
-    raise RuntimeError("Could not determine variable name from context")
+    raise NameNotDetermined()
 
 
 class MissingValue(Exception):
