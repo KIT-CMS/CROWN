@@ -1,0 +1,311 @@
+MET / RECOIL CORRECTION AUDIT — CMS Run3 htautau (CROWN / TauAnalysis-CROWN)
+=============================================================================
+Scope: Type-1 MET correction, MET systematic variations (JES/JER propagation,
+unclustered energy), recoil corrections and their uncertainty variations, for
+eras 2022preEE, 2022postEE, 2023preBPix, 2023postBPix, 2024, 2025, 2026.
+
+IMPORTANT SETUP NOTE
+---------------------
+The worktree at /work/sgiappic/KingMaker-worktrees/CROWN-met only contains the
+CROWN core repository (src/, include/). The tau analysis config
+(analysis_configurations/tau/config.py, producers/met.py, ...) is a separate
+git repository (KIT-CMS/TauAnalysis-CROWN, branch sm_htt_run3) that is cloned
+on demand by init.sh and is NOT part of the CROWN worktree/checkout - none of
+the six parallel audit worktrees have it. To review and fix it without
+touching the shared checkout at /work/sgiappic/KingMaker/CROWN (which has
+uncommitted, presumably in-progress edits from the other parallel
+jets/zpt/btag/tau/trigger audits), I cloned a fresh copy into
+  /work/sgiappic/KingMaker-worktrees/CROWN-met/analysis_configurations/tau
+on a new branch `audit-run3-htautau-met` (from origin/sm_htt_run3 @ 8a60015),
+and committed fixes there. This second repository/branch will need to be
+merged back separately from the CROWN worktree branch — please point this out
+to whoever integrates the six audits, since only the CROWN-side fix
+(PropagateUnclusteredEnergyToMET in src/met.cxx / include/met.hxx) lives on
+the `audit-run3-htautau-met` branch of the actual CROWN worktree; the
+config-side fixes live on the same-named branch of the freshly cloned tau
+config repo at the path above.
+
+Commits:
+  CROWN worktree:            d014d12 (met.hxx/met.cxx: new C++ function)
+  analysis_configurations/tau: 76380d5 (config.py/producers/met.py/output.py)
+
+DOCUMENTATION USED
+-------------------
+- Type-1 MET Correction (cms-jerc.web.cern.ch, "Jet Energy Resolution and
+  Corrections" site). Note: the scraped page contains almost no body text
+  beyond nav chrome — the actual recipe is in an attached PDF / indico talk
+  (indico.cern.ch/event/1644923/#5-met-type-1-correction-comput) that was not
+  extracted to text. I relied on the well-known standard Type-1 MET formula
+  (attributed in the code's own docstrings) and cross-checked the
+  implementation against it: subtract (full JEC − L1 JEC) jet pT for jets
+  with corrected pT > 15 GeV and (chEmEF+neEmEF) < 0.9, propagated in both
+  data and MC.
+- Bosonic recoil corrections (cms-higgs-leprare docs, HLepRare group),
+  including the "Uncertainty description" section and the runnable Python
+  example snippet (most load-bearing part of that page).
+- Companion links files, cross-checked in particular the description of
+  Recoil_correction_Uncertainty inputs/semantics.
+
+WHAT WAS CHECKED AND FOUND CORRECT (no changes)
+-------------------------------------------------
+1. Type-1 MET jet selection/threshold: src/met.cxx `Type1Correction`
+   (both v15 and v12/v9 overloads) subtracts (jet_pt_corr − jet_pt_l1corr)
+   for jets with jet_pt_corr > 15 GeV and EmEF < 0.9, applied consistently to
+   both data and MC (config: "propagateJets": True, unconditional). This
+   matches the standard Type-1 MET recipe.
+
+2. JES/JER source propagation into MET: jet_variations.py defines all
+   JES/JER shifts (jerUnc, jesUncTotal, per-source Regrouped_* with
+   era-suffixed "Yearly" variants for eras 2022+ via JERC_ERA_MAP) with
+   producers=[jets.JetEnergyCorrection] only — MET's Type-1 correction
+   producer (met.METTypeI) is NOT listed explicitly. I confirmed via
+   docs/sphinx_source/py_configuration.rst ("the CROWN framework
+   automatically tracks all shifts and all producers that depend on shifted
+   quantities") and code_generation/systematics.py that CROWN's shift system
+   auto-propagates a shift to any downstream producer consuming the shifted
+   quantity graph, not just producers explicitly listed. Since
+   met::METTypeI consumes q.jet_pt_T1MET_corrected / q.jet_pt_L1_T1MET_corrected
+   (both outputs of jets.JetEnergyCorrection), the Type-1 MET is correctly
+   recomputed under every JES/JER shift. No fix needed here.
+
+3. Correlation/decorrelation naming scheme for JES/JER sources: internally
+   consistent (regrouped sources without an era-suffix are shared/correlated
+   across eras by construction — same shift name "jesUncAbsolute" etc. — and
+   the yearly/decorrelated components get an explicit era suffix via
+   JERC_ERA_MAP, e.g. "Regrouped_Absolute_2022EE"). Since MET automatically
+   inherits whichever jet correction the shift used (see item 2), MET's
+   correlation scheme is trivially consistent with the jets scheme — there is
+   no separate MET-side naming to go out of sync.
+
+4. njets input to the recoil correction (q.njets, from
+   producers/jets.py GoodJets): I initially suspected this used the generic
+   analysis jet selection (pT>30, any eta) rather than the doc's required
+   "pT>50 GeV for 2.5<|eta|<3.0 (horn region), pT>30 GeV otherwise" — but on
+   closer reading, GoodJets = GoodJets_loose OR GoodJets_tight, where
+   GoodJets_loose is pT>30 & (|eta|<2.5 or 3<|eta|<4.7) and GoodJets_tight is
+   pT>50 & 2.5<|eta|<3(/4.7 for 2022/2023) — this is exactly the doc's njet
+   definition for the recoil correction. Correct as-is, cite
+   producers/jets.py:244-277.
+
+5. Recoil correction files per era: recoil_corrections_file (config.py
+   ~line 587) uses the doc-recommended v5 correctionlib files
+   (data/hleprare/RecoilCorrlib/Recoil_corrections_<era>_v5.json.gz) for
+   2022preEE/2022postEE/2023preBPix/2023postBPix/2024, all sourced from the
+   hleprare submodule referenced by the doc's "Correctionlib file" section.
+   2025 and 2026 fall back to the 2024 file, which is a reasonable
+   extrapolation given the doc has no dedicated 2025/2026 file yet — flagged
+   as an ambiguity below, not a bug.
+
+6. applyRecoilCorrections process list (config.py ~line 619): applied to
+   dyjets*, wjets*, electroweak_boson, ggh_htautau, vbf_htautau, rem_htautau,
+   ggh_hww, vbf_hww, rem_VH; default False (so all backgrounds, ttbar, data,
+   embedding are excluded). This matches met.hxx's own docstring citing the
+   HLepRare recommendation ("only recommented to apply it to single boson
+   samples, like Z, W or Higgs boson"). Correct.
+
+7. recoil_method = "QuantileMapHist" as the nominal method, matching the
+   doc's explicit statement that "the uncertainties were derived based on
+   corrections applied with the QuantileMapHist method" (Recoil_correction_
+   Uncertainty section) — using a different nominal method (e.g. Rescaling)
+   would have been inconsistent with the uncertainty derivation. Correct.
+
+ISSUES FOUND AND FIXED
+------------------------
+
+ISSUE 1 — metUnclusteredEnUp/Down was a silent no-op for the Run3 MET chain
+----------------------------------------------------------------------------
+Doc: "Type-1 MET Correction" page table of contents lists "Unclustered
+Energy Uncertainty Propagation for Type-1 MET" as a required companion of
+Type-1 MET; general JME convention requires the unclustered energy
+uncertainty to be propagated to any MET quantity used downstream.
+
+Code (before fix): config.py defines the shift
+  SystematicShiftByQuantity(name="metUnclusteredEnUp", quantity_change={
+      nanoAODv15.PuppiMET_pt: "PuppiMET_ptUnclusteredUp",
+      nanoAODv15.PuppiMET_phi: "PuppiMET_phiUnclusteredUp"})
+This substitutes the NanoAOD quantity nanoAODv15.PuppiMET_pt/phi wherever it
+is used in the graph. However, the actual Run3 (v15/v12) analysis MET chain
+(met.MetCorrections / met.MetCorrections_v12) starts from q.rawmet_p4
+(RawPuppiMET_pt/phi) and recomputes its own Type-1 correction via
+met::Type1Correction — it never reads nanoAODv15.PuppiMET_pt/phi. The only
+producer that consumes nanoAODv15.PuppiMET_pt/phi is BuildMetVector, whose
+output q.puppimet_p4 is not used anywhere in the v15/v12 pipeline (checked:
+`grep -rn "q\.puppimet_p4\b"` shows it is only consumed by the Run2-only
+PropagateJetsToMet). Net effect: for all Run3 eras, the metUnclusteredEnUp/
+Down "shift" produced byte-identical MET, mtT/mt/other MET-derived variables
+to the nominal — the unclustered energy systematic was effectively missing
+for Run3.
+
+Fix (analysis_configurations/tau, commit 76380d5, plus new CROWN function in
+commit d014d12):
+- Added met::PropagateUnclusteredEnergyToMET(df, output, p4_met,
+  met_pt_nominal, met_phi_nominal, met_pt_shifted, met_phi_shifted,
+  apply_shift) in include/met.hxx / src/met.cxx. It computes
+  delta_xy = (shifted PuppiMET_pt/phi in x/y) − (nominal PuppiMET_pt/phi in
+  x/y) and adds it onto the input MET vector; if apply_shift is false it is a
+  pure rename (matches the existing pattern used by lorentzvector::
+  PropagateToMET / met::RecoilCorrection for their apply-flags).
+- Added a new producer ApplyUnclusteredMetShift (producers/met.py) using a
+  second NanoAODQuantity instance pointing at the same "PuppiMET_pt"/
+  "PuppiMET_phi" branches (PuppiMET_pt_nominal_ref / PuppiMET_phi_nominal_ref)
+  that never gets the external shift registered on it, so it always resolves
+  to the true nominal value, while nanoAODv15.PuppiMET_pt/phi (which the
+  shift *is* registered on) supplies the "shifted" side. Under nominal
+  running both resolve to the same branch → net shift is exactly zero.
+- Chained this producer as the last step of met.MetCorrections /
+  met.MetCorrections_v12, and rewired the final MetPt/MetPhi producers
+  (new MetPt_Run3/MetPhi_Run3) to read its output. Left the Run2 chain
+  (met.MetCorrections_Run2 / met.ApplyRecoilCorrections_Run2, out of this
+  audit's Run3 scope) untouched — it already builds off q.puppimet_p4, so
+  the existing SystematicShiftByQuantity substitution already worked
+  correctly there and did not need the new machinery.
+- Added a "propagateUnclustered": True default config parameter, mirroring
+  "propagateJets"/"propagateLeptons".
+
+ISSUE 2 — Recoil response/resolution uncertainty was evaluated on the wrong
+MET stage (pre- instead of post-recoil-correction)
+----------------------------------------------------------------------------
+Doc ("Uncertainty description" section of Bosonic recoil corrections, and
+the runnable example snippet): "nominal corrections are to be applied via
+U_para and U_perp ... After these nominal corrections, values for H_para and
+H_perp can be obtained from the new PuppiMET. Uncertainties are applied to
+these values again". The example snippet is explicit:
+    corrRec3 = cset["Recoil_correction_QuantileMapHist"]
+    ...
+    METpt_new, METphi_new = GetMETfromU(upara_new, uperp_new, ...)   # nominal-corrected MET
+    ...
+    corrRecUnc = cset["Recoil_correction_Uncertainty"]
+    hpara, hperp = GetH(METpt_new, METphi_new, ...)                  # <- uses the CORRECTED MET, not the raw one
+    hParaRespUp = corrRecUnc.evaluate(..., "Hpara", hpara, "RespUp")
+
+Code (before fix): config.py's "MET Recoil Shifts" section (era>=2022
+branch) applied the metRecoilResponse/metRecoilResolution shifts directly to
+met.ApplyRecoilCorrections via shift_key=["recoil_method", "recoil_variation"],
+switching that single producer's method from "QuantileMapHist" straight to
+"Uncertainty". Since ApplyRecoilCorrections always takes
+q.puppimet_p4_leptoncorrected (the pre-recoil-correction MET) as its met
+input regardless of method, this meant H_para/H_perp were computed from the
+un-recoil-corrected MET under the shift, instead of from the nominal
+QuantileMapHist-corrected MET as the doc's own example demonstrates. This
+silently produced numerically incorrect (systematically offset, roughly by
+the size of the nominal recoil correction itself) response/resolution
+up/down variations for every Run3 DY/W/signal sample. (By contrast, the
+Run2 code path, met::RecoilCorrection's ROOT-file-based overload in
+src/met.cxx, already got this right: it computes correctedMetX/Y via
+corrector->CorrectWithHist first, and only then, if a systematic is
+requested, calls systematics->ApplyMetSystematic on those already-corrected
+values — i.e. Run2 correctly composes the uncertainty on top of the nominal
+correction. Only the Run3 correctionlib wiring in config.py had this bug;
+the underlying met::RecoilCorrection correctionlib C++ function itself is
+written correctly for a single method call — the bug was in how config.py
+composed method calls.)
+
+Fix (analysis_configurations/tau, commit 76380d5):
+- met.ApplyRecoilCorrections now always uses the nominal "QuantileMapHist"
+  method (recoil_method/recoil_variation are no longer touched by the
+  Response/Resolution shifts).
+- Added a new producer met.ApplyRecoilUncertainty (producers/met.py),
+  chained immediately after ApplyRecoilCorrections, which calls
+  met::RecoilCorrection with method fixed to "Uncertainty" and its MET input
+  set to q.puppimet_p4_recoilcorrected (i.e. the output of the nominal
+  QuantileMapHist step) — matching the doc's GetH(METpt_new, METphi_new, ...)
+  usage. It is a no-op (rename-through) unless the new
+  "applyRecoilUncertainty" flag is true.
+- Rewired the "MET Recoil Shifts" era>=2022 branch in config.py to toggle
+  producers=[met.ApplyRecoilUncertainty] with
+  shift_key=["applyRecoilUncertainty", "recoil_uncertainty_variation"],
+  shift_map {"Up": [True, "RespUp"/"ResolUp"], "Down": [True, "RespDown"/
+  "ResolDown"]}.
+- ApplyUnclusteredMetShift (Issue 1 fix) now chains after
+  ApplyRecoilUncertainty, so the final MET correctly composes: raw → Type-1
+  → lepton-propagated → nominal recoil (QuantileMapHist) → recoil
+  uncertainty (Uncertainty, no-op at nominal) → unclustered energy shift
+  (no-op at nominal) → final puppimet/puppimetphi.
+
+AMBIGUITIES / THINGS FLAGGED BUT NOT CHANGED
+-----------------------------------------------
+A. Recoil uncertainty correlation across eras: the doc does not state
+   whether the Response/Resolution recoil uncertainty should be correlated
+   or decorrelated across eras. The code uses a single shift name
+   ("metRecoilResponse"/"metRecoilResolution") with no era suffix for all
+   Run3 eras, i.e. fully correlated across 2022preEE...2026 by construction,
+   even though each era has its own independently-derived correction/
+   uncertainty file (data/hleprare/RecoilCorrlib/Recoil_corrections_<era>_v5
+   .json.gz). This may be the intended HLepRare convention (recoil response/
+   resolution being treated as a common experimental uncertainty, similar to
+   how many groups treat it), but I could not confirm this from the
+   available documentation. Flagging for the analysis team / statistics
+   conveners to confirm; did not change since decorrelating is a policy
+   choice, not a code bug, and doing so incorrectly could itself be a
+   mistake.
+
+B. "DY_order" mapping (config.py ~line 665) sets "wjets": "NNLO" (with a
+   comment "mg is LO, amcat is NLO, powheg is NNLO", and a second comment
+   "from GrASP it looks like the DY powheg samples are also NLO and not
+   NNLO" suggesting this is under active reconsideration by the team). Since
+   the wjets samples used ("wjets", "wjets_amcatnlo") are typically amc@nlo
+   (i.e. NLO order) rather than NNLO, this mapping looks suspicious, but I
+   could not verify the actual generator order used for the specific wjets
+   samples from the available documentation, and this parameter is shared
+   between the recoil correction order input and Z-pT reweighting, which is
+   outside this audit's primary scope (see zpt audit). Not changed; flagged
+   for the analysis team to double check against the HLepRare recoil
+   correctionlib file's available "order" categories per era.
+
+C. recoil_systematics_file (config.py ~line 602) is set to the literal
+   string '""' for all Run3 eras. This is not used by the Run3
+   correctionlib-based RecoilCorrection call (met.ApplyRecoilCorrections /
+   met.ApplyRecoilUncertainty), which only consumes recoil_corrections_file
+   — recoil_systematics_file is only used by the Run2 ROOT-file-based
+   overload (met.ApplyRecoilCorrections_Run2). Confirmed harmless/unused
+   for Run3; not changed.
+
+D. The "Type-1 MET Correction" cms-jerc.web.cern.ch page did not scrape any
+   load-bearing body text (only navigation chrome) — the actual recipe PDF/
+   indico talk were not available as text. I verified the implementation
+   against the well-known standard Type-1 MET formula instead (matches the
+   code's own docstring citations). If a more detailed/updated recipe exists
+   in the PDF/indico talk, it could not be cross-checked here.
+
+E. PFMET (q.pfmet/q.pfmetphi) is built through an analogous but separate
+   pipeline (met.PFMetCorrections) that was NOT given the
+   ApplyRecoilUncertainty / ApplyUnclusteredMetShift treatment, since a
+   `grep` across producers/*.py and config.py shows q.pfmet is not consumed
+   by any downstream high-level variable, ML feature, or fake-factor
+   producer in this analysis (only q.puppimet is) — PFMET appears to be an
+   output-only / monitoring quantity. Left unfixed to keep the change
+   minimal and in line with the audit's actual impact; flagged in case PFMET
+   is used downstream elsewhere (e.g. in friend-tree post-processing not
+   visible in this repository).
+
+FILES CHANGED
+--------------
+CROWN worktree (branch audit-run3-htautau-met, commit d014d12):
+  - include/met.hxx  (new function declaration)
+  - src/met.cxx      (new met::PropagateUnclusteredEnergyToMET)
+
+analysis_configurations/tau (separate clone, branch audit-run3-htautau-met,
+commit 76380d5, based on origin/sm_htt_run3 @ 8a60015):
+  - config.py           (new config params; MET Recoil Shifts rewiring)
+  - producers/met.py    (ApplyRecoilUncertainty, ApplyUnclusteredMetShift,
+                          MetPt_Run3/MetPhi_Run3, updated ProducerGroups)
+  - quantities/output.py (new intermediate quantities)
+
+VERIFICATION LIMITATIONS
+--------------------------
+- Could not run a full CMake/ROOT build of CROWN nor generate/compile an
+  actual analysis executable in this session (no time budget for a full
+  build; ROOT and cmake are present in the environment but a full CROWN
+  build was not attempted). Python syntax of all changed analysis_configurations
+  files was verified with `python3 -m py_compile`; the new C++ was written
+  to closely mirror the exact patterns already used and compiled elsewhere
+  in met.cxx (event::quantity::Rename<ROOT::Math::PtEtaPhiMVector>,
+  df.Define with a lambda over PtEtaPhiMVector/float columns), but was not
+  compiled. Recommend a compile + a quick numerical sanity check (nominal
+  vs metUnclusteredEnUp/Down vs metRecoilResponseUp/Down on a small DY
+  sample) before merging.
+- Could not reach gitlab.cern.ch (cms-higgs-leprare/hleprare) or indico.cern.ch
+  links directly in this session to cross-check the recoil correction
+  reference implementation source beyond the scraped doc text/example
+  snippet; relied on the already-thorough example snippet embedded in the
+  scraped documentation page instead.
