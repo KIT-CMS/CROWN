@@ -418,58 +418,7 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief This function calculates muon ID scale factors (SFs) for a single
- * muon dependening on its pseudorapidity (\f$\eta\f$) and transverse momentum
- * (\f$p_T\f$). The scale factors are loaded from a correctionlib file using a
- * specified scale factor name and variation.
- *
- * Recommendations by MuonPOG:
- * - [Run2](https://muon-wiki.docs.cern.ch/guidelines/corrections/#__tabbed_6_1)
- * - [Run3](https://muon-wiki.docs.cern.ch/guidelines/corrections/#__tabbed_6_2)
- *
- * @param df input dataframe
- * @param correction_manager correction manager responsible for loading the
- * muon scale factor file
- * @param outputname name of the output column containing the ID scale factor
- * @param pt name of the column containing the transverse momentum of a muon
- * @param eta name of the column containing the pseudorapidity of a muon
- * @param sf_file path to the file with the muon scale factors
- * @param sf_name name of the muon scale factor for the ID correction,
- * e.g. "NUM_MediumID_DEN_TrackerMuons"
- * @param variation name the scale factor variation, "nominal" for the nominal
- * scale factor and "systup"/"systdown" for the up/down variation
- *
- * @return a new dataframe containing the new column
- */
-ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correction_manager,
-                    const std::string &outputname, const std::string &pt,
-                    const std::string &eta, const std::string &sf_file,
-                    const std::string &sf_name, const std::string &variation) {
-    Logger::get("physicsobject::muon::scalefactor::Id")
-        ->debug("Setting up functions for muon id sf");
-    Logger::get("physicsobject::muon::scalefactor::Id")
-        ->debug("ID - Name {}", sf_name);
-    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto df1 = df.Define(
-        outputname,
-        [evaluator, variation](const float &pt, const float &eta) {
-            Logger::get("physicsobject::muon::scalefactor::Id")
-                ->debug("ID - pt {}, eta {}", pt, eta);
-            double sf = 1.;
-            // check to prevent muons with default values due to tau energy
-            // correction shifts below good tau pt selection
-            if (pt >= 0.0 && std::abs(eta) >= 0.0) {
-                sf = evaluator->evaluate({std::abs(eta), pt, variation});
-            }
-            return sf;
-        },
-        {pt, eta});
-    return df1;
-}
-
-/**
- * @brief This function calculates muon iso scale factors (SFs) for a single
+ * @brief This function calculates muon iso and ID scale factors (SFs) for a single
  * muon dependening on its pseudorapidity (\f$\eta\f$) and transverse momentum
  * (\f$p_T\f$). The scale factors are loaded from a correctionlib file using a
  * specified scale factor name and variation.
@@ -481,37 +430,55 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
  * muon scale factor file
- * @param outputname name of the output column containing the iso scale factor
+ * @param outputname name of the output column containing the scale factor
  * @param pt name of the column containing the transverse momentum of a muon
  * @param eta name of the column containing the pseudorapidity of a muon
  * @param sf_file path to the file with the muon scale factors
- * @param sf_name name of the muon scale factor for the iso correction,
+ * @param sf_name name of the muon scale factor for the correction,
  * e.g. "NUM_TightRelIso_DEN_MediumID"
  * @param variation name the scale factor variation, "nominal" for the nominal
  * scale factor and "systup"/"systdown" for the up/down variation
  *
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode Iso(ROOT::RDF::RNode df,
+ROOT::RDF::RNode IsoAndID(ROOT::RDF::RNode df,
                      correctionManager::CorrectionManager &correction_manager,
                      const std::string &outputname, const std::string &pt,
                      const std::string &eta, const std::string &sf_file,
                      const std::string &sf_name, const std::string &variation) {
-    Logger::get("physicsobject::muon::scalefactor::Iso")
+    Logger::get("physicsobject::muon::scalefactor::IsoAndID")
         ->debug("Setting up functions for muon iso sf");
-    Logger::get("physicsobject::muon::scalefactor::Iso")
-        ->debug("ISO - Name {}", sf_name);
+    Logger::get("physicsobject::muon::scalefactor::IsoAndID")
+        ->debug("SF - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     auto df1 = df.Define(
         outputname,
         [evaluator, variation](const float &pt, const float &eta) {
-            Logger::get("physicsobject::muon::scalefactor::Iso")
-                ->debug("ISO - pt {}, eta {}", pt, eta);
+            Logger::get("physicsobject::muon::scalefactor::IsoAndID")
+                ->debug("SF - pt {}, eta {}", pt, eta);
             double sf = 1.;
             // check to prevent muons with default values due to tau energy
             // correction shifts below good tau pt selection
             if (pt >= 0.0 && std::abs(eta) >= 0.0) {
-                sf = evaluator->evaluate({std::abs(eta), pt, variation});
+                if (variation=="nominal") {
+                    sf = evaluator->evaluate({std::abs(eta), pt, "nominal"});
+                }
+                else if (variation=="systup") {
+                    sf = sf + evaluator->evaluate({std::abs(eta), pt, "syst"});
+                }
+                else if (variation=="systdown") {
+                    sf = sf - evaluator->evaluate({std::abs(eta), pt, "syst"});
+                }
+                else if (variation=="statup") {
+                    sf = sf + evaluator->evaluate({std::abs(eta), pt, "stat"});
+                }
+                else if (variation=="statdown") {
+                    sf = sf - evaluator->evaluate({std::abs(eta), pt, "stat"});
+                }
+                else { 
+                    Logger::get("physicsobject::muon::scalefactor::IsoAndID")
+                         ->debug("variation {} not implemented, check your code");
+                }
             }
             return sf;
         },

@@ -41,12 +41,7 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
                       const std::string &outputname, const std::string &pt,
                       const std::string &eta, const std::string &sf_file,
                       const std::string &sf_name, const std::string &variation);
-ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correction_manager,
-                    const std::string &outputname, const std::string &pt,
-                    const std::string &eta, const std::string &sf_file,
-                    const std::string &sf_name, const std::string &variation);
-ROOT::RDF::RNode Iso(ROOT::RDF::RNode df,
+ROOT::RDF::RNode IsoAndID(ROOT::RDF::RNode df,
                      correctionManager::CorrectionManager &correction_manager,
                      const std::string &outputname, const std::string &pt,
                      const std::string &eta, const std::string &sf_file,
