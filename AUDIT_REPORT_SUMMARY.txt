@@ -1,0 +1,134 @@
+Run3 h->tautau producer audit — consolidated summary
+=====================================================
+Date: 2026-07-20
+Scope: CROWN htautau analysis, Run3 eras 2022preEE, 2022postEE, 2023preBPix,
+2023postBPix, 2024, 2025, 2026. Six topics audited in parallel, each in its
+own isolated git worktree/branch, against the documentation in
+/work/sgiappic/twikis/ (plus linked gitlab/gitbook pages where reachable).
+Individual per-topic reports: AUDIT_REPORT_{jets,met,zpt,btag,tau,trigger}.txt
+(this file, same directory).
+
+Where the work landed
+----------------------
+- CROWN core (src/, include/): all six audit branches
+  (audit-run3-htautau-{jets,met,zpt,btag,tau,trigger}) merged into NanoAODv15.
+- analysis_configurations/tau (TauAnalysis-CROWN, nested repo): same six
+  branches merged into sm_htt_run3.
+- Nothing has been pushed to origin. Both branches are only ahead locally.
+- One real merge conflict occurred (jet_variations.py, jets vs btag both
+  touched the fixedWP btag shift block) — resolved by keeping btag's
+  corrected bc/lf-split shift logic and applying jets' CMS_* naming
+  convention on top. Everything else merged clean.
+
+Bugs found and fixed, by topic
+-------------------------------
+JETS (AUDIT_REPORT_jets.txt):
+  - Unresolved git merge-conflict markers left in include/jets.hxx
+    (compile-breaking).
+  - Chained comparison `2.0 < abs(eta) < 2.5` in src/jets.cxx silently
+    always true, disabling an eta restriction on the 2024 low-pT
+    L2L3Residual workaround.
+  - REGROUPED flag in jet_variations.py was inverted: Run3 (>=2022) was
+    using the full ~19-source JES scheme with no era-decorrelation
+    instead of the JERC-recommended regrouped/decorrelated scheme.
+  - Also renamed jesUnc*/jerUnc*/btagUnc* -> CMS_scale_j_*/CMS_res_j_*/
+    CMS_btag_* per the CMS Common Analysis Tools naming convention
+    (continuing prior-session WIP, see below).
+
+MET (AUDIT_REPORT_met.txt):
+  - metUnclusteredEnUp/Down was a silent no-op for all Run3 eras (the
+    shift substituted a NanoAOD branch the Run3 MET pipeline never reads).
+    Fixed with a new met::PropagateUnclusteredEnergyToMET.
+  - Recoil response/resolution uncertainty was computed from MET *before*
+    the nominal recoil correction instead of after, per the HLepRare doc's
+    own example. Fixed by adding a dedicated ApplyRecoilUncertainty step.
+  - Flagged, not changed: recoil-uncertainty era-correlation scheme (doc is
+    silent) and a suspicious wjets:"NNLO" DY-order mapping.
+
+Z PT (AUDIT_REPORT_zpt.txt):
+  - DY pT(ll) reweighting used one correlated envelope shift where the doc
+    requires each per-fit-parameter uncertainty (8/9/10 depending on
+    generator order) as fully uncorrelated nuisances. Split into
+    zPtReweightWeight_unc1..N per DY sample order.
+  - Flagged, not changed: cross-era correlation of the new per-parameter
+    shifts left to the combine/datacard stage, matching this repo's
+    existing convention.
+
+BTAG (AUDIT_REPORT_btag.txt):
+  - b/c-flavor and light-flavor fixedWP SF variations were conflated
+    through a single shift string, so shifting one flavor's systematic
+    silently also shifted the other. Split into independent
+    btag_sf_variation_bc / btag_sf_variation_lf knobs.
+  - Up_uncorrelated shift-map typo evaluated the wrong SF string for the
+    Up direction of the decorrelated component.
+
+TAU (AUDIT_REPORT_tau.txt):
+  - Typo: tau_od_vsjet_DM{dm}_pt{pt} -> tau_id_vsjet_DM{dm}_pt{pt}, silently
+    broke tau ID vs-jet SF shift wiring for 2024/2025/2026.
+  - Tau-ID-vs-jet SF Up/Down was a complete no-op for 2022preEE/postEE and
+    2023preBPix/postBPix: code passed "up"/"down" into a correctionlib
+    category that has no such keys, silently falling back to nominal via
+    the JSON's `default` entry. Fixed with the correctly-named, properly
+    (de)correlated per-DM shifts (stat1/stat2/syst_alleras/syst_<era>/
+    syst_TES_<era>_dm<DM>), verified against the deployed jsons on cvmfs.
+  - Documented: 2026 tau_sf_file reuses 2024/2025 json as an unofficial
+    placeholder (TauPOG wiki marks 2026 "not available yet"); the 2025
+    reuse of 2024 corrections is the actual TauPOG recommendation.
+  - One CMS-TWiki vs. TauPOG-Wiki conflict found (2022/2023 vsJet WP
+    availability) resolved in favor of the non-TWiki source; code was
+    already correct there.
+
+TRIGGER (AUDIT_REPORT_trigger.txt):
+  - mutau/eltau cross-trigger paths used DeepTau HLT names that are
+    prescaled to 0 / removed from the 2025+ menu (CMSHLT-3447/3567) —
+    these triggers would almost never fire in 2025/2026 data. Switched to
+    the PNet Medium-WP paths for those eras and fixed a hardcoded flagname
+    that had been bypassing the EraModifier for the SF lookups.
+  - SingleTau trigger was an explicitly-marked placeholder using a
+    pre-DeepTau Run2 HLT path that doesn't exist in Run3. Replaced with
+    the correct Run3 paths (HPS through 2024, PNet 2025+).
+  - Flagged, not changed (low confidence / avoid regressing a live
+    analysis): mutau/eltau DeepTau-era tau-leg filterbit uses a single bit
+    where the doc's table lists two.
+
+Pre-existing uncommitted work found and preserved (NOT merged)
+----------------------------------------------------------------
+At the start of this session, both the main CROWN checkout and its nested
+analysis_configurations/tau checkout already had substantial uncommitted,
+unreviewed changes — apparently from an earlier, interrupted session on a
+closely related task (renaming systematics to the CMS Common Analysis
+Tools convention, referencing the same Conventions/systematics_master docs
+used here). To avoid losing this work while keeping it out of the
+six per-topic audit branches (it's cross-cutting and wasn't reviewed for
+correctness, only for naming), it was committed to two dedicated branches
+that are NOT merged into NanoAODv15 / sm_htt_run3:
+
+  - CROWN core: branch `wip-preserve-prior-session-corrections`
+    (include/jets.hxx, include/muons.hxx, src/electrons.cxx, src/muons.cxx,
+    src/taus.cxx — muon SCARE-related and electron/tau tweaks).
+  - analysis_configurations/tau: branch
+    `wip-preserve-prior-session-systematics-naming` (config.py,
+    producers/scalefactors.py, tau_triggersetup.py, plus
+    shift_rename_log.txt documenting the renames already done to
+    jet_variations.py, which WAS reviewed/merged as part of the jets audit
+    above).
+
+Recommend reviewing these two branches separately — they overlap with
+several of the topics audited here (e.g. tau_triggersetup.py renames vs.
+this session's trigger-path fixes) and should be rebased onto the new
+NanoAODv15/sm_htt_run3 tips and re-diffed before merging, to avoid
+reintroducing anything already fixed or superseded here.
+
+Housekeeping notes
+-------------------
+- The jets topic's analysis_configurations/tau clone was found corrupted
+  (invalid git objects, most likely from an interrupted copy) partway
+  through this session; it was deleted and re-cloned cleanly from origin,
+  and its one genuine fix (jet_variations.py) was reapplied and recommitted.
+- Worktrees used for this audit remain on disk at
+  /work/sgiappic/KingMaker-worktrees/CROWN-{jets,met,zpt,btag,tau,trigger}
+  (plus one ephemeral nested-repo worktree the btag agent created under
+  /tmp/.../scratchpad/tau-btag-worktree, whose commit is safely stored in
+  the main tau repo regardless). None of this has been cleaned up yet in
+  case anything needs re-checking; safe to `git worktree remove` once
+  reviewed.
