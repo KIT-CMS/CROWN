@@ -539,8 +539,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &eta, const std::string &decay_mode,
                const std::string &gen_match, const std::string &es_file,
                const std::string &correction_name,
-               const std::string &id_algorithm,
-               const std::string &id_vs_jet_wp,
+               const std::string &id_algorithm, const std::string &id_vs_jet_wp,
                const std::string &id_vs_ele_wp,
                const std::vector<int> &selected_dms,
                const std::string &variation_efake_dm0_barrel,
@@ -576,502 +575,70 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     auto evaluator =
         correction_manager.loadCorrection(es_file, correction_name);
 
-    auto correction_lambda = [evaluator, id_algorithm, id_vs_jet_wp,
-                                id_vs_ele_wp, selected_dms,
-                                variation_efake_dm0_barrel,
-                                variation_efake_dm1_barrel,
-                                variation_efake_dm10_barrel,
-                                variation_efake_dm11_barrel,
-                                variation_efake_dm0_endcap,
-                                variation_efake_dm1_endcap,
-                                variation_efake_dm10_endcap,
-                                variation_efake_dm11_endcap,
-                                variation_mufake_dm0,
-                                variation_mufake_dm1,
-                                variation_mufake_dm10,
-                                variation_mufake_dm11,
-                                variation_gentau_dm0_pt20to40,
-                                variation_gentau_dm0_pt40to60,
-                                variation_gentau_dm0_pt60toInf,
-                                variation_gentau_dm1_pt20to40,
-                                variation_gentau_dm1_pt40to60,
-                                variation_gentau_dm1_pt60toInf,
-                                variation_gentau_dm10_pt20to40,
-                                variation_gentau_dm10_pt40to60,
-                                variation_gentau_dm10_pt60toInf,
-                                variation_gentau_dm11_pt20to40,
-                                variation_gentau_dm11_pt40to60,
-                                variation_gentau_dm11_pt60toInf](
-                                 const ROOT::RVec<float> &pts,
-                                 const ROOT::RVec<float> &etas,
-                                 const ROOT::RVec<UChar_t> &decay_modes_v12,
-                                 const ROOT::RVec<UChar_t> &gen_matches_char) {
-        // convert decay modes and gen matches to integers
-        auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
-        auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
-
-        // container for corrected pts
-        ROOT::RVec<float> corrected_pts(pts.size());
-
-        for (int i = 0; i < pts.size(); i++) {
-            // get tau variables that we need for scale factor evaluation
-            auto pt = pts.at(i);
-            auto abs_eta = std::abs(etas.at(i));
-            auto decay_mode = decay_modes.at(i);
-            auto gen_match = gen_matches.at(i);
-
-            // set the variation depending on the gen match and decay mode
-            std::string variation = get_tes_variation(
-                abs_eta, pt, decay_mode, gen_match,
-                variation_efake_dm0_barrel,
-                variation_efake_dm1_barrel,
-                variation_efake_dm10_barrel,
-                variation_efake_dm11_barrel,
-                variation_efake_dm0_endcap,
-                variation_efake_dm1_endcap,
-                variation_efake_dm10_endcap,
-                variation_efake_dm11_endcap,
-                variation_mufake_dm0,
-                variation_mufake_dm1,
-                variation_mufake_dm10,
-                variation_mufake_dm11,
-                variation_gentau_dm0_pt20to40,
-                variation_gentau_dm0_pt40to60,
-                variation_gentau_dm0_pt60toInf,
-                variation_gentau_dm1_pt20to40,
-                variation_gentau_dm1_pt40to60,
-                variation_gentau_dm1_pt60toInf,
-                variation_gentau_dm10_pt20to40,
-                variation_gentau_dm10_pt40to60,
-                variation_gentau_dm10_pt60toInf,
-                variation_gentau_dm11_pt20to40,
-                variation_gentau_dm11_pt40to60,
-                variation_gentau_dm11_pt60toInf);
-
-            // evaluate the correction factor
-            // ensure that the tau fulfills the selection criteria for
-            // application of the correction, set the correction factor to 1
-            // otherwise
-            float correction_factor = 1.0;
-            if (std::find(selected_dms.begin(), selected_dms.end(),
-                          decay_mode) != selected_dms.end()) {
-                correction_factor = evaluator->evaluate(
-                    {pt, abs_eta, decay_mode, gen_match, id_algorithm,
-                        id_vs_jet_wp, id_vs_ele_wp, variation});
-            }
-
-            // calculate the corrected pt
-            corrected_pts[i] = pt * correction_factor;
-
-            // debug information
-            Logger::get("physicsobject::tau::PtCorrectionMC")
-                ->debug("apply tau pt correction to tau pt {}, decaymode {}, "
-                        "gen match {}, variation {} --> corrected pt {}, "
-                        "correction factor {}",
-                        pt, decay_mode, gen_match, variation,
-                        corrected_pts.at(i), correction_factor);
-        }
-
-        return corrected_pts;
-    };
-
-    auto df2 = df1.Define(outputname, correction_lambda,
-                          {pt, eta, decay_mode_column, gen_match});
-    return df2;
-}
-
-/**
- * @brief This function applies a transverse momentum (\f$p_T\f$) correction to
- * hadronic taus in MC simulations.
- *
- * The correction depends on the physical origin of the tau (electron fake, muon
- * fake, or genuine tau), the decay mode, the \f$p_T\f$, and the pseudorapidity.
- *
- * For Run 3 analyses, the corrections are calculated for different working
- * points of the `DeepTau` algorithm, regarding the identification against
- * jets and against electrons. This is not the case for Run 2 analyses. This
- * function can be used for both Run 2 and Run 3 analyses. For Run 2 analyses,
- * the values of `id_vs_jet_wp` and `id_vs_ele_wp` can be set to `""`
- * to obtain the corrections.
- *
- * The uncertainty scheme is split into nine different uncertainty sources:
- * - For electrons faking taus, four uncertainty sources are considered, split
- *   by the decay modes 0 and 1, and by whether the tau is found in the barrel
- *   or the endcap region.
- * - For muons faking taus, one inclusive uncertainty source is considered.
- * - For genuine taus, four uncertainty sources are considered, split by the
- *   decay modes 0, 1, 10, and 11.
- * For each source, the variation can be set individually. The variations can
- * take the values ``nom``, ``up``, or ``down``.
- *
- * The correction procedure is taken from the officially recommendation of the
- * TauPOG:
- *
- * The implementation of this function is based on the TAU POG
- * [recommendations for Run
- * 2](https://twiki.cern.ch/twiki/bin/viewauth/CMS/TauIDRecommendationForRun2)
- * and [recommendations for Run
- * 3](https://twiki.cern.ch/twiki/bin/view/CMS/TauIDRecommendationForRun3).
- *
- * The specification of the correctionlib files used to evaluate the corrections
- * can be found here:
- * -
- * [2016preVFP](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2016preVFP_UL_tau.html)
- * -
- * [2016postVFP](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2016postVFP_UL_tau.html)
- * -
- * [2017](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2017_UL_tau.html)
- * -
- * [2018](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2018_UL_tau.html)
- * -
- * [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2022_Summer22_tau_DeepTau2018v2p5_2022_preEE.html)
- * -
- * [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2022_Summer22EE_tau_DeepTau2018v2p5_2022_postEE.html)
- * -
- * [2023preBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2023_Summer23_tau_DeepTau2018v2p5_2023_preBPix.html)
- * -
- * [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2023_Summer23BPix_tau_DeepTau2018v2p5_2023_postBPix.html)
- *
- * @param df input dataframe
- * @param correction_manager correction manager responsible for loading the
- * correction file
- * @param outputname name of the output column storing the corrected hadronic
- * tau \f$p_T\f$ values
- * @param pt name of the input column containing hadronic tau \f$p_T\f$ values
- * @param eta name of the column containing hadronic tau eta values
- * @param decay_mode name of the column containing hadronic tau decay modes
- * @param gen_match name of the column with the matching information of the
- * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt
- * mu, 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
- * @param es_file path to the correction file for the energy scale correction
- * @param correction_name name of the correction in `es_file`
- * @param id_algorithm identification algorithm used for hadronic tau ID
- * @param id_vs_jet_wp working point for the identification against jets; set to
- * `""` if the corrections do not depend on this parameter
- * @param id_vs_ele_wp working point for the identification against electrons;
- * set to `""` if the corrections do not depend on this parameter
- * @param variation_efake_dm0_barrel variation for electron faking a tau for
- * decay mode 0 in the barrel region, options are "nom", "up", "down"
- * @param variation_efake_dm1_barrel variation for electron faking a tau for
- * decay mode 1 in the barrel region, options are "nom", "up", "down"
- * @param variation_efake_dm0_endcap variation for electron faking a tau for
- * decay mode 0 in the endcap regionefake_, options are "nom", "up", "down"
- * @param variation_efake_dm1_endcap variation for electron faking a tau for
- * decay mode 1 in the endcap region, options are "nom", "up", "down"
- * @param variation_mufake variation for muon faking a tau, options are "nom",
- * "up", "down"
- * @param variation_gentau_dm0 variation for genuine tau for decay mode 0,
- * options are "nom", "up", "down"
- * @param variation_gentau_dm1 variation for genuine tau for decay mode 1,
- * options are "nom", "up", "down"
- * @param variation_gentau_dm10 variation for genuine tau for decay mode 10,
- * options are "nom", "up", "down"
- * @param variation_gentau_dm11 variation for genuine tau for decay mode 11,
- * options are "nom", "up", "down"
- *
- * @return a dataframe containing the corrected transverse momenta
- *
- * @note This function is intended to be used for Run 3 analyses. In Run 3,
- * the tau energy scale corrections also depend on the DeepTau working points
- * for ID vs. electrons and vs. jets. An overloaded version of this function
- * exists for this purpose.
- */
-ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correction_manager,
-               const std::string &outputname, const std::string &pt,
-               const std::string &eta, const std::string &decay_mode,
-               const std::string &gen_match, const std::string &es_file,
-               const std::string &correction_name,
-               const std::string &id_algorithm,
-               const std::string &id_vs_jet_wp,
-               const std::string &id_vs_ele_wp,
-               const std::vector<int> &selected_dms,
-               const std::string &variation_efake_dm0_barrel,
-               const std::string &variation_efake_dm1_barrel,
-               const std::string &variation_efake_dm10_barrel,
-               const std::string &variation_efake_dm11_barrel,
-               const std::string &variation_efake_dm0_endcap,
-               const std::string &variation_efake_dm1_endcap,
-               const std::string &variation_efake_dm10_endcap,
-               const std::string &variation_efake_dm11_endcap,
-               const std::string &variation_mufake_dm0,
-               const std::string &variation_mufake_dm1,
-               const std::string &variation_mufake_dm10,
-               const std::string &variation_mufake_dm11,
-               const std::string &variation_gentau_dm0,
-               const std::string &variation_gentau_dm1,
-               const std::string &variation_gentau_dm10,
-               const std::string &variation_gentau_dm11) {
-    // In nanoAODv12 the type of tau decay mode was changed to UChar_t
-    // For v9 compatibility a type casting is applied
-    auto [df1, decay_mode_column] =
-        utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
-            df, decay_mode + "_v12", "ROOT::VecOps::RVec<UChar_t>", decay_mode);
-
-    auto evaluator =
-        correction_manager.loadCorrection(es_file, correction_name);
-
-    auto correction_lambda = [evaluator, id_algorithm, id_vs_jet_wp,
-                                id_vs_ele_wp, selected_dms,
-                                variation_efake_dm0_barrel,
-                                variation_efake_dm1_barrel,
-                                variation_efake_dm10_barrel,
-                                variation_efake_dm11_barrel,
-                                variation_efake_dm0_endcap,
-                                variation_efake_dm1_endcap,
-                                variation_efake_dm10_endcap,
-                                variation_efake_dm11_endcap,
-                                variation_mufake_dm0,
-                                variation_mufake_dm1,
-                                variation_mufake_dm10,
-                                variation_mufake_dm11,
-                                variation_gentau_dm0,
-                                variation_gentau_dm1,
-                                variation_gentau_dm10,
-                                variation_gentau_dm11](
-                                 const ROOT::RVec<float> &pts,
-                                 const ROOT::RVec<float> &etas,
-                                 const ROOT::RVec<UChar_t> &decay_modes_v12,
-                                 const ROOT::RVec<UChar_t> &gen_matches_char) {
-        // convert decay modes and gen matches to integers
-        auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
-        auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
-
-        // container for corrected pts
-        ROOT::RVec<float> corrected_pts(pts.size());
-
-        for (int i = 0; i < pts.size(); i++) {
-            // get tau variables that we need for scale factor evaluation
-            auto pt = pts.at(i);
-            auto abs_eta = std::abs(etas.at(i));
-            auto decay_mode = decay_modes.at(i);
-            auto gen_match = gen_matches.at(i);
-
-            // set the variation depending on the gen match and decay mode
-            std::string variation = get_tes_variation(
-                abs_eta, decay_mode, gen_match, 
-                variation_efake_dm0_barrel,
-                variation_efake_dm1_barrel,
-                variation_efake_dm10_barrel,
-                variation_efake_dm11_barrel,
-                variation_efake_dm0_endcap,
-                variation_efake_dm1_endcap,
-                variation_efake_dm10_endcap,
-                variation_efake_dm11_endcap,
-                variation_mufake_dm0,
-                variation_mufake_dm1,
-                variation_mufake_dm10,
-                variation_mufake_dm11,
-                variation_gentau_dm0,
-                variation_gentau_dm1,
-                variation_gentau_dm10,
-                variation_gentau_dm11);
-
-            // evaluate the correction factor
-            // ensure that the tau fulfills the selection criteria for
-            // application of the correction, set the correction factor to 1
-            // otherwise
-            float correction_factor = 1.0;
-            if (std::find(selected_dms.begin(), selected_dms.end(),
-                          decay_mode) != selected_dms.end()) {
-                correction_factor = evaluator->evaluate(
-                    {pt, abs_eta, decay_mode, gen_match, id_algorithm,
-                        id_vs_jet_wp, id_vs_ele_wp, variation});
-            }
-
-            // calculate the corrected pt
-            corrected_pts[i] = pt * correction_factor;
-
-            // debug information
-            Logger::get("physicsobject::tau::PtCorrectionMC")
-                ->debug("apply tau pt correction to tau pt {}, decaymode {}, "
-                        "gen match {}, variation {} --> corrected pt {}, "
-                        "correction factor {}",
-                        pt, decay_mode, gen_match, variation,
-                        corrected_pts.at(i), correction_factor);
-        }
-
-        return corrected_pts;
-    };
-
-    auto df2 = df1.Define(outputname, correction_lambda,
-                          {pt, eta, decay_mode_column, gen_match});
-    return df2;
-}
-
-/**
- * @brief This function applies a transverse momentum (\f$p_T\f$) correction to
- * hadronic taus in MC simulations.
- *
- * The correction depends on the physical origin of the tau (electron fake, muon
- * fake, or genuine tau), the decay mode, the \f$p_T\f$, and the pseudorapidity.
- *
- * For Run 3 analyses, the corrections are calculated for different working
- * points of the `DeepTau` algorithm, regarding the identification against
- * jets and against electrons. This is not the case for Run 2 analyses. This
- * function can be used for both Run 2 and Run 3 analyses. For Run 2 analyses,
- * the values of `id_vs_jet_wp` and `id_vs_ele_wp` can be set to `""`
- * to obtain the corrections.
- *
- * The uncertainty scheme is split into nine different uncertainty sources:
- * - For electrons faking taus, four uncertainty sources are considered, split
- *   by the decay modes 0 and 1, and by whether the tau is found in the barrel
- *   or the endcap region.
- * - For muons faking taus, one inclusive uncertainty source is considered.
- * - For genuine taus, four uncertainty sources are considered, split by the
- *   decay modes 0, 1, 10, and 11.
- * For each source, the variation can be set individually. The variations can
- * take the values ``nom``, ``up``, or ``down``.
- *
- * The correction procedure is taken from the officially recommendation of the
- * TauPOG:
- *
- * The implementation of this function is based on the TAU POG
- * [recommendations for Run
- * 2](https://twiki.cern.ch/twiki/bin/viewauth/CMS/TauIDRecommendationForRun2)
- * and [recommendations for Run
- * 3](https://twiki.cern.ch/twiki/bin/view/CMS/TauIDRecommendationForRun3).
- *
- * The specification of the correctionlib files used to evaluate the corrections
- * can be found here:
- * -
- * [2016preVFP](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2016preVFP_UL_tau.html)
- * -
- * [2016postVFP](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2016postVFP_UL_tau.html)
- * -
- * [2017](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2017_UL_tau.html)
- * -
- * [2018](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2018_UL_tau.html)
- * -
- * [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2022_Summer22_tau_DeepTau2018v2p5_2022_preEE.html)
- * -
- * [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2022_Summer22EE_tau_DeepTau2018v2p5_2022_postEE.html)
- * -
- * [2023preBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2023_Summer23_tau_DeepTau2018v2p5_2023_preBPix.html)
- * -
- * [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2023_Summer23BPix_tau_DeepTau2018v2p5_2023_postBPix.html)
- *
- * @param df input dataframe
- * @param correction_manager correction manager responsible for loading the
- * correction file
- * @param outputname name of the output column storing the corrected hadronic
- * tau \f$p_T\f$ values
- * @param pt name of the input column containing hadronic tau \f$p_T\f$ values
- * @param eta name of the column containing hadronic tau eta values
- * @param decay_mode name of the column containing hadronic tau decay modes
- * @param gen_match name of the column with the matching information of the
- * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt
- * mu, 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
- * @param es_file path to the correction file for the energy scale correction
- * @param correction_name name of the correction in `es_file`
- * @param id_algorithm identification algorithm used for hadronic tau ID
- * @param id_vs_jet_wp working point for the identification against jets; set to
- * `""` if the corrections do not depend on this parameter
- * @param id_vs_ele_wp working point for the identification against electrons;
- * set to `""` if the corrections do not depend on this parameter
- * @param variation_efake_dm0_barrel variation for electron faking a tau for
- * decay mode 0 in the barrel region, options are "nom", "up", "down"
- * @param variation_efake_dm1_barrel variation for electron faking a tau for
- * decay mode 1 in the barrel region, options are "nom", "up", "down"
- * @param variation_efake_dm0_endcap variation for electron faking a tau for
- * decay mode 0 in the endcap regionefake_, options are "nom", "up", "down"
- * @param variation_efake_dm1_endcap variation for electron faking a tau for
- * decay mode 1 in the endcap region, options are "nom", "up", "down"
- * @param variation_mufake variation for muon faking a tau, options are "nom",
- * "up", "down"
- * @param variation_gentau_dm0 variation for genuine tau for decay mode 0,
- * options are "nom", "up", "down"
- * @param variation_gentau_dm1 variation for genuine tau for decay mode 1,
- * options are "nom", "up", "down"
- * @param variation_gentau_dm10 variation for genuine tau for decay mode 10,
- * options are "nom", "up", "down"
- * @param variation_gentau_dm11 variation for genuine tau for decay mode 11,
- * options are "nom", "up", "down"
- *
- * @return a dataframe containing the corrected transverse momenta
- *
- * @note This function is intended to be used for Run 3 analyses. In Run 3,
- * the tau energy scale corrections also depend on the DeepTau working points
- * for ID vs. electrons and vs. jets. An overloaded version of this function
- * exists for this purpose.
- */
-ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correction_manager,
-               const std::string &outputname, const std::string &pt,
-               const std::string &eta, const std::string &decay_mode,
-               const std::string &gen_match, const std::string &es_file,
-               const std::string &correction_name,
-               const std::string &id_algorithm,
-               const std::string &id_vs_jet_wp,
-               const std::string &id_vs_ele_wp,
-               const std::vector<int> &selected_dms,
-               const std::string &variation_efake_dm0_barrel,
-               const std::string &variation_efake_dm1_barrel,
-               const std::string &variation_efake_dm10_barrel,
-               const std::string &variation_efake_dm11_barrel,
-               const std::string &variation_efake_dm0_endcap,
-               const std::string &variation_efake_dm1_endcap,
-               const std::string &variation_mufake,
-               const std::string &variation_gentau_dm0,
-               const std::string &variation_gentau_dm1,
-               const std::string &variation_gentau_dm10,
-               const std::string &variation_gentau_dm11) {
-    // In nanoAODv12 the type of tau decay mode was changed to UChar_t
-    // For v9 compatibility a type casting is applied
-    auto [df1, decay_mode_column] =
-        utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
-            df, decay_mode + "_v12", "ROOT::VecOps::RVec<UChar_t>", decay_mode);
-
-    auto evaluator =
-        correction_manager.loadCorrection(es_file, correction_name);
-
-    auto correction_lambda = [evaluator, id_algorithm, id_vs_jet_wp,
-                              id_vs_ele_wp, variation_efake_dm0_barrel,
-                              variation_efake_dm1_barrel,
-                              variation_efake_dm0_endcap,
-                              variation_efake_dm1_endcap, variation_mufake,
-                              variation_gentau_dm0, variation_gentau_dm1,
-                              variation_gentau_dm10, variation_gentau_dm11, 
-                              selected_dms](
-                                 const ROOT::RVec<float> &pts,
-                                 const ROOT::RVec<float> &etas,
-                                 const ROOT::RVec<UChar_t> &decay_modes_v12,
-                                 const ROOT::RVec<UChar_t> &gen_matches_char) {
-        // convert decay modes and gen matches to integers
-        auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
-        auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
+    auto correction_lambda =
+        [evaluator, id_algorithm, id_vs_jet_wp, id_vs_ele_wp, selected_dms,
+         variation_efake_dm0_barrel, variation_efake_dm1_barrel,
+         variation_efake_dm10_barrel, variation_efake_dm11_barrel,
+         variation_efake_dm0_endcap, variation_efake_dm1_endcap,
+         variation_efake_dm10_endcap, variation_efake_dm11_endcap,
+         variation_mufake_dm0, variation_mufake_dm1, variation_mufake_dm10,
+         variation_mufake_dm11, variation_gentau_dm0_pt20to40,
+         variation_gentau_dm0_pt40to60, variation_gentau_dm0_pt60toInf,
+         variation_gentau_dm1_pt20to40, variation_gentau_dm1_pt40to60,
+         variation_gentau_dm1_pt60toInf, variation_gentau_dm10_pt20to40,
+         variation_gentau_dm10_pt40to60, variation_gentau_dm10_pt60toInf,
+         variation_gentau_dm11_pt20to40, variation_gentau_dm11_pt40to60,
+         variation_gentau_dm11_pt60toInf](
+            const ROOT::RVec<float> &pts, const ROOT::RVec<float> &etas,
+            const ROOT::RVec<UChar_t> &decay_modes_v12,
+            const ROOT::RVec<UChar_t> &gen_matches_char) {
+            // convert decay modes and gen matches to integers
+            auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
+            auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
 
             // container for corrected pts
             ROOT::RVec<float> corrected_pts(pts.size());
 
-        for (int i = 0; i < pts.size(); i++) {
-            // get tau variables that we need for scale factor evaluation
-            auto pt = pts.at(i);
-            auto abs_eta = std::abs(etas.at(i));
-            auto decay_mode = decay_modes.at(i);
-            auto gen_match = gen_matches.at(i);
+            for (int i = 0; i < pts.size(); i++) {
+                // get tau variables that we need for scale factor evaluation
+                auto pt = pts.at(i);
+                auto abs_eta = std::abs(etas.at(i));
+                auto decay_mode = decay_modes.at(i);
+                auto gen_match = gen_matches.at(i);
 
-            // set the variation depending on the gen match and decay mode
-            std::string variation = get_tes_variation( abs_eta, 
-                decay_mode, gen_match, variation_efake_dm0_barrel,
-                variation_efake_dm1_barrel, variation_efake_dm0_endcap,
-                variation_efake_dm1_endcap, variation_mufake,
-                variation_gentau_dm0, variation_gentau_dm1,
-                variation_gentau_dm10, variation_gentau_dm11);
+                // set the variation depending on the gen match and decay mode
+                std::string variation = get_tes_variation(
+                    abs_eta, pt, decay_mode, gen_match,
+                    variation_efake_dm0_barrel, variation_efake_dm1_barrel,
+                    variation_efake_dm10_barrel, variation_efake_dm11_barrel,
+                    variation_efake_dm0_endcap, variation_efake_dm1_endcap,
+                    variation_efake_dm10_endcap, variation_efake_dm11_endcap,
+                    variation_mufake_dm0, variation_mufake_dm1,
+                    variation_mufake_dm10, variation_mufake_dm11,
+                    variation_gentau_dm0_pt20to40,
+                    variation_gentau_dm0_pt40to60,
+                    variation_gentau_dm0_pt60toInf,
+                    variation_gentau_dm1_pt20to40,
+                    variation_gentau_dm1_pt40to60,
+                    variation_gentau_dm1_pt60toInf,
+                    variation_gentau_dm10_pt20to40,
+                    variation_gentau_dm10_pt40to60,
+                    variation_gentau_dm10_pt60toInf,
+                    variation_gentau_dm11_pt20to40,
+                    variation_gentau_dm11_pt40to60,
+                    variation_gentau_dm11_pt60toInf);
 
-            // evaluate the correction factor
-            // ensure that the tau fulfills the selection criteria for
-            // application of the correction, set the correction factor to 1
-            // otherwise
-            float correction_factor = 1.0;
-            if (std::find(selected_dms.begin(), selected_dms.end(),
-                          decay_mode) != selected_dms.end()) {
-                correction_factor = evaluator->evaluate(
-                    {pt, abs_eta, decay_mode, gen_match, id_algorithm,
-                        id_vs_jet_wp, id_vs_ele_wp, variation});
-            }
+                // evaluate the correction factor
+                // ensure that the tau fulfills the selection criteria for
+                // application of the correction, set the correction factor to 1
+                // otherwise
+                float correction_factor = 1.0;
+                if (std::find(selected_dms.begin(), selected_dms.end(),
+                              decay_mode) != selected_dms.end()) {
+                    correction_factor = evaluator->evaluate(
+                        {pt, abs_eta, decay_mode, gen_match, id_algorithm,
+                         id_vs_jet_wp, id_vs_ele_wp, variation});
+                }
 
                 // calculate the corrected pt
                 corrected_pts[i] = pt * correction_factor;
@@ -1155,7 +722,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * `physicsobject::tau::TauCorrectionMC` instead.
  */
 ROOT::RDF::RNode
-PtCorrectionMC_efake(ROOT::RDF::RNode df,
+PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
                        correctionManager::CorrectionManager &correction_manager,
                        const std::string &outputname, const std::string &pt,
                        const std::string &eta, const std::string &decay_mode,
@@ -1224,7 +791,7 @@ PtCorrectionMC_efake(ROOT::RDF::RNode df,
                 } else {
                     corrected_pts[i] = pts.at(i);
                 }
-                Logger::get("physicsobject::tau::PtCorrectionMC_efake")
+                Logger::get("physicsobject::tau::PtCorrectionMC_eleFake")
                     ->debug("tau pt before {}, tau pt after {}", pts.at(i),
                             corrected_pts.at(i));
             }
@@ -2473,51 +2040,42 @@ Id_vsEle(ROOT::RDF::RNode df,
     Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
         ->debug("ID - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator =
-        [evaluator, era, wp, 
-            variation_DM0_barrel,
-            variation_DM1_barrel,
-            variation_DM10_barrel,
-            variation_DM11_barrel,
-            variation_DM0_endcap,
-            variation_DM1_endcap,
-            variation_DM10_endcap,
-            variation_DM11_endcap, sf_name]
-            (const float &eta, const int &decay_mode, const int &gen_match) {
-            double sf = 1.;
+    auto sf_calculator = [evaluator, era, wp, variation_DM0_barrel,
+                          variation_DM1_barrel, variation_DM10_barrel,
+                          variation_DM11_barrel, variation_DM0_endcap,
+                          variation_DM1_endcap, variation_DM10_endcap,
+                          variation_DM11_endcap,
+                          sf_name](const float &eta, const int &decay_mode,
+                                   const int &gen_match) {
+        double sf = 1.;
 
-            float abs_eta = std::abs(eta);
-            if (abs_eta < 2.5) {
-                Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
-                    ->debug("ID {} - eta {}, dm {}, gen_match {}, wp {}, ",
-                            sf_name, abs_eta, decay_mode, gen_match, wp);
-                // the eta cuts are taken from the correctionlib json file to
-                // define barrel and endcap
-                std::string variation = get_vsele_variation(
-                    decay_mode, abs_eta, era, 
-                    variation_DM0_barrel,
-                    variation_DM1_barrel,
-                    variation_DM10_barrel,
-                    variation_DM11_barrel,
-                    variation_DM0_endcap,
-                    variation_DM1_endcap,
-                    variation_DM10_endcap,
-                    variation_DM11_endcap);
-
-                if (sf_name == "DeepTau2017v2p1VSe") {
-                    // SFs for DeepTau2017v2p1 depend on eta
-                    sf = evaluator->evaluate(
-                            {abs_eta, gen_match, wp, variation});
-                } else {
-                    // SFs for DeepTau2018v2p5 depend on eta and the decay mode
-                    sf = evaluator->evaluate(
-                            {abs_eta, decay_mode, gen_match, wp, variation});
-                }
-            }
+        float abs_eta = std::abs(eta);
+        if (abs_eta < 2.5) {
             Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
-                ->debug("Scale Factor {}", sf);
-            return sf;
-        };
+                ->debug("ID {} - eta {}, dm {}, gen_match {}, wp {}, ", sf_name,
+                        abs_eta, decay_mode, gen_match, wp);
+            // the eta cuts are taken from the correctionlib json file to
+            // define barrel and endcap
+            std::string variation = get_vsele_variation(
+                decay_mode, abs_eta, era, variation_DM0_barrel,
+                variation_DM1_barrel, variation_DM10_barrel,
+                variation_DM11_barrel, variation_DM0_endcap,
+                variation_DM1_endcap, variation_DM10_endcap,
+                variation_DM11_endcap);
+
+            if (sf_name == "DeepTau2017v2p1VSe") {
+                // SFs for DeepTau2017v2p1 depend on eta
+                sf = evaluator->evaluate({abs_eta, gen_match, wp, variation});
+            } else {
+                // SFs for DeepTau2018v2p5 depend on eta and the decay mode
+                sf = evaluator->evaluate(
+                    {abs_eta, decay_mode, gen_match, wp, variation});
+            }
+        }
+        Logger::get("physicsobject::tau::scalefactor::Id_vsEle")
+            ->debug("Scale Factor {}", sf);
+        return sf;
+    };
     auto df1 =
         df.Define(outputname, sf_calculator, {eta, decay_mode, gen_match});
     return df1;
@@ -2726,7 +2284,7 @@ ROOT::RDF::RNode Id_vsMu(
             if (it != variations.begin()) {
                 it = std::prev(it);
                 std::string variation = it->second;
-                if (era == "2024" || era == "2025") {
+                if (std::stoi(era.substr(0, 4)) >= 2024) {
                     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")
                         ->debug("ID {} - eta {}, gen_match {}, wp {}, wp ele "
                                 "{}, wp jet {}, variation {}",

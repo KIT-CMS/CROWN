@@ -196,32 +196,41 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             auto smear_nom =
                 evaluator->evaluate({"smear", pt.at(i), r9.at(i), eta_sc});
 
-            // get the scale uncertainty
-            auto scale_unc =
-                evaluator->evaluate({"escale", pt.at(i), r9.at(i), eta_sc});
-
-            // get the resolution uncertainty
-            auto smear_unc =
-                evaluator->evaluate({"esmear", pt.at(i), r9.at(i), eta_sc});
+            // get the up/down smearing widths and scale factors directly
+            // from correctionlib, following the official recipe in
+            // https://gitlab.cern.ch/cms-analysis-corrections/EGM/examples/-/blob/latest/egmScaleAndSmearingExample.py
+            // (do not derive them manually from "escale"/"esmear", since
+            // correctionlib already applies e.g. the non-negativity clamp
+            // on "smear_down" internally)
+            auto smear_up =
+                evaluator->evaluate({"smear_up", pt.at(i), r9.at(i), eta_sc});
+            auto smear_down = evaluator->evaluate(
+                {"smear_down", pt.at(i), r9.at(i), eta_sc});
+            auto scale_up =
+                evaluator->evaluate({"scale_up", pt.at(i), r9.at(i), eta_sc});
+            auto scale_down = evaluator->evaluate(
+                {"scale_down", pt.at(i), r9.at(i), eta_sc});
 
             // set the corrected pt based on the considered variation
             float sf = 1.0;
             if (variation == "nom") {
-                sf = std::max(0.0, 1.0 + smear_nom * random_number);
+                sf = 1.0 + smear_nom * random_number;
                 pt_corrected[i] = pt.at(i) * sf;
             } else if (variation == "resolutionUp") {
-                sf = std::max(0.0,
-                              1.0 + (smear_nom + smear_unc) * random_number);
+                sf = 1.0 + smear_up * random_number;
                 pt_corrected[i] = pt.at(i) * sf;
             } else if (variation == "resolutionDown") {
-                sf = std::max(0.0,
-                              1.0 + (smear_nom - smear_unc) * random_number);
+                sf = 1.0 + smear_down * random_number;
                 pt_corrected[i] = pt.at(i) * sf;
             } else if (variation == "scaleUp") {
-                sf = 1.0 + scale_unc;
+                // scale systematics are applied on top of the nominally
+                // smeared MC pt, not on the raw pt
+                float smearing_nom = 1.0 + smear_nom * random_number;
+                sf = smearing_nom * scale_up;
                 pt_corrected[i] = pt.at(i) * sf;
             } else if (variation == "scaleDown") {
-                sf = 1.0 - scale_unc;
+                float smearing_nom = 1.0 + smear_nom * random_number;
+                sf = smearing_nom * scale_down;
                 pt_corrected[i] = pt.at(i) * sf;
             } else {
                 Logger::get("physicsobject::electron::PtCorrectionMC")

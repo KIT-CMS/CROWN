@@ -137,7 +137,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 float alpha_f = reso_evaluator_cb->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 3});
 
                 float rndm_f = smear_evaluator->evaluate(
-                    {static_cast<double>(event), static_cast<double>(lumi), phi.at(i)});
+                    {static_cast<int>(event), static_cast<int>(lumi), phi.at(i)});
 
                 CrystalBall cb;
                 cb.m = mean_f;
