@@ -27,7 +27,7 @@ MMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
         nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
-    scope=["mm"],
+    scopes=["mm"],
     vec_config="singlemoun_trigger",
 )
 MTGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
@@ -52,7 +52,7 @@ MTGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
         nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
-    scope=["mt"],
+    scopes=["mt"],
     vec_config="singlemoun_trigger",
 )
 ETGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
@@ -77,7 +77,7 @@ ETGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
         nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
-    scope=["et"],
+    scopes=["et"],
     vec_config="singleelectron_trigger",
 )
 EMGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
@@ -102,7 +102,7 @@ EMGenerateSingleElectronTriggerFlags = ExtendedVectorProducer(
         nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
-    scope=["em"],
+    scopes=["em"],
     vec_config="singleelectron_trigger",
 )
 GenerateSingleLeadingTauTriggerFlags = ExtendedVectorProducer(
@@ -127,7 +127,7 @@ GenerateSingleLeadingTauTriggerFlags = ExtendedVectorProducer(
         nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
-    scope=["tt"],
+    scopes=["tt"],
     vec_config="singletau_trigger_leading",
 )
 GenerateSingleTrailingTauTriggerFlags = ExtendedVectorProducer(
@@ -152,7 +152,7 @@ GenerateSingleTrailingTauTriggerFlags = ExtendedVectorProducer(
         nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
-    scope=["et", "mt", "tt"],
+    scopes=["et", "mt", "tt"],
     vec_config="singletau_trigger_trailing",
 )
 EMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
@@ -177,7 +177,7 @@ EMGenerateSingleMuonTriggerFlags = ExtendedVectorProducer(
         nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
-    scope=["em"],
+    scopes=["em"],
     vec_config="singlemoun_trigger",
 )
 MTGenerateCrossTriggerFlags = ExtendedVectorProducer(
@@ -207,7 +207,7 @@ MTGenerateCrossTriggerFlags = ExtendedVectorProducer(
         nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
-    scope=["mt"],
+    scopes=["mt"],
     vec_config="mutau_cross_trigger",
 )
 ETGenerateCrossTriggerFlags = ExtendedVectorProducer(
@@ -237,7 +237,7 @@ ETGenerateCrossTriggerFlags = ExtendedVectorProducer(
         nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
-    scope=["et"],
+    scopes=["et"],
     vec_config="eltau_cross_trigger",
 )
 TTGenerateDoubleTriggerFlags = ExtendedVectorProducer(
@@ -267,7 +267,7 @@ TTGenerateDoubleTriggerFlags = ExtendedVectorProducer(
         nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
-    scope=["tt"],
+    scopes=["tt"],
     vec_config="doubletau_trigger",
 )
 EMGenerateCrossTriggerFlags = ExtendedVectorProducer(
@@ -297,6 +297,6 @@ EMGenerateCrossTriggerFlags = ExtendedVectorProducer(
         nanoAOD.TrigObj_filterBits,
     ],
     output="flagname",
-    scope=["em"],
+    scopes=["em"],
     vec_config="elmu_cross_trigger",
 )

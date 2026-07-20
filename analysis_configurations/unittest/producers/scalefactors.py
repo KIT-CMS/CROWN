@@ -146,7 +146,7 @@ Tau_1_VsJetTauID_SF = ExtendedVectorProducer(
         """,
     input=[q.pt_1, q.tau_decaymode_1, q.gen_match_1],
     output="tau_1_vsjet_sf_outputname",
-    scope=["tt"],
+    scopes=["tt"],
     vec_config="vsjet_tau_id",
 )
 Tau_1_VsEleTauID_SF = ExtendedVectorProducer(
@@ -165,7 +165,7 @@ Tau_1_VsEleTauID_SF = ExtendedVectorProducer(
         """,
     input=[q.eta_1, q.tau_decaymode_1, q.gen_match_1],
     output="tau_1_vsele_sf_outputname",
-    scope=["tt"],
+    scopes=["tt"],
     vec_config="vsele_tau_id",
 )
 Tau_1_VsMuTauID_SF = ExtendedVectorProducer(
@@ -189,7 +189,7 @@ Tau_1_VsMuTauID_SF = ExtendedVectorProducer(
         """,
     input=[q.eta_1, q.gen_match_1],
     output="tau_1_vsmu_sf_outputname",
-    scope=["tt"],
+    scopes=["tt"],
     vec_config="vsmu_tau_id",
 )
 Tau_2_VsJetTauID_lt_SF = ExtendedVectorProducer(
@@ -213,7 +213,7 @@ Tau_2_VsJetTauID_lt_SF = ExtendedVectorProducer(
         """,
     input=[q.pt_2, q.tau_decaymode_2, q.gen_match_2],
     output="tau_2_vsjet_sf_outputname",
-    scope=["et", "mt"],
+    scopes=["et", "mt"],
     vec_config="vsjet_tau_id",
 )
 Tau_2_VsJetTauID_tt_SF = ExtendedVectorProducer(
@@ -235,7 +235,7 @@ Tau_2_VsJetTauID_tt_SF = ExtendedVectorProducer(
         """,
     input=[q.pt_2, q.tau_decaymode_2, q.gen_match_2],
     output="tau_2_vsjet_sf_outputname",
-    scope=["tt"],
+    scopes=["tt"],
     vec_config="vsjet_tau_id",
 )
 Tau_2_VsEleTauID_SF = ExtendedVectorProducer(
@@ -254,7 +254,7 @@ Tau_2_VsEleTauID_SF = ExtendedVectorProducer(
         """,
     input=[q.eta_2, q.tau_decaymode_2, q.gen_match_2],
     output="tau_2_vsele_sf_outputname",
-    scope=["et", "mt", "tt"],
+    scopes=["et", "mt", "tt"],
     vec_config="vsele_tau_id",
 )
 Tau_2_VsMuTauID_SF = ExtendedVectorProducer(
@@ -278,7 +278,7 @@ Tau_2_VsMuTauID_SF = ExtendedVectorProducer(
         """,
     input=[q.eta_2, q.gen_match_2],
     output="tau_2_vsmu_sf_outputname",
-    scope=["et", "mt", "tt"],
+    scopes=["et", "mt", "tt"],
     vec_config="vsmu_tau_id",
 )
 TauID_SF = ProducerGroup(

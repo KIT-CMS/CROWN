@@ -273,7 +273,7 @@ VsJetTauIDFlag_1 = ExtendedVectorProducer(
     call="physicsobject::tau::quantity::IDFlag_v9({df}, {output}, {input}, 0, {vsjet_tau_id_WPbit})",
     input=[nanoAOD.Tau_idDeepTau2017v2p1VSjet, q.dileptonpair],
     output="tau_1_vsjet_id_outputname",
-    scope=["tt"],
+    scopes=["tt"],
     vec_config="vsjet_tau_id",
 )
 VsEleTauIDFlag_1 = ExtendedVectorProducer(
@@ -281,7 +281,7 @@ VsEleTauIDFlag_1 = ExtendedVectorProducer(
     call="physicsobject::tau::quantity::IDFlag_v9({df}, {output}, {input}, 0, {vsele_tau_id_WPbit})",
     input=[nanoAOD.Tau_idDeepTau2017v2p1VSe, q.dileptonpair],
     output="tau_1_vsele_id_outputname",
-    scope=["tt"],
+    scopes=["tt"],
     vec_config="vsele_tau_id",
 )
 VsMuTauIDFlag_1 = ExtendedVectorProducer(
@@ -289,7 +289,7 @@ VsMuTauIDFlag_1 = ExtendedVectorProducer(
     call="physicsobject::tau::quantity::IDFlag_v9({df}, {output}, {input}, 0, {vsmu_tau_id_WPbit})",
     input=[nanoAOD.Tau_idDeepTau2017v2p1VSmu, q.dileptonpair],
     output="tau_1_vsmu_id_outputname",
-    scope=["tt"],
+    scopes=["tt"],
     vec_config="vsmu_tau_id",
 )
 
@@ -319,7 +319,7 @@ VsJetTauIDFlag_2 = ExtendedVectorProducer(
     call="physicsobject::tau::quantity::IDFlag_v9({df}, {output}, {input}, 1, {vsjet_tau_id_WPbit})",
     input=[nanoAOD.Tau_idDeepTau2017v2p1VSjet, q.dileptonpair],
     output="tau_2_vsjet_id_outputname",
-    scope=["et", "mt", "tt"],
+    scopes=["et", "mt", "tt"],
     vec_config="vsjet_tau_id",
 )
 VsEleTauIDFlag_2 = ExtendedVectorProducer(
@@ -327,7 +327,7 @@ VsEleTauIDFlag_2 = ExtendedVectorProducer(
     call="physicsobject::tau::quantity::IDFlag_v9({df}, {output}, {input}, 1, {vsele_tau_id_WPbit})",
     input=[nanoAOD.Tau_idDeepTau2017v2p1VSe, q.dileptonpair],
     output="tau_2_vsele_id_outputname",
-    scope=["et", "mt", "tt"],
+    scopes=["et", "mt", "tt"],
     vec_config="vsele_tau_id",
 )
 VsMuTauIDFlag_2 = ExtendedVectorProducer(
@@ -335,7 +335,7 @@ VsMuTauIDFlag_2 = ExtendedVectorProducer(
     call="physicsobject::tau::quantity::IDFlag_v9({df}, {output}, {input}, 1, {vsmu_tau_id_WPbit})",
     input=[nanoAOD.Tau_idDeepTau2017v2p1VSmu, q.dileptonpair],
     output="tau_2_vsmu_id_outputname",
-    scope=["et", "mt", "tt"],
+    scopes=["et", "mt", "tt"],
     vec_config="vsmu_tau_id",
 )
 
