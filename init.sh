@@ -3,7 +3,7 @@
 action() {
 
     # --- Define list of available analyses ---
-    ANALYSIS_LIST=("tau" "earlyrun3" "whtautau" "boosted_h_tautau" "s" "xyh_bbtautau" "haa")
+    ANALYSIS_LIST=("tau" "earlyrun3" "whtautau" "boosted_h_tautau" "s" "bbtautau" "haa")
 
     # --- Define defaults ---
     DEFAULT_CROWN_ANALYSIS=""
@@ -86,7 +86,7 @@ action() {
             whtautau)         REPO="git@github.com:KIT-CMS/WHTauTauAnalysis-CROWN.git" ;;
             boosted_h_tautau) REPO="git@github.com:KIT-CMS/BoostedHiggsTauTauAnalysis-CROWN.git" ;;
             s)                REPO="git@github.com:nfaltermann/CROWNs.git" ;;
-            xyh_bbtautau)     REPO="git@github.com:KIT-CMS/XYHBBTauTauAnalysis-CROWN.git" ;;
+            bbtautau)         REPO="git@github.com:KIT-CMS/BBTauTauAnalysis-CROWN.git" ;;
             haa)              REPO="git@github.com:KIT-CMS/HaaAnalysis-CROWN.git" ;;
             *)                echo "Error: '${CROWN_ANALYSIS}' is not a valid analysis name."
                               echo "See --list argument for available analyses."
