@@ -16,7 +16,7 @@ from code_generation.helpers import is_empty, CONTEXT_REGISTRY
 log = logging.getLogger(__name__)
 
 
-def get_adjusted_add_shift_SystematicShift(configuration: Any) -> Callable:
+def get_add_shift(configuration: Any) -> Callable:
     """Factory function that returns an add_shift method bound to a Configuration object.
 
     This function creates a closure that simplifies adding systematic shifts to a configuration.
@@ -30,7 +30,7 @@ def get_adjusted_add_shift_SystematicShift(configuration: Any) -> Callable:
         A callable add_shift function
 
     Example:
-        add_shift = get_adjusted_add_shift_SystematicShift(config)
+        add_shift = get_add_shift(config)
 
         # Simple usage with shift_key and shift_map
         add_shift(
@@ -38,7 +38,7 @@ def get_adjusted_add_shift_SystematicShift(configuration: Any) -> Callable:
             scopes='global',
             shift_key='scale',
             shift_map={'Up': [1.1], 'Down': [0.9]},
-            producers=[producer]
+            producers=[jes_producer]
         )
 
         # Complex usage with shift_config
@@ -48,7 +48,7 @@ def get_adjusted_add_shift_SystematicShift(configuration: Any) -> Callable:
                 'Up': {'btag_sf': [1.1]},
                 'Down': {'btag_sf': [0.9]}
             },
-            producers={('et', 'mt', 'tt'): [producer]}
+            producers={('et', 'mt', 'tt'): [btag_producer]}
         )
 
         # Using context manager
@@ -56,7 +56,7 @@ def get_adjusted_add_shift_SystematicShift(configuration: Any) -> Callable:
             add_shift(
                 name='jes',
                 shift_map={'Up': [1.1], 'Down': [0.9]},
-                producers=[producer]
+                producers=[jes_producer]
             )
     """
 

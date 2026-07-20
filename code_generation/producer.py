@@ -1165,21 +1165,23 @@ ERA_NANOAOD_VERSION_DEFAULTS: Dict[str, str] = {
 }
 
 
-class VersionedProducer:
-    """Base class for grouping era- or version-dependent variants of one producer.
+class SwitchProducer:
+    """Base class for switching between era- or nanoAOD version-dependent variants
+    of a producer.
 
     Works with all producer types (``Producer``, ``ProducerGroup``,
     ``VectorProducer``, ``ExtendedVectorProducer``, ``Filter``, ``BaseFilter``).
     Subclasses declare the variants as class attributes, optionally nested under
-    ``run2`` / ``run3`` inner classes.  Call :meth:`get` to retrieve the variant
-    that matches an era (and optionally an explicit nanoAOD version).
+    ``run2`` / ``run3`` inner classes.  Call :meth:`get` to switch to the variant
+    that matches an specific era (and optionally an explicit nanoAOD version).
 
     All inner producers are automatically renamed to the outer class name so that
-    every variant writes the same column name into the output ntuple.
+    every analysis configuration can use the same name of the producers and switch
+    to the needed variant.
 
     Example::
 
-        class JetEnergyCorrection(VersionedProducer):
+        class JetEnergyCorrection(SwitchProducer):
             # ProducerGroup variant
             class run2:
                 v9  = ProducerGroup(subproducers=[...])
@@ -1187,7 +1189,7 @@ class VersionedProducer:
                 v12 = ProducerGroup(subproducers=[...])
                 v15 = ProducerGroup(subproducers=[...])
 
-        class ElectronPtCorrection(VersionedProducer):
+        class ElectronPtCorrection(SwitchProducer):
             # Plain Producer variant — same pattern
             class run2:
                 v9  = Producer(call=..., input=[...], output=[...])
