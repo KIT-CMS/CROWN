@@ -7,10 +7,17 @@ from code_generation.helpers import defaults
 # Set of producers used for contruction of MT good pairs and the coressponding lorentz vectors
 ####################
 
-_nanoAOD_kinematic_muon = [nanoAOD.Muon_pt, nanoAOD.Muon_eta, nanoAOD.Muon_phi, nanoAOD.Muon_mass]
+_nanoAOD_kinematic_muon = [
+    nanoAOD.Muon_pt,
+    nanoAOD.Muon_eta,
+    nanoAOD.Muon_phi,
+    nanoAOD.Muon_mass,
+]
 
 with defaults(scopes=["mm"]):
-    with defaults(input=_nanoAOD_kinematic_muon + [q.good_muons_mask], output=[q.dileptonpair]):
+    with defaults(
+        input=_nanoAOD_kinematic_muon + [q.good_muons_mask], output=[q.dileptonpair]
+    ):
         # mm pair with highest pt
         MMPairSelection = Producer(
             call="ditau_pairselection::mumu::PairSelection({df}, {input_vec}, {output}, {mm_pair_min_deltaR})",
