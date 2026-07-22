@@ -142,8 +142,7 @@ PropagateUnclusteredEnergyToMET(ROOT::RDF::RNode df,
                                 const std::string &met_pt_nominal,
                                 const std::string &met_phi_nominal,
                                 const std::string &met_pt_shifted,
-                                const std::string &met_phi_shifted,
-                                const bool apply_shift);
+                                const std::string &met_phi_shifted);
 
 } // end namespace met
 

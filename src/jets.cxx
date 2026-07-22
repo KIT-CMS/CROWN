@@ -1844,12 +1844,7 @@ BtaggingWP(ROOT::RDF::RNode df,
                 continue;
             }
 
-            // Switch to the correct evaluator for light-flavor or for b/c
-            // jets. The BTV POG measures b/c and light-flavor scale factors
-            // with independent methods and independent (statistically
-            // uncorrelated) uncertainty sources, so each flavor group must
-            // use its own variation string; the other flavor group's
-            // variation must stay "central" while one is being shifted.
+            // Switch to the correct evaluator for light-flavor or for b/c jets. 
             const correction::Correction *sf_evaluator;
             std::string variation;
             if (flavors.at(i) == 5 || flavors.at(i) == 4) {
@@ -2088,13 +2083,7 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                 continue;
             }
 
-            // Switch to the correct evaluator for light-flavor or for b/c
-            // jets. b/c and light-flavor scale factors are measured with
-            // independent methods and independent (statistically
-            // uncorrelated) uncertainty sources by the BTV POG, so each
-            // flavor group must use its own variation string; the other
-            // flavor group's variation must stay "central" while one is
-            // being shifted.
+            // Switch to the correct evaluator for light-flavor or for b/c jets
             const correction::Correction *sf_evaluator;
             std::string variation;
             if (flavors.at(i) == 5 || flavors.at(i) == 4) {

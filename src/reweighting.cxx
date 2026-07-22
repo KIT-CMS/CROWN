@@ -497,10 +497,10 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df, const std::string &outputname,
  *
  * @return a new dataframe containing the new column
  *
- * @note This follows the new recommendations from TOP PAG in AN 2025 050 for Run 3.
+ * @note This follows the new recommendations from TOP PAG in AN-2025-050 for 
+ * Run 3.
  */
-ROOT::RDF::RNode
-TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
+ROOT::RDF::RNode TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
           const std::string &genparticles_pdg_id,
           const std::string &genparticles_status_flags,
           const std::string &genparticles_pt) {

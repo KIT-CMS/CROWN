@@ -28,7 +28,7 @@ namespace muon {
  * additionally applied on top of the scale-corrected \f$p_T\f$, using a random
  * number drawn from an asymmetric Crystal Ball distribution (`CrystalBall`,
  * see `RoccoR.hxx`) and a residual data/MC resolution difference `k`. If
- * `shift` requests a systematic variation ("SmearUp"/"SmearDown" for the
+ * `shift` requests a systematic variation ("ScaleUp"/"ScaleDown" for the
  * scale uncertainty, "ResoUp"/"ResoDown" for the resolution uncertainty), the
  * corresponding uncertainty (`pt_scale_var`/`pt_resol_var`) is propagated
  * instead of the nominal correction. Muons corrected outside of
@@ -54,7 +54,7 @@ namespace muon {
  * @param scale_file path to the muonscarekit scale-and-resolution correction
  * file
  * @param shift name of the requested variation, "nom" for the nominal
- * correction, "SmearUp"/"SmearDown" for the scale uncertainty, or
+ * correction, "ScaleUp"/"ScaleDown" for the scale uncertainty, or
  * "ResoUp"/"ResoDown" for the resolution uncertainty
  * @param is_data flag that is `true` if the input is data and `false` if it
  * is MC; resolution smearing is only applied to MC
@@ -176,7 +176,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
 
                 corr_pt = reso_pt;
 
-                if (shift == "SmearUp" || shift == "SmearDown") {
+                if (shift == "ScaleUp" || shift == "ScaleDown") {
                     // apply scale uncertainty on top of the scale+reso corrected pt
                     float stat_a_f = scale_evaluator_a->evaluate({eta.at(i), phi.at(i), "stat"});
                     float stat_m_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "stat"});
@@ -187,7 +187,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                         stat_a_f * stat_a_f +
                         2 * charge.at(i) * stat_rho_f * stat_m_f * stat_a_f / corr_pt);
 
-                    if (shift == "SmearUp") corr_pt = corr_pt + unc;
+                    if (shift == "ScaleUp") corr_pt = corr_pt + unc;
                     else corr_pt = corr_pt - unc;
                 } else if (shift == "ResoUp" || shift == "ResoDown") {
                     // apply resolution uncertainty on top of the scale corrected pt
