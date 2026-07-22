@@ -17,11 +17,7 @@ from .quantities import output as q
 from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.rules import AppendProducer, RemoveProducer
-from code_generation.systematics import (
-    SystematicShift,
-    SystematicShiftByQuantity,
-    get_add_shift,
-)
+from code_generation.systematics import get_add_shift
 
 #####################
 # Notes on the test:
