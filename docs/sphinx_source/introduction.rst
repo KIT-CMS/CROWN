@@ -64,8 +64,8 @@ The following list shows all currently available analyses that can be set up.
      - https://github.com/KIT-CMS/BoostedHiggsTauTauAnalysis-CROWN
    * - ``s``
      - https://github.com/nfaltermann/CROWNs
-   * - ``xyh_bbtautau``
-     - https://github.com/KIT-CMS/XYHBBTauTauAnalysis-CROWN
+   * - ``bbtautau``
+     - https://github.com/KIT-CMS/BBTauTauAnalysis-CROWN
    * - ``haa``
      - https://github.com/KIT-CMS/HaaAnalysis-CROWN
 
