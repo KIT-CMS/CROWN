@@ -72,7 +72,28 @@ def get_add_shift(configuration: Any) -> Callable:
         samples: Union[str, List[str], None] = None,
         exclude_samples: Union[str, List[str], None] = None,
         shift_config: Union[Dict[str, Any], None] = None,
+        quantity_change: Union[
+            Dict[NanoAODQuantity, Union[str, NanoAODQuantity]], None
+        ] = None,
     ):
+        # Handle quantity-based shifts (SystematicShiftByQuantity)
+        if quantity_change is not None:
+            _name = name or CONTEXT_REGISTRY["name"].get()
+            _scopes = scopes or CONTEXT_REGISTRY["scopes"].get()
+
+            configuration.add_shift(
+                SystematicShiftByQuantity(
+                    name=_name,
+                    quantity_change=quantity_change,
+                    scopes=_scopes,
+                ),
+                samples=samples or CONTEXT_REGISTRY["samples"].get(),
+                exclude_samples=exclude_samples
+                or CONTEXT_REGISTRY["exclude_samples"].get(),
+            )
+            return
+
+        # Handle parameter-based shifts (SystematicShift)
         # if shift_config is set it overrides shift_key and shift_map
         # if producers is procided as a dict it ignores scopes
 
@@ -185,13 +206,9 @@ class SystematicShift(object):
 
     Args:
         name (str): Name of the systematic shift.
-
         shift_config: Dictionary containing the configuration parameters. The dictionary keys have to be strings, or tuples, in case the same configuration change is used for multiple scopes. The dictionary values have to be dictionaries containing the changed configuration parameters.
-
         producers: Dictionary containing the producers that are affected by the systematic shift. The dictionary keys have to be strings, or tuples, in case the same producer is affected by the systematic shift in multiple scopes. The dictionary values have to be the modified producers.
-
         ignore_producers: Dictionary containing the producers that are not affected by the systematic shift. The dictionary keys have to be strings, or tuples, in case the same producer is not affected by the systematic shift in multiple scopes. The dictionary values have to be the ignored producers.
-
         scopes (List[str], optional): List of scopes that are affected by the systematic shift. If not given, all scopes are affected.
 
     """
