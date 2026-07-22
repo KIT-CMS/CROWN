@@ -133,11 +133,7 @@ def build_config(
             ),
             "jet_puid_max_pt": 50,  # recommended to apply puID only for jets below 50 GeV
             "jet_reapplyJES": False,
-<<<<<<< HEAD
-            "jet_jes_sources": '"nom"',
-=======
             "jet_jes_source": "nom",
->>>>>>> c5e2cdd461ae739f43979721a3f593efea8ccc00
             "jet_jes_shift": 0,
             "jet_jer_shift": "nom",  # or "up", "down"
             "jet_jer_master_seed": 42,
