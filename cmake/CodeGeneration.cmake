@@ -24,6 +24,20 @@ message(STATUS "  Eras: ${ERAS}")
 message(STATUS "")
 
 file(MAKE_DIRECTORY ${GENERATE_CPP_OUTPUT_DIRECTORY})
+if("${SAMPLES}" STREQUAL "all")
+  execute_process(
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/code_generation/expand_samples.py
+            --analysis ${ANALYSIS} --config ${CONFIG}
+    OUTPUT_VARIABLE SAMPLES_EXPANDED
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE ret
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+  if(NOT ret EQUAL "0")
+    message(FATAL_ERROR "SAMPLES=all expansion failed for config ${CONFIG}")
+  endif()
+  string(REPLACE "," ";" SAMPLES "${SAMPLES_EXPANDED}")
+  message(STATUS "|> Expanded SAMPLES=all to: ${SAMPLES}")
+endif()
 # loop over all samples and eras and generate code for each one of them
 foreach(ERA IN LISTS ERAS)
   foreach(SAMPLE IN LISTS SAMPLES)
