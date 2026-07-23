@@ -63,52 +63,46 @@ namespace muon {
  */
 ROOT::RDF::RNode
 PtCorrectionMC(ROOT::RDF::RNode df,
-                correctionManager::CorrectionManager &correction_manager,
-                const std::string &outputname,
-                const std::string &pt, const std::string &eta,
-                const std::string &phi, const std::string &charge,
-                const std::string &n_tracker_layers,
-                const std::string &lumi,
-                const std::string &event,
-                const float &min_muon_pt,
-                const std::string &scale_file,
-                const std::string &shift, bool is_data) {
+               correctionManager::CorrectionManager &correction_manager,
+               const std::string &outputname, const std::string &pt,
+               const std::string &eta, const std::string &phi,
+               const std::string &charge, const std::string &n_tracker_layers,
+               const std::string &lumi, const std::string &event,
+               const float &min_muon_pt, const std::string &scale_file,
+               const std::string &shift, bool is_data) {
 
     std::string name = is_data ? "data" : "mc";
 
-    auto scale_evaluator_a = correction_manager.loadCorrection(
-        scale_file, "a_" + name);
+    auto scale_evaluator_a =
+        correction_manager.loadCorrection(scale_file, "a_" + name);
 
-    auto scale_evaluator_m = correction_manager.loadCorrection(
-        scale_file, "m_" + name);
+    auto scale_evaluator_m =
+        correction_manager.loadCorrection(scale_file, "m_" + name);
 
-    auto reso_evaluator_kmc = correction_manager.loadCorrection(
-        scale_file, "k_mc");
+    auto reso_evaluator_kmc =
+        correction_manager.loadCorrection(scale_file, "k_mc");
 
-    auto reso_evaluator_kdata = correction_manager.loadCorrection(
-        scale_file, "k_data");
+    auto reso_evaluator_kdata =
+        correction_manager.loadCorrection(scale_file, "k_data");
 
-    auto reso_evaluator_cb = correction_manager.loadCorrection(
-        scale_file, "cb_params");
+    auto reso_evaluator_cb =
+        correction_manager.loadCorrection(scale_file, "cb_params");
 
-    auto reso_evaluator_poly = correction_manager.loadCorrection(
-        scale_file, "poly_params");
+    auto reso_evaluator_poly =
+        correction_manager.loadCorrection(scale_file, "poly_params");
 
-    auto smear_evaluator = correction_manager.loadCorrection(
-        scale_file, "RandomSmearing");
+    auto smear_evaluator =
+        correction_manager.loadCorrection(scale_file, "RandomSmearing");
 
     auto lambda = [scale_evaluator_a, scale_evaluator_m, reso_evaluator_kmc,
-                   reso_evaluator_kdata, reso_evaluator_cb,
-                   reso_evaluator_poly, smear_evaluator, min_muon_pt, shift,
-                   is_data](
-                      const ROOT::RVec<float> &pt,
-                      const ROOT::RVec<float> &eta,
+                   reso_evaluator_kdata, reso_evaluator_cb, reso_evaluator_poly,
+                   smear_evaluator, min_muon_pt, shift, is_data](
+                      const ROOT::RVec<float> &pt, const ROOT::RVec<float> &eta,
                       const ROOT::RVec<float> &phi,
                       const ROOT::RVec<int> &charge,
                       const ROOT::RVec<UChar_t> &n_tracker_layers,
                       const unsigned int &lumi,
                       const unsigned long long &event) {
-
         ROOT::RVec<float> corrected_pts(pt.size());
 
         for (std::size_t i = 0; i < pt.size(); ++i) {
@@ -116,14 +110,18 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             float corr_pt = pt.at(i);
             float smear_pt = pt.at(i);
 
-            float a_f = scale_evaluator_a->evaluate({eta.at(i), phi.at(i), "nom"});
-            float m_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "nom"});
+            float a_f =
+                scale_evaluator_a->evaluate({eta.at(i), phi.at(i), "nom"});
+            float m_f =
+                scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "nom"});
 
             // apply scale correction to both data and mc
             smear_pt = 1. / (m_f / pt.at(i) + charge.at(i) * a_f);
 
-            if (smear_pt < min_muon_pt || smear_pt > 200.0 || std::isnan(smear_pt)) {
-                // set pt to initial value if correction is outside of valid boundaries
+            if (smear_pt < min_muon_pt || smear_pt > 200.0 ||
+                std::isnan(smear_pt)) {
+                // set pt to initial value if correction is outside of valid
+                // boundaries
                 smear_pt = pt.at(i);
             }
 
@@ -131,13 +129,18 @@ PtCorrectionMC(ROOT::RDF::RNode df,
 
             if (is_data == false) {
                 // apply resolution smearing
-                float mean_f = reso_evaluator_cb->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 0});
-                float sigma_f = reso_evaluator_cb->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 1});
-                float n_f = reso_evaluator_cb->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 2});
-                float alpha_f = reso_evaluator_cb->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 3});
+                float mean_f = reso_evaluator_cb->evaluate(
+                    {std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 0});
+                float sigma_f = reso_evaluator_cb->evaluate(
+                    {std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 1});
+                float n_f = reso_evaluator_cb->evaluate(
+                    {std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 2});
+                float alpha_f = reso_evaluator_cb->evaluate(
+                    {std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 3});
 
                 float rndm_f = smear_evaluator->evaluate(
-                    {static_cast<int>(event), static_cast<int>(lumi), phi.at(i)});
+                    {static_cast<int>(event), static_cast<int>(lumi),
+                     phi.at(i)});
 
                 CrystalBall cb;
                 cb.m = mean_f;
@@ -147,15 +150,21 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 cb.init();
                 float rndm = cb.invcdf(rndm_f);
 
-                float param0_f = reso_evaluator_poly->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 0});
-                float param1_f = reso_evaluator_poly->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 1});
-                float param2_f = reso_evaluator_poly->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 2});
+                float param0_f = reso_evaluator_poly->evaluate(
+                    {std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 0});
+                float param1_f = reso_evaluator_poly->evaluate(
+                    {std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 1});
+                float param2_f = reso_evaluator_poly->evaluate(
+                    {std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 2});
 
-                float sigma_std = param0_f + param1_f * smear_pt + param2_f * smear_pt * smear_pt;
+                float sigma_std = param0_f + param1_f * smear_pt +
+                                  param2_f * smear_pt * smear_pt;
                 float std_dev = std::max(0.f, sigma_std);
 
-                float k_data_f = reso_evaluator_kdata->evaluate({std::abs(eta.at(i)), "nom"});
-                float k_mc_f = reso_evaluator_kmc->evaluate({std::abs(eta.at(i)), "nom"});
+                float k_data_f = reso_evaluator_kdata->evaluate(
+                    {std::abs(eta.at(i)), "nom"});
+                float k_mc_f =
+                    reso_evaluator_kmc->evaluate({std::abs(eta.at(i)), "nom"});
                 float k = 0.0;
                 if (k_mc_f < k_data_f) {
                     k = std::sqrt(k_data_f * k_data_f - k_mc_f * k_mc_f);
@@ -163,50 +172,68 @@ PtCorrectionMC(ROOT::RDF::RNode df,
 
                 float reso_pt = smear_pt * (1 + k * std_dev * rndm);
 
-                if (reso_pt < min_muon_pt || reso_pt > 200.0 || std::isnan(reso_pt)) {
-                    // set pt to initial value if correction is outside of valid boundaries
+                if (reso_pt < min_muon_pt || reso_pt > 200.0 ||
+                    std::isnan(reso_pt)) {
+                    // set pt to initial value if correction is outside of valid
+                    // boundaries
                     reso_pt = smear_pt;
                 }
 
-                if (reso_pt / smear_pt > 2 || reso_pt / smear_pt < 0.1 || reso_pt < 0) {
-                    // set pt to initial value if correction is outside of valid boundaries,
-                    // not to be merged with the step before
+                if (reso_pt / smear_pt > 2 || reso_pt / smear_pt < 0.1 ||
+                    reso_pt < 0) {
+                    // set pt to initial value if correction is outside of valid
+                    // boundaries, not to be merged with the step before
                     reso_pt = smear_pt;
                 }
 
                 corr_pt = reso_pt;
 
                 if (shift == "ScaleUp" || shift == "ScaleDown") {
-                    // apply scale uncertainty on top of the scale+reso corrected pt
-                    float stat_a_f = scale_evaluator_a->evaluate({eta.at(i), phi.at(i), "stat"});
-                    float stat_m_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "stat"});
-                    float stat_rho_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "rho_stat"});
+                    // apply scale uncertainty on top of the scale+reso
+                    // corrected pt
+                    float stat_a_f = scale_evaluator_a->evaluate(
+                        {eta.at(i), phi.at(i), "stat"});
+                    float stat_m_f = scale_evaluator_m->evaluate(
+                        {eta.at(i), phi.at(i), "stat"});
+                    float stat_rho_f = scale_evaluator_m->evaluate(
+                        {eta.at(i), phi.at(i), "rho_stat"});
 
-                    float unc = corr_pt * corr_pt * std::sqrt(
-                        stat_m_f * stat_m_f / (corr_pt * corr_pt) +
-                        stat_a_f * stat_a_f +
-                        2 * charge.at(i) * stat_rho_f * stat_m_f * stat_a_f / corr_pt);
+                    float unc =
+                        corr_pt * corr_pt *
+                        std::sqrt(stat_m_f * stat_m_f / (corr_pt * corr_pt) +
+                                  stat_a_f * stat_a_f +
+                                  2 * charge.at(i) * stat_rho_f * stat_m_f *
+                                      stat_a_f / corr_pt);
 
-                    if (shift == "ScaleUp") corr_pt = corr_pt + unc;
-                    else corr_pt = corr_pt - unc;
+                    if (shift == "ScaleUp")
+                        corr_pt = corr_pt + unc;
+                    else
+                        corr_pt = corr_pt - unc;
                 } else if (shift == "ResoUp" || shift == "ResoDown") {
-                    // apply resolution uncertainty on top of the scale corrected pt
-                    float k_unc_f = reso_evaluator_kmc->evaluate({std::abs(eta.at(i)), "stat"});
+                    // apply resolution uncertainty on top of the scale
+                    // corrected pt
+                    float k_unc_f = reso_evaluator_kmc->evaluate(
+                        {std::abs(eta.at(i)), "stat"});
 
                     if (k_mc_f > 0) {
                         float std_x_cb = (reso_pt / smear_pt - 1) / k_mc_f;
-                        if (shift == "ResoUp") corr_pt = smear_pt * (1 + (k_mc_f + k_unc_f) * std_x_cb);
-                        else corr_pt = smear_pt * (1 + (k_mc_f - k_unc_f) * std_x_cb);
+                        if (shift == "ResoUp")
+                            corr_pt =
+                                smear_pt * (1 + (k_mc_f + k_unc_f) * std_x_cb);
+                        else
+                            corr_pt =
+                                smear_pt * (1 + (k_mc_f - k_unc_f) * std_x_cb);
                     }
 
-                    if (corr_pt / smear_pt > 2 || corr_pt / smear_pt < 0.1 || corr_pt < 0) corr_pt = smear_pt;
+                    if (corr_pt / smear_pt > 2 || corr_pt / smear_pt < 0.1 ||
+                        corr_pt < 0)
+                        corr_pt = smear_pt;
                 }
-
             }
 
             Logger::get("physicsobject::muon::PtCorrectionMC")
-                ->debug("muon pt before {}, muon pt after {} shift {}", pt.at(i),
-                        corr_pt, shift);
+                ->debug("muon pt before {}, muon pt after {} shift {}",
+                        pt.at(i), corr_pt, shift);
 
             corrected_pts.at(i) = corr_pt;
         }
@@ -215,8 +242,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     };
 
     return df.Define(outputname, lambda,
-                     {pt, eta, phi, charge, n_tracker_layers,
-                      lumi, event});
+                     {pt, eta, phi, charge, n_tracker_layers, lumi, event});
 }
 
 /**
@@ -418,8 +444,9 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief This function calculates muon iso and ID scale factors (SFs) for a single
- * muon dependening on its pseudorapidity (\f$\eta\f$) and transverse momentum
+ * @brief This function calculates muon iso and ID scale factors (SFs) for a
+ * single muon dependening on its pseudorapidity (\f$\eta\f$) and transverse
+ * momentum
  * (\f$p_T\f$). The scale factors are loaded from a correctionlib file using a
  * specified scale factor name and variation.
  *
@@ -441,11 +468,12 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
  *
  * @return a new dataframe containing the new column
  */
-ROOT::RDF::RNode IsoAndID(ROOT::RDF::RNode df,
-                     correctionManager::CorrectionManager &correction_manager,
-                     const std::string &outputname, const std::string &pt,
-                     const std::string &eta, const std::string &sf_file,
-                     const std::string &sf_name, const std::string &variation) {
+ROOT::RDF::RNode
+IsoAndID(ROOT::RDF::RNode df,
+         correctionManager::CorrectionManager &correction_manager,
+         const std::string &outputname, const std::string &pt,
+         const std::string &eta, const std::string &sf_file,
+         const std::string &sf_name, const std::string &variation) {
     Logger::get("physicsobject::muon::scalefactor::IsoAndID")
         ->debug("Setting up functions for muon iso sf");
     Logger::get("physicsobject::muon::scalefactor::IsoAndID")
@@ -460,24 +488,20 @@ ROOT::RDF::RNode IsoAndID(ROOT::RDF::RNode df,
             // check to prevent muons with default values due to tau energy
             // correction shifts below good tau pt selection
             if (pt >= 0.0 && std::abs(eta) >= 0.0) {
-                if (variation=="nominal") {
+                if (variation == "nominal") {
                     sf = evaluator->evaluate({std::abs(eta), pt, "nominal"});
-                }
-                else if (variation=="systup") {
+                } else if (variation == "systup") {
                     sf = sf + evaluator->evaluate({std::abs(eta), pt, "syst"});
-                }
-                else if (variation=="systdown") {
+                } else if (variation == "systdown") {
                     sf = sf - evaluator->evaluate({std::abs(eta), pt, "syst"});
-                }
-                else if (variation=="statup") {
+                } else if (variation == "statup") {
                     sf = sf + evaluator->evaluate({std::abs(eta), pt, "stat"});
-                }
-                else if (variation=="statdown") {
+                } else if (variation == "statdown") {
                     sf = sf - evaluator->evaluate({std::abs(eta), pt, "stat"});
-                }
-                else { 
+                } else {
                     Logger::get("physicsobject::muon::scalefactor::IsoAndID")
-                         ->debug("variation {} not implemented, check your code");
+                        ->debug(
+                            "variation {} not implemented, check your code");
                 }
             }
             return sf;

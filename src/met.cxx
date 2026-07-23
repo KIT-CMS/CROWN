@@ -81,10 +81,10 @@ RecoilCorrection(ROOT::RDF::RNode df,
             corr_file, corr_name + "_" + method);
 
         auto Correction = [RecoilCorr, order, method, variation](
-                                ROOT::Math::PtEtaPhiMVector &met,
-                                ROOT::Math::PtEtaPhiMVector &gen_boson,
-                                ROOT::Math::PtEtaPhiMVector &vis_gen_boson,
-                                const int &n_jets) {
+                              ROOT::Math::PtEtaPhiMVector &met,
+                              ROOT::Math::PtEtaPhiMVector &gen_boson,
+                              ROOT::Math::PtEtaPhiMVector &vis_gen_boson,
+                              const int &n_jets) {
             // For Run3 jets with pT > 30 GeV and |eta| < 2.5 or pT > 50 GeV
             // outside the tracker region need to be considered (avoid jet horn
             // region) type of n_jets needs to be a float for the correctionlib
@@ -138,7 +138,7 @@ RecoilCorrection(ROOT::RDF::RNode df,
                         ->debug("Uperp_new {} ", Uperp_new);
 
                     float Upt_new = std::sqrt(Upara_new * Upara_new +
-                                                Uperp_new * Uperp_new);
+                                              Uperp_new * Uperp_new);
                     float Uphi_new =
                         std::atan2(Uperp_new, Upara_new) + gen_boson.Phi();
                     Logger::get("met::RecoilCorrection")
@@ -152,7 +152,7 @@ RecoilCorrection(ROOT::RDF::RNode df,
                 } else if (method == "Uncertainty") {
                     // method needs to be called on the corrected met
                     if (std::set<std::string>{"RespUp", "RespDown", "ResolUp",
-                                                "ResolDown"}
+                                              "ResolDown"}
                             .count(variation)) {
                         ROOT::Math::PtEtaPhiMVector H = -met - vis_gen_boson;
                         float dPhi_H = H.Phi() - gen_boson.Phi();
@@ -165,7 +165,7 @@ RecoilCorrection(ROOT::RDF::RNode df,
                             {order, nJets, genPt, "Hperp", Hperp, variation});
 
                         float Hpt_new = std::sqrt(Hpara_new * Hpara_new +
-                                                    Hperp_new * Hperp_new);
+                                                  Hperp_new * Hperp_new);
                         float Hphi_new =
                             std::atan2(Hperp_new, Hpara_new) + gen_boson.Phi();
                         if (Hphi_new > M_PI)
@@ -179,7 +179,8 @@ RecoilCorrection(ROOT::RDF::RNode df,
                     } else {
                         Logger::get("met::RecoilCorrection")
                             ->debug("Variation {} not known. Will not "
-                                    "be applied.", variation);
+                                    "be applied.",
+                                    variation);
                         met_new = met;
                     }
                 } else {
@@ -202,7 +203,7 @@ RecoilCorrection(ROOT::RDF::RNode df,
             }
         };
         return df.Define(outputname, Correction,
-                        {p4_met, p4_gen_boson, p4_vis_gen_boson, n_jets});
+                         {p4_met, p4_gen_boson, p4_vis_gen_boson, n_jets});
     } else {
         // if we do not apply the recoil corrections, just rename the met
         // column to the new outputname and dont change anything else
@@ -698,25 +699,20 @@ Type1Correction(ROOT::RDF::RNode df, const std::string &outputname,
  * @return a dataframe with the new column containing the shifted MET Lorentz
  * vector
  */
-ROOT::RDF::RNode
-PropagateUnclusteredEnergyToMET(ROOT::RDF::RNode df,
-                                const std::string &outputname,
-                                const std::string &p4_met,
-                                const std::string &met_pt_nominal,
-                                const std::string &met_phi_nominal,
-                                const std::string &met_pt_shifted,
-                                const std::string &met_phi_shifted) {
+ROOT::RDF::RNode PropagateUnclusteredEnergyToMET(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &p4_met, const std::string &met_pt_nominal,
+    const std::string &met_phi_nominal, const std::string &met_pt_shifted,
+    const std::string &met_phi_shifted) {
 
     auto propagate_shift = [](const ROOT::Math::PtEtaPhiMVector &met,
                               const float &met_pt_nom, const float &met_phi_nom,
                               const float &met_pt_shift,
                               const float &met_phi_shift) {
-        const float delta_x =
-            met_pt_shift * std::cos(met_phi_shift) -
-            met_pt_nom * std::cos(met_phi_nom);
-        const float delta_y =
-            met_pt_shift * std::sin(met_phi_shift) -
-            met_pt_nom * std::sin(met_phi_nom);
+        const float delta_x = met_pt_shift * std::cos(met_phi_shift) -
+                              met_pt_nom * std::cos(met_phi_nom);
+        const float delta_y = met_pt_shift * std::sin(met_phi_shift) -
+                              met_pt_nom * std::sin(met_phi_nom);
         const float MetX = met.Px() + delta_x;
         const float MetY = met.Py() + delta_y;
         ROOT::Math::PtEtaPhiMVector corrected_met;
