@@ -8,7 +8,13 @@ from code_generation.exceptions import (
     InvalidProducerConfigurationError,
     ConfigurationError,
 )
-from code_generation.helpers import is_empty
+from code_generation.helpers import (
+    is_empty,
+    get_variable_name,
+    CONTEXT_REGISTRY,
+    MissingValue,
+    NameNotDetermined,
+)
 
 import code_generation.quantity as q
 
@@ -23,18 +29,22 @@ class SafeDict(Dict[Any, Any]):
 class Producer:
     def __init__(
         self,
-        name: str,
-        call: str,
-        input: Union[List[q.Quantity], Dict[str, List[q.Quantity]]],
-        output: Union[List[q.Quantity], None],
-        scopes: List[str],
+        name: Union[str, None] = None,
+        call: Union[str, None] = None,
+        input: Union[  # pylint: disable=redefined-builtin
+            List[q.Quantity], Dict[str, List[q.Quantity]], None
+        ] = None,
+        output: Union[  # pylint: disable=redefined-builtin
+            List[q.Quantity], None
+        ] = None,
+        scopes: Union[List[str], None] = None,
         is_filter: bool = False,
     ):
         """
         A Producer is a class that holds all information about a producer. Input quantities are
 
         Args:
-            name: Name of the producer
+            name: Name of the producer. If None, will be auto-detected from variable assignment
             call: The call of the producer. This is the C++ function call of the producer
             input: A list of input quantities or a dict with scope specific input quantities
             output: A list of output quantities
@@ -42,32 +52,49 @@ class Producer:
             is_filter: True if the producer is an event filter
 
         """
+        # Auto-detect name if not provided
+        name = name or get_variable_name()
+
+        # Get context-aware defaults
+        _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
+        _scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
+        _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
+        _output = output if output is not None else CONTEXT_REGISTRY["output"].get()
+
+        # Validate required parameters
+        if name is None:
+            raise NameNotDetermined
+
+        for key, value in [("call", _call), ("input", _input), ("scopes", _scopes)]:
+            if value is None:
+                raise MissingValue(key)
+
         log.debug("Setting up a new producer {}".format(name))
 
         # sanity checks
-        if not isinstance(input, list) and not isinstance(input, dict):
+        if not isinstance(_input, list) and not isinstance(_input, dict):
             log.error(
                 "Exception (%s): Argument 'input' must be a list or a dict!" % name
             )
             raise Exception
-        if not isinstance(output, list) and output is not None:
+        if not isinstance(_output, list) and _output is not None:
             log.error(
                 "Exception (%s): Argument 'output' must be a list or None!" % name
             )
             raise Exception
         self.name: str = name
-        self.call: str = call
-        self.output: Union[List[q.Quantity], None] = output
-        self.scopes = scopes
+        self.call: str = _call
+        self.output: Union[List[q.Quantity], None] = _output
+        self.scopes = _scopes
         self.is_filter = True if "filter::" in self.call or is_filter else False
         self.parameters: Dict[str, Set[str]] = self.extract_parameters()
         # if input not given as dict and therfore not scope specific transform into dict with all scopes
-        if not isinstance(input, dict):
+        if not isinstance(_input, dict):
             inputdict = {}
             for scope in self.scopes:
-                inputdict[scope] = input.copy() if isinstance(input, list) else input
+                inputdict[scope] = _input.copy() if isinstance(_input, list) else _input
         else:
-            inputdict = input
+            inputdict = _input
         self.input: Dict[str, List[q.Quantity]] = inputdict
         # keep track of variable dependencies
         if not is_empty(self.output):
@@ -374,18 +401,22 @@ class Producer:
 class VectorProducer(Producer):
     def __init__(
         self,
-        name: str,
-        call: str,
-        input: Union[List[q.Quantity], Dict[str, List[q.Quantity]]],
-        output: Union[List[q.Quantity], None],
-        scopes: List[str],
-        vec_configs: List[str],
+        name: Union[str, None] = None,
+        call: Union[str, None] = None,
+        input: Union[  # pylint: disable=redefined-builtin
+            List[q.Quantity], Dict[str, List[q.Quantity]], None
+        ] = None,
+        output: Union[  # pylint: disable=redefined-builtin
+            List[q.Quantity], None
+        ] = None,
+        scopes: Union[List[str], None] = None,
+        vec_configs: Union[List[str], None] = None,
         is_filter: bool = False,
     ):
         """A Vector Producer is a Producer which can be configured to produce multiple calls and outputs at once, deprecated in favor of the ExtendedVectorProducer
 
         Args:
-            name (str): Name of the producer
+            name (str): Name of the producer. If None, will be auto-detected from variable assignment
             call (str): The call to be made in C++, with placeholders for the parameters
             input (Union[List[q.Quantity], Dict[str, List[q.Quantity]]]): The inputs of the producer, either a list of Quantity objects, or a dict with the scope as key and a list of Quantity objects as value
             output (Union[List[q.Quantity], None]): The outputs of the producer, either a list of Quantity objects, or None if the producer does not produce any output
@@ -394,9 +425,36 @@ class VectorProducer(Producer):
             is_filter (bool): True if the producer is an event filter
 
         """
+        # Auto-detect name if not provided
+        name = name or get_variable_name()
+
+        # Get context-aware defaults
+        _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
+        _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
+        _output = output if output is not None else CONTEXT_REGISTRY["output"].get()
+        _scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
+        _vec_configs = (
+            vec_configs
+            if vec_configs is not None
+            else CONTEXT_REGISTRY["vec_configs"].get()
+        )
+
+        # Validate required parameters
+        if name is None:
+            raise NameNotDetermined
+
+        for key, value in [
+            ("call", _call),
+            ("input", _input),
+            ("scopes", _scopes),
+            ("vec_configs", _vec_configs),
+        ]:
+            if value is None:
+                raise MissingValue(key)
+
         self.name = name
-        super().__init__(name, call, input, output, scopes, is_filter)
-        self.vec_configs = vec_configs
+        super().__init__(name, _call, _input, _output, _scopes, is_filter)
+        self.vec_configs = _vec_configs
 
     def __str__(self) -> str:
         return "VectorProducer: {}".format(self.name)
@@ -466,35 +524,65 @@ class VectorProducer(Producer):
 class ExtendedVectorProducer(Producer):
     def __init__(
         self,
-        name: str,
-        call: str,
-        input: Union[List[q.Quantity], Dict[str, List[q.Quantity]]],
-        output: str,
-        scope: Union[List[str], str],
-        vec_config: str,
+        name: Union[str, None] = None,
+        call: Union[str, None] = None,
+        input: Union[  # pylint: disable=redefined-builtin
+            List[q.Quantity], Dict[str, List[q.Quantity]], None
+        ] = None,
+        output: Union[str, None] = None,  # pylint: disable=redefined-builtin
+        scopes: Union[List[str], str, None] = None,
+        vec_config: Union[str, None] = None,
         is_filter: bool = False,
     ):
         """A ExtendedVectorProducer is a Producer which can be configured to produce multiple calls and outputs at once
 
         Args:
-            name (str): Name of the producer
+            name (str): Name of the producer. If None, will be auto-detected from variable assignment
             call (str): The call to be made in C++, with placeholders for the parameters
             input (Union[List[q.Quantity], Dict[str, List[q.Quantity]]]): The inputs of the producer, either a list of Quantity objects, or a dict with the scope as key and a list of Quantity objects as value
             output (Union[List[q.Quantity], None]): The outputs of the producer, either a list of Quantity objects, or None if the producer does not produce any output
             scopes (List[str]): The scopes in which the producer is to be called
-            vec_configs (List[str]): The key of the vec config in the config dict
+            vec_config (List[str]): The key of the vec config in the config dict
             is_filter (bool): True if the producer is an event filter
 
         """
+        # Auto-detect name if not provided
+        name = name or get_variable_name()
+
+        # Get context-aware defaults
+        _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
+        _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
+        _output = output if output is not None else CONTEXT_REGISTRY["output"].get()
+        _scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
+        _vec_config = (
+            vec_config
+            if vec_config is not None
+            else CONTEXT_REGISTRY["vec_config"].get()
+        )
+
+        # Validate required parameters
+        if name is None:
+            raise NameNotDetermined
+
+        for key, value in [
+            ("scopes", _scopes),
+            ("input", _input),
+            ("output", _output),
+            ("vec_config", _vec_config),
+            ("call", _call),
+        ]:
+            if value is None:
+                raise MissingValue(key)
+
         # we create a Quantity Group, which is updated during the writecalls() step
-        self.outputname = output
-        self.vec_config = vec_config
-        if not isinstance(scope, list):
-            scope = [scope]
+        self.outputname = _output
+        self.vec_config = _vec_config
+        if not isinstance(_scopes, list):
+            _scopes = [_scopes]
         quantity_group = q.QuantityGroup(name)
         # set the vec config key of the quantity group
-        quantity_group.set_vec_config(vec_config)
-        super().__init__(name, call, input, [quantity_group], scope, is_filter)
+        quantity_group.set_vec_config(_vec_config)
+        super().__init__(name, _call, _input, [quantity_group], _scopes, is_filter)
         if is_empty(self.output):
             raise InvalidProducerConfigurationError(self.name)
         # add the vec config to the parameters of the producer
@@ -563,23 +651,41 @@ class ExtendedVectorProducer(Producer):
 class BaseFilter(Producer):
     def __init__(
         self,
-        name: str,
-        call: str,
-        input: Union[List[q.Quantity], Dict[str, List[q.Quantity]]],
-        scopes: List[str],
+        name: Union[str, None] = None,
+        call: Union[str, None] = None,
+        input: Union[  # pylint: disable=redefined-builtin
+            List[q.Quantity], Dict[str, List[q.Quantity]], None
+        ] = None,
+        scopes: Union[List[str], None] = None,
     ):
         """A BaseFilter is a Producer which does not produce any output, but is used to filter events.
         This class should not be used by the user, use the Filter class instead.
 
         Args:
-            name (str): name of the filter
+            name (str): name of the filter. If None, will be auto-detected from variable assignment
             call (str): The call to be made in C++, with placeholders for the parameters
             input (Union[List[q.Quantity], Dict[str, List[q.Quantity]]]): The inputs of the filter,
             either a list of Quantity objects, or a dict with the scope as key and a list of Quantity objects as value
             scopes (List[str]): The scopes in which the filter is to be called
 
         """
-        super().__init__(name, call, input, None, scopes, True)
+        # Auto-detect name if not provided
+        name = name or get_variable_name()
+
+        # Get context-aware defaults
+        _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
+        _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
+        _scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
+
+        # Validate required parameters
+        if name is None:
+            raise NameNotDetermined
+
+        for key, value in [("call", _call), ("input", _input), ("scopes", _scopes)]:
+            if value is None:
+                raise MissingValue(key)
+
+        super().__init__(name, _call, _input, None, _scopes, True)
 
     def __str__(self) -> str:
         return "BaseFilter: {}".format(self.name)
@@ -637,48 +743,75 @@ class ProducerGroup:
 
     def __init__(
         self,
-        name: str,
-        call: Union[str, None],
-        input: Union[List[q.Quantity], Dict[str, List[q.Quantity]], None],
-        output: Union[List[q.Quantity], None],
-        scopes: List[str],
+        name: Union[str, None] = None,
+        call: Union[str, None] = None,
+        input: Union[  # pylint: disable=redefined-builtin
+            List[q.Quantity], Dict[str, List[q.Quantity]], None
+        ] = None,
+        output: Union[  # pylint: disable=redefined-builtin
+            List[q.Quantity], None
+        ] = None,
+        scopes: Union[List[str], None] = None,
         subproducers: Union[
             List[Producer | ProducerGroup],
             Dict[str, List[Producer | ProducerGroup]],
-        ],
+            None,
+        ] = None,
     ):
         """A ProducerGroup can be used to group multiple producers. This is useful to keep the configuration simpler and to ensure that the producers are called in the correct order. ProducerGroups can be nested.
 
         Args:
-            name (str): Name of the ProducerGroup
+            name (str): Name of the ProducerGroup. If None, will be auto-detected from variable assignment
             call (Union[str, None]): Typically, this is None
             input (Union[List[q.Quantity], Dict[str, List[q.Quantity]], None]): The inputs of the ProducerGroup
             output (Union[List[q.Quantity], None]): Output quantities of the Producer Group
             scopes (List[str]): The scopes in which the ProducerGroup is to be called
             subproducers (Union[ List[Producer  |  ProducerGroup], Dict[str, List[Producer  |  ProducerGroup]], ]): The subproducers of the ProducerGroup, either a list of Producer or ProducerGroup objects, or a dict with the scope as key and a list of Producer or ProducerGroup objects as value
         """
+        # Auto-detect name if not provided
+        name = name or get_variable_name()
+
+        # Get context-aware defaults
+        _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
+        _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
+        _output = output if output is not None else CONTEXT_REGISTRY["output"].get()
+        _scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
+        _subproducers = (
+            subproducers
+            if subproducers is not None
+            else CONTEXT_REGISTRY["subproducers"].get()
+        )
+
+        # Validate required parameters
+        if name is None:
+            raise NameNotDetermined
+
+        for key, value in [("scopes", _scopes), ("subproducers", _subproducers)]:
+            if value is None:
+                raise MissingValue(key)
+
         self.name = name
-        self.call = call
-        self.output = output
-        self.scopes = scopes
+        self.call = _call
+        self.output = _output
+        self.scopes = _scopes
         self.producers: Dict[str, List[Producer | ProducerGroup]] = {}
         # if subproducers are given as dict and therefore scope specific transform into dict with all scopes
-        if not isinstance(subproducers, dict):
+        if not isinstance(_subproducers, dict):
             log.debug("Converting subproducer list to dictionary")
             for scope in self.scopes:
-                self.producers[scope] = [producer for producer in subproducers]
+                self.producers[scope] = [producer for producer in _subproducers]
         else:
-            self.producers = subproducers
+            self.producers = _subproducers
         # do a consistency check for the scopes
         self.check_producer_scopes()
         # if input not given as dict and therefore not scope specific transform into dict with all scopes
-        if not isinstance(input, dict):
+        if not isinstance(_input, dict):
             inputdict = {}
             for scope in self.scopes:
-                inputdict[scope] = input.copy() if isinstance(input, list) else input
+                inputdict[scope] = _input.copy() if isinstance(_input, list) else _input
             self.input = inputdict
         else:
-            self.input = dict(input)
+            self.input = dict(_input)
         # If call is provided, this is supposed to consume output of subproducers. Creating these internal products below:
         if not is_empty(self.call):
             log.debug("Constructing {}".format(self.name))
@@ -905,28 +1038,57 @@ class ProducerGroup:
 class Filter(ProducerGroup):
     def __init__(
         self,
-        name: str,
-        call: str,
-        input: Union[List[q.Quantity], Dict[str, List[q.Quantity]]],
-        scopes: List[str],
+        name: Union[str, None] = None,
+        call: Union[str, None] = None,
+        input: Union[  # pylint: disable=redefined-builtin
+            List[q.Quantity], Dict[str, List[q.Quantity]], None
+        ] = None,
+        scopes: Union[List[str], None] = None,
         subproducers: Union[
             List[Producer | ProducerGroup],
             Dict[str, List[Producer | ProducerGroup]],
-        ],
+            None,
+        ] = None,
     ):
         """A Filter is used to filter events. Wraps the BaseFilter class, and is a ProducerGroup.
 
         Args:
-            name (str): name of the filter
+            name (str): name of the filter. If None, will be auto-detected from variable assignment
             call (str): the C++ function call to be used for the filter
             input (Union[List[q.Quantity], Dict[str, List[q.Quantity]]]): The input quantities for the filter
             scopes (List[str]): The scopes in which the filter is to be called
             subproducers (Union[ List[Producer  |  ProducerGroup], Dict[str, List[Producer  |  ProducerGroup]], ]): The subproducers of the filter
         """
+        # Auto-detect name if not provided
+        name = name or get_variable_name()
+
+        # Get context-aware defaults
+        _call = call if call is not None else CONTEXT_REGISTRY["call"].get()
+        _input = input if input is not None else CONTEXT_REGISTRY["input"].get()
+        _scopes = scopes if scopes is not None else CONTEXT_REGISTRY["scopes"].get()
+        _subproducers = (
+            subproducers
+            if subproducers is not None
+            else CONTEXT_REGISTRY["subproducers"].get()
+        )
+
+        # Validate required parameters
+        if name is None:
+            raise NameNotDetermined
+
+        for key, value in [
+            ("call", _call),
+            ("input", _input),
+            ("scopes", _scopes),
+            ("subproducers", _subproducers),
+        ]:
+            if value is None:
+                raise MissingValue(key)
+
         self.__class__.PG_count = ProducerGroup.PG_count
-        super().__init__(name, call, input, None, scopes, subproducers)
+        super().__init__(name, _call, _input, None, _scopes, _subproducers)
         ProducerGroup.PG_count = self.__class__.PG_count
-        self.call: str = call
+        self.call: str = _call
 
     def __str__(self) -> str:
         return "Filter: {}".format(self.name)
@@ -984,3 +1146,119 @@ TProducerInput = Union[Producer, ProducerGroup, List[Union[Producer, ProducerGro
 TProducerSet = Union[Producer, ProducerGroup, Set[Union[Producer, ProducerGroup]]]
 TProducerStore = Dict[str, List[Union[Producer, ProducerGroup]]]
 TProducerListStore = Dict[str, TProducerStore]
+
+
+RUN2_ERAS: frozenset = frozenset({"2016preVFP", "2016postVFP", "2017", "2018"})
+
+# Default nanoAOD version used for each era when no explicit version is given.
+ERA_NANOAOD_VERSION_DEFAULTS: Dict[str, str] = {
+    "2016preVFP": "v9",
+    "2016postVFP": "v9",
+    "2017": "v9",
+    "2018": "v9",
+    "2022preEE": "v12",
+    "2022postEE": "v12",
+    "2023preBPix": "v12",
+    "2023postBPix": "v12",
+    "2024": "v15",
+    "2025": "v15",
+}
+
+
+class SwitchProducer:
+    """Base class for switching between era- or nanoAOD version-dependent variants
+    of a producer.
+
+    Works with all producer types (``Producer``, ``ProducerGroup``,
+    ``VectorProducer``, ``ExtendedVectorProducer``, ``Filter``, ``BaseFilter``).
+    Subclasses declare the variants as class attributes, optionally nested under
+    ``run2`` / ``run3`` inner classes.  Call :meth:`get` to switch to the variant
+    that matches an specific era (and optionally an explicit nanoAOD version).
+
+    All inner producers are automatically renamed to the outer class name so that
+    every analysis configuration can use the same name of the producers and switch
+    to the needed variant.
+
+    Example::
+
+        class JetEnergyCorrection(SwitchProducer):
+            # ProducerGroup variant
+            class run2:
+                v9  = ProducerGroup(subproducers=[...])
+            class run3:
+                v12 = ProducerGroup(subproducers=[...])
+                v15 = ProducerGroup(subproducers=[...])
+
+        class ElectronPtCorrection(SwitchProducer):
+            # Plain Producer variant — same pattern
+            class run2:
+                v9  = Producer(call=..., input=[...], output=[...])
+            # without run dependence no nesting needed
+            v15 = Producer(call=..., input=[...], output=[...])
+
+        # In the analysis config:
+        jets.JetEnergyCorrection.get(era)          # auto-selects version from era
+        jets.JetEnergyCorrection.get(era, "v12")   # explicit version override
+
+    Resolution order
+    ----------------
+    1. Determine ``run = "run2"`` or ``"run3"`` from *era*.
+    2. If the class has a ``run2`` / ``run3`` attribute, descend into it;
+       otherwise operate on the class itself.
+    3. If the resulting object is already a producer (not a nested class),
+       return it directly.
+    4. Look up *version* (or the era default from :data:`ERA_NANOAOD_VERSION_DEFAULTS`)
+       as an attribute of the object.
+    """
+
+    @classmethod
+    def get(cls, era: str, version: Union[str, None] = None) -> Union[
+        Producer,
+        ProducerGroup,
+        ExtendedVectorProducer,
+        VectorProducer,
+        BaseFilter,
+        Filter,
+    ]:
+        """Return the producer variant for *era* (and optional *version*).
+
+        Args:
+            era:     Data-taking era string, e.g. ``'2018'`` or ``'2024'``.
+            version: Explicit variant key, e.g. ``'v9'``, ``'v12'``, ``'v15'``.
+                     Falls back to :data:`ERA_NANOAOD_VERSION_DEFAULTS` when ``None``.
+
+        Raises:
+            ValueError: When no matching variant is found.
+        """
+        run = "run2" if era in RUN2_ERAS else "run3"
+        obj = getattr(cls, run) if hasattr(cls, run) else cls
+
+        # If the run attribute is already a producer, return it directly
+        if not isinstance(obj, type):
+            return obj
+
+        target_version = version or ERA_NANOAOD_VERSION_DEFAULTS.get(era)
+        if target_version and hasattr(obj, target_version):
+            return getattr(obj, target_version)
+
+        available = [k for k in obj.__dict__ if not k.startswith("_")]
+        raise ValueError(
+            f"{cls.__name__}.get('{era}'): no producer found for version "
+            f"'{target_version}'. Available: {available}"
+        )
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Rename inner producers to the outer class name on class creation."""
+        super().__init_subclass__(**kwargs)
+        for key, val in cls.__dict__.items():
+            if key.startswith("_"):
+                continue
+            if hasattr(val, "name") and val.name == key:
+                val.name = cls.__name__
+            elif isinstance(val, type):
+                # One level of nesting (run2 / run3 inner classes)
+                for subkey, subval in val.__dict__.items():
+                    if subkey.startswith("_"):
+                        continue
+                    if hasattr(subval, "name") and subval.name == subkey:
+                        subval.name = cls.__name__
