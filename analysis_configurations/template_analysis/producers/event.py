@@ -20,6 +20,11 @@ with defaults(scopes=["global"]):
     )
 
     with defaults(input=[]):
+        MetFilter = VectorProducer(
+            call='event::filter::Flag({df}, "{met_filters}", "{met_filters}")',
+            output=None,
+            vec_configs=["met_filters"],
+        )
         is_data = Producer(
             call="event::quantity::Define<bool>({df}, {output}, {is_data})",
             output=[q.is_data],
@@ -57,13 +62,6 @@ with defaults(scopes=["global"]):
             is_wjets,
             is_diboson,
         ],
-    )
-
-    MetFilter = VectorProducer(
-        call='event::filter::Flag({df}, "{met_filters}", "{met_filters}")',
-        input=[],
-        output=None,
-        vec_configs=["met_filters"],
     )
 
     Lumi = Producer(

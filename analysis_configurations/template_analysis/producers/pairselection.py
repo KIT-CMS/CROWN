@@ -38,16 +38,15 @@ with defaults(scopes=["mm"]):
         subproducers=[GoodMMPairFlag],
     )
 
-    LVMu1 = Producer(
-        call="lorentzvector::Build({df}, {output}, {input}, 0)",
-        input=_nanoAOD_kinematic_muon + [q.dileptonpair],
-        output=[q.p4_1],
-    )
-    LVMu2 = Producer(
-        call="lorentzvector::Build({df}, {output}, {input}, 1)",
-        input=_nanoAOD_kinematic_muon + [q.dileptonpair],
-        output=[q.p4_2],
-    )
+    with defaults(input=_nanoAOD_kinematic_muon + [q.dileptonpair]):
+        LVMu1 = Producer(
+            call="lorentzvector::Build({df}, {output}, {input}, 0)",
+            output=[q.p4_1],
+        )
+        LVMu2 = Producer(
+            call="lorentzvector::Build({df}, {output}, {input}, 1)",
+            output=[q.p4_2],
+        )
 
     # Lorentz vectors for friend trees
     with defaults(call="lorentzvector::Build({df}, {output}, {input})"):
