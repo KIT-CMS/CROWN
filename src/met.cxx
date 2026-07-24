@@ -150,6 +150,7 @@ RecoilCorrection(ROOT::RDF::RNode df,
                         ROOT::Math::PtEtaPhiMVector(Upt_new, 0., Uphi_new, 0.);
                     met_new = U_new - vis_gen_boson + gen_boson;
                 } else if (method == "Uncertainty") {
+                    // method needs to be called on the corrected met
                     if (std::set<std::string>{"RespUp", "RespDown", "ResolUp",
                                               "ResolDown"}
                             .count(variation)) {
@@ -177,18 +178,11 @@ RecoilCorrection(ROOT::RDF::RNode df,
                         met_new = -H_new - vis_gen_boson;
                     } else {
                         Logger::get("met::RecoilCorrection")
-                            ->error("Variation {} not known. Choose either "
-                                    "'RespUp', 'RespDown', 'ResolUp' or "
-                                    "'ResolDown'",
+                            ->debug("Variation {} not known. Will not "
+                                    "be applied.",
                                     variation);
-                        throw std::runtime_error(
-                            "Invalid variation for Recoil corrections");
+                        met_new = met;
                     }
-                } else if (method == "QuantileMapFit") {
-                    Logger::get("met::RecoilCorrection")
-                        ->debug("QuantileMapFit method not yet implemented, "
-                                "returning uncorrected MET");
-                    return met;
                 } else {
                     Logger::get("met::RecoilCorrection")
                         ->error(
@@ -664,6 +658,72 @@ Type1Correction(ROOT::RDF::RNode df, const std::string &outputname,
                          {raw_met, jet_pt_l1corr, jet_pt_corr, jet_phi,
                           jet_ch_em_ef, jet_ne_em_ef, low_pt_jet_phi});
     return df1;
+}
+
+/**
+ * @brief Propagates the unclustered energy uncertainty, as provided by
+ * NanoAOD, onto a (possibly independently re-derived) MET vector.
+ *
+ * NanoAOD only provides the unclustered energy variation as an absolute
+ * pt/phi pair for the officially Type-1-corrected PuppiMET
+ * (`PuppiMET_ptUnclusteredUp/Down`, `PuppiMET_phiUnclusteredUp/Down`). If the
+ * analysis MET is re-derived independently from RawMET + JECs (e.g. via
+ * `met::Type1Correction`), this NanoAOD-level variation can not directly
+ * replace the analysis MET. Instead, the shift is applied additively: the
+ * difference between the shifted and nominal NanoAOD PuppiMET (in x/y) is
+ * added on top of the analysis MET vector.
+ *
+ * \f[
+ * \vec{p}_{T,\text{miss}}^{\text{new}} = \vec{p}_{T,\text{miss}} +
+ * \left(\vec{p}_{T,\text{miss}}^{\text{NanoAOD, shifted}} -
+ * \vec{p}_{T,\text{miss}}^{\text{NanoAOD, nominal}}\right)
+ * \f]
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the corrected MET
+ * Lorentz vector
+ * @param p4_met name of the column with the (already corrected) MET Lorentz
+ * vector to propagate the shift onto
+ * @param met_pt_nominal name of the column with the nominal (never shifted)
+ * NanoAOD MET \f$p_T\f$
+ * @param met_phi_nominal name of the column with the nominal (never shifted)
+ * NanoAOD MET \f$\phi\f$
+ * @param met_pt_shifted name of the column with the NanoAOD MET \f$p_T\f$,
+ * which is equal to `met_pt_nominal` if no unclustered energy shift is
+ * active, or to the Unclustered Up/Down variant otherwise
+ * @param met_phi_shifted name of the column with the NanoAOD MET \f$\phi\f$,
+ * analogous to `met_pt_shifted`
+ *
+ * @return a dataframe with the new column containing the shifted MET Lorentz
+ * vector
+ */
+ROOT::RDF::RNode PropagateUnclusteredEnergyToMET(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &p4_met, const std::string &met_pt_nominal,
+    const std::string &met_phi_nominal, const std::string &met_pt_shifted,
+    const std::string &met_phi_shifted) {
+
+    auto propagate_shift = [](const ROOT::Math::PtEtaPhiMVector &met,
+                              const float &met_pt_nom, const float &met_phi_nom,
+                              const float &met_pt_shift,
+                              const float &met_phi_shift) {
+        const float delta_x = met_pt_shift * std::cos(met_phi_shift) -
+                              met_pt_nom * std::cos(met_phi_nom);
+        const float delta_y = met_pt_shift * std::sin(met_phi_shift) -
+                              met_pt_nom * std::sin(met_phi_nom);
+        const float MetX = met.Px() + delta_x;
+        const float MetY = met.Py() + delta_y;
+        ROOT::Math::PtEtaPhiMVector corrected_met;
+        corrected_met.SetPxPyPzE(MetX, MetY, 0,
+                                 std::sqrt(MetX * MetX + MetY * MetY));
+        Logger::get("met::PropagateUnclusteredEnergyToMET")
+            ->debug("old met {}, corrected met {}", met.Pt(),
+                    corrected_met.Pt());
+        return corrected_met;
+    };
+    return df.Define(outputname, propagate_shift,
+                     {p4_met, met_pt_nominal, met_phi_nominal, met_pt_shifted,
+                      met_phi_shifted});
 }
 
 } // end namespace met

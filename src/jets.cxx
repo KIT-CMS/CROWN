@@ -302,7 +302,8 @@ ROOT::RDF::RNode PtCorrectionL2L3(
         }
         if (is_data) {
             float _pt;
-            if (era == "2024" && pt < 30.0 && 2.0 < abs(eta) < 2.5)
+            if (era == "2024" && pt < 30.0 && 2.0 < std::abs(eta) &&
+                std::abs(eta) < 2.5)
                 _pt = 30.0;
             else
                 _pt = pt;
@@ -325,10 +326,14 @@ ROOT::RDF::RNode PtCorrectionL2L3(
     auto jer_sf_evaluator = correction_manager.loadCorrection(
         jec_file, jer_tag + "_ScaleFactor_" + jec_algo);
 
+    // loading JER scale factor uncertainty function
+    auto jer_sfunc_evaluator = correction_manager.loadCorrection(
+        jec_file, jer_tag + "_SFUncertainty_" + jec_algo);
+
     auto correction_lambda = [jet_energy_scale_shift, jet_energy_scale_sf,
                               jet_energy_resolution, jer_sf_evaluator,
-                              jes_shift_source, jes_shift, jer_shift,
-                              jet_radius, era, is_data](
+                              jer_sfunc_evaluator, jes_shift_source, jes_shift,
+                              jer_shift, jet_radius, era, is_data](
                                  const ROOT::RVec<float> &pts,
                                  const ROOT::RVec<float> &etas,
                                  const ROOT::RVec<float> &phis,
@@ -396,13 +401,16 @@ ROOT::RDF::RNode PtCorrectionL2L3(
                 // --- JER (MC only) ---
                 float reso = jet_energy_resolution(etas.at(i), pt_corr, rho);
                 float reso_sf = 1.0;
-                if (era_year <= 2018) { // run 2 case
-                    reso_sf =
-                        jer_sf_evaluator->evaluate({etas.at(i), jer_shift});
-                } else { // run 3 case
-                    reso_sf = jer_sf_evaluator->evaluate(
-                        {etas.at(i), pt_corr, jer_shift});
-                }
+                float unc_sf = 0.0;
+                reso_sf = jer_sf_evaluator->evaluate({etas.at(i), pt_corr});
+
+                unc_sf = jer_sfunc_evaluator->evaluate({etas.at(i), pt_corr});
+
+                if (jer_shift == "up")
+                    reso_sf = reso_sf * (1 + unc_sf);
+                else if (jer_shift == "down")
+                    reso_sf = reso_sf * (1 - unc_sf);
+
                 Logger::get("physicsobject::jet::PtCorrectionL2L3")
                     ->debug("Calculate JER {}: SF: {} resolution: {} ",
                             jer_shift, reso_sf, reso);
@@ -1731,8 +1739,17 @@ BtaggingShape(ROOT::RDF::RNode df,
  *     cuts for the different working points
  * @param eff_file path to the file with the b jet tagging efficiencies
  * @param eff_name name of the b jet tagging efficiency correction set
- * @param variation name the scale factor variation, available values:
- *     central, down_*, up_* (* name of specific variation)
+ * @param variation_bc name of the scale factor variation applied to b/c
+ *     flavor jets (hadronFlavour 5/4), available values: central, down_*,
+ *     up_* (* name of specific variation). The BTV POG measures b/c and
+ *     light-flavor scale factors with independent methods and independent
+ *     uncertainty sets (see
+ *
+ https://btv-wiki.docs.cern.ch/ScaleFactors/#sf-uncertainties-and-correlations-across-years),
+ *     so they must be varied independently: when varying variation_bc,
+ *     variation_lf should be kept at "central" and vice versa.
+ * @param variation_lf name of the scale factor variation applied to
+ *     light-flavor jets (hadronFlavour 0), analogous to variation_bc
  * @param btag_wp_name string that specifies the b-tagging working point used in
        an analysis e.g. "L", "M", "T", ...
  *
@@ -1748,8 +1765,8 @@ BtaggingWP(ROOT::RDF::RNode df,
            const std::string &sf_file, const std::string &sf_bc_name,
            const std::string &sf_lf_name, const std::string &sf_wp_name,
            const std::string &eff_file, const std::string &eff_name,
-           const std::string &sample_type, const std::string &variation,
-           const std::string &btag_wp_name) {
+           const std::string &sample_type, const std::string &variation_bc,
+           const std::string &variation_lf, const std::string &btag_wp_name) {
     // Set the logger name for better readability in debug messages
     const std::string logger_name =
         "physicsobject::jet::scalefactor::BtaggingWP";
@@ -1786,7 +1803,8 @@ BtaggingWP(ROOT::RDF::RNode df,
             df, flavor + "_v12", "ROOT::VecOps::RVec<UChar_t>", flavor);
 
     auto b_tagging_sf = [eff_evaluator, sf_bc_evaluator, sf_lf_evaluator,
-                         btag_wp_cut, btag_wp_name, variation, sample_type,
+                         btag_wp_cut, btag_wp_name, variation_bc, variation_lf,
+                         sample_type,
                          logger_name](const ROOT::RVec<float> &pts,
                                       const ROOT::RVec<float> &etas,
                                       const ROOT::RVec<float> &btag_value,
@@ -1796,7 +1814,9 @@ BtaggingWP(ROOT::RDF::RNode df,
                                       const ROOT::RVec<int> &jet_veto_mask) {
         Logger::get(logger_name)
             ->debug("calculate b jet tagging event weight in single WP setup");
-        Logger::get(logger_name)->debug("variation name {}", variation);
+        Logger::get(logger_name)
+            ->debug("variation name (b/c) {}, (light) {}", variation_bc,
+                    variation_lf);
 
         // Define the event scale factor
         float sf = 1.0;
@@ -1826,16 +1846,19 @@ BtaggingWP(ROOT::RDF::RNode df,
                 continue;
             }
 
-            // Switch to the correct evaluator for light-flavor or for b/c jets
+            // Switch to the correct evaluator for light-flavor or for b/c jets.
             const correction::Correction *sf_evaluator;
+            std::string variation;
             if (flavors.at(i) == 5 || flavors.at(i) == 4) {
                 Logger::get(logger_name)
                     ->debug("using b/c jet scale factor evaluator");
                 sf_evaluator = sf_bc_evaluator;
+                variation = variation_bc;
             } else if (flavors.at(i) == 0) {
                 Logger::get(logger_name)
                     ->debug("using light-flavor jet scale factor evaluator");
                 sf_evaluator = sf_lf_evaluator;
+                variation = variation_lf;
             } else {
                 Logger::get(logger_name)
                     ->error("jet flavor {} not recognized, skipping this jet",
@@ -1951,8 +1974,15 @@ BtaggingWP(ROOT::RDF::RNode df,
  *     cuts for the different working points
  * @param eff_file path to the file with the b jet tagging efficiencies
  * @param eff_name name of the b jet tagging efficiency correction set
- * @param variation name the scale factor variation, available values:
- *     central, down_*, up_* (* name of specific variation)
+ * @param variation_bc name of the scale factor variation applied to b/c
+ *     flavor jets (hadronFlavour 5/4), available values: central, down_*,
+ *     up_* (* name of specific variation). b/c and light-flavor scale
+ *     factors are measured with independent methods and independent
+ *     uncertainty sources by the BTV POG, so they must be varied
+ *     independently: when varying variation_bc, variation_lf should be kept
+ *     at "central" and vice versa.
+ * @param variation_lf name of the scale factor variation applied to
+ *     light-flavor jets (hadronFlavour 0), analogous to variation_bc
  *
  * @return a new dataframe containing the new column
  */
@@ -1967,7 +1997,8 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                    const std::string &sf_bc_name, const std::string &sf_lf_name,
                    const std::string &sf_wp_name, const std::string &eff_file,
                    const std::string &eff_name, const std::string &sample_type,
-                   const std::string &variation) {
+                   const std::string &variation_bc,
+                   const std::string &variation_lf) {
     // Set the logger name for better readability in debug messages
     const std::string logger_name =
         "physicsobject::jet::scalefactor::BtaggingMultipleWP";
@@ -2010,7 +2041,8 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
             df, flavor + "_v12", "ROOT::VecOps::RVec<UChar_t>", flavor);
 
     auto b_tagging_sf = [eff_evaluator, sf_bc_evaluator, sf_lf_evaluator,
-                         wp_map, wp_names, variation, sample_type,
+                         wp_map, wp_names, variation_bc, variation_lf,
+                         sample_type,
                          logger_name](const ROOT::RVec<float> &pts,
                                       const ROOT::RVec<float> &etas,
                                       const ROOT::RVec<float> &btag_value,
@@ -2021,7 +2053,9 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
         Logger::get(logger_name)
             ->debug(
                 "calculate b jet tagging event weight in multiple WP setup");
-        Logger::get(logger_name)->debug("variation name {}", variation);
+        Logger::get(logger_name)
+            ->debug("variation name (b/c) {}, (light) {}", variation_bc,
+                    variation_lf);
 
         // Define the event scale factor
         float sf = 1.0;
@@ -2053,14 +2087,17 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
 
             // Switch to the correct evaluator for light-flavor or for b/c jets
             const correction::Correction *sf_evaluator;
+            std::string variation;
             if (flavors.at(i) == 5 || flavors.at(i) == 4) {
                 Logger::get(logger_name)
                     ->debug("using b/c jet scale factor evaluator");
                 sf_evaluator = sf_bc_evaluator;
+                variation = variation_bc;
             } else if (flavors.at(i) == 0) {
                 Logger::get(logger_name)
                     ->debug("using light-flavor jet scale factor evaluator");
                 sf_evaluator = sf_lf_evaluator;
+                variation = variation_lf;
             } else {
                 Logger::get(logger_name)
                     ->error("jet flavor {} not recognized, skipping this jet",
