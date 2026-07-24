@@ -191,7 +191,7 @@ PtCorrection(ROOT::RDF::RNode df,
                     else corr_pt = corr_pt - unc;
                 } else if (shift == "ScaleSystUp" || shift == "ScaleSystDown") {
                     // apply scale uncertainty on top of the scale+reso corrected pt
-                    float systs_a_f = scale_evaluator_a->evaluate({eta.at(i), phi.at(i), "syst"});
+                    float syst_a_f = scale_evaluator_a->evaluate({eta.at(i), phi.at(i), "syst"});
                     float syst_m_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "syst"});
                     float syst_rho_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "rho_syst"});
 
@@ -202,7 +202,7 @@ PtCorrection(ROOT::RDF::RNode df,
 
                     if (shift == "ScaleSystUp") corr_pt = corr_pt + unc;
                     else corr_pt = corr_pt - unc;
-                } else if (shift == "ResoSatUp" || shift == "ResoStatDown") {
+                } else if (shift == "ResoStatUp" || shift == "ResoStatDown") {
                     // apply resolution uncertainty on top of the scale corrected pt
                     float k_unc_f = reso_evaluator_kmc->evaluate({std::abs(eta.at(i)), "stat"});
 
