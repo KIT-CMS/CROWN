@@ -62,7 +62,7 @@ namespace muon {
  * @return a dataframe with the new column
  */
 ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df,
+PtCorrection(ROOT::RDF::RNode df,
                correctionManager::CorrectionManager &correction_manager,
                const std::string &outputname, const std::string &pt,
                const std::string &eta, const std::string &phi,
@@ -211,7 +211,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 } else if (shift == "ScaleSystUp" || shift == "ScaleSystDown") {
                     // apply scale uncertainty on top of the scale+reso 
                     // corrected pt
-                    float systs_a_f = scale_evaluator_a->evaluate(
+                    float syst_a_f = scale_evaluator_a->evaluate(
                         {eta.at(i), phi.at(i), "syst"});
                     float syst_m_f = scale_evaluator_m->evaluate(
                         {eta.at(i), phi.at(i), "syst"});
@@ -228,7 +228,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                     if (shift == "ScaleSystUp") corr_pt = corr_pt + unc;
                     else corr_pt = corr_pt - unc;
 
-                } else if (shift == "ResoSatUp" || shift == "ResoStatDown") {
+                } else if (shift == "ResoStatUp" || shift == "ResoStatDown") {
                     // apply resolution uncertainty on top of the scale 
                     // corrected pt
                     float k_unc_f = reso_evaluator_kmc->evaluate(
@@ -263,7 +263,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 }
             }
 
-            Logger::get("physicsobject::muon::PtCorrectionMC")
+            Logger::get("physicsobject::muon::PtCorrection")
                 ->debug("muon pt before {}, muon pt after {} shift {}",
                         pt.at(i), corr_pt, shift);
 
