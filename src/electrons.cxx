@@ -204,12 +204,12 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             // on "smear_down" internally)
             auto smear_up =
                 evaluator->evaluate({"smear_up", pt.at(i), r9.at(i), eta_sc});
-            auto smear_down = evaluator->evaluate(
-                {"smear_down", pt.at(i), r9.at(i), eta_sc});
+            auto smear_down =
+                evaluator->evaluate({"smear_down", pt.at(i), r9.at(i), eta_sc});
             auto scale_up =
                 evaluator->evaluate({"scale_up", pt.at(i), r9.at(i), eta_sc});
-            auto scale_down = evaluator->evaluate(
-                {"scale_down", pt.at(i), r9.at(i), eta_sc});
+            auto scale_down =
+                evaluator->evaluate({"scale_down", pt.at(i), r9.at(i), eta_sc});
 
             // set the corrected pt based on the considered variation
             float sf = 1.0;
