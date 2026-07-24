@@ -62,7 +62,7 @@ namespace muon {
  * @return a dataframe with the new column
  */
 ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df,
+PtCorrection(ROOT::RDF::RNode df,
                 correctionManager::CorrectionManager &correction_manager,
                 const std::string &outputname,
                 const std::string &pt, const std::string &eta,
@@ -114,20 +114,20 @@ PtCorrectionMC(ROOT::RDF::RNode df,
         for (std::size_t i = 0; i < pt.size(); ++i) {
 
             float corr_pt = pt.at(i);
-            float smear_pt = pt.at(i);
+            float scale_pt = pt.at(i);
 
             float a_f = scale_evaluator_a->evaluate({eta.at(i), phi.at(i), "nom"});
             float m_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "nom"});
 
             // apply scale correction to both data and mc
-            smear_pt = 1. / (m_f / pt.at(i) + charge.at(i) * a_f);
+            scale_pt = 1. / (m_f / pt.at(i) + charge.at(i) * a_f);
 
-            if (smear_pt < min_muon_pt || smear_pt > 200.0 || std::isnan(smear_pt)) {
+            if (scale_pt < min_muon_pt || scale_pt > 200.0 || std::isnan(scale_pt)) {
                 // set pt to initial value if correction is outside of valid boundaries
-                smear_pt = pt.at(i);
+                scale_pt = pt.at(i);
             }
 
-            corr_pt = smear_pt;
+            corr_pt = scale_pt;
 
             if (is_data == false) {
                 // apply resolution smearing
@@ -151,7 +151,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                 float param1_f = reso_evaluator_poly->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 1});
                 float param2_f = reso_evaluator_poly->evaluate({std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 2});
 
-                float sigma_std = param0_f + param1_f * smear_pt + param2_f * smear_pt * smear_pt;
+                float sigma_std = param0_f + param1_f * scale_pt + param2_f * scale_pt * scale_pt;
                 float std_dev = std::max(0.f, sigma_std);
 
                 float k_data_f = reso_evaluator_kdata->evaluate({std::abs(eta.at(i)), "nom"});
@@ -161,22 +161,22 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                     k = std::sqrt(k_data_f * k_data_f - k_mc_f * k_mc_f);
                 }
 
-                float reso_pt = smear_pt * (1 + k * std_dev * rndm);
+                float reso_pt = scale_pt * (1 + k * std_dev * rndm);
 
                 if (reso_pt < min_muon_pt || reso_pt > 200.0 || std::isnan(reso_pt)) {
                     // set pt to initial value if correction is outside of valid boundaries
-                    reso_pt = smear_pt;
+                    reso_pt = scale_pt;
                 }
 
-                if (reso_pt / smear_pt > 2 || reso_pt / smear_pt < 0.1 || reso_pt < 0) {
+                if (reso_pt / scale_pt > 2 || reso_pt / scale_pt < 0.1 || reso_pt < 0) {
                     // set pt to initial value if correction is outside of valid boundaries,
                     // not to be merged with the step before
-                    reso_pt = smear_pt;
+                    reso_pt = scale_pt;
                 }
 
                 corr_pt = reso_pt;
 
-                if (shift == "ScaleUp" || shift == "ScaleDown") {
+                if (shift == "ScaleStatUp" || shift == "ScaleStatDown") {
                     // apply scale uncertainty on top of the scale+reso corrected pt
                     float stat_a_f = scale_evaluator_a->evaluate({eta.at(i), phi.at(i), "stat"});
                     float stat_m_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "stat"});
@@ -187,19 +187,43 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                         stat_a_f * stat_a_f +
                         2 * charge.at(i) * stat_rho_f * stat_m_f * stat_a_f / corr_pt);
 
-                    if (shift == "ScaleUp") corr_pt = corr_pt + unc;
+                    if (shift == "ScaleStatUp") corr_pt = corr_pt + unc;
                     else corr_pt = corr_pt - unc;
-                } else if (shift == "ResoUp" || shift == "ResoDown") {
+                } else if (shift == "ScaleSystUp" || shift == "ScaleSystDown") {
+                    // apply scale uncertainty on top of the scale+reso corrected pt
+                    float systs_a_f = scale_evaluator_a->evaluate({eta.at(i), phi.at(i), "syst"});
+                    float syst_m_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "syst"});
+                    float syst_rho_f = scale_evaluator_m->evaluate({eta.at(i), phi.at(i), "rho_syst"});
+
+                    float unc = corr_pt * corr_pt * std::sqrt(
+                        syst_m_f * syst_m_f / (corr_pt * corr_pt) +
+                        syst_a_f * syst_a_f +
+                        2 * charge.at(i) * syst_rho_f * syst_m_f * syst_a_f / corr_pt);
+
+                    if (shift == "ScaleSystUp") corr_pt = corr_pt + unc;
+                    else corr_pt = corr_pt - unc;
+                } else if (shift == "ResoSatUp" || shift == "ResoStatDown") {
                     // apply resolution uncertainty on top of the scale corrected pt
                     float k_unc_f = reso_evaluator_kmc->evaluate({std::abs(eta.at(i)), "stat"});
 
                     if (k_mc_f > 0) {
-                        float std_x_cb = (reso_pt / smear_pt - 1) / k_mc_f;
-                        if (shift == "ResoUp") corr_pt = smear_pt * (1 + (k_mc_f + k_unc_f) * std_x_cb);
-                        else corr_pt = smear_pt * (1 + (k_mc_f - k_unc_f) * std_x_cb);
+                        float std_x_cb = (reso_pt / scale_pt - 1) / k_mc_f;
+                        if (shift == "ResoStatUp") corr_pt = scale_pt * (1 + (k_mc_f + k_unc_f) * std_x_cb);
+                        else corr_pt = scale_pt * (1 + (k_mc_f - k_unc_f) * std_x_cb);
                     }
 
-                    if (corr_pt / smear_pt > 2 || corr_pt / smear_pt < 0.1 || corr_pt < 0) corr_pt = smear_pt;
+                    if (corr_pt / scale_pt > 2 || corr_pt / scale_pt < 0.1 || corr_pt < 0) corr_pt = scale_pt;
+                } else if (shift == "ResoSystUp" || shift == "ResoSystDown") {
+                    // apply resolution uncertainty on top of the scale corrected pt
+                    float k_unc_f = reso_evaluator_kmc->evaluate({std::abs(eta.at(i)), "syst"});
+
+                    if (k_mc_f > 0) {
+                        float std_x_cb = (reso_pt / scale_pt - 1) / k_mc_f;
+                        if (shift == "ResoSystUp") corr_pt = scale_pt * (1 + (k_mc_f + k_unc_f) * std_x_cb);
+                        else corr_pt = scale_pt * (1 + (k_mc_f - k_unc_f) * std_x_cb);
+                    }
+
+                    if (corr_pt / scale_pt > 2 || corr_pt / scale_pt < 0.1 || corr_pt < 0) corr_pt = scale_pt;
                 }
 
             }

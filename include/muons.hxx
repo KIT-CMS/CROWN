@@ -7,7 +7,7 @@ namespace physicsobject {
 namespace muon {
 
 ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df,
+PtCorrection(ROOT::RDF::RNode df,
                 correctionManager::CorrectionManager &correction_manager,
                 const std::string &outputname,
                 const std::string &pt, const std::string &eta,
