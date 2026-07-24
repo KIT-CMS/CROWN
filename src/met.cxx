@@ -692,8 +692,6 @@ Type1Correction(ROOT::RDF::RNode df, const std::string &outputname,
  * active, or to the Unclustered Up/Down variant otherwise
  * @param met_phi_shifted name of the column with the NanoAOD MET \f$\phi\f$,
  * analogous to `met_pt_shifted`
- * @param apply_shift if set to true, the shift is applied; if false, the
- * output column is just the unmodified input MET vector
  *
  * @return a dataframe with the new column containing the shifted MET Lorentz
  * vector
