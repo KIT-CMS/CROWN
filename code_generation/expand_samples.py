@@ -1,4 +1,5 @@
 """Print the comma-separated DEFAULT_SAMPLES expansion for -DSAMPLES=all."""
+
 import argparse
 import importlib
 import sys
