@@ -21,7 +21,7 @@ with defaults(scopes=["mt", "mm"], input=[q.pt_1, q.eta_1]):
         output=[q.reco_wgt_mu_1],
     )
     Muon_1_ID_SF = Producer(
-        call="""physicsobject::muon::scalefactor::Id(
+        call="""physicsobject::muon::scalefactor::IsoAndID(
             {df},
             correctionManager,
             {output},
@@ -33,7 +33,7 @@ with defaults(scopes=["mt", "mm"], input=[q.pt_1, q.eta_1]):
         output=[q.id_wgt_mu_1],
     )
     Muon_1_Iso_SF = Producer(
-        call="""physicsobject::muon::scalefactor::Iso(
+        call="""physicsobject::muon::scalefactor::IsoAndID(
             {df},
             correctionManager,
             {output},
@@ -59,7 +59,7 @@ with defaults(scopes=["mm"], input=[q.pt_2, q.eta_2]):
         output=[q.reco_wgt_mu_2],
     )
     Muon_2_ID_SF = Producer(
-        call="""physicsobject::muon::scalefactor::Id(
+        call="""physicsobject::muon::scalefactor::IosAndID(
             {df},
             correctionManager,
             {output},
@@ -71,7 +71,7 @@ with defaults(scopes=["mm"], input=[q.pt_2, q.eta_2]):
         output=[q.id_wgt_mu_2],
     )
     Muon_2_Iso_SF = Producer(
-        call="""physicsobject::muon::scalefactor::Iso(
+        call="""physicsobject::muon::scalefactor::IsoAndID(
             {df},
             correctionManager,
             {output},
