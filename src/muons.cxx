@@ -462,12 +462,12 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
             // check to prevent muons with default values due to tau energy
             // correction shifts below good tau pt selection
             if (pt >= 40.0 && std::abs(eta) >= 0.0) {
-                sf = evaluator->evaluate({std::abs(eta), pt, variation});
+                sf = evaluator->evaluate({eta, pt, variation});
             }
             // the reco scale factor in the json file is only defined above 40
             // GeV
             else if (pt >= 0.0 && pt < 40.0 && std::abs(eta) >= 0.0) {
-                sf = evaluator->evaluate({std::abs(eta), 40.0, variation});
+                sf = evaluator->evaluate({eta, 40.0, variation});
             }
             return sf;
         },
@@ -521,15 +521,17 @@ IsoAndID(ROOT::RDF::RNode df,
             // correction shifts below good tau pt selection
             if (pt >= 0.0 && std::abs(eta) >= 0.0) {
                 if (variation == "nominal") {
-                    sf = evaluator->evaluate({std::abs(eta), pt, "nominal"});
+                    sf = evaluator->evaluate({eta, pt, "nominal"});
                 } else if (variation == "systup") {
-                    sf = sf + evaluator->evaluate({std::abs(eta), pt, "syst"});
+                    sf = evaluator->evaluate({eta, pt, "systup"});
                 } else if (variation == "systdown") {
-                    sf = sf - evaluator->evaluate({std::abs(eta), pt, "syst"});
+                    sf = evaluator->evaluate({eta, pt, "systdown"});
                 } else if (variation == "statup") {
-                    sf = sf + evaluator->evaluate({std::abs(eta), pt, "stat"});
+                    sf = evaluator->evaluate({eta, pt, "nominal"}) +
+                         evaluator->evaluate({eta, pt, "stat"});
                 } else if (variation == "statdown") {
-                    sf = sf - evaluator->evaluate({std::abs(eta), pt, "stat"});
+                    sf = evaluator->evaluate({eta, pt, "nominal"}) -
+                         evaluator->evaluate({eta, pt, "stat"});
                 } else {
                     Logger::get("physicsobject::muon::scalefactor::IsoAndID")
                         ->debug(
@@ -593,7 +595,7 @@ Trigger(ROOT::RDF::RNode df,
             // correction shifts below good tau pt selection
             try {
                 if (pt >= 0.0 && std::abs(eta) >= 0.0) {
-                    sf = evaluator->evaluate({std::abs(eta), pt, variation});
+                    sf = evaluator->evaluate({eta, pt, variation});
                 }
             } catch (const std::runtime_error &e) {
                 // this error can occur because the pt range starts at different
@@ -660,7 +662,7 @@ Trigger(ROOT::RDF::RNode df,
             // correction shifts below good tau pt selection
             try {
                 if (trigger_flag) {
-                    sf = evaluator->evaluate({std::abs(eta), pt, variation});
+                    sf = evaluator->evaluate({eta, pt, variation});
                 }
             } catch (const std::runtime_error &e) {
                 // this error can occur because the pt range starts at different
