@@ -326,15 +326,14 @@ ROOT::RDF::RNode PtCorrectionL2L3(
     auto jer_sf_evaluator = correction_manager.loadCorrection(
         jec_file, jer_tag + "_ScaleFactor_" + jec_algo);
 
-
     // loading JER scale factor uncertainty function
     auto jer_sfunc_evaluator = correction_manager.loadCorrection(
         jec_file, jer_tag + "_SFUncertainty_" + jec_algo);
 
     auto correction_lambda = [jet_energy_scale_shift, jet_energy_scale_sf,
-                              jet_energy_resolution, jer_sf_evaluator, jer_sfunc_evaluator,
-                              jes_shift_source, jes_shift, jer_shift,
-                              jet_radius, era, is_data](
+                              jet_energy_resolution, jer_sf_evaluator,
+                              jer_sfunc_evaluator, jes_shift_source, jes_shift,
+                              jer_shift, jet_radius, era, is_data](
                                  const ROOT::RVec<float> &pts,
                                  const ROOT::RVec<float> &etas,
                                  const ROOT::RVec<float> &phis,
@@ -404,12 +403,14 @@ ROOT::RDF::RNode PtCorrectionL2L3(
                 float reso_sf = 1.0;
                 float unc_sf = 0.0;
                 reso_sf = jer_sf_evaluator->evaluate({etas.at(i), pt_corr});
-                    
+
                 unc_sf = jer_sfunc_evaluator->evaluate({etas.at(i), pt_corr});
 
-                if (jer_shift == "up") reso_sf = reso_sf * (1 + unc_sf);
-                else if (jer_shift == "down") reso_sf = reso_sf * (1 - unc_sf);
-            
+                if (jer_shift == "up")
+                    reso_sf = reso_sf * (1 + unc_sf);
+                else if (jer_shift == "down")
+                    reso_sf = reso_sf * (1 - unc_sf);
+
                 Logger::get("physicsobject::jet::PtCorrectionL2L3")
                     ->debug("Calculate JER {}: SF: {} resolution: {} ",
                             jer_shift, reso_sf, reso);
@@ -1743,7 +1744,8 @@ BtaggingShape(ROOT::RDF::RNode df,
  *     up_* (* name of specific variation). The BTV POG measures b/c and
  *     light-flavor scale factors with independent methods and independent
  *     uncertainty sets (see
- *     https://btv-wiki.docs.cern.ch/ScaleFactors/#sf-uncertainties-and-correlations-across-years),
+ *
+ https://btv-wiki.docs.cern.ch/ScaleFactors/#sf-uncertainties-and-correlations-across-years),
  *     so they must be varied independently: when varying variation_bc,
  *     variation_lf should be kept at "central" and vice versa.
  * @param variation_lf name of the scale factor variation applied to
@@ -1814,7 +1816,7 @@ BtaggingWP(ROOT::RDF::RNode df,
             ->debug("calculate b jet tagging event weight in single WP setup");
         Logger::get(logger_name)
             ->debug("variation name (b/c) {}, (light) {}", variation_bc,
-                     variation_lf);
+                    variation_lf);
 
         // Define the event scale factor
         float sf = 1.0;
@@ -1844,7 +1846,7 @@ BtaggingWP(ROOT::RDF::RNode df,
                 continue;
             }
 
-            // Switch to the correct evaluator for light-flavor or for b/c jets. 
+            // Switch to the correct evaluator for light-flavor or for b/c jets.
             const correction::Correction *sf_evaluator;
             std::string variation;
             if (flavors.at(i) == 5 || flavors.at(i) == 4) {
@@ -2053,7 +2055,7 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                 "calculate b jet tagging event weight in multiple WP setup");
         Logger::get(logger_name)
             ->debug("variation name (b/c) {}, (light) {}", variation_bc,
-                     variation_lf);
+                    variation_lf);
 
         // Define the event scale factor
         float sf = 1.0;
