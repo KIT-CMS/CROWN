@@ -173,6 +173,62 @@ In this example, the producers ``GoodMuons``, ``VetoMuons``, ``MMPairSelection``
 
 The collection of available producers can be found in the :py:mod:`code_generation.producers` folder. An explanation of how producers are set up and linked to their corresponding C++ function is given in :ref:`Defining a new python Producer`.
 
+
+Switching Between Producer Variants
+************************************
+
+For analyses that need different producer implementations depending on the data-taking era or nanoAOD version, CROWN provides the :py:class:`~code_generation.producer.SwitchProducer` base class. This allows you to define multiple variants of a producer and automatically select the appropriate one based on the era.
+
+Basic usage:
+
+.. code-block:: python
+
+    from code_generation.producer import SwitchProducer
+
+    class JetEnergyCorrection(SwitchProducer):
+        class run2:
+            v9 = ProducerGroup(subproducers=[...])
+        class run3:
+            v12 = ProducerGroup(subproducers=[...])
+            v15 = ProducerGroup(subproducers=[...])
+
+    # In your configuration:
+    jets.JetEnergyCorrection.get(era)          # auto-selects version from era
+    jets.JetEnergyCorrection.get(era, "v12")   # explicit version override
+
+The :py:class:`~code_generation.producer.SwitchProducer` class automatically:
+
+- Classifies eras as Run 2 (2016preVFP, 2016postVFP, 2017, 2018) or Run 3 (all others)
+- Maps eras to default nanoAOD versions (v9 for Run 2, v12/v15 for Run 3)
+
+This is particularly useful when working with multiple data-taking periods with different calibration requirements.
+
+
+Context-Aware Defaults
+***********************
+
+To reduce boilerplate code when defining multiple producers with similar parameters, CROWN provides a context manager system via :py:func:`~code_generation.helpers.defaults`. This allows you to set default values for commonly used parameters.
+
+Basic usage:
+
+.. code-block:: python
+
+    from code_generation.helpers import defaults
+
+    with defaults(scopes=["mm"], input=[q.p4_1]):
+        pt_1 = Producer(
+            call="lorentzvector::GetPt({df}, {output}, {input})",
+            output=[q.pt_1],
+        )
+        eta_1 = Producer(
+            call="lorentzvector::GetEta({df}, {output}, {input})",
+            output=[q.eta_1],
+        )
+
+Within the context, all producers in the example automatically inherit the specified ``scopes`` and ``input`` parameters. This pattern works for any producer parameter and significantly reduces repetition when setting up multiple producers with common settings.
+
+The context manager also supports automatic name detection from producer name assignment, further simplifying producer definitions.
+
 Systematic Variations
 **********************
 
@@ -192,6 +248,43 @@ Systematic Variations are an important part of physics analysis. CROWN provides 
 In this example, a new :py:class:`~code_generation.systematics.SystematicShift` object is added to the configuration. The ``name`` of the shift is ``tauES_1prong0pizeroDown``. The ``shift_config`` contains a dictionary of configuration parameters, that are varied for this shift. In this case, the ``tau_ES_shift_DM0`` parameter is set to 0.998. The ``producers`` is a dictionary that contains the producers that should be shifted. The ``ignore_producers`` is a dictionary that contains the producers that should not be shifted.
 In the output file, for all quantities, that depend on the output of the ``TauPtCorrection`` producer a shifted version of that quantity will exist as well. The shifted version will be named ``quantityname__tauES_1prong0pizeroDown``, so the name of the shift will be added to the end of the quantity name, separated by ``__``.
 Internally, the CROWN framework automatically tracks all shifts and all producers that depend on shifted quantities, and that are not in the ``ignore_producers`` list. The shifted quantities are automatically added to the processing and the output file.
+
+Simplified Shift Configuration
+-------------------------------
+
+For convenience, CROWN provides the :py:func:`~code_generation.systematics.get_add_shift` factory function that simplifies adding systematic shifts. It supports both simple and complex configurations:
+
+.. code-block:: python
+
+    add_shift = get_add_shift(configuration)
+    
+    # Simple usage with shift_key and shift_map
+    add_shift(
+        name='jes',
+        scopes='global',
+        shift_key='scale',
+        shift_map={'Up': [1.1], 'Down': [0.9]},
+        producers=[producer]
+    )
+    
+    # Complex usage with shift_config
+    add_shift(
+        name='btag',
+        scopes=('et', 'mt', 'tt'),
+        shift_config={
+            'Up': {'btag_sf': [1.1]},
+            'Down': {'btag_sf': [0.9]},
+        },
+        producers={('et', 'mt', 'tt'): [producer]}
+    )
+    
+    # Using context manager for defaults
+    with defaults(scopes='global', shift_key='scale'):
+        add_shift(
+            name='jes',
+            shift_map={'Up': [1.1], 'Down': [0.9]},
+            producers=[producer],
+        )
 
 Some systematic shifts are already available in the input ROOT file. To incorporate such a shift, a :py:class:`~code_generation.systematics.SystematicShiftByQuantity` object can be created. The basic structure is
 

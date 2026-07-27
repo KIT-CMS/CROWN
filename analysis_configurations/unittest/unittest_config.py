@@ -17,7 +17,7 @@ from .quantities import output as q
 from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.rules import AppendProducer, RemoveProducer
-from code_generation.systematics import SystematicShift, SystematicShiftByQuantity
+from code_generation.systematics import get_add_shift
 
 #####################
 # Notes on the test:
@@ -803,152 +803,113 @@ def build_config(
             q.nmuons,
         ],
     )
-    # not available in nanoAOD test sample
-    # if "data" not in sample and "embedding" not in sample:
-    #     configuration.add_outputs(
-    #         scopes,
-    #         [
-    #             nanoAOD.HTXS_Higgs_pt,
-    #             nanoAOD.HTXS_Higgs_y,
-    #             nanoAOD.HTXS_njets30,
-    #             nanoAOD.HTXS_stage_0,
-    #             nanoAOD.HTXS_stage1_2_cat_pTjet30GeV,
-    #             nanoAOD.HTXS_stage1_2_fine_cat_pTjet30GeV,
-    #         ],
-    #     )
 
+    add_shift = get_add_shift(configuration)
     #########################
     # TauvsJetID scale factor shifts, channel dependent
     #########################
-    configuration.add_shift(
-        SystematicShift(
-            name="vsJetTau30to35Down",
-            shift_config={("et", "mt"): {"tau_sf_vsjet_tau30to35": "down"}},
-            producers={("et", "mt"): scalefactors.Tau_2_VsJetTauID_lt_SF},
-        )
+    add_shift(
+        name="vsJetTau30to35",
+        shift_config={
+            "Down": {("et", "mt"): {"tau_sf_vsjet_tau30to35": "down"}},
+        },
+        producers={("et", "mt"): scalefactors.Tau_2_VsJetTauID_lt_SF},
     )
-    configuration.add_shift(
-        SystematicShift(
-            name="vsJetTauDM0Down",
-            shift_config={"tt": {"tau_sf_vsjet_tauDM0": "down"}},
-            producers={
-                "tt": [
-                    scalefactors.Tau_1_VsJetTauID_SF,
-                    scalefactors.Tau_2_VsJetTauID_tt_SF,
-                ]
-            },
-        )
+    add_shift(
+        name="vsJetTauDM0",
+        shift_config={
+            "Down": {"tt": {"tau_sf_vsjet_tauDM0": "down"}},
+        },
+        producers={
+            "tt": [
+                scalefactors.Tau_1_VsJetTauID_SF,
+                scalefactors.Tau_2_VsJetTauID_tt_SF,
+            ]
+        },
     )
     #########################
     # Lepton to tau fakes energy scalefactor shifts  #
     #########################
     if "dy" in sample:
-        configuration.add_shift(
-            SystematicShift(
-                name="tauMuFakeEsDown",
-                shift_config={
+        add_shift(
+            name="tauMuFakeEs",
+            shift_config={
+                "Down": {
                     "mt": {
                         "tau_mufake_es": "down",
                     }
                 },
-                producers={"mt": [taus.TauPtCorrection_muFake]},
-            )
+            },
+            producers={"mt": [taus.TauPtCorrection_muFake]},
         )
     #########################
     # TauvsEleID scale factor shifts
     #########################
-    configuration.add_shift(
-        SystematicShift(
-            name="vsEleBarrelDown",
-            shift_config={("et", "mt"): {"tau_sf_vsele_barrel": "down"}},
-            producers={("et", "mt"): scalefactors.Tau_2_VsEleTauID_SF},
-        )
+    add_shift(
+        name="vsEleBarrel",
+        shift_config={
+            "Down": {("et", "mt"): {"tau_sf_vsele_barrel": "down"}},
+        },
+        producers={("et", "mt"): scalefactors.Tau_2_VsEleTauID_SF},
     )
     #########################
     # TauvsMuID scale factor shifts
     #########################
-    configuration.add_shift(
-        SystematicShift(
-            name="vsMuWheel1Down",
-            shift_config={("et", "mt"): {"tau_sf_vsmu_wheel1": "down"}},
-            producers={("et", "mt"): scalefactors.Tau_2_VsMuTauID_SF},
-        )
+    add_shift(
+        name="vsMuWheel1",
+        shift_config={
+            "Down": {("et", "mt"): {"tau_sf_vsmu_wheel1": "down"}},
+        },
+        producers={("et", "mt"): scalefactors.Tau_2_VsMuTauID_SF},
     )
     #########################
     # TES Shifts
     #########################
-    configuration.add_shift(
-        SystematicShift(
-            name="tauES_1prong0pizeroDown",
-            shift_config={("et", "mt", "tt"): {"tau_ES_shift_DM0": "down"}},
-            producers={("et", "mt", "tt"): taus.TauPtCorrection_genTau},
-            ignore_producers={
-                "et": [pairselection.LVEl1, electrons.VetoElectrons],
-                "mt": [pairselection.LVMu1, muons.VetoMuons],
-            },
-        )
+    add_shift(
+        name="tauES_1prong0pizero",
+        shift_config={
+            "Down": {("et", "mt", "tt"): {"tau_ES_shift_DM0": "down"}},
+        },
+        producers={("et", "mt", "tt"): taus.TauPtCorrection_genTau},
+        ignore_producers={
+            "et": [pairselection.LVEl1, electrons.VetoElectrons],
+            "mt": [pairselection.LVMu1, muons.VetoMuons],
+        },
     )
     #########################
     # MET Shifts
     #########################
-    configuration.add_shift(
-        SystematicShiftByQuantity(
-            name="metUnclusteredEnUp",
-            quantity_change={
-                nanoAOD.PuppiMET_pt: "PuppiMET_ptUnclusteredUp",
-                nanoAOD.PuppiMET_phi: "PuppiMET_phiUnclusteredUp",
-            },
-            scopes=["global"],
-        ),
+    add_shift(
+        name="metUnclusteredEnUp",
+        quantity_change={
+            nanoAOD.PuppiMET_pt: "PuppiMET_ptUnclusteredUp",
+            nanoAOD.PuppiMET_phi: "PuppiMET_phiUnclusteredUp",
+        },
+        scopes=("global",),
         exclude_samples=["data", "embedding", "embedding_mc"],
     )
-    configuration.add_shift(
-        SystematicShiftByQuantity(
-            name="metUnclusteredEnDown",
-            quantity_change={
-                nanoAOD.PuppiMET_pt: "PuppiMET_ptUnclusteredDown",
-                nanoAOD.PuppiMET_phi: "PuppiMET_phiUnclusteredDown",
-            },
-            scopes=["global"],
-        ),
+    add_shift(
+        name="metUnclusteredEnDown",
+        quantity_change={
+            nanoAOD.PuppiMET_pt: "PuppiMET_ptUnclusteredDown",
+            nanoAOD.PuppiMET_phi: "PuppiMET_phiUnclusteredDown",
+        },
+        scopes=("global",),
         exclude_samples=["data", "embedding", "embedding_mc"],
     )
     #########################
     # Jet energy resolution
     #########################
     JEC_sources = "Total"
-    configuration.add_shift(
-        SystematicShift(
-            name="jesUncTotalUp",
-            shift_config={
-                "global": {
-                    "jet_jes_shift": 1,
-                    "jet_jes_source": JEC_sources,
-                }
-            },
-            producers={
-                "global": {
-                    jets.JetEnergyCorrection,
-                }
-            },
-        ),
-        exclude_samples=["data", "embedding", "embedding_mc"],
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="jesUncTotalDown",
-            shift_config={
-                "global": {
-                    "jet_jes_shift": -1,
-                    "jet_jes_source": JEC_sources,
-                }
-            },
-            producers={
-                "global": {
-                    jets.JetEnergyCorrection,
-                }
-            },
-        ),
+    add_shift(
+        name="jesUncTotal",
+        shift_key=["jet_jes_shift", "jet_jes_source"],
+        shift_map={
+            "Up": [1, JEC_sources],
+            "Down": [-1, JEC_sources],
+        },
+        scopes="global",
+        producers=[jets.JetEnergyCorrection],
         exclude_samples=["data", "embedding", "embedding_mc"],
     )
 

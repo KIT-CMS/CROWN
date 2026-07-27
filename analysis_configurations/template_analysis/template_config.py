@@ -13,7 +13,8 @@ from .quantities import output as q
 from code_generation.configuration import Configuration
 from code_generation.modifiers import EraModifier
 from code_generation.rules import RemoveProducer, AppendProducer
-from code_generation.systematics import SystematicShift
+from code_generation.systematics import get_add_shift
+from code_generation.helpers import defaults
 from code_generation.utility.generate_DAG import create_graph
 
 
@@ -122,10 +123,10 @@ def build_config(
         {
             "muon_sf_file": EraModifier(
                 {
-                    "2016preVFP": "data/jsonpog-integration/POG/MUO/2016preVFP_UL/muon_Z.json.gz",
-                    "2016postVFP": "data/jsonpog-integration/POG/MUO/2016postVFP_UL/muon_Z.json.gz",
-                    "2017": "data/jsonpog-integration/POG/MUO/2017_UL/muon_Z.json.gz",
-                    "2018": "data/jsonpog-integration/POG/MUO/2018_UL/muon_Z.json.gz",
+                    "2016preVFP": "/cvmfs/cms-griddata.cern.ch/cat/metadata/MUO/Run2-2016preVFP-UL-NanoAODv9/2024-07-02/muon_Z.json.gz",
+                    "2016postVFP": "/cvmfs/cms-griddata.cern.ch/cat/metadata/MUO/Run2-2016postVFP-UL-NanoAODv9/2024-07-02/muon_Z.json.gz",
+                    "2017": "/cvmfs/cms-griddata.cern.ch/cat/metadata/MUO/Run2-2017-UL-NanoAODv9/2024-07-02/muon_Z.json.gz",
+                    "2018": "/cvmfs/cms-griddata.cern.ch/cat/metadata/MUO/Run2-2018-UL-NanoAODv9/2024-07-02/muon_Z.json.gz",
                 }
             ),
             # relevant inputs for scale factor evaluation
@@ -231,30 +232,17 @@ def build_config(
         AppendProducer(producers=event.JSONFilter, samples=["data", "embedding"]),
     )
 
-    configuration.add_shift(
-        SystematicShift(
-            name="MuonIDUp",
-            shift_config={"mm": {"muon_sf_variation": "systup"}},
-            producers={
-                "mm": [
-                    scalefactors.Muon_1_ID_SF,
-                    scalefactors.Muon_2_ID_SF,
-                ]
-            },
-        )
-    )
-    configuration.add_shift(
-        SystematicShift(
-            name="MuonIDDown",
-            shift_config={"mm": {"muon_sf_variation": "systdown"}},
-            producers={
-                "mm": [
-                    scalefactors.Muon_1_ID_SF,
-                    scalefactors.Muon_2_ID_SF,
-                ]
-            },
-        )
-    )
+    add_shift = get_add_shift(configuration)
+
+    with defaults(
+        scopes="mm",
+        shift_key="muon_sf_variation",
+        producers=[
+            scalefactors.Muon_1_ID_SF,
+            scalefactors.Muon_2_ID_SF,
+        ],
+    ):
+        add_shift(name="MuonID", shift_map={"Up": "systup", "Down": "systdown"})
 
     #########################
     # Finalize and validate the configuration

@@ -10,6 +10,7 @@ The information is collected in either a CERN Twiki page or wiki docs:
 .. admonition:: Egamma POG
    
    | Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPOG
+   | Wiki docs: https://egammapog.docs.cern.ch/
 
 .. admonition:: Muon POG
     
@@ -33,7 +34,7 @@ The information is collected in either a CERN Twiki page or wiki docs:
 
 .. admonition:: Luminosity POG
     
-    Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM
+   | Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM
 
 .. admonition:: Generator Group
     

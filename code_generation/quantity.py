@@ -2,13 +2,31 @@ from __future__ import annotations  # needed for type annotations in > python 3.
 
 import logging
 from typing import Dict, List, Set, Union
+from code_generation.helpers import get_variable_name
 
 log = logging.getLogger(__name__)
 
 
 class Quantity:
-    def __init__(self, name: str):
-        self.name = name
+    """
+    Represents a physical quantity in the code generation system.
+    """
+
+    def __init__(self, name: Union[str, None] = None):
+        """Initialize a Quantity object.
+
+        Args:
+            name (str): The name of the quantity. If None, will be auto-detected from variable
+                assignment.
+            shifts (Dict[str, Set[str]]): Dictionary mapping scopes to sets of shift names.
+                Shifts represent systematic variations applied to the quantity.
+            ignored_shifts (Dict[str, Set[str]]): Dictionary mapping scopes to sets of shifts
+                that should be ignored for this quantity.
+            children (Dict[str, List[Quantity]]): Dictionary mapping scopes to lists of child
+                quantities. Children inherit shifts from their parent quantities.
+            defined_for_scopes (List[str]): List of scopes where this quantity is defined as output.
+        """
+        self.name = name or get_variable_name()
         self.shifts: Dict[str, Set[str]] = {}
         self.ignored_shifts: Dict[str, Set[str]] = {}
         self.children: Dict[str, List[Quantity]] = {}
@@ -186,6 +204,17 @@ class QuantityGroup(Quantity):
     """
 
     def __init__(self, name: str):
+        """Initialize a QuantityGroup object.
+
+        Args:
+            name (str): The name of the quantity group. This name is used to identify the group
+                and will be passed to the parent Quantity class.
+
+        Attributes:
+            quantities (List[Quantity]): List of Quantity objects belonging to this group.
+                All quantities in the group share the same shifts and settings.
+            vec_config (str): The vectorization configuration key used for extended vector producers.
+        """
         super().__init__(name)
         self.quantities: List[Quantity] = []
         self.vec_config: str = ""
@@ -251,8 +280,19 @@ class NanoAODQuantity(Quantity):
     are therefore shielded from using them directly as a output.
     """
 
-    def __init__(self, name: str):
-        super().__init__(name)
+    def __init__(self, name: Union[str, None] = None):
+        """Initialize a NanoAODQuantity object.
+
+        Args:
+            name (str): The name of the quantity. If None, will be auto-detected from variable
+                assignment. The name corresponds to the branch name in the NanoAOD file.
+
+        Attributes:
+            shifted_naming (Dict[str, str]): Dictionary mapping shift names to their corresponding
+                external branch names in the NanoAOD. Used to handle systematic variations that
+                come directly from the input file rather than being computed.
+        """
+        super().__init__(name or get_variable_name())
         self.shifted_naming: Dict[str, str] = {}
 
     def reserve_scope(self, scope: str) -> None:

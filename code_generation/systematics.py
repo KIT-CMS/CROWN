@@ -1,7 +1,7 @@
 from __future__ import annotations  # needed for type annotations in > python 3.7
 
 import logging
-from typing import Any, Dict, List, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Set, Tuple, Union
 
 from code_generation.modifiers import EraModifier, SampleModifier
 from code_generation.producer import (
@@ -11,9 +11,160 @@ from code_generation.producer import (
     TProducerStore,
 )
 from code_generation.quantity import NanoAODQuantity
-from code_generation.helpers import is_empty
+from code_generation.helpers import is_empty, CONTEXT_REGISTRY
 
 log = logging.getLogger(__name__)
+
+
+def get_add_shift(configuration: Any) -> Callable:
+    """Factory function that returns an add_shift method bound to a Configuration object.
+
+    This function creates a closure that simplifies adding systematic shifts to a configuration.
+    It supports both simple shift configurations (shift_key + shift_map) and complex configurations
+    (shift_config dict). Context-aware defaults can be set using the defaults() context manager.
+
+    Args:
+        configuration: The Configuration object to which shifts will be added
+
+    Returns:
+        A callable add_shift function
+
+    Example:
+        add_shift = get_add_shift(config)
+
+        # Simple usage with shift_key and shift_map
+        add_shift(
+            name='jes',
+            scopes='global',
+            shift_key='scale',
+            shift_map={'Up': [1.1], 'Down': [0.9]},
+            producers=[jes_producer]
+        )
+
+        # Complex usage with shift_config
+        add_shift(
+            name='btag',
+            shift_config={
+                'Up': {'btag_sf': [1.1]},
+                'Down': {'btag_sf': [0.9]}
+            },
+            producers={('et', 'mt', 'tt'): [btag_producer]}
+        )
+
+        # Using context manager
+        with defaults(scopes='global', shift_key='scale'):
+            add_shift(
+                name='jes',
+                shift_map={'Up': [1.1], 'Down': [0.9]},
+                producers=[jes_producer]
+            )
+    """
+
+    def add_shift(
+        name: Union[str, None] = None,
+        scopes: Union[str, Tuple[str, ...]] = None,
+        shift_key: str = None,
+        shift_map: Dict[str, Any] = None,
+        producers: Union[
+            Dict[Union[str, Tuple[str, ...]], List[object]], List[object]
+        ] = None,
+        ignore_producers: Union[None, Dict[str, Any]] = None,
+        samples: Union[str, List[str], None] = None,
+        exclude_samples: Union[str, List[str], None] = None,
+        shift_config: Union[Dict[str, Any], None] = None,
+        quantity_change: Union[
+            Dict[NanoAODQuantity, Union[str, NanoAODQuantity]], None
+        ] = None,
+    ):
+        # Handle quantity-based shifts (SystematicShiftByQuantity)
+        if quantity_change is not None:
+            _name = name or CONTEXT_REGISTRY["name"].get()
+            _scopes = scopes or CONTEXT_REGISTRY["scopes"].get()
+
+            configuration.add_shift(
+                SystematicShiftByQuantity(
+                    name=_name,
+                    quantity_change=quantity_change,
+                    scopes=_scopes,
+                ),
+                samples=samples or CONTEXT_REGISTRY["samples"].get(),
+                exclude_samples=exclude_samples
+                or CONTEXT_REGISTRY["exclude_samples"].get(),
+            )
+            return
+
+        # Handle parameter-based shifts (SystematicShift)
+        # if shift_config is set it overrides shift_key and shift_map
+        # if producers is procided as a dict it ignores scopes
+
+        _name = name or CONTEXT_REGISTRY["name"].get()
+        _scopes = scopes or CONTEXT_REGISTRY["scopes"].get()
+        _shift_key = shift_key or CONTEXT_REGISTRY["shift_key"].get()
+        _shift_map = shift_map or CONTEXT_REGISTRY["shift_map"].get()
+        _producers = producers or CONTEXT_REGISTRY["producers"].get()
+
+        if shift_config is not None and isinstance(_producers, dict):
+            params_to_check = [
+                ("name", _name),
+                ("shift_config", shift_config),
+                ("producers", _producers),
+            ]
+        else:
+            params_to_check = [
+                ("name", _name),
+                ("scopes", _scopes),
+                ("shift_key", _shift_key),
+                ("shift_map", _shift_map),
+                ("producers", _producers),
+            ]
+
+        missing_params = []
+        for param_name, param_value in params_to_check:
+            if param_value is None:
+                missing_params.append(param_name)
+
+        if missing_params:
+            raise ValueError(
+                f"Missing required parameters: {', '.join(missing_params)}."
+            )
+
+        for direction, value in (
+            _shift_map.items() if _shift_map else shift_config.items()
+        ):
+            configuration.add_shift(
+                SystematicShift(
+                    name=f"{_name}{direction}",
+                    shift_config=(
+                        shift_config[direction]
+                        if shift_config
+                        else {
+                            _scopes: (
+                                dict(zip(_shift_key, value))
+                                if (
+                                    isinstance(_shift_key, (list, tuple))
+                                    and isinstance(value, (list, tuple))
+                                    and len(_shift_key) == len(value)
+                                )
+                                else {_shift_key: value}
+                            )
+                        }
+                    ),
+                    producers=(
+                        _producers
+                        if isinstance(_producers, dict)
+                        else {_scopes: _producers}
+                    ),
+                    ignore_producers=ignore_producers
+                    or CONTEXT_REGISTRY["ignore_producers"].get()
+                    or {},
+                ),
+                samples=samples or CONTEXT_REGISTRY["samples"].get(),
+                exclude_samples=exclude_samples
+                or CONTEXT_REGISTRY["exclude_samples"].get(),
+            )
+
+    return add_shift
+
 
 TConfiguration = Dict[
     str,
@@ -55,13 +206,9 @@ class SystematicShift(object):
 
     Args:
         name (str): Name of the systematic shift.
-
         shift_config: Dictionary containing the configuration parameters. The dictionary keys have to be strings, or tuples, in case the same configuration change is used for multiple scopes. The dictionary values have to be dictionaries containing the changed configuration parameters.
-
         producers: Dictionary containing the producers that are affected by the systematic shift. The dictionary keys have to be strings, or tuples, in case the same producer is affected by the systematic shift in multiple scopes. The dictionary values have to be the modified producers.
-
         ignore_producers: Dictionary containing the producers that are not affected by the systematic shift. The dictionary keys have to be strings, or tuples, in case the same producer is not affected by the systematic shift in multiple scopes. The dictionary values have to be the ignored producers.
-
         scopes (List[str], optional): List of scopes that are affected by the systematic shift. If not given, all scopes are affected.
 
     """

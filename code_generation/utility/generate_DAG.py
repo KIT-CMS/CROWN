@@ -480,9 +480,7 @@ class GraphParser:
 
         """
         log.debug(f"{align}Adding BaseFilter: {producer.name}")
-        log.warning(
-            f"!!! {producer.name} is a legacy producer and should be replaced with Filter !!!"
-        )
+
         call = producer.call
         config_data = self.extract_configs(call, scope)
         self.add_node(

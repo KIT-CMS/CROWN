@@ -74,7 +74,6 @@ Documentation Content
    :maxdepth: 2
    :caption: Tutorials
 
-   build_root.rst
    create_nanoaod.rst
 
 
