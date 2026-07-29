@@ -50,13 +50,15 @@ namespace met {
  * @param corr_name name of the recoil correction, this is the first part of the
  * correction string in the json file (e.g. "Recoil_correction")
  * @param method method to be used to apply the corrections, possible options
- * are "Rescaling", "QuantileMapHist" and "Uncertainty" (second part of the
- * correction string)
+ * are "Rescaling" and "QuantileMapHist" (second part of the correction
+ * string). The corresponding "..._Uncertainty" correction is loaded
+ * automatically and applied on top when `variation` is not "nom".
  * @param order order of the used DY samples: "LO" for madgraph, "NLO" for
  * amc\@nlo, "NNLO" for powheg
  * @param variation name of the variation that should be evaluated, options are
- * "nom", "RespUp", "RespDown", "ResolUp", "ResolDown". This is only used if
- * `method` is set to "Uncertainty".
+ * "nom", "RespUp", "RespDown", "ResolUp", "ResolDown". If "nom", only the
+ * `method` correction is applied; otherwise the uncertainty correction is
+ * applied instead.
  * @param apply_correction if bool is set to true, the recoil correction is
  * applied, if not, the output column contains the original MET vector
  *
@@ -68,7 +70,7 @@ RecoilCorrection(ROOT::RDF::RNode df,
                  const std::string &outputname, const std::string &p4_met,
                  const std::string &p4_gen_boson,
                  const std::string &p4_vis_gen_boson, const std::string &n_jets,
-                 const std::string &corr_file, const std::string &corr_name,
+                 const std::string &corr_file,
                  const std::string &method, const std::string &order,
                  const std::string &variation, bool apply_correction) {
     if (apply_correction) {
@@ -78,9 +80,12 @@ RecoilCorrection(ROOT::RDF::RNode df,
         // Rescaling method is the only recommended method for outside
         // -150 GeV < UPara, UPerp < 150 GeV
         auto RecoilCorr = correction_manager.loadCorrection(
-            corr_file, corr_name + "_" + method);
+            corr_file, "Recoil_correction_" + method);
+        auto RecoilCorrUncert = correction_manager.loadCorrection(
+            corr_file, "Recoil_correction_Uncertainty");
 
-        auto Correction = [RecoilCorr, order, method, variation](
+        auto Correction = [RecoilCorr, RecoilCorrUncert, order, method,
+                           variation](
                               ROOT::Math::PtEtaPhiMVector &met,
                               ROOT::Math::PtEtaPhiMVector &gen_boson,
                               ROOT::Math::PtEtaPhiMVector &vis_gen_boson,
@@ -149,19 +154,21 @@ RecoilCorrection(ROOT::RDF::RNode df,
                     ROOT::Math::PtEtaPhiMVector U_new =
                         ROOT::Math::PtEtaPhiMVector(Upt_new, 0., Uphi_new, 0.);
                     met_new = U_new - vis_gen_boson + gen_boson;
-                } else if (method == "Uncertainty") {
-                    // method needs to be called on the corrected met
-                    if (std::set<std::string>{"RespUp", "RespDown", "ResolUp",
-                                              "ResolDown"}
-                            .count(variation)) {
-                        ROOT::Math::PtEtaPhiMVector H = -met - vis_gen_boson;
+
+                    if (variation == "nom") {
+                        // case needed since method uncertainty needs
+                        // the corrected MET, nom returns the corrected MET
+                    } else if (std::set<std::string>{"RespUp", "RespDown",
+                                                      "ResolUp", "ResolDown"}
+                                   .count(variation)) {
+                        ROOT::Math::PtEtaPhiMVector H = -met_new - vis_gen_boson;
                         float dPhi_H = H.Phi() - gen_boson.Phi();
                         float Hpara = H.Pt() * std::cos(dPhi_H);
                         float Hperp = H.Pt() * std::sin(dPhi_H);
 
-                        float Hpara_new = RecoilCorr->evaluate(
+                        float Hpara_new = RecoilCorrUncert->evaluate(
                             {order, nJets, genPt, "Hpara", Hpara, variation});
-                        float Hperp_new = RecoilCorr->evaluate(
+                        float Hperp_new = RecoilCorrUncert->evaluate(
                             {order, nJets, genPt, "Hperp", Hperp, variation});
 
                         float Hpt_new = std::sqrt(Hpara_new * Hpara_new +
@@ -179,8 +186,8 @@ RecoilCorrection(ROOT::RDF::RNode df,
                     } else {
                         Logger::get("met::RecoilCorrection")
                             ->error("Variation {} not known. Choose either "
-                                    "'RespUp', 'RespDown', 'ResolUp' or "
-                                    "'ResolDown'.",
+                                    "'RespUp', 'RespDown', 'ResolUp', "
+                                    "'ResolDown', or 'nom'.",
                                     variation);
                         throw std::runtime_error(
                             "Invalid variation for Recoil corrections");
@@ -188,8 +195,8 @@ RecoilCorrection(ROOT::RDF::RNode df,
                 } else {
                     Logger::get("met::RecoilCorrection")
                         ->error(
-                            "Method {} not known. Choose either 'Rescaling', "
-                            "'QuantileMapHist' or 'Uncertainty'",
+                            "Method {} not known. Choose either 'Rescaling' "
+                            "or 'QuantileMapHist'",
                             method);
                     throw std::runtime_error(
                         "Invalid method for Recoil corrections");
