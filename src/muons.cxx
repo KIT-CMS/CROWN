@@ -459,15 +459,29 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
             Logger::get("physicsobject::muon::scalefactor::Reco")
                 ->debug("Reco - pt {}, eta {}", pt, eta);
             double sf = 1.;
-            // check to prevent muons with default values due to tau energy
-            // correction shifts below good tau pt selection
-            if (pt >= 40.0 && std::abs(eta) >= 0.0) {
-                sf = evaluator->evaluate({eta, pt, variation});
-            }
             // the reco scale factor in the json file is only defined above 40
             // GeV
-            else if (pt >= 0.0 && pt < 40.0 && std::abs(eta) >= 0.0) {
-                sf = evaluator->evaluate({eta, 40.0, variation});
+            float eval_pt = pt >= 40.0 ? pt : 40.0;
+            // check to prevent muons with default values due to tau energy
+            // correction shifts below good tau pt selection
+            if (pt >= 0.0 && std::abs(eta) >= 0.0) {
+                if (variation == "nominal") {
+                    sf = evaluator->evaluate({eta, eval_pt, "nominal"});
+                } else if (variation == "systup") {
+                    sf = evaluator->evaluate({eta, eval_pt, "systup"});
+                } else if (variation == "systdown") {
+                    sf = evaluator->evaluate({eta, eval_pt, "systdown"});
+                } else if (variation == "statup") {
+                    sf = evaluator->evaluate({eta, eval_pt, "nominal"}) +
+                         evaluator->evaluate({eta, eval_pt, "stat"});
+                } else if (variation == "statdown") {
+                    sf = evaluator->evaluate({eta, eval_pt, "nominal"}) -
+                         evaluator->evaluate({eta, eval_pt, "stat"});
+                } else {
+                    Logger::get("physicsobject::muon::scalefactor::Reco")
+                        ->debug(
+                            "variation {} not implemented, check your code");
+                }
             }
             return sf;
         },
@@ -595,7 +609,23 @@ Trigger(ROOT::RDF::RNode df,
             // correction shifts below good tau pt selection
             try {
                 if (pt >= 0.0 && std::abs(eta) >= 0.0) {
-                    sf = evaluator->evaluate({eta, pt, variation});
+                    if (variation == "nominal") {
+                        sf = evaluator->evaluate({eta, pt, "nominal"});
+                    } else if (variation == "systup") {
+                        sf = evaluator->evaluate({eta, pt, "systup"});
+                    } else if (variation == "systdown") {
+                        sf = evaluator->evaluate({eta, pt, "systdown"});
+                    } else if (variation == "statup") {
+                        sf = evaluator->evaluate({eta, pt, "nominal"}) +
+                             evaluator->evaluate({eta, pt, "stat"});
+                    } else if (variation == "statdown") {
+                        sf = evaluator->evaluate({eta, pt, "nominal"}) -
+                             evaluator->evaluate({eta, pt, "stat"});
+                    } else {
+                        Logger::get("physicsobject::muon::scalefactor::Trigger")
+                            ->debug(
+                                "variation {} not implemented, check your code");
+                    }
                 }
             } catch (const std::runtime_error &e) {
                 // this error can occur because the pt range starts at different
@@ -662,7 +692,23 @@ Trigger(ROOT::RDF::RNode df,
             // correction shifts below good tau pt selection
             try {
                 if (trigger_flag) {
-                    sf = evaluator->evaluate({eta, pt, variation});
+                    if (variation == "nominal") {
+                        sf = evaluator->evaluate({eta, pt, "nominal"});
+                    } else if (variation == "systup") {
+                        sf = evaluator->evaluate({eta, pt, "systup"});
+                    } else if (variation == "systdown") {
+                        sf = evaluator->evaluate({eta, pt, "systdown"});
+                    } else if (variation == "statup") {
+                        sf = evaluator->evaluate({eta, pt, "nominal"}) +
+                             evaluator->evaluate({eta, pt, "stat"});
+                    } else if (variation == "statdown") {
+                        sf = evaluator->evaluate({eta, pt, "nominal"}) -
+                             evaluator->evaluate({eta, pt, "stat"});
+                    } else {
+                        Logger::get("physicsobject::muon::scalefactor::Trigger")
+                            ->debug(
+                                "variation {} not implemented, check your code");
+                    }
                 }
             } catch (const std::runtime_error &e) {
                 // this error can occur because the pt range starts at different
