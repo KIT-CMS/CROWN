@@ -63,13 +63,13 @@ namespace muon {
  */
 ROOT::RDF::RNode
 PtCorrection(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correction_manager,
-               const std::string &outputname, const std::string &pt,
-               const std::string &eta, const std::string &phi,
-               const std::string &charge, const std::string &n_tracker_layers,
-               const std::string &lumi, const std::string &event,
-               const float &min_muon_pt, const std::string &scale_file,
-               const std::string &shift, bool is_data) {
+             correctionManager::CorrectionManager &correction_manager,
+             const std::string &outputname, const std::string &pt,
+             const std::string &eta, const std::string &phi,
+             const std::string &charge, const std::string &n_tracker_layers,
+             const std::string &lumi, const std::string &event,
+             const float &min_muon_pt, const std::string &scale_file,
+             const std::string &shift, bool is_data) {
 
     std::string name = is_data ? "data" : "mc";
 
@@ -118,9 +118,9 @@ PtCorrection(ROOT::RDF::RNode df,
             // apply scale correction to both data and mc
             scale_pt = 1. / (m_f / pt.at(i) + charge.at(i) * a_f);
 
-            if (scale_pt < min_muon_pt || scale_pt > 200.0 || 
+            if (scale_pt < min_muon_pt || scale_pt > 200.0 ||
                 std::isnan(scale_pt)) {
-                // set pt to initial value if correction is outside of valid 
+                // set pt to initial value if correction is outside of valid
                 // boundaries
                 scale_pt = pt.at(i);
             }
@@ -157,7 +157,7 @@ PtCorrection(ROOT::RDF::RNode df,
                 float param2_f = reso_evaluator_poly->evaluate(
                     {std::abs(eta.at(i)), float(n_tracker_layers.at(i)), 2});
 
-                float sigma_std = param0_f + param1_f * scale_pt + 
+                float sigma_std = param0_f + param1_f * scale_pt +
                                   param2_f * scale_pt * scale_pt;
                 float std_dev = std::max(0.f, sigma_std);
 
@@ -172,16 +172,16 @@ PtCorrection(ROOT::RDF::RNode df,
 
                 float reso_pt = scale_pt * (1 + k * std_dev * rndm);
 
-                if (reso_pt < min_muon_pt || reso_pt > 200.0 || 
+                if (reso_pt < min_muon_pt || reso_pt > 200.0 ||
                     std::isnan(reso_pt)) {
-                    // set pt to initial value if correction is outside of valid 
+                    // set pt to initial value if correction is outside of valid
                     // boundaries
                     reso_pt = scale_pt;
                 }
 
-                if (reso_pt / scale_pt > 2 || reso_pt / scale_pt < 0.1 || 
+                if (reso_pt / scale_pt > 2 || reso_pt / scale_pt < 0.1 ||
                     reso_pt < 0) {
-                    // set pt to initial value if correction is outside of valid 
+                    // set pt to initial value if correction is outside of valid
                     // boundaries, not to be merged with the step before
                     reso_pt = scale_pt;
                 }
@@ -189,7 +189,7 @@ PtCorrection(ROOT::RDF::RNode df,
                 corr_pt = reso_pt;
 
                 if (shift == "ScaleStatUp" || shift == "ScaleStatDown") {
-                    // apply scale uncertainty on top of the scale+reso 
+                    // apply scale uncertainty on top of the scale+reso
                     // corrected pt
                     float stat_a_f = scale_evaluator_a->evaluate(
                         {eta.at(i), phi.at(i), "stat"});
@@ -205,11 +205,13 @@ PtCorrection(ROOT::RDF::RNode df,
                                   2 * charge.at(i) * stat_rho_f * stat_m_f *
                                       stat_a_f / corr_pt);
 
-                    if (shift == "ScaleStatUp") corr_pt = corr_pt + unc;
-                    else corr_pt = corr_pt - unc;
+                    if (shift == "ScaleStatUp")
+                        corr_pt = corr_pt + unc;
+                    else
+                        corr_pt = corr_pt - unc;
 
                 } else if (shift == "ScaleSystUp" || shift == "ScaleSystDown") {
-                    // apply scale uncertainty on top of the scale+reso 
+                    // apply scale uncertainty on top of the scale+reso
                     // corrected pt
                     float syst_a_f = scale_evaluator_a->evaluate(
                         {eta.at(i), phi.at(i), "syst"});
@@ -218,48 +220,56 @@ PtCorrection(ROOT::RDF::RNode df,
                     float syst_rho_f = scale_evaluator_m->evaluate(
                         {eta.at(i), phi.at(i), "rho_syst"});
 
-                    float unc = 
-                        corr_pt * corr_pt * 
+                    float unc =
+                        corr_pt * corr_pt *
                         std::sqrt(syst_m_f * syst_m_f / (corr_pt * corr_pt) +
                                   syst_a_f * syst_a_f +
-                                  2 * charge.at(i) * syst_rho_f * syst_m_f * 
+                                  2 * charge.at(i) * syst_rho_f * syst_m_f *
                                       syst_a_f / corr_pt);
 
-                    if (shift == "ScaleSystUp") corr_pt = corr_pt + unc;
-                    else corr_pt = corr_pt - unc;
+                    if (shift == "ScaleSystUp")
+                        corr_pt = corr_pt + unc;
+                    else
+                        corr_pt = corr_pt - unc;
 
                 } else if (shift == "ResoStatUp" || shift == "ResoStatDown") {
-                    // apply resolution uncertainty on top of the scale 
+                    // apply resolution uncertainty on top of the scale
                     // corrected pt
                     float k_unc_f = reso_evaluator_kmc->evaluate(
                         {std::abs(eta.at(i)), "stat"});
 
                     if (k_mc_f > 0) {
                         float std_x_cb = (reso_pt / scale_pt - 1) / k_mc_f;
-                        if (shift == "ResoStatUp") corr_pt = scale_pt * 
-                                    (1 + (k_mc_f + k_unc_f) * std_x_cb);
-                        else corr_pt = scale_pt * 
-                                (1 + (k_mc_f - k_unc_f) * std_x_cb);
+                        if (shift == "ResoStatUp")
+                            corr_pt =
+                                scale_pt * (1 + (k_mc_f + k_unc_f) * std_x_cb);
+                        else
+                            corr_pt =
+                                scale_pt * (1 + (k_mc_f - k_unc_f) * std_x_cb);
                     }
 
                     if (corr_pt / scale_pt > 2 || corr_pt / scale_pt < 0.1 ||
-                        corr_pt < 0) corr_pt = scale_pt;
+                        corr_pt < 0)
+                        corr_pt = scale_pt;
                 } else if (shift == "ResoSystUp" || shift == "ResoSystDown") {
-                    // apply resolution uncertainty on top of the scale 
+                    // apply resolution uncertainty on top of the scale
                     // corrected pt
                     float k_unc_f = reso_evaluator_kmc->evaluate(
                         {std::abs(eta.at(i)), "syst"});
 
                     if (k_mc_f > 0) {
                         float std_x_cb = (reso_pt / scale_pt - 1) / k_mc_f;
-                        if (shift == "ResoSystUp") corr_pt = 
-                            scale_pt * (1 + (k_mc_f + k_unc_f) * std_x_cb);
-                        else corr_pt = scale_pt * 
-                            (1 + (k_mc_f - k_unc_f) * std_x_cb);
+                        if (shift == "ResoSystUp")
+                            corr_pt =
+                                scale_pt * (1 + (k_mc_f + k_unc_f) * std_x_cb);
+                        else
+                            corr_pt =
+                                scale_pt * (1 + (k_mc_f - k_unc_f) * std_x_cb);
                     }
 
-                    if (corr_pt / scale_pt > 2 || corr_pt / scale_pt < 0.1 || 
-                        corr_pt < 0) corr_pt = scale_pt;
+                    if (corr_pt / scale_pt > 2 || corr_pt / scale_pt < 0.1 ||
+                        corr_pt < 0)
+                        corr_pt = scale_pt;
                 }
             }
 
@@ -623,8 +633,8 @@ Trigger(ROOT::RDF::RNode df,
                              evaluator->evaluate({eta, pt, "stat"});
                     } else {
                         Logger::get("physicsobject::muon::scalefactor::Trigger")
-                            ->debug(
-                                "variation {} not implemented, check your code");
+                            ->debug("variation {} not implemented, check your "
+                                    "code");
                     }
                 }
             } catch (const std::runtime_error &e) {
@@ -706,8 +716,8 @@ Trigger(ROOT::RDF::RNode df,
                              evaluator->evaluate({eta, pt, "stat"});
                     } else {
                         Logger::get("physicsobject::muon::scalefactor::Trigger")
-                            ->debug(
-                                "variation {} not implemented, check your code");
+                            ->debug("variation {} not implemented, check your "
+                                    "code");
                     }
                 }
             } catch (const std::runtime_error &e) {
