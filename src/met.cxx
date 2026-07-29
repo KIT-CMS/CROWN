@@ -178,10 +178,12 @@ RecoilCorrection(ROOT::RDF::RNode df,
                         met_new = -H_new - vis_gen_boson;
                     } else {
                         Logger::get("met::RecoilCorrection")
-                            ->debug("Variation {} not known. Will not "
-                                    "be applied.",
+                            ->error("Variation {} not known. Choose either "
+                                    "'RespUp', 'RespDown', 'ResolUp' or "
+                                    "'ResolDown'.",
                                     variation);
-                        met_new = met;
+                        throw std::runtime_error(
+                            "Invalid variation for Recoil corrections");
                     }
                 } else {
                     Logger::get("met::RecoilCorrection")
