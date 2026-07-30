@@ -97,9 +97,9 @@ RecoilCorrection(ROOT::RDF::RNode df,
                  const std::string &outputname, const std::string &p4_met,
                  const std::string &p4_gen_boson,
                  const std::string &p4_vis_gen_boson, const std::string &n_jets,
-                 const std::string &corr_file,
-                 const std::string &method, const std::string &order,
-                 const std::string &variation, const bool apply_correction);
+                 const std::string &corr_file, const std::string &method,
+                 const std::string &order, const std::string &variation,
+                 const bool apply_correction);
 ROOT::RDF::RNode
 RecoilCorrection(ROOT::RDF::RNode df, const std::string &outputname,
                  const std::string &p4_met, const std::string &p4_gen_boson,

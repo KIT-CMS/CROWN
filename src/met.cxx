@@ -47,8 +47,6 @@ namespace met {
  * @param n_jets name of the column containing the number of good jets in an
  * event
  * @param corr_file path to the json file with the recoil corrections
- * @param corr_name name of the recoil correction, this is the first part of the
- * correction string in the json file (e.g. "Recoil_correction")
  * @param method method to be used to apply the corrections, possible options
  * are "Rescaling" and "QuantileMapHist" (second part of the correction
  * string). The corresponding "..._Uncertainty" correction is loaded
@@ -70,9 +68,9 @@ RecoilCorrection(ROOT::RDF::RNode df,
                  const std::string &outputname, const std::string &p4_met,
                  const std::string &p4_gen_boson,
                  const std::string &p4_vis_gen_boson, const std::string &n_jets,
-                 const std::string &corr_file,
-                 const std::string &method, const std::string &order,
-                 const std::string &variation, bool apply_correction) {
+                 const std::string &corr_file, const std::string &method,
+                 const std::string &order, const std::string &variation,
+                 bool apply_correction) {
     if (apply_correction) {
         Logger::get("met::RecoilCorrection")
             ->debug("Will run recoil corrections with correctionlib");
@@ -159,9 +157,10 @@ RecoilCorrection(ROOT::RDF::RNode df,
                         // case needed since method uncertainty needs
                         // the corrected MET, nom returns the corrected MET
                     } else if (std::set<std::string>{"RespUp", "RespDown",
-                                                      "ResolUp", "ResolDown"}
+                                                     "ResolUp", "ResolDown"}
                                    .count(variation)) {
-                        ROOT::Math::PtEtaPhiMVector H = -met_new - vis_gen_boson;
+                        ROOT::Math::PtEtaPhiMVector H =
+                            -met_new - vis_gen_boson;
                         float dPhi_H = H.Phi() - gen_boson.Phi();
                         float Hpara = H.Pt() * std::cos(dPhi_H);
                         float Hperp = H.Pt() * std::sin(dPhi_H);
