@@ -117,6 +117,35 @@ MinFlag(ROOT::RDF::RNode df, const std::string &outputname,
 
 /**
  * @brief This function defines a flag for event quantities that satisfy a
+ * strict minimum threshold requirement. The flag is created by comparing the
+ * value in the specified quantity column with the given threshold, marking
+ * elements as `true` if they pass the cut and `false` otherwise. In contrast
+ * to `MinFlag`, which implements the inclusive `value >= threshold`, the
+ * threshold value itself does not pass the cut here.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param threshold exclusive minimum threshold value of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+GreaterFlag(ROOT::RDF::RNode df, const std::string &outputname,
+            const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &value) {
+                         bool flag = value > threshold;
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a flag for event quantities that satisfy a
  * minimum threshold requirement. The flag is created by comparing the absolute
  * value in the specified quantity column with the given threshold, marking
  * elements as `true` if they pass the cut and `false` otherwise.
@@ -164,6 +193,35 @@ MaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
     return df.Define(outputname,
                      [threshold](const T &value) {
                          bool flag = value < threshold;
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a flag for event quantities that satisfy an
+ * inclusive maximum threshold requirement. The flag is created by comparing
+ * the value in the specified quantity column with the given threshold, marking
+ * elements as `true` if they pass the cut and `false` otherwise. In contrast
+ * to `MaxFlag`, which implements the exclusive `value < threshold`, the
+ * threshold value itself passes the cut here.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param threshold inclusive maximum threshold value of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+MaxOrEqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
+               const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &value) {
+                         bool flag = value <= threshold;
                          return flag;
                      },
                      {quantity});
@@ -267,6 +325,40 @@ inline ROOT::RDF::RNode Rename(ROOT::RDF::RNode df,
                                const std::string &outputname,
                                const std::string &quantity) {
     return df.Define(outputname, [](const T &q) { return q; }, {quantity});
+}
+
+/**
+ * @brief This function creates a new column in the dataframe that contains the
+ * product of the values of two existing columns. The two input columns can
+ * have different stored types (e.g. the charges of the two legs of a pair,
+ * which can be stored as `int` and `Short_t`), therefore both types are
+ * template parameters and the values are converted to `double` before the
+ * multiplication. The resulting column is of type `double`, so any subsequent
+ * flag helper has to be instantiated with `double` as well.
+ *
+ * @tparam T1 type of the first input quantity (e.g. `int`, `Short_t`)
+ * @tparam T2 type of the second input quantity (e.g. `int`, `Short_t`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the product
+ * @param quantity_1 name of the first quantity column, expected to be of type
+ * `T1`
+ * @param quantity_2 name of the second quantity column, expected to be of type
+ * `T2`
+ *
+ * @return a dataframe with the new column of type `double`
+ */
+template <typename T1, typename T2>
+inline ROOT::RDF::RNode Product(ROOT::RDF::RNode df,
+                                const std::string &outputname,
+                                const std::string &quantity_1,
+                                const std::string &quantity_2) {
+    return df.Define(outputname,
+                     [](const T1 &value_1, const T2 &value_2) {
+                         double product = static_cast<double>(value_1) *
+                                          static_cast<double>(value_2);
+                         return product;
+                     },
+                     {quantity_1, quantity_2});
 }
 
 /**
