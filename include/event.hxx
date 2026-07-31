@@ -309,6 +309,39 @@ AbsEqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
+ * @brief This function defines a flag for event quantities whose value is
+ * contained in a given list of accepted values. The flag is created by
+ * comparing the value in the specified quantity column against every entry of
+ * the `selection` list, marking elements as `true` if the value is found and
+ * `false` otherwise. This is the event level counterpart of
+ * `physicsobject::CutQuantity`, and it is equivalent to combining one
+ * `EqualFlag` per accepted value with `event::CombineFlags(..., "any_of")`.
+ *
+ * @tparam T type of the input quantity and the accepted values (e.g. `int`,
+ * `UChar_t`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param selection a vector containing the accepted values of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+InListFlag(ROOT::RDF::RNode df, const std::string &outputname,
+           const std::string &quantity, const std::vector<T> &selection) {
+    return df.Define(outputname,
+                     [selection](const T &value) {
+                         bool flag = std::find(selection.begin(),
+                                               selection.end(),
+                                               value) != selection.end();
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
  * @brief This function creates a new column in the dataframe with the specified
  * `outputname`, copying the values from an existing `quantity` column. The
  * original column remains unchanged.
