@@ -2674,7 +2674,7 @@ ROOT::RDF::RNode Id_vsMu(
             if (it != variations.begin()) {
                 it = std::prev(it);
                 std::string variation = it->second;
-                if (era == "2024" || era == "2025") {
+                if (std::stoi(era.substr(0, 4)) >= 2024) {
                     Logger::get("physicsobject::tau::scalefactor::Id_vsMu")
                         ->debug("ID {} - eta {}, gen_match {}, wp {}, wp ele "
                                 "{}, wp jet {}, variation {}",

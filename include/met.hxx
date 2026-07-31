@@ -97,9 +97,9 @@ RecoilCorrection(ROOT::RDF::RNode df,
                  const std::string &outputname, const std::string &p4_met,
                  const std::string &p4_gen_boson,
                  const std::string &p4_vis_gen_boson, const std::string &n_jets,
-                 const std::string &corr_file, const std::string &corr_name,
-                 const std::string &method, const std::string &order,
-                 const std::string &variation, const bool apply_correction);
+                 const std::string &corr_file, const std::string &method,
+                 const std::string &order, const std::string &variation,
+                 const bool apply_correction);
 ROOT::RDF::RNode
 RecoilCorrection(ROOT::RDF::RNode df, const std::string &outputname,
                  const std::string &p4_met, const std::string &p4_gen_boson,
@@ -135,6 +135,11 @@ Type1Correction(ROOT::RDF::RNode df, const std::string &outputname,
                 const std::string &jet_pt_corr, const std::string &jet_phi,
                 const std::string &jet_chEmEF, const std::string &jet_neEmEF,
                 const std::string &low_pt_jet_phi);
+ROOT::RDF::RNode PropagateUnclusteredEnergyToMET(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &p4_met, const std::string &met_pt_nominal,
+    const std::string &met_phi_nominal, const std::string &met_pt_shifted,
+    const std::string &met_phi_shifted);
 
 } // end namespace met
 

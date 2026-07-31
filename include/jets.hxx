@@ -140,8 +140,8 @@ BtaggingWP(ROOT::RDF::RNode df,
            const std::string &sf_file, const std::string &sf_bc_name,
            const std::string &sf_lf_name, const std::string &sf_wp_name,
            const std::string &eff_file, const std::string &eff_name,
-           const std::string &sample_type, const std::string &variation,
-           const std::string &btag_wp_name);
+           const std::string &sample_type, const std::string &variation_bc,
+           const std::string &variation_lf, const std::string &btag_wp_name);
 ROOT::RDF::RNode
 BtaggingMultipleWP(ROOT::RDF::RNode df,
                    correctionManager::CorrectionManager &correction_manager,
@@ -153,7 +153,8 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                    const std::string &sf_bc_name, const std::string &sf_lf_name,
                    const std::string &sf_wp_name, const std::string &eff_file,
                    const std::string &eff_name, const std::string &sample_type,
-                   const std::string &variation);
+                   const std::string &variation_bc,
+                   const std::string &variation_lf);
 } // end namespace scalefactor
 } // end namespace jet
 } // end namespace physicsobject

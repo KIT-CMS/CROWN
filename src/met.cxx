@@ -47,16 +47,16 @@ namespace met {
  * @param n_jets name of the column containing the number of good jets in an
  * event
  * @param corr_file path to the json file with the recoil corrections
- * @param corr_name name of the recoil correction, this is the first part of the
- * correction string in the json file (e.g. "Recoil_correction")
  * @param method method to be used to apply the corrections, possible options
- * are "Rescaling", "QuantileMapHist" and "Uncertainty" (second part of the
- * correction string)
+ * are "Rescaling" and "QuantileMapHist" (second part of the correction
+ * string). The corresponding "..._Uncertainty" correction is loaded
+ * automatically and applied on top when `variation` is not "nom".
  * @param order order of the used DY samples: "LO" for madgraph, "NLO" for
  * amc\@nlo, "NNLO" for powheg
  * @param variation name of the variation that should be evaluated, options are
- * "nom", "RespUp", "RespDown", "ResolUp", "ResolDown". This is only used if
- * `method` is set to "Uncertainty".
+ * "nom", "RespUp", "RespDown", "ResolUp", "ResolDown". If "nom", only the
+ * `method` correction is applied; otherwise the uncertainty correction is
+ * applied instead.
  * @param apply_correction if bool is set to true, the recoil correction is
  * applied, if not, the output column contains the original MET vector
  *
@@ -68,9 +68,9 @@ RecoilCorrection(ROOT::RDF::RNode df,
                  const std::string &outputname, const std::string &p4_met,
                  const std::string &p4_gen_boson,
                  const std::string &p4_vis_gen_boson, const std::string &n_jets,
-                 const std::string &corr_file, const std::string &corr_name,
-                 const std::string &method, const std::string &order,
-                 const std::string &variation, bool apply_correction) {
+                 const std::string &corr_file, const std::string &method,
+                 const std::string &order, const std::string &variation,
+                 bool apply_correction) {
     if (apply_correction) {
         Logger::get("met::RecoilCorrection")
             ->debug("Will run recoil corrections with correctionlib");
@@ -78,9 +78,12 @@ RecoilCorrection(ROOT::RDF::RNode df,
         // Rescaling method is the only recommended method for outside
         // -150 GeV < UPara, UPerp < 150 GeV
         auto RecoilCorr = correction_manager.loadCorrection(
-            corr_file, corr_name + "_" + method);
+            corr_file, "Recoil_correction_" + method);
+        auto RecoilCorrUncert = correction_manager.loadCorrection(
+            corr_file, "Recoil_correction_Uncertainty");
 
-        auto Correction = [RecoilCorr, order, method, variation](
+        auto Correction = [RecoilCorr, RecoilCorrUncert, order, method,
+                           variation](
                               ROOT::Math::PtEtaPhiMVector &met,
                               ROOT::Math::PtEtaPhiMVector &gen_boson,
                               ROOT::Math::PtEtaPhiMVector &vis_gen_boson,
@@ -149,18 +152,22 @@ RecoilCorrection(ROOT::RDF::RNode df,
                     ROOT::Math::PtEtaPhiMVector U_new =
                         ROOT::Math::PtEtaPhiMVector(Upt_new, 0., Uphi_new, 0.);
                     met_new = U_new - vis_gen_boson + gen_boson;
-                } else if (method == "Uncertainty") {
-                    if (std::set<std::string>{"RespUp", "RespDown", "ResolUp",
-                                              "ResolDown"}
-                            .count(variation)) {
-                        ROOT::Math::PtEtaPhiMVector H = -met - vis_gen_boson;
+
+                    if (variation == "nom") {
+                        // case needed since method uncertainty needs
+                        // the corrected MET, nom returns the corrected MET
+                    } else if (std::set<std::string>{"RespUp", "RespDown",
+                                                     "ResolUp", "ResolDown"}
+                                   .count(variation)) {
+                        ROOT::Math::PtEtaPhiMVector H =
+                            -met_new - vis_gen_boson;
                         float dPhi_H = H.Phi() - gen_boson.Phi();
                         float Hpara = H.Pt() * std::cos(dPhi_H);
                         float Hperp = H.Pt() * std::sin(dPhi_H);
 
-                        float Hpara_new = RecoilCorr->evaluate(
+                        float Hpara_new = RecoilCorrUncert->evaluate(
                             {order, nJets, genPt, "Hpara", Hpara, variation});
-                        float Hperp_new = RecoilCorr->evaluate(
+                        float Hperp_new = RecoilCorrUncert->evaluate(
                             {order, nJets, genPt, "Hperp", Hperp, variation});
 
                         float Hpt_new = std::sqrt(Hpara_new * Hpara_new +
@@ -178,22 +185,17 @@ RecoilCorrection(ROOT::RDF::RNode df,
                     } else {
                         Logger::get("met::RecoilCorrection")
                             ->error("Variation {} not known. Choose either "
-                                    "'RespUp', 'RespDown', 'ResolUp' or "
-                                    "'ResolDown'",
+                                    "'RespUp', 'RespDown', 'ResolUp', "
+                                    "'ResolDown', or 'nom'.",
                                     variation);
                         throw std::runtime_error(
                             "Invalid variation for Recoil corrections");
                     }
-                } else if (method == "QuantileMapFit") {
-                    Logger::get("met::RecoilCorrection")
-                        ->debug("QuantileMapFit method not yet implemented, "
-                                "returning uncorrected MET");
-                    return met;
                 } else {
                     Logger::get("met::RecoilCorrection")
                         ->error(
-                            "Method {} not known. Choose either 'Rescaling', "
-                            "'QuantileMapHist' or 'Uncertainty'",
+                            "Method {} not known. Choose either 'Rescaling' "
+                            "or 'QuantileMapHist'",
                             method);
                     throw std::runtime_error(
                         "Invalid method for Recoil corrections");
@@ -664,6 +666,72 @@ Type1Correction(ROOT::RDF::RNode df, const std::string &outputname,
                          {raw_met, jet_pt_l1corr, jet_pt_corr, jet_phi,
                           jet_ch_em_ef, jet_ne_em_ef, low_pt_jet_phi});
     return df1;
+}
+
+/**
+ * @brief Propagates the unclustered energy uncertainty, as provided by
+ * NanoAOD, onto a (possibly independently re-derived) MET vector.
+ *
+ * NanoAOD only provides the unclustered energy variation as an absolute
+ * pt/phi pair for the officially Type-1-corrected PuppiMET
+ * (`PuppiMET_ptUnclusteredUp/Down`, `PuppiMET_phiUnclusteredUp/Down`). If the
+ * analysis MET is re-derived independently from RawMET + JECs (e.g. via
+ * `met::Type1Correction`), this NanoAOD-level variation can not directly
+ * replace the analysis MET. Instead, the shift is applied additively: the
+ * difference between the shifted and nominal NanoAOD PuppiMET (in x/y) is
+ * added on top of the analysis MET vector.
+ *
+ * \f[
+ * \vec{p}_{T,\text{miss}}^{\text{new}} = \vec{p}_{T,\text{miss}} +
+ * \left(\vec{p}_{T,\text{miss}}^{\text{NanoAOD, shifted}} -
+ * \vec{p}_{T,\text{miss}}^{\text{NanoAOD, nominal}}\right)
+ * \f]
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column containing the corrected MET
+ * Lorentz vector
+ * @param p4_met name of the column with the (already corrected) MET Lorentz
+ * vector to propagate the shift onto
+ * @param met_pt_nominal name of the column with the nominal (never shifted)
+ * NanoAOD MET \f$p_T\f$
+ * @param met_phi_nominal name of the column with the nominal (never shifted)
+ * NanoAOD MET \f$\phi\f$
+ * @param met_pt_shifted name of the column with the NanoAOD MET \f$p_T\f$,
+ * which is equal to `met_pt_nominal` if no unclustered energy shift is
+ * active, or to the Unclustered Up/Down variant otherwise
+ * @param met_phi_shifted name of the column with the NanoAOD MET \f$\phi\f$,
+ * analogous to `met_pt_shifted`
+ *
+ * @return a dataframe with the new column containing the shifted MET Lorentz
+ * vector
+ */
+ROOT::RDF::RNode PropagateUnclusteredEnergyToMET(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &p4_met, const std::string &met_pt_nominal,
+    const std::string &met_phi_nominal, const std::string &met_pt_shifted,
+    const std::string &met_phi_shifted) {
+
+    auto propagate_shift = [](const ROOT::Math::PtEtaPhiMVector &met,
+                              const float &met_pt_nom, const float &met_phi_nom,
+                              const float &met_pt_shift,
+                              const float &met_phi_shift) {
+        const float delta_x = met_pt_shift * std::cos(met_phi_shift) -
+                              met_pt_nom * std::cos(met_phi_nom);
+        const float delta_y = met_pt_shift * std::sin(met_phi_shift) -
+                              met_pt_nom * std::sin(met_phi_nom);
+        const float MetX = met.Px() + delta_x;
+        const float MetY = met.Py() + delta_y;
+        ROOT::Math::PtEtaPhiMVector corrected_met;
+        corrected_met.SetPxPyPzE(MetX, MetY, 0,
+                                 std::sqrt(MetX * MetX + MetY * MetY));
+        Logger::get("met::PropagateUnclusteredEnergyToMET")
+            ->debug("old met {}, corrected met {}", met.Pt(),
+                    corrected_met.Pt());
+        return corrected_met;
+    };
+    return df.Define(outputname, propagate_shift,
+                     {p4_met, met_pt_nominal, met_phi_nominal, met_pt_shifted,
+                      met_phi_shifted});
 }
 
 } // end namespace met
