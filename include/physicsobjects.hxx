@@ -193,30 +193,31 @@ CutSmaller(ROOT::RDF::RNode df, const std::string &outputname,
 
 /**
  * @brief This function defines a mask for objects whose absolute value
- * satisfies a strict minimum threshold requirement, i.e.
- * `abs(value) > threshold`. The mask is created by comparing the absolute
+ * satisfies an inclusive minimum threshold requirement, i.e.
+ * `abs(value) >= threshold`. The mask is created by comparing the absolute
  * values in the specified column with the given threshold, marking elements as
  * `1` if they pass the cut and `0` otherwise. This is the absolute-value
- * counterpart of `CutGreater`, and it is typically combined with
- * `CutAbsSmaller` to select an absolute-value band such as an
- * \f$|\eta|\f$ range.
+ * counterpart of `CutMin`, and it is typically combined with `CutAbsSmaller`
+ * to select an absolute-value band such as an \f$|\eta|\f$ range: taking the
+ * lower edge inclusive and the upper edge exclusive makes adjacent bands tile
+ * the range without gaps or overlaps.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
  * @param outputname name of the new column containing the selected object mask
  * @param quantity name of the object column in the NanoAOD for which the
  * cut should be applied, expected to be of type `ROOT::RVec<T>`
- * @param threshold exclusive minimum threshold value of type `T`
+ * @param threshold inclusive minimum threshold value of type `T`
  *
  * @return a dataframe containing the new mask as a column
  */
 template <typename T>
 inline ROOT::RDF::RNode
-CutAbsGreater(ROOT::RDF::RNode df, const std::string &outputname,
-              const std::string &quantity, const T &threshold) {
+CutAbsMin(ROOT::RDF::RNode df, const std::string &outputname,
+          const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const ROOT::RVec<T> &values) {
-                         ROOT::RVec<int> mask = abs(values) > threshold;
+                         ROOT::RVec<int> mask = abs(values) >= threshold;
                          return mask;
                      },
                      {quantity});
