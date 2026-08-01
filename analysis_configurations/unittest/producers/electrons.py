@@ -14,15 +14,15 @@ with defaults(scopes=["global"]):
             input=[nanoAOD.Electron_pt],
         )
         ElectronEtaCut = Producer(
-            call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_ele_eta})",
+            call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {max_ele_eta})",
             input=[nanoAOD.Electron_eta],
         )
         ElectronDxyCut = Producer(
-            call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_ele_dxy})",
+            call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {max_ele_dxy})",
             input=[nanoAOD.Electron_dxy],
         )
         ElectronDzCut = Producer(
-            call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_ele_dz})",
+            call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {max_ele_dz})",
             input=[nanoAOD.Electron_dz],
         )
         ElectronIDCut = Producer(
@@ -30,7 +30,7 @@ with defaults(scopes=["global"]):
             input=[nanoAOD.Electron_mvaFall17V2noIso_WP90],
         )
         ElectronIsoCut = Producer(
-            call="physicsobject::CutMax<float>({df}, {output}, {input}, {max_ele_iso})",
+            call="physicsobject::CutSmaller<float>({df}, {output}, {input}, {max_ele_iso})",
             input=[nanoAOD.Electron_pfRelIso03_all],
         )
     BaseElectrons = ProducerGroup(
@@ -58,11 +58,11 @@ with defaults(scopes=["em", "et", "ee"]):
             input=[nanoAOD.Electron_pt],
         )
         GoodElectronEtaCut = Producer(
-            call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_electron_eta})",
+            call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {max_electron_eta})",
             input=[nanoAOD.Electron_eta],
         )
         GoodElectronIsoCut = Producer(
-            call="physicsobject::CutMax<float>({df}, {output}, {input}, {electron_iso_cut})",
+            call="physicsobject::CutSmaller<float>({df}, {output}, {input}, {electron_iso_cut})",
             input=[nanoAOD.Electron_pfRelIso03_all],
         )
     GoodElectrons = ProducerGroup(
