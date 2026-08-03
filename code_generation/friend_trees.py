@@ -182,11 +182,6 @@ class FriendTreeConfiguration(Configuration):
                     error_message += "      The input information has to be a json file or a root file \n"
                     error_message += "      and added to the cmake command via the -DQUANTITIESMAP=... option"
                     raise ConfigurationError(error_message)
-        missing_scopes = set(self.selected_scopes) - set(data.keys())
-        if missing_scopes:
-            errorstring = f"Scopes {missing_scopes} not found in any of the input information files {input_information_list}.\n"
-            errorstring += f"Available scopes are: {list(data.keys())}"
-            raise ConfigurationError(errorstring)
         return data
 
     def _readout_input_root_file(
@@ -266,18 +261,14 @@ class FriendTreeConfiguration(Configuration):
                 f"Available sampletypes are: {quantity_data[self.era].keys()}"
             )
             raise ConfigurationError(errorstring)
-        if not set(self.selected_scopes) & set(
-            quantity_data[self.era][self.sample].keys()
+        if not set(self.selected_scopes).issubset(
+            set(quantity_data[self.era][self.sample].keys())
         ):
-            # the quantities map was written for a different scope, so it does not
-            # contribute anything to this configuration. Whether the selected scope is
-            # covered by any of the provided files is checked after merging them all
-            log.debug(
-                f"Skipping input information file {input_file}, it does not contain "
-                f"the selected scopes {self.selected_scopes}, but "
-                f"{quantity_data[self.era][self.sample].keys()}"
+            errorstring = f"Scopes {self.selected_scopes} not found in input information file {input_file}.\n"
+            errorstring += (
+                f"Available scopes are: {quantity_data[self.era][self.sample].keys()}"
             )
-            return {}, metadata
+            raise ConfigurationError(errorstring)
         return quantity_data[self.era][self.sample], metadata
 
     def optimize(self) -> None:
@@ -313,26 +304,6 @@ class FriendTreeConfiguration(Configuration):
                         self._shift_producer_inputs(producer, shift, shiftname, scope)
                         self.shifts[scope][shiftname] = {}
 
-    def _available_quantities(self, scope: str, shift: str) -> Set[str]:
-        """Names of the quantities the input files provide for a given shift.
-
-        `_readout_input_information` stores every quantity together with the
-        config it originates from, so that a multifriend production can tell
-        them apart. Callers that only care about the name have to strip that
-        off, otherwise every lookup silently misses.
-
-        Args:
-            scope (str): The scope to look up
-            shift (str): The shift to look up, "" for the nominal quantities
-
-        Returns:
-            Set[str]: The quantity names available for that scope and shift
-        """
-        return {
-            entry[0] if isinstance(entry, tuple) else entry
-            for entry in self.input_quantities_mapping[scope][shift]
-        }
-
     def _shift_producer_inputs(
         self,
         producer: Union[Producer, ProducerGroup],
@@ -355,10 +326,12 @@ class FriendTreeConfiguration(Configuration):
             log.debug("Inputs of producer %s: %s", producer, inputs)
             # only shift if necessary
             if shift in self.input_quantities_mapping[scope].keys():
-                shifted_quantities = self._available_quantities(scope, shift)
                 inputs_to_shift = []
                 for input_quantity in inputs:
-                    if input_quantity.name in shifted_quantities:
+                    if (
+                        input_quantity.name
+                        in self.input_quantities_mapping[scope][shift]
+                    ):
                         inputs_to_shift.append(input_quantity)
                 if len(inputs_to_shift) > 0:
                     log.debug("Adding shift %s to producer %s", shift, producer)
@@ -412,7 +385,8 @@ class FriendTreeConfiguration(Configuration):
                     [x.name for x in producer.get_outputs(scope)]
                 )
             # get all available inputs
-            available_inputs |= self._available_quantities(scope, "")
+            for input_quantity, _ in self.input_quantities_mapping[scope][""]:
+                available_inputs.add(input_quantity)
             # now check if all inputs are available
             missing_inputs = required_inputs - available_inputs
             if len(missing_inputs) > 0:
