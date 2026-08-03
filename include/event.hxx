@@ -206,6 +206,93 @@ SmallerFlag(ROOT::RDF::RNode df, const std::string &outputname,
 
 /**
  * @brief This function defines a flag for event quantities whose absolute
+ * value satisfies an inclusive minimum threshold requirement, i.e.
+ * `abs(value) >= threshold`. The flag is created by comparing the absolute
+ * value in the specified quantity column with the given threshold, marking
+ * elements as `true` if they pass the cut and `false` otherwise. This is the
+ * absolute-value counterpart of `MinFlag`.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param threshold inclusive minimum threshold value of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+AbsMinFlag(ROOT::RDF::RNode df, const std::string &outputname,
+           const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &value) {
+                         bool flag = abs(value) >= threshold;
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a flag for event quantities whose absolute
+ * value satisfies an inclusive maximum threshold requirement, i.e.
+ * `abs(value) <= threshold`. The flag is created by comparing the absolute
+ * value in the specified quantity column with the given threshold, marking
+ * elements as `true` if they pass the cut and `false` otherwise. This is the
+ * absolute-value counterpart of `MaxFlag`.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param threshold inclusive maximum threshold value of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+AbsMaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
+           const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &value) {
+                         bool flag = abs(value) <= threshold;
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a flag for event quantities whose absolute
+ * value satisfies a strict minimum threshold requirement, i.e.
+ * `abs(value) > threshold`. The flag is created by comparing the absolute
+ * value in the specified quantity column with the given threshold, marking
+ * elements as `true` if they pass the cut and `false` otherwise. This is the
+ * absolute-value counterpart of `GreaterFlag`.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param threshold exclusive minimum threshold value of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+AbsGreaterFlag(ROOT::RDF::RNode df, const std::string &outputname,
+               const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &value) {
+                         bool flag = abs(value) > threshold;
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a flag for event quantities whose absolute
  * value satisfies a strict maximum threshold requirement, i.e.
  * `abs(value) < threshold`. The flag is created by comparing the absolute
  * value in the specified quantity column with the given threshold, marking
@@ -255,6 +342,35 @@ EqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
     return df.Define(outputname,
                      [threshold](const T &value) {
                          bool flag = value == threshold;
+                         return flag;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a flag for event quantities whose absolute
+ * value satisfies an exact threshold requirement, i.e.
+ * `abs(value) == threshold`. The flag is created by comparing the absolute
+ * value in the specified quantity column with the given threshold, marking
+ * elements as `true` if they pass the cut and `false` otherwise. This is the
+ * absolute-value counterpart of `EqualFlag`.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected event flag
+ * @param quantity name of the quantity column for which the cut should be
+ * evaluated, expected to be of type `T`
+ * @param threshold exact threshold value of type `T`
+ *
+ * @return a dataframe containing the new flag as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+AbsEqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
+             const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const T &value) {
+                         bool flag = abs(value) == threshold;
                          return flag;
                      },
                      {quantity});
