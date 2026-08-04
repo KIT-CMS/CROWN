@@ -256,19 +256,11 @@ class FriendTreeConfiguration(Configuration):
             self.sample not in quantity_data[self.era].keys()
             or self.sample != metadata["sample_type"]
         ):
-            errorstring = f"Sampletype {self.sample} not found in input information file {input_file}.\n"
-            errorstring += (
-                f"Available sampletypes are: {quantity_data[self.era].keys()}"
-            )
-            raise ConfigurationError(errorstring)
+            return {scope: {} for scope in self.selected_scopes}, metadata
         if not set(self.selected_scopes).issubset(
             set(quantity_data[self.era][self.sample].keys())
         ):
-            errorstring = f"Scopes {self.selected_scopes} not found in input information file {input_file}.\n"
-            errorstring += (
-                f"Available scopes are: {quantity_data[self.era][self.sample].keys()}"
-            )
-            raise ConfigurationError(errorstring)
+            return {scope: {} for scope in self.selected_scopes}, metadata
         return quantity_data[self.era][self.sample], metadata
 
     def optimize(self) -> None:
