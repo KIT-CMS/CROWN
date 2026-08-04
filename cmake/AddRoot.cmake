@@ -13,7 +13,13 @@ message(STATUS "")
 # Note that the flags from the build type, e.g. CMAKE_CXX_FLAGS_RELEASE, are
 # automatically appended. You can check this during build time by enabling the
 # verbose make output with "VERBOSE=1 make".
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ROOT_CXX_FLAGS}")
+# Strip RPM hardening -specs= flags: they reference redhat-annobin-cc1/
+# redhat-hardened-cc1, which point at an annobin.so relative to whichever
+# compiler is invoked. ROOT_CXX_FLAGS carries these over from the host gcc
+# ROOT was originally built with, but the CVMFS gcc release used here doesn't
+# ship its own annobin.so, so cc1plus dies with "inaccessible plugin file".
+string(REGEX REPLACE "-specs=[^ ]*" "" ROOT_CXX_FLAGS_FILTERED "${ROOT_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ROOT_CXX_FLAGS_FILTERED}")
 
 # Use -fconcepts with g++ to silence following warning: warning: use of 'auto'
 # in parameter declaration only available with '-fconcepts

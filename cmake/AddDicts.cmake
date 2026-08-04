@@ -23,15 +23,6 @@ else()
   if(${SRC_TIME} GREATER ${BIN_TIME})
     set(NEEDS_REBUILD TRUE)
   endif()
-  file(READ "${PERSISTENT_CC}" CACHED_CONTENT)
-  string(FIND "${CACHED_CONTENT}" "${SRC_HEADER}" PATH_MATCH)
-  if(${PATH_MATCH} EQUAL -1)
-    message(
-      STATUS
-        "Cached file ${PERSISTENT_CC} includes a different header path than ${SRC_HEADER}"
-    )
-    set(NEEDS_REBUILD TRUE)
-  endif()
 endif()
 
 # Build only if necessary
