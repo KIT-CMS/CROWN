@@ -9,11 +9,27 @@ message(STATUS "  Include directories: ${ROOT_INCLUDE_DIRS}")
 message(STATUS "  Compiler flags: ${ROOT_CXX_FLAGS}")
 message(STATUS "")
 
+# Strip -specs= flags from ROOT_CXX_FLAGS. These flags tell the compiler to load
+# plugin shared libraries at paths relative to the compiler installation. Since
+# ROOT_CXX_FLAGS reflects the toolchain ROOT was built with, these plugin paths
+# may not exist or be incompatible when compiling with a different toolchain.
+# This mismatch causes the compiler to fail when it cannot locate the referenced
+# plugin files.
+string(REGEX MATCHALL "-specs=[^ ]*" REMOVED_SPECS "${ROOT_CXX_FLAGS}")
+string(REGEX REPLACE "-specs=[^ ]*" "" ROOT_CXX_FLAGS_FILTERED
+                     "${ROOT_CXX_FLAGS}")
+if(NOT ROOT_CXX_FLAGS STREQUAL ROOT_CXX_FLAGS_FILTERED)
+  message(
+    WARNING
+      "Removed -specs= flags from ROOT_CXX_FLAGS to avoid plugin incompatibility: ${REMOVED_SPECS}"
+  )
+endif()
+
 # Add ROOT flags to compile options, e.g. we have to use the same C++ standard
 # Note that the flags from the build type, e.g. CMAKE_CXX_FLAGS_RELEASE, are
 # automatically appended. You can check this during build time by enabling the
 # verbose make output with "VERBOSE=1 make".
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ROOT_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ROOT_CXX_FLAGS_FILTERED}")
 
 # Use -fconcepts with g++ to silence following warning: warning: use of 'auto'
 # in parameter declaration only available with '-fconcepts
