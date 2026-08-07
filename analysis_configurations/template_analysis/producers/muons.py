@@ -14,15 +14,15 @@ with defaults(scopes=["global"]):
             input=[nanoAOD.Muon_pt],
         )
         MuonEtaCut = Producer(
-            call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {muon_max_eta})",
+            call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {muon_max_eta})",
             input=[nanoAOD.Muon_eta],
         )
         MuonDxyCut = Producer(
-            call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {muon_max_dxy})",
+            call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {muon_max_dxy})",
             input=[nanoAOD.Muon_dxy],
         )
         MuonDzCut = Producer(
-            call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {muon_max_dz})",
+            call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {muon_max_dz})",
             input=[nanoAOD.Muon_dz],
         )
         MuonIDCut = Producer(
@@ -30,7 +30,7 @@ with defaults(scopes=["global"]):
             input=[nanoAOD.Muon_mediumId],
         )
         MuonIsoCut = Producer(
-            call="physicsobject::CutMax<float>({df}, {output}, {input}, {muon_max_iso})",
+            call="physicsobject::CutSmaller<float>({df}, {output}, {input}, {muon_max_iso})",
             input=[nanoAOD.Muon_pfRelIso04_all],
         )
     BaseMuons = ProducerGroup(
@@ -58,11 +58,11 @@ with defaults(scopes=["mm"]):
             input=[nanoAOD.Muon_pt],
         )
         GoodMuonEtaCut = Producer(
-            call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {muon_max_eta})",
+            call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {muon_max_eta})",
             input=[nanoAOD.Muon_eta],
         )
         GoodMuonIsoCut = Producer(
-            call="physicsobject::CutMax<float>({df}, {output}, {input}, {muon_max_iso})",
+            call="physicsobject::CutSmaller<float>({df}, {output}, {input}, {muon_max_iso})",
             input=[nanoAOD.Muon_pfRelIso04_all],
         )
     GoodMuons = ProducerGroup(
