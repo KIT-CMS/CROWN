@@ -85,11 +85,11 @@ with defaults(scopes=["global"]):
             input=[q.Jet_pt_corrected],
         )
         JetEtaCut = Producer(
-            call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_jet_eta})",
+            call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {max_jet_eta})",
             input=[nanoAOD.Jet_eta],
         )
         BJetEtaCut = Producer(
-            call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_bjet_eta})",
+            call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {max_bjet_eta})",
             input=[nanoAOD.Jet_eta],
         )
         BTagCut = Producer(

@@ -9,11 +9,11 @@ with defaults(scopes=["global"], output=[]):
         input=[q.Tau_pt_corrected],
     )
     TauEtaCut = Producer(
-        call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_tau_eta})",
+        call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {max_tau_eta})",
         input=[nanoAOD.Tau_eta],
     )
     TauDzCut = Producer(
-        call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_tau_dz})",
+        call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {max_tau_dz})",
         input=[nanoAOD.Tau_dz],
     )
     TauDMCut = Producer(
@@ -170,11 +170,11 @@ with defaults(scopes=["et", "mt", "tt"]):
             input=[q.Tau_pt_corrected],
         )
         GoodTauEtaCut = Producer(
-            call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_tau_eta})",
+            call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {max_tau_eta})",
             input=[nanoAOD.Tau_eta],
         )
         GoodTauDzCut = Producer(
-            call="physicsobject::CutAbsMax<float>({df}, {output}, {input}, {max_tau_dz})",
+            call="physicsobject::CutAbsSmaller<float>({df}, {output}, {input}, {max_tau_dz})",
             input=[nanoAOD.Tau_dz],
         )
         GoodTauDMCut = Producer(

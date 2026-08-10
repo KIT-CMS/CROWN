@@ -59,7 +59,7 @@ with defaults(scopes=["mm"], input=[q.pt_2, q.eta_2]):
         output=[q.reco_wgt_mu_2],
     )
     Muon_2_ID_SF = Producer(
-        call="""physicsobject::muon::scalefactor::IsoAndID(
+        call="""physicsobject::muon::scalefactor::IosAndID(
             {df},
             correctionManager,
             {output},

@@ -76,17 +76,19 @@ inline ROOT::RDF::RNode CombineMasks(ROOT::RDF::RNode df,
 }
 
 /**
- * @brief This function defines a mask for objects that satisfy a minimum
- * threshold requirement. The mask is created by comparing the values in the
- * specified column with the given threshold, marking elements as `1` if they
- * pass the cut and `0` otherwise.
+ * @brief This function defines a mask for objects that satisfy an inclusive
+ * minimum threshold requirement, i.e. `value >= threshold`. The mask is
+ * created by comparing the values in the specified column with the given
+ * threshold, marking elements as `1` if they pass the cut and `0` otherwise.
+ * The threshold value itself passes the cut here, in contrast to `CutGreater`,
+ * which implements the exclusive `value > threshold`.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
  * @param outputname name of the new column containing the selected object mask
  * @param quantity name of the object column in the NanoAOD for which the
  * cut should be applied, expected to be of type `ROOT::RVec<T>`
- * @param threshold minimum threshold value of type `T`
+ * @param threshold inclusive minimum threshold value of type `T`
  *
  * @return a dataframe containing the new mask as a column
  */
@@ -103,17 +105,109 @@ CutMin(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief This function defines a mask for objects that satisfy a minimum
- * threshold requirement. The mask is created by comparing the absolute values
- * in the specified column with the given threshold, marking elements as `1` if
- * they pass the cut and `0` otherwise.
+ * @brief This function defines a mask for objects that satisfy an inclusive
+ * maximum threshold requirement, i.e. `value <= threshold`. The mask is
+ * created by comparing the values in the specified column with the given
+ * threshold, marking elements as `1` if they pass the cut and `0` otherwise.
+ * The threshold value itself passes the cut here, in contrast to `CutSmaller`,
+ * which implements the exclusive `value < threshold`.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
  * @param outputname name of the new column containing the selected object mask
  * @param quantity name of the object column in the NanoAOD for which the
  * cut should be applied, expected to be of type `ROOT::RVec<T>`
- * @param threshold minimum threshold value of type `T`
+ * @param threshold inclusive maximum threshold value of type `T`
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+CutMax(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const ROOT::RVec<T> &values) {
+                         ROOT::RVec<int> mask = values <= threshold;
+                         return mask;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a mask for objects that satisfy a strict
+ * minimum threshold requirement, i.e. `value > threshold`. The mask is created
+ * by comparing the values in the specified column with the given threshold,
+ * marking elements as `1` if they pass the cut and `0` otherwise. The
+ * threshold value itself does not pass the cut here, in contrast to `CutMin`,
+ * which implements the inclusive `value >= threshold`.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the object column in the NanoAOD for which the
+ * cut should be applied, expected to be of type `ROOT::RVec<T>`
+ * @param threshold exclusive minimum threshold value of type `T`
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+CutGreater(ROOT::RDF::RNode df, const std::string &outputname,
+           const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const ROOT::RVec<T> &values) {
+                         ROOT::RVec<int> mask = values > threshold;
+                         return mask;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a mask for objects that satisfy a strict
+ * maximum threshold requirement, i.e. `value < threshold`. The mask is created
+ * by comparing the values in the specified column with the given threshold,
+ * marking elements as `1` if they pass the cut and `0` otherwise. The
+ * threshold value itself does not pass the cut here, in contrast to `CutMax`,
+ * which implements the inclusive `value <= threshold`.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the object column in the NanoAOD for which the
+ * cut should be applied, expected to be of type `ROOT::RVec<T>`
+ * @param threshold exclusive maximum threshold value of type `T`
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+CutSmaller(ROOT::RDF::RNode df, const std::string &outputname,
+           const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const ROOT::RVec<T> &values) {
+                         ROOT::RVec<int> mask = values < threshold;
+                         return mask;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a mask for objects whose absolute value
+ * satisfies an inclusive minimum threshold requirement, i.e.
+ * `abs(value) >= threshold`. The mask is created by comparing the absolute
+ * values in the specified column with the given threshold, marking elements as
+ * `1` if they pass the cut and `0` otherwise. This is the absolute-value
+ * counterpart of `CutMin`, and it is typically combined with `CutAbsSmaller`
+ * to select an absolute-value band such as an \f$|\eta|\f$ range: taking the
+ * lower edge inclusive and the upper edge exclusive makes adjacent bands tile
+ * the range without gaps or overlaps.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the object column in the NanoAOD for which the
+ * cut should be applied, expected to be of type `ROOT::RVec<T>`
+ * @param threshold inclusive minimum threshold value of type `T`
  *
  * @return a dataframe containing the new mask as a column
  */
@@ -130,44 +224,19 @@ CutAbsMin(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief This function defines a mask for objects that satisfy a maximum
- * threshold requirement. The mask is created by comparing the values in the
- * specified column with the given threshold, marking elements as `1` if they
- * pass the cut and `0` otherwise.
+ * @brief This function defines a mask for objects whose absolute value
+ * satisfies an inclusive maximum threshold requirement, i.e.
+ * `abs(value) <= threshold`. The mask is created by comparing the absolute
+ * values in the specified column with the given threshold, marking elements as
+ * `1` if they pass the cut and `0` otherwise. This is the absolute-value
+ * counterpart of `CutMax`.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
  * @param outputname name of the new column containing the selected object mask
  * @param quantity name of the object column in the NanoAOD for which the
  * cut should be applied, expected to be of type `ROOT::RVec<T>`
- * @param threshold maximum threshold value of type `T`
- *
- * @return a dataframe containing the new mask as a column
- */
-template <typename T>
-inline ROOT::RDF::RNode
-CutMax(ROOT::RDF::RNode df, const std::string &outputname,
-       const std::string &quantity, const T &threshold) {
-    return df.Define(outputname,
-                     [threshold](const ROOT::RVec<T> &values) {
-                         ROOT::RVec<int> mask = values < threshold;
-                         return mask;
-                     },
-                     {quantity});
-}
-
-/**
- * @brief This function defines a mask for objects that satisfy a maximum
- * threshold requirement. The mask is created by comparing the absolute values
- * in the specified column with the given threshold, marking elements as `1` if
- * they pass the cut and `0` otherwise.
- *
- * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
- * @param df input dataframe
- * @param outputname name of the new column containing the selected object mask
- * @param quantity name of the object column in the NanoAOD for which the
- * cut should be applied, expected to be of type `ROOT::RVec<T>`
- * @param threshold maximum threshold value of type `T`
+ * @param threshold inclusive maximum threshold value of type `T`
  *
  * @return a dataframe containing the new mask as a column
  */
@@ -175,6 +244,64 @@ template <typename T>
 inline ROOT::RDF::RNode
 CutAbsMax(ROOT::RDF::RNode df, const std::string &outputname,
           const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const ROOT::RVec<T> &values) {
+                         ROOT::RVec<int> mask = abs(values) <= threshold;
+                         return mask;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a mask for objects whose absolute value
+ * satisfies a strict minimum threshold requirement, i.e.
+ * `abs(value) > threshold`. The mask is created by comparing the absolute
+ * values in the specified column with the given threshold, marking elements as
+ * `1` if they pass the cut and `0` otherwise. This is the absolute-value
+ * counterpart of `CutGreater`.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the object column in the NanoAOD for which the
+ * cut should be applied, expected to be of type `ROOT::RVec<T>`
+ * @param threshold exclusive minimum threshold value of type `T`
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+CutAbsGreater(ROOT::RDF::RNode df, const std::string &outputname,
+              const std::string &quantity, const T &threshold) {
+    return df.Define(outputname,
+                     [threshold](const ROOT::RVec<T> &values) {
+                         ROOT::RVec<int> mask = abs(values) > threshold;
+                         return mask;
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function defines a mask for objects whose absolute value
+ * satisfies a strict maximum threshold requirement, i.e.
+ * `abs(value) < threshold`. The mask is created by comparing the absolute
+ * values in the specified column with the given threshold, marking elements as
+ * `1` if they pass the cut and `0` otherwise. This is the absolute-value
+ * counterpart of `CutSmaller`.
+ *
+ * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
+ * @param df input dataframe
+ * @param outputname name of the new column containing the selected object mask
+ * @param quantity name of the object column in the NanoAOD for which the
+ * cut should be applied, expected to be of type `ROOT::RVec<T>`
+ * @param threshold exclusive maximum threshold value of type `T`
+ *
+ * @return a dataframe containing the new mask as a column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+CutAbsSmaller(ROOT::RDF::RNode df, const std::string &outputname,
+              const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const ROOT::RVec<T> &values) {
                          ROOT::RVec<int> mask = abs(values) < threshold;
@@ -211,10 +338,12 @@ CutEqual(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
- * @brief This function defines a mask for objects that satisfy an exact
- * threshold requirement. The mask is created by comparing the absolute values
- * in the specified column with the given threshold, marking elements as `1` if
- * they pass the cut and `0` otherwise.
+ * @brief This function defines a mask for objects whose absolute value
+ * satisfies an exact threshold requirement, i.e. `abs(value) == threshold`.
+ * The mask is created by comparing the absolute values in the specified
+ * column with the given threshold, marking elements as `1` if they pass the
+ * cut and `0` otherwise. This is the absolute-value counterpart of
+ * `CutEqual`.
  *
  * @tparam T type of the threshold and input quantity (e.g. `float`, `int`)
  * @param df input dataframe
