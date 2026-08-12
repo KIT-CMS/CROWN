@@ -8,6 +8,8 @@ namespace scalefactor {
 // physicsobject::tau::scalefactor::TauIDVsJetVariation
 // ----------------------------------------------------------------------------
 
+// --- public ------------------------------------------------------------------
+
 /**
  * @brief Construct a new `TauIDVsJetVariation`.
  *
@@ -38,6 +40,34 @@ namespace scalefactor {
  *   captured from the values before and after `"to"`. These numbers must
  *   represent unsigned integers. If the group is not matched, no
  *   \f$p_{\text{T}}\f$ selection takes place.
+ *
+ * Example:
+ *
+ * The variation string `"up_custom_dm10_pt20to40"` would translate into the the
+ * following pseudocode for the evaluation of the scale factor:
+ *
+ * ```cpp
+ * double pt, eta;
+ * int decay_mode, gen_match;
+ * std::string wp, vsele_wp, sf_dependence;
+ * double sf;
+ * if (pt >= 20 && pt < 40 && decay_mode == 10) {
+ *     sf = correction->evaluate(pt, decay_mode, gen_match, wp, vsele_wp, "up", sf_dependence);
+ * else {
+ *     sf = correction->evaluate(pt, decay_mode, gen_match, wp, vsele_wp, "nom", sf_dependence);
+ * }
+ * ```
+ *
+ * For non-matching variation string `"down_syst_alleras", the scale factor is
+ * directly evaluated with the correction's evaluate function:
+ *
+ * ```cpp
+ * double pt, eta;
+ * int decay_mode, gen_match;
+ * std::string wp, vsele_wp, sf_dependence;
+ * double sf;
+ * sf = correction->evaluate(pt, decay_mode, gen_match, wp, vsele_wp, "down_syst_alleras", sf_dependence);
+ * ```
  *
  * @param variation Name of the tau ID vs jets scale factor variation
  */
@@ -110,7 +140,9 @@ TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation) {
  *
  * @return Function that takes a list of inputs and returns the scale factor.
  */
-std::function<double (const std::vector<Variable::Type>&)> TauIDVsJetVariation::wrap_evaluate(const correction::Correction *evaluator) const {
+std::function<double (const std::vector<Variable::Type>&)>
+TauIDVsJetVariation::wrap_evaluate(const correction::Correction *evaluator)
+const {
     // Get indices of pt and decay mode in the evaluate function inputs
     size_t pt_index = tau_id_vs_jet_variation.get_variable_index("pt");
     size_t dm_index = tau_id_vs_jet_variation.get_variable_index("decayMode");
@@ -174,13 +206,15 @@ std::function<double (const std::vector<Variable::Type>&)> TauIDVsJetVariation::
     return wrapper;
 }
 
+// --- private -----------------------------------------------------------------
+
 size_t TauIDVsJetVariation::get_variable_index(
-    const correction::Correction &evaluator, const std::string &name
+    const correction::Correction *evaluator, const std::string &name
 ) const {
     // Go through the list of the evaluator's inputs and find the index of the
     // variable with the given name
-    for (size_t i = 0; i < evaluator.inputs().size(); ++i) {
-        if (evaluator.variables()[i].name() == name) {
+    for (size_t i = 0; i < evaluator->inputs().size(); ++i) {
+        if (evaluator->variables()[i].name() == name) {
             return i;
         }
     }
