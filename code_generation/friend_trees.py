@@ -261,23 +261,11 @@ class FriendTreeConfiguration(Configuration):
             self.sample not in quantity_data[self.era].keys()
             or self.sample != metadata["sample_type"]
         ):
-            errorstring = f"Sampletype {self.sample} not found in input information file {input_file}.\n"
-            errorstring += (
-                f"Available sampletypes are: {quantity_data[self.era].keys()}"
-            )
-            raise ConfigurationError(errorstring)
-        if not set(self.selected_scopes) & set(
-            quantity_data[self.era][self.sample].keys()
+            return {scope: {} for scope in self.selected_scopes}, metadata
+        if not set(self.selected_scopes).issubset(
+            set(quantity_data[self.era][self.sample].keys())
         ):
-            # the quantities map was written for a different scope, so it does not
-            # contribute anything to this configuration. Whether the selected scope is
-            # covered by any of the provided files is checked after merging them all
-            log.debug(
-                f"Skipping input information file {input_file}, it does not contain "
-                f"the selected scopes {self.selected_scopes}, but "
-                f"{quantity_data[self.era][self.sample].keys()}"
-            )
-            return {}, metadata
+            return {scope: {} for scope in self.selected_scopes}, metadata
         return quantity_data[self.era][self.sample], metadata
 
     def optimize(self) -> None:

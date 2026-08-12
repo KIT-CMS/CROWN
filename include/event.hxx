@@ -401,9 +401,9 @@ InListFlag(ROOT::RDF::RNode df, const std::string &outputname,
            const std::string &quantity, const std::vector<T> &selection) {
     return df.Define(outputname,
                      [selection](const T &value) {
-                         bool flag = std::find(selection.begin(),
-                                               selection.end(),
-                                               value) != selection.end();
+                         bool flag =
+                             std::find(selection.begin(), selection.end(),
+                                       value) != selection.end();
                          return flag;
                      },
                      {quantity});
@@ -449,10 +449,9 @@ inline ROOT::RDF::RNode Rename(ROOT::RDF::RNode df,
  * @return a dataframe with the new column of type `double`
  */
 template <typename T1, typename T2>
-inline ROOT::RDF::RNode Product(ROOT::RDF::RNode df,
-                                const std::string &outputname,
-                                const std::string &quantity_1,
-                                const std::string &quantity_2) {
+inline ROOT::RDF::RNode
+Product(ROOT::RDF::RNode df, const std::string &outputname,
+        const std::string &quantity_1, const std::string &quantity_2) {
     return df.Define(outputname,
                      [](const T1 &value_1, const T2 &value_2) {
                          double product = static_cast<double>(value_1) *
