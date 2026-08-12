@@ -4,6 +4,7 @@
 #include <functional>
 #include "correction.h"
 
+#include "../../include/utility/Logger.hxx"
 #include "../../include/utility/TauVariations.hxx"
 
 
@@ -81,10 +82,16 @@ namespace scalefactor {
  * @param variation Name of the tau ID vs jets scale factor variation
  */
 TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation) {
+    // Store the input variation's name
+    custom_variation_ = variation;
+
     // Define regular expression that catches custom variation definitions
     auto custom_pattern = std::regex(
         "(up|down)_custom(_dm(0|1|10|11))?(_pt(\\d+)to(\\d+))?",
         std::regex_constants::ECMAScript
+    );
+    Logger::get("TauIDVsJetVariation")->debug(
+        "Parsing tau ID vs jet variation: {}", variation
     );
 
     std::smatch matches;
@@ -136,6 +143,26 @@ TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation) {
         has_dm_selection_ = false;
         has_pt_selection_ = false;
     }
+
+    // Final debug output to show the stored values of the variation and
+    // selections
+    Logger::get("TauIDVsJetVariation")->debug(
+        "Set up variation with the following values:"
+    );
+    Logger::get("TauIDVsJetVariation")->debug(
+        "  correction file variation: {}", variation_);
+    Logger::get("TauIDVsJetVariation")->debug(
+        "  decay mode selection:      {}", has_dm_selection_);
+    if (has_dm_selection_) {
+        Logger::get("TauIDVsJetVariation")->debug(
+        "  decay mode selected:       {}", decay_mode_);
+    }
+    Logger::get("TauIDVsJetVariation")->debug(
+        "  pt selection:              {}", has_pt_selection_);
+    if (has_pt_selection_) {
+        Logger::get("TauIDVsJetVariation")->debug(
+        "  pt range selected:         [{}, {})", pt_min_, pt_max_);
+    }
 }
 
 /**
@@ -155,10 +182,11 @@ TauIDVsJetVariation::wrap_evaluate(const correction::Correction *evaluator)
 const {
     // Get indices of pt and decay mode in the evaluate function inputs
     size_t pt_index = get_variable_index(evaluator, "pt");
-    size_t dm_index = get_variable_index(evaluator, "decayMode");
-    size_t variation_index = get_variable_index(evaluator, "variation");
+    size_t dm_index = get_variable_index(evaluator, "dm");
+    size_t variation_index = get_variable_index(evaluator, "syst");
 
     // Capture selection flags and values for the wrapper function
+    auto custom_variation = custom_variation_;
     auto has_dm_selection = has_dm_selection_;
     auto has_pt_selection = has_pt_selection_;
     auto sel_decay_mode = decay_mode_;
@@ -175,6 +203,7 @@ const {
         pt_index,
         dm_index,
         variation_index,
+        custom_variation,
         has_dm_selection,
         has_pt_selection,
         sel_decay_mode,
@@ -185,21 +214,44 @@ const {
         // If no custom selections are imposed, just evaluate the correction
         // factor using the provided values
         if (!has_dm_selection && !has_pt_selection) {
+            Logger::get("TauIDVsJetVariation")->debug("Default evaluation of correction");
             return evaluator->evaluate(values);
         }
+
+        // For custom selections, the input values for the evaluate function
+        // need to be manipulated manually.
+        Logger::get("TauIDVsJetVariation")->debug(
+            "Custom evaluation of correction for custom variation {}",
+            custom_variation);
 
         // Get pt and decay mode values
         auto pt = std::get<double>(values[pt_index]);
         auto decay_mode = std::get<int>(values[dm_index]);
 
+        Logger::get("TauIDVsJetVariation")->debug(
+            "Checking selections for pt {}, decay mode {}",
+            pt, decay_mode
+        );
+
         // Check whether the event passes the decay mode and pt selections
-        auto selected = true;
-        if (has_dm_selection) {
-            selected = selected && (decay_mode == sel_decay_mode);
-        }
-        if (has_pt_selection) {
-            selected = selected && (pt >= sel_pt_min) && (pt < sel_pt_max);
-        }
+        auto dm_selected = decay_mode == sel_decay_mode;
+        auto pt_selected = pt >= sel_pt_min && pt < sel_pt_max;
+        auto selected = (
+            (has_dm_selection && dm_selected) || !has_dm_selection
+        ) && (
+            (has_pt_selection && pt_selected) || !has_pt_selection
+        );
+        Logger::get("TauIDVsJetVariation")->debug(
+            "Selection results for custom variation");
+        Logger::get("TauIDVsJetVariation")->debug(
+            "  decay mode selection {}", dm_selected
+        );
+        Logger::get("TauIDVsJetVariation")->debug(
+            "  pt selection         {}", pt_selected
+        );
+        Logger::get("TauIDVsJetVariation")->debug(
+            "  overall selection    {}", selected
+        );
 
         // If the event is marked as selected, evaluate the correction
         // factor with the correct variation direction. If the selection is not
@@ -210,6 +262,10 @@ const {
         } else {
             values_copy[variation_index] = "nom";
         }
+        Logger::get("TauIDVsJetVariation")->debug(
+            "Evaluating correction with variation {}",
+            std::get<std::string>(values_copy[variation_index])
+        );
 
         return evaluator->evaluate(values_copy);
     };

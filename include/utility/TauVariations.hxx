@@ -28,6 +28,9 @@ public:
     std::function<double (const std::vector<correction::Variable::Type>&)> wrap_evaluate(const correction::Correction*) const;
 
 private:
+    // Name of the variation passed to the constructor
+    std::string custom_variation_;
+
     // Name of the variation in the correction file
     std::string variation_;
 
