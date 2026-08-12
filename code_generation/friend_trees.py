@@ -450,6 +450,7 @@ class FriendTreeConfiguration(Configuration):
         if not isinstance(scopes, list):
             scopes = [scopes]
         rule.set_available_sampletypes(self.available_sample_types)
+        rule.set_available_eras(self.available_eras)
         rule.set_scopes(scopes)
         # TODO Check if this works without a global scope
         if self.global_scope is not None:

@@ -91,6 +91,23 @@ class EraConfigurationError(ConfigurationError):
         super().__init__(self.message)
 
 
+class EraRuleConfigurationError(ConfigurationError):
+    """
+    Exception raised when the era used for a Rule provided by the user is not valid.
+    """
+
+    def __init__(
+        self,
+        era: str,
+        rule,
+        available_eras: Union[Set[str], List[str]],
+    ):
+        self.message = "Era {} cannot be used in Rule {} since the era is not defined. Available eras are {}".format(
+            era, rule, available_eras
+        )
+        super().__init__(self.message)
+
+
 class InvalidProducerConfigurationError(ConfigurationError):
     """
     Exception raised when the producer configuration provided by the user is not valid.
