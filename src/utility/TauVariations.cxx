@@ -1,3 +1,12 @@
+#include <regex>
+#include <format>
+#include <vector>
+#include <functional>
+#include "correction.h"
+
+#include "../../include/utility/TauVariations.hxx"
+
+
 namespace physicsobject {
 
 namespace tau {
@@ -107,9 +116,13 @@ TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation) {
         // Set private member variables based on matched groups or default
         // values
         variation_ = direction;
-        dm =  matches[3].matched ?  std::stoi(dm_str) : default_decay_mode_;
-        pt_min = matches[5].matched ? std::stof(pt_min_str) : default_pt_min_;
-        pt_max = matches[6].matched ? std::stof(pt_max_str) : default_pt_max_;
+        if (has_dm_selection_) {
+            decay_mode_ = std::stoi(dm_str);
+        }
+        if (has_pt_selection_) {
+            pt_min_ = std::stof(pt_min_str);
+            pt_max_ = std::stof(pt_max_str);
+        }
     } else {
         // If the custom_pattern regular expression is not matched, set the
         // variation to the input string and do not restrict decay mode or pt
@@ -118,9 +131,6 @@ TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation) {
 
         // Set main attributes
         variation_ = variation;
-        dm = default_decay_mode_;
-        pt_min = default_pt_min_;
-        pt_max = default_pt_max_;
 
         // Do not impose selections on decay mode or pt range
         has_dm_selection_ = false;
@@ -140,13 +150,13 @@ TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation) {
  *
  * @return Function that takes a list of inputs and returns the scale factor.
  */
-std::function<double (const std::vector<Variable::Type>&)>
+std::function<double (const std::vector<correction::Variable::Type>&)>
 TauIDVsJetVariation::wrap_evaluate(const correction::Correction *evaluator)
 const {
     // Get indices of pt and decay mode in the evaluate function inputs
-    size_t pt_index = tau_id_vs_jet_variation.get_variable_index("pt");
-    size_t dm_index = tau_id_vs_jet_variation.get_variable_index("decayMode");
-    size_t variation_index = tau_id_vs_jet_variation.get_variable_index("variation");
+    size_t pt_index = get_variable_index(evaluator, "pt");
+    size_t dm_index = get_variable_index(evaluator, "decayMode");
+    size_t variation_index = get_variable_index(evaluator, "variation");
 
     // Capture selection flags and values for the wrapper function
     auto has_dm_selection = has_dm_selection_;
@@ -179,8 +189,8 @@ const {
         }
 
         // Get pt and decay mode values
-        auto pt = values[pt_index];
-        auto decay_mode = values[dm_index];
+        auto pt = std::get<double>(values[pt_index]);
+        auto decay_mode = std::get<int>(values[dm_index]);
 
         // Check whether the event passes the decay mode and pt selections
         auto selected = true;
@@ -194,13 +204,14 @@ const {
         // If the event is marked as selected, evaluate the correction
         // factor with the correct variation direction. If the selection is not
         // passed, evaluate with the nominal variation
-        if (is_selected) {
-            values[variation_index] = correction_variation;
+        std::vector<correction::Variable::Type> values_copy = values;
+        if (selected) {
+            values_copy[variation_index] = correction_variation;
         } else {
-            values[variation_index] = "nom";
+            values_copy[variation_index] = "nom";
         }
 
-        return evaluator->evaluate(values);
+        return evaluator->evaluate(values_copy);
     };
 
     return wrapper;
@@ -214,7 +225,7 @@ size_t TauIDVsJetVariation::get_variable_index(
     // Go through the list of the evaluator's inputs and find the index of the
     // variable with the given name
     for (size_t i = 0; i < evaluator->inputs().size(); ++i) {
-        if (evaluator->variables()[i].name() == name) {
+        if (evaluator->inputs()[i].name() == name) {
             return i;
         }
     }
