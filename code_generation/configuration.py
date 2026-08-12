@@ -478,6 +478,7 @@ class Configuration(object):
         if not isinstance(scopes, list):
             scopes = [scopes]
         rule.set_available_sampletypes(self.available_sample_types)
+        rule.set_available_eras(self.available_eras)
         rule.set_scopes(scopes)
         rule.set_global_scope(self.global_scope)
         self.rules.add(rule)
@@ -556,10 +557,14 @@ class Configuration(object):
         """
         for rule in self.rules:
             rule.apply(
-                self.sample, self.producers, self.unpacked_producers, self.outputs
+                self.sample,
+                self.era,
+                self.producers,
+                self.unpacked_producers,
+                self.outputs,
             )
-            # also update the set of available outputs if the affected sample is the current sample
-            if self.sample in rule.samples:
+            # also update the set of available outputs if the affected sample and era are the current ones
+            if self.sample in rule.samples and self.era in rule.eras:
                 for scope in rule.affected_scopes():
                     if isinstance(rule, RemoveProducer):
                         self.available_outputs[scope][
@@ -636,7 +641,8 @@ class Configuration(object):
             Returns:
                 None
         """
-        for key in config:
+        # over a copy of the keys, the empty ones are deleted while iterating
+        for key in list(config):
             if isinstance(config[key], dict):
                 self._remove_empty_configkeys(config[key])
             # special case for extended vector producers, here we can have a list, that contains empty dicts

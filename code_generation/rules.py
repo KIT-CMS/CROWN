@@ -9,7 +9,7 @@ from code_generation.producer import (
     TProducerStore,
 )
 from code_generation.quantity import QuantitiesStore
-from code_generation.exceptions import SampleRuleConfigurationError
+from code_generation.exceptions import SampleRuleConfigurationError, EraRuleConfigurationError
 
 log = logging.getLogger(__name__)
 
@@ -20,6 +20,8 @@ class ProducerRule:
         producers: TProducerInput,
         samples: Union[str, List[str]] = [],
         exclude_samples: Union[str, List[str]] = [],
+        eras: Union[str, List[str]] = [],
+        exclude_eras: Union[str, List[str]] = [],
         scopes: Union[str, List[str]] = "global",
         invert: bool = False,
         update_output: bool = True,
@@ -28,8 +30,10 @@ class ProducerRule:
 
         Args:
             producers: A list of producers or producer groups to be modified.
-            samples: A list of samples, for which the rule should be applied. Only one of samples and exclude_samples can be defined.
+            samples: A list of samples, for which the rule should be applied. Only one of samples and exclude_samples can be defined. If neither is defined, the rule applies to all samples.
             exclude_samples: A list of samples, for which the rule should not be applied. Only one of samples and exclude_samples can be defined.
+            eras: A list of eras, for which the rule should be applied. Only one of eras and exclude_eras can be defined. If neither is defined, the rule applies to all eras.
+            exclude_eras: A list of eras, for which the rule should not be applied. Only one of eras and exclude_eras can be defined.
             scopes: The scopes, in which the rule should be applied. Defaults to "global".
             invert: If set, the invert of the rule is applied. Defaults to False.
             update_output: If set, the output quantities are updated. Defaults to True.
@@ -51,6 +55,14 @@ class ProducerRule:
             self.samples = [samples]
         else:
             self.samples = samples
+        if isinstance(exclude_eras, str):
+            self.exclude_eras = [exclude_eras]
+        else:
+            self.exclude_eras = exclude_eras
+        if isinstance(eras, str):
+            self.eras = [eras]
+        else:
+            self.eras = eras
 
     def set_available_sampletypes(self, available_samples) -> None:
         # sanitize input
@@ -58,11 +70,6 @@ class ProducerRule:
             self.available_samples = [available_samples]
         else:
             self.available_samples = available_samples
-        # make sure that either samples or exclude_samples are defined
-        if self.exclude_samples == [] and self.samples == []:
-            raise ValueError(
-                f"ProducerRule: Either samples or exclude_samples have to be defined!: (Rule: {self}, Samples: {self.samples}, Excluded Samples: {self.exclude_samples})"
-            )
         if self.exclude_samples != [] and self.samples != []:
             raise ValueError(
                 f"ProducerRule: Both samples and are exclude_samples are defined, pick one!: (Rule: {self}, Samples: {self.samples}, Excluded Samples: {self.exclude_samples})"
@@ -70,9 +77,32 @@ class ProducerRule:
         # make sure that the sampletypes are valid
         self.validate_sampletypes(self.samples)
         self.validate_sampletypes(self.exclude_samples)
+        # if neither samples nor exclude_samples are defined, the rule applies to every available sample
+        if self.exclude_samples == [] and self.samples == []:
+            self.samples = list(self.available_samples)
         # if exclude_samples are defined, we have to contstruct the list of samples them from the list of available samples
-        if self.exclude_samples != []:
+        elif self.exclude_samples != []:
             self.samples = list(set(self.available_samples) - set(self.exclude_samples))
+
+    def set_available_eras(self, available_eras) -> None:
+        # sanitize input
+        if isinstance(available_eras, str):
+            self.available_eras = [available_eras]
+        else:
+            self.available_eras = available_eras
+        if self.exclude_eras != [] and self.eras != []:
+            raise ValueError(
+                f"ProducerRule: Both eras and exclude_eras are defined, pick one!: (Rule: {self}, Eras: {self.eras}, Excluded Eras: {self.exclude_eras})"
+            )
+        # make sure that the eras are valid
+        self.validate_eratypes(self.eras)
+        self.validate_eratypes(self.exclude_eras)
+        # if neither eras nor exclude_eras are defined, the rule applies to every available era
+        if self.exclude_eras == [] and self.eras == []:
+            self.eras = list(self.available_eras)
+        # if exclude_eras are defined, we have to construct the list of eras from the list of available eras
+        elif self.exclude_eras != []:
+            self.eras = list(set(self.available_eras) - set(self.exclude_eras))
 
     def set_scopes(self, scopes: List[str]) -> None:
         if isinstance(scopes, str):
@@ -101,9 +131,22 @@ class ProducerRule:
             if sample not in self.available_samples:
                 raise SampleRuleConfigurationError(sample, self, self.available_samples)
 
-    # Evaluate whether modification should be applied depending on sample and inversion flag
-    def is_applicable(self, sample: str) -> bool:
-        applicable = sample in self.samples
+    def validate_eratypes(self, eratypes: List[str]) -> None:
+        """Function to check, if a rule is applicable, or if one of the defined eras is not available.
+
+        Args:
+            available_eras (List[str]): List of available eras.
+
+        Returns:
+            None
+        """
+        for era in eratypes:
+            if era not in self.available_eras:
+                raise EraRuleConfigurationError(era, self, self.available_eras)
+
+    # Evaluate whether modification should be applied depending on sample, era, and inversion flag
+    def is_applicable(self, sample: str, era: str) -> bool:
+        applicable = sample in self.samples and era in self.eras
         if self.invert:
             applicable = not applicable
         return applicable
@@ -122,13 +165,14 @@ class ProducerRule:
     def apply(
         self,
         sample: str,
+        era: str,
         producers_to_be_updated: TProducerStore,
         unpacked_producers: TProducerStore,
         outputs_to_be_updated: QuantitiesStore,
     ) -> None:
-        if self.is_applicable(sample):
-            log.warning(f"Applying rule {self} for sample {sample}")
-            log.debug("For sample {}, applying >> {} ".format(sample, self))
+        if self.is_applicable(sample, era):
+            log.warning(f"Applying rule {self} for sample {sample}, era {era}")
+            log.debug("For sample {}, era {}, applying >> {} ".format(sample, era, self))
             self.update_producers(producers_to_be_updated, unpacked_producers)
             self.update_outputs(outputs_to_be_updated)
 
