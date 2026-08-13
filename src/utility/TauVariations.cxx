@@ -410,7 +410,7 @@ TauIDVsJetVariation::wrap_evaluate(const correction::Correction *evaluator)
 const {
     // Get indices of the variables in the list of inputs of the correction::Correction
     size_t gen_index = get_variable_index(evaluator, "gen_match", -1);
-    size_t decay_mode_index = get_variable_index(evaluator, "decay_mode", -1);
+    size_t decay_mode_index = get_variable_index(evaluator, "dm", -1);
     size_t pt_index = get_variable_index(evaluator, "pt", -1);
     size_t eta_index = get_variable_index(evaluator, "eta", -1);
     size_t syst_index = get_variable_index(evaluator, "syst", -1);
