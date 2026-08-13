@@ -3236,6 +3236,78 @@ Id_vsEle(ROOT::RDF::RNode df,
         {eta, decay_mode, gen_match}
     );
 }
+
+ROOT::RDF::RNode Id_vsMu(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname, const std::string &eta,
+    const std::string &gen_match, const std::string &sf_file,
+    const std::string &sf_name, const std::string &wp,
+    const std::string &wp_ele, const std::string &wp_jet,
+    const std::string &era, const std::string &variation) {
+    // Define logger name
+    std::string logger_name = "physicsobject::tau::scalefactor::Id_vsMu";
+
+    // Load the corrections from the correction file for the given correction
+    // name
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+
+    // Create the variation object and evaluate wrapper for extended systematics
+    // handling. Refer to the documentation of TauIDVsJetVariation for more
+    // information.
+    auto tau_id_variation = TauIDVsJetVariation(variation);
+    auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
+
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    auto sf_calculator = [evaluator, era, wp, variation_barrel,
+                          variation_endcap,
+                          sf_name](const float &eta, const int &dm,
+                                   const int &gen_match) {
+
+        // Log input to the SF calculation
+        Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
+        Logger::get(logger_name)->debug("   eta           {}", pt);
+        Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
+        Logger::get(logger_name)->debug("   gen_match     {}", gen_match);
+        Logger::get(logger_name)->debug("   wp            {}", wp);
+        Logger::get(logger_name)->debug("   wp_ele        {}", wp_ele);
+        Logger::get(logger_name)->debug("   wp_jet        {}", wp_jet);
+        Logger::get(logger_name)->debug("   variation     {}", variation);
+
+        // For placeholder eta values and decay modes not covered by this
+        // SF, return unity
+        const auto decay_modes = std::vector<int>({0, 1, 10, 11});
+        if (
+            (eta == -10.0)
+            || (std::find(decay_modes.begin(), decay_modes.end(), decay_mode)
+            == decay_modes.end())
+        ) {
+            Logger::get(logger_name)->debug(
+                "Placeholder for eta or decay_mode foumd, no correction applied (SF of 1.0)");
+            return 1.0;
+        }
+
+        // Evaluate the scale factor
+        double sf = 1.0;
+        if (std::stoi(era.substr(0, 4)) >= 2024) {
+            // For 2024 and later, SF have additional dependencies on working
+            // points of vsEle and vsJet ID
+            sf = evaluate_wrapper({std::abs(eta), gen_match, wp, wp_ele, wp_jet, variation});
+        } else {
+            // For eras befor 2024, SF only depend on the vsMu ID working point,
+            // not on the vsEle and vsJet ID working points
+            sf = evaluate_wrapper({std::abs(eta), decay_mode, gen_match, wp, variation});
+        }
+        Logger::get(logger_name)->debug("Obtained SF value {}", sf);
+
+        return sf;
+    };
+    
+    return df.Define(
+        outputname,
+        sf_calculator,
+        {eta, gen_match}
+    );
 }
 
 } // end namespace experimental

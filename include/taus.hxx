@@ -369,6 +369,14 @@ Id_vsEle(ROOT::RDF::RNode df,
          const std::string &sf_file, const std::string &sf_name,
          const std::string &wp, const std::string &era,
          const std::string &variation);
+ROOT::RDF::RNode Id_vsMu(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname, const std::string &eta,
+    const std::string &gen_match, const std::string &sf_file,
+    const std::string &sf_name, const std::string &wp,
+    const std::string &wp_ele, const std::string &wp_jet,
+    const std::string &era, const std::string &variation);
 } // end namespace experimental
 
 } // end namespace scalefactor
