@@ -3168,6 +3168,74 @@ Id_vsJet(ROOT::RDF::RNode df,
     );
 }
 
+ROOT::RDF::RNode
+Id_vsEle(ROOT::RDF::RNode df,
+         correctionManager::CorrectionManager &correction_manager,
+         const std::string &outputname, const std::string &eta,
+         const std::string &decay_mode, const std::string &gen_match,
+         const std::string &sf_file, const std::string &sf_name,
+         const std::string &wp, const std::string &era,
+         const std::string &variation) {
+    // Define logger name
+    std::string logger_name = "physicsobject::tau::scalefactor::Id_vsEle";
+
+    // Load the corrections from the correction file for the given correction
+    // name
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+
+    // Create the variation object and evaluate wrapper for extended systematics
+    // handling. Refer to the documentation of TauIDVsJetVariation for more
+    // information.
+    auto tau_id_variation = TauIDVsJetVariation(variation);
+    auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
+
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    auto sf_calculator = [evaluator, era, wp, variation_barrel,
+                          variation_endcap,
+                          sf_name](const float &eta, const int &dm,
+                                   const int &gen_match) {
+
+        // Log input to the SF calculation
+        Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
+        Logger::get(logger_name)->debug("   eta           {}", pt);
+        Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
+        Logger::get(logger_name)->debug("   gen_match     {}", gen_match);
+        Logger::get(logger_name)->debug("   wp            {}", wp);
+        Logger::get(logger_name)->debug("   variation     {}", variation);
+
+        // For placeholder eta values and decay modes not covered by this
+        // SF, return unity
+        const auto decay_modes = std::vector<int>({0, 1, 10, 11});
+        if (
+            (eta == -10.0)
+            || (std::find(decay_modes.begin(), decay_modes.end(), decay_mode)
+            == decay_modes.end())
+        ) {
+            Logger::get(logger_name)->debug(
+                "Placeholder for eta or decay_mode foumd, no correction applied (SF of 1.0)");
+            return 1.0;
+        }
+
+        // Evaluate the scale factor
+        double sf = 1.0;
+        if (sf_name == "DeepTau2017v2p1VSe") {
+            // SFs for DeepTau2017v2p1 do not depend on DM 
+            sf = evaluate_wrapper({eta, gen_match, wp, variation});
+        } else {
+            // SFs for DeepTau2018v2p5 depend on eta and the decay mode
+            sf = evaluate_wrapper({eta, decay_mode, gen_match, wp, variation});
+        }
+        Logger::get(logger_name)->debug("Obtained SF value {}", sf);
+
+        return sf;
+    };
+    
+    return df.Define(
+        outputname,
+        sf_calculator,
+        {eta, decay_mode, gen_match}
+    );
+}
 }
 
 } // end namespace experimental
