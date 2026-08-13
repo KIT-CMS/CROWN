@@ -85,8 +85,19 @@ DecayModeRestriction::DecayModeRestriction(const std::vector<int> &decay_modes) 
     }
 }
 
-DecayModeRestriction::DecayModeRestriction(const int &decay_mode) {
-    DecayModeRestriction({decay_mode});
+DecayModeRestriction::DecayModeRestriction(const int &decay_mode)
+    : restrict_(true), decay_modes_({decay_mode}) {
+    // Validate that only allowed decay mode values are passed
+    if (
+        decay_mode != 0 && decay_mode != 1 && decay_mode != 10
+        && decay_mode != 11
+    ) {
+        auto msg = std::format(
+            "Invalid decay mode value: {}. Allowed values are 0, 1, 10, and "
+            "11.", decay_mode
+        );
+        throw std::invalid_argument(msg);
+    }
 }
 
 bool DecayModeRestriction::is_active() const {
@@ -133,9 +144,9 @@ PtRestriction::PtRestriction(const float &pt_min, const float &pt_max) : restric
     }
 }
 
-PtRestriction::PtRestriction(const float &pt_min) {
-    float pt_max = std::numeric_limits<float>::infinity();
-    PtRestriction(pt_min, pt_max);
+PtRestriction::PtRestriction(const float &pt_min)
+    : restrict_(true), pt_range_(std::make_pair(pt_min, std::numeric_limits<float>::infinity())) {
+    // No validation needed since infinity is always greater than any finite pt_min
 }
 
 bool PtRestriction::is_active() const {
@@ -162,7 +173,7 @@ std::string PtRestriction::repr() const {
 
 EtaRestriction::EtaRestriction() : restrict_(false), abs_eta_range_(std::make_pair(-10.f, -10.f)) {}
 
-EtaRestriction::EtaRestriction(const std::pair<float, float> &abs_eta_range_) : restrict_(true), abs_eta_range_(abs_eta_range_) {
+EtaRestriction::EtaRestriction(const std::pair<float, float> &abs_eta_range) : restrict_(true), abs_eta_range_(abs_eta_range) {
     if (abs_eta_range_.first >= abs_eta_range_.second) {
         auto msg = std::format(
             "Invalid eta range: [{}, {}). The lower bound must be smaller than "
@@ -172,8 +183,15 @@ EtaRestriction::EtaRestriction(const std::pair<float, float> &abs_eta_range_) : 
     }
 }
 
-EtaRestriction::EtaRestriction(const float &abs_eta_min_, const float &abs_eta_max_) {
-    EtaRestriction(std::make_pair(abs_eta_min_, abs_eta_max_));
+EtaRestriction::EtaRestriction(const float &abs_eta_min, const float &abs_eta_max)
+    : restrict_(true), abs_eta_range_(std::make_pair(abs_eta_min, abs_eta_max)) {
+    if (abs_eta_range_.first >= abs_eta_range_.second) {
+        auto msg = std::format(
+            "Invalid eta range: [{}, {}). The lower bound must be smaller than "
+            "the upper bound.", abs_eta_range_.first, abs_eta_range_.second
+        );
+        throw std::invalid_argument(msg);
+    }
 }
 
 bool EtaRestriction::is_active() const {
@@ -399,7 +417,12 @@ const {
 
     // Define the evaluate wrapper function
     auto wrapper = [
-        this,
+        is_custom_variation = this->is_custom_variation_,
+        cfile_variation = this->cfile_variation_,
+        gen_match_restriction = this->gen_match_restriction_,
+        decay_mode_restriction = this->decay_mode_restriction_,
+        pt_restriction = this->pt_restriction_,
+        eta_restriction = this->eta_restriction_,
         evaluator,
         gen_index,
         decay_mode_index,
@@ -409,7 +432,7 @@ const {
     ] (const std::vector<correction::Variable::Type> &values) {
         // If no custom selections are imposed, just evaluate the correction
         // factor using the provided values
-        if (!this->is_custom_variation_) {
+        if (!is_custom_variation) {
             Logger::get("TauIDVsJetVariation")->debug("Default evaluation of correction");
             return evaluator->evaluate(values);
         }
@@ -417,8 +440,7 @@ const {
         // For custom selections, the input values for the evaluate function
         // need to be manipulated manually.
         Logger::get("TauIDVsJetVariation")->debug(
-            "Custom evaluation of correction for custom variation {}",
-            this->variation_);
+            "Custom evaluation of correction for custom variation");
 
         // Set default values for selection inputs
         int gen_match = -10;
@@ -427,20 +449,48 @@ const {
         double eta = -10.;
 
         // Set the values if they are needed for imposed restrictions
-        if (this->gen_match_restriction_.is_active()) {
-            this->throw_variable_out_of_range("gen_match", gen_index);
+        if (gen_match_restriction.is_active()) {
+            if (gen_index == static_cast<size_t>(-1)) {
+                auto msg = std::format(
+                    "Variable gen_match not found in the list of inputs of the correction. "
+                    "Please check the variable name and ensure it is present in the "
+                    "correction inputs."
+                );
+                throw std::out_of_range(msg);
+            }
             gen_match = std::get<int>(values[gen_index]);
         }
-        if (this->decay_mode_restriction_.is_active()) {
-            this->throw_variable_out_of_range("decay_mode", decay_mode_index);
+        if (decay_mode_restriction.is_active()) {
+            if (decay_mode_index == static_cast<size_t>(-1)) {
+                auto msg = std::format(
+                    "Variable decay_mode not found in the list of inputs of the correction. "
+                    "Please check the variable name and ensure it is present in the "
+                    "correction inputs."
+                );
+                throw std::out_of_range(msg);
+            }
             decay_mode = std::get<int>(values[decay_mode_index]);
         }
-        if (this->pt_restriction_.is_active()) {
-            this->throw_variable_out_of_range("pt", pt_index);
+        if (pt_restriction.is_active()) {
+            if (pt_index == static_cast<size_t>(-1)) {
+                auto msg = std::format(
+                    "Variable pt not found in the list of inputs of the correction. "
+                    "Please check the variable name and ensure it is present in the "
+                    "correction inputs."
+                );
+                throw std::out_of_range(msg);
+            }
             pt = std::get<double>(values[pt_index]);
         }
-        if (this->eta_restriction_.is_active()) {
-            this->throw_variable_out_of_range("eta", eta_index);
+        if (eta_restriction.is_active()) {
+            if (eta_index == static_cast<size_t>(-1)) {
+                auto msg = std::format(
+                    "Variable eta not found in the list of inputs of the correction. "
+                    "Please check the variable name and ensure it is present in the "
+                    "correction inputs."
+                );
+                throw std::out_of_range(msg);
+            }
             eta = std::get<double>(values[eta_index]);
         }
 
@@ -458,10 +508,10 @@ const {
 
         // Check whether the event passes selections if restrictions are imposed
         auto is_selected = (
-            this->gen_match_restriction_.is_selected(gen_match)
-            && this->decay_mode_restriction_.is_selected(decay_mode)
-            && this->pt_restriction_.is_selected(pt)
-            && this->eta_restriction_.is_selected(eta)
+            gen_match_restriction.is_selected(gen_match)
+            && decay_mode_restriction.is_selected(decay_mode)
+            && pt_restriction.is_selected(pt)
+            && eta_restriction.is_selected(eta)
         );
 
         Logger::get("TauIDVsJetVariation")->debug(
@@ -472,7 +522,7 @@ const {
         // passed, evaluate with the nominal variation
         std::vector<correction::Variable::Type> values_copy = values;
         if (is_selected) {
-            values_copy[syst_index] = this->cfile_variation_;
+            values_copy[syst_index] = cfile_variation;
         } else {
             values_copy[syst_index] = "nom";
         }
