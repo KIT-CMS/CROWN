@@ -22,6 +22,10 @@ GenTypeRestriction::GenTypeRestriction() : gen_matches_(GenType::NONE), restrict
 
 GenTypeRestriction::GenTypeRestriction(const GenType &gen_type) : gen_matches_(gen_type), restrict_(true) {}
 
+bool GenTypeRestriction::is_active() const {
+    return restrict_;
+}
+
 bool GenTypeRestriction::is_selected(const int &gen_match) {
     if (!restrict_) {
         return true;
@@ -29,6 +33,20 @@ bool GenTypeRestriction::is_selected(const int &gen_match) {
     return (
         std::find(gen_matches.begin(), gen_matches.end(), gen_match)
         != gen_matches.end()
+    );
+}
+
+std::string GenTypeRestriction::repr() const {
+    std::string joined_gen_matches = "";
+    for (size_t i = 0; i < gen_matches_.size(); ++i) {
+        if (i > 0) {
+            repr += ", ";
+        }
+        repr += std::to_string(gen_matches_[i]);
+    }
+    return std::format(
+        "GenTypeRestriction(is_active={}, gen_matches=[{}])",
+        restrict_, joined_gen_matches,
     );
 }
 
@@ -42,6 +60,10 @@ DecayModeRestriction::DecayModeRestriction(const int &decay_mode) : decay_modes_
 
 DecayModeRestriction::DecayModeRestriction(const std::vector<int> &decay_modes) : decay_modes_(decay_modes), restrict_(true) {}
 
+bool DecayModeRestriction::is_active() const {
+    return restrict_;
+}
+
 bool DecayModeRestriction::is_selected(const int &decay_mode) {
     if (!is_restricted) {
         return true;
@@ -49,6 +71,20 @@ bool DecayModeRestriction::is_selected(const int &decay_mode) {
     return (
         std::find(decay_modes.begin(), decay_modes.end(), decay_mode)
         != decay_modes.end()
+    );
+}
+
+std::string DecayModeRestriction::repr() const {
+    std::string joined_decay_modes = "";
+    for (size_t i = 0; i < decay_modes_.size(); ++i) {
+        if (i > 0) {
+            repr += ", ";
+        }
+        repr += std::to_string(decay_modes_[i]);
+    }
+    return std::format(
+        "DecayModeRestriction(is_active={}, decay_modes=[{}])",
+        restrict_, joined_decay_modes,
     );
 }
 
@@ -73,11 +109,22 @@ PtRestriction::PtRestriction(const float &pt_min) {
     return PtRestriction(pt_min, pt_max);
 }
 
+bool PtRestriction::is_active() const {
+    return restrict_;
+}
+
 bool PtRestriction::is_selected(const float &pt) {
     if (!is_restricted) {
         return true;
     }
     return pt >= pt_min && pt < pt_max;
+}
+
+std::string PtRestriction::repr() const {
+    return std::format(
+        "PtRestriction(is_active={}, pt_range=[{}, {}))",
+        restrict_, pt_range_.first, pt_range_.second
+    );
 }
 
 // -----------------------------------------------------------------------------
@@ -108,11 +155,22 @@ EtaRestriction::EtaRestriction(const EtaRange &eta_range) {
     }
 }
 
+bool EtaRestriction::is_active() const {
+    return restrict_;
+}
+
 bool EtaRestriction::is_selected(const float &eta) {
-    if (!is_restricted) {
+    if (!restricted_) {
         return true;
     }
     return abs(eta) >= abs_eta_min && abs(eta) < abs_eta_max;
+}
+
+std::string EtaRestriction::repr() const {
+    return std::format(
+        "EtaRestriction(is_active={}, abs_eta_range=[{}, {}))",
+        restrict_, abs_eta_range_.first, abs_eta_range_.second
+    );
 }
 
 // ----------------------------------------------------------------------------

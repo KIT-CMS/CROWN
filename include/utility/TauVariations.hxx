@@ -38,7 +38,9 @@ class GenMatchRestriction {
 public:
     GenMatchRestriction();
     GenMatchRestriction(const GenType &gen_type);
+    bool is_active() const;
     bool is_selected(const int &gen_match);
+    std::string repr() const;
 
 private:
     bool restrict_;
@@ -50,7 +52,9 @@ class DecayModeRestriction {
 public:
     DecayModeRestriction();
     DecayModeRestriction(const std::vector<int> &decay_modes);
-    bool is_selected(const int &decay_mode);
+    bool is_active() const;
+    bool is_selected(const int &);
+    std::string repr() const;
 
 private:
     bool restrict_;
@@ -63,6 +67,9 @@ public:
     PtRestriction();
     PtRestriction(const float &, const float &);
     PtRestriction(const float &);
+    bool is_active() const;
+    bool selected(const float &);
+    std::string repr() const;
 
 private:
     bool restrict_;
@@ -76,7 +83,9 @@ public:
     EtaRestriction(const std::pair<float, float> &);
     EtaRestriction(const float &, const float &);
     EtaRestriction(const EtaRegion &);
+    bool is_active() const;
     bool is_selected(const float &);
+    std::string repr() const;
 
 private:
     bool restrict_;
