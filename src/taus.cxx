@@ -1792,6 +1792,199 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
                           {pt, eta, decay_mode_column, gen_match});
     return df2;
 }
+
+namespace experimental {
+
+/**
+ * @brief This function applies a transverse momentum (\f$p_T\f$) correction to
+ * hadronic taus in MC simulations.
+ *
+ * The correction depends on the physical origin of the tau (electron fake, muon
+ * fake, or genuine tau), the decay mode, the \f$p_T\f$, and the pseudorapidity.
+ *
+ * For Run 3 analyses, the corrections are calculated for different working
+ * points of the `DeepTau` algorithm, regarding the identification against
+ * jets and against electrons. This is not the case for Run 2 analyses. This
+ * function can be used for both Run 2 and Run 3 analyses. For Run 2 analyses,
+ * the values of `id_vs_jet_wp` and `id_vs_ele_wp` can be set to `""`
+ * to obtain the corrections.
+ *
+ * The uncertainty scheme is split into nine different uncertainty sources:
+ * - For electrons faking taus, four uncertainty sources are considered, split
+ *   by the decay modes 0 and 1, and by whether the tau is found in the barrel
+ *   or the endcap region.
+ * - For muons faking taus, one inclusive uncertainty source is considered.
+ * - For genuine taus, four uncertainty sources are considered, split by the
+ *   decay modes 0, 1, 10, and 11.
+ * For each source, the variation can be set individually. The variations can
+ * take the values ``nom``, ``up``, or ``down``.
+ *
+ * The correction procedure is taken from the officially recommendation of the
+ * TauPOG:
+ *
+ * The implementation of this function is based on the TAU POG
+ * [recommendations for Run
+ * 2](https://twiki.cern.ch/twiki/bin/viewauth/CMS/TauIDRecommendationForRun2)
+ * and [recommendations for Run
+ * 3](https://twiki.cern.ch/twiki/bin/view/CMS/TauIDRecommendationForRun3).
+ *
+ * The specification of the correctionlib files used to evaluate the corrections
+ * can be found here:
+ * -
+ * [2016preVFP](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2016preVFP_UL_tau.html)
+ * -
+ * [2016postVFP](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2016postVFP_UL_tau.html)
+ * -
+ * [2017](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2017_UL_tau.html)
+ * -
+ * [2018](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2018_UL_tau.html)
+ * -
+ * [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2022_Summer22_tau_DeepTau2018v2p5_2022_preEE.html)
+ * -
+ * [2022postEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2022_Summer22EE_tau_DeepTau2018v2p5_2022_postEE.html)
+ * -
+ * [2023preBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2023_Summer23_tau_DeepTau2018v2p5_2023_preBPix.html)
+ * -
+ * [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/TAU_2023_Summer23BPix_tau_DeepTau2018v2p5_2023_postBPix.html)
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * correction file
+ * @param outputname name of the output column storing the corrected hadronic
+ * tau \f$p_T\f$ values
+ * @param pt name of the input column containing hadronic tau \f$p_T\f$ values
+ * @param eta name of the column containing hadronic tau eta values
+ * @param decay_mode name of the column containing hadronic tau decay modes
+ * @param gen_match name of the column with the matching information of the
+ * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt
+ * mu, 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
+ * @param es_file path to the correction file for the energy scale correction
+ * @param correction_name name of the correction in `es_file`
+ * @param id_algorithm identification algorithm used for hadronic tau ID
+ * @param id_vs_jet_wp working point for the identification against jets; set to
+ * `""` if the corrections do not depend on this parameter
+ * @param id_vs_ele_wp working point for the identification against electrons;
+ * set to `""` if the corrections do not depend on this parameter
+ * @param variation tau energy scale variation
+ *
+ * @return a dataframe containing the corrected transverse momenta
+ *
+ * @note This function is intended to be used for Run 3 analyses. In Run 3,
+ * the tau energy scale corrections also depend on the DeepTau working points
+ * for ID vs. electrons and vs. jets. An overloaded version of this function
+ * exists for this purpose.
+ */
+ROOT::RDF::RNode
+PtCorrectionMC(ROOT::RDF::RNode df,
+               correctionManager::CorrectionManager &correction_manager,
+               const std::string &outputname, const std::string &pt,
+               const std::string &eta, const std::string &decay_mode,
+               const std::string &gen_match, const std::string &es_file,
+               const std::string &correction_name,
+               const std::string &id_algorithm, const std::string &id_vs_jet_wp,
+               const std::string &id_vs_ele_wp,
+               const std::vector<int> &selected_dms,
+               const std::string &variation) {
+    // Set the logger name
+    std::string logger_name = "physicsobject::tau::PtCorrectionMC";
+
+    // In nanoAODv12 the type of tau decay mode was changed to UChar_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, decay_mode_column] =
+        utility::Cast<ROOT::RVec<UChar_t>, ROOT::RVec<Int_t>>(
+            df, decay_mode + "_v12", "ROOT::VecOps::RVec<UChar_t>", decay_mode);
+
+    // Load the corrections from the correction file for the given correction
+    // name. Pass the evaluator to a wrapper, created with a TauIDVsJetVariation
+    // object for advanced systematics handling.
+    auto evaluator =
+        correction_manager.loadCorrection(es_file, correction_name);
+    auto tau_id_variation = physicsobject::tau::scalefactor::TauIDVsJetVariation(variation);
+    auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
+
+    // Lambda function to evaluate correction for a single tau
+    auto evaluate_tau = [
+        evaluate_wrapper,
+        id_algorithm,
+        id_vs_jet_wp,
+        id_vs_ele_wp,
+        variation,
+        selected_dms
+    ] (
+        const float &pt,
+        const float &eta,
+        const int &decay_mode,
+        const int &gen_match
+    ) {
+        // Evaluate the correction for selected decay modes, set the
+        // correction factor to 1 otherwise
+        float correction_factor = 1.0;
+        if (std::find(selected_dms.begin(), selected_dms.end(),
+                        decay_mode) != selected_dms.end()) {
+            correction_factor = evaluate_wrapper(
+                {pt, abs(eta), decay_mode, gen_match, id_algorithm,
+                    id_vs_jet_wp, id_vs_ele_wp, variation});
+        }
+
+        // Calculate the corrected pt
+        return pt * correction_factor;
+    };
+
+    auto func = [
+        logger_name,
+        evaluate_tau,
+        id_vs_jet_wp,
+        id_vs_ele_wp,
+        variation
+    ] (
+        const ROOT::RVec<float> &pts,
+        const ROOT::RVec<float> &etas,
+        const ROOT::RVec<UChar_t> &decay_modes_v12,
+        const ROOT::RVec<UChar_t> &gen_matches_char
+    ) {
+        // convert decay modes and gen matches to integers
+        auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
+        auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
+
+        // Info for debugging
+        Logger::get(logger_name)
+            ->debug("Evaluating tau pt corrections for  {} taus", pts.size());
+        Logger::get(logger_name)->debug("  pt           {}", pts);
+        Logger::get(logger_name)->debug("  eta          {}", etas);
+        Logger::get(logger_name)->debug("  decay_mode   {}", decay_modes);
+        Logger::get(logger_name)->debug("  gen_match    {}", gen_matches);
+        Logger::get(logger_name)->debug("  id_vs_jet_wp {}", id_vs_jet_wp);
+        Logger::get(logger_name)->debug("  id_vs_ele_wp {}", id_vs_ele_wp);
+        Logger::get(logger_name)->debug("  variation    {}", variation);
+
+        // Calculate the corrected pts by mapping input vectors to evaluate
+        // function for single taus
+        auto corrected_pts = ROOT::VecOps::Map(
+            pts,
+            etas,
+            decay_modes,
+            gen_matches,
+            evaluate_tau
+        );
+
+        // Print debug information
+        Logger::get(logger_name)
+            ->debug("Finished with tau pt corrections");
+        Logger::get(logger_name)
+            ->debug("  corrected pt {}", corrected_pts);
+
+        return corrected_pts;
+    };
+
+    return df1.Define(
+        outputname,
+        func,
+        {pt, eta, decay_mode_column, gen_match}
+    );
+}
+
+} // end namespace experimental
+
 namespace quantity {
 
 /**
@@ -2371,126 +2564,6 @@ Id_vsJet(ROOT::RDF::RNode df,
 
 /**
  * @brief This function calculates scale factors (SFs) for tau identification
- * (ID) against jets (`vsJet`). The scale factors are loaded from a
- * correctionlib file using a specified scale factor name and variation.
- *
- * Conventional tau analyses should use the `dm` dependence of the scale
- * factors. These are low- to medium-\f$p_{\text{T}}\f$ scale factors, which are
- * binned in decay modes (DMs) and the hadronic tau \f$p_{\text{T}}\f$. The `pt`
- * dependence of the scale factors should be used for high-\f$p_{\text{T}}\f$
- * hadronic taus.
- * 
- * For the `dm` scale factors in 2022 and 2023, the following variations
- * can be used:
- *
- * - `(up|down)`: a total up/down variation of the scale factor
- *
- * - `stat(1|2)_dm(0|1|10|11)_(up|down)`: statistical uncertainties in fit
- *   parameters.
- *
- * - `syst_(2022_preEE|2022_postEE|2023_preBPix|2023_postBPix)_(up|down)`:
- *   systematic uncertainties in the measurement, uncorrelated between eras but
- *   correlated between DM bins
- *
- * - `syst_alleras_(up|down)`: systematic uncertainties in the measurement,
- *   correlated between different DM bins and eras.
- *
- * Description of the bit map used to define the tau ID against jets working
- * points of the DeepTau v2.1 or v2.5 tagger. vsJets | Value | Bit (value used
- * in the config)
- * ------------------------------------|-------|-------
- * no ID selection (takes every tau)   |  0    | -
- * VVVLoose                            |  1    | 1
- * VVLoose                             |  2    | 2
- * VLoose                              |  4    | 3
- * Loose                               |  8    | 4
- * Medium                              |  16   | 5
- * Tight                               |  32   | 6
- * VTight                              |  64   | 7
- * VVTight                             |  128  | 8
- *
- * @param df input dataframe
- * @param correction_manager correction manager responsible for loading the
- * tau scale factor file
- * @param outputname name of the output column containing the vsJets ID scale
- * factor
- * @param pt name of the column containing the transverse momentum of a tau
- * @param decay_mode name of the column containing the decay mode of the tau
- * @param gen_match name of the column with the matching information of the
- * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt
- * mu, 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
- * @param sf_file path to the file with the tau scale factors
- * @param sf_name name of the tau scale factor for the vsJet ID correction
- * @param wp working point of the vsJet ID
- * @param vsele_wp working point of the vsEle ID
- * @param sf_dependence variable dependence of the scale factor, options are
- * "pt" (which is dm+pt) or "dm" (which is dm only)
- * @param variation name of the scale factor variation, refer to description
- * above for details
- *
- * @return a new dataframe containing the new column
- */
-ROOT::RDF::RNode
-Id_vsJet(ROOT::RDF::RNode df,
-         correctionManager::CorrectionManager &correction_manager,
-         const std::string &outputname, const std::string &pt,
-         const std::string &decay_mode, const std::string &gen_match,
-         const std::string &sf_file, const std::string &sf_name,
-         const std::string &wp, const std::string &vsele_wp,
-         const std::string &sf_dependence, const std::string &variation) {
-    // Define logger and log the setup of the function
-    std::string logger_name = "physicsobject::tau::scalefactor::Id_vsJet";
-    Logger::get(logger_name)->debug("Setting up function for tau ID vsJet SF");
-    Logger::get(logger_name)->debug("SF - Name {}", sf_name);
-
-    // Load the corrections from the correction file for the given correction
-    // name
-    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-
-    // Create the variation object and evaluate wrapper for extended systematics
-    // handling. Refer to the documentation of TauIDVsJetVariation for more
-    // information.
-    auto tau_id_variation = TauIDVsJetVariation(variation);
-    auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
-
-    auto sf_calculator = [evaluate_wrapper, wp, vsele_wp, variation, sf_dependence,
-                          sf_name, logger_name](const float &pt, const int &decay_mode,
-                                   const int &gen_match) {
-
-        // Only calculate SFs for allowed tau decay modes
-        const auto decay_modes = std::vector<int>({0, 1, 10, 11});
-        double sf = 1.;
-        if (
-            std::find(decay_modes.begin(), decay_modes.end(), decay_mode)
-            != decay_modes.end()
-        ) {
-            // Log input to the SF calculation
-            Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
-            Logger::get(logger_name)->debug("   pt            {}", pt);
-            Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
-            Logger::get(logger_name)->debug("   gen_match     {}", gen_match);
-            Logger::get(logger_name)->debug("   wp            {}", wp);
-            Logger::get(logger_name)->debug("   vsele_wp      {}", vsele_wp);
-            Logger::get(logger_name)->debug("   variation     {}", variation);
-            Logger::get(logger_name)->debug("   sf_dependence {}", sf_dependence);
-
-            // Evaluate the scale factor
-            sf = evaluate_wrapper({pt, decay_mode, gen_match, wp, vsele_wp,
-                                   variation, sf_dependence});
-        } else {
-            Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
-            Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
-        }
-        Logger::get(logger_name)->debug("Obtained SF value {}", sf);
-        return sf;
-    };
-    auto df1 =
-        df.Define(outputname, sf_calculator, {pt, decay_mode, gen_match});
-    return df1;
-}
-
-/**
- * @brief This function calculates scale factors (SFs) for tau identification
  * (ID) against electrons (`vsEle`). The scale factors are loaded from a
  * correctionlib file using a specified scale factor name and variation. The
  * variation and the scale factor itself is binned in pseudorapidities of
@@ -2971,6 +3044,131 @@ Trigger(ROOT::RDF::RNode df,
         df.Define(outputname, sf_calculator, {pt, decay_mode, trigger_flag});
     return df1;
 }
+
+namespace experimental {
+
+/**
+ * @brief This function calculates scale factors (SFs) for tau identification
+ * (ID) against jets (`vsJet`). The scale factors are loaded from a
+ * correctionlib file using a specified scale factor name and variation.
+ *
+ * Conventional tau analyses should use the `dm` dependence of the scale
+ * factors. These are low- to medium-\f$p_{\text{T}}\f$ scale factors, which are
+ * binned in decay modes (DMs) and the hadronic tau \f$p_{\text{T}}\f$. The `pt`
+ * dependence of the scale factors should be used for high-\f$p_{\text{T}}\f$
+ * hadronic taus.
+ * 
+ * For the `dm` scale factors in 2022 and 2023, the following variations
+ * can be used:
+ *
+ * - `(up|down)`: a total up/down variation of the scale factor
+ *
+ * - `stat(1|2)_dm(0|1|10|11)_(up|down)`: statistical uncertainties in fit
+ *   parameters.
+ *
+ * - `syst_(2022_preEE|2022_postEE|2023_preBPix|2023_postBPix)_(up|down)`:
+ *   systematic uncertainties in the measurement, uncorrelated between eras but
+ *   correlated between DM bins
+ *
+ * - `syst_alleras_(up|down)`: systematic uncertainties in the measurement,
+ *   correlated between different DM bins and eras.
+ *
+ * Description of the bit map used to define the tau ID against jets working
+ * points of the DeepTau v2.1 or v2.5 tagger. vsJets | Value | Bit (value used
+ * in the config)
+ * ------------------------------------|-------|-------
+ * no ID selection (takes every tau)   |  0    | -
+ * VVVLoose                            |  1    | 1
+ * VVLoose                             |  2    | 2
+ * VLoose                              |  4    | 3
+ * Loose                               |  8    | 4
+ * Medium                              |  16   | 5
+ * Tight                               |  32   | 6
+ * VTight                              |  64   | 7
+ * VVTight                             |  128  | 8
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * tau scale factor file
+ * @param outputname name of the output column containing the vsJets ID scale
+ * factor
+ * @param pt name of the column containing the transverse momentum of a tau
+ * @param decay_mode name of the column containing the decay mode of the tau
+ * @param gen_match name of the column with the matching information of the
+ * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt
+ * mu, 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
+ * @param sf_file path to the file with the tau scale factors
+ * @param sf_name name of the tau scale factor for the vsJet ID correction
+ * @param wp working point of the vsJet ID
+ * @param vsele_wp working point of the vsEle ID
+ * @param sf_dependence variable dependence of the scale factor, options are
+ * "pt" (which is dm+pt) or "dm" (which is dm only)
+ * @param variation name of the scale factor variation, refer to description
+ * above for details
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+Id_vsJet(ROOT::RDF::RNode df,
+         correctionManager::CorrectionManager &correction_manager,
+         const std::string &outputname, const std::string &pt,
+         const std::string &decay_mode, const std::string &gen_match,
+         const std::string &sf_file, const std::string &sf_name,
+         const std::string &wp, const std::string &vsele_wp,
+         const std::string &sf_dependence, const std::string &variation) {
+    // Define logger and log the setup of the function
+    std::string logger_name = "physicsobject::tau::scalefactor::Id_vsJet";
+    Logger::get(logger_name)->debug("Setting up function for tau ID vsJet SF");
+    Logger::get(logger_name)->debug("SF - Name {}", sf_name);
+
+    // Load the corrections from the correction file for the given correction
+    // name
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+
+    // Create the variation object and evaluate wrapper for extended systematics
+    // handling. Refer to the documentation of TauIDVsJetVariation for more
+    // information.
+    auto tau_id_variation = TauIDVsJetVariation(variation);
+    auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
+
+    auto sf_calculator = [evaluate_wrapper, wp, vsele_wp, variation, sf_dependence,
+                          sf_name, logger_name](const float &pt, const int &decay_mode,
+                                   const int &gen_match) {
+
+        // Only calculate SFs for allowed tau decay modes
+        const auto decay_modes = std::vector<int>({0, 1, 10, 11});
+        double sf = 1.;
+        if (
+            std::find(decay_modes.begin(), decay_modes.end(), decay_mode)
+            != decay_modes.end()
+        ) {
+            // Log input to the SF calculation
+            Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
+            Logger::get(logger_name)->debug("   pt            {}", pt);
+            Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
+            Logger::get(logger_name)->debug("   gen_match     {}", gen_match);
+            Logger::get(logger_name)->debug("   wp            {}", wp);
+            Logger::get(logger_name)->debug("   vsele_wp      {}", vsele_wp);
+            Logger::get(logger_name)->debug("   variation     {}", variation);
+            Logger::get(logger_name)->debug("   sf_dependence {}", sf_dependence);
+
+            // Evaluate the scale factor
+            sf = evaluate_wrapper({pt, decay_mode, gen_match, wp, vsele_wp,
+                                   variation, sf_dependence});
+        } else {
+            Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
+            Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
+        }
+        Logger::get(logger_name)->debug("Obtained SF value {}", sf);
+        return sf;
+    };
+    auto df1 =
+        df.Define(outputname, sf_calculator, {pt, decay_mode, gen_match});
+    return df1;
+}
+
+} // end namespace experimental
+
 } // end namespace scalefactor
 } // end namespace tau
 } // end namespace physicsobject
