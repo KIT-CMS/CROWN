@@ -14,6 +14,107 @@ namespace tau {
 
 namespace scalefactor {
 
+// -----------------------------------------------------------------------------
+// physicsobject::tau::scalefactor::GenTypeRestriction
+// -----------------------------------------------------------------------------
+
+GenTypeRestriction::GenTypeRestriction() : gen_matches_(GenType::NONE), restrict_(false) {}
+
+GenTypeRestriction::GenTypeRestriction(const GenType &gen_type) : gen_matches_(gen_type), restrict_(true) {}
+
+bool GenTypeRestriction::is_selected(const int &gen_match) {
+    if (!restrict_) {
+        return true;
+    }
+    return (
+        std::find(gen_matches.begin(), gen_matches.end(), gen_match)
+        != gen_matches.end()
+    );
+}
+
+// -----------------------------------------------------------------------------
+// physicsobject::tau::scalefactor::DecayModeRestriction
+// -----------------------------------------------------------------------------
+
+DecayModeRestriction::DecayModeRestriction() : decay_modes_(std::vector<int>()), restrict_(false) {}
+
+DecayModeRestriction::DecayModeRestriction(const int &decay_mode) : decay_modes_(std::vector<int>({decay_mode})), restrict_(true) {}
+
+DecayModeRestriction::DecayModeRestriction(const std::vector<int> &decay_modes) : decay_modes_(decay_modes), restrict_(true) {}
+
+bool DecayModeRestriction::is_selected(const int &decay_mode) {
+    if (!is_restricted) {
+        return true;
+    }
+    return (
+        std::find(decay_modes.begin(), decay_modes.end(), decay_mode)
+        != decay_modes.end()
+    );
+}
+
+// -----------------------------------------------------------------------------
+// physicsobject::tau::scalefactor::PtRestriction
+// -----------------------------------------------------------------------------
+
+PtRestriction::PtRestriction() : restrict_(false), pt_range_(std::make_pair(-10.f, -10.f)) {}
+
+PtRestriction::PtRestriction(const float &pt_min, const float &pt_max) : restrict_(true), pt_range_(std::make_pair(pt_min, pt_max)) {
+    if (pt_range_.first >= pt_range_.second) {
+        auto msg = std::format(
+            "Invalid pt range: [{}, {}). The lower bound must be smaller than "
+            "the upper bound.", pt_range_.first, pt_range_.second
+        );
+        throw std::invalid_argument(msg);
+    }
+}
+
+PtRestriction::PtRestriction(const float &pt_min) {
+    pt_max = std::numeric_limits<float>::infinity();
+    return PtRestriction(pt_min, pt_max);
+}
+
+bool PtRestriction::is_selected(const float &pt) {
+    if (!is_restricted) {
+        return true;
+    }
+    return pt >= pt_min && pt < pt_max;
+}
+
+// -----------------------------------------------------------------------------
+// physicsobject::tau::scalefactor::EtaRestriction
+// -----------------------------------------------------------------------------
+
+EtaRestriction::EtaRestriction() : restrict_(false), abs_eta_range_(std::make_pair(-10.f, -10.f)) {}
+
+EtaRestriction::EtaRestriction(const std::pair<float, float> &abs_eta_range_) : restrict_(true), abs_eta_range_(abs_eta_range_) {
+    if (abs_eta_range_.first >= abs_eta_range_.second) {
+        auto msg = std::format(
+            "Invalid eta range: [{}, {}). The lower bound must be smaller than "
+            "the upper bound.", abs_eta_range_.first, abs_eta_range_.second
+        );
+        throw std::invalid_argument(msg);
+    }
+}
+
+EtaRestriction::EtaRestriction(const float &abs_eta_min_, const float &abs_eta_max_) {
+    return EtaRestriction(std::make_pair(abs_eta_min_, abs_eta_max_));
+}
+
+EtaRestriction::EtaRestriction(const EtaRange &eta_range) {
+    if eta_range == EtaRange::NONE {
+        return EtaRestriction();
+    } else {
+        return EtaRestriction(eta_range.first, eta_range.second);
+    }
+}
+
+bool EtaRestriction::is_selected(const float &eta) {
+    if (!is_restricted) {
+        return true;
+    }
+    return abs(eta) >= abs_eta_min && abs(eta) < abs_eta_max;
+}
+
 // ----------------------------------------------------------------------------
 // physicsobject::tau::scalefactor::TauIDVsJetVariation
 // ----------------------------------------------------------------------------
