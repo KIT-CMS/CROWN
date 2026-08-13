@@ -3116,10 +3116,8 @@ Id_vsJet(ROOT::RDF::RNode df,
          const std::string &sf_file, const std::string &sf_name,
          const std::string &wp, const std::string &vsele_wp,
          const std::string &sf_dependence, const std::string &variation) {
-    // Define logger and log the setup of the function
+    // Define logger name
     std::string logger_name = "physicsobject::tau::scalefactor::Id_vsJet";
-    Logger::get(logger_name)->debug("Setting up function for tau ID vsJet SF");
-    Logger::get(logger_name)->debug("SF - Name {}", sf_name);
 
     // Load the corrections from the correction file for the given correction
     // name
@@ -3162,9 +3160,14 @@ Id_vsJet(ROOT::RDF::RNode df,
         Logger::get(logger_name)->debug("Obtained SF value {}", sf);
         return sf;
     };
-    auto df1 =
-        df.Define(outputname, sf_calculator, {pt, decay_mode, gen_match});
-    return df1;
+    
+    return df.Define(
+        outputname,
+        sf_calculator,
+        {pt, decay_mode, gen_match}
+    );
+}
+
 }
 
 } // end namespace experimental
