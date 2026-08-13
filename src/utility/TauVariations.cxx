@@ -349,6 +349,16 @@ TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation) :
                 abs_eta_range = ETA_REGIONS.at(EtaRegion::BARREL);
             } else if (eta_region_str == "endcap") {
                 abs_eta_range = ETA_REGIONS.at(EtaRegion::ENDCAP);
+            } else if (eta_region_str == "wheel1") {
+                abs_eta_range = ETA_REGIONS.at(EtaRegion::WHEEL_1);
+            } else if (eta_region_str == "wheel2") {
+                abs_eta_range = ETA_REGIONS.at(EtaRegion::WHEEL_2);
+            } else if (eta_region_str == "wheel3") {
+                abs_eta_range = ETA_REGIONS.at(EtaRegion::WHEEL_3);
+            } else if (eta_region_str == "wheel4") {
+                abs_eta_range = ETA_REGIONS.at(EtaRegion::WHEEL_4);
+            } else if (eta_region_str == "wheel5") {
+                abs_eta_range = ETA_REGIONS.at(EtaRegion::WHEEL_5);
             }
             eta_restriction_ = EtaRestriction(abs_eta_range);
         }
@@ -544,7 +554,7 @@ std::pair<bool, std::unordered_map<std::string, std::string>> TauIDVsJetVariatio
 ) const {
     // Define regular expression that catches custom variation definitions
     auto custom_pattern = std::regex(
-        "(up|down)_custom(_(genEle|genMu|genTau))?(_dm(0|1|10|11))?(_pt(\\d+)to(\\d+|Inf))?(_(barrel|endcap))?",
+        "(up|down)_custom(_(genEle|genMu|genTau))?(_dm(0|1|10|11))?(_pt(\\d+)to(\\d+|Inf))?(_(barrel|endcap|wheel[1-5]))?",
         std::regex_constants::ECMAScript
     );
     Logger::get("TauIDVsJetVariation")->debug(

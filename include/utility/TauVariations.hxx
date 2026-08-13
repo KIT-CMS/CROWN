@@ -14,10 +14,6 @@ namespace tau {
 
 namespace scalefactor {
 
-const int DEFAULT_DECAY_MODE = -10;
-const float DEFAULT_PT_MIN = -10.0;
-const float DEFAULT_PT_MAX = -10.0;
-
 // Map genuine object types to indices of generator-level match values
 enum struct GenType {
     GEN_ELE,  // genuine electron
@@ -32,12 +28,22 @@ const std::unordered_map<GenType, std::vector<int>> GEN_TYPES = {
 
 // Map eta regions of electrons to ranges of absolute eta values
 enum struct EtaRegion {
-    BARREL,  // barrel electron
-    ENDCAP   // endcap electron
+    BARREL,   // barrel electron
+    ENDCAP    // endcap electron
+    WHEEL_1,  // muon wheel 1
+    WHEEL_2,  // muon wheel 2
+    WHEEL_3,  // muon wheel 3
+    WHEEL_4,  // muon wheel 4
+    WHEEL_5   // muon wheel 5
 };
 const std::unordered_map<EtaRegion, std::pair<float, float>> ETA_REGIONS = {
-    {EtaRegion::BARREL, {0.0, 1.5}},
-    {EtaRegion::ENDCAP, {1.5, 2.5}}
+    {EtaRegion::BARREL, {0.0, 1.46}},
+    {EtaRegion::ENDCAP, {1.558, 2.5}},
+    {EtaRegion::WHEEL_1, {0.0, 0.4}},
+    {EtaRegion::WHEEL_2, {0.4, 0.8}},
+    {EtaRegion::WHEEL_3, {0.8, 1.2}},
+    {EtaRegion::WHEEL_4, {1.2, 1.7}},
+    {EtaRegion::WHEEL_5, {1.7, 2.5}}
 };
 
 // Encapsulate logic for generator-level match restrictions
