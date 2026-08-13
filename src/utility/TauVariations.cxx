@@ -409,7 +409,7 @@ std::function<double (const std::vector<correction::Variable::Type>&)>
 TauIDVsJetVariation::wrap_evaluate(const correction::Correction *evaluator)
 const {
     // Get indices of the variables in the list of inputs of the correction::Correction
-    size_t gen_index = get_variable_index(evaluator, "gen_match", -1);
+    size_t gen_index = get_variable_index(evaluator, "genmatch", -1);
     size_t decay_mode_index = get_variable_index(evaluator, "dm", -1);
     size_t pt_index = get_variable_index(evaluator, "pt", -1);
     size_t eta_index = get_variable_index(evaluator, "eta", -1);
@@ -452,7 +452,7 @@ const {
         if (gen_match_restriction.is_active()) {
             if (gen_index == static_cast<size_t>(-1)) {
                 auto msg = std::format(
-                    "Variable gen_match not found in the list of inputs of the correction. "
+                    "Variable genmatch not found in the list of inputs of the correction. "
                     "Please check the variable name and ensure it is present in the "
                     "correction inputs."
                 );
@@ -463,7 +463,7 @@ const {
         if (decay_mode_restriction.is_active()) {
             if (decay_mode_index == static_cast<size_t>(-1)) {
                 auto msg = std::format(
-                    "Variable decay_mode not found in the list of inputs of the correction. "
+                    "Variable dm not found in the list of inputs of the correction. "
                     "Please check the variable name and ensure it is present in the "
                     "correction inputs."
                 );
