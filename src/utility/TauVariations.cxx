@@ -15,38 +15,51 @@ namespace tau {
 namespace scalefactor {
 
 // -----------------------------------------------------------------------------
-// physicsobject::tau::scalefactor::GenTypeRestriction
+// physicsobject::tau::scalefactor::GenMatchRestriction
 // -----------------------------------------------------------------------------
 
-GenTypeRestriction::GenTypeRestriction() : gen_matches_(GenType::NONE), restrict_(false) {}
+GenMatchRestriction::GenMatchRestriction() : restrict_(false), gen_matches_({}) {}
 
-GenTypeRestriction::GenTypeRestriction(const GenType &gen_type) : gen_matches_(gen_type), restrict_(true) {}
+GenMatchRestriction::GenMatchRestriction(const std::vector<int> &gen_matches) : restrict_(true), gen_matches_(gen_matches) {
+    // Validate that only allowed generator-level match values are passed
+    for (const auto &gen_match : gen_matches_) {
+        if (
+            gen_match != 1 && gen_match != 2 && gen_match != 3
+            && gen_match != 4 && gen_match != 5
+        ) {
+            auto msg = std::format(
+                "Invalid generator-level match value: {}. Allowed values are "
+                "1, 2, 3, 4, and 5.", gen_match
+            );
+            throw std::invalid_argument(msg);
+        }
+    }
+}
 
-bool GenTypeRestriction::is_active() const {
+bool GenMatchRestriction::is_active() const {
     return restrict_;
 }
 
-bool GenTypeRestriction::is_selected(const int &gen_match) {
+bool GenMatchRestriction::is_selected(const int &gen_match) const {
     if (!restrict_) {
         return true;
     }
     return (
-        std::find(gen_matches.begin(), gen_matches.end(), gen_match)
-        != gen_matches.end()
+        std::find(gen_matches_.begin(), gen_matches_.end(), gen_match) != gen_matches_.end()
     );
 }
 
-std::string GenTypeRestriction::repr() const {
+std::string GenMatchRestriction::repr() const {
     std::string joined_gen_matches = "";
     for (size_t i = 0; i < gen_matches_.size(); ++i) {
         if (i > 0) {
-            repr += ", ";
+            joined_gen_matches += ", ";
         }
-        repr += std::to_string(gen_matches_[i]);
+        joined_gen_matches += std::to_string(gen_matches_[i]);
     }
     return std::format(
-        "GenTypeRestriction(is_active={}, gen_matches=[{}])",
-        restrict_, joined_gen_matches,
+        "GenMatchRestriction(is_active={}, gen_matches=[{}])",
+        restrict_, joined_gen_matches
     );
 }
 
@@ -54,23 +67,39 @@ std::string GenTypeRestriction::repr() const {
 // physicsobject::tau::scalefactor::DecayModeRestriction
 // -----------------------------------------------------------------------------
 
-DecayModeRestriction::DecayModeRestriction() : decay_modes_(std::vector<int>()), restrict_(false) {}
+DecayModeRestriction::DecayModeRestriction() : restrict_(false), decay_modes_(std::vector<int>()) {}
 
-DecayModeRestriction::DecayModeRestriction(const int &decay_mode) : decay_modes_(std::vector<int>({decay_mode})), restrict_(true) {}
+DecayModeRestriction::DecayModeRestriction(const std::vector<int> &decay_modes) : restrict_(true), decay_modes_(decay_modes) {
+    // Validate that only allowed decay mode values are passed
+    for (const auto &decay_mode : decay_modes_) {
+        if (
+            decay_mode != 0 && decay_mode != 1 && decay_mode != 10
+            && decay_mode != 11
+        ) {
+            auto msg = std::format(
+                "Invalid decay mode value: {}. Allowed values are 0, 1, 10, and "
+                "11.", decay_mode
+            );
+            throw std::invalid_argument(msg);
+        }
+    }
+}
 
-DecayModeRestriction::DecayModeRestriction(const std::vector<int> &decay_modes) : decay_modes_(decay_modes), restrict_(true) {}
+DecayModeRestriction::DecayModeRestriction(const int &decay_mode) {
+    DecayModeRestriction({decay_mode});
+}
 
 bool DecayModeRestriction::is_active() const {
     return restrict_;
 }
 
-bool DecayModeRestriction::is_selected(const int &decay_mode) {
-    if (!is_restricted) {
+bool DecayModeRestriction::is_selected(const int &decay_mode) const {
+    if (!restrict_) {
         return true;
     }
     return (
-        std::find(decay_modes.begin(), decay_modes.end(), decay_mode)
-        != decay_modes.end()
+        std::find(decay_modes_.begin(), decay_modes_.end(), decay_mode)
+        != decay_modes_.end()
     );
 }
 
@@ -78,13 +107,13 @@ std::string DecayModeRestriction::repr() const {
     std::string joined_decay_modes = "";
     for (size_t i = 0; i < decay_modes_.size(); ++i) {
         if (i > 0) {
-            repr += ", ";
+            joined_decay_modes += ", ";
         }
-        repr += std::to_string(decay_modes_[i]);
+        joined_decay_modes += std::to_string(decay_modes_[i]);
     }
     return std::format(
         "DecayModeRestriction(is_active={}, decay_modes=[{}])",
-        restrict_, joined_decay_modes,
+        restrict_, joined_decay_modes
     );
 }
 
@@ -105,19 +134,19 @@ PtRestriction::PtRestriction(const float &pt_min, const float &pt_max) : restric
 }
 
 PtRestriction::PtRestriction(const float &pt_min) {
-    pt_max = std::numeric_limits<float>::infinity();
-    return PtRestriction(pt_min, pt_max);
+    float pt_max = std::numeric_limits<float>::infinity();
+    PtRestriction(pt_min, pt_max);
 }
 
 bool PtRestriction::is_active() const {
     return restrict_;
 }
 
-bool PtRestriction::is_selected(const float &pt) {
-    if (!is_restricted) {
+bool PtRestriction::is_selected(const float &pt) const {
+    if (!restrict_) {
         return true;
     }
-    return pt >= pt_min && pt < pt_max;
+    return pt >= pt_range_.first && pt < pt_range_.second;
 }
 
 std::string PtRestriction::repr() const {
@@ -144,26 +173,18 @@ EtaRestriction::EtaRestriction(const std::pair<float, float> &abs_eta_range_) : 
 }
 
 EtaRestriction::EtaRestriction(const float &abs_eta_min_, const float &abs_eta_max_) {
-    return EtaRestriction(std::make_pair(abs_eta_min_, abs_eta_max_));
-}
-
-EtaRestriction::EtaRestriction(const EtaRange &eta_range) {
-    if eta_range == EtaRange::NONE {
-        return EtaRestriction();
-    } else {
-        return EtaRestriction(eta_range.first, eta_range.second);
-    }
+    EtaRestriction(std::make_pair(abs_eta_min_, abs_eta_max_));
 }
 
 bool EtaRestriction::is_active() const {
     return restrict_;
 }
 
-bool EtaRestriction::is_selected(const float &eta) {
-    if (!restricted_) {
+bool EtaRestriction::is_selected(const float &eta) const {
+    if (!restrict_) {
         return true;
     }
-    return abs(eta) >= abs_eta_min && abs(eta) < abs_eta_max;
+    return abs(eta) >= abs_eta_range_.first && abs(eta) < abs_eta_range_.second;
 }
 
 std::string EtaRestriction::repr() const {
@@ -212,7 +233,7 @@ std::string EtaRestriction::repr() const {
  *
  * Example:
  *
- * The variation string `"up_custom_dm10_pt20to40"` would translate into the the
+ * The variation string `"up_custom_dm10_pt20to40"` translates into the
  * following pseudocode for the evaluation of the scale factor:
  *
  * ```cpp
@@ -240,88 +261,118 @@ std::string EtaRestriction::repr() const {
  *
  * @param variation Name of the tau ID vs jets scale factor variation
  */
-TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation) {
-    // Store the input variation's name
-    custom_variation_ = variation;
+TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation) :
+    gen_match_restriction_(GenMatchRestriction()),
+    decay_mode_restriction_(DecayModeRestriction()),
+    pt_restriction_(PtRestriction()),
+    eta_restriction_(EtaRestriction()) {
 
-    // Define regular expression that catches custom variation definitions
-    auto custom_pattern = std::regex(
-        "(up|down)_custom(_dm(0|1|10|11))?(_pt(\\d+)to(\\d+))?",
-        std::regex_constants::ECMAScript
-    );
+    // Set the variation name
+    variation_ = variation;
     Logger::get("TauIDVsJetVariation")->debug(
-        "Parsing tau ID vs jet variation: {}", variation
+        "Handling tau ID vs jet variation {}", variation_
     );
 
-    std::smatch matches;
-    if (std::regex_match(variation, matches, custom_pattern)) {
-        // Set variation in the correction file and DM and pt selection values
-        // if regex pattern has been matched
+    // Match the variation to the custom variation pattern
+    auto r = match_custom_variation(variation);
+    bool is_custom = r.first;
+    std::unordered_map<std::string, std::string> match_results = r.second;
 
-        // Capture matched groups
-        std::string direction = matches[1].str();
-        std::string dm_str = matches[3].str();
-        std::string pt_min_str = matches[5].str();
-        std::string pt_max_str = matches[6].str();
+    // Set attribute flag that indicates whether the variation is a custom
+    // variation
+    is_custom_variation_ = is_custom;
 
-        // If corresponding groups have been matched, set the selection flags to
-        // true
-        has_dm_selection_ = matches[2].matched;
-        has_pt_selection_ = matches[4].matched;
+    if (is_custom) {
+        // The variation in the correction file is just the total shift in the
+        // direction declared in the custom variation string
+        cfile_variation_ = match_results["direction"];
 
-        // Raise an exception if both optional groups are missing
-        if (!has_dm_selection_ && !has_pt_selection_) {
+        // Set generator-level match restriction if matched in the custom
+        // variation string
+        if (match_results.find("gen_match") != match_results.end()) {
+            std::string gen_object_str = match_results["gen_match"];
+            auto gen_matches = std::vector<int>();
+            if (gen_object_str == "genEle") {
+                gen_matches = GEN_TYPES.at(GenType::GEN_ELE);
+            } else if (gen_object_str == "genMu") {
+                gen_matches = GEN_TYPES.at(GenType::GEN_MU);
+            } else if (gen_object_str == "genTau") {
+                gen_matches = GEN_TYPES.at(GenType::GEN_TAU);
+            }
+            gen_match_restriction_ = GenMatchRestriction(gen_matches);
+        }
+
+        // Set decay mode restriction if matched in the custom variation string
+        if (match_results.find("decay_mode") != match_results.end()) {
+            decay_mode_restriction_ = DecayModeRestriction(
+                std::stoi(match_results["decay_mode"])
+            );
+        }
+
+        // Set pt restriction if matched in the custom variation string
+        if (
+            match_results.find("pt_min") != match_results.end()
+            && match_results.find("pt_max") != match_results.end()
+        ) {
+            float pt_min = std::stof(match_results["pt_min"]);
+            if (match_results["pt_max"] == "Inf") {
+                pt_restriction_ = PtRestriction(pt_min);
+            } else {
+                float pt_max = std::stof(match_results["pt_max"]);
+                pt_restriction_ = PtRestriction(pt_min, pt_max);
+            }
+        }
+
+        // Set the eta restriction
+        if (match_results.find("eta_region") != match_results.end()) {
+            auto eta_region_str = match_results["eta_region"];
+            auto abs_eta_range = std::pair<float, float>();
+            if (eta_region_str == "barrel") {
+                abs_eta_range = ETA_REGIONS.at(EtaRegion::BARREL);
+            } else if (eta_region_str == "endcap") {
+                abs_eta_range = ETA_REGIONS.at(EtaRegion::ENDCAP);
+            }
+            eta_restriction_ = EtaRestriction(abs_eta_range);
+        }
+
+        // Raise an exception if all optional groups are missing
+        if (
+            !gen_match_restriction_.is_active()
+            && !decay_mode_restriction_.is_active()
+            && !pt_restriction_.is_active()
+            && !eta_restriction_.is_active()
+        ) {
             auto msg = std::format(
                 "Invalid custom variation string: {}. The string must contain "
-                "at least one of the optional groups for decay mode or pt "
-                "selection.", variation
+                "at least one of the optional groups for generator-level "
+                "match, decay mode, pt, or eta selection.", variation
             );
             throw std::invalid_argument(msg);
         }
 
-        // Set private member variables based on matched groups or default
-        // values
-        variation_ = direction;
-        if (has_dm_selection_) {
-            decay_mode_ = std::stoi(dm_str);
-        }
-        if (has_pt_selection_) {
-            pt_min_ = std::stof(pt_min_str);
-            pt_max_ = std::stof(pt_max_str);
-        }
     } else {
-        // If the custom_pattern regular expression is not matched, set the
-        // variation to the input string and do not restrict decay mode or pt
-        // range (i.e., set default values). In this case, the variation will
-        // be uses as-is on the correction file.
-
-        // Set main attributes
-        variation_ = variation;
-
-        // Do not impose selections on decay mode or pt range
-        has_dm_selection_ = false;
-        has_pt_selection_ = false;
+        // The variation name is assumed to be accessible from the correction
+        // file. Therefore, both variation names are set to the same value and
+        // no restrictions are defined.
+        cfile_variation_ = variation;
     }
 
     // Final debug output to show the stored values of the variation and
     // selections
     Logger::get("TauIDVsJetVariation")->debug(
-        "Set up variation with the following values:"
+        "Set up variation handler with the following values:"
     );
     Logger::get("TauIDVsJetVariation")->debug(
-        "  correction file variation: {}", variation_);
+        "  correction file variation: {}", cfile_variation_);
+
     Logger::get("TauIDVsJetVariation")->debug(
-        "  decay mode selection:      {}", has_dm_selection_);
-    if (has_dm_selection_) {
-        Logger::get("TauIDVsJetVariation")->debug(
-        "  decay mode selected:       {}", decay_mode_);
-    }
+        "  gen match restriction:     {}", gen_match_restriction_.repr());
     Logger::get("TauIDVsJetVariation")->debug(
-        "  pt selection:              {}", has_pt_selection_);
-    if (has_pt_selection_) {
-        Logger::get("TauIDVsJetVariation")->debug(
-        "  pt range selected:         [{}, {})", pt_min_, pt_max_);
-    }
+        "  decay mode restriction:    {}", decay_mode_restriction_.repr());
+    Logger::get("TauIDVsJetVariation")->debug(
+        "  pt restriction:            {}", pt_restriction_.repr());
+    Logger::get("TauIDVsJetVariation")->debug(
+        "  eta restriction:           {}", eta_restriction_.repr());
 }
 
 /**
@@ -339,40 +390,26 @@ TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation) {
 std::function<double (const std::vector<correction::Variable::Type>&)>
 TauIDVsJetVariation::wrap_evaluate(const correction::Correction *evaluator)
 const {
-    // Get indices of pt and decay mode in the evaluate function inputs
-    size_t pt_index = get_variable_index(evaluator, "pt");
-    size_t dm_index = get_variable_index(evaluator, "dm");
-    size_t variation_index = get_variable_index(evaluator, "syst");
-
-    // Capture selection flags and values for the wrapper function
-    auto custom_variation = custom_variation_;
-    auto has_dm_selection = has_dm_selection_;
-    auto has_pt_selection = has_pt_selection_;
-    auto sel_decay_mode = decay_mode_;
-    auto sel_pt_min = pt_min_;
-    auto sel_pt_max = pt_max_;
-
-    // Capture correction evaluation to evaluate the correction file scale
-    // factors 
-    const std::string correction_variation = variation_;
+    // Get indices of the variables in the list of inputs of the correction::Correction
+    size_t gen_index = get_variable_index(evaluator, "gen_match", -1);
+    size_t decay_mode_index = get_variable_index(evaluator, "decay_mode", -1);
+    size_t pt_index = get_variable_index(evaluator, "pt", -1);
+    size_t eta_index = get_variable_index(evaluator, "eta", -1);
+    size_t syst_index = get_variable_index(evaluator, "syst", -1);
 
     // Define the evaluate wrapper function
     auto wrapper = [
+        this,
         evaluator,
+        gen_index,
+        decay_mode_index,
         pt_index,
-        dm_index,
-        variation_index,
-        custom_variation,
-        has_dm_selection,
-        has_pt_selection,
-        sel_decay_mode,
-        sel_pt_min,
-        sel_pt_max,
-        correction_variation
+        eta_index,
+        syst_index
     ] (const std::vector<correction::Variable::Type> &values) {
         // If no custom selections are imposed, just evaluate the correction
         // factor using the provided values
-        if (!has_dm_selection && !has_pt_selection) {
+        if (!this->is_custom_variation_) {
             Logger::get("TauIDVsJetVariation")->debug("Default evaluation of correction");
             return evaluator->evaluate(values);
         }
@@ -381,49 +418,67 @@ const {
         // need to be manipulated manually.
         Logger::get("TauIDVsJetVariation")->debug(
             "Custom evaluation of correction for custom variation {}",
-            custom_variation);
+            this->variation_);
 
-        // Get pt and decay mode values
-        auto pt = std::get<double>(values[pt_index]);
-        auto decay_mode = std::get<int>(values[dm_index]);
+        // Set default values for selection inputs
+        int gen_match = -10;
+        int decay_mode = -10;
+        double pt = -10.;
+        double eta = -10.;
+
+        // Set the values if they are needed for imposed restrictions
+        if (this->gen_match_restriction_.is_active()) {
+            this->throw_variable_out_of_range("gen_match", gen_index);
+            gen_match = std::get<int>(values[gen_index]);
+        }
+        if (this->decay_mode_restriction_.is_active()) {
+            this->throw_variable_out_of_range("decay_mode", decay_mode_index);
+            decay_mode = std::get<int>(values[decay_mode_index]);
+        }
+        if (this->pt_restriction_.is_active()) {
+            this->throw_variable_out_of_range("pt", pt_index);
+            pt = std::get<double>(values[pt_index]);
+        }
+        if (this->eta_restriction_.is_active()) {
+            this->throw_variable_out_of_range("eta", eta_index);
+            eta = std::get<double>(values[eta_index]);
+        }
+
+        // Print debug output for the values of the selection inputs
+        Logger::get("TauIDVsJetVariation")->debug(
+            "Checking selections for");
+        Logger::get("TauIDVsJetVariation")->debug(
+            "  gen_match        {}", gen_match);
+        Logger::get("TauIDVsJetVariation")->debug(
+            "  decay_mode       {}", decay_mode);
+        Logger::get("TauIDVsJetVariation")->debug(
+            "  pt               {}", pt);
+        Logger::get("TauIDVsJetVariation")->debug(
+            "  eta              {}", eta);
+
+        // Check whether the event passes selections if restrictions are imposed
+        auto is_selected = (
+            this->gen_match_restriction_.is_selected(gen_match)
+            && this->decay_mode_restriction_.is_selected(decay_mode)
+            && this->pt_restriction_.is_selected(pt)
+            && this->eta_restriction_.is_selected(eta)
+        );
 
         Logger::get("TauIDVsJetVariation")->debug(
-            "Checking selections for pt {}, decay mode {}",
-            pt, decay_mode
-        );
-
-        // Check whether the event passes the decay mode and pt selections
-        auto dm_selected = decay_mode == sel_decay_mode;
-        auto pt_selected = pt >= sel_pt_min && pt < sel_pt_max;
-        auto selected = (
-            (has_dm_selection && dm_selected) || !has_dm_selection
-        ) && (
-            (has_pt_selection && pt_selected) || !has_pt_selection
-        );
-        Logger::get("TauIDVsJetVariation")->debug(
-            "Selection results for custom variation");
-        Logger::get("TauIDVsJetVariation")->debug(
-            "  decay mode selection {}", dm_selected
-        );
-        Logger::get("TauIDVsJetVariation")->debug(
-            "  pt selection         {}", pt_selected
-        );
-        Logger::get("TauIDVsJetVariation")->debug(
-            "  overall selection    {}", selected
-        );
+            "Selection results in selection status {}", is_selected);
 
         // If the event is marked as selected, evaluate the correction
         // factor with the correct variation direction. If the selection is not
         // passed, evaluate with the nominal variation
         std::vector<correction::Variable::Type> values_copy = values;
-        if (selected) {
-            values_copy[variation_index] = correction_variation;
+        if (is_selected) {
+            values_copy[syst_index] = this->cfile_variation_;
         } else {
-            values_copy[variation_index] = "nom";
+            values_copy[syst_index] = "nom";
         }
         Logger::get("TauIDVsJetVariation")->debug(
             "Evaluating correction with variation {}",
-            std::get<std::string>(values_copy[variation_index])
+            std::get<std::string>(values_copy[syst_index])
         );
 
         return evaluator->evaluate(values_copy);
@@ -434,8 +489,48 @@ const {
 
 // --- private -----------------------------------------------------------------
 
+std::pair<bool, std::unordered_map<std::string, std::string>> TauIDVsJetVariation::match_custom_variation(
+    const std::string &custom_variation
+) const {
+    // Define regular expression that catches custom variation definitions
+    auto custom_pattern = std::regex(
+        "(up|down)_custom(_(genEle|genMu|genTau))?(_dm(0|1|10|11))?(_pt(\\d+)to(\\d+|Inf))?(_(barrel|endcap))?",
+        std::regex_constants::ECMAScript
+    );
+    Logger::get("TauIDVsJetVariation")->debug(
+        "Parsing tau ID vs jet variation: {}", custom_variation
+    );
+
+    bool matched = false;
+    std::unordered_map<std::string, std::string> results;
+    std::smatch matches;
+    if (std::regex_match(custom_variation, matches, custom_pattern)) {
+        // Set flag that the regex pattern has been matched
+        matched = true;
+
+        // Capture matched groups if they are not empty, add them to the results
+        // map
+        results.insert({"direction", matches[1].str()});
+        if (!matches[2].str().empty()) {
+            results.insert({"gen_match", matches[3].str()});
+        }
+        if (!matches[4].str().empty()) {
+            results.insert({"decay_mode", matches[5].str()});
+        }
+        if (!matches[6].str().empty()) {
+            results.insert({"pt_min", matches[7].str()});
+            results.insert({"pt_max", matches[8].str()});
+        }
+        if (!matches[9].str().empty()) {
+            results.insert({"eta_region", matches[10].str()});
+        }
+    }
+
+    return std::make_pair(matched, results);
+}
+
 size_t TauIDVsJetVariation::get_variable_index(
-    const correction::Correction *evaluator, const std::string &name
+    const correction::Correction *evaluator, const std::string &name, const size_t &default_index
 ) const {
     // Go through the list of the evaluator's inputs and find the index of the
     // variable with the given name
@@ -445,11 +540,19 @@ size_t TauIDVsJetVariation::get_variable_index(
         }
     }
 
-    // Raise an exception if the variable has not been found
-    auto msg = std::format(
-        "Variable name {} not found in evaluator inputs", name
-    );
-    throw std::out_of_range(msg);
+    // If the variable is not found, return the default index
+    return default_index;
+}
+
+void TauIDVsJetVariation::throw_variable_out_of_range(const std::string &name, const size_t &index) const {
+    if (index == -1) {
+        auto msg = std::format(
+            "Variable {} not found in the list of inputs of the correction. "
+            "Please check the variable name and ensure it is present in the "
+            "correction inputs.", name
+        );
+        throw std::out_of_range(msg);
+    }
 }
 
 } // end namespace scalefactor
