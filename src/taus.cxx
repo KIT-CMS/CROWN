@@ -4,14 +4,14 @@
 #include "../include/defaults.hxx"
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
 #include "../include/utility/TauVariations.hxx"
+#include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "correction.h"
 #include <cmath>
+#include <format>
 #include <stdexcept>
 #include <unordered_map>
-#include <format>
 
 namespace physicsobject {
 namespace tau {
@@ -1874,17 +1874,15 @@ namespace experimental {
  * for ID vs. electrons and vs. jets. An overloaded version of this function
  * exists for this purpose.
  */
-ROOT::RDF::RNode
-PtCorrectionMC(ROOT::RDF::RNode df,
-               correctionManager::CorrectionManager &correction_manager,
-               const std::string &outputname, const std::string &pt,
-               const std::string &eta, const std::string &decay_mode,
-               const std::string &gen_match, const std::string &es_file,
-               const std::string &correction_name,
-               const std::string &id_algorithm, const std::string &id_vs_jet_wp,
-               const std::string &id_vs_ele_wp,
-               const std::vector<int> &selected_dms,
-               const std::string &variation) {
+ROOT::RDF::RNode PtCorrectionMC(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correction_manager,
+    const std::string &outputname, const std::string &pt,
+    const std::string &eta, const std::string &decay_mode,
+    const std::string &gen_match, const std::string &es_file,
+    const std::string &correction_name, const std::string &id_algorithm,
+    const std::string &id_vs_jet_wp, const std::string &id_vs_ele_wp,
+    const std::vector<int> &selected_dms, const std::string &variation) {
     // Set the logger name
     std::string logger_name = "physicsobject::tau::PtCorrectionMC";
 
@@ -1899,49 +1897,34 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     // object for advanced systematics handling.
     auto evaluator =
         correction_manager.loadCorrection(es_file, correction_name);
-    auto tau_id_variation = physicsobject::tau::scalefactor::TauIDVsJetVariation(variation);
+    auto tau_id_variation =
+        physicsobject::tau::scalefactor::TauIDVsJetVariation(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
     // Lambda function to evaluate correction for a single tau
-    auto evaluate_tau = [
-        evaluate_wrapper,
-        id_algorithm,
-        id_vs_jet_wp,
-        id_vs_ele_wp,
-        variation,
-        selected_dms
-    ] (
-        const float &pt,
-        const float &eta,
-        const int &decay_mode,
-        const int &gen_match
-    ) {
+    auto evaluate_tau = [evaluate_wrapper, id_algorithm, id_vs_jet_wp,
+                         id_vs_ele_wp, variation, selected_dms](
+                            const float &pt, const float &eta,
+                            const int &decay_mode, const int &gen_match) {
         // Evaluate the correction for selected decay modes, set the
         // correction factor to 1 otherwise
         float correction_factor = 1.0;
-        if (std::find(selected_dms.begin(), selected_dms.end(),
-                        decay_mode) != selected_dms.end()) {
+        if (std::find(selected_dms.begin(), selected_dms.end(), decay_mode) !=
+            selected_dms.end()) {
             correction_factor = evaluate_wrapper(
                 {pt, abs(eta), decay_mode, gen_match, id_algorithm,
-                    id_vs_jet_wp, id_vs_ele_wp, variation});
+                 id_vs_jet_wp, id_vs_ele_wp, variation});
         }
 
         // Calculate the corrected pt
         return pt * correction_factor;
     };
 
-    auto func = [
-        logger_name,
-        evaluate_tau,
-        id_vs_jet_wp,
-        id_vs_ele_wp,
-        variation
-    ] (
-        const ROOT::RVec<float> &pts,
-        const ROOT::RVec<float> &etas,
-        const ROOT::RVec<UChar_t> &decay_modes_v12,
-        const ROOT::RVec<UChar_t> &gen_matches_char
-    ) {
+    auto func = [logger_name, evaluate_tau, id_vs_jet_wp, id_vs_ele_wp,
+                 variation](const ROOT::RVec<float> &pts,
+                            const ROOT::RVec<float> &etas,
+                            const ROOT::RVec<UChar_t> &decay_modes_v12,
+                            const ROOT::RVec<UChar_t> &gen_matches_char) {
         // convert decay modes and gen matches to integers
         auto decay_modes = static_cast<ROOT::RVec<int>>(decay_modes_v12);
         auto gen_matches = static_cast<ROOT::RVec<int>>(gen_matches_char);
@@ -1959,28 +1942,18 @@ PtCorrectionMC(ROOT::RDF::RNode df,
 
         // Calculate the corrected pts by mapping input vectors to evaluate
         // function for single taus
-        auto corrected_pts = ROOT::VecOps::Map(
-            pts,
-            etas,
-            decay_modes,
-            gen_matches,
-            evaluate_tau
-        );
+        auto corrected_pts = ROOT::VecOps::Map(pts, etas, decay_modes,
+                                               gen_matches, evaluate_tau);
 
         // Print debug information
-        Logger::get(logger_name)
-            ->debug("Finished with tau pt corrections");
-        Logger::get(logger_name)
-            ->debug("  corrected pt {}", corrected_pts);
+        Logger::get(logger_name)->debug("Finished with tau pt corrections");
+        Logger::get(logger_name)->debug("  corrected pt {}", corrected_pts);
 
         return corrected_pts;
     };
 
-    return df1.Define(
-        outputname,
-        func,
-        {pt, eta, decay_mode_column, gen_match}
-    );
+    return df1.Define(outputname, func,
+                      {pt, eta, decay_mode_column, gen_match});
 }
 
 } // end namespace experimental
@@ -3057,7 +3030,7 @@ namespace experimental {
  * binned in decay modes (DMs) and the hadronic tau \f$p_{\text{T}}\f$. The `pt`
  * dependence of the scale factors should be used for high-\f$p_{\text{T}}\f$
  * hadronic taus.
- * 
+ *
  * For the `dm` scale factors in 2022 and 2023, the following variations
  * can be used:
  *
@@ -3129,43 +3102,40 @@ Id_vsJet(ROOT::RDF::RNode df,
     auto tau_id_variation = TauIDVsJetVariation(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
-    auto sf_calculator = [evaluate_wrapper, wp, vsele_wp, variation, sf_dependence,
-                          sf_name, logger_name](const float &pt, const int &decay_mode,
-                                   const int &gen_match) {
-
+    auto sf_calculator = [evaluate_wrapper, wp, vsele_wp, variation,
+                          sf_dependence, sf_name,
+                          logger_name](const float &pt, const int &decay_mode,
+                                       const int &gen_match) {
         // Only calculate SFs for allowed tau decay modes
         const auto decay_modes = std::vector<int>({0, 1, 10, 11});
         double sf = 1.;
-        if (
-            std::find(decay_modes.begin(), decay_modes.end(), decay_mode)
-            != decay_modes.end()
-        ) {
+        if (std::find(decay_modes.begin(), decay_modes.end(), decay_mode) !=
+            decay_modes.end()) {
             // Log input to the SF calculation
-            Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
+            Logger::get(logger_name)
+                ->debug("Retrieve tau ID SF {} for", sf_name);
             Logger::get(logger_name)->debug("   pt            {}", pt);
             Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
             Logger::get(logger_name)->debug("   gen_match     {}", gen_match);
             Logger::get(logger_name)->debug("   wp            {}", wp);
             Logger::get(logger_name)->debug("   vsele_wp      {}", vsele_wp);
             Logger::get(logger_name)->debug("   variation     {}", variation);
-            Logger::get(logger_name)->debug("   sf_dependence {}", sf_dependence);
+            Logger::get(logger_name)
+                ->debug("   sf_dependence {}", sf_dependence);
 
             // Evaluate the scale factor
             sf = evaluate_wrapper({pt, decay_mode, gen_match, wp, vsele_wp,
                                    variation, sf_dependence});
         } else {
-            Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
+            Logger::get(logger_name)
+                ->debug("Retrieve tau ID SF {} for", sf_name);
             Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
         }
         Logger::get(logger_name)->debug("Obtained SF value {}", sf);
         return sf;
     };
-    
-    return df.Define(
-        outputname,
-        sf_calculator,
-        {pt, decay_mode, gen_match}
-    );
+
+    return df.Define(outputname, sf_calculator, {pt, decay_mode, gen_match});
 }
 
 ROOT::RDF::RNode
@@ -3189,10 +3159,9 @@ Id_vsEle(ROOT::RDF::RNode df,
     auto tau_id_variation = TauIDVsJetVariation(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
-    auto sf_calculator = [evaluate_wrapper, era, wp, variation,
-                          sf_name, logger_name](const float &eta, const int &decay_mode,
-                                   const int &gen_match) {
-
+    auto sf_calculator = [evaluate_wrapper, era, wp, variation, sf_name,
+                          logger_name](const float &eta, const int &decay_mode,
+                                       const int &gen_match) {
         // Log input to the SF calculation
         Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
         Logger::get(logger_name)->debug("   eta           {}", eta);
@@ -3204,20 +3173,18 @@ Id_vsEle(ROOT::RDF::RNode df,
         // For placeholder eta values and decay modes not covered by this
         // SF, return unity
         const auto decay_modes = std::vector<int>({0, 1, 10, 11});
-        if (
-            (eta == -10.0)
-            || (std::find(decay_modes.begin(), decay_modes.end(), decay_mode)
-            == decay_modes.end())
-        ) {
-            Logger::get(logger_name)->debug(
-                "Placeholder for eta or decay_mode foumd, no correction applied (SF of 1.0)");
+        if ((eta == -10.0) || (std::find(decay_modes.begin(), decay_modes.end(),
+                                         decay_mode) == decay_modes.end())) {
+            Logger::get(logger_name)
+                ->debug("Placeholder for eta or decay_mode foumd, no "
+                        "correction applied (SF of 1.0)");
             return 1.0;
         }
 
         // Evaluate the scale factor
         double sf = 1.0;
         if (sf_name == "DeepTau2017v2p1VSe") {
-            // SFs for DeepTau2017v2p1 do not depend on DM 
+            // SFs for DeepTau2017v2p1 do not depend on DM
             sf = evaluate_wrapper({eta, gen_match, wp, variation});
         } else {
             // SFs for DeepTau2018v2p5 depend on eta and the decay mode
@@ -3227,22 +3194,18 @@ Id_vsEle(ROOT::RDF::RNode df,
 
         return sf;
     };
-    
-    return df.Define(
-        outputname,
-        sf_calculator,
-        {eta, decay_mode, gen_match}
-    );
+
+    return df.Define(outputname, sf_calculator, {eta, decay_mode, gen_match});
 }
 
-ROOT::RDF::RNode Id_vsMu(
-    ROOT::RDF::RNode df,
-    correctionManager::CorrectionManager &correction_manager,
-    const std::string &outputname, const std::string &eta,
-    const std::string &gen_match, const std::string &sf_file,
-    const std::string &sf_name, const std::string &wp,
-    const std::string &wp_ele, const std::string &wp_jet,
-    const std::string &era, const std::string &variation) {
+ROOT::RDF::RNode
+Id_vsMu(ROOT::RDF::RNode df,
+        correctionManager::CorrectionManager &correction_manager,
+        const std::string &outputname, const std::string &eta,
+        const std::string &gen_match, const std::string &sf_file,
+        const std::string &sf_name, const std::string &wp,
+        const std::string &wp_ele, const std::string &wp_jet,
+        const std::string &era, const std::string &variation) {
     // Define logger name
     std::string logger_name = "physicsobject::tau::scalefactor::Id_vsMu";
 
@@ -3256,9 +3219,10 @@ ROOT::RDF::RNode Id_vsMu(
     auto tau_id_variation = TauIDVsJetVariation(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
-    auto sf_calculator = [evaluate_wrapper, era, wp, wp_ele, wp_jet, variation, sf_name, logger_name](const float &eta, const int &decay_mode,
-                                   const int &gen_match) {
-
+    auto sf_calculator = [evaluate_wrapper, era, wp, wp_ele, wp_jet, variation,
+                          sf_name,
+                          logger_name](const float &eta, const int &decay_mode,
+                                       const int &gen_match) {
         // Log input to the SF calculation
         Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
         Logger::get(logger_name)->debug("   eta           {}", eta);
@@ -3272,13 +3236,11 @@ ROOT::RDF::RNode Id_vsMu(
         // For placeholder eta values and decay modes not covered by this
         // SF, return unity
         const auto decay_modes = std::vector<int>({0, 1, 10, 11});
-        if (
-            (eta == -10.0)
-            || (std::find(decay_modes.begin(), decay_modes.end(), decay_mode)
-            == decay_modes.end())
-        ) {
-            Logger::get(logger_name)->debug(
-                "Placeholder for eta or decay_mode foumd, no correction applied (SF of 1.0)");
+        if ((eta == -10.0) || (std::find(decay_modes.begin(), decay_modes.end(),
+                                         decay_mode) == decay_modes.end())) {
+            Logger::get(logger_name)
+                ->debug("Placeholder for eta or decay_mode foumd, no "
+                        "correction applied (SF of 1.0)");
             return 1.0;
         }
 
@@ -3287,22 +3249,20 @@ ROOT::RDF::RNode Id_vsMu(
         if (std::stoi(era.substr(0, 4)) >= 2024) {
             // For 2024 and later, SF have additional dependencies on working
             // points of vsEle and vsJet ID
-            sf = evaluate_wrapper({std::abs(eta), gen_match, wp, wp_ele, wp_jet, variation});
+            sf = evaluate_wrapper(
+                {std::abs(eta), gen_match, wp, wp_ele, wp_jet, variation});
         } else {
             // For eras befor 2024, SF only depend on the vsMu ID working point,
             // not on the vsEle and vsJet ID working points
-            sf = evaluate_wrapper({std::abs(eta), decay_mode, gen_match, wp, variation});
+            sf = evaluate_wrapper(
+                {std::abs(eta), decay_mode, gen_match, wp, variation});
         }
         Logger::get(logger_name)->debug("Obtained SF value {}", sf);
 
         return sf;
     };
-    
-    return df.Define(
-        outputname,
-        sf_calculator,
-        {eta, gen_match}
-    );
+
+    return df.Define(outputname, sf_calculator, {eta, gen_match});
 }
 
 } // end namespace experimental
