@@ -1795,54 +1795,6 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
 
 namespace experimental {
 
-
-/**
- * @brief This function calculates scale factors (SFs) for tau identification
- * (ID) against jets (`VSjet`). The scale factors are loaded from a
- * correctionlib file using a specified scale factor name and variation.
- * 
- * The corrections provided by the TAU POG are usually available in two
- * different version, which can be selected via the `sf_dependence` parameter:
- * 
- * - `"dm"`: the scale factors are binned in the hadronic tau decay mode (DM)
- *   and \f$p_{\text{T}}\f$. The corrections apply to low to medium
- *   \f$p_{\text{T}}\f$ hadronic taus.
- * 
- * - `"pt"`: The scale factors are binned in \f$p_{\text{T}}\f$ only. Also,
- *   these corrections only apply to high-\f$p_{\text{T}}\f$ hadronic taus with
- *   \f$p_{\text{T}} > 140\f$ GeV.
- *
- * Usual analyses should use the `dm` dependence version of the scale factors.
- *
- * For the `dm` scale factors in Run 2, as well as 2022 and 2023, the following
- * variations can be used:
- *
- * - `"(up|down)"`: a total up/down variation of the scale factor
- *
- * - `"stat(1|2)_dm(0|1|10|11)_(up|down)"`: statistical uncertainties in fit
- *   parameters.
- *
- * - `"syst_(ERA_STRING)_(up|down)"`:
- *   systematic uncertainties in the measurement, uncorrelated between eras but
- *   correlated between DM bins
- *
- * - `"syst_alleras_(up|down)"`: systematic uncertainties in the measurement,
- *   correlated between different DM bins and eras.
- *
- * In 2024 and 2025, the variations need to be decorrelated between the
- * \f$p_{\text{T}}\f$ and DM bins used in the measurement. To get these
- * variations, a string following the pattern
- * `"(up|down)_custom_dm(0|1|10|11)_pt(LOW_EDGE)to(UP_EDGE)"` can be passed.
- * Here, `LOW_EDGE` and `UP_EDGE` are the lower and upper edges of the
- * \f$p_{\text{T}}\f$ bins. The evaluation is taken care of with the
- * `variation_helpers::TauVariationHandler` class.
- * 
- * [TAU POG documentation: corrections for genuine taus](https://tau-wiki.docs.cern.ch/Corrections/#corrections-for-genuine-taus)
- * 
- */
-
-
-
 /**
  * @brief This function applies a transverse momentum (\f$p_T\f$) correction to
  * hadronic taus in MC simulations.
