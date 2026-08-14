@@ -1917,8 +1917,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
         Logger::get(logger_name)->debug("  eta          {}", etas);
         Logger::get(logger_name)->debug("  decay_mode   {}", decay_modes);
         Logger::get(logger_name)->debug("  gen_match    {}", gen_matches);
-        Logger::get(logger_name)->debug("  id_vsjet_wp  {}", id_vs_jet_wp);
-        Logger::get(logger_name)->debug("  id_vse_wp  {}", id_vse_wp);
+        Logger::get(logger_name)->debug("  id_vsjet_wp  {}", id_vsjet_wp);
+        Logger::get(logger_name)->debug("  id_vse_wp    {}", id_vse_wp);
         Logger::get(logger_name)->debug("  variation    {}", variation);
 
         // Calculate the corrected pts by mapping input vectors to evaluate
