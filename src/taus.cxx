@@ -1834,9 +1834,6 @@ namespace experimental {
  * 
  * [TAU POG documentation: Corrections: Tau identification scale factors & energy scales](https://tau-wiki.docs.cern.ch/Corrections/)
  *
- * 
- * 
- * 
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
  * tau scale factor file
