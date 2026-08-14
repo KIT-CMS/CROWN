@@ -3280,26 +3280,21 @@ Id_vsMu(ROOT::RDF::RNode df,
 
     auto sf_calculator = [evaluate_wrapper, era, id_vsmu_wp, id_vse_wp,
                           id_vsjet_wp, variation, sf_name,
-                          logger_name](const float &eta, const int &decay_mode,
-                                       const int &gen_match) {
+                          logger_name](const float &eta, const int &gen_match) {
         // Log input to the SF calculation
         Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
         Logger::get(logger_name)->debug("   eta           {}", eta);
-        Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
         Logger::get(logger_name)->debug("   gen_match     {}", gen_match);
         Logger::get(logger_name)->debug("   id_vsmu_wp    {}", id_vsmu_wp);
         Logger::get(logger_name)->debug("   id_vse_wp     {}", id_vse_wp);
         Logger::get(logger_name)->debug("   id_vsjet_wp   {}", id_vsjet_wp);
         Logger::get(logger_name)->debug("   variation     {}", variation);
 
-        // For placeholder eta values and decay modes not covered by this
-        // SF, return unity
-        const auto decay_modes = std::vector<int>({0, 1, 10, 11});
-        if ((eta == -10.0) || (std::find(decay_modes.begin(), decay_modes.end(),
-                                         decay_mode) == decay_modes.end())) {
+        // For placeholder eta values not covered by this SF, return unity
+        if (eta == -10.0) {
             Logger::get(logger_name)
-                ->debug("Placeholder for eta or decay_mode foumd, no "
-                        "correction applied (SF of 1.0)");
+                ->debug("Placeholder for eta found, no correction applied (SF "
+                        " of 1.0)");
             return 1.0;
         }
 
@@ -3314,7 +3309,7 @@ Id_vsMu(ROOT::RDF::RNode df,
             // For eras befor 2024, SF only depend on the vsMu ID working point,
             // not on the vsEle and vsJet ID working points
             sf = evaluate_wrapper(
-                {std::abs(eta), decay_mode, gen_match, id_vsmu_wp, variation});
+                {std::abs(eta), gen_match, id_vsmu_wp, variation});
         }
         Logger::get(logger_name)->debug("Obtained SF value {}", sf);
 
