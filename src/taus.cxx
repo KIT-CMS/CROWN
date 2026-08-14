@@ -3189,15 +3189,13 @@ Id_vsEle(ROOT::RDF::RNode df,
     auto tau_id_variation = TauIDVsJetVariation(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
-    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, era, wp, variation_barrel,
-                          variation_endcap,
-                          sf_name](const float &eta, const int &dm,
+    auto sf_calculator = [evaluate_wrapper, era, wp, variation,
+                          sf_name, logger_name](const float &eta, const int &decay_mode,
                                    const int &gen_match) {
 
         // Log input to the SF calculation
         Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
-        Logger::get(logger_name)->debug("   eta           {}", pt);
+        Logger::get(logger_name)->debug("   eta           {}", eta);
         Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
         Logger::get(logger_name)->debug("   gen_match     {}", gen_match);
         Logger::get(logger_name)->debug("   wp            {}", wp);
@@ -3258,15 +3256,12 @@ ROOT::RDF::RNode Id_vsMu(
     auto tau_id_variation = TauIDVsJetVariation(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
-    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, era, wp, variation_barrel,
-                          variation_endcap,
-                          sf_name](const float &eta, const int &dm,
+    auto sf_calculator = [evaluate_wrapper, era, wp, wp_ele, wp_jet, variation, sf_name, logger_name](const float &eta, const int &decay_mode,
                                    const int &gen_match) {
 
         // Log input to the SF calculation
         Logger::get(logger_name)->debug("Retrieve tau ID SF {} for", sf_name);
-        Logger::get(logger_name)->debug("   eta           {}", pt);
+        Logger::get(logger_name)->debug("   eta           {}", eta);
         Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
         Logger::get(logger_name)->debug("   gen_match     {}", gen_match);
         Logger::get(logger_name)->debug("   wp            {}", wp);
