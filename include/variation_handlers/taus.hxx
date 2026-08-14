@@ -7,11 +7,7 @@
 #include <regex>
 #include <vector>
 
-namespace physicsobject {
-
-namespace tau {
-
-namespace scalefactor {
+namespace variation_handlers {
 
 // Map genuine object types to indices of generator-level match values
 enum struct GenType {
@@ -100,10 +96,10 @@ class EtaRestriction {
 };
 
 // Class to handle custom variations of tau ID vs jet scale factors
-class TauIDVsJetVariation {
+class TauVariationHandler {
   public:
     // Constructor
-    TauIDVsJetVariation(const std::string &);
+    TauVariationHandler(const std::string &);
 
     // Wrap correction::Correction::evaluate function
     std::function<double(const std::vector<correction::Variable::Type> &)>
@@ -137,10 +133,6 @@ class TauIDVsJetVariation {
     void throw_variable_out_of_range(const std::string &, const size_t &) const;
 };
 
-} // end namespace scalefactor
-
-} // end namespace tau
-
-} // end namespace physicsobject
+} // end namespace variation_handlers
 
 #endif // GUARD_TAUVARIATIONS_H

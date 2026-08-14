@@ -5,13 +5,9 @@
 #include <vector>
 
 #include "../../include/utility/Logger.hxx"
-#include "../../include/utility/TauVariations.hxx"
+#include "../../include/variation_handlers/taus.hxx"
 
-namespace physicsobject {
-
-namespace tau {
-
-namespace scalefactor {
+namespace variation_handlers {
 
 // -----------------------------------------------------------------------------
 // physicsobject::tau::scalefactor::GenMatchRestriction
@@ -199,13 +195,13 @@ std::string EtaRestriction::repr() const {
 }
 
 // ----------------------------------------------------------------------------
-// physicsobject::tau::scalefactor::TauIDVsJetVariation
+// physicsobject::tau::scalefactor::TauVariationHandler
 // ----------------------------------------------------------------------------
 
 // --- public ------------------------------------------------------------------
 
 /**
- * @brief Construct a new `TauIDVsJetVariation`.
+ * @brief Construct a new `TauVariationHandler`.
  *
  * The object is constructed by parsing the `variation` string. If the string
  * matches a pattern for a custom tau ID variation, selections are parsed from
@@ -268,14 +264,14 @@ std::string EtaRestriction::repr() const {
  *
  * @param variation Name of the tau ID vs jets scale factor variation
  */
-TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation)
+TauVariationHandler::TauVariationHandler(const std::string &variation)
     : gen_match_restriction_(GenMatchRestriction()),
       decay_mode_restriction_(DecayModeRestriction()),
       pt_restriction_(PtRestriction()), eta_restriction_(EtaRestriction()) {
 
     // Set the variation name
     variation_ = variation;
-    Logger::get("TauIDVsJetVariation")
+    Logger::get("TauVariationHandler")
         ->debug("Handling tau ID vs jet variation {}", variation_);
 
     // Match the variation to the custom variation pattern
@@ -368,20 +364,20 @@ TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation)
 
     // Final debug output to show the stored values of the variation and
     // selections
-    Logger::get("TauIDVsJetVariation")
+    Logger::get("TauVariationHandler")
         ->debug("Set up variation handler with the following values:");
-    Logger::get("TauIDVsJetVariation")
+    Logger::get("TauVariationHandler")
         ->debug("  correction file variation: {}", cfile_variation_);
 
-    Logger::get("TauIDVsJetVariation")
+    Logger::get("TauVariationHandler")
         ->debug("  gen match restriction:     {}",
                 gen_match_restriction_.repr());
-    Logger::get("TauIDVsJetVariation")
+    Logger::get("TauVariationHandler")
         ->debug("  decay mode restriction:    {}",
                 decay_mode_restriction_.repr());
-    Logger::get("TauIDVsJetVariation")
+    Logger::get("TauVariationHandler")
         ->debug("  pt restriction:            {}", pt_restriction_.repr());
-    Logger::get("TauIDVsJetVariation")
+    Logger::get("TauVariationHandler")
         ->debug("  eta restriction:           {}", eta_restriction_.repr());
 }
 
@@ -398,7 +394,7 @@ TauIDVsJetVariation::TauIDVsJetVariation(const std::string &variation)
  * @return Function that takes a list of inputs and returns the scale factor.
  */
 std::function<double(const std::vector<correction::Variable::Type> &)>
-TauIDVsJetVariation::wrap_evaluate(
+TauVariationHandler::wrap_evaluate(
     const correction::Correction *evaluator) const {
     // Get indices of the variables in the list of inputs of the
     // correction::Correction
@@ -421,14 +417,14 @@ TauIDVsJetVariation::wrap_evaluate(
         // If no custom selections are imposed, just evaluate the correction
         // factor using the provided values
         if (!is_custom_variation) {
-            Logger::get("TauIDVsJetVariation")
+            Logger::get("TauVariationHandler")
                 ->debug("Default evaluation of correction");
             return evaluator->evaluate(values);
         }
 
         // For custom selections, the input values for the evaluate function
         // need to be manipulated manually.
-        Logger::get("TauIDVsJetVariation")
+        Logger::get("TauVariationHandler")
             ->debug("Custom evaluation of correction for custom variation");
 
         // Set default values for selection inputs
@@ -484,13 +480,13 @@ TauIDVsJetVariation::wrap_evaluate(
         }
 
         // Print debug output for the values of the selection inputs
-        Logger::get("TauIDVsJetVariation")->debug("Checking selections for");
-        Logger::get("TauIDVsJetVariation")
+        Logger::get("TauVariationHandler")->debug("Checking selections for");
+        Logger::get("TauVariationHandler")
             ->debug("  gen_match        {}", gen_match);
-        Logger::get("TauIDVsJetVariation")
+        Logger::get("TauVariationHandler")
             ->debug("  decay_mode       {}", decay_mode);
-        Logger::get("TauIDVsJetVariation")->debug("  pt               {}", pt);
-        Logger::get("TauIDVsJetVariation")->debug("  eta              {}", eta);
+        Logger::get("TauVariationHandler")->debug("  pt               {}", pt);
+        Logger::get("TauVariationHandler")->debug("  eta              {}", eta);
 
         // Check whether the event passes selections if restrictions are imposed
         auto is_selected = (gen_match_restriction.is_selected(gen_match) &&
@@ -498,7 +494,7 @@ TauIDVsJetVariation::wrap_evaluate(
                             pt_restriction.is_selected(pt) &&
                             eta_restriction.is_selected(eta));
 
-        Logger::get("TauIDVsJetVariation")
+        Logger::get("TauVariationHandler")
             ->debug("Selection results in selection status {}", is_selected);
 
         // If the event is marked as selected, evaluate the correction
@@ -510,7 +506,7 @@ TauIDVsJetVariation::wrap_evaluate(
         } else {
             values_copy[syst_index] = "nom";
         }
-        Logger::get("TauIDVsJetVariation")
+        Logger::get("TauVariationHandler")
             ->debug("Evaluating correction with variation {}",
                     std::get<std::string>(values_copy[syst_index]));
 
@@ -523,14 +519,14 @@ TauIDVsJetVariation::wrap_evaluate(
 // --- private -----------------------------------------------------------------
 
 std::pair<bool, std::unordered_map<std::string, std::string>>
-TauIDVsJetVariation::match_custom_variation(
+TauVariationHandler::match_custom_variation(
     const std::string &custom_variation) const {
     // Define regular expression that catches custom variation definitions
     auto custom_pattern =
         std::regex("(up|down)_custom(_(genEle|genMu|genTau))?(_dm(0|1|10|11))?("
                    "_pt(\\d+)to(\\d+|Inf))?(_(barrel|endcap|wheel[1-5]))?",
                    std::regex_constants::ECMAScript);
-    Logger::get("TauIDVsJetVariation")
+    Logger::get("TauVariationHandler")
         ->debug("Parsing tau ID vs jet variation: {}", custom_variation);
 
     bool matched = false;
@@ -562,7 +558,7 @@ TauIDVsJetVariation::match_custom_variation(
 }
 
 size_t
-TauIDVsJetVariation::get_variable_index(const correction::Correction *evaluator,
+TauVariationHandler::get_variable_index(const correction::Correction *evaluator,
                                         const std::string &name,
                                         const size_t &default_index) const {
     // Go through the list of the evaluator's inputs and find the index of the
@@ -577,7 +573,7 @@ TauIDVsJetVariation::get_variable_index(const correction::Correction *evaluator,
     return default_index;
 }
 
-void TauIDVsJetVariation::throw_variable_out_of_range(
+void TauVariationHandler::throw_variable_out_of_range(
     const std::string &name, const size_t &index) const {
     if (index == -1) {
         auto msg = std::format(
@@ -589,8 +585,4 @@ void TauIDVsJetVariation::throw_variable_out_of_range(
     }
 }
 
-} // end namespace scalefactor
-
-} // end namespace tau
-
-} // end namespace physicsobject
+} // end namespace variation_handlers

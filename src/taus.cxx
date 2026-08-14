@@ -1,10 +1,10 @@
 #ifndef GUARD_TAUS_H
 #define GUARD_TAUS_H
 
+#include "../include/variation_handlers/taus.hxx"
 #include "../include/defaults.hxx"
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
-#include "../include/utility/TauVariations.hxx"
 #include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "correction.h"
@@ -1893,12 +1893,11 @@ ROOT::RDF::RNode PtCorrectionMC(
             df, decay_mode + "_v12", "ROOT::VecOps::RVec<UChar_t>", decay_mode);
 
     // Load the corrections from the correction file for the given correction
-    // name. Pass the evaluator to a wrapper, created with a TauIDVsJetVariation
+    // name. Pass the evaluator to a wrapper, created with a TauVariationHandler
     // object for advanced systematics handling.
     auto evaluator =
         correction_manager.loadCorrection(es_file, correction_name);
-    auto tau_id_variation =
-        physicsobject::tau::scalefactor::TauIDVsJetVariation(variation);
+    auto tau_id_variation = variation_handlers::TauVariationHandler(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
     // Lambda function to evaluate correction for a single tau
@@ -3097,9 +3096,9 @@ Id_vsJet(ROOT::RDF::RNode df,
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
 
     // Create the variation object and evaluate wrapper for extended systematics
-    // handling. Refer to the documentation of TauIDVsJetVariation for more
+    // handling. Refer to the documentation of TauVariationHandler for more
     // information.
-    auto tau_id_variation = TauIDVsJetVariation(variation);
+    auto tau_id_variation = variation_handlers::TauVariationHandler(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
     auto sf_calculator = [evaluate_wrapper, wp, vsele_wp, variation,
@@ -3154,9 +3153,9 @@ Id_vsEle(ROOT::RDF::RNode df,
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
 
     // Create the variation object and evaluate wrapper for extended systematics
-    // handling. Refer to the documentation of TauIDVsJetVariation for more
+    // handling. Refer to the documentation of TauVariationHandler for more
     // information.
-    auto tau_id_variation = TauIDVsJetVariation(variation);
+    auto tau_id_variation = variation_handlers::TauVariationHandler(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
     auto sf_calculator = [evaluate_wrapper, era, wp, variation, sf_name,
@@ -3214,9 +3213,9 @@ Id_vsMu(ROOT::RDF::RNode df,
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
 
     // Create the variation object and evaluate wrapper for extended systematics
-    // handling. Refer to the documentation of TauIDVsJetVariation for more
+    // handling. Refer to the documentation of TauVariationHandler for more
     // information.
-    auto tau_id_variation = TauIDVsJetVariation(variation);
+    auto tau_id_variation = variation_handlers::TauVariationHandler(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
     auto sf_calculator = [evaluate_wrapper, era, wp, wp_ele, wp_jet, variation,
