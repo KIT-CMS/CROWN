@@ -3057,8 +3057,10 @@ namespace experimental {
  * variations, a string following the pattern
  * `"(up|down)_custom_dm(0|1|10|11)_pt(LOW_EDGE)to(UP_EDGE)"` can be passed.
  * Here, `LOW_EDGE` and `UP_EDGE` are the lower and upper edges of the
- * \f$p_{\text{T}}\f$ bins. The corresponding restrictions and the evaluation is
- * taken care of by the `variation_helpers::TauVariationHandler` class.
+ * \f$p_{\text{T}}\f$ bins. The evaluation is taken care of with the
+ * `variation_helpers::TauVariationHandler` class.
+ * 
+ * [TAU POG documentation: corrections for genuine taus](https://tau-wiki.docs.cern.ch/Corrections/#corrections-for-genuine-taus)
  * 
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
@@ -3139,6 +3141,40 @@ Id_vsJet(ROOT::RDF::RNode df,
     return df.Define(outputname, sf_calculator, {pt, decay_mode, gen_match});
 }
 
+/**
+ * @brief This function calculates scale factors (SFs) for tau identification
+ * (ID) against electrons (`VSe`). The scale factors are loaded from a
+ * correctionlib file using a specified scale factor name and variation.
+ * 
+ * The variations need to be decorrelated between the DM and pseudorapidity bins
+ * used in the measurement. To get these variations, a string following the
+ * pattern `"(up|down)_custom_dm(0|1|10|11)_(barrel|endcap)"` can be passed. The
+ * pseudorapidity regions correspond to the barrel and endcap regions of the
+ * ECAL. The evaluation of the shift is taken care of with the
+ * `variation_helpers::TauVariationHandler` class.
+ * 
+ * [TAU POG documentation: corrections for electrons misidentified as taus](https://tau-wiki.docs.cern.ch/Corrections/#corrections-for-electrons-misidentidfied-as-taus)
+ * 
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * tau scale factor file
+ * @param outputname name of the output column containing the DeepTau VSe
+ * ID scale factor
+ * @param eta name of the column containing the pseudorapidity of a tau
+ * @param decay_mode name of the column containing the decay mode of the tau
+ * @param gen_match name of the column with the matching information of the
+ * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt
+ * mu, 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
+ * @param sf_file path to the file with the tau scale factors
+ * @param sf_name name of the tau scale factor for the DeepTau VSe ID
+ * correction
+ * @param wp working point of the DeepTau VSe ID
+ * @param era name of the data-taking era
+ * @param variation name of the scale factor variation, refer to description
+ * above for details
+ *
+ * @return a new dataframe containing the new column
+ */
 ROOT::RDF::RNode
 Id_vsEle(ROOT::RDF::RNode df,
          correctionManager::CorrectionManager &correction_manager,
@@ -3199,13 +3235,49 @@ Id_vsEle(ROOT::RDF::RNode df,
     return df.Define(outputname, sf_calculator, {eta, decay_mode, gen_match});
 }
 
+/**
+ * @brief This function calculates scale factors (SFs) for tau identification
+ * (ID) against muons (`VSmu`). The scale factors are loaded from a
+ * correctionlib file using a specified scale factor name and variation.
+ * 
+ * The variations need to be decorrelated between the pseudorapidity bins
+ * used in the measurement. To get these variations, a string following the
+ * pattern `"(up|down)_wheel(1|2|3|4|5)"` can be passed. Here, the wheels
+ * represent the pseudorapidity regions of the muon system wheels. The
+ * evaluation of the shift is taken care of with the
+ * `variation_helpers::TauVariationHandler` class.
+ * 
+ * [TAU POG documentation: corrections for muons misidentified as taus](https://tau-wiki.docs.cern.ch/Corrections/#corrections-for-muons-misidentidfied-as-taus)
+ * 
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * tau scale factor file
+ * @param outputname name of the output column containing the DeepTau VSmu
+ * ID scale factor
+ * @param eta name of the column containing the pseudorapidity of a tau
+ * @param gen_match name of the column with the matching information of the
+ * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt
+ * mu, 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
+ * @param sf_file path to the file with the tau scale factors
+ * @param sf_name name of the tau scale factor for the DeepTau VSmu ID
+ * correction
+ * @param wp working point of the DeepTau VSmu ID
+ * @param wp_vsele working point of the DeepTau VSe ID
+ * @param wp_vsjet working point of the DeepTau VSjet ID
+ * @param era name of the data-taking era
+ * @param variation name of the scale factor variation, refer to description
+ * above for details
+ *
+ * @return a new dataframe containing the new column
+ */
+
 ROOT::RDF::RNode
 Id_vsMu(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
         const std::string &outputname, const std::string &eta,
         const std::string &gen_match, const std::string &sf_file,
         const std::string &sf_name, const std::string &wp,
-        const std::string &wp_ele, const std::string &wp_jet,
+        const std::string &wp_vsele, const std::string &wp_vsjet,
         const std::string &era, const std::string &variation) {
     // Define logger name
     std::string logger_name = "physicsobject::tau::scalefactor::Id_vsMu";
