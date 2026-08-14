@@ -9,7 +9,10 @@ from code_generation.producer import (
     TProducerStore,
 )
 from code_generation.quantity import QuantitiesStore
-from code_generation.exceptions import SampleRuleConfigurationError, EraRuleConfigurationError
+from code_generation.exceptions import (
+    SampleRuleConfigurationError,
+    EraRuleConfigurationError,
+)
 
 log = logging.getLogger(__name__)
 
@@ -172,7 +175,9 @@ class ProducerRule:
     ) -> None:
         if self.is_applicable(sample, era):
             log.warning(f"Applying rule {self} for sample {sample}, era {era}")
-            log.debug("For sample {}, era {}, applying >> {} ".format(sample, era, self))
+            log.debug(
+                "For sample {}, era {}, applying >> {} ".format(sample, era, self)
+            )
             self.update_producers(producers_to_be_updated, unpacked_producers)
             self.update_outputs(outputs_to_be_updated)
 
