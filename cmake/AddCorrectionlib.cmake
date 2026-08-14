@@ -27,13 +27,27 @@ string(REPLACE -Dcorrectionlib_DIR= "" CORRECTIONLIBPATH ${CORRECTION_LIB_ARGS})
 if(${CORRECTIONLIBPATH} MATCHES "^/cvmfs/")
   message(STATUS "Setting up correctionlib from cvmfs ...")
   set(USING_CVMFS TRUE)
-  find_package(correctionlib)
-  find_library(CORRECTION_LIB_PATH correctionlib)
+  # In LCG_110+, cmake configs are inside python package, need to also check
+  # parent
+  find_package(correctionlib REQUIRED PATHS ${CORRECTIONLIBPATH}
+               ${CORRECTIONLIBPATH}/../..)
 else()
   message(STATUS "Setting up correctionlib from local setup ...")
   set(USING_CVMFS FALSE)
   find_package(correctionlib REQUIRED PATHS ${CORRECTIONLIBPATH})
-  set(CORRECTION_LIB_PATH "${CORRECTIONLIBPATH}/../lib/libcorrectionlib.so")
+endif()
+
+# Get library location from the imported target or variable provided by
+# find_package
+if(TARGET correctionlib)
+  get_target_property(CORRECTION_LIB_PATH correctionlib LOCATION)
+elseif(DEFINED correctionlib_LIBRARY)
+  set(CORRECTION_LIB_PATH ${correctionlib_LIBRARY})
+elseif(DEFINED CORRECTIONLIB_LIBRARY)
+  set(CORRECTION_LIB_PATH ${CORRECTIONLIB_LIBRARY})
+else()
+  message(
+    FATAL_ERROR "find_package(correctionlib) did not provide library location")
 endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
