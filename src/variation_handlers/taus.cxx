@@ -216,20 +216,32 @@ std::string EtaRestriction::repr() const {
  * the evaluation of the scale factor. No selections are imposed.
  *
  * The `variation` string is matched with the regular expression
- * `"(up|down)_custom(_dm(0|1|10|11))?(_pt(\\d+)to(\\d+))?"`.
+ * `"(up|down)_custom(_(genEle|genMu|genTau))?(_dm(0|1|10|11))?(_pt(\\d+)to(\\d+|Inf))?(barrel|endcap|wheel[1-5])?"`.
  *
  * - the first group captures the direction of the variation, either "up" or
  *   "down"
  *
- * - the second group captures the optional decay mode selection. Allowed values
+ * - the second group captures the optional generator-level match selection.
+ *   Allowed values are `"genEle"` for electrons faking taus, `"genMu"` for
+ *   muons faking taus, and `"genTau"` for genuine taus. If this group is not
+ *   matched, no generator-level match selection takes place.
+ * 
+ * - the third group captures the optional decay mode selection. Allowed values
  *   for the decay mode are 0, 1, 10, and 11. If this group is not matched, no
  *   decay mode selection takes place.
  *
- * - the third group captures the optional \f$p_{\text{T}}\f$ selection. The
+ * - the fourth group captures the optional \f$p_{\text{T}}\f$ selection. The
  *   lower and upper value of the considered \f$p_{\text{T}}\f$ range are
  *   captured from the values before and after `"to"`. These numbers must
- *   represent unsigned integers. If the group is not matched, no
- *   \f$p_{\text{T}}\f$ selection takes place.
+ *   represent unsigned integers. Additionally, the upper bound of the bin can
+ *   be released by specifying `"Inf"` as upper value. If the group is not
+ *   matched, no \f$p_{\text{T}}\f$ selection takes place.
+ * 
+ * - the fifth group captures the optional \f$|\eta|\f$ selection. The keys
+ *   `"barrel"` and `"endcap"` represent the barrel and endcap regions of the
+ *   ECAL. The keys `"wheel1"` to `"wheel5"` represent regions of the five
+ *   wheels of the muon system. If this group is not matched, no \f$|\eta|\f$
+ *   selection takes place.
  *
  * Example:
  *
@@ -385,13 +397,13 @@ TauVariationHandler::TauVariationHandler(const std::string &variation)
  * @brief Wrap the `correction::Correction::evaluate` function to allow for
  * custom tau ID vs jet scale factor variations.
  *
- * The returned wrapper function has the same signature as the
- * `correction::Correction::evaluate` method.
+ * The returned wrapper function expected the same inputs as the
+ * `correction::Correction::evaluate` method of the passed correction object.
  *
  * @param evaluator Pointer to the `correction::Correction` object used to
  * evaluate
  *
- * @return Function that takes a list of inputs and returns the scale factor.
+ * @return Function that takes a list of inputs and returns the scale factor
  */
 std::function<double(const std::vector<correction::Variable::Type> &)>
 TauVariationHandler::wrap_evaluate(
