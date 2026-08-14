@@ -3021,60 +3021,62 @@ namespace experimental {
 
 /**
  * @brief This function calculates scale factors (SFs) for tau identification
- * (ID) against jets (`vsJet`). The scale factors are loaded from a
+ * (ID) against jets (`VSjet`). The scale factors are loaded from a
  * correctionlib file using a specified scale factor name and variation.
+ * 
+ * The corrections provided by the TAU POG are usually available in two
+ * different version, which can be selected via the `sf_dependence` parameter:
+ * 
+ * - `"dm"`: the scale factors are binned in the hadronic tau decay mode (DM)
+ *   and \f$p_{\text{T}}\f$. The corrections apply to low to medium
+ *   \f$p_{\text{T}}\f$ hadronic taus.
+ * 
+ * - `"pt"`: The scale factors are binned in \f$p_{\text{T}}\f$ only. Also,
+ *   these corrections only apply to high-\f$p_{\text{T}}\f$ hadronic taus with
+ *   \f$p_{\text{T}} > 140\f$ GeV.
  *
- * Conventional tau analyses should use the `dm` dependence of the scale
- * factors. These are low- to medium-\f$p_{\text{T}}\f$ scale factors, which are
- * binned in decay modes (DMs) and the hadronic tau \f$p_{\text{T}}\f$. The `pt`
- * dependence of the scale factors should be used for high-\f$p_{\text{T}}\f$
- * hadronic taus.
+ * Usual analyses should use the `dm` dependence version of the scale factors.
  *
- * For the `dm` scale factors in 2022 and 2023, the following variations
- * can be used:
+ * For the `dm` scale factors in Run 2, as well as 2022 and 2023, the following
+ * variations can be used:
  *
- * - `(up|down)`: a total up/down variation of the scale factor
+ * - `"(up|down)"`: a total up/down variation of the scale factor
  *
- * - `stat(1|2)_dm(0|1|10|11)_(up|down)`: statistical uncertainties in fit
+ * - `"stat(1|2)_dm(0|1|10|11)_(up|down)"`: statistical uncertainties in fit
  *   parameters.
  *
- * - `syst_(2022_preEE|2022_postEE|2023_preBPix|2023_postBPix)_(up|down)`:
+ * - `"syst_(ERA_STRING)_(up|down)"`:
  *   systematic uncertainties in the measurement, uncorrelated between eras but
  *   correlated between DM bins
  *
- * - `syst_alleras_(up|down)`: systematic uncertainties in the measurement,
+ * - `"syst_alleras_(up|down)"`: systematic uncertainties in the measurement,
  *   correlated between different DM bins and eras.
  *
- * Description of the bit map used to define the tau ID against jets working
- * points of the DeepTau v2.1 or v2.5 tagger. vsJets | Value | Bit (value used
- * in the config)
- * ------------------------------------|-------|-------
- * no ID selection (takes every tau)   |  0    | -
- * VVVLoose                            |  1    | 1
- * VVLoose                             |  2    | 2
- * VLoose                              |  4    | 3
- * Loose                               |  8    | 4
- * Medium                              |  16   | 5
- * Tight                               |  32   | 6
- * VTight                              |  64   | 7
- * VVTight                             |  128  | 8
- *
+ * In 2024 and 2025, the variations need to be decorrelated between the
+ * \f$p_{\text{T}}\f$ and DM bins used in the measurement. To get these
+ * variations, a string following the pattern
+ * `"(up|down)_custom_dm(0|1|10|11)_pt(LOW_EDGE)to(UP_EDGE)"` can be passed.
+ * Here, `LOW_EDGE` and `UP_EDGE` are the lower and upper edges of the
+ * \f$p_{\text{T}}\f$ bins. The corresponding restrictions and the evaluation is
+ * taken care of by the `variation_helpers::TauVariationHandler` class.
+ * 
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
  * tau scale factor file
- * @param outputname name of the output column containing the vsJets ID scale
- * factor
+ * @param outputname name of the output column containing the DeepTau VSjet
+ * ID scale factor
  * @param pt name of the column containing the transverse momentum of a tau
  * @param decay_mode name of the column containing the decay mode of the tau
  * @param gen_match name of the column with the matching information of the
  * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt
  * mu, 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
  * @param sf_file path to the file with the tau scale factors
- * @param sf_name name of the tau scale factor for the vsJet ID correction
- * @param wp working point of the vsJet ID
- * @param vsele_wp working point of the vsEle ID
+ * @param sf_name name of the tau scale factor for the DeepTau VSjet ID
+ * correction
+ * @param wp working point of the DeepTau VSjet ID
+ * @param vsele_wp working point of the DeepTau VSe ID
  * @param sf_dependence variable dependence of the scale factor, options are
- * "pt" (which is dm+pt) or "dm" (which is dm only)
+ * "`pt`" or "dm", refer to documentation above for details
  * @param variation name of the scale factor variation, refer to description
  * above for details
  *
