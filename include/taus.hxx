@@ -221,10 +221,10 @@ ROOT::RDF::RNode PtCorrectionMC(
     correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname, const std::string &pt,
     const std::string &eta, const std::string &decay_mode,
-    const std::string &gen_match, const std::string &es_file,
-    const std::string &correction_name, const std::string &id_algorithm,
-    const std::string &id_vs_jet_wp, const std::string &id_vs_ele_wp,
-    const std::vector<int> &selected_dms, const std::string &variation);
+    const std::string &gen_match, const std::string &sf_file,
+    const std::string &sf_name, const std::string &id_algorithm,
+    const std::string &id_vsjet_wp, const std::string &id_vse_wp,
+    const std::string &variation);
 } // end namespace experimental
 
 namespace quantity {
@@ -357,7 +357,7 @@ Id_vsJet(ROOT::RDF::RNode df,
          const std::string &outputname, const std::string &pt,
          const std::string &decay_mode, const std::string &gen_match,
          const std::string &sf_file, const std::string &sf_name,
-         const std::string &wp, const std::string &vsele_wp,
+         const std::string &id_vsjet_wp, const std::string &id_vse_wp,
          const std::string &sf_dependence, const std::string &variation);
 ROOT::RDF::RNode
 Id_vsEle(ROOT::RDF::RNode df,
@@ -365,15 +365,15 @@ Id_vsEle(ROOT::RDF::RNode df,
          const std::string &outputname, const std::string &eta,
          const std::string &decay_mode, const std::string &gen_match,
          const std::string &sf_file, const std::string &sf_name,
-         const std::string &wp, const std::string &era,
+         const std::string &id_vse_wp, const std::string &era,
          const std::string &variation);
 ROOT::RDF::RNode
 Id_vsMu(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
         const std::string &outputname, const std::string &eta,
         const std::string &gen_match, const std::string &sf_file,
-        const std::string &sf_name, const std::string &wp,
-        const std::string &wp_ele, const std::string &wp_jet,
+        const std::string &sf_name, const std::string &id_vsmu_wp,
+        const std::string &id_vse_wp, const std::string &id_vsjet_wp,
         const std::string &era, const std::string &variation);
 } // end namespace experimental
 
