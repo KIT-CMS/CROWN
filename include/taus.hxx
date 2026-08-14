@@ -216,15 +216,15 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
     const std::string &variation_dm11_pt40toInf);
 
 namespace experimental {
-ROOT::RDF::RNode PtCorrectionMC(
-    ROOT::RDF::RNode df,
-    correctionManager::CorrectionManager &correction_manager,
-    const std::string &outputname, const std::string &pt,
-    const std::string &eta, const std::string &decay_mode,
-    const std::string &gen_match, const std::string &sf_file,
-    const std::string &sf_name, const std::string &id_algorithm,
-    const std::string &id_vsjet_wp, const std::string &id_vse_wp,
-    const std::string &variation);
+ROOT::RDF::RNode
+PtCorrectionMC(ROOT::RDF::RNode df,
+               correctionManager::CorrectionManager &correction_manager,
+               const std::string &outputname, const std::string &pt,
+               const std::string &eta, const std::string &decay_mode,
+               const std::string &gen_match, const std::string &sf_file,
+               const std::string &sf_name, const std::string &id_algorithm,
+               const std::string &id_vsjet_wp, const std::string &id_vse_wp,
+               const std::string &variation);
 } // end namespace experimental
 
 namespace quantity {

@@ -225,7 +225,7 @@ std::string EtaRestriction::repr() const {
  *   Allowed values are `"genEle"` for electrons faking taus, `"genMu"` for
  *   muons faking taus, and `"genTau"` for genuine taus. If this group is not
  *   matched, no generator-level match selection takes place.
- * 
+ *
  * - the third group captures the optional decay mode selection. Allowed values
  *   for the decay mode are 0, 1, 10, and 11. If this group is not matched, no
  *   decay mode selection takes place.
@@ -236,7 +236,7 @@ std::string EtaRestriction::repr() const {
  *   represent unsigned integers. Additionally, the upper bound of the bin can
  *   be released by specifying `"Inf"` as upper value. If the group is not
  *   matched, no \f$p_{\text{T}}\f$ selection takes place.
- * 
+ *
  * - the fifth group captures the optional \f$|\eta|\f$ selection. The keys
  *   `"barrel"` and `"endcap"` represent the barrel and endcap regions of the
  *   ECAL. The keys `"wheel1"` to `"wheel5"` represent regions of the five
