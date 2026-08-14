@@ -1162,6 +1162,7 @@ ERA_NANOAOD_VERSION_DEFAULTS: Dict[str, str] = {
     "2023postBPix": "v12",
     "2024": "v15",
     "2025": "v15",
+    "2026": "v15",
 }
 
 
