@@ -1901,7 +1901,7 @@ namespace experimental {
  * @param id_algorithm name of the identification algorithm used for hadronic
  * tau ID (`DeepTau2017v2p1` or `DeepTau2018v2p5`, depending on the era)
  * @param id_vsjet_wp working point of the DeepTau VSjet ID
- * @param id_vsele_wp working point of the DeepTau VSe ID
+ * @param id_vse_wp working point of the DeepTau VSe ID
  * @param variation name of the scale factor variation, refer to description
  * above for details
  *
@@ -1914,7 +1914,7 @@ ROOT::RDF::RNode PtCorrectionMC(
     const std::string &eta, const std::string &decay_mode,
     const std::string &gen_match, const std::string &sf_file,
     const std::string &sf_name, const std::string &id_algorithm,
-    const std::string &id_vsjet_wp, const std::string &id_vsele_wp,
+    const std::string &id_vsjet_wp, const std::string &id_vse_wp,
     const std::string &variation) {
     // Set the logger name
     std::string logger_name = "physicsobject::tau::PtCorrectionMC";
@@ -1935,7 +1935,7 @@ ROOT::RDF::RNode PtCorrectionMC(
 
     // Lambda function to evaluate correction for a single tau
     auto evaluate_tau = [evaluate_wrapper, id_algorithm, id_vsjet_wp,
-                         id_vsele_wp, variation](
+                         id_vse_wp, variation](
                             const float &pt, const float &eta,
                             const int &decay_mode, const int &gen_match) {
         // Evaluate the correction for selected decay modes, set the
@@ -1946,14 +1946,14 @@ ROOT::RDF::RNode PtCorrectionMC(
             decay_modes.end()) {
             correction_factor = evaluate_wrapper(
                 {pt, abs(eta), decay_mode, gen_match, id_algorithm,
-                 id_vsjet_wp, id_vsele_wp, variation});
+                 id_vsjet_wp, id_vse_wp, variation});
         }
 
         // Calculate the corrected pt
         return pt * correction_factor;
     };
 
-    auto func = [logger_name, evaluate_tau, id_vsjet_wp, id_vsele_wp,
+    auto func = [logger_name, evaluate_tau, id_vsjet_wp, id_vse_wp,
                  variation](const ROOT::RVec<float> &pts,
                             const ROOT::RVec<float> &etas,
                             const ROOT::RVec<UChar_t> &decay_modes_v12,
@@ -1970,7 +1970,7 @@ ROOT::RDF::RNode PtCorrectionMC(
         Logger::get(logger_name)->debug("  decay_mode   {}", decay_modes);
         Logger::get(logger_name)->debug("  gen_match    {}", gen_matches);
         Logger::get(logger_name)->debug("  id_vsjet_wp  {}", id_vs_jet_wp);
-        Logger::get(logger_name)->debug("  id_vsele_wp  {}", id_vsele_wp);
+        Logger::get(logger_name)->debug("  id_vse_wp  {}", id_vse_wp);
         Logger::get(logger_name)->debug("  variation    {}", variation);
 
         // Calculate the corrected pts by mapping input vectors to evaluate
@@ -3109,8 +3109,8 @@ namespace experimental {
  * @param sf_file path to the file with the tau scale factors
  * @param sf_name name of the tau scale factor for the DeepTau VSjet ID
  * correction
- * @param wp working point of the DeepTau VSjet ID
- * @param vsele_wp working point of the DeepTau VSe ID
+ * @param id_vsjet_wp working point of the DeepTau VSjet ID
+ * @param id_vse_wp working point of the DeepTau VSe ID
  * @param sf_dependence variable dependence of the scale factor, options are
  * "`pt`" or "dm", refer to documentation above for details
  * @param variation name of the scale factor variation, refer to description
@@ -3124,7 +3124,7 @@ Id_vsJet(ROOT::RDF::RNode df,
          const std::string &outputname, const std::string &pt,
          const std::string &decay_mode, const std::string &gen_match,
          const std::string &sf_file, const std::string &sf_name,
-         const std::string &wp, const std::string &vsele_wp,
+         const std::string &id_vsjet_wp, const std::string &id_vse_wp,
          const std::string &sf_dependence, const std::string &variation) {
     // Define logger name
     std::string logger_name = "physicsobject::tau::scalefactor::Id_vsJet";
@@ -3139,7 +3139,7 @@ Id_vsJet(ROOT::RDF::RNode df,
     auto tau_id_variation = variation_handlers::TauVariationHandler(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
-    auto sf_calculator = [evaluate_wrapper, wp, vsele_wp, variation,
+    auto sf_calculator = [evaluate_wrapper, id_vsjet_wp, id_vse_wp, variation,
                           sf_dependence, sf_name,
                           logger_name](const float &pt, const int &decay_mode,
                                        const int &gen_match) {
@@ -3154,14 +3154,14 @@ Id_vsJet(ROOT::RDF::RNode df,
             Logger::get(logger_name)->debug("   pt            {}", pt);
             Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
             Logger::get(logger_name)->debug("   gen_match     {}", gen_match);
-            Logger::get(logger_name)->debug("   wp            {}", wp);
-            Logger::get(logger_name)->debug("   vsele_wp      {}", vsele_wp);
+            Logger::get(logger_name)->debug("   id_vsjet_wp   {}", id_vsjet_wp);
+            Logger::get(logger_name)->debug("   id_vse_wp   {}", id_vse_wp);
             Logger::get(logger_name)->debug("   variation     {}", variation);
             Logger::get(logger_name)
                 ->debug("   sf_dependence {}", sf_dependence);
 
             // Evaluate the scale factor
-            sf = evaluate_wrapper({pt, decay_mode, gen_match, wp, vsele_wp,
+            sf = evaluate_wrapper({pt, decay_mode, gen_match, id_vsjet_wp, id_vse_wp,
                                    variation, sf_dependence});
         } else {
             Logger::get(logger_name)
@@ -3202,7 +3202,7 @@ Id_vsJet(ROOT::RDF::RNode df,
  * @param sf_file path to the file with the tau scale factors
  * @param sf_name name of the tau scale factor for the DeepTau VSe ID
  * correction
- * @param wp working point of the DeepTau VSe ID
+ * @param id_vse_wp working point of the DeepTau VSe ID
  * @param era name of the data-taking era
  * @param variation name of the scale factor variation, refer to description
  * above for details
@@ -3215,7 +3215,7 @@ Id_vsEle(ROOT::RDF::RNode df,
          const std::string &outputname, const std::string &eta,
          const std::string &decay_mode, const std::string &gen_match,
          const std::string &sf_file, const std::string &sf_name,
-         const std::string &wp, const std::string &era,
+         const std::string &id_vse_wp, const std::string &era,
          const std::string &variation) {
     // Define logger name
     std::string logger_name = "physicsobject::tau::scalefactor::Id_vsEle";
@@ -3230,7 +3230,7 @@ Id_vsEle(ROOT::RDF::RNode df,
     auto tau_id_variation = variation_handlers::TauVariationHandler(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
-    auto sf_calculator = [evaluate_wrapper, era, wp, variation, sf_name,
+    auto sf_calculator = [evaluate_wrapper, era, id_vse_wp, variation, sf_name,
                           logger_name](const float &eta, const int &decay_mode,
                                        const int &gen_match) {
         // Log input to the SF calculation
@@ -3238,7 +3238,7 @@ Id_vsEle(ROOT::RDF::RNode df,
         Logger::get(logger_name)->debug("   eta           {}", eta);
         Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
         Logger::get(logger_name)->debug("   gen_match     {}", gen_match);
-        Logger::get(logger_name)->debug("   wp            {}", wp);
+        Logger::get(logger_name)->debug("   id_vse_wp     {}", id_vse_wp);
         Logger::get(logger_name)->debug("   variation     {}", variation);
 
         // For placeholder eta values and decay modes not covered by this
@@ -3256,10 +3256,10 @@ Id_vsEle(ROOT::RDF::RNode df,
         double sf = 1.0;
         if (sf_name == "DeepTau2017v2p1VSe") {
             // SFs for DeepTau2017v2p1 do not depend on DM
-            sf = evaluate_wrapper({eta, gen_match, wp, variation});
+            sf = evaluate_wrapper({eta, gen_match, id_vse_wp, variation});
         } else {
             // SFs for DeepTau2018v2p5 depend on eta and the decay mode
-            sf = evaluate_wrapper({eta, decay_mode, gen_match, wp, variation});
+            sf = evaluate_wrapper({eta, decay_mode, gen_match, id_vse_wp, variation});
         }
         Logger::get(logger_name)->debug("Obtained SF value {}", sf);
 
@@ -3295,9 +3295,9 @@ Id_vsEle(ROOT::RDF::RNode df,
  * @param sf_file path to the file with the tau scale factors
  * @param sf_name name of the tau scale factor for the DeepTau VSmu ID
  * correction
- * @param wp working point of the DeepTau VSmu ID
- * @param wp_vsele working point of the DeepTau VSe ID
- * @param wp_vsjet working point of the DeepTau VSjet ID
+ * @param id_vsmu_wp working point of the DeepTau VSmu ID
+ * @param id_vse_wp working point of the DeepTau VSe ID
+ * @param id_vsjet_wp working point of the DeepTau VSjet ID
  * @param era name of the data-taking era
  * @param variation name of the scale factor variation, refer to description
  * above for details
@@ -3310,8 +3310,8 @@ Id_vsMu(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
         const std::string &outputname, const std::string &eta,
         const std::string &gen_match, const std::string &sf_file,
-        const std::string &sf_name, const std::string &wp,
-        const std::string &wp_vsele, const std::string &wp_vsjet,
+        const std::string &sf_name, const std::string &id_vsmu_wp,
+        const std::string &id_vse_wp, const std::string &id_vsjet_wp,
         const std::string &era, const std::string &variation) {
     // Define logger name
     std::string logger_name = "physicsobject::tau::scalefactor::Id_vsMu";
@@ -3326,7 +3326,7 @@ Id_vsMu(ROOT::RDF::RNode df,
     auto tau_id_variation = variation_handlers::TauVariationHandler(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
-    auto sf_calculator = [evaluate_wrapper, era, wp, wp_ele, wp_jet, variation,
+    auto sf_calculator = [evaluate_wrapper, era, id_vsmu_wp, id_vse_wp, id_vsjet_wp, variation,
                           sf_name,
                           logger_name](const float &eta, const int &decay_mode,
                                        const int &gen_match) {
@@ -3335,9 +3335,9 @@ Id_vsMu(ROOT::RDF::RNode df,
         Logger::get(logger_name)->debug("   eta           {}", eta);
         Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
         Logger::get(logger_name)->debug("   gen_match     {}", gen_match);
-        Logger::get(logger_name)->debug("   wp            {}", wp);
-        Logger::get(logger_name)->debug("   wp_ele        {}", wp_ele);
-        Logger::get(logger_name)->debug("   wp_jet        {}", wp_jet);
+        Logger::get(logger_name)->debug("   id_vsmu_wp    {}", id_vsmu_wp);
+        Logger::get(logger_name)->debug("   id_vse_wp     {}", id_vse_wp);
+        Logger::get(logger_name)->debug("   id_vsjet_wp   {}", id_vsjet_wp);
         Logger::get(logger_name)->debug("   variation     {}", variation);
 
         // For placeholder eta values and decay modes not covered by this
@@ -3357,12 +3357,12 @@ Id_vsMu(ROOT::RDF::RNode df,
             // For 2024 and later, SF have additional dependencies on working
             // points of vsEle and vsJet ID
             sf = evaluate_wrapper(
-                {std::abs(eta), gen_match, wp, wp_ele, wp_jet, variation});
+                {std::abs(eta), gen_match, id_vsmu_wp, id_vse_wp, id_vsjet_wp, variation});
         } else {
             // For eras befor 2024, SF only depend on the vsMu ID working point,
             // not on the vsEle and vsJet ID working points
             sf = evaluate_wrapper(
-                {std::abs(eta), decay_mode, gen_match, wp, variation});
+                {std::abs(eta), decay_mode, gen_match, id_vsmu_wp, variation});
         }
         Logger::get(logger_name)->debug("Obtained SF value {}", sf);
 
