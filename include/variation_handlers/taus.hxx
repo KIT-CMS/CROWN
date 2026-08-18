@@ -31,7 +31,7 @@ enum struct EtaRegion {
     WHEEL_5  // muon wheel 5
 };
 const std::unordered_map<EtaRegion, std::pair<float, float>> ETA_REGIONS = {
-    {EtaRegion::BARREL, {0.0, 1.5}}, {EtaRegion::ENDCAP, {1.5, 2.5}},
+    {EtaRegion::BARREL, {0.0, 1.5}},  {EtaRegion::ENDCAP, {1.5, 2.5}},
     {EtaRegion::WHEEL_1, {0.0, 0.4}}, {EtaRegion::WHEEL_2, {0.4, 0.8}},
     {EtaRegion::WHEEL_3, {0.8, 1.2}}, {EtaRegion::WHEEL_4, {1.2, 1.7}},
     {EtaRegion::WHEEL_5, {1.7, 2.5}}};
