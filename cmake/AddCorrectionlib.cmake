@@ -27,8 +27,6 @@ string(REPLACE -Dcorrectionlib_DIR= "" CORRECTIONLIBPATH ${CORRECTION_LIB_ARGS})
 if(${CORRECTIONLIBPATH} MATCHES "^/cvmfs/")
   message(STATUS "Setting up correctionlib from cvmfs ...")
   set(USING_CVMFS TRUE)
-  # In LCG_110+, cmake configs are inside python package, need to also check
-  # parent
   find_package(correctionlib REQUIRED PATHS ${CORRECTIONLIBPATH}
                ${CORRECTIONLIBPATH}/../..)
 else()
