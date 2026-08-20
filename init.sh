@@ -132,6 +132,7 @@ action() {
 
         # --- Define the Internal Environment ---
         # This string is executed once the container starts
+        INVOKE_DIR="$(pwd)"
         INT_CMD="
             echo '--- Initializing Container Environment ---';
             export ANALYSIS_PATH=${ANALYSIS_PATH};
@@ -140,6 +141,7 @@ action() {
             export CMAKE_GENERATOR='Unix Makefiles';
             export EXTRA_CLING_ARGS='-O2';
             export X509_USER_PROXY=${X509_USER_PROXY};
+            export PROMPT_COMMAND='cd \"${INVOKE_DIR}\"; unset PROMPT_COMMAND';
             bash -l -i
         "
 
