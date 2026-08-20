@@ -140,7 +140,7 @@ action() {
             export CMAKE_GENERATOR='Unix Makefiles';
             export EXTRA_CLING_ARGS='-O2';
             export X509_USER_PROXY=${X509_USER_PROXY};
-            bash --rcfile /etc/bashrc -i
+            bash -l -i
         "
 
         # --- Execute Singularity ---
@@ -149,6 +149,8 @@ action() {
             -B /etc/grid-security/certificates \
             -B "${GIT_ROOT}:${GIT_ROOT}" \
             -B "${HOME}:${HOME}" \
+            -B /work:/work \
+            -B /ceph:/ceph \
             -B /cvmfs:/cvmfs \
             "${CONTAINER}" \
             bash -c "${INT_CMD}"
