@@ -145,15 +145,21 @@ action() {
             bash -l -i
         "
 
+        # --- Assemble Bind Mounts ---
+        BIND_MOUNTS=(
+            -B /etc/grid-security/certificates
+            -B "${GIT_ROOT}:${GIT_ROOT}"
+            -B "${HOME}:${HOME}"
+            -B /cvmfs:/cvmfs
+        )
+        if [[ "$(hostname -f)" == *etp.kit.edu* ]]; then
+            BIND_MOUNTS+=(-B /work:/work -B /ceph:/ceph)
+        fi
+
         # --- Execute Singularity ---
         echo "--> Launching Container: ${CONTAINER}"
         singularity exec -e \
-            -B /etc/grid-security/certificates \
-            -B "${GIT_ROOT}:${GIT_ROOT}" \
-            -B "${HOME}:${HOME}" \
-            -B /work:/work \
-            -B /ceph:/ceph \
-            -B /cvmfs:/cvmfs \
+            "${BIND_MOUNTS[@]}" \
             "${CONTAINER}" \
             bash -c "${INT_CMD}"
     fi
