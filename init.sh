@@ -7,7 +7,7 @@ action() {
 
     # --- Define defaults ---
     DEFAULT_CROWN_ANALYSIS=""
-    DEFAULT_CONTAINER="/cvmfs/unpacked.cern.ch/registry.hub.docker.com/kingmakerimages/kingmaker_standalone:V1"
+    DEFAULT_CONTAINER="/cvmfs/unpacked.cern.ch/registry.hub.docker.com/kingmakerimages/crown:V0.1"
     DEFAULT_DRY_RUN=false
     CROWN_ANALYSIS=${DEFAULT_CROWN_ANALYSIS}
     CONTAINER=${DEFAULT_CONTAINER}
@@ -124,7 +124,7 @@ action() {
         export EXTRA_CLING_ARGS='-O2';
     elif [[ "$CONTAINER" == "lcg" ]]; then
         echo "Initializing LCG stack environment..."
-        source /cvmfs/sft.cern.ch/lcg/views/LCG_108/x86_64-el9-gcc15-opt/setup.sh
+        source /cvmfs/sft.cern.ch/lcg/views/LCG_110/x86_64-el9-gcc16-opt/setup.sh
     else
         # --- Get the absolute path of the parent git repository ---
         # checks/git-status.sh fails if top level git directory is not mounted in
@@ -132,6 +132,7 @@ action() {
 
         # --- Define the Internal Environment ---
         # This string is executed once the container starts
+        INVOKE_DIR="$(pwd)"
         INT_CMD="
             echo '--- Initializing Container Environment ---';
             export ANALYSIS_PATH=${ANALYSIS_PATH};
@@ -140,16 +141,25 @@ action() {
             export CMAKE_GENERATOR='Unix Makefiles';
             export EXTRA_CLING_ARGS='-O2';
             export X509_USER_PROXY=${X509_USER_PROXY};
-            bash --rcfile /etc/bashrc -i
+            export PROMPT_COMMAND='cd \"${INVOKE_DIR}\"; unset PROMPT_COMMAND';
+            bash -l -i
         "
+
+        # --- Assemble Bind Mounts ---
+        BIND_MOUNTS=(
+            -B /etc/grid-security/certificates
+            -B "${GIT_ROOT}:${GIT_ROOT}"
+            -B "${HOME}:${HOME}"
+            -B /cvmfs:/cvmfs
+        )
+        if [[ "$(hostname -f)" == *etp.kit.edu* ]]; then
+            BIND_MOUNTS+=(-B /work:/work -B /ceph:/ceph)
+        fi
 
         # --- Execute Singularity ---
         echo "--> Launching Container: ${CONTAINER}"
         singularity exec -e \
-            -B /etc/grid-security/certificates \
-            -B "${GIT_ROOT}:${GIT_ROOT}" \
-            -B "${HOME}:${HOME}" \
-            -B /cvmfs:/cvmfs \
+            "${BIND_MOUNTS[@]}" \
             "${CONTAINER}" \
             bash -c "${INT_CMD}"
     fi

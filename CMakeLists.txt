@@ -29,6 +29,12 @@ message(
 )
 message(STATUS "")
 
+# Add conda library path early so all targets can find libstdc++
+if(DEFINED ENV{CONDA_PREFIX})
+  link_directories($ENV{CONDA_PREFIX}/lib)
+  message(STATUS "Adding conda lib directory: $ENV{CONDA_PREFIX}/lib")
+endif()
+
 # installdir
 if(NOT DEFINED INSTALLDIR)
   message(
@@ -45,9 +51,9 @@ include(AddBaseDependencies)
 include(AddRoot)
 include(AddDicts)
 include(AddLogging)
+include(ConfigurePython)
 include(AddCorrectionlib)
 include(AddOnnxruntime)
-include(ConfigurePython)
 
 # crownlib setup
 include(ConfigureCrownlib)

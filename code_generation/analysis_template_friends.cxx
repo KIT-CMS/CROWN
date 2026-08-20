@@ -24,6 +24,7 @@
 #include "include/utility/Logger.hxx"
 #include "include/utility/OnnxSessionManager.hxx"
 #include <ROOT/RLogger.hxx>
+#include <TChain.h>
 #include <TFile.h>
 #include <TInterpreter.h>
 #include <TMap.h>
@@ -150,7 +151,6 @@ int main(int argc, char *argv[]) {
     Logger::get("main")->info("Output directory: {}", output_path);
     TStopwatch timer;
     timer.Start();
-    int quantile = 10000;
 
     // file logging
     Logger::enableFileLogging("logs/main.txt");
