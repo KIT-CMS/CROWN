@@ -1209,7 +1209,6 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau_v15(
                     if (pt_it != pt_map.begin()) {
                         variation = std::prev(pt_it)->second;
                     }
-
                     auto correction_factor = evaluator->evaluate(
                         {current_pt, std::abs(etas.at(i)), current_dm,
                          current_gen_match, id_algorithm, wp, vsele_wp,
