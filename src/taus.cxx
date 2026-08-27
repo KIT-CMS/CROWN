@@ -1867,7 +1867,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &id_vsjet_wp, const std::string &id_vse_wp,
                const std::string &variation) {
     // Set the logger name
-    std::string logger_name = "physicsobject::tau::experimental::PtCorrectionMC";
+    std::string logger_name =
+        "physicsobject::tau::experimental::PtCorrectionMC";
 
     // In nanoAODv12 the type of tau decay mode was changed to UChar_t
     // For v9 compatibility a type casting is applied
@@ -1894,13 +1895,13 @@ PtCorrectionMC(ROOT::RDF::RNode df,
         if (std::find(decay_modes.begin(), decay_modes.end(), decay_mode) !=
             decay_modes.end()) {
             if (id_vsjet_wp.empty() && id_vse_wp.empty()) {
+                correction_factor =
+                    evaluate_wrapper({pt, abs(eta), decay_mode, gen_match,
+                                      id_algorithm, variation});
+            } else {
                 correction_factor = evaluate_wrapper(
                     {pt, abs(eta), decay_mode, gen_match, id_algorithm,
-                     variation});
-            } else { 
-                correction_factor = evaluate_wrapper(
-                    {pt, abs(eta), decay_mode, gen_match, id_algorithm, id_vsjet_wp,
-                    id_vse_wp, variation});
+                     id_vsjet_wp, id_vse_wp, variation});
             }
         }
 
@@ -3082,7 +3083,8 @@ Id_vsJet(ROOT::RDF::RNode df,
          const std::string &id_vsjet_wp, const std::string &id_vse_wp,
          const std::string &sf_dependence, const std::string &variation) {
     // Define logger name
-    std::string logger_name = "physicsobject::tau::scalefactor::experimental::Id_vsJet";
+    std::string logger_name =
+        "physicsobject::tau::scalefactor::experimental::Id_vsJet";
 
     // Load the corrections from the correction file for the given correction
     // name
@@ -3174,7 +3176,8 @@ Id_vsEle(ROOT::RDF::RNode df,
          const std::string &id_vse_wp, const std::string &era,
          const std::string &variation) {
     // Define logger name
-    std::string logger_name = "physicsobject::tau::scalefactor::experimental::Id_vsEle";
+    std::string logger_name =
+        "physicsobject::tau::scalefactor::experimental::Id_vsEle";
 
     // Load the corrections from the correction file for the given correction
     // name
@@ -3271,7 +3274,8 @@ Id_vsMu(ROOT::RDF::RNode df,
         const std::string &id_vse_wp, const std::string &id_vsjet_wp,
         const std::string &era, const std::string &variation) {
     // Define logger name
-    std::string logger_name = "physicsobject::tau::scalefactor::experimental::Id_vsMu";
+    std::string logger_name =
+        "physicsobject::tau::scalefactor::experimental::Id_vsMu";
 
     // Load the corrections from the correction file for the given correction
     // name

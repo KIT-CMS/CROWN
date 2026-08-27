@@ -2,7 +2,6 @@
 #define GUARD_TAUVARIATIONS_H
 
 #include "correction.h"
-#include <format>
 #include <functional>
 #include <regex>
 #include <vector>

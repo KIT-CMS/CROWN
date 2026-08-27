@@ -204,7 +204,8 @@ std::string EtaRestriction::repr() const {
  * @brief Construct a new `TauVariationHandler`.
  *
  * The object is constructed by parsing the `variation` string. If the string
- * matches a pattern for a custom tau ID / ES variation, selections are parsed from
+ * matches a pattern for a custom tau ID / ES variation, selections are parsed
+ from
  * the variation and stored in the object. The variation passed to the
  * correction is just the direction of the variation, either "up" or "down",
  * while a selection on `pt` and `eta` is imposed. If the selection is not
@@ -466,7 +467,8 @@ TauVariationHandler::wrap_evaluate(
                                        "correction inputs.");
                 throw std::out_of_range(msg);
             }
-            decay_mode = static_cast<int>(std::get<int64_t>(values[decay_mode_index]));
+            decay_mode =
+                static_cast<int>(std::get<int64_t>(values[decay_mode_index]));
         }
         if (pt_restriction.is_active()) {
             if (pt_index == static_cast<size_t>(-1)) {

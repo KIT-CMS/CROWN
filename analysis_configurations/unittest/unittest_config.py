@@ -866,7 +866,9 @@ def build_config(
     add_shift(
         name="tauES_1prong0pizero",
         shift_config={
-            "Down": {("et", "mt", "tt"): {"tau_es_variation": "down_custom_genTau_dm0"}},
+            "Down": {
+                ("et", "mt", "tt"): {"tau_es_variation": "down_custom_genTau_dm0"}
+            },
         },
         producers={("et", "mt", "tt"): taus.TauPtCorrectionMC},
         ignore_producers={
