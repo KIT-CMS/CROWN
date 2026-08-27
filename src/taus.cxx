@@ -1810,7 +1810,7 @@ namespace experimental {
  * point combinations of the `DeepTau` algorithm, regarding the identification
  * against jets (`VSjets`) and against electrons (`VSe`). This is not the case
  * for Run 2 analyses. This function can be used for both Run 2 and Run 3
- * analyses. For Run 2 analyses, the values of `id_vs_jet_wp` and `id_vs_ele_wp`
+ * analyses. For Run 2 analyses, the values of `id_vsjet_wp` and `id_vse_wp`
  * can be set to `""` to obtain the corrections.
  *
  * Systematic variations of the tau energy scale are decorrelated regarding the
@@ -1867,7 +1867,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &id_vsjet_wp, const std::string &id_vse_wp,
                const std::string &variation) {
     // Set the logger name
-    std::string logger_name = "physicsobject::tau::PtCorrectionMC";
+    std::string logger_name = "physicsobject::tau::experimental::PtCorrectionMC";
 
     // In nanoAODv12 the type of tau decay mode was changed to UChar_t
     // For v9 compatibility a type casting is applied
@@ -1879,8 +1879,8 @@ PtCorrectionMC(ROOT::RDF::RNode df,
     // name. Pass the evaluator to a wrapper, created with a TauVariationHandler
     // object for advanced systematics handling.
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto tau_id_variation = variation_handlers::TauVariationHandler(variation);
-    auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
+    auto tau_es_variation = variation_handlers::TauVariationHandler(variation);
+    auto evaluate_wrapper = tau_es_variation.wrap_evaluate(evaluator);
 
     // Lambda function to evaluate correction for a single tau
     auto evaluate_tau = [evaluate_wrapper, id_algorithm, id_vsjet_wp, id_vse_wp,
@@ -1893,9 +1893,15 @@ PtCorrectionMC(ROOT::RDF::RNode df,
         const std::vector<int> decay_modes = {0, 1, 10, 11};
         if (std::find(decay_modes.begin(), decay_modes.end(), decay_mode) !=
             decay_modes.end()) {
-            correction_factor = evaluate_wrapper(
-                {pt, abs(eta), decay_mode, gen_match, id_algorithm, id_vsjet_wp,
-                 id_vse_wp, variation});
+            if (id_vsjet_wp.empty() && id_vse_wp.empty()) {
+                correction_factor = evaluate_wrapper(
+                    {pt, abs(eta), decay_mode, gen_match, id_algorithm,
+                     variation});
+            } else { 
+                correction_factor = evaluate_wrapper(
+                    {pt, abs(eta), decay_mode, gen_match, id_algorithm, id_vsjet_wp,
+                    id_vse_wp, variation});
+            }
         }
 
         // Calculate the corrected pt
@@ -3076,7 +3082,7 @@ Id_vsJet(ROOT::RDF::RNode df,
          const std::string &id_vsjet_wp, const std::string &id_vse_wp,
          const std::string &sf_dependence, const std::string &variation) {
     // Define logger name
-    std::string logger_name = "physicsobject::tau::scalefactor::Id_vsJet";
+    std::string logger_name = "physicsobject::tau::scalefactor::experimental::Id_vsJet";
 
     // Load the corrections from the correction file for the given correction
     // name
@@ -3168,7 +3174,7 @@ Id_vsEle(ROOT::RDF::RNode df,
          const std::string &id_vse_wp, const std::string &era,
          const std::string &variation) {
     // Define logger name
-    std::string logger_name = "physicsobject::tau::scalefactor::Id_vsEle";
+    std::string logger_name = "physicsobject::tau::scalefactor::experimental::Id_vsEle";
 
     // Load the corrections from the correction file for the given correction
     // name
@@ -3197,7 +3203,7 @@ Id_vsEle(ROOT::RDF::RNode df,
         if ((eta == -10.0) || (std::find(decay_modes.begin(), decay_modes.end(),
                                          decay_mode) == decay_modes.end())) {
             Logger::get(logger_name)
-                ->debug("Placeholder for eta or decay_mode foumd, no "
+                ->debug("Placeholder for eta or decay_mode found, no "
                         "correction applied (SF of 1.0)");
             return 1.0;
         }
@@ -3256,7 +3262,6 @@ Id_vsEle(ROOT::RDF::RNode df,
  *
  * @return a new dataframe containing the new column
  */
-
 ROOT::RDF::RNode
 Id_vsMu(ROOT::RDF::RNode df,
         correctionManager::CorrectionManager &correction_manager,
@@ -3266,7 +3271,7 @@ Id_vsMu(ROOT::RDF::RNode df,
         const std::string &id_vse_wp, const std::string &id_vsjet_wp,
         const std::string &era, const std::string &variation) {
     // Define logger name
-    std::string logger_name = "physicsobject::tau::scalefactor::Id_vsMu";
+    std::string logger_name = "physicsobject::tau::scalefactor::experimental::Id_vsMu";
 
     // Load the corrections from the correction file for the given correction
     // name
@@ -3320,7 +3325,6 @@ Id_vsMu(ROOT::RDF::RNode df,
 }
 
 } // end namespace experimental
-
 } // end namespace scalefactor
 } // end namespace tau
 } // end namespace physicsobject

@@ -95,7 +95,7 @@ class EtaRestriction {
     std::pair<float, float> abs_eta_range_;
 };
 
-// Class to handle custom variations of tau ID vs jet scale factors
+// Class to handle custom variations of tau ID / ES scale factors
 class TauVariationHandler {
   public:
     // Constructor
@@ -128,9 +128,6 @@ class TauVariationHandler {
     // Get index of a variable in the list of inputs of a correction::Correction
     size_t get_variable_index(const correction::Correction *,
                               const std::string &, const size_t &) const;
-
-    // Throw an exception for variable with out-of-range index
-    void throw_variable_out_of_range(const std::string &, const size_t &) const;
 };
 
 } // end namespace variation_handlers

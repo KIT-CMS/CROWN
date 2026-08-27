@@ -204,7 +204,7 @@ std::string EtaRestriction::repr() const {
  * @brief Construct a new `TauVariationHandler`.
  *
  * The object is constructed by parsing the `variation` string. If the string
- * matches a pattern for a custom tau ID variation, selections are parsed from
+ * matches a pattern for a custom tau ID / ES variation, selections are parsed from
  * the variation and stored in the object. The variation passed to the
  * correction is just the direction of the variation, either "up" or "down",
  * while a selection on `pt` and `eta` is imposed. If the selection is not
@@ -262,7 +262,7 @@ std::string EtaRestriction::repr() const {
  * }
  * ```
  *
- * For non-matching variation string `"down_syst_alleras", the scale factor is
+ * For non-matching variation string `"down_syst_alleras"`, the scale factor is
  * directly evaluated with the correction's evaluate function:
  *
  * ```cpp
@@ -274,7 +274,7 @@ std::string EtaRestriction::repr() const {
  "down_syst_alleras", sf_dependence);
  * ```
  *
- * @param variation Name of the tau ID vs jets scale factor variation
+ * @param variation Name of the tau ID / ES scale factor variation
  */
 TauVariationHandler::TauVariationHandler(const std::string &variation)
     : gen_match_restriction_(GenMatchRestriction()),
@@ -284,7 +284,7 @@ TauVariationHandler::TauVariationHandler(const std::string &variation)
     // Set the variation name
     variation_ = variation;
     Logger::get("TauVariationHandler")
-        ->debug("Handling tau ID vs jet variation {}", variation_);
+        ->debug("Handling tau ID / ES variation {}", variation_);
 
     // Match the variation to the custom variation pattern
     auto r = match_custom_variation(variation);
@@ -395,7 +395,7 @@ TauVariationHandler::TauVariationHandler(const std::string &variation)
 
 /**
  * @brief Wrap the `correction::Correction::evaluate` function to allow for
- * custom tau ID vs jet scale factor variations.
+ * custom tau ID / ES scale factor variations.
  *
  * The returned wrapper function expected the same inputs as the
  * `correction::Correction::evaluate` method of the passed correction object.
@@ -455,7 +455,7 @@ TauVariationHandler::wrap_evaluate(
                                        "correction inputs.");
                 throw std::out_of_range(msg);
             }
-            gen_match = std::get<int>(values[gen_index]);
+            gen_match = static_cast<int>(std::get<int64_t>(values[gen_index]));
         }
         if (decay_mode_restriction.is_active()) {
             if (decay_mode_index == static_cast<size_t>(-1)) {
@@ -466,7 +466,7 @@ TauVariationHandler::wrap_evaluate(
                                        "correction inputs.");
                 throw std::out_of_range(msg);
             }
-            decay_mode = std::get<int>(values[decay_mode_index]);
+            decay_mode = static_cast<int>(std::get<int64_t>(values[decay_mode_index]));
         }
         if (pt_restriction.is_active()) {
             if (pt_index == static_cast<size_t>(-1)) {
@@ -539,7 +539,7 @@ TauVariationHandler::match_custom_variation(
                    "_pt(\\d+)to(\\d+|Inf))?(_(barrel|endcap|wheel[1-5]))?",
                    std::regex_constants::ECMAScript);
     Logger::get("TauVariationHandler")
-        ->debug("Parsing tau ID vs jet variation: {}", custom_variation);
+        ->debug("Parsing tau ID / ES variation: {}", custom_variation);
 
     bool matched = false;
     std::unordered_map<std::string, std::string> results;
@@ -583,18 +583,6 @@ TauVariationHandler::get_variable_index(const correction::Correction *evaluator,
 
     // If the variable is not found, return the default index
     return default_index;
-}
-
-void TauVariationHandler::throw_variable_out_of_range(
-    const std::string &name, const size_t &index) const {
-    if (index == -1) {
-        auto msg = std::format(
-            "Variable {} not found in the list of inputs of the correction. "
-            "Please check the variable name and ensure it is present in the "
-            "correction inputs.",
-            name);
-        throw std::out_of_range(msg);
-    }
 }
 
 } // end namespace variation_handlers

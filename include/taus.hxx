@@ -376,7 +376,6 @@ Id_vsMu(ROOT::RDF::RNode df,
         const std::string &id_vse_wp, const std::string &id_vsjet_wp,
         const std::string &era, const std::string &variation);
 } // end namespace experimental
-
 } // end namespace scalefactor
 } // end namespace tau
 } // end namespace physicsobject
