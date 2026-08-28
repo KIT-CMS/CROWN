@@ -29,7 +29,8 @@ def get_add_shift(configuration: Any) -> Callable:
     Returns:
         A callable add_shift function
 
-    Example:
+    Example::
+
         add_shift = get_add_shift(config)
 
         # Simple usage with shift_key and shift_map

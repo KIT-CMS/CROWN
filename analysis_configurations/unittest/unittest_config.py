@@ -81,10 +81,7 @@ def build_config(
             ),
             "tau_ES_json_name": "tau_energy_scale",
             "tau_id_algorithm": "DeepTau2017v2p1",
-            "tau_ES_shift_DM0": "nom",
-            "tau_ES_shift_DM1": "nom",
-            "tau_ES_shift_DM10": "nom",
-            "tau_ES_shift_DM11": "nom",
+            "tau_es_variation": "nom",
             "tau_elefake_es_DM0_barrel": "nom",
             "tau_elefake_es_DM0_endcap": "nom",
             "tau_elefake_es_DM1_barrel": "nom",
@@ -92,6 +89,7 @@ def build_config(
             "tau_mufake_es": "nom",
         },
     )
+
     # muon base selection:
     configuration.add_config_parameters(
         "global",
@@ -836,11 +834,11 @@ def build_config(
             shift_config={
                 "Down": {
                     "mt": {
-                        "tau_mufake_es": "down",
+                        "tau_es_variation": "down_custom_genMu",
                     }
                 },
             },
-            producers={"mt": [taus.TauPtCorrection_muFake]},
+            producers={"mt": [taus.TauPtCorrectionMC]},
         )
     #########################
     # TauvsEleID scale factor shifts
@@ -868,9 +866,11 @@ def build_config(
     add_shift(
         name="tauES_1prong0pizero",
         shift_config={
-            "Down": {("et", "mt", "tt"): {"tau_ES_shift_DM0": "down"}},
+            "Down": {
+                ("et", "mt", "tt"): {"tau_es_variation": "down_custom_genTau_dm0"}
+            },
         },
-        producers={("et", "mt", "tt"): taus.TauPtCorrection_genTau},
+        producers={("et", "mt", "tt"): taus.TauPtCorrectionMC},
         ignore_producers={
             "et": [pairselection.LVEl1, electrons.VetoElectrons],
             "mt": [pairselection.LVMu1, muons.VetoMuons],
