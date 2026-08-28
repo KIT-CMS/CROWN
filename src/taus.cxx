@@ -528,6 +528,10 @@ std::string get_vsele_variation(const int &decay_mode, const float &eta,
  *
  * @return a dataframe containing the corrected transverse momenta
  *
+ * @warning It is advised to used the new experimental function
+ * `experimental::PtCorrectionMC`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
+ *
  * @note This function is intended to be used for Run 3 analyses. In Run 3,
  * the tau energy scale corrections also depend on the DeepTau working points
  * for ID vs. electrons and vs. jets. An overloaded version of this function
@@ -753,6 +757,10 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  *
  * @return a dataframe containing the corrected transverse momenta
  *
+ * @warning It is advised to used the new experimental function
+ * `experimental::PtCorrectionMC`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
+ *
  * @note This function is intended to be used for Run 3 analyses. In Run 3,
  * the tau energy scale corrections also depend on the DeepTau working points
  * for ID vs. electrons and vs. jets. An overloaded version of this function
@@ -955,6 +963,10 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  *
  * @return a dataframe containing the corrected transverse momenta
  *
+ * @warning It is advised to used the new experimental function
+ * `experimental::PtCorrectionMC`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
+ *
  * @note This function is intended to be used for Run 3 analyses. In Run 3,
  * the tau energy scale corrections also depend on the DeepTau working points
  * for ID vs. electrons and vs. jets. An overloaded version of this function
@@ -1102,6 +1114,10 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  *
  * @return a dataframe containing the corrected transverse momenta
  *
+ * @warning It is advised to used the new experimental function
+ * `experimental::PtCorrectionMC`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
+ *
  * @note This correction is only applied to misidentified hadronic taus
  * originating from prompt electrons (`gen_match=1`) and electrons that decayed
  * from a tau lepton
@@ -1234,6 +1250,10 @@ PtCorrectionMC_eleFake(ROOT::RDF::RNode df,
  *
  * @return a dataframe containing the corrected transverse momenta
  *
+ * @warning It is advised to used the new experimental function
+ * `experimental::PtCorrectionMC`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
+ *
  * @note This correction is only applied to misidentified hadronic taus
  * originating from prompt muons (`gen_match=2`) and muons that decayed from a
  * tau lepton (`gen_match=4`).
@@ -1325,6 +1345,10 @@ PtCorrectionMC_muFake(ROOT::RDF::RNode df,
  * "down"
  *
  * @return a dataframe containing the corrected transverse momenta
+ *
+ * @warning It is advised to used the new experimental function
+ * `experimental::PtCorrectionMC`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
  *
  * @note This function is intended to be used for Run 2 analyses working with
  * NanoAOD versions below v15 because it is not using the tau ID vsJet and vsEle
@@ -1440,6 +1464,10 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
  * 40 GeV \f$\leq p_{T,\tau}\f$, options are "nom", "up", "down"
  *
  * @return a dataframe containing the corrected transverse momenta
+ *
+ * @warning It is advised to used the new experimental function
+ * `experimental::PtCorrectionMC`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
  *
  * @note This function is intended to be used for Run 2 analyses working with
  * NanoAOD versions below v15 because it is not using the tau ID vsJet and vsEle
@@ -1577,6 +1605,10 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
  *
  * @return a dataframe containing the corrected transverse momenta
  *
+ * @warning It is advised to used the new experimental function
+ * `experimental::PtCorrectionMC`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
+ *
  * @note This function is intended to be used for Run 3 analyses or Run 2
  * analyses working with NanoAODv15. The reason is the newly introduced
  * dependence of the tau ID vsJet and vsEle working points.
@@ -1698,6 +1730,10 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
  * 40 GeV \f$\leq p_{T,\tau}\f$, options are "nom", "up", "down"
  *
  * @return a dataframe containing the corrected transverse momenta
+ *
+ * @warning It is advised to used the new experimental function
+ * `experimental::PtCorrectionMC`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
  *
  * @note This function is intended to be used for Run 3 analyses or Run 2
  * analyses working with NanoAODv15. The reason is the newly introduced
@@ -2088,8 +2124,9 @@ namespace scalefactor {
  *
  * @return a new dataframe containing the new column
  *
- * @warning This function uses an outdated \f$p_T\f$ splitting for the
- * uncertainty variations from legacy H(tautau).
+ * @warning It is advised to used the new experimental function
+ * `experimental::Id_vsJet`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
  */
 ROOT::RDF::RNode
 Id_vsJet_lt(ROOT::RDF::RNode df,
@@ -2199,6 +2236,10 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
  * "nom" for nominal and "up"/"down" the up/down variation
  *
  * @return a new dataframe containing the new column
+ *
+ * @warning It is advised to used the new experimental function
+ * `experimental::Id_vsJet`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
  */
 ROOT::RDF::RNode
 Id_vsJet(ROOT::RDF::RNode df,
@@ -2305,6 +2346,10 @@ Id_vsJet(ROOT::RDF::RNode df,
  * 40 GeV \f$\leq p_{T,\tau}\f$, options are "nom", "up", "down"
  *
  * @return a new dataframe containing the new column
+ *
+ * @warning It is advised to used the new experimental function
+ * `experimental::Id_vsJet`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
  */
 ROOT::RDF::RNode
 Id_vsJet(ROOT::RDF::RNode df,
@@ -2447,6 +2492,10 @@ Id_vsJet(ROOT::RDF::RNode df,
  * 40 GeV \f$\leq p_{T,\tau}\f$, options are "nom", "up", "down"
  *
  * @return a new dataframe containing the new column
+ *
+ * @warning It is advised to used the new experimental function
+ * `experimental::Id_vsJet`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
  */
 ROOT::RDF::RNode
 Id_vsJet(ROOT::RDF::RNode df,
@@ -2563,6 +2612,10 @@ Id_vsJet(ROOT::RDF::RNode df,
  * @return a new dataframe containing the new column
  *
  * @note This function handles both Run 2 and Run 3 behaviour.
+ *
+ * @warning It is advised to used the new experimental function
+ * `experimental::Id_vsEle`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
  */
 ROOT::RDF::RNode
 Id_vsEle(ROOT::RDF::RNode df,
@@ -2667,6 +2720,10 @@ Id_vsEle(ROOT::RDF::RNode df,
  * @return a new dataframe containing the new column
  *
  * @note This function handles both Run 2 and Run 3 behaviour.
+ *
+ * @warning It is advised to used the new experimental function
+ * `experimental::Id_vsEle`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
  */
 ROOT::RDF::RNode
 Id_vsEle(ROOT::RDF::RNode df,
@@ -2791,6 +2848,10 @@ Id_vsEle(ROOT::RDF::RNode df,
  * variation
  *
  * @return a new dataframe containing the new column
+ *
+ * @warning It is advised to used the new experimental function
+ * `experimental::Id_vsMu`. This function is kept for backward
+ * compatibility, but it will be removed in future versions of CROWN.
  */
 ROOT::RDF::RNode Id_vsMu(
     ROOT::RDF::RNode df,

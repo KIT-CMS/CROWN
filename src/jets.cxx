@@ -1734,11 +1734,14 @@ BtaggingShape(ROOT::RDF::RNode df,
  * @param jet_veto_mask name of the column containing the veto mask for
  *     overlapping jets (e.g. with selected lepton pairs)
  * @param sf_file path to the file with the b-tagging scale factors
- * @param sf_name name of the b-tagging scale factor correction
+ * @param sf_bc_name name of the b/c-flavor scale factor correction
+ * @param sf_lf_name name of the light flavor scale factor correction
  * @param sf_wp_name name of the correction set containing the b tagging score
  *     cuts for the different working points
  * @param eff_file path to the file with the b jet tagging efficiencies
  * @param eff_name name of the b jet tagging efficiency correction set
+ * @param sample_type string that specifies the MC sample for which the
+ *     efficiency should be evaluated
  * @param variation_bc name of the scale factor variation applied to b/c
  *     flavor jets (hadronFlavour 5/4), available values: central, down_*,
  *     up_* (* name of specific variation). The BTV POG measures b/c and
@@ -1969,11 +1972,14 @@ BtaggingWP(ROOT::RDF::RNode df,
  * @param jet_veto_mask name of the column containing the veto mask for
  *     overlapping jets (e.g. with selected lepton pairs)
  * @param sf_file path to the file with the b-tagging scale factors
- * @param sf_name name of the b-tagging scale factor correction
+ * @param sf_bc_name name of the b/c-flavor scale factor correction
+ * @param sf_lf_name name of the light flavor scale factor correction
  * @param sf_wp_name name of the correction set containing the b tagging score
  *     cuts for the different working points
  * @param eff_file path to the file with the b jet tagging efficiencies
  * @param eff_name name of the b jet tagging efficiency correction set
+ * @param sample_type string that specifies the MC sample for which the
+ *     efficiency should be evaluated
  * @param variation_bc name of the scale factor variation applied to b/c
  *     flavor jets (hadronFlavour 5/4), available values: central, down_*,
  *     up_* (* name of specific variation). b/c and light-flavor scale

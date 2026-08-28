@@ -46,7 +46,6 @@ Documentation Content
    :maxdepth: 2
 
    introduction.rst
-   visualization.rst
    kingmaker.rst
    postprocessing.rst
    friend_trees.rst
@@ -58,6 +57,7 @@ Documentation Content
    :caption: Setup your own Configuration
 
    py_configuration.rst
+   visualization.rst
    contrib.rst
    cpp_addons.rst
    correction_manager.rst
