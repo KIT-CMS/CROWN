@@ -187,7 +187,7 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
     const std::string &variation_dm10_pt40toInf,
     const std::string &variation_dm11_pt20to40,
     const std::string &variation_dm11_pt40toInf);
-ROOT::RDF::RNode PtCorrectionMC_genuineTau(
+ROOT::RDF::RNode PtCorrectionMC_genuineTau_v15(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname, const std::string &pt,
@@ -198,7 +198,7 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
     const std::string &variation_dm0, const std::string &variation_dm1,
     const std::string &variation_dm10, const std::string &variation_dm11);
 
-ROOT::RDF::RNode PtCorrectionMC_genuineTau(
+ROOT::RDF::RNode PtCorrectionMC_genuineTau_v15(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname, const std::string &pt,

@@ -1580,7 +1580,7 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
  * analyses working with NanoAODv15. The reason is the newly introduced
  * dependence of the tau ID vsJet and vsEle working points.
  */
-ROOT::RDF::RNode PtCorrectionMC_genuineTau(
+ROOT::RDF::RNode PtCorrectionMC_genuineTau_v15(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname, const std::string &pt,
@@ -1702,7 +1702,7 @@ ROOT::RDF::RNode PtCorrectionMC_genuineTau(
  * analyses working with NanoAODv15. The reason is the newly introduced
  * dependence of the tau ID vsJet and vsEle working points.
  */
-ROOT::RDF::RNode PtCorrectionMC_genuineTau(
+ROOT::RDF::RNode PtCorrectionMC_genuineTau_v15(
     ROOT::RDF::RNode df,
     correctionManager::CorrectionManager &correction_manager,
     const std::string &outputname, const std::string &pt,

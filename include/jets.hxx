@@ -109,6 +109,13 @@ PatchedIDNanoV12(ROOT::RDF::RNode df, const std::string &outputname,
                  const std::string &jet_ne_em_ef, const std::string &jet_mu_ef,
                  const std::string &jet_ch_em_ef);
 ROOT::RDF::RNode
+PseudoID(ROOT::RDF::RNode df,
+   const std::string &outputname, const std::string &jet_eta,
+   const std::string &jet_ch_h_ef, const std::string &jet_ne_h_ef,
+   const std::string &jet_ch_em_ef, const std::string &jet_ne_em_ef,
+   const std::string &jet_mu_ef, const std::string &jet_ch_mult,
+   const std::string &jet_ne_mult, const std::string &era);
+ROOT::RDF::RNode
 ID(ROOT::RDF::RNode df,
    correctionManager::CorrectionManager &correction_manager,
    const std::string &outputname, const std::string &jet_eta,

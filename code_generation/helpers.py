@@ -4,7 +4,6 @@ from contextlib import contextmanager
 import contextvars
 import inspect
 import re
-
 # File with helper functions for the CROWN code generation
 
 # Context registry for managing default values across code generation

@@ -137,6 +137,8 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &outputname,
     // In nanoAODv12 the type of genparticle status flags / mother index were
     // changed to UShort_t / Short_t. For v9 compatibility a type casting is
     // applied.
+    Logger::get("buildtruegenpair")
+        ->warn("Casting for buildtruegenpair statusflags and motherids to v12 types for compatibility");
     auto [df1, statusflags_column] =
         utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
             df, statusflags + "_v12", "ROOT::VecOps::RVec<UShort_t>",
@@ -258,6 +260,7 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &outputname,
 
         return genpair;
     };
+    Logger::get("buildtruegenpair")->warn("Building True Genpair for event");
     return df2.Define(
         outputname, getTrueGenPair,
         {statusflags_column, status, pdgids, motherids_column, pts});

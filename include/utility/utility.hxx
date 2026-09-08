@@ -46,6 +46,8 @@ Cast(ROOT::RDF::RNode df, const std::string &outputname,
         // check if the column is already defined, this is relevant for
         // systematic variations were this Define would be done multiple times
         if (std::find(cols.begin(), cols.end(), outputname) == cols.end()) {
+            Logger::get("utility::Cast")
+                ->debug("Column {} to define", outputname);
             new_df = df.Define(
                 outputname,
                 [](const I &values) { return static_cast<O>(values); },
