@@ -2130,6 +2130,8 @@ Id_vsJet(ROOT::RDF::RNode df,
  * @param sf_name name of the tau scale factor for the vsJet ID correction
  * @param wp working point of the vsJet ID
  * @param vsele_wp working point of the vsEle ID
+ * @param vsmu_wp working point of the vsMu ID (required by the 2025+ jsons,
+ * set to `""` for older ones)
  * @param sf_dependence variable dependence of the scale factor, options are
  * "pt" (which is dm+pt) or "dm" (which is dm only)
  * @param variation_dm0_pt20to40 variation for decay mode 0 and
@@ -2158,7 +2160,7 @@ Id_vsJet(ROOT::RDF::RNode df,
          const std::string &decay_mode, const std::string &gen_match,
          const std::string &sf_file, const std::string &sf_name,
          const std::string &wp, const std::string &vsele_wp,
-         const std::string &sf_dependence,
+         const std::string &vsmu_wp, const std::string &sf_dependence,
          const std::string &variation_dm0_pt20to40,
          const std::string &variation_dm0_pt40to60,
          const std::string &variation_dm0_pt60toInf,
@@ -2196,7 +2198,7 @@ Id_vsJet(ROOT::RDF::RNode df,
     Logger::get("physicsobject::tau::scalefactor::Id_vsJet")
         ->debug("SF - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, wp, vsele_wp, variations, sf_dependence,
+    auto sf_calculator = [evaluator, wp, vsele_wp, vsmu_wp, variations, sf_dependence,
                           sf_name](const float &pt, const int &decay_mode,
                                    const int &gen_match) {
         Logger::get("physicsobject::tau::scalefactor::Id_vsJet")
@@ -2219,12 +2221,21 @@ Id_vsJet(ROOT::RDF::RNode df,
                 Logger::get("physicsobject::tau::scalefactor::Id_vsJet")
                     ->debug(
                         "SF {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
-                        "vsele_wp {}, variation {}, sf_dependence {}",
+                        "vsele_wp {}, vsmu_wp {}, variation {}, sf_dependence "
+                        "{}",
                         sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
-                        variation, sf_dependence);
+                        vsmu_wp, variation, sf_dependence);
 
-                sf = evaluator->evaluate({pt, decay_mode, gen_match, wp,
-                                          vsele_wp, variation, sf_dependence});
+                // 2025+ jsons additionally require the vsMu WP
+                if (vsmu_wp.empty()) {
+                    sf = evaluator->evaluate({pt, decay_mode, gen_match, wp,
+                                              vsele_wp, variation,
+                                              sf_dependence});
+                } else {
+                    sf = evaluator->evaluate({pt, decay_mode, gen_match, wp,
+                                              vsele_wp, vsmu_wp, variation,
+                                              sf_dependence});
+                }
             }
         }
 
