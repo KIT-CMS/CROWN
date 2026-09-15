@@ -170,7 +170,7 @@ In Kingmaker, there are three variants:
 
 1. The production of ntuples
 2. The production of friend trees
-3. THe production of multiple friend trees (friend trees that depend on other friend trees)
+3. The production of multiple friend trees (friend trees that depend on other friend trees)
 
 All variants are handled by the same ``ProduceNtuples`` task. Which variant is run depends on the provided parameters. In the case of friend trees, missing Ntuples or other friend trees are generated automatically.
 
@@ -377,16 +377,13 @@ For example:
 
 
 KingMaker Installation in lxplus
------------------------
+--------------------------------
 
-KingMaker and CROWN can be installed in lxplus, and it is recommended to do so under the user's `/eos` space, since CROWN tarballs can get heavy. 
+KingMaker and CROWN can be installed in lxplus, and it is recommended to do so under the user's ``/eos`` space, since CROWN tarballs can get heavy. 
 Because of that, eos job submission only is supported. The setup and configuration is auto-detected and unchanged from previous instructions.
 
-One thing to note is that to run `condor_q` from a new shell and see the current jobs (on the same or different machine), you need to first source the KingMaker setup, as this will
-resolve the particular scheduler used for submission. Otherwise you can run `condor_q -global` to see all of them at the same time. 
-
-The user's proxy certificate is copied locally to keep it alive across new logins and machines.
-
+One thing to note is that to run ``condor_q`` from a new shell and see the current jobs (on the same or different machine), you need to first source the KingMaker setup, as this will
+resolve the particular scheduler used for submission. Otherwise you can run ``condor_q -global`` to see all of them at the same time. 
 
 Local debugging
 -----------------------
