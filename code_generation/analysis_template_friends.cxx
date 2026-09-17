@@ -24,6 +24,7 @@
 #include "include/utility/Logger.hxx"
 #include "include/utility/OnnxSessionManager.hxx"
 #include <ROOT/RLogger.hxx>
+#include <TChain.h>
 #include <TFile.h>
 #include <TInterpreter.h>
 #include <TMap.h>
