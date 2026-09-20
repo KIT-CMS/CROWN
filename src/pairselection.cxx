@@ -824,8 +824,9 @@ auto PairSelectionAlgo(const float &mindeltaR) {
             }
         }
 
-        if (good_pts[selected_lepton_indices[0]] <
-            good_pts[selected_lepton_indices[1]]) {
+        if (selected_lepton_indices[0] >= 0 &&
+            lepton_pt[selected_lepton_indices[0]] <
+                lepton_pt[selected_lepton_indices[1]]) {
             std::swap(selected_lepton_indices[0], selected_lepton_indices[1]);
         }
         Logger::get("leptonic::PairSelectionAlgo")
@@ -953,8 +954,9 @@ auto PairSelectionAlgoOSPreferred(const float &mindeltaR) {
             }
         };
 
-        if (good_pts[selected_lepton_indices[0]] <
-            good_pts[selected_lepton_indices[1]]) {
+        if (selected_lepton_indices[0] >= 0 &&
+            lepton_pt[selected_lepton_indices[0]] <
+                lepton_pt[selected_lepton_indices[1]]) {
             std::swap(selected_lepton_indices[0], selected_lepton_indices[1]);
         }
         Logger::get("leptonic::PairSelectionAlgoOSPreferred")
@@ -1053,8 +1055,10 @@ auto ZBosonPairSelectionAlgo(const float &mindeltaR) {
                 }
             }
         }
-        if (good_pts[selected_lepton_indices[0]] <
-            good_pts[selected_lepton_indices[1]]) {
+
+        if (selected_lepton_indices[0] >= 0 &&
+            lepton_pt[selected_lepton_indices[0]] <
+                lepton_pt[selected_lepton_indices[1]]) {
             std::swap(selected_lepton_indices[0], selected_lepton_indices[1]);
         }
         Logger::get("ZBosonPairSelectionAlgo")->debug("good pts: {}", good_pts);
@@ -1208,8 +1212,9 @@ auto ZBosonPairSelectionAlgoOSPreferred(const float &mindeltaR) {
             }
         }
 
-        if (good_pts[selected_lepton_indices[0]] <
-            good_pts[selected_lepton_indices[1]]) {
+        if (selected_lepton_indices[0] >= 0 &&
+            lepton_pt[selected_lepton_indices[0]] <
+                lepton_pt[selected_lepton_indices[1]]) {
             std::swap(selected_lepton_indices[0], selected_lepton_indices[1]);
         }
         Logger::get("ZBosonPairSelectionAlgoOSPreferred")
