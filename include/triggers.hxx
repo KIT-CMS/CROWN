@@ -55,6 +55,22 @@ ROOT::RDF::RNode DoubleObjectFlag(
     const int &trigger_particle_id_value_2,
     const std::vector<int> &trigger_bit_value_1,
     const std::vector<int> &trigger_bit_value_2, const float &deltaR_threshold);
+ROOT::RDF::RNode TripleObjectFlag(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &particle_1, const std::string &particle_2,
+    const std::string &particle_3, const std::string &triggerobject_pt,
+    const std::string &triggerobject_eta, const std::string &triggerobject_phi,
+    const std::string &triggerobject_id,
+    const std::string &triggerobject_filterbit, const std::string &hlt_path,
+    const float &pt_threshold_1, const float &pt_threshold_2,
+    const float &pt_threshold_3, const float &eta_threshold_1,
+    const float &eta_threshold_2, const float &eta_threshold_3,
+    const int &trigger_particle_id_value_1,
+    const int &trigger_particle_id_value_2,
+    const int &trigger_particle_id_value_3,
+    const std::vector<int> &trigger_bit_value_1,
+    const std::vector<int> &trigger_bit_value_2,
+    const std::vector<int> &trigger_bit_value_3, const float &deltaR_threshold);
 
 ROOT::RDF::RNode
 GetPrescaleValues(ROOT::RDF::RNode df,
