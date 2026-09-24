@@ -1455,6 +1455,96 @@ PatchedIDNanoV12(ROOT::RDF::RNode df, const std::string &outputname,
                       jet_mu_ef, jet_ch_em_ef});
 }
 
+
+/**
+ * @brief Pseudo code until correction libs are available for Run-2(UL) nanoAODv15.
+ *
+ * 
+ */
+ROOT::RDF::RNode
+PseudoID(ROOT::RDF::RNode df,
+   const std::string &outputname, const std::string &jet_eta,
+   const std::string &jet_ch_h_ef, const std::string &jet_ne_h_ef,
+   const std::string &jet_ch_em_ef, const std::string &jet_ne_em_ef,
+   const std::string &jet_mu_ef, const std::string &jet_ch_mult,
+   const std::string &jet_ne_mult, const std::string &era) {
+
+    auto jet_id_lambda = [era](const ROOT::RVec<float> &jet_eta_vals,
+                               const ROOT::RVec<float> &jet_ch_h_ef_vals,
+                               const ROOT::RVec<float> &jet_ne_h_ef_vals,
+                               const ROOT::RVec<float> &jet_ch_em_ef_vals,
+                               const ROOT::RVec<float> &jet_ne_em_ef_vals,
+                               const ROOT::RVec<float> &jet_mu_ef_vals,
+                               const ROOT::RVec<int> &jet_ch_mult_vals,
+                               const ROOT::RVec<int> &jet_ne_mult_vals) {
+        ROOT::RVec<int> jetId(jet_eta_vals.size());
+
+        for (size_t i = 0; i < jet_eta_vals.size(); ++i) {
+            float eta = std::abs(jet_eta_vals[i]);
+            float ne_h_ef = jet_ne_h_ef_vals[i];
+            float ne_em_ef = jet_ne_em_ef_vals[i];
+            float ch_h_ef = jet_ch_h_ef_vals[i];
+            float ch_em_ef = jet_ch_em_ef_vals[i];
+            float mu_ef = jet_mu_ef_vals[i];
+            int ch_mult = jet_ch_mult_vals[i];
+            int ne_mult = jet_ne_mult_vals[i];
+
+            bool pass_id_tight = false;
+            bool pass_id_tight_lep_veto = false;
+
+            if (era.find("2016") != std::string::npos) {
+                if (eta <= 2.4) {
+                    pass_id_tight = (ne_h_ef < 0.9) && (ne_em_ef < 0.9) && 
+                                    (ch_mult + ne_mult > 1) && (ch_h_ef > 0.0) && (ch_mult > 0);
+                } else if (eta > 2.4 && eta <= 2.7) {
+                    pass_id_tight = (ne_h_ef < 0.98) && (ne_em_ef < 0.99);
+                } else if (eta > 2.7 && eta <= 3.0) {
+                    pass_id_tight = (ne_mult >= 1);
+                } else if (eta > 3.0) {
+                    pass_id_tight = (ne_mult > 2) && (ne_em_ef < 0.9);
+                }
+
+                if (eta <= 2.4) {
+                    pass_id_tight_lep_veto = pass_id_tight && (mu_ef < 0.8) && (ch_em_ef < 0.8);
+                } else {
+                    pass_id_tight_lep_veto = pass_id_tight;
+                }
+            } else if (era.find("2017") != std::string::npos || 
+                       era.find("2018") != std::string::npos) {
+                if (eta <= 2.6) {
+                    pass_id_tight = (ne_h_ef < 0.9) && (ne_em_ef < 0.9) && 
+                                    (ch_mult + ne_mult > 1) && (ch_h_ef > 0.0) && (ch_mult > 0);
+                } else if (eta > 2.6 && eta <= 2.7) {
+                    pass_id_tight = (ne_h_ef < 0.90) && (ne_em_ef < 0.99);
+                } else if (eta > 2.7 && eta <= 3.0) {
+                    pass_id_tight = (ne_h_ef < 0.9999);
+                } else if (eta > 3.0) {
+                    pass_id_tight = (ne_mult > 2) && (ne_em_ef < 0.9);
+                }
+
+                if (eta <= 2.7) {
+                    pass_id_tight_lep_veto = pass_id_tight && (mu_ef < 0.8) && (ch_em_ef < 0.8);
+                } else {
+                    pass_id_tight_lep_veto = pass_id_tight;
+                }
+            }
+
+            if (pass_id_tight && pass_id_tight_lep_veto) {
+                jetId[i] = 6;
+            } else if (pass_id_tight && !pass_id_tight_lep_veto) {
+                jetId[i] = 2;
+            } else {
+                jetId[i] = 0;
+            }
+        }
+        return jetId;
+    };
+
+    return df.Define(outputname, jet_id_lambda, {jet_eta, jet_ch_h_ef, jet_ne_h_ef,
+                                                  jet_ch_em_ef, jet_ne_em_ef,
+                                                  jet_mu_ef, jet_ch_mult, jet_ne_mult});
+}
+
 /**
  * @brief Applies jet identification criteria based on JSON-defined jet ID
  * corrections.
