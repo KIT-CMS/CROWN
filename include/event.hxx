@@ -499,12 +499,11 @@ template <typename T>
 inline ROOT::RDF::RNode Gate(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &cond_quantity,
                              const std::string &value_quantity) {
-    return df.Define(
-        outputname,
-        [](const bool &cond, const T &value) {
-            return cond ? value : static_cast<T>(1);
-        },
-        {cond_quantity, value_quantity});
+    return df.Define(outputname,
+                     [](const bool &cond, const T &value) {
+                         return cond ? value : static_cast<T>(1);
+                     },
+                     {cond_quantity, value_quantity});
 }
 
 /**
@@ -526,10 +525,10 @@ inline ROOT::RDF::RNode Gate(ROOT::RDF::RNode df, const std::string &outputname,
  * @return a dataframe with the new column
  */
 template <typename T>
-inline ROOT::RDF::RNode Select(ROOT::RDF::RNode df, const std::string &outputname,
-                               const std::string &cond_quantity,
-                               const std::string &true_quantity,
-                               const std::string &false_quantity) {
+inline ROOT::RDF::RNode
+Select(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &cond_quantity, const std::string &true_quantity,
+       const std::string &false_quantity) {
     return df.Define(
         outputname,
         [](const bool &cond, const T &true_value, const T &false_value) {
@@ -601,13 +600,11 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
  *
  * @return a dataframe with the three new columns
  */
-ROOT::RDF::RNode
-SampleNormalization(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correctionManager,
-                    const std::string &xsec_output,
-                    const std::string &ngen_weight_output,
-                    const std::string &genweight_output,
-                    const std::string &norm_table_path);
+ROOT::RDF::RNode SampleNormalization(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
+    const std::string &xsec_output, const std::string &ngen_weight_output,
+    const std::string &genweight_output, const std::string &norm_table_path);
 
 /**
  * @brief This function creates a new column with `sign(genWeight) /

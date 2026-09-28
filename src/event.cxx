@@ -17,8 +17,9 @@ namespace {
 
 std::string SampleNormalizationParseNickFromPath(const std::string &sample_id) {
     auto tree_sep = sample_id.rfind('/');
-    std::string filename =
-        (tree_sep == std::string::npos) ? sample_id : sample_id.substr(0, tree_sep);
+    std::string filename = (tree_sep == std::string::npos)
+                               ? sample_id
+                               : sample_id.substr(0, tree_sep);
     std::vector<std::string> parts;
     size_t pos = 0;
     size_t next;
@@ -77,13 +78,11 @@ double SampleNormalizationLookupField(const nlohmann::json &norm_table,
  *
  * @return a dataframe with the three new columns
  */
-ROOT::RDF::RNode
-SampleNormalization(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correctionManager,
-                    const std::string &xsec_output,
-                    const std::string &ngen_weight_output,
-                    const std::string &genweight_output,
-                    const std::string &norm_table_path) {
+ROOT::RDF::RNode SampleNormalization(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
+    const std::string &xsec_output, const std::string &ngen_weight_output,
+    const std::string &genweight_output, const std::string &norm_table_path) {
     nlohmann::json norm_table = *correctionManager.loadjson(norm_table_path);
 
     // crossSectionPerEventWeight -- the raw xsec (pb)
@@ -98,10 +97,11 @@ SampleNormalization(ROOT::RDF::RNode df,
     auto df2 = df1.DefinePerSample(
         ngen_weight_output,
         [norm_table](unsigned int /*slot*/, const ROOT::RDF::RSampleInfo &id) {
-            return 1.0 / SampleNormalizationLookupField(
-                             norm_table,
-                             SampleNormalizationParseNickFromPath(id.AsString()),
-                             "nevents");
+            return 1.0 /
+                   SampleNormalizationLookupField(
+                       norm_table,
+                       SampleNormalizationParseNickFromPath(id.AsString()),
+                       "nevents");
         });
     // negative_events_fraction -- effective normalization factor
     auto df3 = df2.DefinePerSample(
