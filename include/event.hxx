@@ -479,6 +479,66 @@ inline ROOT::RDF::RNode Define(ROOT::RDF::RNode df,
 }
 
 /**
+ * @brief This function creates a new column that takes the value of
+ * `value_quantity` if `cond_quantity` is `true`, and `1` otherwise -- a
+ * common pattern for gating a scale factor so it only applies under some
+ * condition (e.g. a genuine-object requirement), leaving the weight
+ * untouched (multiplicative no-op) otherwise.
+ *
+ * @tparam T type of the value quantity (and of the output column)
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param cond_quantity name of the boolean column deciding which value is
+ * picked
+ * @param value_quantity name of the quantity column used if `cond_quantity`
+ * is `true`
+ *
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode Gate(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &cond_quantity,
+                             const std::string &value_quantity) {
+    return df.Define(
+        outputname,
+        [](const bool &cond, const T &value) {
+            return cond ? value : static_cast<T>(1);
+        },
+        {cond_quantity, value_quantity});
+}
+
+/**
+ * @brief This function creates a new column that takes the value of
+ * `true_quantity` if `cond_quantity` is `true`, and the value of
+ * `false_quantity` otherwise (a ternary/if-else selection between two
+ * quantity columns).
+ *
+ * @tparam T type of the two value quantities (and of the output column)
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param cond_quantity name of the boolean column deciding which value is
+ * picked
+ * @param true_quantity name of the quantity column used if `cond_quantity`
+ * is `true`
+ * @param false_quantity name of the quantity column used if `cond_quantity`
+ * is `false`
+ *
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode Select(ROOT::RDF::RNode df, const std::string &outputname,
+                               const std::string &cond_quantity,
+                               const std::string &true_quantity,
+                               const std::string &false_quantity) {
+    return df.Define(
+        outputname,
+        [](const bool &cond, const T &true_value, const T &false_value) {
+            return cond ? true_value : false_value;
+        },
+        {cond_quantity, true_quantity, false_quantity});
+}
+
+/**
  * @brief This function defines a new column in the dataframe, where each
  * element is a randomly generated number. The random values are generated using
  * `TRandom3`, seeded with a user-specified value and uniformly distributed in
@@ -515,6 +575,64 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
                               const std::string &lumi, const std::string &run,
                               const std::string &event,
                               const UInt_t &master_seed = 42);
+
+/**
+ * @brief This function defines three per-file constant columns --
+ * `xsec_output` (cross section), `ngen_weight_output` (1 / number of
+ * generated events) and `genweight_output` (effective normalization factor
+ * accounting for negative generator weights) -- by looking up this file's
+ * sample nick in a `nick -> {xsec, nevents, generator_weight}` JSON table.
+ *
+ * The sample nick is parsed from the input file's path at runtime via
+ * `ROOT::RDF::RSampleInfo` (path convention: `.../{era}/{nick}/{scope}/
+ * {nick}_{N}.root`), so one compiled executable correctly normalizes every
+ * nick contained in its input sample. An unknown nick throws rather than
+ * silently defaulting.
+ *
+ * @param df input dataframe
+ * @param correctionManager correction manager responsible for loading the
+ * normalization JSON table
+ * @param xsec_output name of the new column containing the cross section
+ * @param ngen_weight_output name of the new column containing 1/nevents
+ * @param genweight_output name of the new column containing the effective
+ * generator-weight normalization factor
+ * @param norm_table_path path to the `nick -> {xsec, nevents,
+ * generator_weight}` JSON lookup table
+ *
+ * @return a dataframe with the three new columns
+ */
+ROOT::RDF::RNode
+SampleNormalization(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correctionManager,
+                    const std::string &xsec_output,
+                    const std::string &ngen_weight_output,
+                    const std::string &genweight_output,
+                    const std::string &norm_table_path);
+
+/**
+ * @brief This function creates a new column with `sign(genWeight) /
+ * negative_fraction`. This is the standard normalization for MC generators
+ * that produce negative event weights (e.g. amc@NLO, POWHEG): using only the
+ * sign of the generator weight, divided by the sample's effective
+ * normalization factor (`1 - 2 * (fraction of negative-weight events)`),
+ * normalizes by the *effective* number of events instead of the raw event
+ * count, so negative-weight events correctly dilute the yield rather than
+ * being ignored or double-penalized.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param genweight_quantity name of the column containing the generator
+ * weight (`Float_t`, as stored in NanoAOD)
+ * @param negative_fraction_quantity name of the column containing the
+ * sample's effective normalization factor (`1 - 2 * negative-weight
+ * fraction`)
+ *
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode
+NormalizedGenWeightSign(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &genweight_quantity,
+                        const std::string &negative_fraction_quantity);
 
 /**
  * @brief This function creates a new column in the dataframe by applying
