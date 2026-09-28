@@ -681,20 +681,23 @@ ROOT::RDF::RNode TripleObjectFlag(
             df1, triggerobject_filterbit + "_v15",
             "ROOT::VecOps::RVec<ULong64_t>", triggerobject_filterbit);
 
-    auto trigger_matching =
-        [pt_threshold_1, pt_threshold_2, pt_threshold_3, eta_threshold_1,
-         eta_threshold_2, eta_threshold_3, trigger_particle_id_value_1,
-         trigger_particle_id_value_2, trigger_particle_id_value_3,
-         trigger_bit_values_1, trigger_bit_values_2, trigger_bit_values_3,
-         deltaR_threshold](
-            bool hlt_path_match, const ROOT::Math::PtEtaPhiMVector &particle_1,
-            const ROOT::Math::PtEtaPhiMVector &particle_2,
-            const ROOT::Math::PtEtaPhiMVector &particle_3,
-            ROOT::RVec<float> triggerobject_pts,
-            ROOT::RVec<float> triggerobject_etas,
-            ROOT::RVec<float> triggerobject_phis,
-            ROOT::RVec<UShort_t> triggerobject_ids_v12,
-            ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) {
+    auto trigger_matching = [pt_threshold_1, pt_threshold_2, pt_threshold_3,
+                             eta_threshold_1, eta_threshold_2, eta_threshold_3,
+                             trigger_particle_id_value_1,
+                             trigger_particle_id_value_2,
+                             trigger_particle_id_value_3, trigger_bit_values_1,
+                             trigger_bit_values_2, trigger_bit_values_3,
+                             deltaR_threshold](
+                                bool hlt_path_match,
+                                const ROOT::Math::PtEtaPhiMVector &particle_1,
+                                const ROOT::Math::PtEtaPhiMVector &particle_2,
+                                const ROOT::Math::PtEtaPhiMVector &particle_3,
+                                ROOT::RVec<float> triggerobject_pts,
+                                ROOT::RVec<float> triggerobject_etas,
+                                ROOT::RVec<float> triggerobject_phis,
+                                ROOT::RVec<UShort_t> triggerobject_ids_v12,
+                                ROOT::RVec<ULong64_t>
+                                    triggerobject_filterbits_v15) {
         auto triggerobject_ids =
             static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
         auto triggerobject_filterbits =
@@ -726,8 +729,8 @@ ROOT::RDF::RNode TripleObjectFlag(
                 trigger_bit_values_3, deltaR_threshold);
         }
 
-        bool result =
-            hlt_path_match & match_result_p1 & match_result_p2 & match_result_p3;
+        bool result = hlt_path_match & match_result_p1 & match_result_p2 &
+                      match_result_p3;
         Logger::get("trigger::TripleObjectFlag")
             ->debug("---> HLT Matching: {}", hlt_path_match);
         Logger::get("trigger::TripleObjectFlag")
