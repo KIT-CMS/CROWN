@@ -2398,7 +2398,8 @@ Id_vsJet(ROOT::RDF::RNode df,
     Logger::get("physicsobject::tau::scalefactor::Id_vsJet")
         ->debug("SF - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, wp, vsele_wp, vsmu_wp, variations, sf_dependence,
+    auto sf_calculator = [evaluator, wp, vsele_wp, vsmu_wp, variations,
+                          sf_dependence,
                           sf_name](const float &pt, const int &decay_mode,
                                    const int &gen_match) {
         Logger::get("physicsobject::tau::scalefactor::Id_vsJet")
