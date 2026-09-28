@@ -4,8 +4,8 @@ Visualization of the Configuration
 
 CROWN offers a visualization for configuration files. For this, the ``create_graph`` function can be used, which creates a set of JSON files that can then be visualized with the ``CROWN_visualization.html`` file.
 
-Setup
------
+Visualization Setup
+--------------------
 The ``create_graph`` function can be used as follows:
 
 .. code-block:: python

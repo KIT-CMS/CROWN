@@ -118,7 +118,6 @@ int main(int argc, char *argv[]) {
     Logger::get("main")->info("Output directory: {}", output_path);
     TStopwatch timer;
     timer.Start();
-    int quantile = 10000;
 
     // file logging
     Logger::enableFileLogging("logs/main.txt");

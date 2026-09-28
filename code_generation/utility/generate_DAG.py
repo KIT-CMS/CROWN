@@ -401,7 +401,8 @@ class GraphParser:
             )
 
             if isinstance(producer.input[scope], list):
-                for n in set(producer.input[scope]):
+                # deduplicate by quantity name, not by object identity
+                for n in {n.name: n for n in producer.input[scope]}.values():
                     self.add_input(n.name, vector_id, scope)
                     log.debug(f"{align}        Adding Input: {n.name}")
 
@@ -492,7 +493,8 @@ class GraphParser:
             node_call_configs=config_data,
         )
         # BaseFilter don't have outputs
-        for n in set(producer.input[scope]):
+        # deduplicate by quantity name, not by object identity
+        for n in {n.name: n for n in producer.input[scope]}.values():
             self.add_input(n.name, producer.name, scope)
             log.debug(f"{align}    Adding Input: {n.name}")
 
@@ -520,7 +522,8 @@ class GraphParser:
         )
 
         if isinstance(producer.input[scope], list):
-            for n in set(producer.input[scope]):
+            # deduplicate by quantity name, not by object identity
+            for n in {n.name: n for n in producer.input[scope]}.values():
                 self.add_input(n.name, producer.name, scope)
                 log.debug(f"{align}    Adding Input: {n.name}")
 
@@ -542,9 +545,14 @@ class GraphParser:
                         or the output is not provided by NanoAOD/Ntuple.
 
         """
-        producers = self.outputs[scope].get(req_out, []) + self.outputs["global"].get(
-            req_out, []
-        )
+        scope_producers = self.outputs[scope].get(req_out, [])
+        # If the scope is not global, append global producers to the list of potential producers for this output
+        if scope != "global":
+            global_producers = self.outputs["global"].get(req_out, [])
+            producers = scope_producers + global_producers
+        else:
+            producers = scope_producers
+
         if len(producers) > 0:
             if len(producers) != 1:
                 log_and_fail(f"Num producers for out {req_out}: {len(producers)}")

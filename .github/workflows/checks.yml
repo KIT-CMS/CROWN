@@ -33,7 +33,7 @@ jobs:
   build_project:
     runs-on: ubuntu-24.04
     container:
-      image: kingmakerimages/kingmaker_standalone:V1
+      image: kingmakerimages/crown:V0.1
       options: --user 0 # run as root
 
     steps:
@@ -47,6 +47,16 @@ jobs:
 
       - name: Mark all git directories as safe
         run: git config --global --add safe.directory '*'
+
+      - name: Activate conda environment
+        run: |
+          source /opt/conda/bin/activate ${ENV_NAME}
+          echo "PATH=$PATH" >> $GITHUB_ENV
+          echo "CONDA_PREFIX=$CONDA_PREFIX" >> $GITHUB_ENV
+          echo "CONDA_DEFAULT_ENV=$CONDA_DEFAULT_ENV" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          if [ -n "$CC" ]; then echo "CC=$CC" >> $GITHUB_ENV; fi
+          if [ -n "$CXX" ]; then echo "CXX=$CXX" >> $GITHUB_ENV; fi
 
       - name: Create Build Environment
         run: cmake -E make_directory build
@@ -76,7 +86,7 @@ jobs:
   build_single_friend:
     runs-on: ubuntu-24.04
     container:
-      image: kingmakerimages/kingmaker_standalone:V1
+      image: kingmakerimages/crown:V0.1
       options: --user 0 # run as root
 
     steps:
@@ -90,6 +100,16 @@ jobs:
 
       - name: Mark all git directories as safe
         run: git config --global --add safe.directory '*'
+
+      - name: Activate conda environment
+        run: |
+          source /opt/conda/bin/activate ${ENV_NAME}
+          echo "PATH=$PATH" >> $GITHUB_ENV
+          echo "CONDA_PREFIX=$CONDA_PREFIX" >> $GITHUB_ENV
+          echo "CONDA_DEFAULT_ENV=$CONDA_DEFAULT_ENV" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          if [ -n "$CC" ]; then echo "CC=$CC" >> $GITHUB_ENV; fi
+          if [ -n "$CXX" ]; then echo "CXX=$CXX" >> $GITHUB_ENV; fi
 
       - name: Create Build Environment
         run: cmake -E make_directory build
@@ -120,7 +140,7 @@ jobs:
   build_two_friends:
     runs-on: ubuntu-24.04
     container:
-      image: kingmakerimages/kingmaker_standalone:V1
+      image: kingmakerimages/crown:V0.1
       options: --user 0 # run as root
 
     steps:
@@ -134,6 +154,16 @@ jobs:
 
       - name: Mark all directories as safe
         run: git config --global --add safe.directory '*'
+
+      - name: Activate conda environment
+        run: |
+          source /opt/conda/bin/activate ${ENV_NAME}
+          echo "PATH=$PATH" >> $GITHUB_ENV
+          echo "CONDA_PREFIX=$CONDA_PREFIX" >> $GITHUB_ENV
+          echo "CONDA_DEFAULT_ENV=$CONDA_DEFAULT_ENV" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          if [ -n "$CC" ]; then echo "CC=$CC" >> $GITHUB_ENV; fi
+          if [ -n "$CXX" ]; then echo "CXX=$CXX" >> $GITHUB_ENV; fi
 
       - name: Configure CMake
         run: |
@@ -159,7 +189,7 @@ jobs:
   code_formatting:
     runs-on: ubuntu-24.04
     container:
-      image: kingmakerimages/kingmaker_standalone:V1
+      image: kingmakerimages/crown:V0.1
       options: --user 0
     steps:
       - name: Clone project
@@ -172,7 +202,7 @@ jobs:
   docs:
     runs-on: ubuntu-24.04
     container:
-      image: kingmakerimages/kingmaker_standalone:V1
+      image: kingmakerimages/crown:V0.1
       options: --user 0
     steps:
       - name: Clone project

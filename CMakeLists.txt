@@ -12,6 +12,32 @@ include(ParseArguments)
 set(CMAKE_INSTALL_PREFIX
     ${CMAKE_BINARY_DIR}
     CACHE STRING "Set default install prefix to the build directory")
+
+# Use the compilers from the active conda env (if any) unless the user
+# explicitly set CMAKE_C_COMPILER / CMAKE_CXX_COMPILER themselves.
+if(DEFINED ENV{CONDA_PREFIX})
+  if(NOT CMAKE_C_COMPILER)
+    file(GLOB CONDA_CC_CANDIDATES "$ENV{CONDA_PREFIX}/bin/*-cc")
+    if(CONDA_CC_CANDIDATES)
+      list(GET CONDA_CC_CANDIDATES 0 CONDA_CC)
+      message(STATUS "Using conda env C compiler: ${CONDA_CC}")
+      set(CMAKE_C_COMPILER
+          "${CONDA_CC}"
+          CACHE FILEPATH "C compiler from conda env")
+    endif()
+  endif()
+  if(NOT CMAKE_CXX_COMPILER)
+    file(GLOB CONDA_CXX_CANDIDATES "$ENV{CONDA_PREFIX}/bin/*-c++")
+    if(CONDA_CXX_CANDIDATES)
+      list(GET CONDA_CXX_CANDIDATES 0 CONDA_CXX)
+      message(STATUS "Using conda env C++ compiler: ${CONDA_CXX}")
+      set(CMAKE_CXX_COMPILER
+          "${CONDA_CXX}"
+          CACHE FILEPATH "C++ compiler from conda env")
+    endif()
+  endif()
+endif()
+
 message(STATUS "Creating Project")
 # Create the project
 project(CROWN CXX)
@@ -29,6 +55,12 @@ message(
 )
 message(STATUS "")
 
+# Add conda library path early so all targets can find libstdc++
+if(DEFINED ENV{CONDA_PREFIX})
+  link_directories($ENV{CONDA_PREFIX}/lib)
+  message(STATUS "Adding conda lib directory: $ENV{CONDA_PREFIX}/lib")
+endif()
+
 # installdir
 if(NOT DEFINED INSTALLDIR)
   message(
@@ -45,9 +77,9 @@ include(AddBaseDependencies)
 include(AddRoot)
 include(AddDicts)
 include(AddLogging)
+include(ConfigurePython)
 include(AddCorrectionlib)
 include(AddOnnxruntime)
-include(ConfigurePython)
 
 # crownlib setup
 include(ConfigureCrownlib)
