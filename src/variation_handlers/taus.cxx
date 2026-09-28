@@ -456,7 +456,7 @@ TauVariationHandler::wrap_evaluate(
                                        "correction inputs.");
                 throw std::out_of_range(msg);
             }
-            gen_match = static_cast<int>(std::get<int64_t>(values[gen_index]));
+            gen_match = static_cast<int>(std::get<0>(values[gen_index]));
         }
         if (decay_mode_restriction.is_active()) {
             if (decay_mode_index == static_cast<size_t>(-1)) {
@@ -468,7 +468,7 @@ TauVariationHandler::wrap_evaluate(
                 throw std::out_of_range(msg);
             }
             decay_mode =
-                static_cast<int>(std::get<int64_t>(values[decay_mode_index]));
+                static_cast<int>(std::get<0>(values[decay_mode_index]));
         }
         if (pt_restriction.is_active()) {
             if (pt_index == static_cast<size_t>(-1)) {
