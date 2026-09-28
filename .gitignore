@@ -2,8 +2,7 @@
 build/*
 build*/
 !build/.gitkeep
-# generated at code-gen time by analysis_configurations/tau/normalization.py,
-# shipped into build tarballs via install(DIRECTORY data/ ...) -- never committed
+# generated at code-gen time
 data/normalization/
 log/
 logs/
