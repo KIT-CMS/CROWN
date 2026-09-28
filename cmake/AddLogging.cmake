@@ -4,12 +4,16 @@ include(GNUInstallDirs) # required to populate CMAKE_INSTALL_LIBDIR with lib or
                         # value is passed on to the spdlog build below, so that
                         # both agree on where libspdlog.a ends up.
 
-if(DEFINED SPDLOG_PREBUILT_LIB AND DEFINED SPDLOG_PREBUILT_INCLUDE
-   AND EXISTS "${SPDLOG_PREBUILT_LIB}" AND EXISTS "${SPDLOG_PREBUILT_INCLUDE}")
-  # Reuse a spdlog already built elsewhere (e.g. by a prior CROWNLIB-only build),
-  # instead of fetching and compiling it again from scratch. Useful for build hosts
-  # without (reliable) network access to GitHub.
-  message(STATUS "Using prebuilt spdlog at ${SPDLOG_PREBUILT_LIB} (skipping fetch+build).")
+if(DEFINED SPDLOG_PREBUILT_LIB
+   AND DEFINED SPDLOG_PREBUILT_INCLUDE
+   AND EXISTS "${SPDLOG_PREBUILT_LIB}"
+   AND EXISTS "${SPDLOG_PREBUILT_INCLUDE}")
+  # Reuse a spdlog already built elsewhere (e.g. by a prior CROWNLIB-only
+  # build), instead of fetching and compiling it again from scratch. Useful for
+  # build hosts without (reliable) network access to GitHub.
+  message(
+    STATUS
+      "Using prebuilt spdlog at ${SPDLOG_PREBUILT_LIB} (skipping fetch+build).")
   add_library(logging STATIC IMPORTED)
   set_target_properties(
     logging
