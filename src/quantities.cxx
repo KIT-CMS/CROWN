@@ -400,21 +400,21 @@ FastMtt(ROOT::RDF::RNode df, const std::string &outputname,
             if (finalstate == "mt") {
                 dm_1 = -1;
                 dm_2 = decay_mode_2;
-                auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToMuDecay;
-                auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
+                decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToMuDecay;
+                decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
             } else if (finalstate == "et") {
                 dm_1 = -1;
                 dm_2 = decay_mode_2;
-                auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToElecDecay;
-                auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
+                decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToElecDecay;
+                decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToHadDecay;
             } else if (finalstate == "tt") {
                 dm_1 = decay_mode_1;
                 dm_2 = decay_mode_2;
             } else if (finalstate == "em") {
                 dm_1 = -1;
                 dm_2 = -1;
-                auto decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToElecDecay;
-                auto decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToMuDecay;
+                decay_obj_1 = fastmtt::MeasuredTauLepton::kTauToElecDecay;
+                decay_obj_2 = fastmtt::MeasuredTauLepton::kTauToMuDecay;
             } else {
                 Logger::get("FastMTT")->error(
                     "Final state {} not supported by FastMTT", finalstate);
