@@ -488,6 +488,97 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
 }
 
 /**
+ * @brief This function calculates electron reconstruction scale factors (SFs)
+ * for a single electron dependening on its pseudorapidity (\f$\eta\f$) and
+ * transverse momentum (\f$p_T\f$). The scale factors are loaded from a
+ * correctionlib file using a specified scale factor name and variation.
+ *
+ * Recommendations by EgammaPOG:
+ * - [Run2](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018)
+ * - [Run3](https://twiki.cern.ch/twiki/bin/view/CMS/EgammSFandSSRun3)
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * electron scale factor file
+ * @param outputname name of the output column containing the ID scale factor
+ * @param pt name of the column containing the transverse momentum of an
+ * electron
+ * @param eta name of the column containing the pseudorapidity of an electron
+ * @param phi name of the column containing the azimuthal angle of an electron
+ * @param era string with the era name of a data taking period, e.g.
+ * "2016preVFP"
+ * @param sf_file path to the file with the electron scale factors
+ * @param sf_name name of the electron scale factor for the reco correction,
+ * e.g. "UL-Electron-ID-SF"
+ * @param variation name the scale factor variation, "sf" for the nominal
+ * scale factor and "sfup"/"sfdown" for the up/down variation
+ *
+ * @return a new dataframe containing the new column
+ *
+ * @note This function needs the dependence on phi only in case of 2023 data
+ * because for whatever reason EGM POG introduced it only in that era.
+ */
+ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
+                    correctionManager::CorrectionManager &correction_manager,
+                    const std::string &outputname, const std::string &pt,
+                    const std::string &eta, const std::string &phi,
+                    const std::string &era,
+                    const std::string &sf_file, const std::string &sf_name,
+                    const std::string &variation) {
+    const std::string logger_name = "physicsobject::electron::scalefactor::Reco";
+    Logger::get(logger_name)
+        ->debug("Setting up functions for electron reco sf with correctionlib");
+    Logger::get(logger_name)
+        ->debug("Reco - Name {}", sf_name);
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    auto df1 = df.Define(
+        outputname,
+        [evaluator, era, sf_name, logger_name,
+         variation](const float &pt, const float &eta, const float &phi) {
+            Logger::get(logger_name)
+                ->debug("Era {}, Variation {}", era, variation);
+            Logger::get(logger_name)
+                ->debug("Reco - pt {}, eta {}, phi {}", pt, eta, phi);
+
+            // Set the reco name
+            auto reco_name = "";
+            if (std::stoi(era.substr(0, 4)) <= 2018) {
+                if (pt >= 20.0) {
+                    reco_name = "RecoAbove20";
+                } else {
+                    reco_name = "RecoBelow20";
+                }
+            } else {
+                if (pt >= 20.0 && pt < 75.) {
+                    reco_name = "Reco20to75";
+                } else if (pt >= 75.) {
+                    reco_name = "RecoAbove75";
+                }
+            }
+            Logger::get(logger_name)
+                ->debug("Reco name - {}", reco_name);
+
+            // Obtain the scale factor for pt >= 20 GeV (range for which SF is
+            // defined)
+            double sf = 1.;
+            if (reco_name != "") {
+                if (era.find("2023") != std::string::npos) {
+                    // for 2023, phi is needed as input
+                    sf =
+                        evaluator->evaluate({era, variation, reco_name, eta, pt, phi});
+                } else {
+                    sf = evaluator->evaluate({era, variation, reco_name, eta, pt});
+                }
+            }
+            Logger::get(logger_name)
+                ->debug("Scale Factor {}", sf);
+            return sf;
+        },
+        {pt, eta, phi});
+    return df1;
+}
+
+/**
  * @brief This function calculates single electron trigger scale factors (SFs)
  * for a single electron dependening on its pseudorapidity (\f$\eta\f$), its
  * transverse momentum (\f$p_T\f$), and the electron identification working
