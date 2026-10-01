@@ -519,17 +519,17 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
  * because for whatever reason EGM POG introduced it only in that era.
  */
 ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correction_manager,
-                    const std::string &outputname, const std::string &pt,
-                    const std::string &eta, const std::string &phi,
-                    const std::string &era,
-                    const std::string &sf_file, const std::string &sf_name,
-                    const std::string &variation) {
-    const std::string logger_name = "physicsobject::electron::scalefactor::Reco";
+                      correctionManager::CorrectionManager &correction_manager,
+                      const std::string &outputname, const std::string &pt,
+                      const std::string &eta, const std::string &phi,
+                      const std::string &era, const std::string &sf_file,
+                      const std::string &sf_name,
+                      const std::string &variation) {
+    const std::string logger_name =
+        "physicsobject::electron::scalefactor::Reco";
     Logger::get(logger_name)
         ->debug("Setting up functions for electron reco sf with correctionlib");
-    Logger::get(logger_name)
-        ->debug("Reco - Name {}", sf_name);
+    Logger::get(logger_name)->debug("Reco - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     auto df1 = df.Define(
         outputname,
@@ -555,8 +555,7 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
                     reco_name = "RecoAbove75";
                 }
             }
-            Logger::get(logger_name)
-                ->debug("Reco name - {}", reco_name);
+            Logger::get(logger_name)->debug("Reco name - {}", reco_name);
 
             // Obtain the scale factor for pt >= 20 GeV (range for which SF is
             // defined)
@@ -564,14 +563,14 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
             if (reco_name != "") {
                 if (era.find("2023") != std::string::npos) {
                     // for 2023, phi is needed as input
-                    sf =
-                        evaluator->evaluate({era, variation, reco_name, eta, pt, phi});
+                    sf = evaluator->evaluate(
+                        {era, variation, reco_name, eta, pt, phi});
                 } else {
-                    sf = evaluator->evaluate({era, variation, reco_name, eta, pt});
+                    sf = evaluator->evaluate(
+                        {era, variation, reco_name, eta, pt});
                 }
             }
-            Logger::get(logger_name)
-                ->debug("Scale Factor {}", sf);
+            Logger::get(logger_name)->debug("Scale Factor {}", sf);
             return sf;
         },
         {pt, eta, phi});
