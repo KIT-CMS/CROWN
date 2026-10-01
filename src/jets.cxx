@@ -1795,11 +1795,7 @@ BtaggingWP(ROOT::RDF::RNode df,
     auto wp_evaluator = correction_manager.loadCorrection(sf_file, sf_wp_name);
     auto eff_evaluator = correction_manager.loadCorrection(eff_file, eff_name);
 
-    // Define a map between the b-tagging working point name and the
-    // corresponding discriminator cut value. A custom value 'N' is used in the
-    // case the jet does not pass the loosest working point. Note that the list
-    // of working point names must be ordered from the tightest to the loosest
-    // one.
+    // Obtain the value of the b-tagging working point cut
     float btag_wp_cut = wp_evaluator->evaluate({btag_wp_name});
 
     // In nanoAODv12 the type of jet flavor was changed to UChar_t
@@ -1897,33 +1893,21 @@ BtaggingWP(ROOT::RDF::RNode df,
                 denom = 1.0 - jet_eff;
             }
 
-            // Handle edge cases where the denominator is not positive: Set
-            // the efficiency difference to 1 (TODO is this well-justified?)
-            if (denom <= 0) {
-                Logger::get(logger_name)
-                    ->debug("got negative denominator {}, set it to 1.0",
-                            denom);
-                denom = 1.0;
-            }
-
             // Calculate the jet contribution
             auto jet_comp = num / denom;
 
-            // Handle edge cases where the whole SF is negative, set it to 1
-            // unity
-            if (jet_comp <= 0.0) {
+            // Handle edge cases, in which numerator or denominator have non-positive values
+            if (num <= 0 || denom <= 0) {
                 Logger::get(logger_name)
-                    ->debug("got nonpositve jet contribution {}, set it to 1.0",
-                            jet_comp);
+                    ->debug("Got non-positive contributions to fraction, set jet scale factor to 1.0");
                 jet_comp = 1.0;
             }
 
-            // Emit a warning if the SF is extremely negative, extremely
-            // positive, or nan.
+            // Handle edge cases, in which the fraction is not finite
             if (std::isnan(jet_comp) || !std::isfinite(jet_comp)) {
                 Logger::get(logger_name)
-                    ->warn("got invalid jet contribution {} to b tagging SF",
-                           jet_comp);
+                    ->debug("Got ill-defined fraction value {}, set jet scale factor to 1.0", jet_comp);
+                jet_comp = 1.0;
             }
 
             // Debug message for this jet's contribution to the event scale
@@ -2195,34 +2179,24 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                 throw std::runtime_error(
                     "Arrived at unexpected b tagging working point " + btag_wp);
             }
-
-            // Handle edge cases where the denominator is not positive: Set
-            // the efficiency difference to 1 (TODO is this well-justified?)
-            if (denom <= 0) {
-                Logger::get(logger_name)
-                    ->debug("got negative denominator {}, set it to 1.0",
-                            denom);
-                denom = 1.0;
-            }
+            Logger::get(logger_name)
+                ->debug("Jet contribution: got numerator {} and denominator {}", num, denom);
 
             // Calculate the jet contribution
             auto jet_comp = num / denom;
 
-            // Handle edge cases where the whole SF is negative, set it to 1
-            // unity
-            if (jet_comp <= 0.0) {
+            // Handle edge cases, in which numerator or denominator have non-positive values
+            if (num <= 0 || denom <= 0) {
                 Logger::get(logger_name)
-                    ->debug("got nonpositve jet contribution {}, set it to 1.0",
-                            jet_comp);
+                    ->debug("Got non-positive contributions to fraction, set jet scale factor to 1.0");
                 jet_comp = 1.0;
             }
 
-            // Emit a warning if the SF is extremely negative, extremely
-            // positive, or nan.
+            // Handle edge cases, in which the fraction is not finite
             if (std::isnan(jet_comp) || !std::isfinite(jet_comp)) {
                 Logger::get(logger_name)
-                    ->warn("got invalid jet contribution {} to b tagging SF",
-                           jet_comp);
+                    ->debug("Got ill-defined fraction value {}, set jet scale factor to 1.0", jet_comp);
+                jet_comp = 1.0;
             }
 
             // Debug message for this jet's contribution to the event scale
