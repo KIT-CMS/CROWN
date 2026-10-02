@@ -134,7 +134,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23BPix_electronSS_EtDependent.html)
  *
  * An implementation recipe is provided here:
- * [egmScaleAndSmearingExample.py](https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/blob/master/examples/egmScaleAndSmearingExample.py).
+ * https://egammapog.docs.cern.ch/Run3/SaS/
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
@@ -271,7 +271,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
  * [2023postBPix](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2023_Summer23BPix_electronSS_EtDependent.html)
  *
  * An implementation recipe is provided here:
- * [egmScaleAndSmearingExample.py](https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/blob/master/examples/egmScaleAndSmearingExample.py).
+ * https://egammapog.docs.cern.ch/Run3/SaS/
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
@@ -502,7 +502,7 @@ ROOT::RDF::RNode Id(ROOT::RDF::RNode df,
  * - [Run3 scale
  * factors](https://twiki.cern.ch/twiki/bin/view/CMS/EgammSFandSSRun3)
  *
- * The documentation of the corresponding jsonPOG files can be found here:
+ * The documentation of the corresponding files can be found here:
  * -
  * [2022preEE](https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/summaries/EGM_2022_Summer22_electronHlt.html)
  * -
