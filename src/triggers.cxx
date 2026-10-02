@@ -108,7 +108,7 @@ bool matchParticle(
         bool deltaR = ROOT::Math::VectorUtil::DeltaR(triggerobject, particle) <
                       deltaR_threshold;
         bool pt = particle.pt() > pt_threshold;
-        bool eta = abs(particle.eta()) < eta_threshold;
+        bool eta = std::abs(particle.eta()) < eta_threshold;
         // if you don't want to do bit matching here, the trigger_bit_values
         // has to be set to -1 or an empty vector
         // otherwise, check if all bits in the vector are set
@@ -165,7 +165,7 @@ bool matchParticle(
             ->debug("eta_threshold: {}, Check: {}", eta_threshold, eta);
         Logger::get("trigger::matchParticle")
             ->debug("eta (trg) value: {}, eta (reco) value: {}",
-                    triggerobject_etas[idx], abs(particle.eta()));
+                    triggerobject_etas[idx], std::abs(particle.eta()));
 
         Logger::get("trigger::matchParticle")
             ->debug("-------------------------------------------------------");

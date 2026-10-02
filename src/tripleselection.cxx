@@ -191,7 +191,7 @@ buildtruegentriple(ROOT::RDF::RNode df, const std::string &statusflags,
             genparticle.index = i;
             genparticle.status = status.at(i);
             genparticle.statusflag = StatusBits(statusflags.at(i));
-            genparticle.pdgid = abs(pdgids.at(i));
+            genparticle.pdgid = ROOT::VecOps::abs(pdgids.at(i));
             genparticle.motherid = motherids.at(i);
             genparticles.push_back(genparticle);
         }

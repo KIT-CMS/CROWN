@@ -359,8 +359,8 @@ ROOT::RDF::RNode VetoECALGap(ROOT::RDF::RNode df, const std::string &outputname,
     auto lambda = [end_ecal_barrel,
                    start_ecal_endcap](const ROOT::RVec<float> &eta,
                                       const ROOT::RVec<float> &delta_eta_sc) {
-        ROOT::RVec<int> mask = (abs(eta + delta_eta_sc) < end_ecal_barrel) ||
-                               (abs(eta + delta_eta_sc) >= start_ecal_endcap);
+        ROOT::RVec<int> mask = (ROOT::VecOps::abs(eta + delta_eta_sc) < end_ecal_barrel) ||
+                               (ROOT::VecOps::abs(eta + delta_eta_sc) >= start_ecal_endcap);
         return mask;
     };
 
@@ -404,9 +404,9 @@ CutInteractionPoint(ROOT::RDF::RNode df, const std::string &outputname,
                                   const ROOT::RVec<float> &dxy,
                                   const ROOT::RVec<float> &dz) {
         ROOT::RVec<int> mask =
-            (((abs(eta + delta_eta_sc) < ecal_barrel_endcap_boundary) &&
+            ((ROOT::VecOps::abs(eta + delta_eta_sc) < ecal_barrel_endcap_boundary) &&
               (dxy < max_dxy_barrel) && (dz < max_dz_barrel)) ||
-             ((abs(eta + delta_eta_sc) >= ecal_barrel_endcap_boundary) &&
+             ((ROOT::VecOps::abs(eta + delta_eta_sc) >= ecal_barrel_endcap_boundary) &&
               (dxy < max_dxy_endcap) && (dz < max_dz_endcap)));
         return mask;
     };

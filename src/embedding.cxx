@@ -5,6 +5,7 @@
 #include "../include/utility/Logger.hxx"
 #include "../include/utility/utility.hxx"
 #include "ROOT/RDataFrame.hxx"
+#include <cmath>
 #include <nlohmann/json.hpp>
 
 namespace embedding {
@@ -209,9 +210,9 @@ PtCorrection_byValue(ROOT::RDF::RNode df, const std::string &outputname,
                                          const ROOT::RVec<float> &etas) {
         ROOT::RVec<float> corrected_pts(pts.size());
         for (int i = 0; i < pts.size(); i++) {
-            if (abs(etas.at(i)) <= 1.479)
+            if (std::abs(etas.at(i)) <= 1.479)
                 corrected_pts[i] = pts.at(i) * sf_barrel;
-            else if (abs(etas.at(i)) > 1.479)
+            else if (std::abs(etas.at(i)) > 1.479)
                 corrected_pts[i] = pts.at(i) * sf_endcap;
             else
                 corrected_pts[i] = pts.at(i);
@@ -262,7 +263,7 @@ PtCorrection(ROOT::RDF::RNode df,
                                                 const ROOT::RVec<float> &etas) {
         ROOT::RVec<float> corrected_pts(pts.size());
         for (int i = 0; i < pts.size(); i++) {
-            if (abs(etas.at(i)) <= 1.479) {
+            if (std::abs(etas.at(i)) <= 1.479) {
                 auto correction_factor =
                     evaluator->evaluate({"barrel", variation_barrel});
                 corrected_pts[i] = pts.at(i) * correction_factor;
@@ -270,7 +271,7 @@ PtCorrection(ROOT::RDF::RNode df,
                     ->debug(
                         "barrel: ele pt before {}, ele pt after {}, factor {}",
                         pts.at(i), corrected_pts.at(i), correction_factor);
-            } else if (abs(etas.at(i)) > 1.479) {
+            } else if (std::abs(etas.at(i)) > 1.479) {
                 auto correction_factor =
                     evaluator->evaluate({"endcap", variation_endcap});
                 corrected_pts[i] = pts.at(i) * correction_factor;

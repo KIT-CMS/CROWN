@@ -14,6 +14,7 @@
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <cmath>
 
 const float W_MASS = 80.377;  // PDG value as of 10/22
 const float TOP_MASS = 172.5; // gen mass
@@ -639,7 +640,7 @@ ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
             sol2 = lep_pz * alpha / (lep_pt * lep_pt) - sqrt(rad);
 
             // choose the smaller pz solution
-            if (abs(sol1) < abs(sol2)) {
+            if (std::abs(sol1) < std::abs(sol2)) {
                 nu_pz = sol1;
             } else {
                 nu_pz = sol2;
@@ -822,7 +823,8 @@ TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
         } else if (is_jjbb) { // 2j2b
             auto cand1_p4 = wlep_p4 + bjet_p4_1;
             auto cand2_p4 = wlep_p4 + bjet_p4_2;
-            if (abs(cand1_p4.M() - TOP_MASS) < abs(cand2_p4.M() - TOP_MASS)) {
+            if (std::abs(cand1_p4.M() - TOP_MASS) <
+                std::abs(cand2_p4.M() - TOP_MASS)) {
                 reco_vec[0] = cand1_p4;
                 reco_vec[1] = bjet_p4_1;
                 reco_vec[2] = bjet_p4_2;
@@ -841,7 +843,8 @@ TopReco(ROOT::RDF::RNode df, const std::string &str_wlep_p4,
         } else if (is_jjjbb) { // 3j2b
             auto cand1_p4 = wlep_p4 + bjet_p4_1;
             auto cand2_p4 = wlep_p4 + bjet_p4_2;
-            if (abs(cand1_p4.M() - TOP_MASS) < abs(cand2_p4.M() - TOP_MASS)) {
+            if (std::abs(cand1_p4.M() - TOP_MASS) <
+                std::abs(cand2_p4.M() - TOP_MASS)) {
                 reco_vec[0] = cand1_p4;
                 reco_vec[1] = bjet_p4_1;
                 reco_vec[2] = bjet_p4_2;
@@ -986,7 +989,7 @@ ROOT::RDF::RNode DNNQuantities(
                        if (!reco) {
                            return -10.0;
                        }
-                       return abs(top.Eta() - sb.Eta());
+                       return std::abs(top.Eta() - sb.Eta());
                    },
                    {str_is_reco, str_top_p4, str_sb_p4});
 
@@ -1011,7 +1014,7 @@ ROOT::RDF::RNode DNNQuantities(
                        if (!reco) {
                            return -10.0;
                        }
-                       return abs(lep.Eta() - b1.Eta());
+                       return std::abs(lep.Eta() - b1.Eta());
                    },
                    {str_is_reco, str_lep_p4, str_bjet_p4_1});
 
@@ -1170,8 +1173,8 @@ ROOT::RDF::RNode DNNQuantities(
                             return -10.0;
                         }
                         if (b2.Pt() > 0)
-                            return abs((b2 + wlep).Eta() - b1.Eta());
-                        return abs((nonb1 + wlep).Eta() - b1.Eta());
+                            return std::abs((b2 + wlep).Eta() - b1.Eta());
+                        return std::abs((nonb1 + wlep).Eta() - b1.Eta());
                     },
                     {str_is_reco, str_bjet_p4_1, str_bjet_p4_2,
                      str_nonbjet_p4_1, str_wlep_p4});
