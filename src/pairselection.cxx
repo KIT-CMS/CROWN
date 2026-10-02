@@ -10,6 +10,7 @@
 #include "bitset"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <cmath>
 
 typedef std::bitset<15> StatusBits;
 /**
@@ -164,7 +165,7 @@ buildtruegenpair(ROOT::RDF::RNode df, const std::string &outputname,
             genparticle.index = i;
             genparticle.status = status.at(i);
             genparticle.statusflag = StatusBits(statusflags.at(i));
-            genparticle.pdgid = abs(pdgids.at(i));
+            genparticle.pdgid = std::abs(pdgids.at(i));
             genparticle.motherid = motherids.at(i);
             genparticles.push_back(genparticle);
         }
