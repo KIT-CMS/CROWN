@@ -21,7 +21,7 @@ Getting started
 ****************
 
 .. warning::
-    The Framework depends on the scale factors provided by CMS. These are directly included in the repository via a git submodule. Since the scale factors are added from the CERN gitlab, access to the CERN gitlab repository (https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration), is needed. Since the repository is added via SSH, your SSH key must be added to the CERN gitlab instance ( A tutorial on how to do this can be found here: https://docs.gitlab.com/ee/user/ssh.html#add-an-ssh-key-to-your-gitlab-account).
+    The Framework depends on scale factors provided by CMS HLepRare group. These are directly included in the repository via a git submodule. Since the scale factors are added from the CERN gitlab, access to the CERN gitlab repository (https://gitlab.cern.ch/cms-higgs-leprare/hleprare), is needed. Since the repository is added via SSH, your SSH key must be added to the CERN gitlab instance ( A tutorial on how to do this can be found here: https://docs.gitlab.com/ee/user/ssh.html#add-an-ssh-key-to-your-gitlab-account).
     For the instructions to work, you also have to add the SSH key to your GitHub.com account. The instructions to do this can be found here: https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/
 
 
