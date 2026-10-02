@@ -148,8 +148,7 @@ with defaults(scopes=["et", "mt", "tt", "em", "mm", "ee"]):
             ],
             output=[q.pfmet_p4_jetcorrected],
         )
-    with defaults(
-        call="""met::RecoilCorrection(
+    with defaults(call="""met::RecoilCorrection(
             {df},
             {output},
             {input},
@@ -161,8 +160,7 @@ with defaults(scopes=["et", "mt", "tt", "em", "mm", "ee"]):
             {recoil_systematic_shift_up},
             {recoil_systematic_shift_down},
             {is_wjets})
-        """
-    ):
+        """):
         ApplyRecoilCorrections = Producer(
             input=[
                 q.met_p4_jetcorrected,
