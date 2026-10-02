@@ -359,8 +359,9 @@ ROOT::RDF::RNode VetoECALGap(ROOT::RDF::RNode df, const std::string &outputname,
     auto lambda = [end_ecal_barrel,
                    start_ecal_endcap](const ROOT::RVec<float> &eta,
                                       const ROOT::RVec<float> &delta_eta_sc) {
-        ROOT::RVec<int> mask = (ROOT::VecOps::abs(eta + delta_eta_sc) < end_ecal_barrel) ||
-                               (ROOT::VecOps::abs(eta + delta_eta_sc) >= start_ecal_endcap);
+        ROOT::RVec<int> mask =
+            (ROOT::VecOps::abs(eta + delta_eta_sc) < end_ecal_barrel) ||
+            (ROOT::VecOps::abs(eta + delta_eta_sc) >= start_ecal_endcap);
         return mask;
     };
 
