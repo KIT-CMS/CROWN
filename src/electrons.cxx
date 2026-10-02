@@ -405,9 +405,11 @@ CutInteractionPoint(ROOT::RDF::RNode df, const std::string &outputname,
                                   const ROOT::RVec<float> &dxy,
                                   const ROOT::RVec<float> &dz) {
         ROOT::RVec<int> mask =
-            ((ROOT::VecOps::abs(eta + delta_eta_sc) < ecal_barrel_endcap_boundary) &&
+            (((ROOT::VecOps::abs(eta + delta_eta_sc) <
+               ecal_barrel_endcap_boundary) &&
               (dxy < max_dxy_barrel) && (dz < max_dz_barrel)) ||
-             ((ROOT::VecOps::abs(eta + delta_eta_sc) >= ecal_barrel_endcap_boundary) &&
+             ((ROOT::VecOps::abs(eta + delta_eta_sc) >=
+               ecal_barrel_endcap_boundary) &&
               (dxy < max_dxy_endcap) && (dz < max_dz_endcap)));
         return mask;
     };
