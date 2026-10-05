@@ -94,6 +94,11 @@ bool matchParticle(
     ROOT::RVec<int> &triggerobject_filterbits, const float &pt_threshold,
     const float &eta_threshold, const int &trigger_particle_id_value,
     const std::vector<int> &trigger_bit_values, const float &deltaR_threshold) {
+    // trigger_particle_id_value == -1: no trigger object matching
+    if (trigger_particle_id_value == -1) {
+        return particle.pt() > pt_threshold &&
+               std::abs(particle.eta()) < eta_threshold;
+    }
     Logger::get("trigger::matchParticle")->debug("Checking Triggerobjects");
     Logger::get("trigger::matchParticle")
         ->debug("Total number of triggerobjects: {}", triggerobject_pts.size());
@@ -981,6 +986,139 @@ GetPrescaleValues(ROOT::RDF::RNode df,
     };
     auto df1 = df.Define(outputname, get_prescale, {hlt_path, run, lumiblock});
     return df1;
+}
+/**
+ * @brief This function reads the scale factor of the jet leg of the DiTau+Jet
+ * trigger from a correctionlib file, binned in jet \f$p_T\f$ and
+ * \f$|\eta|\f$. The files for 2022 and 2023 contain the efficiencies in data
+ * and MC (inputs: pt, abseta, syst, data_or_mc), the scale factor is their
+ * ratio. The files from 2024 on contain the scale factor (inputs: pt, abseta,
+ * corrtype, syst, syst_var). If the trigger flag is `false`, or the evaluation
+ * fails, a scale factor of 1.0 is returned.
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * correction file
+ * @param outputname name of the output column containing the scale factor
+ * @param jet_p4 name of the column containing the Lorentz vector of the jet
+ * @param trigger_flag name of the column containing the trigger flag
+ * @param sf_file path to the correction file
+ * @param sf_name name of the correction
+ * @param variation "nom", "up" or "down", for the files of 2022 and 2023 the
+ * variation is applied to the efficiencies in data and MC
+ * @param syst_var name of the systematic variable of the jet \f$p_T\f$, only
+ * used for corrections that have this input
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+JetLegScaleFactor(ROOT::RDF::RNode df,
+                  correctionManager::CorrectionManager &correction_manager,
+                  const std::string &outputname, const std::string &jet_p4,
+                  const std::string &trigger_flag, const std::string &sf_file,
+                  const std::string &sf_name, const std::string &variation,
+                  const std::string &syst_var) {
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    const bool has_syst_var = evaluator->inputs().size() == 5;
+    auto scale_factor = [evaluator, variation, syst_var,
+                         has_syst_var](const ROOT::Math::PtEtaPhiMVector &jet,
+                                       const bool &trigger_flag) {
+        float sf = 1.;
+        try {
+            if (trigger_flag) {
+                const double pt = jet.pt();
+                const double abseta = std::abs(jet.eta());
+                if (has_syst_var) {
+                    sf = evaluator->evaluate(
+                        {pt, abseta, "sf", variation, syst_var});
+                } else {
+                    const double eff_data =
+                        evaluator->evaluate({pt, abseta, variation, "data"});
+                    const double eff_mc =
+                        evaluator->evaluate({pt, abseta, variation, "mc"});
+                    sf = eff_mc > 0. ? eff_data / eff_mc : 1.;
+                }
+            }
+        } catch (const std::runtime_error &e) {
+            Logger::get("trigger::JetLegScaleFactor")
+                ->debug("Scale factor evaluation failed");
+        }
+        return sf;
+    };
+    return df.Define(outputname, scale_factor, {jet_p4, trigger_flag});
+}
+
+/**
+ * @brief This function selects the trigger scale factor of events that are
+ * selected with a single lepton trigger or with a lepton+tau cross trigger,
+ * which cover different regions of the lepton \f$p_T\f$. If the single lepton
+ * trigger passed, its scale factor is used, otherwise the product of the scale
+ * factors of the lepton leg and the tau leg of the cross trigger. The scale
+ * factors of the cross trigger legs are 1.0 if the cross trigger did not pass.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column containing the scale factor
+ * @param pass_single name of the column containing the single trigger flag
+ * @param sf_single name of the column with the scale factor of the single
+ * trigger
+ * @param sf_lepton name of the column with the scale factor of the lepton
+ * leg of the cross trigger
+ * @param sf_tau name of the column with the scale factor of the tau leg of
+ * the cross trigger
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode SingleOrCrossScaleFactor(ROOT::RDF::RNode df,
+                                          const std::string &outputname,
+                                          const std::string &pass_single,
+                                          const std::string &sf_single,
+                                          const std::string &sf_lepton,
+                                          const std::string &sf_tau) {
+    auto scale_factor = [](const bool &pass_single, const double &sf_single,
+                           const double &sf_lepton, const float &sf_tau) {
+        return pass_single ? sf_single : sf_lepton * sf_tau;
+    };
+    return df.Define(outputname, scale_factor,
+                     {pass_single, sf_single, sf_lepton, sf_tau});
+}
+
+/**
+ * @brief This function selects the trigger scale factor of events that are
+ * selected with the DiTau trigger or with the DiTau+Jet trigger, which cover
+ * different regions of the tau \f$p_T\f$. If the DiTau trigger passed, the
+ * product of the scale factors of its two tau legs is used, otherwise the
+ * product of the scale factors of the two tau legs and the jet leg of the
+ * DiTau+Jet trigger. The scale factors of the DiTau+Jet trigger legs are 1.0 if
+ * this trigger did not pass.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output column containing the scale factor
+ * @param pass_ditau name of the column containing the DiTau trigger flag
+ * @param sf_ditau_1 name of the column with the scale factor of the first tau
+ * leg of the DiTau trigger
+ * @param sf_ditau_2 same for the second tau leg
+ * @param sf_ditaujet_1 name of the column with the scale factor of the first
+ * tau leg of the DiTau+Jet trigger
+ * @param sf_ditaujet_2 same for the second tau leg
+ * @param sf_jet name of the column with the scale factor of the jet leg of
+ * the DiTau+Jet trigger
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode DiTauOrDiTauJetScaleFactor(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &pass_ditau, const std::string &sf_ditau_1,
+    const std::string &sf_ditau_2, const std::string &sf_ditaujet_1,
+    const std::string &sf_ditaujet_2, const std::string &sf_jet) {
+    auto scale_factor = [](const bool &pass_ditau, const float &ditau_1,
+                           const float &ditau_2, const float &ditaujet_1,
+                           const float &ditaujet_2,
+                           const float &jet) -> double {
+        return pass_ditau ? ditau_1 * ditau_2 : ditaujet_1 * ditaujet_2 * jet;
+    };
+    return df.Define(outputname, scale_factor,
+                     {pass_ditau, sf_ditau_1, sf_ditau_2, sf_ditaujet_1,
+                      sf_ditaujet_2, sf_jet});
 }
 } // end namespace trigger
 #endif /* GUARD_TRIGGERS_H */
