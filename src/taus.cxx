@@ -3134,7 +3134,6 @@ namespace experimental {
  * @param gen_match name of the column with the matching information of the
  * hadronic tau to generator-level particles (matches are: 1=prompt e, 2=prompt
  * mu, 3=tau->e, 4=tau->mu, 5=had. tau, 0=unmatched)
- * @param era data-taking period, as correction inputs differ between them
  * @param sf_file path to the file with the tau scale factors
  * @param sf_name name of the tau scale factor for the DeepTau VSjet ID
  * correction
@@ -3153,10 +3152,10 @@ Id_vsJet(ROOT::RDF::RNode df,
          correctionManager::CorrectionManager &correction_manager,
          const std::string &outputname, const std::string &pt,
          const std::string &decay_mode, const std::string &gen_match,
-         const std::string &era, const std::string &sf_file,
-         const std::string &sf_name, const std::string &id_vsjet_wp,
-         const std::string &id_vse_wp, const std::string &id_vsmu_wp,
-         const std::string &sf_dependence, const std::string &variation) {
+         const std::string &sf_file, const std::string &sf_name,
+         const std::string &id_vsjet_wp, const std::string &id_vse_wp,
+         const std::string &id_vsmu_wp, const std::string &sf_dependence,
+         const std::string &variation) {
     // Define logger name
     std::string logger_name =
         "physicsobject::tau::scalefactor::experimental::Id_vsJet";
@@ -3171,8 +3170,8 @@ Id_vsJet(ROOT::RDF::RNode df,
     auto tau_id_variation = variation_handlers::TauVariationHandler(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
-    auto sf_calculator = [evaluate_wrapper, era, id_vsjet_wp, id_vse_wp,
-                          id_vsmu_wp, variation, sf_dependence, sf_name,
+    auto sf_calculator = [evaluate_wrapper, id_vsjet_wp, id_vse_wp, id_vsmu_wp,
+                          variation, sf_dependence, sf_name,
                           logger_name](const float &pt, const int &decay_mode,
                                        const int &gen_match) {
         // Only calculate SFs for allowed tau decay modes
@@ -3194,7 +3193,7 @@ Id_vsJet(ROOT::RDF::RNode df,
                 ->debug("   sf_dependence {}", sf_dependence);
 
             // Evaluate the scale factor
-            if (std::stoi(era.substr(0, 4)) == 2025) {
+            if (id_vsmu_wp.empty()) {
                 sf = evaluate_wrapper({pt, decay_mode, gen_match, id_vsjet_wp,
                                        id_vse_wp, id_vsmu_wp, variation,
                                        sf_dependence});
