@@ -2,6 +2,7 @@
 #define GUARD_ROCCOR_H
 
 #include <TMath.h>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -33,11 +34,11 @@ struct CrystalBall {
     CrystalBall() : m(0), s(1), a(10), n(10) { init(); }
 
     void init() {
-        double fa = fabs(a);
-        double ex = exp(-fa * fa / 2);
-        double A = pow(n / fa, n) * ex;
+        double fa = std::fabs(a);
+        double ex = std::exp(-fa * fa / 2);
+        double A = std::pow(n / fa, n) * ex;
         double C1 = n / fa / (n - 1) * ex;
-        double D1 = 2 * sqrtPiOver2 * erf(fa / sqrt2);
+        double D1 = 2 * sqrtPiOver2 * std::erf(fa / sqrt2);
 
         B = n / fa - fa;
         C = (D1 + 2 * C1) / C1;
@@ -59,35 +60,35 @@ struct CrystalBall {
     double pdf(double x) const {
         double d = (x - m) / s;
         if (d < -a)
-            return NA * pow(B - d, -n);
+            return NA * std::pow(B - d, -n);
         if (d > a)
-            return NA * pow(B + d, -n);
-        return N * exp(-d * d / 2);
+            return NA * std::pow(B + d, -n);
+        return N * std::exp(-d * d / 2);
     }
 
     double pdf(double x, double ks, double dm) const {
         double d = (x - m - dm) / (s * ks);
         if (d < -a)
-            return NA / ks * pow(B - d, -n);
+            return NA / ks * std::pow(B - d, -n);
         if (d > a)
-            return NA / ks * pow(B + d, -n);
-        return N / ks * exp(-d * d / 2);
+            return NA / ks * std::pow(B + d, -n);
+        return N / ks * std::exp(-d * d / 2);
     }
 
     double cdf(double x) const {
         double d = (x - m) / s;
         if (d < -a)
-            return NC / pow(F - s * d / G, n - 1);
+            return NC / std::pow(F - s * d / G, n - 1);
         if (d > a)
-            return NC * (C - pow(F + s * d / G, 1 - n));
-        return Ns * (D - sqrtPiOver2 * erf(-d / sqrt2));
+            return NC * (C - std::pow(F + s * d / G, 1 - n));
+        return Ns * (D - sqrtPiOver2 * std::erf(-d / sqrt2));
     }
 
     double invcdf(double u) const {
         if (u < cdfMa)
-            return m + G * (F - pow(NC / u, k));
+            return m + G * (F - std::pow(NC / u, k));
         if (u > cdfPa)
-            return m - G * (F - pow(C - u / NC, -k));
+            return m - G * (F - std::pow(C - u / NC, -k));
         return m - sqrt2 * s * TMath::ErfInverse((D - u / Ns) / sqrtPiOver2);
     }
 };

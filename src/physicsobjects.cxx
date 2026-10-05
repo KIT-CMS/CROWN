@@ -5,6 +5,7 @@
 #include "ROOT/RDataFrame.hxx"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <cmath>
 
 /**
  * This namespace contains functions to apply cuts on physics objects. The
@@ -52,12 +53,13 @@ ROOT::RDF::RNode CutQuantityBarrelEndcap(
                    upper_threshold_barrel, lower_threshold_endcap,
                    upper_threshold_endcap](const ROOT::RVec<float> &etas,
                                            const ROOT::RVec<float> &values) {
-        ROOT::RVec<int> mask = (((abs(etas) < barrel_endcap_boundary) &&
-                                 (values >= lower_threshold_barrel) &&
-                                 (values < upper_threshold_barrel)) ||
-                                ((abs(etas) >= barrel_endcap_boundary) &&
-                                 (values >= lower_threshold_endcap) &&
-                                 (values < upper_threshold_endcap)));
+        ROOT::RVec<int> mask =
+            (((ROOT::VecOps::abs(etas) < barrel_endcap_boundary) &&
+              (values >= lower_threshold_barrel) &&
+              (values < upper_threshold_barrel)) ||
+             ((ROOT::VecOps::abs(etas) >= barrel_endcap_boundary) &&
+              (values >= lower_threshold_endcap) &&
+              (values < upper_threshold_endcap)));
         return mask;
     };
 

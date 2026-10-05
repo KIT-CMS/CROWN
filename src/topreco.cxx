@@ -354,10 +354,10 @@ double min_fplus(double *par) {
     // double res = 99999;
     // if (r>=0) {
     y = (W_MASS * W_MASS * par[2] + 2 * par[1] * par[2] * par[0] +
-         W_MASS * par[3] * sqrt(r)) /
+         W_MASS * par[3] * std::sqrt(r)) /
         (2 * par[1] * par[1]);
-    double res = sqrt((par[0] - par[4]) * (par[0] - par[4]) +
-                      (y - par[5]) * (y - par[5]));
+    double res = std::sqrt((par[0] - par[4]) * (par[0] - par[4]) +
+                           (y - par[5]) * (y - par[5]));
     // }
     // else // FIXME: proper constraint in TMinuit?
     // res = 99999;
@@ -373,10 +373,10 @@ double min_fminus(double *par) {
     double res = 99999;
     if (r >= 0) {
         y = (W_MASS * W_MASS * par[2] + 2 * par[1] * par[2] * par[0] -
-             W_MASS * par[3] * sqrt(r)) /
+             W_MASS * par[3] * std::sqrt(r)) /
             (2 * par[1] * par[1]);
-        res = sqrt((par[0] - par[4]) * (par[0] - par[4]) +
-                   (y - par[5]) * (y - par[5]));
+        res = std::sqrt((par[0] - par[4]) * (par[0] - par[4]) +
+                        (y - par[5]) * (y - par[5]));
     } else
         res = 99999;
     return res;
@@ -603,14 +603,14 @@ ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
                 r_new = rad_py(nu_pxnew, lep_px);
                 nu_pynew =
                     (W_MASS * W_MASS * lep_py + 2 * lep_px * lep_py * nu_pxnew +
-                     W_MASS * lep_pt * sqrt(r_new)) /
+                     W_MASS * lep_pt * std::sqrt(r_new)) /
                     (2 * lep_px * lep_px);
             } else {
                 nu_pxnew = x_minus;
                 r_new = rad_py(nu_pxnew, lep_px);
                 nu_pynew =
                     (W_MASS * W_MASS * lep_py + 2 * lep_px * lep_py * nu_pxnew -
-                     W_MASS * lep_pt * sqrt(r_new)) /
+                     W_MASS * lep_pt * std::sqrt(r_new)) /
                     (2 * lep_px * lep_px);
             }
             // calculate new nu pz (only one solution with fixed px and py)
@@ -622,8 +622,9 @@ ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
 
             // set 4 momenta of neutrino and W boson
             nu_p4.SetPxPyPzE(nu_pxnew, nu_pynew, nu_pznew,
-                             sqrt(nu_pxnew * nu_pxnew + nu_pynew * nu_pynew +
-                                  nu_pznew * nu_pznew));
+                             std::sqrt(nu_pxnew * nu_pxnew +
+                                       nu_pynew * nu_pynew +
+                                       nu_pznew * nu_pznew));
 
             Logger::get("wlep")->debug("complex debug point 8");
 
@@ -636,8 +637,8 @@ ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
             //    cout << "Two neutrino pz solutions" << endl;
             Logger::get("wlep")->debug("real solution");
             double sol1, sol2, nu_pz;
-            sol1 = lep_pz * alpha / (lep_pt * lep_pt) + sqrt(rad);
-            sol2 = lep_pz * alpha / (lep_pt * lep_pt) - sqrt(rad);
+            sol1 = lep_pz * alpha / (lep_pt * lep_pt) + std::sqrt(rad);
+            sol2 = lep_pz * alpha / (lep_pt * lep_pt) - std::sqrt(rad);
 
             // choose the smaller pz solution
             if (std::abs(sol1) < std::abs(sol2)) {
@@ -649,7 +650,7 @@ ROOT::RDF::RNode ReconstructLeptonicW(ROOT::RDF::RNode df,
             // set 4 momenta of neutrino and W boson
             nu_p4.SetPxPyPzE(
                 nu_px, nu_py, nu_pz,
-                sqrt(nu_px * nu_px + nu_py * nu_py + nu_pz * nu_pz));
+                std::sqrt(nu_px * nu_px + nu_py * nu_py + nu_pz * nu_pz));
         }
 
         wlep_p4 = lep_p4 + nu_p4;
@@ -1064,7 +1065,7 @@ ROOT::RDF::RNode DNNQuantities(
             ROOT::Math::PtEtaPhiMVector sb_boosted = top_boost(sb);
             costhetastar =
                 lep_boosted.Vect().Dot(sb_boosted.Vect()) /
-                sqrt(lep_boosted.Vect().Mag2() * sb_boosted.Vect().Mag2());
+                std::sqrt(lep_boosted.Vect().Mag2() * sb_boosted.Vect().Mag2());
 
             Logger::get("DNN_costhetastar")
                 ->debug("top_boost {} {} {}", top_boost_vec.X(),
