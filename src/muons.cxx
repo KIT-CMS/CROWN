@@ -692,10 +692,14 @@ Trigger(ROOT::RDF::RNode df,
     Logger::get("physicsobject::muon::scalefactor::Trigger")
         ->debug("Trigger - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    // some files (e.g. HLepRare cross-trigger 2022/23) are binned in |eta|
+    const bool use_abseta = evaluator->inputs().at(0).name() == "abseta";
     auto df1 = df.Define(
         outputname,
-        [evaluator, variation, sf_name](const float &pt, const float &eta,
-                                        const bool &trigger_flag) {
+        [evaluator, variation, sf_name, use_abseta](const float &pt,
+                                                    const float &eta_in,
+                                                    const bool &trigger_flag) {
+            const float eta = use_abseta ? std::abs(eta_in) : eta_in;
             Logger::get("physicsobject::muon::scalefactor::Trigger")
                 ->debug("Trigger - pt {}, eta {}, trigger flag {}", pt, eta,
                         trigger_flag);

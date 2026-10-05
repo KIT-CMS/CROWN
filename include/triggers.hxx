@@ -78,5 +78,23 @@ GetPrescaleValues(ROOT::RDF::RNode df,
                   const std::string &outputname, const std::string &hlt_path,
                   const std::string &run, const std::string &lumiblock,
                   const std::string &prescale_file);
+ROOT::RDF::RNode
+JetLegScaleFactor(ROOT::RDF::RNode df,
+                  correctionManager::CorrectionManager &correction_manager,
+                  const std::string &outputname, const std::string &jet_p4,
+                  const std::string &trigger_flag, const std::string &sf_file,
+                  const std::string &sf_name, const std::string &variation,
+                  const std::string &syst_var);
+ROOT::RDF::RNode SingleOrCrossScaleFactor(ROOT::RDF::RNode df,
+                                          const std::string &outputname,
+                                          const std::string &pass_single,
+                                          const std::string &sf_single,
+                                          const std::string &sf_lepton,
+                                          const std::string &sf_tau);
+ROOT::RDF::RNode DiTauOrDiTauJetScaleFactor(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &pass_ditau, const std::string &sf_ditau_1,
+    const std::string &sf_ditau_2, const std::string &sf_ditaujet_1,
+    const std::string &sf_ditaujet_2, const std::string &sf_jet);
 } // end namespace trigger
 #endif /* GUARD_TRIGGERS_H */

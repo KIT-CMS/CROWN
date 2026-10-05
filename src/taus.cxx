@@ -3057,8 +3057,15 @@ Trigger(ROOT::RDF::RNode df,
             if (pt >= 0. && trigger_flag) {
                 if (decay_mode == 0 || decay_mode == 1 || decay_mode == 10 ||
                     decay_mode == 11) {
-                    sf = evaluator->evaluate({pt, decay_mode, trigger_name, wp,
-                                              corr_type, variation});
+                    try {
+                        sf = evaluator->evaluate({pt, decay_mode, trigger_name,
+                                                  wp, corr_type, variation});
+                    } catch (const std::runtime_error &e) {
+                        // not every decay mode is available in every era, use
+                        // the inclusive scale factor instead
+                        sf = evaluator->evaluate(
+                            {pt, -1, trigger_name, wp, corr_type, variation});
+                    }
                 } else {
                     sf = evaluator->evaluate(
                         {pt, -1, trigger_name, wp, corr_type, variation});
