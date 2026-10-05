@@ -4,6 +4,7 @@
 #include "event.hxx"
 #include "utility/CorrectionManager.hxx"
 #include "utility/utility.hxx"
+#include <cmath>
 
 namespace met {
 
@@ -72,16 +73,16 @@ GetHadronicRecoil(ROOT::RDF::RNode df, const std::string &outputname,
         double met = p4_met.Et();
         double met_phi = p4_met.Phi();
 
-        double pUX = -met * cos(met_phi) -
-                     vis_recoil_vector.Pt() * cos(vis_recoil_vector.Phi());
-        double pUY = -met * sin(met_phi) -
-                     vis_recoil_vector.Pt() * sin(vis_recoil_vector.Phi());
-        double pU = sqrt(pUX * pUX + pUY * pUY);
-        double pCos = (pUX * cos(vis_recoil_vector.Phi()) +
-                       pUY * sin(vis_recoil_vector.Phi())) /
+        double pUX = -met * std::cos(met_phi) -
+                     vis_recoil_vector.Pt() * std::cos(vis_recoil_vector.Phi());
+        double pUY = -met * std::sin(met_phi) -
+                     vis_recoil_vector.Pt() * std::sin(vis_recoil_vector.Phi());
+        double pU = std::sqrt(pUX * pUX + pUY * pUY);
+        double pCos = (pUX * std::cos(vis_recoil_vector.Phi()) +
+                       pUY * std::sin(vis_recoil_vector.Phi())) /
                       pU;
-        double pSin = -(pUX * sin(vis_recoil_vector.Phi()) -
-                        pUY * cos(vis_recoil_vector.Phi())) /
+        double pSin = -(pUX * std::sin(vis_recoil_vector.Phi()) -
+                        pUY * std::cos(vis_recoil_vector.Phi())) /
                       pU;
         // Return the vector of parallel and perpendicular components
         return std::vector<double>{pU * pCos, pU * pSin};

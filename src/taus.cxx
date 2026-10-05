@@ -1931,11 +1931,11 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             decay_modes.end()) {
             if (id_vsjet_wp.empty() && id_vse_wp.empty()) {
                 correction_factor =
-                    evaluate_wrapper({pt, abs(eta), decay_mode, gen_match,
+                    evaluate_wrapper({pt, std::abs(eta), decay_mode, gen_match,
                                       id_algorithm, variation});
             } else {
                 correction_factor = evaluate_wrapper(
-                    {pt, abs(eta), decay_mode, gen_match, id_algorithm,
+                    {pt, std::abs(eta), decay_mode, gen_match, id_algorithm,
                      id_vsjet_wp, id_vse_wp, variation});
             }
         }

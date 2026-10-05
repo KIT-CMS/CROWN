@@ -8,6 +8,7 @@
 #include "utility/Logger.hxx"
 #include "utility/utility.hxx"
 #include <TRandom3.h>
+#include <cmath>
 #include <type_traits>
 
 namespace event {
@@ -227,7 +228,7 @@ AbsMinFlag(ROOT::RDF::RNode df, const std::string &outputname,
            const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
-                         bool flag = abs(value) >= threshold;
+                         bool flag = std::abs(value) >= threshold;
                          return flag;
                      },
                      {quantity});
@@ -256,7 +257,7 @@ AbsMaxFlag(ROOT::RDF::RNode df, const std::string &outputname,
            const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
-                         bool flag = abs(value) <= threshold;
+                         bool flag = std::abs(value) <= threshold;
                          return flag;
                      },
                      {quantity});
@@ -285,7 +286,7 @@ AbsGreaterFlag(ROOT::RDF::RNode df, const std::string &outputname,
                const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
-                         bool flag = abs(value) > threshold;
+                         bool flag = std::abs(value) > threshold;
                          return flag;
                      },
                      {quantity});
@@ -314,7 +315,7 @@ AbsSmallerFlag(ROOT::RDF::RNode df, const std::string &outputname,
                const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
-                         bool flag = abs(value) < threshold;
+                         bool flag = std::abs(value) < threshold;
                          return flag;
                      },
                      {quantity});
@@ -370,7 +371,7 @@ AbsEqualFlag(ROOT::RDF::RNode df, const std::string &outputname,
              const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const T &value) {
-                         bool flag = abs(value) == threshold;
+                         bool flag = std::abs(value) == threshold;
                          return flag;
                      },
                      {quantity});

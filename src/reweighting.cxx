@@ -9,6 +9,7 @@
 #include "ROOT/RVec.hxx"
 #include "correction.h"
 #include <Math/Vector4D.h>
+#include <cmath>
 
 namespace event {
 namespace reweighting {
@@ -453,8 +454,8 @@ ROOT::RDF::RNode TopPt(ROOT::RDF::RNode df, const std::string &outputname,
             top_pts[1] = 500.0;
         const float parameter_a = 0.0615;
         const float parameter_b = -0.0005;
-        return sqrt(exp(parameter_a + parameter_b * top_pts[0]) *
-                    exp(parameter_a + parameter_b * top_pts[1]));
+        return std::sqrt(std::exp(parameter_a + parameter_b * top_pts[0]) *
+                         std::exp(parameter_a + parameter_b * top_pts[1]));
     };
     auto df2 = df1.Define(outputname, ttbarreweightlambda,
                           {genparticles_pdg_id,
@@ -534,15 +535,16 @@ ROOT::RDF::RNode TopPtRun3(ROOT::RDF::RNode df, const std::string &outputname,
         const float parameter_c = -0.000134;
         const float parameter_d = 0.973;
         // weight extracted for run 2
-        const float w1 = sqrt((parameter_a * exp(parameter_b * top_pts[0]) +
-                               parameter_c * top_pts[0] + parameter_d) *
-                              (parameter_a * exp(parameter_b * top_pts[1]) +
-                               parameter_c * top_pts[1] + parameter_d));
+        const float w1 =
+            std::sqrt((parameter_a * std::exp(parameter_b * top_pts[0]) +
+                       parameter_c * top_pts[0] + parameter_d) *
+                      (parameter_a * std::exp(parameter_b * top_pts[1]) +
+                       parameter_c * top_pts[1] + parameter_d));
         const float parameter_e = 0.991;
         const float parameter_f = 0.000075;
         // weight between run2 and run 3 centre of mass
-        const float w2 = sqrt((parameter_e + parameter_f * top_pts[0]) *
-                              (parameter_e + parameter_f * top_pts[1]));
+        const float w2 = std::sqrt((parameter_e + parameter_f * top_pts[0]) *
+                                   (parameter_e + parameter_f * top_pts[1]));
         return w1 * w2;
     };
     auto df2 = df1.Define(outputname, ttbarreweightlambda,

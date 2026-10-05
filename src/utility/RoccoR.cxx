@@ -1,13 +1,14 @@
 #include "../../include/utility/RoccoR.hxx"
 #include <TString.h>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 
 const double CrystalBall::pi = 3.14159;
-const double CrystalBall::sqrtPiOver2 = sqrt(CrystalBall::pi / 2.0);
-const double CrystalBall::sqrt2 = sqrt(2.0);
+const double CrystalBall::sqrtPiOver2 = std::sqrt(CrystalBall::pi / 2.0);
+const double CrystalBall::sqrt2 = std::sqrt(2.0);
 
 RocRes::RocRes() { reset(); }
 
@@ -19,7 +20,7 @@ void RocRes::reset() {
 }
 
 int RocRes::etaBin(double eta) const {
-    double abseta = fabs(eta);
+    double abseta = std::abs(eta);
     for (int i = 0; i < NETA - 1; ++i)
         if (abseta < resol[i + 1].eta)
             return i;
@@ -46,7 +47,7 @@ double RocRes::rndm(int H, int F, double w) const {
 
 double RocRes::kSpread(double gpt, double rpt, double eta, int n,
                        double w) const {
-    int H = etaBin(fabs(eta));
+    int H = etaBin(std::abs(eta));
     int F = n > NMIN ? n - NMIN : 0;
     double v = rndm(H, F, w);
     int D = trkBin(v, H, Data);
@@ -61,7 +62,7 @@ double RocRes::kSpread(double gpt, double rpt, double eta, int n,
 }
 
 double RocRes::kSpread(double gpt, double rpt, double eta) const {
-    int H = etaBin(fabs(eta));
+    int H = etaBin(std::abs(eta));
     const auto &k = resol[H].kRes;
     double x = gpt / rpt;
     return x / (1.0 + (x - 1.0) * k[Data] / k[MC]);
@@ -69,7 +70,7 @@ double RocRes::kSpread(double gpt, double rpt, double eta) const {
 
 double RocRes::kSmear(double pt, double eta, TYPE type, double v,
                       double u) const {
-    int H = etaBin(fabs(eta));
+    int H = etaBin(std::abs(eta));
     int F = trkBin(v, H);
     const ResParams &rp = resol[H];
     double x = rp.kRes[type] * Sigma(pt, H, F) * rp.cb[F].invcdf(u);
@@ -78,7 +79,7 @@ double RocRes::kSmear(double pt, double eta, TYPE type, double v,
 
 double RocRes::kSmear(double pt, double eta, TYPE type, double w, double u,
                       int n) const {
-    int H = etaBin(fabs(eta));
+    int H = etaBin(std::abs(eta));
     int F = n - NMIN;
     if (type == Data)
         F = trkBin(rndm(H, F, w), H, Data);
@@ -88,27 +89,28 @@ double RocRes::kSmear(double pt, double eta, TYPE type, double w, double u,
 }
 
 double RocRes::kExtra(double pt, double eta, int n, double u, double w) const {
-    int H = etaBin(fabs(eta));
+    int H = etaBin(std::abs(eta));
     int F = n > NMIN ? n - NMIN : 0;
     const ResParams &rp = resol[H];
     double v = rp.nTrk[MC][F] + (rp.nTrk[MC][F + 1] - rp.nTrk[MC][F]) * w;
     int D = trkBin(v, H, Data);
     double RD = rp.kRes[Data] * Sigma(pt, H, D);
     double RM = rp.kRes[MC] * Sigma(pt, H, F);
-    double x = RD > RM ? sqrt(RD * RD - RM * RM) * rp.cb[F].invcdf(u) : 0;
+    double x = RD > RM ? std::sqrt(RD * RD - RM * RM) * rp.cb[F].invcdf(u) : 0;
     if (x <= -1)
         return 1.0;
     return 1.0 / (1.0 + x);
 }
 
 double RocRes::kExtra(double pt, double eta, int n, double u) const {
-    int H = etaBin(fabs(eta));
+    int H = etaBin(std::abs(eta));
     int F = n > NMIN ? n - NMIN : 0;
     const ResParams &rp = resol[H];
     double d = rp.kRes[Data];
     double m = rp.kRes[MC];
     double x =
-        d > m ? sqrt(d * d - m * m) * Sigma(pt, H, F) * rp.cb[F].invcdf(u) : 0;
+        d > m ? std::sqrt(d * d - m * m) * Sigma(pt, H, F) * rp.cb[F].invcdf(u)
+              : 0;
     if (x <= -1)
         return 1.0;
     return 1.0 / (1.0 + x);
@@ -352,7 +354,7 @@ template <typename T> double RoccoR::error(T f) const {
             sum += d * d / nmem[s];
         }
     }
-    return sqrt(sum);
+    return std::sqrt(sum);
 }
 
 double RoccoR::kScaleDTerror(int Q, double pt, double eta, double phi) const {

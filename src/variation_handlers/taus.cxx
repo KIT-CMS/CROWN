@@ -1,4 +1,5 @@
 #include "correction.h"
+#include <cmath>
 #include <format>
 #include <functional>
 #include <regex>
@@ -186,7 +187,8 @@ bool EtaRestriction::is_selected(const float &eta) const {
     if (!restrict_) {
         return true;
     }
-    return abs(eta) >= abs_eta_range_.first && abs(eta) < abs_eta_range_.second;
+    return std::abs(eta) >= abs_eta_range_.first &&
+           std::abs(eta) < abs_eta_range_.second;
 }
 
 std::string EtaRestriction::repr() const {

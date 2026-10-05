@@ -10,6 +10,7 @@
 #include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <cmath>
 
 namespace quantities {
 
@@ -211,9 +212,9 @@ ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df,
                            ROOT::Math::PtEtaPhiMVector &p4_met) {
         if (p4_1.pt() < 0.0 || p4_met.pt() < 0.0)
             return default_float;
-        return (float)sqrt(
+        return (float)std::sqrt(
             2 * p4_1.Pt() * p4_met.Pt() *
-            (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(p4_1, p4_met))));
+            (1. - std::cos(ROOT::Math::VectorUtil::DeltaPhi(p4_1, p4_met))));
     };
     return df.Define(outputname, calculate_MT, {vector_1, vector_2});
 }
@@ -248,16 +249,16 @@ ROOT::RDF::RNode TransverseMass(ROOT::RDF::RNode df,
     auto calculate_mt_tot = [](ROOT::Math::PtEtaPhiMVector &p4_1,
                                ROOT::Math::PtEtaPhiMVector &p4_2,
                                ROOT::Math::PtEtaPhiMVector &p4_met) {
-        const float mt_1 =
-            sqrt(2 * p4_1.Pt() * p4_met.Pt() *
-                 (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(p4_1, p4_met))));
-        const float mt_2 =
-            sqrt(2 * p4_2.Pt() * p4_met.Pt() *
-                 (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(p4_2, p4_met))));
-        const float mt_mix =
-            sqrt(2 * p4_1.Pt() * p4_2.Pt() *
-                 (1. - cos(ROOT::Math::VectorUtil::DeltaPhi(p4_1, p4_2))));
-        return (float)sqrt(mt_1 * mt_1 + mt_2 * mt_2 + mt_mix * mt_mix);
+        const float mt_1 = std::sqrt(
+            2 * p4_1.Pt() * p4_met.Pt() *
+            (1. - std::cos(ROOT::Math::VectorUtil::DeltaPhi(p4_1, p4_met))));
+        const float mt_2 = std::sqrt(
+            2 * p4_2.Pt() * p4_met.Pt() *
+            (1. - std::cos(ROOT::Math::VectorUtil::DeltaPhi(p4_2, p4_met))));
+        const float mt_mix = std::sqrt(
+            2 * p4_1.Pt() * p4_2.Pt() *
+            (1. - std::cos(ROOT::Math::VectorUtil::DeltaPhi(p4_1, p4_2))));
+        return (float)std::sqrt(mt_1 * mt_1 + mt_2 * mt_2 + mt_mix * mt_mix);
     };
     return df.Define(outputname, calculate_mt_tot,
                      {vector_1, vector_2, vector_3});
@@ -316,13 +317,15 @@ ROOT::RDF::RNode CollinearApproxMtt(ROOT::RDF::RNode df,
         // Calculate the phi difference between the two visible particles
         const float delta_phi = p4_2.Phi() - p4_1.Phi();
         // Avoid division by zero by checking the sine of the phi difference
-        if (std::fabs(sin(delta_phi)) < 1e-6)
+        if (std::fabs(std::sin(delta_phi)) < 1e-6)
             return default_float;
 
         const float x_1 = p4_met.Pt() / p4_1.Pt() *
-                          sin(p4_2.Phi() - p4_met.Phi()) / sin(delta_phi);
+                          std::sin(p4_2.Phi() - p4_met.Phi()) /
+                          std::sin(delta_phi);
         const float x_2 = p4_met.Pt() / p4_2.Pt() *
-                          sin(p4_1.Phi() - p4_met.Phi()) / (-sin(delta_phi));
+                          std::sin(p4_1.Phi() - p4_met.Phi()) /
+                          (-std::sin(delta_phi));
         ROOT::Math::PtEtaPhiMVector coll_lorentz =
             (1. + x_1) * p4_1 + (1. + x_2) * p4_2;
         return (float)coll_lorentz.mass();
