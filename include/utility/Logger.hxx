@@ -7,6 +7,7 @@
 #include <bitset>
 #include <map>
 #include <mutex>
+#include <shared_mutex>
 #include <spdlog/fmt/bundled/core.h> // Include fmt library header
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -93,28 +94,38 @@ struct fmt::formatter<std::bitset<N>> : formatter<std::string> {
 
 class Logger {
   public:
-    static std::shared_ptr<spdlog::logger> get(std::string name) {
-        if (getInstance()._loggers.count(name) == 0) {
-            std::vector<spdlog::sink_ptr> sinkVector;
-            sinkVector.push_back(
-                std::make_shared<spdlog::sinks::stdout_color_sink_st>());
-
-            // check if file logging is enabled
-            if (getInstance()._fileName)
-                sinkVector.push_back(
-                    std::make_shared<spdlog::sinks::basic_file_sink_st>(
-                        *getInstance()._fileName));
-
-            auto newLogger = std::make_shared<spdlog::logger>(
-                name, begin(sinkVector), end(sinkVector));
-            newLogger->set_level(convertLevelToSpdlog(getInstance()._level));
-            getInstance()._loggers[name] = newLogger;
+    static std::shared_ptr<spdlog::logger> get(const std::string &name) {
+        Logger &instance = getInstance();
+        {
+            std::shared_lock<std::shared_mutex> readLock(instance._mutex);
+            auto it = instance._loggers.find(name);
+            if (it != instance._loggers.end())
+                return it->second;
         }
 
-        return getInstance()._loggers[name];
+        std::unique_lock<std::shared_mutex> writeLock(instance._mutex);
+        auto it = instance._loggers.find(name);
+        if (it != instance._loggers.end())
+            return it->second;
+
+        std::vector<spdlog::sink_ptr> sinkVector;
+        sinkVector.push_back(
+            std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+
+        if (instance._fileName)
+            sinkVector.push_back(
+                std::make_shared<spdlog::sinks::basic_file_sink_mt>(
+                    *instance._fileName));
+
+        auto newLogger = std::make_shared<spdlog::logger>(
+            name, begin(sinkVector), end(sinkVector));
+        newLogger->set_level(convertLevelToSpdlog(instance._level));
+        instance._loggers[name] = newLogger;
+        return newLogger;
     }
     enum class LogLevel { DEBUG, INFO, WARN, ERR, CRITICAL, OFF };
     static void setLevel(LogLevel level) {
+        std::unique_lock<std::shared_mutex> writeLock(getInstance()._mutex);
         getInstance()._level = level;
 
         // set level globally (probably superfluous..)
@@ -125,12 +136,13 @@ class Logger {
             logger->set_level(convertLevelToSpdlog(level));
     }
     static void enableFileLogging(std::string filename) {
+        std::unique_lock<std::shared_mutex> writeLock(getInstance()._mutex);
         getInstance()._fileName = std::make_unique<std::string>(filename);
         for (auto &[key, logger] : getInstance()._loggers) {
             // if there is less than two sinks, add a file sink
             if (logger->sinks().size() < 2)
                 logger->sinks().push_back(
-                    std::make_shared<spdlog::sinks::basic_file_sink_st>(
+                    std::make_shared<spdlog::sinks::basic_file_sink_mt>(
                         *getInstance()._fileName));
         }
     }
@@ -165,6 +177,7 @@ class Logger {
         }
     }
     std::unique_ptr<std::string> _fileName{};
+    std::shared_mutex _mutex;
     std::map<std::string, std::shared_ptr<spdlog::logger>> _loggers;
 };
 
