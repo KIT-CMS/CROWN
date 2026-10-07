@@ -35,7 +35,7 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
                               const std::string &outputname,
                               const std::string &lumi, const std::string &run,
                               const std::string &event,
-                              const UInt_t &master_seed = 42) {
+                              const UInt_t &master_seed) {
 
     auto generate_seed = [master_seed](const unsigned int &lumi,
                                        const unsigned int &run,

@@ -1,6 +1,3 @@
-#ifndef GUARD_EMBEDDING_H
-#define GUARD_EMBEDDING_H
-
 #include <ROOT/RDataFrame.hxx>
 #include <cmath>
 #include <embedding.hxx>
@@ -161,7 +158,7 @@ Scalefactor(ROOT::RDF::RNode df,
             const std::string &outputname, const std::string &pt,
             const std::string &eta, const std::string &sf_file,
             const std::string &sf_name, const std::string correction_type,
-            const float &extrapolation_factor = 1.0) {
+            const float &extrapolation_factor) {
 
     Logger::get("embedding::muon::Scalefactor")
         ->debug("Correction - Name {}", sf_name);
@@ -332,7 +329,7 @@ Scalefactor(ROOT::RDF::RNode df,
             const std::string &outputname, const std::string &pt,
             const std::string &eta, const std::string &sf_file,
             const std::string &sf_name, const std::string correction_type,
-            const float &extrapolation_factor = 1.0) {
+            const float &extrapolation_factor) {
 
     Logger::get("embedding::electron::Scalefactor")
         ->debug("Correction - Name {}", sf_name);
@@ -534,5 +531,3 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace tau
 } // end namespace embedding
-
-#endif /* GUARD_EMBEDDING_H */

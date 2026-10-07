@@ -1,6 +1,3 @@
-#ifndef GUARD_MET_H
-#define GUARD_MET_H
-
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
@@ -854,4 +851,3 @@ PropagateToMET(ROOT::RDF::RNode df, const std::string &outputname,
     }
 }
 } // end namespace physicsobject
-#endif /* GUARD_MET_H */

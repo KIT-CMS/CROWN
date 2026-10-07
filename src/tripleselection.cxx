@@ -1,6 +1,3 @@
-#ifndef GUARD_TRIPLESELECTION_H
-#define GUARD_TRIPLESELECTION_H
-
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include <ROOT/RDFHelpers.hxx>
@@ -1511,4 +1508,3 @@ ROOT::RDF::RNode TripleSelection(ROOT::RDF::RNode df,
 }
 } // namespace ele_tautau
 } // end namespace whtautau_tripleselection
-#endif /* GUARD_TRIPLESELECTION_H */

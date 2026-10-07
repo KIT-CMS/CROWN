@@ -1,6 +1,3 @@
-#ifndef GUARD_ML_H
-#define GUARD_ML_H
-
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include <ROOT/RDataFrame.hxx>
@@ -206,4 +203,3 @@ StandardTransformer(ROOT::RDF::RNode df,
 }
 
 } // end namespace ml
-#endif /* GUARD_ML_H */

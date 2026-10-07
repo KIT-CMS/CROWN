@@ -1,6 +1,3 @@
-#ifndef GUARD_ELECTRONS_H
-#define GUARD_ELECTRONS_H
-
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
 #include <TRandom3.h>
@@ -677,4 +674,3 @@ Trigger(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace electron
 } // end namespace physicsobject
-#endif /* GUARD_ELECTRONS_H */

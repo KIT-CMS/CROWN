@@ -1,6 +1,3 @@
-#ifndef GUARD_TRIGGERS_H
-#define GUARD_TRIGGERS_H
-
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
@@ -1085,4 +1082,3 @@ ROOT::RDF::RNode SelectScaleFactor(ROOT::RDF::RNode df,
     return df.Define(outputname, expression);
 }
 } // end namespace trigger
-#endif /* GUARD_TRIGGERS_H */

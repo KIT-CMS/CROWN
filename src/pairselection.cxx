@@ -1,6 +1,3 @@
-#ifndef GUARD_PAIRSELECTION_H
-#define GUARD_PAIRSELECTION_H
-
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include <ROOT/RDFHelpers.hxx>
@@ -13,19 +10,6 @@
 #include <utility/Logger.hxx>
 #include <utility/utility.hxx>
 
-typedef std::bitset<15> StatusBits;
-/**
- * @brief A struct to store the information of a generator pair for easier
- * access
- *
- */
-struct GenParticle {
-    int index;
-    int status;
-    std::bitset<15> statusflag;
-    int pdgid;
-    int motherid;
-};
 /**
  * @brief Function used to propagate back the mother particles of a given
  * particle, and check if a mother particle with a given PDG ID is found.
@@ -1580,4 +1564,3 @@ ZBosonPairSelection(ROOT::RDF::RNode df,
 
 } // end namespace elel
 } // namespace ditau_pairselection
-#endif /* GUARD_PAIRSELECTION_H */

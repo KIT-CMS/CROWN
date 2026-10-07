@@ -1,6 +1,3 @@
-#ifndef GUARD_REWEIGHTING_H
-#define GUARD_REWEIGHTING_H
-
 #include <Math/Vector4D.h>
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
@@ -704,4 +701,3 @@ ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df, const std::string &outputname,
 
 } // end namespace reweighting
 } // end namespace event
-#endif /* GUARD_REWEIGHTING_H */
