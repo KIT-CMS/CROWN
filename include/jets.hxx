@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ROOT/RDataFrame.hxx>
 #include <utility/CorrectionManager.hxx>
 
 namespace physicsobject {

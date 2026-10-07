@@ -1,8 +1,8 @@
 #pragma once
 
+#include <Math/Vector4D.h>
 #include <defaults.hxx>
 #include <utility/Logger.hxx>
-#include <Math/Vector4D.h>
 
 namespace quantities {
 ROOT::RDF::RNode DeltaPhi(ROOT::RDF::RNode df, const std::string &outputname,

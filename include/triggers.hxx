@@ -1,8 +1,8 @@
 #pragma once
 
+#include <Math/Vector4D.h>
+#include <ROOT/RDataFrame.hxx>
 #include <utility/CorrectionManager.hxx>
-
-typedef std::bitset<30> IntBits;
 
 namespace trigger {
 

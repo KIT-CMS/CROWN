@@ -1,14 +1,18 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <string>
+#include <tuple>
+#include <type_traits>
+#include <typeinfo>
 #include <utility> // make_index_sequence
 #include <vector>
 
-#include <utility/Logger.hxx>
-#include <utility/RooFunctorThreadsafe.hxx>
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
+#include <utility/Logger.hxx>
+#include <utility/RooFunctorThreadsafe.hxx>
 
 /// Namespace used for common utility functions.
 namespace utility {

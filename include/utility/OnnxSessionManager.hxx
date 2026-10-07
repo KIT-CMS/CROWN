@@ -1,10 +1,13 @@
 #pragma once
 
-#include <utility/Logger.hxx>
+#include <cstdint>
 #include <memory>
 #include <onnxruntime_cxx_api.h>
 #include <string>
 #include <unordered_map>
+#include <vector>
+
+#include <utility/Logger.hxx>
 
 class OnnxSessionManager {
   public:
