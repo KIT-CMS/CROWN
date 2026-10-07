@@ -1,15 +1,16 @@
 #ifndef GUARDHTXS_H
 #define GUARDHTXS_H
 
-#include "../include/event.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/ggF_qcd_uncertainty_2017.hxx"
-#include "../include/utility/qq2Hqq_uncert_scheme.hxx"
-#include "ROOT/RDFHelpers.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "TFile.h"
-#include "TGraphErrors.h"
+#include <ROOT/RDFHelpers.hxx>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <TFile.h>
+#include <TGraphErrors.h>
+#include <event.hxx>
+#include <htxs.hxx>
+#include <utility/Logger.hxx>
+#include <utility/ggF_qcd_uncertainty_2017.hxx>
+#include <utility/qq2Hqq_uncert_scheme.hxx>
 /// namespace used for HTXS related functions
 namespace htxs {
 /**

@@ -1,10 +1,10 @@
-#include "../../include/utility/RoccoR.hxx"
 #include <TString.h>
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <utility/RoccoR.hxx>
 
 const double CrystalBall::pi = 3.14159;
 const double CrystalBall::sqrtPiOver2 = std::sqrt(CrystalBall::pi / 2.0);

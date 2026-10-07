@@ -1,16 +1,17 @@
 #ifndef GUARD_GENPARTICLES_H
 #define GUARD_GENPARTICLES_H
 
-#include "../include/defaults.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "bitset"
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <bitset>
 #include <cmath>
+#include <defaults.hxx>
+#include <genparticles.hxx>
+#include <utility/Logger.hxx>
+#include <utility/utility.hxx>
 
 typedef std::bitset<20> IntBits;
 

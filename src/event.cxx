@@ -1,12 +1,13 @@
 #ifndef GUARD_EVENT_H
 #define GUARD_EVENT_H
 
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "TRandom3.h"
+#include <ROOT/RDataFrame.hxx>
+#include <TRandom3.h>
+#include <event.hxx>
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
 
 namespace event {
 namespace quantity {

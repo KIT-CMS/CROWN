@@ -17,4 +17,3 @@ qqH_WG1_uncertainties(ROOT::RDF::RNode df,
                       const std::vector<std::string> &weight_names,
                       const std::string &htxs_flag, const size_t &idx = 0);
 } // namespace htxs
-#endif /* GUARDHTXS_H */

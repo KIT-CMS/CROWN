@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ROOT/RVec.hxx"
+#include <ROOT/RVec.hxx>
 #include <Math/Vector4D.h>
 #include <TObjString.h>
 #include <bitset>

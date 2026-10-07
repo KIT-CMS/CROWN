@@ -1,10 +1,10 @@
-#include "../../include/utility/CorrectionManager.hxx"
-#include "../../include/utility/Logger.hxx"
 #include <fstream>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <unordered_map>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
 /// namespace used for the CorrectionManager
 namespace correctionManager {
 /**

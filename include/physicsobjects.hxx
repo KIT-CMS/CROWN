@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../include/utility/utility.hxx"
+#include <utility/utility.hxx>
 #include <cmath>
 
 namespace physicsobject {

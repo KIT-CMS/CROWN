@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utility/CorrectionManager.hxx"
+#include <utility/CorrectionManager.hxx>
 
 namespace embedding {
 

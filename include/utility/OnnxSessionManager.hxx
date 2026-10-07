@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Logger.hxx"
+#include <utility/Logger.hxx>
 #include <memory>
 #include <onnxruntime_cxx_api.h>
 #include <string>

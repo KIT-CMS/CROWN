@@ -1,9 +1,8 @@
 #pragma once
 
-#include "utility/CorrectionManager.hxx"
 #include <array>
 #include <optional>
-#include <utility>
+#include <utility/CorrectionManager.hxx>
 
 typedef std::bitset<30> IntBits;
 
