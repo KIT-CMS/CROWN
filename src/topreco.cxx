@@ -1,6 +1,3 @@
-#ifndef GUARD_TOPRECO_H
-#define GUARD_TOPRECO_H
-
 #include <Math/Boost.h>
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
@@ -2604,5 +2601,3 @@ ROOT::RDF::RNode BTagScaleFactorsGeneric(
 }
 
 } // end namespace topreco
-
-#endif /* GUARD_TOPRECO_H */

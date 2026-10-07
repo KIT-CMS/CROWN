@@ -1,6 +1,3 @@
-#ifndef GUARD_FATJETS_H
-#define GUARD_FATJETS_H
-
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
@@ -116,4 +113,3 @@ NsubjettinessRatio(ROOT::RDF::RNode df, const std::string &outputname,
 } // end namespace quantity
 } // end namespace fatjet
 } // end namespace physicsobject
-#endif /* GUARD_FATJETS_H */

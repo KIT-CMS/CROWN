@@ -1,6 +1,3 @@
-#ifndef GUARD_TAUS_H
-#define GUARD_TAUS_H
-
 #include <ROOT/RDataFrame.hxx>
 #include <cmath>
 #include <correction.h>
@@ -3393,4 +3390,3 @@ Id_vsMu(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace tau
 } // end namespace physicsobject
-#endif /* GUARD_TAUS_H */

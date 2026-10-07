@@ -1,6 +1,3 @@
-#ifndef GUARD_MUONS_H
-#define GUARD_MUONS_H
-
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
 #include <correction.h>
@@ -738,4 +735,3 @@ Trigger(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace muon
 } // end namespace physicsobject
-#endif /* GUARD_MUONS_H */

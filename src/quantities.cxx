@@ -1,6 +1,3 @@
-#ifndef GUARD_QUANTITIES_H
-#define GUARD_QUANTITIES_H
-
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include <ROOT/RDataFrame.hxx>
@@ -494,4 +491,3 @@ ROOT::RDF::RNode pt_W(ROOT::RDF::RNode df, const std::string &outputname,
         vectors);
 }
 } // end namespace quantities
-#endif /* GUARD_QUANTITIES_H */

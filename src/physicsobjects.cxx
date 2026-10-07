@@ -1,6 +1,3 @@
-#ifndef GUARD_PHYSICSOBJECTS_H
-#define GUARD_PHYSICSOBJECTS_H
-
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include <ROOT/RDataFrame.hxx>
@@ -418,4 +415,3 @@ ROOT::RDF::RNode MassCorrectionWithPt(ROOT::RDF::RNode df,
     return df1;
 }
 } // end namespace physicsobject
-#endif /* GUARD_PHYSICSOBJECTS_H */
