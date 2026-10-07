@@ -3195,11 +3195,11 @@ Id_vsJet(ROOT::RDF::RNode df,
             // Evaluate the scale factor
             if (id_vsmu_wp.empty()) {
                 sf = evaluate_wrapper({pt, decay_mode, gen_match, id_vsjet_wp,
-                                       id_vse_wp, id_vsmu_wp, variation,
-                                       sf_dependence});
+                                       id_vse_wp, variation, sf_dependence});
             } else {
                 sf = evaluate_wrapper({pt, decay_mode, gen_match, id_vsjet_wp,
-                                       id_vse_wp, variation, sf_dependence});
+                                       id_vse_wp, id_vsmu_wp, variation,
+                                       sf_dependence});
             }
         } else {
             Logger::get(logger_name)
