@@ -356,10 +356,10 @@ Id_vsJet(ROOT::RDF::RNode df,
          correctionManager::CorrectionManager &correction_manager,
          const std::string &outputname, const std::string &pt,
          const std::string &decay_mode, const std::string &gen_match,
-         const std::string &era, const std::string &sf_file,
-         const std::string &sf_name, const std::string &id_vsjet_wp,
-         const std::string &id_vse_wp, const std::string &id_vsmu_wp,
-         const std::string &sf_dependence, const std::string &variation);
+         const std::string &sf_file, const std::string &sf_name,
+         const std::string &id_vsjet_wp, const std::string &id_vse_wp,
+         const std::string &id_vsmu_wp, const std::string &sf_dependence,
+         const std::string &variation);
 ROOT::RDF::RNode
 Id_vsEle(ROOT::RDF::RNode df,
          correctionManager::CorrectionManager &correction_manager,
