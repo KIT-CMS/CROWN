@@ -18,7 +18,9 @@ base_diff=$result_dir/base_diff.patch
 commit_hash=$result_dir/base_commit_hash.txt
 touch "$base_diff"
 for next in $(git ls-files --others --exclude-standard); do
-    git --no-pager diff --no-index /dev/null "$next" >>"$base_diff"
+    if [ -f "$next" ]; then
+        git --no-pager diff --no-index /dev/null "$next" >>"$base_diff"
+    fi
 done
 git rev-parse HEAD >"$commit_hash"
 
@@ -31,7 +33,9 @@ if [ -d "$analysis_path" ]; then
     analysis_name=$result_dir/analysis_name.txt
     touch "$analysis_diff"
     for next in $(git ls-files --others --exclude-standard); do
-        git --no-pager diff --no-index /dev/null "$next" >>"$analysis_diff"
+        if [ -f "$next" ]; then
+            git --no-pager diff --no-index /dev/null "$next" >>"$analysis_diff"
+        fi
     done
     git rev-parse HEAD >"$analysis_commit"
     echo "$analysis" >"$analysis_name"
