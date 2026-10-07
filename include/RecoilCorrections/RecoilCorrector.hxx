@@ -1,5 +1,4 @@
-#ifndef HTT_RecoilCorrector_h
-#define HTT_RecoilCorrector_h
+#pragma once
 
 #include "Math/Vector2D.h"
 #include "Math/VectorUtil.h"

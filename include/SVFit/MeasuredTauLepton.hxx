@@ -1,5 +1,4 @@
-#ifndef TauAnalysis_ClassicSVfit_MeasuredTauLepton_h
-#define TauAnalysis_ClassicSVfit_MeasuredTauLepton_h
+#pragma once
 
 #include "AuxFunctions.hxx"
 

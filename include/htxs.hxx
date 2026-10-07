@@ -1,5 +1,6 @@
-#ifndef GUARDHTXS_H
-#define GUARDHTXS_H
+#pragma once
+
+#include <ROOT/RDataFrame.hxx>
 
 namespace htxs {
 ROOT::RDF::RNode

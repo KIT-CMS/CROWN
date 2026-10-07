@@ -1,5 +1,4 @@
-#ifndef GUARD_TRIGGERS_H
-#define GUARD_TRIGGERS_H
+#pragma once
 
 #include "utility/CorrectionManager.hxx"
 #include <array>
@@ -82,4 +81,3 @@ ROOT::RDF::RNode SelectScaleFactor(ROOT::RDF::RNode df,
                                    const std::vector<std::string> &sf_inputs,
                                    const int &n_pass_sfs);
 } // end namespace trigger
-#endif /* GUARD_TRIGGERS_H */

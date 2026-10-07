@@ -1,5 +1,4 @@
-#ifndef HTT_MetSystematic_h
-#define HTT_MetSystematic_h
+#pragma once
 
 #include <TF1.h>
 #include <TFile.h>

@@ -1,5 +1,4 @@
-#ifndef GUARD_QUANTITIES_H
-#define GUARD_QUANTITIES_H
+#pragma once
 
 #include "defaults.hxx"
 #include "utility/Logger.hxx"
@@ -55,4 +54,3 @@ ROOT::RDF::RNode deltaPhi_WH(ROOT::RDF::RNode df, const std::string &outputname,
 ROOT::RDF::RNode pt_W(ROOT::RDF::RNode df, const std::string &outputname,
                       const std::vector<std::string> &vectors);
 } // end namespace quantities
-#endif /* GUARD_QUANTITIES_H */

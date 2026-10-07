@@ -1,5 +1,4 @@
-#ifndef TauAnalysis_ClassicSVfit_svFitAuxFunctions_h
-#define TauAnalysis_ClassicSVfit_svFitAuxFunctions_h
+#pragma once
 
 #include "Math/LorentzVector.h"
 #include "Math/Vector3D.h"

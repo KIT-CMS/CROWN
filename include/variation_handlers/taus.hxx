@@ -1,5 +1,4 @@
-#ifndef GUARD_TAUVARIATIONS_H
-#define GUARD_TAUVARIATIONS_H
+#pragma once
 
 #include "correction.h"
 #include <functional>
@@ -130,5 +129,3 @@ class TauVariationHandler {
 };
 
 } // end namespace variation_handlers
-
-#endif // GUARD_TAUVARIATIONS_H

@@ -1,5 +1,4 @@
-#ifndef GUARD_CORRECTION_MANAGER_H
-#define GUARD_CORRECTION_MANAGER_H
+#pragma once
 
 #include "correction.h"
 #include <memory>
@@ -39,4 +38,3 @@ class CorrectionManager {
     int n_corrections = 0;
 };
 } // namespace correctionManager
-#endif /* GUARD_CORRECTION_MANAGER_H */

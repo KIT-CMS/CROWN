@@ -1,5 +1,4 @@
-#ifndef GUARD_TRIPLESELECTION_H
-#define GUARD_TRIPLESELECTION_H
+#pragma once
 
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
@@ -106,4 +105,3 @@ ROOT::RDF::RNode TripleSelection(ROOT::RDF::RNode df,
                                  const float &mindeltaR_lep1lep2);
 }
 } // namespace whtautau_tripleselection
-#endif /* GUARD_TRIPLESELECTION_H */

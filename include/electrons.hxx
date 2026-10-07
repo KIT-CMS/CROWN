@@ -1,5 +1,4 @@
-#ifndef GUARD_ELECTRONS_H
-#define GUARD_ELECTRONS_H
+#pragma once
 
 #include "utility/CorrectionManager.hxx"
 
@@ -70,4 +69,3 @@ Trigger(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace electron
 } // end namespace physicsobject
-#endif /* GUARD_ELECTRONS_H */
