@@ -1,5 +1,4 @@
-#ifndef GUARD_EVENT_H
-#define GUARD_EVENT_H
+#pragma once
 
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
@@ -1293,5 +1292,3 @@ GoldenJSON(ROOT::RDF::RNode df,
 
 } // end namespace filter
 } // end namespace event
-
-#endif /* GUARD_EVENT_H */

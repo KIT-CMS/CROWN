@@ -1,5 +1,4 @@
-#ifndef GUARD_LOGGER_H
-#define GUARD_LOGGER_H
+#pragma once
 
 #include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>
@@ -182,5 +181,3 @@ class Logger {
     std::shared_mutex _mutex;
     std::map<std::string, std::shared_ptr<spdlog::logger>> _loggers;
 };
-
-#endif /* GUARD_LOGGER_H */

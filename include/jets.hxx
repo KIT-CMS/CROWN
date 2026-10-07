@@ -1,5 +1,4 @@
-#ifndef GUARD_JETS_H
-#define GUARD_JETS_H
+#pragma once
 
 #include "utility/CorrectionManager.hxx"
 
@@ -158,4 +157,3 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace jet
 } // end namespace physicsobject
-#endif /* GUARD_JETS_H */

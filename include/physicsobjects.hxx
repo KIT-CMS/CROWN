@@ -1,5 +1,4 @@
-#ifndef GUARD_PHYSICSOBJECTS_H
-#define GUARD_PHYSICSOBJECTS_H
+#pragma once
 
 #include "../include/utility/utility.hxx"
 #include <cmath>
@@ -502,4 +501,3 @@ ROOT::RDF::RNode MassCorrectionWithPt(ROOT::RDF::RNode df,
                                       const std::string &raw_pt,
                                       const std::string &corrected_pt);
 } // namespace physicsobject
-#endif /* GUARD_PHYSICSOBJECTS_H */

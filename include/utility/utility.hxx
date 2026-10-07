@@ -1,5 +1,4 @@
-#ifndef GUARD_UTILITY_H
-#define GUARD_UTILITY_H
+#pragma once
 
 #include <cmath>
 #include <string>
@@ -204,4 +203,3 @@ EvaluateWorkspaceFunction(ROOT::RDF::RNode df, const std::string &outputname,
     return df1;
 }
 } // end namespace utility
-#endif /* GUARD_UTILITY_H */

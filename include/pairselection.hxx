@@ -1,5 +1,4 @@
-#ifndef GUARD_PAIRSELECTION_H
-#define GUARD_PAIRSELECTION_H
+#pragma once
 
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
@@ -121,4 +120,3 @@ ZBosonPairSelection(ROOT::RDF::RNode df,
                     const std::string &pairname, const float &mindeltaR);
 } // end namespace elel
 } // namespace ditau_pairselection
-#endif /* GUARD_PAIRSELECTION_H */

@@ -1,5 +1,4 @@
-#ifndef GUARD_EMBEDDING_H
-#define GUARD_EMBEDDING_H
+#pragma once
 
 #include "utility/CorrectionManager.hxx"
 
@@ -82,4 +81,3 @@ Id_vsJet_lt(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace tau
 } // end namespace embedding
-#endif /* GUARD_EMBEDDING_H */

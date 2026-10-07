@@ -1,5 +1,4 @@
-#ifndef FastMTT_FastMTT_H
-#define FastMTT_FastMTT_H
+#pragma once
 
 #include "Math/LorentzVector.h"
 #include "TBenchmark.h"
