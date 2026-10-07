@@ -1,5 +1,4 @@
-#ifndef GUARD_TOPRECO_H
-#define GUARD_TOPRECO_H
+#pragma once
 
 #include "ROOT/RDFHelpers.hxx"
 #include "ROOT/RDataFrame.hxx"
@@ -164,5 +163,3 @@ ROOT::RDF::RNode BTagScaleFactorsGeneric(
     const float &max_bjet_eta_sf);
 
 } // end namespace topreco
-
-#endif /* GUARD_TOPRECO_H */

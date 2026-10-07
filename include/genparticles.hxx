@@ -1,5 +1,4 @@
-#ifndef GUARD_GENPARTICLES_H
-#define GUARD_GENPARTICLES_H
+#pragma once
 
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
@@ -63,4 +62,3 @@ ROOT::RDF::RNode DecayFlavor(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &lhe_status);
 } // end namespace drell_yan
 } // end namespace genparticles
-#endif /* GUARD_GENPARTICLES_H */

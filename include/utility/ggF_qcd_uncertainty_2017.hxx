@@ -1,5 +1,4 @@
-#ifndef GUARDGGH_HTXS_H
-#define GUARDGGH_HTXS_H
+#pragma once
 
 #include <vector>
 
