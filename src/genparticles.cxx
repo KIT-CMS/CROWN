@@ -1,6 +1,3 @@
-#ifndef GUARD_GENPARTICLES_H
-#define GUARD_GENPARTICLES_H
-
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
@@ -881,4 +878,3 @@ ROOT::RDF::RNode DecayFlavor(ROOT::RDF::RNode df, const std::string &outputname,
 
 } // end namespace drell_yan
 } // end namespace genparticles
-#endif /* GUARD_GENPARTICLES_H */

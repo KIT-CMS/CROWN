@@ -1,6 +1,3 @@
-#ifndef GUARDHTXS_H
-#define GUARDHTXS_H
-
 #include <ROOT/RDFHelpers.hxx>
 #include <ROOT/RDataFrame.hxx>
 #include <ROOT/RVec.hxx>
@@ -113,7 +110,7 @@ ggH_WG1_uncertainties(ROOT::RDF::RNode df,
 ROOT::RDF::RNode
 qqH_WG1_uncertainties(ROOT::RDF::RNode df,
                       const std::vector<std::string> &weight_names,
-                      const std::string &htxs_flag, const size_t &idx = 0) {
+                      const std::string &htxs_flag, const size_t &idx) {
     if (idx >= weight_names.size()) {
         return df;
     }
@@ -128,4 +125,3 @@ qqH_WG1_uncertainties(ROOT::RDF::RNode df,
     return qqH_WG1_uncertainties(df1, weight_names, htxs_flag, idx + 1);
 }
 } // namespace htxs
-#endif /* GUARDHTXS_H */

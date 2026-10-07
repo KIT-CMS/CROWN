@@ -1,6 +1,3 @@
-#ifndef GUARD_JETS_H
-#define GUARD_JETS_H
-
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
@@ -611,7 +608,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                const std::string &jer_tag, bool reapply_jes,
                const int &jes_shift, const std::string &jer_shift,
                const std::string &era,
-               const bool &no_jer_for_unmatched_forward_jets = false) {
+               const bool &no_jer_for_unmatched_forward_jets) {
     // In nanoAODv12 the type of jet/fatjet ID was changed to UChar_t
     // For v9 compatibility a type casting is applied
     auto [df1, jet_id_column] =
@@ -2250,4 +2247,3 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace jet
 } // end namespace physicsobject
-#endif /* GUARD_JETS_H */
