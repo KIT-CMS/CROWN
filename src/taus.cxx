@@ -1,16 +1,17 @@
 #ifndef GUARD_TAUS_H
 #define GUARD_TAUS_H
 
-#include "../include/variation_handlers/taus.hxx"
-#include "../include/defaults.hxx"
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "correction.h"
+#include <ROOT/RDataFrame.hxx>
 #include <cmath>
+#include <correction.h>
+#include <defaults.hxx>
 #include <stdexcept>
+#include <taus.hxx>
 #include <unordered_map>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
+#include <utility/utility.hxx>
+#include <variation_handlers/taus.hxx>
 
 namespace physicsobject {
 namespace tau {

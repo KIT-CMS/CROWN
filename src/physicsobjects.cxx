@@ -1,11 +1,12 @@
 #ifndef GUARD_PHYSICSOBJECTS_H
 #define GUARD_PHYSICSOBJECTS_H
 
-#include "../include/utility/Logger.hxx"
-#include "ROOT/RDataFrame.hxx"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <ROOT/RDataFrame.hxx>
 #include <cmath>
+#include <physicsobjects.hxx>
+#include <utility/Logger.hxx>
 
 /**
  * This namespace contains functions to apply cuts on physics objects. The

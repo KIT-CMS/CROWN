@@ -1,12 +1,13 @@
 #ifndef GUARD_EMBEDDING_H
 #define GUARD_EMBEDDING_H
 
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDataFrame.hxx"
+#include <ROOT/RDataFrame.hxx>
 #include <cmath>
+#include <embedding.hxx>
 #include <nlohmann/json.hpp>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
+#include <utility/utility.hxx>
 
 namespace embedding {
 

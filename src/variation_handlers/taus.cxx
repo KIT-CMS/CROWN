@@ -1,12 +1,13 @@
-#include "correction.h"
+#include <variation_handlers/taus.hxx>
+
 #include <cmath>
+#include <correction.h>
 #include <format>
 #include <functional>
 #include <regex>
 #include <vector>
 
-#include "../../include/utility/Logger.hxx"
-#include "../../include/variation_handlers/taus.hxx"
+#include <utility/Logger.hxx>
 
 namespace variation_handlers {
 

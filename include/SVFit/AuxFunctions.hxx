@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Math/LorentzVector.h"
-#include "Math/Vector3D.h"
+#include <Math/LorentzVector.h>
+#include <Math/Vector3D.h>
 #include <TGraphErrors.h>
 
 #include <string>
@@ -126,4 +126,3 @@ struct integrationParameters {
 };
 
 } // namespace fastmtt
-#endif
