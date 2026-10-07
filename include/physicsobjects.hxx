@@ -1,7 +1,9 @@
 #pragma once
 
-#include <utility/utility.hxx>
+#include <ROOT/RDFHelpers.hxx>
+#include <ROOT/RDataFrame.hxx>
 #include <cmath>
+#include <utility/utility.hxx>
 
 namespace physicsobject {
 

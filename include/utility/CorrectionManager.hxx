@@ -3,6 +3,8 @@
 #include <correction.h>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <unordered_map>
 
 namespace correctionManager {
 class CorrectionManager {

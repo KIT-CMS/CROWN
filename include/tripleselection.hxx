@@ -4,6 +4,7 @@
 #include <ROOT/RVec.hxx>
 #include <TVector2.h>
 #include <bitset>
+#include <pairselection.hxx>
 #include <utility/Logger.hxx>
 #include <utility/utility.hxx>
 

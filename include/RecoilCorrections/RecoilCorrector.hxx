@@ -8,7 +8,10 @@
 #include <TMath.h>
 #include <TRandom.h>
 #include <TString.h>
-#include <assert.h>
+#include <TVector.h>
+#include <TVector2.h>
+#include <string>
+#include <vector>
 
 class RecoilCorrector {
 
@@ -131,5 +134,3 @@ class RecoilCorrector {
     float _xminMetZParalMC[5][3];
     float _xmaxMetZParalMC[5][3];
 };
-
-#endif
