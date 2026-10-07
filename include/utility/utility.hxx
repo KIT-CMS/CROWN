@@ -5,10 +5,10 @@
 #include <utility> // make_index_sequence
 #include <vector>
 
-#include "../../include/utility/Logger.hxx"
-#include "../../include/utility/RooFunctorThreadsafe.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
+#include <utility/Logger.hxx>
+#include <utility/RooFunctorThreadsafe.hxx>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
 
 /// Namespace used for common utility functions.
 namespace utility {

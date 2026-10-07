@@ -1,7 +1,7 @@
 #pragma once
 
-#include "defaults.hxx"
-#include "utility/Logger.hxx"
+#include <defaults.hxx>
+#include <utility/Logger.hxx>
 #include <Math/Vector4D.h>
 
 namespace quantities {

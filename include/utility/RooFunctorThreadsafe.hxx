@@ -1,8 +1,8 @@
 #pragma once
 
-#include "RooFunctor.h"
-#include "RooWorkspace.h"
-#include "TFile.h"
+#include <RooFunctor.h>
+#include <RooWorkspace.h>
+#include <TFile.h>
 #include <chrono>
 #include <memory>
 #include <mutex>

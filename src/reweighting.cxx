@@ -1,15 +1,16 @@
 #ifndef GUARD_REWEIGHTING_H
 #define GUARD_REWEIGHTING_H
 
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/RooFunctorThreadsafe.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "correction.h"
 #include <Math/Vector4D.h>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
 #include <cmath>
+#include <correction.h>
+#include <reweighting.hxx>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
+#include <utility/RooFunctorThreadsafe.hxx>
+#include <utility/utility.hxx>
 
 namespace event {
 namespace reweighting {

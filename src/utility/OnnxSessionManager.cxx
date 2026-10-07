@@ -1,10 +1,11 @@
-#include "../../include/utility/Logger.hxx"
-#include "../../include/utility/utility.hxx"
 #include <memory>
 #include <numeric>
 #include <onnxruntime_cxx_api.h>
 #include <string>
 #include <unordered_map>
+#include <utility/Logger.hxx>
+#include <utility/OnnxSessionManager.hxx>
+#include <utility/utility.hxx>
 
 namespace onnxhelper {
 

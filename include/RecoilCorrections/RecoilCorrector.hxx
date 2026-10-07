@@ -1,9 +1,7 @@
 #pragma once
 
-#include "Math/Vector2D.h"
-#include "Math/VectorUtil.h"
-#include "TVector.h"
-#include "TVector2.h"
+#include <Math/Vector2D.h>
+#include <Math/VectorUtil.h>
 #include <TF1.h>
 #include <TFile.h>
 #include <TH1.h>

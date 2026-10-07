@@ -1,11 +1,7 @@
 #pragma once
 
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "defaults.hxx"
-#include "utility/CorrectionManager.hxx"
-#include "utility/Logger.hxx"
-#include "utility/utility.hxx"
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
 #include <TRandom3.h>
 #include <cmath>
 #include <type_traits>
