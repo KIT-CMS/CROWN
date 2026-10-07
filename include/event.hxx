@@ -1,15 +1,17 @@
-#ifndef GUARD_EVENT_H
-#define GUARD_EVENT_H
+#pragma once
 
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "defaults.hxx"
-#include "utility/CorrectionManager.hxx"
-#include "utility/Logger.hxx"
-#include "utility/utility.hxx"
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
 #include <TRandom3.h>
 #include <cmath>
+#include <defaults.hxx>
+#include <string>
+#include <tuple>
 #include <type_traits>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
+#include <utility/utility.hxx>
+#include <vector>
 
 namespace event {
 
@@ -1140,5 +1142,3 @@ GoldenJSON(ROOT::RDF::RNode df,
            const std::string &luminosity, const std::string &json_path);
 } // end namespace filter
 } // end namespace event
-
-#endif /* GUARD_EVENT_H */

@@ -1,19 +1,17 @@
-#ifndef GUARD_TRIGGERS_H
-#define GUARD_TRIGGERS_H
-
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "bitset"
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <bitset>
 #include <cmath>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <regex>
+#include <triggers.hxx>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
+#include <utility/utility.hxx>
 
 typedef std::bitset<30> IntBits;
 
@@ -781,4 +779,3 @@ GetPrescaleValues(ROOT::RDF::RNode df,
     return df1;
 }
 } // end namespace trigger
-#endif /* GUARD_TRIGGERS_H */

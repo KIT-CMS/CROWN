@@ -1,7 +1,7 @@
-#ifndef GUARD_REWEIGHTING_H
-#define GUARD_REWEIGHTING_H
+#pragma once
 
-#include "utility/CorrectionManager.hxx"
+#include <ROOT/RDataFrame.hxx>
+#include <utility/CorrectionManager.hxx>
 
 namespace event {
 namespace reweighting {
@@ -50,4 +50,3 @@ ROOT::RDF::RNode ZPtMass(ROOT::RDF::RNode df, const std::string &outputname,
                          const std::string &argset);
 } // end namespace reweighting
 } // end namespace event
-#endif /* GUARD_REWEIGHTING_H */

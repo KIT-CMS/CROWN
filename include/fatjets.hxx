@@ -1,5 +1,5 @@
-#ifndef GUARD_FATJETS_H
-#define GUARD_FATJETS_H
+#pragma once
+#include <ROOT/RDataFrame.hxx>
 
 namespace physicsobject {
 namespace fatjet {
@@ -16,4 +16,3 @@ NsubjettinessRatio(ROOT::RDF::RNode df, const std::string &outputname,
 } // end namespace quantity
 } // end namespace fatjet
 } // end namespace physicsobject
-#endif /* GUARD_FATJETS_H */

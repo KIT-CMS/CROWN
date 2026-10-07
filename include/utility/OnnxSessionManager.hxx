@@ -1,11 +1,13 @@
-#ifndef GUARD_ONNX_SESSION_MANAGER
-#define GUARD_ONNX_SESSION_MANAGER
+#pragma once
 
-#include "Logger.hxx"
+#include <cstdint>
 #include <memory>
 #include <onnxruntime_cxx_api.h>
 #include <string>
 #include <unordered_map>
+#include <vector>
+
+#include <utility/Logger.hxx>
 
 class OnnxSessionManager {
   public:
@@ -53,5 +55,3 @@ std::vector<float> run_interference(Ort::Session *session,
                                     const int num_output_nodes);
 
 } // namespace onnxhelper
-
-#endif /* GUARD_ONNX_SESSION_MANAGER */

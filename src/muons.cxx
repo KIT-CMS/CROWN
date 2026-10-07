@@ -1,14 +1,12 @@
-#ifndef GUARD_MUONS_H
-#define GUARD_MUONS_H
-
-#include "../include/defaults.hxx"
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/RoccoR.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "correction.h"
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <correction.h>
+#include <defaults.hxx>
+#include <muons.hxx>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
+#include <utility/RoccoR.hxx>
+#include <utility/utility.hxx>
 
 namespace physicsobject {
 namespace muon {
@@ -740,4 +738,3 @@ Trigger(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace muon
 } // end namespace physicsobject
-#endif /* GUARD_MUONS_H */

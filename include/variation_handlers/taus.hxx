@@ -1,7 +1,6 @@
-#ifndef GUARD_TAUVARIATIONS_H
-#define GUARD_TAUVARIATIONS_H
+#pragma once
 
-#include "correction.h"
+#include <correction.h>
 #include <functional>
 #include <regex>
 #include <vector>
@@ -130,5 +129,3 @@ class TauVariationHandler {
 };
 
 } // end namespace variation_handlers
-
-#endif // GUARD_TAUVARIATIONS_H

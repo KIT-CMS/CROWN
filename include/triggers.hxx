@@ -1,9 +1,8 @@
-#ifndef GUARD_TRIGGERS_H
-#define GUARD_TRIGGERS_H
+#pragma once
 
-#include "utility/CorrectionManager.hxx"
-
-typedef std::bitset<30> IntBits;
+#include <Math/Vector4D.h>
+#include <ROOT/RDataFrame.hxx>
+#include <utility/CorrectionManager.hxx>
 
 namespace trigger {
 
@@ -63,4 +62,3 @@ GetPrescaleValues(ROOT::RDF::RNode df,
                   const std::string &run, const std::string &lumiblock,
                   const std::string &prescale_file);
 } // end namespace trigger
-#endif /* GUARD_TRIGGERS_H */

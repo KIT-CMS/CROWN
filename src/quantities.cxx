@@ -1,16 +1,14 @@
-#ifndef GUARD_QUANTITIES_H
-#define GUARD_QUANTITIES_H
-
-#include "../include/SVFit/FastMTT.hxx"
-#include "../include/SVFit/MeasuredTauLepton.hxx"
-#include "../include/defaults.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <SVFit/FastMTT.hxx>
+#include <SVFit/MeasuredTauLepton.hxx>
 #include <cmath>
+#include <defaults.hxx>
+#include <quantities.hxx>
+#include <utility/Logger.hxx>
+#include <utility/utility.hxx>
 
 namespace quantities {
 
@@ -493,4 +491,3 @@ ROOT::RDF::RNode pt_W(ROOT::RDF::RNode df, const std::string &outputname,
         vectors);
 }
 } // end namespace quantities
-#endif /* GUARD_QUANTITIES_H */

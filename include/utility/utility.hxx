@@ -1,15 +1,18 @@
-#ifndef GUARD_UTILITY_H
-#define GUARD_UTILITY_H
+#pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <string>
+#include <tuple>
+#include <type_traits>
+#include <typeinfo>
 #include <utility> // make_index_sequence
 #include <vector>
 
-#include "../../include/utility/Logger.hxx"
-#include "../../include/utility/RooFunctorThreadsafe.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <utility/Logger.hxx>
+#include <utility/RooFunctorThreadsafe.hxx>
 
 /// Namespace used for common utility functions.
 namespace utility {
@@ -204,4 +207,3 @@ EvaluateWorkspaceFunction(ROOT::RDF::RNode df, const std::string &outputname,
     return df1;
 }
 } // end namespace utility
-#endif /* GUARD_UTILITY_H */

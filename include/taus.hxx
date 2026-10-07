@@ -1,7 +1,7 @@
-#ifndef GUARD_TAUS_H
-#define GUARD_TAUS_H
+#pragma once
 
-#include "utility/CorrectionManager.hxx"
+#include <ROOT/RDataFrame.hxx>
+#include <utility/CorrectionManager.hxx>
 
 namespace physicsobject {
 namespace tau {
@@ -380,4 +380,3 @@ Id_vsMu(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace tau
 } // end namespace physicsobject
-#endif /* GUARD_TAUS_H */

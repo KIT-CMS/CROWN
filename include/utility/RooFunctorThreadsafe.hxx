@@ -1,9 +1,8 @@
-#ifndef GUARD_ROOFUNCTORTHREADSAFE_H
-#define GUARD_ROOFUNCTORTHREADSAFE_H
+#pragma once
 
-#include "RooFunctor.h"
-#include "RooWorkspace.h"
-#include "TFile.h"
+#include <RooFunctor.h>
+#include <RooWorkspace.h>
+#include <TFile.h>
 #include <chrono>
 #include <memory>
 #include <mutex>
@@ -139,5 +138,3 @@ inline auto loadFunctor(const std::string &workspace_name,
         std::make_shared<RooFunctorThreadsafe>(*func, args, workspace);
     return functor;
 }
-
-#endif /* GUARD_ROOFUNCTORTHREADSAFE_H */

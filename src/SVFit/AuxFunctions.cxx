@@ -1,4 +1,4 @@
-#include "../../include/SVFit/AuxFunctions.hxx"
+#include <SVFit/AuxFunctions.hxx>
 
 #include <TF1.h>
 #include <TFitResult.h>

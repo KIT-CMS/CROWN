@@ -1,7 +1,6 @@
-#ifndef TauAnalysis_ClassicSVfit_MeasuredTauLepton_h
-#define TauAnalysis_ClassicSVfit_MeasuredTauLepton_h
+#pragma once
 
-#include "AuxFunctions.hxx"
+#include <SVFit/AuxFunctions.hxx>
 
 namespace fastmtt {
 class MeasuredTauLepton {
@@ -104,5 +103,3 @@ class MeasuredTauLepton {
     double cosTheta_;
 };
 } // namespace fastmtt
-
-#endif
