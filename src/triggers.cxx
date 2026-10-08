@@ -7,16 +7,16 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "bitset"
-#include <array>
-#include <optional>
-#include <utility>
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <array>
 #include <cmath>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <optional>
 #include <regex>
+#include <utility>
 
 typedef std::bitset<30> IntBits;
 
@@ -214,7 +214,8 @@ bool MatchLegs(const std::array<TriggerLeg, N> &legs, const float &deltaR,
                ROOT::RVec<float> triggerobject_phis,
                const ROOT::RVec<UShort_t> &triggerobject_ids_v12,
                const ROOT::RVec<ULong64_t> &triggerobject_filterbits_v15) {
-    auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+    auto triggerobject_ids =
+        static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
     auto triggerobject_filterbits =
         static_cast<ROOT::RVec<int>>(triggerobject_filterbits_v15);
     for (size_t i = 0; i < N; ++i) {
@@ -251,10 +252,10 @@ struct LegMatcher<N, std::index_sequence<Is...>> {
                     ROOT::RVec<float> triggerobject_phis,
                     ROOT::RVec<UShort_t> triggerobject_ids_v12,
                     ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) const {
-        return MatchLegs<N>(
-            legs, deltaR_threshold, {particles...}, triggerobject_pts,
-            triggerobject_etas, triggerobject_phis, triggerobject_ids_v12,
-            triggerobject_filterbits_v15);
+        return MatchLegs<N>(legs, deltaR_threshold, {particles...},
+                            triggerobject_pts, triggerobject_etas,
+                            triggerobject_phis, triggerobject_ids_v12,
+                            triggerobject_filterbits_v15);
     }
 };
 
@@ -280,15 +281,13 @@ struct HltLegMatcher<N, std::index_sequence<Is...>> {
 };
 
 template <size_t N>
-ROOT::RDF::RNode
-ObjectFlagImpl(ROOT::RDF::RNode df, const std::string &outputname,
-               const std::string &triggerobject_pt,
-               const std::string &triggerobject_eta,
-               const std::string &triggerobject_phi,
-               const std::string &triggerobject_id,
-               const std::string &triggerobject_filterbit,
-               const std::array<TriggerLeg, N> &legs,
-               const std::string &hlt_path, const float &deltaR_threshold) {
+ROOT::RDF::RNode ObjectFlagImpl(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &triggerobject_pt, const std::string &triggerobject_eta,
+    const std::string &triggerobject_phi, const std::string &triggerobject_id,
+    const std::string &triggerobject_filterbit,
+    const std::array<TriggerLeg, N> &legs, const std::string &hlt_path,
+    const float &deltaR_threshold) {
     // In nanoAODv12 the type of trigger object ID was changed to UShort_t
     // For v9 compatibility a type casting is applied
     auto [df1, triggerobject_id_column] =
