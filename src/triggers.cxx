@@ -7,6 +7,9 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RVec.hxx"
 #include "bitset"
+#include <array>
+#include <optional>
+#include <utility>
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
@@ -189,6 +192,240 @@ bool matchParticle(
     return false;
 };
 
+namespace experimental {
+/// One leg of a trigger: the particle column and its matching criteria.
+struct TriggerLeg {
+    std::string particle;
+    float pt_threshold;
+    float eta_threshold;
+    int trigger_particle_id_value;
+    std::vector<int> trigger_bit_values;
+};
+
+template <size_t I> using LegVector = ROOT::Math::PtEtaPhiMVector;
+
+/// Matches all legs sequentially, since `matchParticle` consumes the trigger
+/// object it matched. Stops at the first leg that is not matched.
+template <size_t N>
+bool MatchLegs(const std::array<TriggerLeg, N> &legs, const float &deltaR,
+               const std::array<ROOT::Math::PtEtaPhiMVector, N> &p4s,
+               ROOT::RVec<float> triggerobject_pts,
+               ROOT::RVec<float> triggerobject_etas,
+               ROOT::RVec<float> triggerobject_phis,
+               const ROOT::RVec<UShort_t> &triggerobject_ids_v12,
+               const ROOT::RVec<ULong64_t> &triggerobject_filterbits_v15) {
+    auto triggerobject_ids = static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+    auto triggerobject_filterbits =
+        static_cast<ROOT::RVec<int>>(triggerobject_filterbits_v15);
+    for (size_t i = 0; i < N; ++i) {
+        bool matched = matchParticle(
+            p4s[i], triggerobject_pts, triggerobject_etas, triggerobject_phis,
+            triggerobject_ids, triggerobject_filterbits, legs[i].pt_threshold,
+            legs[i].eta_threshold, legs[i].trigger_particle_id_value,
+            legs[i].trigger_bit_values, deltaR);
+        Logger::get("trigger::experimental::ObjectFlag")
+            ->debug("---> Leg {} matching: {}", i + 1, matched);
+        if (!matched) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <size_t I> using LegVector = ROOT::Math::PtEtaPhiMVector;
+
+/// Functors with a fixed arity (one Lorentz vector column per leg), as
+/// required by RDataFrame's Define. `LegMatcher` only evaluates the object
+/// matching, `HltLegMatcher` additionally takes the HLT path column first and
+/// skips the matching if the path did not fire.
+template <size_t N, typename Seq = std::make_index_sequence<N>>
+struct LegMatcher;
+template <size_t N, size_t... Is>
+struct LegMatcher<N, std::index_sequence<Is...>> {
+    std::array<TriggerLeg, N> legs;
+    float deltaR_threshold;
+
+    bool operator()(const LegVector<Is> &...particles,
+                    ROOT::RVec<float> triggerobject_pts,
+                    ROOT::RVec<float> triggerobject_etas,
+                    ROOT::RVec<float> triggerobject_phis,
+                    ROOT::RVec<UShort_t> triggerobject_ids_v12,
+                    ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) const {
+        return MatchLegs<N>(
+            legs, deltaR_threshold, {particles...}, triggerobject_pts,
+            triggerobject_etas, triggerobject_phis, triggerobject_ids_v12,
+            triggerobject_filterbits_v15);
+    }
+};
+
+template <size_t N, typename Seq = std::make_index_sequence<N>>
+struct HltLegMatcher;
+template <size_t N, size_t... Is>
+struct HltLegMatcher<N, std::index_sequence<Is...>> {
+    LegMatcher<N> matcher;
+
+    bool operator()(bool hlt_path_match, const LegVector<Is> &...particles,
+                    ROOT::RVec<float> triggerobject_pts,
+                    ROOT::RVec<float> triggerobject_etas,
+                    ROOT::RVec<float> triggerobject_phis,
+                    ROOT::RVec<UShort_t> triggerobject_ids_v12,
+                    ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) const {
+        Logger::get("trigger::experimental::ObjectFlag")
+            ->debug("---> HLT matching: {}", hlt_path_match);
+        return hlt_path_match &&
+               matcher(particles..., triggerobject_pts, triggerobject_etas,
+                       triggerobject_phis, triggerobject_ids_v12,
+                       triggerobject_filterbits_v15);
+    }
+};
+
+template <size_t N>
+ROOT::RDF::RNode
+ObjectFlagImpl(ROOT::RDF::RNode df, const std::string &outputname,
+               const std::string &triggerobject_pt,
+               const std::string &triggerobject_eta,
+               const std::string &triggerobject_phi,
+               const std::string &triggerobject_id,
+               const std::string &triggerobject_filterbit,
+               const std::array<TriggerLeg, N> &legs,
+               const std::string &hlt_path, const float &deltaR_threshold) {
+    // In nanoAODv12 the type of trigger object ID was changed to UShort_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, triggerobject_id_column] =
+        utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, triggerobject_id + "_v12", "ROOT::VecOps::RVec<UShort_t>",
+            triggerobject_id);
+    // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
+    // For v9 and v12 compatibility a type casting is applied
+    auto [df2, triggerobject_filterbit_column] =
+        utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_filterbit + "_v15",
+            "ROOT::VecOps::RVec<ULong64_t>", triggerobject_filterbit);
+
+    std::vector<std::string> columns;
+    if (!hlt_path.empty()) {
+        std::vector<std::string> matched_trigger_names;
+        std::regex hlt_path_regex(hlt_path);
+        for (auto &trigger : df.GetColumnNames()) {
+            if (std::regex_match(trigger, hlt_path_regex)) {
+                Logger::get("trigger::experimental::ObjectFlag")
+                    ->debug("Found matching trigger: {} for HLT path: {}",
+                            trigger, hlt_path);
+                matched_trigger_names.push_back(trigger);
+            }
+        }
+        if (matched_trigger_names.size() == 0) {
+            Logger::get("trigger::experimental::ObjectFlag")
+                ->debug("No matching trigger for {} found, returning false for "
+                        "trigger flag {}",
+                        hlt_path, outputname);
+            return df2.Define(outputname, []() { return false; });
+        } else if (matched_trigger_names.size() > 1) {
+            Logger::get("trigger::experimental::ObjectFlag")
+                ->debug("More than one matching trigger found, not "
+                        "implemented yet");
+            throw std::invalid_argument("received too many matching trigger "
+                                        "paths, not implemented yet");
+        }
+        columns.push_back(matched_trigger_names[0]);
+    }
+    for (const auto &leg : legs) {
+        columns.push_back(leg.particle);
+    }
+    columns.insert(columns.end(),
+                   {triggerobject_pt, triggerobject_eta, triggerobject_phi,
+                    triggerobject_id_column, triggerobject_filterbit_column});
+
+    LegMatcher<N> matcher{legs, deltaR_threshold};
+    if (hlt_path.empty()) {
+        return df2.Define(outputname, matcher, columns);
+    }
+    return df2.Define(outputname, HltLegMatcher<N>{matcher}, columns);
+}
+
+/**
+ * @brief Generic trigger flag for one to four legs. The legs are matched in
+ * the given order, each one consuming the trigger object it matched (see
+ * `trigger::matchParticle`). The flag is true if all legs are matched and,
+ * if given, the HLT path fired.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output flag
+ * @param inputs names of the input columns: first the Lorentz vector columns
+ * of the N particles to be matched (N = 1, 2, 3 or 4), followed by the trigger
+ * object \f$p_T\f$, \f$\eta\f$, \f$\phi\f$, ID and filter bit columns
+ * @param hlt_path HLT path (can be a valid regex) that has to fire. If empty,
+ * only the object matching is evaluated. If no column matches the regex, the
+ * flag is false for all entries; more than one match throws.
+ * @param pt_thresholds per-leg \f$p_T\f$ thresholds the tested object has to
+ * exceed
+ * @param eta_thresholds per-leg \f$|\eta|\f$ thresholds the tested object has
+ * to be below
+ * @param trigger_particle_id_values per-leg trigger object ID values to test
+ * @param trigger_bit_values per-leg lists of trigger object filter bit
+ * positions to test. If no bit matching is desired, set this to -1 or an empty
+ * vector.
+ * @param deltaR_threshold maximum \f$\Delta R\f$ between trigger object and
+ * tested object
+ *
+ * @return a new dataframe containing the trigger flag column
+ */
+ROOT::RDF::RNode
+ObjectFlag(ROOT::RDF::RNode df, const std::string &outputname,
+           const std::vector<std::string> &inputs, const std::string &hlt_path,
+           const std::vector<float> &pt_thresholds,
+           const std::vector<float> &eta_thresholds,
+           const std::vector<int> &trigger_particle_id_values,
+           const std::vector<std::vector<int>> &trigger_bit_values,
+           const float &deltaR_threshold) {
+    constexpr size_t n_triggerobject_columns = 5;
+    if (inputs.size() <= n_triggerobject_columns) {
+        throw std::invalid_argument("ObjectFlag: expected at least one "
+                                    "particle plus 5 trigger object columns");
+    }
+    const size_t n_legs = inputs.size() - n_triggerobject_columns;
+    if (pt_thresholds.size() != n_legs || eta_thresholds.size() != n_legs ||
+        trigger_particle_id_values.size() != n_legs ||
+        trigger_bit_values.size() != n_legs) {
+        throw std::invalid_argument(
+            "ObjectFlag: per-leg parameters do not match the number of legs");
+    }
+    auto make_legs = [&]<size_t N>() {
+        std::array<TriggerLeg, N> legs;
+        for (size_t i = 0; i < N; ++i) {
+            legs[i] = {inputs[i], pt_thresholds[i], eta_thresholds[i],
+                       trigger_particle_id_values[i], trigger_bit_values[i]};
+        }
+        return legs;
+    };
+    const auto &pt = inputs[n_legs];
+    const auto &eta = inputs[n_legs + 1];
+    const auto &phi = inputs[n_legs + 2];
+    const auto &id = inputs[n_legs + 3];
+    const auto &filterbit = inputs[n_legs + 4];
+    switch (n_legs) {
+    case 1:
+        return ObjectFlagImpl<1>(df, outputname, pt, eta, phi, id, filterbit,
+                                 make_legs.operator()<1>(), hlt_path,
+                                 deltaR_threshold);
+    case 2:
+        return ObjectFlagImpl<2>(df, outputname, pt, eta, phi, id, filterbit,
+                                 make_legs.operator()<2>(), hlt_path,
+                                 deltaR_threshold);
+    case 3:
+        return ObjectFlagImpl<3>(df, outputname, pt, eta, phi, id, filterbit,
+                                 make_legs.operator()<3>(), hlt_path,
+                                 deltaR_threshold);
+    case 4:
+        return ObjectFlagImpl<4>(df, outputname, pt, eta, phi, id, filterbit,
+                                 make_legs.operator()<4>(), hlt_path,
+                                 deltaR_threshold);
+    default:
+        throw std::invalid_argument("ObjectFlag: only 1 to 4 legs supported");
+    }
+}
+} // end namespace experimental
+
 /**
  * @brief This function generates a trigger flag based on an HLT path and
  * trigger object matching for a selected object. This relies on the
@@ -201,6 +438,10 @@ bool matchParticle(
  * @note If more than one matching HLT path is found, the function will
  * throw an exception, if no matching HLT path is found, the function will
  * return a dataframe with a flag with false for all entries.
+ *
+ * @warning This function can be considered deprecated and will be removed
+ * in the future. Please use the `trigger::experimental::ObjectFlag` function
+ * instead.
  *
  * @param df input dataframe
  * @param outputname name of the output flag
@@ -335,6 +576,10 @@ ROOT::RDF::RNode SingleObjectFlag(
  * @note This function is defined for single object triggers only. For double
  * object triggers be referred to the `trigger::DoubleObjectFlag` functions.
  *
+ * @warning This function can be considered deprecated and will be removed
+ * in the future. Please use the `trigger::experimental::ObjectFlag` function
+ * instead.
+ *
  * @param df input dataframe
  * @param outputname name of the output flag
  * @param particle name of the column containing the Lorentz vector of the
@@ -429,6 +674,10 @@ ROOT::RDF::RNode SingleObjectFlag(
  * @note If more than one matching HLT path is found, the function will
  * throw an exception, if no matching HLT path is found, the function will
  * return a dataframe with a flag with false for all entries.
+ *
+ * @warning This function can be considered deprecated and will be removed
+ * in the future. Please use the `trigger::experimental::ObjectFlag` function
+ * instead.
  *
  * @param df input dataframe
  * @param outputname name of the output flag
@@ -585,6 +834,133 @@ ROOT::RDF::RNode DoubleObjectFlag(
 }
 
 /**
+ * @brief This function generates a trigger flag based on the trigger object
+ * matching for the selected objects. This relies on the
+ * `trigger::matchParticle` function which does the object to trigger object
+ * matching test.
+ *
+ * @note This function is defined for double object triggers only. For single
+ * object triggers be referred to the `trigger::SingleObjectFlag` functions.
+ *
+ * @warning This function can be considered deprecated and will be removed
+ * in the future. Please use the `trigger::experimental::ObjectFlag` function
+ * instead.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output flag
+ * @param particle_1 name of the column containing the Lorentz vector of the
+ * first object/particle that should be matched to a trigger object
+ * @param particle_2 name of the column containing the Lorentz vector of the
+ * second object/particle that should be matched to a trigger object
+ * @param triggerobject_pt name of the column containing the trigger object
+ * \f$p_T\f$ values
+ * @param triggerobject_eta name of the column containing the trigger object
+ * \f$\eta\f$ values
+ * @param triggerobject_phi name of the column containing the trigger object
+ * \f$\phi\f$ values
+ * @param triggerobject_id name of the column containing the trigger object
+ * IDs
+ * @param triggerobject_filterbit name of the column containing the trigger
+ * object filter bits. Depending on the trigger object ID (e.g. electron,
+ * muon, ...), this bitmap has a different meaning.
+ * @param pt_threshold_1 \f$p_T\f$ threshold value the first tested object
+ * has to exceed in order to be considered a match
+ * @param pt_threshold_2 \f$p_T\f$ threshold value the second tested object
+ * has to exceed in order to be considered a match
+ * @param eta_threshold_1 \f$\eta\f$ threshold value the first tested object
+ * has to be below in order to be considered a match
+ * @param eta_threshold_2 \f$\eta\f$ threshold value the second tested object
+ * has to be below in order to be considered a match
+ * @param trigger_particle_id_value_1 trigger object ID value that should be
+ * tested for the first object
+ * @param trigger_particle_id_value_2 trigger object ID value that should be
+ * tested for the second object
+ * @param trigger_bit_values_1 list of trigger object filter bit positions that
+ * should be tested for the first object. If no bit matching is desired, set
+ * this value to -1 or an empty vector.
+ * @param trigger_bit_values_2 list of trigger object filter bit positions that
+ * should be tested for the second object. If no bit matching is desired, set
+ * this value to -1 or an empty vector.
+ * @param deltaR_threshold maximum \f$\Delta R\f$ value between the trigger
+ * object and the tested object in order to be considered a match
+ *
+ * @return a new dataframe containing the trigger flag column
+ *
+ * @note this function is used for embedding samples
+ */
+ROOT::RDF::RNode DoubleObjectFlag(
+    ROOT::RDF::RNode df, const std::string &outputname,
+    const std::string &particle_1, const std::string &particle_2,
+    const std::string &triggerobject_pt, const std::string &triggerobject_eta,
+    const std::string &triggerobject_phi, const std::string &triggerobject_id,
+    const std::string &triggerobject_filterbit, const float &pt_threshold_1,
+    const float &pt_threshold_2, const float &eta_threshold_1,
+    const float &eta_threshold_2, const int &trigger_particle_id_value_1,
+    const int &trigger_particle_id_value_2,
+    const std::vector<int> &trigger_bit_values_1,
+    const std::vector<int> &trigger_bit_values_2,
+    const float &deltaR_threshold) {
+    // In nanoAODv12 the type of trigger object ID was changed to UShort_t
+    // For v9 compatibility a type casting is applied
+    auto [df1, triggerobject_id_column] =
+        utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
+            df, triggerobject_id + "_v12", "ROOT::VecOps::RVec<UShort_t>",
+            triggerobject_id);
+    // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
+    // For v9 and v12 compatibility a type casting is applied
+    auto [df2, triggerobject_filterbit_column] =
+        utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
+            df1, triggerobject_filterbit + "_v15",
+            "ROOT::VecOps::RVec<ULong64_t>", triggerobject_filterbit);
+
+    auto trigger_matching =
+        [pt_threshold_1, pt_threshold_2, eta_threshold_1, eta_threshold_2,
+         trigger_particle_id_value_1, trigger_particle_id_value_2,
+         trigger_bit_values_1, trigger_bit_values_2,
+         deltaR_threshold](const ROOT::Math::PtEtaPhiMVector &particle_1,
+                           const ROOT::Math::PtEtaPhiMVector &particle_2,
+                           ROOT::RVec<float> triggerobject_pts,
+                           ROOT::RVec<float> triggerobject_etas,
+                           ROOT::RVec<float> triggerobject_phis,
+                           ROOT::RVec<UShort_t> triggerobject_ids_v12,
+                           ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) {
+            auto triggerobject_ids =
+                static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
+            auto triggerobject_filterbits =
+                static_cast<ROOT::RVec<int>>(triggerobject_filterbits_v15);
+            Logger::get("trigger::DoubleObjectFlag")
+                ->debug("Checking triggerobject match with particle ....");
+            Logger::get("trigger::DoubleObjectFlag")->debug("First particle");
+            bool match_result_p1 = matchParticle(
+                particle_1, triggerobject_pts, triggerobject_etas,
+                triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
+                pt_threshold_1, eta_threshold_1, trigger_particle_id_value_1,
+                trigger_bit_values_1, deltaR_threshold);
+            Logger::get("trigger::DoubleObjectFlag")->debug("Second particle");
+            bool match_result_p2 = matchParticle(
+                particle_2, triggerobject_pts, triggerobject_etas,
+                triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
+                pt_threshold_2, eta_threshold_2, trigger_particle_id_value_2,
+                trigger_bit_values_2, deltaR_threshold);
+            bool result = match_result_p1 & match_result_p2;
+            Logger::get("trigger::DoubleObjectFlag")
+                ->debug("---> Matching p1: {}", match_result_p1);
+            Logger::get("trigger::DoubleObjectFlag")
+                ->debug("---> Matching p2: {}", match_result_p2);
+            Logger::get("trigger::DoubleObjectFlag")
+                ->debug("--->>>> result: {}", result);
+            return result;
+        };
+
+    auto df3 =
+        df2.Define(outputname, trigger_matching,
+                   {particle_1, particle_2, triggerobject_pt, triggerobject_eta,
+                    triggerobject_phi, triggerobject_id_column,
+                    triggerobject_filterbit_column});
+    return df3;
+}
+
+/**
  * @brief This function generates a trigger flag based on an HLT path and
  * trigger object matching for the selected objects. This relies on the
  * `trigger::matchParticle` function which does the object to trigger
@@ -599,6 +975,10 @@ ROOT::RDF::RNode DoubleObjectFlag(
  * @note If more than one matching HLT path is found, the function will
  * throw an exception, if no matching HLT path is found, the function will
  * return a dataframe with a flag with false for all entries.
+ *
+ * @warning This function can be considered deprecated and will be removed
+ * in the future. Please use the `trigger::experimental::ObjectFlag` function
+ * instead.
  *
  * @param df input dataframe
  * @param outputname name of the output flag
@@ -784,129 +1164,6 @@ ROOT::RDF::RNode TripleObjectFlag(
                                triggerobject_filterbit_column});
         return df3;
     }
-}
-
-/**
- * @brief This function generates a trigger flag based on the trigger object
- * matching for the selected objects. This relies on the
- * `trigger::matchParticle` function which does the object to trigger object
- * matching test.
- *
- * @note This function is defined for double object triggers only. For single
- * object triggers be referred to the `trigger::SingleObjectFlag` functions.
- *
- * @param df input dataframe
- * @param outputname name of the output flag
- * @param particle_1 name of the column containing the Lorentz vector of the
- * first object/particle that should be matched to a trigger object
- * @param particle_2 name of the column containing the Lorentz vector of the
- * second object/particle that should be matched to a trigger object
- * @param triggerobject_pt name of the column containing the trigger object
- * \f$p_T\f$ values
- * @param triggerobject_eta name of the column containing the trigger object
- * \f$\eta\f$ values
- * @param triggerobject_phi name of the column containing the trigger object
- * \f$\phi\f$ values
- * @param triggerobject_id name of the column containing the trigger object
- * IDs
- * @param triggerobject_filterbit name of the column containing the trigger
- * object filter bits. Depending on the trigger object ID (e.g. electron,
- * muon, ...), this bitmap has a different meaning.
- * @param pt_threshold_1 \f$p_T\f$ threshold value the first tested object
- * has to exceed in order to be considered a match
- * @param pt_threshold_2 \f$p_T\f$ threshold value the second tested object
- * has to exceed in order to be considered a match
- * @param eta_threshold_1 \f$\eta\f$ threshold value the first tested object
- * has to be below in order to be considered a match
- * @param eta_threshold_2 \f$\eta\f$ threshold value the second tested object
- * has to be below in order to be considered a match
- * @param trigger_particle_id_value_1 trigger object ID value that should be
- * tested for the first object
- * @param trigger_particle_id_value_2 trigger object ID value that should be
- * tested for the second object
- * @param trigger_bit_values_1 list of trigger object filter bit positions that
- * should be tested for the first object. If no bit matching is desired, set
- * this value to -1 or an empty vector.
- * @param trigger_bit_values_2 list of trigger object filter bit positions that
- * should be tested for the second object. If no bit matching is desired, set
- * this value to -1 or an empty vector.
- * @param deltaR_threshold maximum \f$\Delta R\f$ value between the trigger
- * object and the tested object in order to be considered a match
- *
- * @return a new dataframe containing the trigger flag column
- *
- * @note this function is used for embedding samples
- */
-ROOT::RDF::RNode DoubleObjectFlag(
-    ROOT::RDF::RNode df, const std::string &outputname,
-    const std::string &particle_1, const std::string &particle_2,
-    const std::string &triggerobject_pt, const std::string &triggerobject_eta,
-    const std::string &triggerobject_phi, const std::string &triggerobject_id,
-    const std::string &triggerobject_filterbit, const float &pt_threshold_1,
-    const float &pt_threshold_2, const float &eta_threshold_1,
-    const float &eta_threshold_2, const int &trigger_particle_id_value_1,
-    const int &trigger_particle_id_value_2,
-    const std::vector<int> &trigger_bit_values_1,
-    const std::vector<int> &trigger_bit_values_2,
-    const float &deltaR_threshold) {
-    // In nanoAODv12 the type of trigger object ID was changed to UShort_t
-    // For v9 compatibility a type casting is applied
-    auto [df1, triggerobject_id_column] =
-        utility::Cast<ROOT::RVec<UShort_t>, ROOT::RVec<Int_t>>(
-            df, triggerobject_id + "_v12", "ROOT::VecOps::RVec<UShort_t>",
-            triggerobject_id);
-    // In nanoAODv15 the type of trigger object ID was changed to ULong64_t
-    // For v9 and v12 compatibility a type casting is applied
-    auto [df2, triggerobject_filterbit_column] =
-        utility::Cast<ROOT::RVec<ULong64_t>, ROOT::RVec<Int_t>>(
-            df1, triggerobject_filterbit + "_v15",
-            "ROOT::VecOps::RVec<ULong64_t>", triggerobject_filterbit);
-
-    auto trigger_matching =
-        [pt_threshold_1, pt_threshold_2, eta_threshold_1, eta_threshold_2,
-         trigger_particle_id_value_1, trigger_particle_id_value_2,
-         trigger_bit_values_1, trigger_bit_values_2,
-         deltaR_threshold](const ROOT::Math::PtEtaPhiMVector &particle_1,
-                           const ROOT::Math::PtEtaPhiMVector &particle_2,
-                           ROOT::RVec<float> triggerobject_pts,
-                           ROOT::RVec<float> triggerobject_etas,
-                           ROOT::RVec<float> triggerobject_phis,
-                           ROOT::RVec<UShort_t> triggerobject_ids_v12,
-                           ROOT::RVec<ULong64_t> triggerobject_filterbits_v15) {
-            auto triggerobject_ids =
-                static_cast<ROOT::RVec<int>>(triggerobject_ids_v12);
-            auto triggerobject_filterbits =
-                static_cast<ROOT::RVec<int>>(triggerobject_filterbits_v15);
-            Logger::get("trigger::DoubleObjectFlag")
-                ->debug("Checking triggerobject match with particle ....");
-            Logger::get("trigger::DoubleObjectFlag")->debug("First particle");
-            bool match_result_p1 = matchParticle(
-                particle_1, triggerobject_pts, triggerobject_etas,
-                triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
-                pt_threshold_1, eta_threshold_1, trigger_particle_id_value_1,
-                trigger_bit_values_1, deltaR_threshold);
-            Logger::get("trigger::DoubleObjectFlag")->debug("Second particle");
-            bool match_result_p2 = matchParticle(
-                particle_2, triggerobject_pts, triggerobject_etas,
-                triggerobject_phis, triggerobject_ids, triggerobject_filterbits,
-                pt_threshold_2, eta_threshold_2, trigger_particle_id_value_2,
-                trigger_bit_values_2, deltaR_threshold);
-            bool result = match_result_p1 & match_result_p2;
-            Logger::get("trigger::DoubleObjectFlag")
-                ->debug("---> Matching p1: {}", match_result_p1);
-            Logger::get("trigger::DoubleObjectFlag")
-                ->debug("---> Matching p2: {}", match_result_p2);
-            Logger::get("trigger::DoubleObjectFlag")
-                ->debug("--->>>> result: {}", result);
-            return result;
-        };
-
-    auto df3 =
-        df2.Define(outputname, trigger_matching,
-                   {particle_1, particle_2, triggerobject_pt, triggerobject_eta,
-                    triggerobject_phi, triggerobject_id_column,
-                    triggerobject_filterbit_column});
-    return df3;
 }
 
 /**
