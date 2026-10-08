@@ -7,7 +7,11 @@
 #include "TRandom3.h"
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
+#include <array>
+#include <memory>
+#include <set>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
 
 namespace event {
@@ -112,6 +116,106 @@ SampleNormalization(ROOT::RDF::RNode df,
                 "generator_weight");
         });
     return df3;
+}
+
+ROOT::RDF::RNode
+STXSNormalization(ROOT::RDF::RNode df,
+                  correctionManager::CorrectionManager &correctionManager,
+                  const std::string &family_output,
+                  const std::string &norm_output,
+                  const std::string &scale_up_output,
+                  const std::string &scale_down_output,
+                  const std::string &norm_table_path,
+                  const std::string &htxs_bin_column,
+                  const std::string &lhe_scale_up_column,
+                  const std::string &lhe_scale_down_column) {
+    struct STXSTable {
+        int family;
+        std::unordered_map<int, std::array<double, 3>> bins;
+    };
+    nlohmann::json norm_table = *correctionManager.loadjson(norm_table_path);
+    auto tables = std::make_shared<std::vector<STXSTable>>();
+    auto index = std::make_shared<std::unordered_map<std::string, int>>();
+    for (const auto &[nick, entry] : norm_table.items()) {
+        if (!entry.contains("stxs")) {
+            continue;
+        }
+        STXSTable table{entry.at("stxs").at("family").get<int>(), {}};
+        for (const auto &[bin, factors] : entry.at("stxs").at("bins").items()) {
+            table.bins[std::stoi(bin)] = {factors.at(0).get<double>(),
+                                          factors.at(1).get<double>(),
+                                          factors.at(2).get<double>()};
+        }
+        (*index)[nick] = tables->size();
+        tables->push_back(table);
+    }
+    const std::string index_column = family_output + "_nick_index";
+    auto df1 = df.DefinePerSample(
+        index_column,
+        [index](unsigned int /*slot*/, const ROOT::RDF::RSampleInfo &id) {
+            auto it = index->find(
+                SampleNormalizationParseNickFromPath(id.AsString()));
+            return it == index->end() ? -1 : it->second;
+        });
+    auto lookup = [tables](int idx, int bin) -> const std::array<double, 3> * {
+        if (idx < 0) {
+            return nullptr;
+        }
+        auto it = tables->at(idx).bins.find(bin);
+        return it == tables->at(idx).bins.end() ? nullptr : &it->second;
+    };
+    auto df2 = df1.Define(
+        family_output,
+        [tables](int idx) { return idx < 0 ? 0 : tables->at(idx).family; },
+        {index_column});
+    auto df3 = df2.Define(
+        norm_output,
+        [lookup](int idx, int bin) {
+            auto factors = lookup(idx, bin);
+            return factors ? (*factors)[0] : 1.0;
+        },
+        {index_column, htxs_bin_column});
+    auto df4 = df3.Define(
+        scale_up_output,
+        [lookup](int idx, int bin, float scale) {
+            auto factors = lookup(idx, bin);
+            return factors ? scale / (*factors)[1] : scale;
+        },
+        {index_column, htxs_bin_column, lhe_scale_up_column});
+    return df4.Define(
+        scale_down_output,
+        [lookup](int idx, int bin, float scale) {
+            auto factors = lookup(idx, bin);
+            return factors ? scale / (*factors)[2] : scale;
+        },
+        {index_column, htxs_bin_column, lhe_scale_down_column});
+}
+
+ROOT::RDF::RNode
+STXSLheScale(ROOT::RDF::RNode df,
+             correctionManager::CorrectionManager &correctionManager,
+             const std::string &output, const std::string &table_path,
+             const std::string &variation, const std::string &family_column,
+             const std::string &htxs_bin_column,
+             const std::string &scale_up_column,
+             const std::string &scale_down_column) {
+    if (variation == "nominal") {
+        return df.Define(output, []() { return 1.0; });
+    }
+    const auto split = variation.rfind('_');
+    const std::string nuisance = variation.substr(0, split);
+    const bool use_up = variation.substr(split + 1) == "up";
+    nlohmann::json table = *correctionManager.loadjson(table_path);
+    auto members = std::make_shared<std::set<std::pair<int, int>>>();
+    for (const auto &pair : table.at(nuisance)) {
+        members->insert({pair.at(0).get<int>(), pair.at(1).get<int>()});
+    }
+    return df.Define(
+        output,
+        [members, use_up](int family, int bin, double up, double down) {
+            return members->count({family, bin}) ? (use_up ? up : down) : 1.0;
+        },
+        {family_column, htxs_bin_column, scale_up_column, scale_down_column});
 }
 
 /**

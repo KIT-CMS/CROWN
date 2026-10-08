@@ -463,6 +463,75 @@ Product(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
+ * @brief This function creates a new column with a quantity raised to a
+ * constant power, e.g. the nominal weight (power 1), its square (2) or no
+ * weight at all (0).
+ *
+ * @tparam T type of the quantity column
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param quantity name of the quantity column
+ * @param exponent power the quantity is raised to
+ *
+ * @return a dataframe with the new column of type `double`
+ */
+template <typename T>
+inline ROOT::RDF::RNode Power(ROOT::RDF::RNode df,
+                              const std::string &outputname,
+                              const std::string &quantity, double exponent) {
+    return df.Define(outputname,
+                     [exponent](const T &value) {
+                         return std::pow(static_cast<double>(value), exponent);
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function creates a new column with a copy of a quantity.
+ *
+ * @tparam T type of the quantity column
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param quantity name of the quantity column
+ *
+ * @return a dataframe with the new column of type `T`
+ */
+template <typename T>
+inline ROOT::RDF::RNode Copy(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &quantity) {
+    return df.Define(outputname, [](const T &value) { return value; },
+                     {quantity});
+}
+
+/**
+ * @brief This function creates the fake factor weight of the fully hadronic
+ * anti-isolated region, where exactly one of the two taus fails the
+ * isolation: `0.5 * (ff_1 * [id_1 == 0] + ff_2 * [id_2 == 0])`, i.e. half of
+ * the fake factor of the failing tau.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param ff_1 name of the fake factor column of the leading tau (`float`)
+ * @param ff_2 name of the fake factor column of the subleading tau (`float`)
+ * @param id_1 name of the isolation flag column of the leading tau (`int`)
+ * @param id_2 name of the isolation flag column of the subleading tau (`int`)
+ *
+ * @return a dataframe with the new column of type `double`
+ */
+inline ROOT::RDF::RNode
+AntiIsoFakeFactor(ROOT::RDF::RNode df, const std::string &outputname,
+                  const std::string &ff_1, const std::string &ff_2,
+                  const std::string &id_1, const std::string &id_2) {
+    return df.Define(outputname,
+                     [](float fake_factor_1, float fake_factor_2, int id1,
+                        int id2) {
+                         return 0.5 * (fake_factor_1 * (id1 == 0) +
+                                       fake_factor_2 * (id2 == 0));
+                     },
+                     {ff_1, ff_2, id_1, id_2});
+}
+
+/**
  * @brief This function adds a new column to the dataframe, assigning it a
  * constant value for all entries.
  *
@@ -609,6 +678,69 @@ SampleNormalization(ROOT::RDF::RNode df,
                     const std::string &ngen_weight_output,
                     const std::string &genweight_output,
                     const std::string &norm_table_path);
+
+/**
+ * @brief Looks up the STXS normalization of each event in the `stxs` block of
+ * the normalization table (written by TAUER's analyses/smhtt/stxs_tools.py):
+ * `nick -> {family, bins: {htxs_bin -> [norm, R_up, R_down]}}`. The sample
+ * nick is parsed from the input file path as in `SampleNormalization`. Nicks
+ * without an `stxs` block (and bins missing from it) get family 0, norm 1 and
+ * the LHE scale weights unchanged.
+ *
+ * @param df input dataframe
+ * @param correctionManager correction manager responsible for loading the table
+ * @param family_output name of the column holding the sample family code
+ * @param norm_output name of the column with the per-bin normalization factor
+ * @param scale_up_output name of the column with `lhe_scale_up / R_up`
+ * @param scale_down_output name of the column with `lhe_scale_down / R_down`
+ * @param norm_table_path path to the normalization JSON table
+ * @param htxs_bin_column name of the HTXS stage-1.2 category column
+ * @param lhe_scale_up_column name of the LHEScaleWeight mu_R = mu_F = 2 column
+ * @param lhe_scale_down_column name of the LHEScaleWeight mu_R = mu_F = 0.5
+ * column
+ *
+ * @return a dataframe with the four new columns
+ */
+ROOT::RDF::RNode
+STXSNormalization(ROOT::RDF::RNode df,
+                  correctionManager::CorrectionManager &correctionManager,
+                  const std::string &family_output,
+                  const std::string &norm_output,
+                  const std::string &scale_up_output,
+                  const std::string &scale_down_output,
+                  const std::string &norm_table_path,
+                  const std::string &htxs_bin_column,
+                  const std::string &lhe_scale_up_column,
+                  const std::string &lhe_scale_down_column);
+
+/**
+ * @brief This function creates the column with the LHEScaleWeight factor of
+ * one nuisance of the STXS scheme: 1 for the nominal, otherwise the normalized
+ * LHE scale weight (`up` or `down`, from `STXSNormalization`) for the events
+ * in the (stxs family, HTXS bin) pairs the nuisance applies to and 1 for all
+ * others.
+ *
+ * @param df input dataframe
+ * @param correctionManager correction manager responsible for loading the table
+ * @param output name of the new column
+ * @param table_path path to the JSON table `nuisance -> [[family, HTXS bin],
+ * ...]`
+ * @param variation `nominal` or `<nuisance>_up` / `<nuisance>_down`
+ * @param family_column name of the sample family code column
+ * @param htxs_bin_column name of the HTXS stage-1.2 category column
+ * @param scale_up_column name of the normalized scale-up weight column
+ * @param scale_down_column name of the normalized scale-down weight column
+ *
+ * @return a dataframe with the new column of type `double`
+ */
+ROOT::RDF::RNode
+STXSLheScale(ROOT::RDF::RNode df,
+             correctionManager::CorrectionManager &correctionManager,
+             const std::string &output, const std::string &table_path,
+             const std::string &variation, const std::string &family_column,
+             const std::string &htxs_bin_column,
+             const std::string &scale_up_column,
+             const std::string &scale_down_column);
 
 /**
  * @brief This function creates a new column with `sign(genWeight) /
