@@ -2,6 +2,8 @@
 build/*
 build*/
 !build/.gitkeep
+# generated at code-gen time
+data/normalization/
 log/
 logs/
 generation_logs/
