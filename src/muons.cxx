@@ -696,9 +696,8 @@ Trigger(ROOT::RDF::RNode df,
     const bool use_abseta = evaluator->inputs().at(0).name() == "abseta";
     auto df1 = df.Define(
         outputname,
-        [evaluator, variation, sf_name, use_abseta](const float &pt,
-                                                    const float &eta_in,
-                                                    const bool &trigger_flag) {
+        [evaluator, variation, sf_name, use_abseta](
+            const float &pt, const float &eta_in, const bool &trigger_flag) {
             const float eta = use_abseta ? std::abs(eta_in) : eta_in;
             Logger::get("physicsobject::muon::scalefactor::Trigger")
                 ->debug("Trigger - pt {}, eta {}, trigger flag {}", pt, eta,
