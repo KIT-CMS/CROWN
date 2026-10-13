@@ -1068,9 +1068,9 @@ ROOT::RDF::RNode SelectScaleFactor(ROOT::RDF::RNode df,
                                    const std::vector<std::string> &sf_inputs,
                                    const int &n_pass_sfs) {
     if (n_pass_sfs < 1 || static_cast<size_t>(n_pass_sfs) >= sf_inputs.size()) {
-        throw std::invalid_argument(
-            "trigger::SelectScaleFactor: need at least one scale factor for both the "
-            "passing and the failing case");
+        throw std::invalid_argument("trigger::SelectScaleFactor: need at least "
+                                    "one scale factor for both the "
+                                    "passing and the failing case");
     }
     auto product = [&](size_t begin, size_t end) {
         std::string expression;
@@ -1079,9 +1079,9 @@ ROOT::RDF::RNode SelectScaleFactor(ROOT::RDF::RNode df,
         }
         return expression;
     };
-    const std::string expression =
-        "static_cast<double>(" + pass_flag + " ? (" + product(0, n_pass_sfs) +
-        ") : (" + product(n_pass_sfs, sf_inputs.size()) + "))";
+    const std::string expression = "static_cast<double>(" + pass_flag + " ? (" +
+                                   product(0, n_pass_sfs) + ") : (" +
+                                   product(n_pass_sfs, sf_inputs.size()) + "))";
     return df.Define(outputname, expression);
 }
 } // end namespace trigger

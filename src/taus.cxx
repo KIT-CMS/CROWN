@@ -3097,48 +3097,48 @@ Trigger(ROOT::RDF::RNode df,
  * @param sf_name name of the correction
  * @param variation "nom", "up" or "down", for the files of 2022 and 2023 the
  * variation is applied to the efficiencies in data and MC
- * @param syst_variable name of the systematic variable of the jet \f$p_T\f$, only
- * used for corrections that have this input
+ * @param syst_variable name of the systematic variable of the jet \f$p_T\f$,
+ * only used for corrections that have this input
  *
  * @return a new dataframe containing the new column
  */
 ROOT::RDF::RNode
 TriggerJetLeg(ROOT::RDF::RNode df,
-                  correctionManager::CorrectionManager &correction_manager,
-                  const std::string &outputname, const std::string &jet_p4,
-                  const std::string &trigger_flag, const std::string &sf_file,
-                  const std::string &sf_name, const std::string &variation,
-                  const std::string &syst_variable) {
+              correctionManager::CorrectionManager &correction_manager,
+              const std::string &outputname, const std::string &jet_p4,
+              const std::string &trigger_flag, const std::string &sf_file,
+              const std::string &sf_name, const std::string &variation,
+              const std::string &syst_variable) {
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
     // This check is based on an assumption that the number of inputs is 4
     // for 2022 and 2023, and 5 for 2024 and later. If this assumption changes
     // in the future, this check may need to be updated.
     const bool has_syst_variable = evaluator->inputs().size() == 5;
-    auto scale_factor = [evaluator, variation, syst_variable,
-                         has_syst_variable](const ROOT::Math::PtEtaPhiMVector &jet,
-                                       const bool &trigger_flag) {
-        float sf = 1.;
-        try {
-            if (trigger_flag) {
-                const double pt = jet.pt();
-                const double abseta = std::abs(jet.eta());
-                if (has_syst_variable) {
-                    sf = evaluator->evaluate(
-                        {pt, abseta, "sf", variation, syst_variable});
-                } else {
-                    const double eff_data =
-                        evaluator->evaluate({pt, abseta, variation, "data"});
-                    const double eff_mc =
-                        evaluator->evaluate({pt, abseta, variation, "mc"});
-                    sf = eff_mc > 0. ? eff_data / eff_mc : 1.;
+    auto scale_factor =
+        [evaluator, variation, syst_variable, has_syst_variable](
+            const ROOT::Math::PtEtaPhiMVector &jet, const bool &trigger_flag) {
+            float sf = 1.;
+            try {
+                if (trigger_flag) {
+                    const double pt = jet.pt();
+                    const double abseta = std::abs(jet.eta());
+                    if (has_syst_variable) {
+                        sf = evaluator->evaluate(
+                            {pt, abseta, "sf", variation, syst_variable});
+                    } else {
+                        const double eff_data = evaluator->evaluate(
+                            {pt, abseta, variation, "data"});
+                        const double eff_mc =
+                            evaluator->evaluate({pt, abseta, variation, "mc"});
+                        sf = eff_mc > 0. ? eff_data / eff_mc : 1.;
+                    }
                 }
+            } catch (const std::runtime_error &e) {
+                Logger::get("physicsobject::tau::scalefactor::TriggerJetLeg")
+                    ->debug("Scale factor evaluation failed");
             }
-        } catch (const std::runtime_error &e) {
-            Logger::get("physicsobject::tau::scalefactor::TriggerJetLeg")
-                ->debug("Scale factor evaluation failed");
-        }
-        return sf;
-    };
+            return sf;
+        };
     return df.Define(outputname, scale_factor, {jet_p4, trigger_flag});
 }
 
