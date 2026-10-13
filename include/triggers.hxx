@@ -69,22 +69,6 @@ ROOT::RDF::RNode DoubleObjectFlag(
     const int &trigger_particle_id_value_2,
     const std::vector<int> &trigger_bit_value_1,
     const std::vector<int> &trigger_bit_value_2, const float &deltaR_threshold);
-ROOT::RDF::RNode TripleObjectFlag(
-    ROOT::RDF::RNode df, const std::string &outputname,
-    const std::string &particle_1, const std::string &particle_2,
-    const std::string &particle_3, const std::string &triggerobject_pt,
-    const std::string &triggerobject_eta, const std::string &triggerobject_phi,
-    const std::string &triggerobject_id,
-    const std::string &triggerobject_filterbit, const std::string &hlt_path,
-    const float &pt_threshold_1, const float &pt_threshold_2,
-    const float &pt_threshold_3, const float &eta_threshold_1,
-    const float &eta_threshold_2, const float &eta_threshold_3,
-    const int &trigger_particle_id_value_1,
-    const int &trigger_particle_id_value_2,
-    const int &trigger_particle_id_value_3,
-    const std::vector<int> &trigger_bit_value_1,
-    const std::vector<int> &trigger_bit_value_2,
-    const std::vector<int> &trigger_bit_value_3, const float &deltaR_threshold);
 
 ROOT::RDF::RNode
 GetPrescaleValues(ROOT::RDF::RNode df,
@@ -92,23 +76,10 @@ GetPrescaleValues(ROOT::RDF::RNode df,
                   const std::string &outputname, const std::string &hlt_path,
                   const std::string &run, const std::string &lumiblock,
                   const std::string &prescale_file);
-ROOT::RDF::RNode
-JetLegScaleFactor(ROOT::RDF::RNode df,
-                  correctionManager::CorrectionManager &correction_manager,
-                  const std::string &outputname, const std::string &jet_p4,
-                  const std::string &trigger_flag, const std::string &sf_file,
-                  const std::string &sf_name, const std::string &variation,
-                  const std::string &syst_var);
-ROOT::RDF::RNode SingleOrCrossScaleFactor(ROOT::RDF::RNode df,
-                                          const std::string &outputname,
-                                          const std::string &pass_single,
-                                          const std::string &sf_single,
-                                          const std::string &sf_lepton,
-                                          const std::string &sf_tau);
-ROOT::RDF::RNode DiTauOrDiTauJetScaleFactor(
-    ROOT::RDF::RNode df, const std::string &outputname,
-    const std::string &pass_ditau, const std::string &sf_ditau_1,
-    const std::string &sf_ditau_2, const std::string &sf_ditaujet_1,
-    const std::string &sf_ditaujet_2, const std::string &sf_jet);
+ROOT::RDF::RNode SelectScaleFactor(ROOT::RDF::RNode df,
+                                   const std::string &outputname,
+                                   const std::string &pass_flag,
+                                   const std::vector<std::string> &sf_inputs,
+                                   const int &n_pass_sfs);
 } // end namespace trigger
 #endif /* GUARD_TRIGGERS_H */
