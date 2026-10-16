@@ -10,7 +10,9 @@
 #include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <array>
 #include <cmath>
+#include <cstring>
 
 namespace quantities {
 
@@ -379,15 +381,43 @@ FastMtt(ROOT::RDF::RNode df, const std::string &outputname,
         const std::string &met_cov_xx, const std::string &met_cov_xy,
         const std::string &met_cov_yy, const std::string &decay_mode_1,
         const std::string &decay_mode_2, const std::string &finalstate) {
+    const float finalstate_code = finalstate[0] * 256 + finalstate[1];
     // initialize the FastMTT algorithm
     auto calculate_fast_mtt =
-        [finalstate](const float &pt_1, const float &pt_2, const float &eta_1,
-                     const float &eta_2, const float &phi_1, const float &phi_2,
-                     const float &mass_1, const float &mass_2,
-                     const float &met_pt, const float &met_phi,
-                     const float &met_cov_xx, const float &met_cov_xy,
-                     const float &met_cov_yy, const int &decay_mode_1,
-                     const int &decay_mode_2) {
+        [finalstate, finalstate_code](
+            const float &pt_1, const float &pt_2, const float &eta_1,
+            const float &eta_2, const float &phi_1, const float &phi_2,
+            const float &mass_1, const float &mass_2, const float &met_pt,
+            const float &met_phi, const float &met_cov_xx,
+            const float &met_cov_xy, const float &met_cov_yy,
+            const int &decay_mode_1, const int &decay_mode_2) {
+            // shifts often leave an event's inputs unchanged: reuse the result
+            using Key = std::array<float, 16>;
+            static thread_local std::vector<
+                std::pair<Key, ROOT::Math::PtEtaPhiMVector>>
+                cache;
+            static thread_local size_t cache_next = 0;
+            const Key key{pt_1,
+                          pt_2,
+                          eta_1,
+                          eta_2,
+                          phi_1,
+                          phi_2,
+                          mass_1,
+                          mass_2,
+                          met_pt,
+                          met_phi,
+                          met_cov_xx,
+                          met_cov_xy,
+                          met_cov_yy,
+                          static_cast<float>(decay_mode_1),
+                          static_cast<float>(decay_mode_2),
+                          finalstate_code};
+            for (const auto &entry : cache) {
+                if (std::memcmp(entry.first.data(), key.data(), sizeof(Key)) ==
+                    0)
+                    return entry.second;
+            }
             std::vector<fastmtt::MeasuredTauLepton> measuredTauLeptons;
             TMatrixD covMET(2, 2);
             covMET[0][0] = met_cov_xx;
@@ -431,6 +461,10 @@ FastMtt(ROOT::RDF::RNode df, const std::string &outputname,
             ROOT::Math::PtEtaPhiMVector result =
                 FastMTTAlgo.run(measuredTauLeptons, met.X(), met.Y(), covMET);
             Logger::get("FastMTT")->debug("FastMTT result: {}", result.M());
+            if (cache.size() < 128)
+                cache.emplace_back(key, result);
+            else
+                cache[cache_next++ % 128] = {key, result};
             return result;
         };
     return df.Define(outputname, calculate_fast_mtt,
