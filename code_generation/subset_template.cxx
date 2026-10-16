@@ -5,6 +5,7 @@
 #include "include/electrons.hxx"
 #include "include/embedding.hxx"
 #include "include/event.hxx"
+#include "include/fakefactors.hxx"
 #include "include/fatjets.hxx"
 #include "include/genparticles.hxx"
 #include "include/htxs.hxx"
