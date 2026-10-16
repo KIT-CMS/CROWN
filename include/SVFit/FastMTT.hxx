@@ -56,8 +56,7 @@ class Likelihood {
 
     double ptLikelihood(const double &pTTauTau, int type) const;
 
-    double metTF(const LorentzVector &metP4, const LorentzVector &nuP4,
-                 const TMatrixD &covMET) const;
+    double metTF(const LorentzVector &metP4, const LorentzVector &nuP4) const;
 
   private:
     LorentzVector leg1P4, leg2P4;
@@ -66,6 +65,9 @@ class Likelihood {
     TMatrixD covMET;
 
     double mVis, mVisLeg1, mVisLeg2;
+
+    // MET covariance inverse, constant over the scan
+    double invCovMETxx, invCovMETxy, invCovMETyx, invCovMETyy, covDet, constMET;
 
     int leg1DecayType, leg2DecayType;
     int leg1DecayMode, leg2DecayMode;
