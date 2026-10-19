@@ -10,13 +10,7 @@ endif()
 file(READ ${GENERATE_CPP_OUTPUT_FILELIST} FILELIST)
 string(REGEX REPLACE "\n" ";" FILELIST ${FILELIST})
 set(TARGET_NAMES "")
-# copy all correction files into the install location
-install(DIRECTORY data/ DESTINATION ${INSTALLDIR}/data)
-if(PAYLOADS)
-  install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/payloads
-    DESTINATION ${INSTALLDIR})
-endif()
+set(DATA_FILES "")
 
 foreach(FILENAME ${FILELIST})
   cmake_path(GET FILENAME RELATIVE_PART RELATIVE_PATH)
@@ -38,6 +32,13 @@ foreach(FILENAME ${FILELIST})
   file(GLOB GENERATED_CXX_FILES
        "${GENERATE_CPP_OUTPUT_DIRECTORY}/${GENERATED_CODEBASE}/src/*/*.cxx")
   add_executable(${TARGET_NAME} ${FULL_PATH} ${GENERATED_CXX_FILES})
+  # collect the data and payload files referenced by the generated code
+  foreach(SOURCE ${FULL_PATH} ${GENERATED_CXX_FILES})
+    file(STRINGS ${SOURCE} LINES REGEX "\"(data|payloads)/[^\"]+\"")
+    string(REGEX MATCHALL "\"(data|payloads)/[^\"]+\"" PATHS "${LINES}")
+    string(REPLACE "\"" "" PATHS "${PATHS}")
+    list(APPEND DATA_FILES ${PATHS})
+  endforeach()
   # Adds a pre-build event to the Target copying the correctionlib.so file into
   # the /lib folder in the install directory
   target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
@@ -93,4 +94,30 @@ foreach(FILENAME ${FILELIST})
     CODE "execute_process(COMMAND ${CMAKE_SOURCE_DIR}/checks/get-diff.sh ${CMAKE_SOURCE_DIR} ${ANALYSIS} ${INSTALLDIR}/diff )"
   )
 
+endforeach()
+
+# install only the referenced files instead of all of data/ and payloads/
+# executables check that data/ exists, so always create it
+install(DIRECTORY DESTINATION ${INSTALLDIR}/data)
+list(REMOVE_DUPLICATES DATA_FILES)
+foreach(DATA_FILE ${DATA_FILES})
+  string(REGEX
+         REPLACE "^payloads/" "analysis_configurations/${ANALYSIS}/payloads/"
+                 SOURCE_FILE ${DATA_FILE})
+  set(SOURCE_FILE ${CMAKE_SOURCE_DIR}/${SOURCE_FILE})
+  cmake_path(GET DATA_FILE PARENT_PATH DESTINATION)
+  if(IS_DIRECTORY ${SOURCE_FILE})
+    install(DIRECTORY ${SOURCE_FILE} DESTINATION ${INSTALLDIR}/${DESTINATION})
+  elseif(EXISTS ${SOURCE_FILE})
+    install(FILES ${SOURCE_FILE} DESTINATION ${INSTALLDIR}/${DESTINATION})
+  else()
+    # templated names (e.g. EVTID in ml.cxx): ship the whole parent directory
+    cmake_path(GET SOURCE_FILE PARENT_PATH SOURCE_DIR)
+    cmake_path(GET DESTINATION PARENT_PATH DESTINATION)
+    if(IS_DIRECTORY ${SOURCE_DIR})
+      install(DIRECTORY ${SOURCE_DIR} DESTINATION ${INSTALLDIR}/${DESTINATION})
+    else()
+      message(FATAL_ERROR "Referenced file ${DATA_FILE} not found")
+    endif()
+  endif()
 endforeach()
