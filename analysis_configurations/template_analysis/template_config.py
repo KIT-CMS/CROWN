@@ -117,7 +117,7 @@ def build_config(
             "muon_max_iso": 0.15,
         },
     )
-    # Muon scale factors configuration based on jsonpog correctionlib files
+    # Muon scale factors configuration based on correctionlib files
     configuration.add_config_parameters(
         ["mm"],
         {

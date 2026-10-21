@@ -388,8 +388,8 @@ METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
         double corr_met_phi = evaluator_met_phi->evaluate(
             {met.Pt(), met.Phi(), float(npv), float(run)});
 
-        double corr_met_X = corr_met_pt * cos(corr_met_phi);
-        double corr_met_Y = corr_met_pt * sin(corr_met_phi);
+        double corr_met_X = corr_met_pt * std::cos(corr_met_phi);
+        double corr_met_Y = corr_met_pt * std::sin(corr_met_phi);
         ROOT::Math::PtEtaPhiMVector corr_met;
         corr_met.SetPxPyPzE(
             corr_met_X, corr_met_Y, 0,
@@ -463,8 +463,8 @@ METPhiCorrection(ROOT::RDF::RNode df, const std::string &outputname,
                 {phi_key, met_type, era, data_mc_key, pileup_variation,
                  met.Pt(), met.Phi(), float(npv)});
 
-            double corr_met_X = corr_met_pt * cos(corr_met_phi);
-            double corr_met_Y = corr_met_pt * sin(corr_met_phi);
+            double corr_met_X = corr_met_pt * std::cos(corr_met_phi);
+            double corr_met_Y = corr_met_pt * std::sin(corr_met_phi);
             ROOT::Math::PtEtaPhiMVector corr_met;
             corr_met.SetPxPyPzE(
                 corr_met_X, corr_met_Y, 0,

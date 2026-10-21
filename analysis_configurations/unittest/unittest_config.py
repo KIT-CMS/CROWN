@@ -49,10 +49,10 @@ def build_config(
         {
             "PU_reweighting_file": EraModifier(
                 {
-                    "2016preVFP": "data/jsonpog-integration/POG/LUM/2016preVFP_UL/puWeights.json.gz",
-                    "2016postVFP": "data/jsonpog-integration/POG/LUM/2016postVFP_UL/puWeights.json.gz",
-                    "2017": "data/jsonpog-integration/POG/LUM/2017_UL/puWeights.json.gz",
-                    "2018": "data/jsonpog-integration/POG/LUM/2018_UL/puWeights.json.gz",
+                    "2016preVFP": "payloads/LUM/2016preVFP_UL/puWeights.json.gz",
+                    "2016postVFP": "payloads/LUM/2016postVFP_UL/puWeights.json.gz",
+                    "2017": "payloads/LUM/2017_UL/puWeights.json.gz",
+                    "2018": "payloads/LUM/2018_UL/puWeights.json.gz",
                 }
             ),
             "PU_reweighting_era": EraModifier(
@@ -74,9 +74,10 @@ def build_config(
             "tau_dms": "0,1,10,11",
             "tau_sf_file": EraModifier(
                 {
-                    "2016": "data/jsonpog-integration/POG/TAU/2016postVFP_UL/tau.json.gz",
-                    "2017": "data/jsonpog-integration/POG/TAU/2017_UL/tau.json.gz",
-                    "2018": "data/jsonpog-integration/POG/TAU/2018_UL/tau.json.gz",
+                    "2016preVFP": "payloads/TAU/2016preVFP_UL/tau.json.gz",
+                    "2016postVFP": "payloads/TAU/2016postVFP_UL/tau.json.gz",
+                    "2017": "payloads/TAU/2017_UL/tau.json.gz",
+                    "2018": "payloads/TAU/2018_UL/tau.json.gz",
                 }
             ),
             "tau_ES_json_name": "tau_energy_scale",
@@ -137,10 +138,10 @@ def build_config(
             "jet_jer_master_seed": 42,
             "jet_jec_file": EraModifier(
                 {
-                    "2016preVFP": '"data/jsonpog-integration/POG/JME/2016preVFP_UL/jet_jerc.json.gz"',
-                    "2016postVFP": '"data/jsonpog-integration/POG/JME/2016postVFP_UL/jet_jerc.json.gz"',
-                    "2017": '"data/jsonpog-integration/POG/JME/2017_UL/jet_jerc.json.gz"',
-                    "2018": '"data/jsonpog-integration/POG/JME/2018_UL/jet_jerc.json.gz"',
+                    "2016preVFP": '"payloads/JME/2016preVFP_UL/jet_jerc.json.gz"',
+                    "2016postVFP": '"payloads/JME/2016postVFP_UL/jet_jerc.json.gz"',
+                    "2017": '"payloads/JME/2017_UL/jet_jerc.json.gz"',
+                    "2018": '"payloads/JME/2018_UL/jet_jerc.json.gz"',
                 }
             ),
             "jet_jer_tag": EraModifier(
@@ -323,9 +324,10 @@ def build_config(
             "muon_iso_cut": 0.15,
             "muon_sf_file": EraModifier(
                 {
-                    "2016": "data/jsonpog-integration/POG/MUO/2016postVFP_UL/muon_Z.json.gz",
-                    "2017": "data/jsonpog-integration/POG/MUO/2017_UL/muon_Z.json.gz",
-                    "2018": "data/jsonpog-integration/POG/MUO/2018_UL/muon_Z.json.gz",
+                    "2016preVFP": "payloads/MUO/2016preVFP_UL/muon_Z.json.gz",
+                    "2016postVFP": "payloads/MUO/2016postVFP_UL/muon_Z.json.gz",
+                    "2017": "payloads/MUO/2017_UL/muon_Z.json.gz",
+                    "2018": "payloads/MUO/2018_UL/muon_Z.json.gz",
                 }
             ),
             "muon_reco_sf_name": "NUM_TrackerMuons_DEN_genTracks",

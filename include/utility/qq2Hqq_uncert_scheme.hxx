@@ -365,7 +365,7 @@ double _cov(int ibin, int jbin) {
 double _corr(int ibin, int jbin) {
     if (ibin == jbin)
         return 1.0;
-    return _cov(ibin, jbin) / sqrt(_cov(ibin, ibin) * _cov(jbin, jbin));
+    return _cov(ibin, jbin) / std::sqrt(_cov(ibin, ibin) * _cov(jbin, jbin));
 }
 void print_corr() {
     std::cout << std::setw(8) << " --- ";

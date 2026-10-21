@@ -2,6 +2,7 @@
 #define GUARD_PHYSICSOBJECTS_H
 
 #include "../include/utility/utility.hxx"
+#include <cmath>
 
 namespace physicsobject {
 
@@ -217,7 +218,8 @@ CutAbsMin(ROOT::RDF::RNode df, const std::string &outputname,
           const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const ROOT::RVec<T> &values) {
-                         ROOT::RVec<int> mask = abs(values) >= threshold;
+                         ROOT::RVec<int> mask =
+                             ROOT::VecOps::abs(values) >= threshold;
                          return mask;
                      },
                      {quantity});
@@ -246,7 +248,8 @@ CutAbsMax(ROOT::RDF::RNode df, const std::string &outputname,
           const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const ROOT::RVec<T> &values) {
-                         ROOT::RVec<int> mask = abs(values) <= threshold;
+                         ROOT::RVec<int> mask =
+                             ROOT::VecOps::abs(values) <= threshold;
                          return mask;
                      },
                      {quantity});
@@ -275,7 +278,8 @@ CutAbsGreater(ROOT::RDF::RNode df, const std::string &outputname,
               const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const ROOT::RVec<T> &values) {
-                         ROOT::RVec<int> mask = abs(values) > threshold;
+                         ROOT::RVec<int> mask =
+                             ROOT::VecOps::abs(values) > threshold;
                          return mask;
                      },
                      {quantity});
@@ -304,7 +308,8 @@ CutAbsSmaller(ROOT::RDF::RNode df, const std::string &outputname,
               const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const ROOT::RVec<T> &values) {
-                         ROOT::RVec<int> mask = abs(values) < threshold;
+                         ROOT::RVec<int> mask =
+                             ROOT::VecOps::abs(values) < threshold;
                          return mask;
                      },
                      {quantity});
@@ -360,7 +365,8 @@ CutAbsEqual(ROOT::RDF::RNode df, const std::string &outputname,
             const std::string &quantity, const T &threshold) {
     return df.Define(outputname,
                      [threshold](const ROOT::RVec<T> &values) {
-                         ROOT::RVec<int> mask = abs(values) == threshold;
+                         ROOT::RVec<int> mask =
+                             ROOT::VecOps::abs(values) == threshold;
                          return mask;
                      },
                      {quantity});

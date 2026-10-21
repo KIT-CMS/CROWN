@@ -13,6 +13,7 @@
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
 #include <algorithm>
+#include <cmath>
 
 namespace physicsobject {
 namespace jet {
@@ -450,7 +451,8 @@ ROOT::RDF::RNode PtCorrectionL2L3(
                         ->debug(
                             "No gen jet found. Applying stochastic smearing.");
                     if (era_year >= 2022 && era_year <= 2024 &&
-                        abs(etas.at(i)) > 2.5 && abs(etas.at(i)) < 3.0) {
+                        std::abs(etas.at(i)) > 2.5 &&
+                        std::abs(etas.at(i)) < 3.0) {
                         Logger::get("physicsobject::jet::PtCorrectionL2L3")
                             ->debug("Jet has 3 > |eta| > 2.5, and no JER "
                                     "applied to "
@@ -754,7 +756,7 @@ PtCorrectionMC(ROOT::RDF::RNode df,
                     ->debug("No gen jet found. Applying stochastic smearing.");
                 double shift = 0.0;
                 if (no_jer_for_unmatched_forward_jets &&
-                    abs(etas.at(i)) > 2.5) {
+                    std::abs(etas.at(i)) > 2.5) {
                     Logger::get("physicsobject::jet::PtCorrectionMC")
                         ->debug("Jet has eta > 2.5, and no JER applied to "
                                 "unmatched forward jets turned on.");
@@ -1414,12 +1416,13 @@ PatchedIDNanoV12(ROOT::RDF::RNode df, const std::string &outputname,
         for (int i = 0; i < jet_pt.size(); ++i) {
             // evaluate if the jet passes the tight WP
             bool pass_tight = false;
-            if (abs(jet_eta.at(i)) <= 2.7) {
+            if (std::abs(jet_eta.at(i)) <= 2.7) {
                 pass_tight = jet_id.at(i) & (1 << 1);
-            } else if (abs(jet_eta.at(i)) > 2.7 && abs(jet_eta.at(i)) <= 3.0) {
+            } else if (std::abs(jet_eta.at(i)) > 2.7 &&
+                       std::abs(jet_eta.at(i)) <= 3.0) {
                 pass_tight =
                     (jet_id.at(i) & (1 << 1)) && (jet_ne_h_ef.at(i) < 0.99);
-            } else if (abs(jet_eta.at(i)) > 3.0) {
+            } else if (std::abs(jet_eta.at(i)) > 3.0) {
                 pass_tight =
                     (jet_id.at(i) & (1 << 1)) && (jet_ne_em_ef.at(i) < 0.4);
             }
@@ -1427,7 +1430,7 @@ PatchedIDNanoV12(ROOT::RDF::RNode df, const std::string &outputname,
             // evaluate if the jet passes the tight WP and fulfills the lepton
             // veto
             bool pass_tight_lep_veto = false;
-            if (abs(jet_eta.at(i)) <= 2.7) {
+            if (std::abs(jet_eta.at(i)) <= 2.7) {
                 pass_tight_lep_veto = pass_tight && (jet_mu_ef.at(i) < 0.8) &&
                                       (jet_ch_em_ef.at(i) < 0.8);
             } else {

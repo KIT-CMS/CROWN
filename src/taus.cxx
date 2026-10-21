@@ -1931,11 +1931,11 @@ PtCorrectionMC(ROOT::RDF::RNode df,
             decay_modes.end()) {
             if (id_vsjet_wp.empty() && id_vse_wp.empty()) {
                 correction_factor =
-                    evaluate_wrapper({pt, abs(eta), decay_mode, gen_match,
+                    evaluate_wrapper({pt, std::abs(eta), decay_mode, gen_match,
                                       id_algorithm, variation});
             } else {
                 correction_factor = evaluate_wrapper(
-                    {pt, abs(eta), decay_mode, gen_match, id_algorithm,
+                    {pt, std::abs(eta), decay_mode, gen_match, id_algorithm,
                      id_vsjet_wp, id_vse_wp, variation});
             }
         }
@@ -2326,6 +2326,8 @@ Id_vsJet(ROOT::RDF::RNode df,
  * @param sf_name name of the tau scale factor for the vsJet ID correction
  * @param wp working point of the vsJet ID
  * @param vsele_wp working point of the vsEle ID
+ * @param vsmu_wp working point of the vsMu ID (required by the 2025+ jsons,
+ * set to `""` for older ones)
  * @param sf_dependence variable dependence of the scale factor, options are
  * "pt" (which is dm+pt) or "dm" (which is dm only)
  * @param variation_dm0_pt20to40 variation for decay mode 0 and
@@ -2358,7 +2360,7 @@ Id_vsJet(ROOT::RDF::RNode df,
          const std::string &decay_mode, const std::string &gen_match,
          const std::string &sf_file, const std::string &sf_name,
          const std::string &wp, const std::string &vsele_wp,
-         const std::string &sf_dependence,
+         const std::string &vsmu_wp, const std::string &sf_dependence,
          const std::string &variation_dm0_pt20to40,
          const std::string &variation_dm0_pt40to60,
          const std::string &variation_dm0_pt60toInf,
@@ -2396,7 +2398,8 @@ Id_vsJet(ROOT::RDF::RNode df,
     Logger::get("physicsobject::tau::scalefactor::Id_vsJet")
         ->debug("SF - Name {}", sf_name);
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
-    auto sf_calculator = [evaluator, wp, vsele_wp, variations, sf_dependence,
+    auto sf_calculator = [evaluator, wp, vsele_wp, vsmu_wp, variations,
+                          sf_dependence,
                           sf_name](const float &pt, const int &decay_mode,
                                    const int &gen_match) {
         Logger::get("physicsobject::tau::scalefactor::Id_vsJet")
@@ -2419,12 +2422,21 @@ Id_vsJet(ROOT::RDF::RNode df,
                 Logger::get("physicsobject::tau::scalefactor::Id_vsJet")
                     ->debug(
                         "SF {} - pt {}, decay_mode {}, gen_match {}, wp {}, "
-                        "vsele_wp {}, variation {}, sf_dependence {}",
+                        "vsele_wp {}, vsmu_wp {}, variation {}, sf_dependence "
+                        "{}",
                         sf_name, pt, decay_mode, gen_match, wp, vsele_wp,
-                        variation, sf_dependence);
+                        vsmu_wp, variation, sf_dependence);
 
-                sf = evaluator->evaluate({pt, decay_mode, gen_match, wp,
-                                          vsele_wp, variation, sf_dependence});
+                // 2025+ jsons additionally require the vsMu WP
+                if (vsmu_wp.empty()) {
+                    sf = evaluator->evaluate({pt, decay_mode, gen_match, wp,
+                                              vsele_wp, variation,
+                                              sf_dependence});
+                } else {
+                    sf = evaluator->evaluate({pt, decay_mode, gen_match, wp,
+                                              vsele_wp, vsmu_wp, variation,
+                                              sf_dependence});
+                }
             }
         }
 
@@ -3066,6 +3078,70 @@ Trigger(ROOT::RDF::RNode df,
     return df1;
 }
 
+/**
+ * @brief This function reads the scale factor of the jet leg of the DiTau+Jet
+ * trigger from a correctionlib file, binned in jet \f$p_T\f$ and
+ * \f$|\eta|\f$. The files for 2022 and 2023 contain the efficiencies in data
+ * and MC (inputs: pt, abseta, syst, data_or_mc), the scale factor is their
+ * ratio. The files from 2024 on contain the scale factor (inputs: pt, abseta,
+ * corrtype, syst, syst_var). If the trigger flag is `false`, or the evaluation
+ * fails, a scale factor of 1.0 is returned.
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * correction file
+ * @param outputname name of the output column containing the scale factor
+ * @param jet_p4 name of the column containing the Lorentz vector of the jet
+ * @param trigger_flag name of the column containing the trigger flag
+ * @param sf_file path to the correction file
+ * @param sf_name name of the correction
+ * @param variation "nom", "up" or "down", for the files of 2022 and 2023 the
+ * variation is applied to the efficiencies in data and MC
+ * @param syst_variable name of the systematic variable of the jet \f$p_T\f$,
+ * only used for corrections that have this input
+ *
+ * @return a new dataframe containing the new column
+ */
+ROOT::RDF::RNode
+TriggerJetLeg(ROOT::RDF::RNode df,
+              correctionManager::CorrectionManager &correction_manager,
+              const std::string &outputname, const std::string &jet_p4,
+              const std::string &trigger_flag, const std::string &sf_file,
+              const std::string &sf_name, const std::string &variation,
+              const std::string &syst_variable) {
+    auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+    // This check is based on an assumption that the number of inputs is 4
+    // for 2022 and 2023, and 5 for 2024 and later. If this assumption changes
+    // in the future, this check may need to be updated.
+    const bool has_syst_variable = evaluator->inputs().size() == 5;
+    auto scale_factor =
+        [evaluator, variation, syst_variable, has_syst_variable](
+            const ROOT::Math::PtEtaPhiMVector &jet, const bool &trigger_flag) {
+            float sf = 1.;
+            try {
+                if (trigger_flag) {
+                    const double pt = jet.pt();
+                    const double abseta = std::abs(jet.eta());
+                    if (has_syst_variable) {
+                        sf = evaluator->evaluate(
+                            {pt, abseta, "sf", variation, syst_variable});
+                    } else {
+                        const double eff_data = evaluator->evaluate(
+                            {pt, abseta, variation, "data"});
+                        const double eff_mc =
+                            evaluator->evaluate({pt, abseta, variation, "mc"});
+                        sf = eff_mc > 0. ? eff_data / eff_mc : 1.;
+                    }
+                }
+            } catch (const std::runtime_error &e) {
+                Logger::get("physicsobject::tau::scalefactor::TriggerJetLeg")
+                    ->debug("Scale factor evaluation failed");
+            }
+            return sf;
+        };
+    return df.Define(outputname, scale_factor, {jet_p4, trigger_flag});
+}
+
 namespace experimental {
 
 /**
@@ -3127,6 +3203,7 @@ namespace experimental {
  * correction
  * @param id_vsjet_wp working point of the DeepTau VSjet ID
  * @param id_vse_wp working point of the DeepTau VSe ID
+ * @param id_vsmu_wp working point of the DeepTau VSmu ID
  * @param sf_dependence variable dependence of the scale factor, options are
  * "`pt`" or "dm", refer to documentation above for details
  * @param variation name of the scale factor variation, refer to description
@@ -3141,7 +3218,8 @@ Id_vsJet(ROOT::RDF::RNode df,
          const std::string &decay_mode, const std::string &gen_match,
          const std::string &sf_file, const std::string &sf_name,
          const std::string &id_vsjet_wp, const std::string &id_vse_wp,
-         const std::string &sf_dependence, const std::string &variation) {
+         const std::string &id_vsmu_wp, const std::string &sf_dependence,
+         const std::string &variation) {
     // Define logger name
     std::string logger_name =
         "physicsobject::tau::scalefactor::experimental::Id_vsJet";
@@ -3156,8 +3234,8 @@ Id_vsJet(ROOT::RDF::RNode df,
     auto tau_id_variation = variation_handlers::TauVariationHandler(variation);
     auto evaluate_wrapper = tau_id_variation.wrap_evaluate(evaluator);
 
-    auto sf_calculator = [evaluate_wrapper, id_vsjet_wp, id_vse_wp, variation,
-                          sf_dependence, sf_name,
+    auto sf_calculator = [evaluate_wrapper, id_vsjet_wp, id_vse_wp, id_vsmu_wp,
+                          variation, sf_dependence, sf_name,
                           logger_name](const float &pt, const int &decay_mode,
                                        const int &gen_match) {
         // Only calculate SFs for allowed tau decay modes
@@ -3172,14 +3250,21 @@ Id_vsJet(ROOT::RDF::RNode df,
             Logger::get(logger_name)->debug("   decay_mode    {}", decay_mode);
             Logger::get(logger_name)->debug("   gen_match     {}", gen_match);
             Logger::get(logger_name)->debug("   id_vsjet_wp   {}", id_vsjet_wp);
-            Logger::get(logger_name)->debug("   id_vse_wp   {}", id_vse_wp);
+            Logger::get(logger_name)->debug("   id_vse_wp     {}", id_vse_wp);
+            Logger::get(logger_name)->debug("   id_vsmu_wp    {}", id_vsmu_wp);
             Logger::get(logger_name)->debug("   variation     {}", variation);
             Logger::get(logger_name)
                 ->debug("   sf_dependence {}", sf_dependence);
 
             // Evaluate the scale factor
-            sf = evaluate_wrapper({pt, decay_mode, gen_match, id_vsjet_wp,
-                                   id_vse_wp, variation, sf_dependence});
+            if (id_vsmu_wp.empty()) {
+                sf = evaluate_wrapper({pt, decay_mode, gen_match, id_vsjet_wp,
+                                       id_vse_wp, variation, sf_dependence});
+            } else {
+                sf = evaluate_wrapper({pt, decay_mode, gen_match, id_vsjet_wp,
+                                       id_vse_wp, id_vsmu_wp, variation,
+                                       sf_dependence});
+            }
         } else {
             Logger::get(logger_name)
                 ->debug("Retrieve tau ID SF {} for", sf_name);

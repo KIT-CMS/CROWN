@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 
 #include "Math/Factory.h"
 #include "Math/Functor.h"
@@ -119,7 +120,7 @@ double Likelihood::massLikelihood(const double &m) const {
         return 0.0;
 
     double jacobiFactor = 2.0 * std::pow(mVis, 2) * std::pow(mScaled, -coeff1);
-    double x2IntegralTerm = log(x2Max) - log(x2Min);
+    double x2IntegralTerm = std::log(x2Max) - std::log(x2Min);
 
     double value = x2IntegralTerm;
     if (leg1DecayType != fastmtt::MeasuredTauLepton::kTauToHadDecay) {
@@ -187,7 +188,7 @@ double Likelihood::ptLikelihood(const double &pTTauTau, int type) const {
     Double_t x2 = std::min(1.0, x2Max);
 
     const Double_t term1 = pT2 - pTTauTau * x2;
-    const Double_t log_term1 = log(std::abs(term1));
+    const Double_t log_term1 = std::log(std::abs(term1));
     const Double_t term1Square = std::pow(term1, 2);
 
     Double_t integralMax =
@@ -204,7 +205,7 @@ double Likelihood::ptLikelihood(const double &pTTauTau, int type) const {
     if (leg2DecayType != fastmtt::MeasuredTauLepton::kTauToHadDecay) {
         mNuNuIntegral += -pT1 / (2 * pTTauTauPow[5]) *
                          (2 * pT2 * pTTauTau * (-3 * pT1 + 2 * pTTauTau) * x2 +
-                          pTTauTauPow[2] * (-pT1 + pTTauTau) * pow(x2, 2) +
+                          pTTauTauPow[2] * (-pT1 + pTTauTau) * std::pow(x2, 2) +
                           (pT2pow[4] * pT1) / term1Square +
                           (2 * pT2pow[3] * (-4 * pT1 + pTTauTau)) / term1 +
                           6 * pT2pow[2] * (-2 * pT1 + pTTauTau) * log_term1);
@@ -213,7 +214,7 @@ double Likelihood::ptLikelihood(const double &pTTauTau, int type) const {
 
     x2 = x2Min;
     const Double_t term2 = pT2 - pTTauTau * x2;
-    const Double_t log_term2 = log(std::abs(term2));
+    const Double_t log_term2 = std::log(std::abs(term2));
     const Double_t term2Square = std::pow(term2, 2);
 
     Double_t integralMin =
@@ -230,7 +231,7 @@ double Likelihood::ptLikelihood(const double &pTTauTau, int type) const {
     if (leg2DecayType != fastmtt::MeasuredTauLepton::kTauToHadDecay) {
         mNuNuIntegral += -pT1 / (2 * pTTauTauPow[5]) *
                          (2 * pT2 * pTTauTau * (-3 * pT1 + 2 * pTTauTau) * x2 +
-                          pTTauTauPow[2] * (-pT1 + pTTauTau) * pow(x2, 2) +
+                          pTTauTauPow[2] * (-pT1 + pTTauTau) * std::pow(x2, 2) +
                           (pT2pow[4] * pT1) / term2Square +
                           (2 * pT2pow[3] * (-4 * pT1 + pTTauTau)) / term2 +
                           6 * pT2pow[2] * (-2 * pT1 + pTTauTau) * log_term2);
@@ -346,7 +347,7 @@ FastMTT::run(const std::vector<fastmtt::MeasuredTauLepton> &measuredTauLeptons,
               compareLeptons);
 
     double metLength =
-        sqrt(std::pow(measuredMETx, 2) + std::pow(measuredMETy, 2));
+        std::sqrt(std::pow(measuredMETx, 2) + std::pow(measuredMETy, 2));
     LorentzVector aMET =
         LorentzVector(measuredMETx, measuredMETy, 0, metLength);
 

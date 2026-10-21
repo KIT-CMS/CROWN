@@ -118,8 +118,8 @@ ROOT::RDF::RNode GetBoson(ROOT::RDF::RNode df, const std::string outputname,
                 //    flag)
                 Logger::get("genparticles::GetBoson")
                     ->debug("Checking particle {} ", pdg_ids.at(index));
-                if ((abs(pdg_ids.at(index)) >= 11 &&
-                     abs(pdg_ids.at(index)) <= 16 &&
+                if ((std::abs(pdg_ids.at(index)) >= 11 &&
+                     std::abs(pdg_ids.at(index)) <= 16 &&
                      (IntBits(status_flags.at(index)).test(8)) &&
                      status.at(index) == 1) ||
                     (IntBits(status_flags.at(index)).test(10))) {
@@ -223,16 +223,16 @@ ROOT::RDF::RNode GetVisibleBoson(
                 //    flag)
                 Logger::get("genparticles::GetVisibleBoson")
                     ->debug("Checking particle {} ", pdg_ids.at(index));
-                if ((abs(pdg_ids.at(index)) >= 11 &&
-                     abs(pdg_ids.at(index)) <= 16 &&
+                if ((std::abs(pdg_ids.at(index)) >= 11 &&
+                     std::abs(pdg_ids.at(index)) <= 16 &&
                      (IntBits(status_flags.at(index)).test(8)) &&
                      status.at(index) == 1) ||
                     (IntBits(status_flags.at(index)).test(10))) {
                     // if the genparticle is not a neutrino, we add it to the
                     // visible gen boson vector
-                    if (abs(pdg_ids.at(index)) != 12 &&
-                        abs(pdg_ids.at(index)) != 14 &&
-                        abs(pdg_ids.at(index)) != 16) {
+                    if (std::abs(pdg_ids.at(index)) != 12 &&
+                        std::abs(pdg_ids.at(index)) != 14 &&
+                        std::abs(pdg_ids.at(index)) != 16) {
                         Logger::get("genparticles::GetVisibleBoson")
                             ->debug("Adding {} to visible gen boson vector",
                                     pdg_ids.at(index));
@@ -783,7 +783,7 @@ ROOT::RDF::RNode GenMatching(ROOT::RDF::RNode df, const std::string &outputname,
             if (closest_pdgid == 11 && prompt) {
                 // statusbit 7 is prompt electron from W boson
                 // statusbit 1 is prompt electron
-                if (abs(closest_genparticle_mother_pdgid) == 24) {
+                if (std::abs(closest_genparticle_mother_pdgid) == 24) {
                     Logger::get("genparticles::tau::GenMatching")
                         ->debug("IS_ELE_PROMPT_FROM_W");
                     return (int)MatchingGenTauCode::IS_ELE_PROMPT_FROM_W;
@@ -796,7 +796,7 @@ ROOT::RDF::RNode GenMatching(ROOT::RDF::RNode df, const std::string &outputname,
             if (closest_pdgid == 13 && prompt) {
                 // statusbit 8 is prompt muon from W boson
                 // statusbit 2 is prompt muon
-                if (abs(closest_genparticle_mother_pdgid) == 24) {
+                if (std::abs(closest_genparticle_mother_pdgid) == 24) {
                     Logger::get("genparticles::tau::GenMatching")
                         ->debug("IS_MUON_PROMPT_FROM_W");
                     return (int)MatchingGenTauCode::IS_MUON_PROMPT_FROM_W;
