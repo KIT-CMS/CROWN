@@ -86,6 +86,12 @@ void Likelihood::setMETInputs(const LorentzVector &aMET,
                               const TMatrixD &aCovMET) {
     recoMET = aMET;
     covMET = aCovMET;
+    invCovMETxx = covMET(1, 1);
+    invCovMETxy = -covMET(0, 1);
+    invCovMETyx = -covMET(1, 0);
+    invCovMETyy = covMET(0, 0);
+    covDet = invCovMETxx * invCovMETyy - invCovMETxy * invCovMETyx;
+    constMET = 1. / (2. * M_PI * TMath::Sqrt(covDet));
 }
 
 void Likelihood::setParameters(const std::vector<double> &aPars) {
@@ -119,14 +125,16 @@ double Likelihood::massLikelihood(const double &m) const {
     if (x2Max < x2Min)
         return 0.0;
 
-    double jacobiFactor = 2.0 * std::pow(mVis, 2) * std::pow(mScaled, -coeff1);
-    double x2IntegralTerm = std::log(x2Max) - std::log(x2Min);
+    const double invM2 = 1.0 / (mScaled * mScaled);
+    double jacobiFactor =
+        2.0 * mVis * mVis *
+        (coeff1 == 6 ? invM2 * invM2 * invM2 : std::pow(mScaled, -coeff1));
+    double x2IntegralTerm = std::log(x2Max / x2Min);
 
     double value = x2IntegralTerm;
     if (leg1DecayType != fastmtt::MeasuredTauLepton::kTauToHadDecay) {
 
-        double mNuNuIntegralTermLeg1 =
-            mVS2 * (std::pow(x2Max, -1) - std::pow(x2Min, -1));
+        double mNuNuIntegralTermLeg1 = mVS2 * (1.0 / x2Max - 1.0 / x2Min);
         value += mNuNuIntegralTermLeg1;
     }
     if (leg2DecayType != fastmtt::MeasuredTauLepton::kTauToHadDecay) {
@@ -247,16 +255,11 @@ double Likelihood::ptLikelihood(const double &pTTauTau, int type) const {
     return std::abs(value);
 }
 
-double Likelihood::metTF(const LorentzVector &metP4, const LorentzVector &nuP4,
-                         const TMatrixD &covMET) const {
+double Likelihood::metTF(const LorentzVector &metP4,
+                         const LorentzVector &nuP4) const {
 
     const double aMETx = metP4.X();
     const double aMETy = metP4.Y();
-    double invCovMETxx = covMET(1, 1);
-    double invCovMETxy = -covMET(0, 1);
-    double invCovMETyx = -covMET(1, 0);
-    double invCovMETyy = covMET(0, 0);
-    double covDet = invCovMETxx * invCovMETyy - invCovMETxy * invCovMETyx;
 
     if (std::abs(covDet) < 1E-10) {
         Logger::get("FastMTT")->debug(
@@ -264,7 +267,6 @@ double Likelihood::metTF(const LorentzVector &metP4, const LorentzVector &nuP4,
             aMETx, aMETy);
         return 0;
     }
-    double const_MET = 1. / (2. * M_PI * TMath::Sqrt(covDet));
     double residualX = aMETx - (nuP4.X());
     double residualY = aMETy - (nuP4.Y());
 
@@ -273,7 +275,7 @@ double Likelihood::metTF(const LorentzVector &metP4, const LorentzVector &nuP4,
         residualY * (invCovMETyx * residualX + invCovMETyy * residualY);
     pull2 /= covDet;
 
-    return const_MET * TMath::Exp(-0.5 * pull2);
+    return constMET * TMath::Exp(-0.5 * pull2);
 }
 
 double Likelihood::value(const double *x) const {
@@ -288,10 +290,14 @@ double Likelihood::value(const double *x) const {
     const auto testMET = testP4 - leg1P4 - leg2P4;
 
     double value = -1.0;
-    if (componentsBitWord.test(fastMTT::MET))
-        value *= metTF(recoMET, testMET, covMET);
-    if (componentsBitWord.test(fastMTT::MASS))
+    // mass term first: it is zero for most of the grid, skipping the MET exp
+    if (componentsBitWord.test(fastMTT::MASS)) {
         value *= massLikelihood(testP4.M());
+        if (value == 0.0)
+            return 0.0;
+    }
+    if (componentsBitWord.test(fastMTT::MET))
+        value *= metTF(recoMET, testMET);
     return value;
 }
 
