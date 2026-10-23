@@ -88,8 +88,8 @@ if(NEEDS_REBUILD)
       g++ -shared -fPIC -o ${PERSISTENT_LIB} ${PERSISTENT_CC}
       -I${CMAKE_CURRENT_SOURCE_DIR}/include ${C_FLAGS_LIST} ${L_FLAGS_LIST})
 
-  # Record which ROOT install these assets were built against, so a later
-  # ROOT change is detected instead of silently reusing an ABI-incompatible cache
+  # Record which ROOT install these assets were built against, so a later ROOT
+  # change is detected instead of silently reusing an ABI-incompatible cache
   file(WRITE "${FINGERPRINT_FILE}" "${ROOT_FINGERPRINT}")
 
   message(STATUS "Dictionary assets cached in .cache/")
