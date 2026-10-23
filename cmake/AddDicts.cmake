@@ -3,6 +3,7 @@ set(CACHE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.cache")
 set(PERSISTENT_LIB "${CACHE_DIR}/libMyDicts.so")
 set(PERSISTENT_PCM "${CACHE_DIR}/libMyDicts_dict_rdict.pcm")
 set(PERSISTENT_CC "${CACHE_DIR}/libMyDicts_dict.cc")
+set(FINGERPRINT_FILE "${CACHE_DIR}/root_fingerprint.txt")
 
 set(SRC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/include/dictionaries/MyDicts.hxx")
 set(SRC_LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/include/dictionaries/LinkDef.hxx")
@@ -11,11 +12,24 @@ if(NOT EXISTS "${CACHE_DIR}")
   file(MAKE_DIRECTORY "${CACHE_DIR}")
 endif()
 
+# Fingerprint of the ROOT install currently in use. The generated dictionary's
+# ABI depends on the exact ROOT build (e.g. TGenericClassInfo's constructor
+# signature has changed between ROOT/LCG releases), not just on our own header,
+# so a ROOT install/version change has to invalidate the cache too - a stale
+# dictionary built against a different ROOT silently fails to compile with
+# confusing "no matching function" errors.
+execute_process(
+  COMMAND root-config --prefix
+  OUTPUT_VARIABLE ROOT_PREFIX
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+set(ROOT_FINGERPRINT "${ROOT_VERSION}|${ROOT_PREFIX}")
+
 # Check if Rebuild is Needed
 set(NEEDS_REBUILD FALSE)
 if(NOT EXISTS "${PERSISTENT_LIB}"
    OR NOT EXISTS "${PERSISTENT_PCM}"
-   OR NOT EXISTS "${PERSISTENT_CC}")
+   OR NOT EXISTS "${PERSISTENT_CC}"
+   OR NOT EXISTS "${FINGERPRINT_FILE}")
   set(NEEDS_REBUILD TRUE)
 else()
   file(TIMESTAMP "${SRC_HEADER}" SRC_TIME "%s")
@@ -29,6 +43,16 @@ else()
     message(
       STATUS
         "Cached file ${PERSISTENT_CC} includes a different header path than ${SRC_HEADER}"
+    )
+    set(NEEDS_REBUILD TRUE)
+  endif()
+  file(READ "${FINGERPRINT_FILE}" CACHED_FINGERPRINT)
+  string(STRIP "${CACHED_FINGERPRINT}" CACHED_FINGERPRINT)
+  if(NOT CACHED_FINGERPRINT STREQUAL ROOT_FINGERPRINT)
+    message(
+      STATUS
+        "Cached ROOT dictionary was built against a different ROOT install "
+        "(${CACHED_FINGERPRINT}) than the one currently in use (${ROOT_FINGERPRINT})"
     )
     set(NEEDS_REBUILD TRUE)
   endif()
@@ -63,6 +87,10 @@ if(NEEDS_REBUILD)
     COMMAND
       g++ -shared -fPIC -o ${PERSISTENT_LIB} ${PERSISTENT_CC}
       -I${CMAKE_CURRENT_SOURCE_DIR}/include ${C_FLAGS_LIST} ${L_FLAGS_LIST})
+
+  # Record which ROOT install these assets were built against, so a later
+  # ROOT change is detected instead of silently reusing an ABI-incompatible cache
+  file(WRITE "${FINGERPRINT_FILE}" "${ROOT_FINGERPRINT}")
 
   message(STATUS "Dictionary assets cached in .cache/")
 else()
