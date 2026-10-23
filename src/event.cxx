@@ -57,10 +57,11 @@ double SampleNormalizationLookupField(const nlohmann::json &norm_table,
 } // namespace
 
 /**
- * @brief This function defines three per-file constant columns --
+ * @brief This function defines four per-file constant columns --
  * `xsec_output` (cross section), `ngen_weight_output` (1 / number of
- * generated events) and `genweight_output` (effective normalization factor
- * accounting for negative generator weights) -- by looking up this file's
+ * generated events), `genweight_output` (effective normalization factor
+ * accounting for negative generator weights) and `split_weight_output` (1 /
+ * the fraction of the sample kept by an era split) -- by looking up this file's
  * sample nick in a `nick -> {xsec, nevents, generator_weight}` JSON table.
  *
  * The sample nick is parsed from the input file's path at runtime via
@@ -76,10 +77,13 @@ double SampleNormalizationLookupField(const nlohmann::json &norm_table,
  * @param ngen_weight_output name of the new column containing 1/nevents
  * @param genweight_output name of the new column containing the effective
  * generator-weight normalization factor
+ * @param split_weight_output name of the new column containing 1 /
+ * `split_fraction`, the generator-weight fraction of the sample kept by an
+ * era split (e.g. `FractionSplitFlag`), or 1 for nicks without one
  * @param norm_table_path path to the `nick -> {xsec, nevents,
- * generator_weight}` JSON lookup table
+ * generator_weight[, split_fraction]}` JSON lookup table
  *
- * @return a dataframe with the three new columns
+ * @return a dataframe with the four new columns
  */
 ROOT::RDF::RNode
 SampleNormalization(ROOT::RDF::RNode df,
@@ -87,6 +91,7 @@ SampleNormalization(ROOT::RDF::RNode df,
                     const std::string &xsec_output,
                     const std::string &ngen_weight_output,
                     const std::string &genweight_output,
+                    const std::string &split_weight_output,
                     const std::string &norm_table_path) {
     nlohmann::json norm_table = *correctionManager.loadjson(norm_table_path);
 
@@ -115,7 +120,16 @@ SampleNormalization(ROOT::RDF::RNode df,
                 norm_table, SampleNormalizationParseNickFromPath(id.AsString()),
                 "generator_weight");
         });
-    return df3;
+    // weight_campaign_split -- 1/split_fraction, 1 for samples used in a single era
+    return df3.DefinePerSample(
+        split_weight_output,
+        [norm_table](unsigned int /*slot*/, const ROOT::RDF::RSampleInfo &id) {
+            const auto &entry = norm_table.at(
+                SampleNormalizationParseNickFromPath(id.AsString()));
+            return entry.contains("split_fraction")
+                       ? 1.0 / entry.at("split_fraction").get<double>()
+                       : 1.0;
+        });
 }
 
 ROOT::RDF::RNode
