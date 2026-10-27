@@ -517,13 +517,9 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
                               const std::string &event,
                               const UInt_t &master_seed = 42);
 
-ROOT::RDF::RNode
-SampleSplitWeight(
-    ROOT::RDF::RNode df,
-    const std::string &output,
-    const double &u_min,
-    const double &u_max
-);
+ROOT::RDF::RNode SampleSplitWeight(ROOT::RDF::RNode df,
+                                   const std::string &output,
+                                   const double &u_min, const double &u_max);
 
 /**
  * @brief This function creates a new column in the dataframe by applying
@@ -1146,14 +1142,9 @@ GoldenJSON(ROOT::RDF::RNode df,
            correctionManager::CorrectionManager &correctionManager,
            const std::string &filtername, const std::string &run,
            const std::string &luminosity, const std::string &json_path);
-ROOT::RDF::RNode
-HashFilter(
-    ROOT::RDF::RNode df,
-    const std::string &filtername,
-    const std::string &event_hash,
-    const double &u_min,
-    const double &u_max
-);
+ROOT::RDF::RNode HashFilter(ROOT::RDF::RNode df, const std::string &filtername,
+                            const std::string &event_hash, const double &u_min,
+                            const double &u_max);
 
 } // end namespace filter
 } // end namespace event

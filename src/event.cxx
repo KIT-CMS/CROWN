@@ -2,11 +2,10 @@
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "TRandom3.h"
+#include <cmath>
+#include <exception>
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
-#include <exception>
-#include <cmath>
-
 
 namespace event {
 namespace quantity {
@@ -91,19 +90,16 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
  * @throws std::runtime_error if `u_min` or `u_max` are outside the `[0, 1]`
  * interval, or if `u_min >= u_max`.
  */
-ROOT::RDF::RNode
-SampleSplitWeight(
-    ROOT::RDF::RNode df,
-    const std::string &output,
-    const double &u_min,
-    const double &u_max
-) {
+ROOT::RDF::RNode SampleSplitWeight(ROOT::RDF::RNode df,
+                                   const std::string &output,
+                                   const double &u_min, const double &u_max) {
     // Define the logger name
     const std::string logger_name = "event::quantity::SampleSplitWeight";
 
     // Catch misconfiguration of u_min and u_max
     if (u_min < 0 || u_min > 1 || u_max < 0 || u_max > 1) {
-        const std::string msg = "u_min and u_max must be numbers between 0 and 1";
+        const std::string msg =
+            "u_min and u_max must be numbers between 0 and 1";
         Logger::get(logger_name)->critical(msg);
         throw std::runtime_error(msg);
     }
@@ -113,10 +109,8 @@ SampleSplitWeight(
         throw std::runtime_error(msg);
     }
 
-    return df.Define(
-        output,
-        [u_min, u_max] () { return (float) 1 / (u_max - u_min); }
-    );
+    return df.Define(output,
+                     [u_min, u_max]() { return (float)1 / (u_max - u_min); });
 }
 
 } // end namespace quantity
@@ -208,20 +202,16 @@ GoldenJSON(ROOT::RDF::RNode df,
  * @throws std::runtime_error if `u_min` or `u_max` are outside the `[0, 1]`
  * interval, or if `u_min >= u_max`.
  */
-ROOT::RDF::RNode
-HashFilter(
-    ROOT::RDF::RNode df,
-    const std::string &filtername,
-    const std::string &event_hash,
-    const double &u_min,
-    const double &u_max
-) {
+ROOT::RDF::RNode HashFilter(ROOT::RDF::RNode df, const std::string &filtername,
+                            const std::string &event_hash, const double &u_min,
+                            const double &u_max) {
     // Define the logger name
     const std::string logger_name = "event::filter::HashFilter";
 
     // Catch misconfiguration of u_min and u_max
     if (u_min < 0 || u_min > 1 || u_max < 0 || u_max > 1) {
-        const std::string msg = "u_min and u_max must be numbers between 0 and 1";
+        const std::string msg =
+            "u_min and u_max must be numbers between 0 and 1";
         Logger::get(logger_name)->critical(msg);
         throw std::runtime_error(msg);
     }
@@ -236,18 +226,17 @@ HashFilter(
     auto hash_min = uint64_t(u_min * std::pow(2, 32));
     auto hash_max = uint64_t(u_max * std::pow(2, 32));
 
-    auto filter = [logger_name, hash_min, hash_max] (const unsigned int &event_hash) {
+    auto filter = [logger_name, hash_min,
+                   hash_max](const unsigned int &event_hash) {
         // Keep the event if the hash is inside the [hash_min, hash_max)
         // interval
-        Logger::get(logger_name)->debug("Got hash {}, check if it is in [{}, {})", event_hash, hash_min, hash_max);
+        Logger::get(logger_name)
+            ->debug("Got hash {}, check if it is in [{}, {})", event_hash,
+                    hash_min, hash_max);
         return (hash_min <= event_hash) && (event_hash < hash_max);
     };
 
-    return df.Filter(
-        filter,
-        {event_hash},
-        filtername
-    );
+    return df.Filter(filter, {event_hash}, filtername);
 }
 
 } // end namespace filter
