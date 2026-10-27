@@ -1795,11 +1795,7 @@ BtaggingWP(ROOT::RDF::RNode df,
     auto wp_evaluator = correction_manager.loadCorrection(sf_file, sf_wp_name);
     auto eff_evaluator = correction_manager.loadCorrection(eff_file, eff_name);
 
-    // Define a map between the b-tagging working point name and the
-    // corresponding discriminator cut value. A custom value 'N' is used in the
-    // case the jet does not pass the loosest working point. Note that the list
-    // of working point names must be ordered from the tightest to the loosest
-    // one.
+    // Obtain the value of the b-tagging working point cut
     float btag_wp_cut = wp_evaluator->evaluate({btag_wp_name});
 
     // In nanoAODv12 the type of jet flavor was changed to UChar_t
@@ -1896,34 +1892,30 @@ BtaggingWP(ROOT::RDF::RNode df,
                 num = 1.0 - jet_sf * jet_eff;
                 denom = 1.0 - jet_eff;
             }
+            Logger::get(logger_name)
+                ->debug("Jet contribution: got numerator {} and denominator {}",
+                        num, denom);
 
-            // Handle edge cases where the denominator is not positive: Set
-            // the efficiency difference to 1 (TODO is this well-justified?)
-            if (denom <= 0) {
+            // Handle edge cases, in which numerator or denominator have
+            // non-positive values
+            auto jet_comp = 1.0;
+            if (num <= 0 || denom <= 0) {
                 Logger::get(logger_name)
-                    ->debug("got negative denominator {}, set it to 1.0",
-                            denom);
-                denom = 1.0;
+                    ->warn("Got non-positive contributions to fraction ({} / "
+                           "{}), set jet scale factor to 1.0",
+                           num, denom);
+            } else {
+                // Calculate the jet contribution for valid num/denom
+                jet_comp = num / denom;
             }
 
-            // Calculate the jet contribution
-            auto jet_comp = num / denom;
-
-            // Handle edge cases where the whole SF is negative, set it to 1
-            // unity
-            if (jet_comp <= 0.0) {
-                Logger::get(logger_name)
-                    ->debug("got nonpositve jet contribution {}, set it to 1.0",
-                            jet_comp);
-                jet_comp = 1.0;
-            }
-
-            // Emit a warning if the SF is extremely negative, extremely
-            // positive, or nan.
+            // Handle edge cases, in which the fraction is not finite
             if (std::isnan(jet_comp) || !std::isfinite(jet_comp)) {
                 Logger::get(logger_name)
-                    ->warn("got invalid jet contribution {} to b tagging SF",
+                    ->warn("Got ill-defined fraction value {}, set jet scale "
+                           "factor to 1.0",
                            jet_comp);
+                jet_comp = 1.0;
             }
 
             // Debug message for this jet's contribution to the event scale
@@ -1985,11 +1977,13 @@ BtaggingWP(ROOT::RDF::RNode df,
  *     efficiency should be evaluated
  * @param variation_bc name of the scale factor variation applied to b/c
  *     flavor jets (hadronFlavour 5/4), available values: central, down_*,
- *     up_* (* name of specific variation). b/c and light-flavor scale
- *     factors are measured with independent methods and independent
- *     uncertainty sources by the BTV POG, so they must be varied
- *     independently: when varying variation_bc, variation_lf should be kept
- *     at "central" and vice versa.
+ *     up_* (* name of specific variation). The BTV POG measures b/c and
+ *     light-flavor scale factors with independent methods and independent
+ *     uncertainty sets (see
+ *
+ https://btv-wiki.docs.cern.ch/ScaleFactors/#sf-uncertainties-and-correlations-across-years),
+ *     so they must be varied independently: when varying variation_bc,
+ *     variation_lf should be kept at "central" and vice versa.
  * @param variation_lf name of the scale factor variation applied to
  *     light-flavor jets (hadronFlavour 0), analogous to variation_bc
  *
@@ -2195,34 +2189,30 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                 throw std::runtime_error(
                     "Arrived at unexpected b tagging working point " + btag_wp);
             }
+            Logger::get(logger_name)
+                ->debug("Jet contribution: got numerator {} and denominator {}",
+                        num, denom);
 
-            // Handle edge cases where the denominator is not positive: Set
-            // the efficiency difference to 1 (TODO is this well-justified?)
-            if (denom <= 0) {
+            // Handle edge cases, in which numerator or denominator have
+            // non-positive values
+            auto jet_comp = 1.0;
+            if (num <= 0 || denom <= 0) {
                 Logger::get(logger_name)
-                    ->debug("got negative denominator {}, set it to 1.0",
-                            denom);
-                denom = 1.0;
+                    ->warn("Got non-positive contributions to fraction ({} / "
+                           "{}), set jet scale factor to 1.0",
+                           num, denom);
+            } else {
+                // Calculate the jet contribution
+                jet_comp = num / denom;
             }
 
-            // Calculate the jet contribution
-            auto jet_comp = num / denom;
-
-            // Handle edge cases where the whole SF is negative, set it to 1
-            // unity
-            if (jet_comp <= 0.0) {
-                Logger::get(logger_name)
-                    ->debug("got nonpositve jet contribution {}, set it to 1.0",
-                            jet_comp);
-                jet_comp = 1.0;
-            }
-
-            // Emit a warning if the SF is extremely negative, extremely
-            // positive, or nan.
+            // Handle edge cases, in which the fraction is not finite
             if (std::isnan(jet_comp) || !std::isfinite(jet_comp)) {
                 Logger::get(logger_name)
-                    ->warn("got invalid jet contribution {} to b tagging SF",
+                    ->warn("Got ill-defined fraction value {}, set jet scale "
+                           "factor to 1.0",
                            jet_comp);
+                jet_comp = 1.0;
             }
 
             // Debug message for this jet's contribution to the event scale
