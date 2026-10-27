@@ -641,6 +641,14 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
                               const std::string &event,
                               const UInt_t &master_seed = 42);
 
+ROOT::RDF::RNode
+SampleSplitWeight(
+    ROOT::RDF::RNode df,
+    const std::string &output,
+    const double &u_min,
+    const double &u_max
+);
+
 /**
  * @brief This function creates a new column with the sign of an existing
  * `quantity` column: `-1` for negative values and `+1` otherwise (including
