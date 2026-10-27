@@ -90,6 +90,39 @@ inline ROOT::RDF::RNode EvenOddFlag(ROOT::RDF::RNode df,
 }
 
 /**
+ * @brief This function creates a flag column that splits a dataset into two
+ * subsets of a given size. The quantity (e.g. the event number) is mapped to
+ * a uniform number in [0, 1) by the splitmix64 hash, and the flag is `true`
+ * if that number is below `fraction`. Unlike `EvenOddFlag`, the subsets are
+ * unrelated to the parity of the quantity. The same mapping is implemented in
+ * python by the sample database's `samplemanager/scripts/split_fractions.py`,
+ * which measures the generator-weight fraction of each subset.
+ *
+ * @tparam T type of the quantity (e.g. `ULong64_t`)
+ * @param df input dataframe
+ * @param outputname name of the new flag column
+ * @param quantity name of the column containing the quantity to hash
+ * @param fraction expected fraction of the dataset flagged as `true`
+ *
+ * @return a dataframe with the new flag column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+FractionSplitFlag(ROOT::RDF::RNode df, const std::string &outputname,
+                  const std::string &quantity, const double &fraction) {
+    return df.Define(outputname,
+                     [fraction](const T &quantity) {
+                         uint64_t z = static_cast<uint64_t>(quantity) +
+                                      0x9e3779b97f4a7c15ULL;
+                         z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+                         z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+                         z ^= z >> 31;
+                         return (z >> 11) * 0x1.0p-53 < fraction;
+                     },
+                     {quantity});
+}
+
+/**
  * @brief This function defines a flag for event quantities that satisfy an
  * inclusive minimum threshold requirement, i.e. `value >= threshold`. The flag
  * is created by comparing the value in the specified quantity column with the
@@ -463,6 +496,75 @@ Product(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
+ * @brief This function creates a new column with a quantity raised to a
+ * constant power, e.g. the nominal weight (power 1), its square (2) or no
+ * weight at all (0).
+ *
+ * @tparam T type of the quantity column
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param quantity name of the quantity column
+ * @param exponent power the quantity is raised to
+ *
+ * @return a dataframe with the new column of type `double`
+ */
+template <typename T>
+inline ROOT::RDF::RNode Power(ROOT::RDF::RNode df,
+                              const std::string &outputname,
+                              const std::string &quantity, double exponent) {
+    return df.Define(outputname,
+                     [exponent](const T &value) {
+                         return std::pow(static_cast<double>(value), exponent);
+                     },
+                     {quantity});
+}
+
+/**
+ * @brief This function creates a new column with a copy of a quantity.
+ *
+ * @tparam T type of the quantity column
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param quantity name of the quantity column
+ *
+ * @return a dataframe with the new column of type `T`
+ */
+template <typename T>
+inline ROOT::RDF::RNode Copy(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &quantity) {
+    return df.Define(outputname, [](const T &value) { return value; },
+                     {quantity});
+}
+
+/**
+ * @brief This function creates the fake factor weight of the fully hadronic
+ * anti-isolated region, where exactly one of the two taus fails the
+ * isolation: `0.5 * (ff_1 * [id_1 == 0] + ff_2 * [id_2 == 0])`, i.e. half of
+ * the fake factor of the failing tau.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param ff_1 name of the fake factor column of the leading tau (`float`)
+ * @param ff_2 name of the fake factor column of the subleading tau (`float`)
+ * @param id_1 name of the isolation flag column of the leading tau (`int`)
+ * @param id_2 name of the isolation flag column of the subleading tau (`int`)
+ *
+ * @return a dataframe with the new column of type `double`
+ */
+inline ROOT::RDF::RNode
+AntiIsoFakeFactor(ROOT::RDF::RNode df, const std::string &outputname,
+                  const std::string &ff_1, const std::string &ff_2,
+                  const std::string &id_1, const std::string &id_2) {
+    return df.Define(
+        outputname,
+        [](float fake_factor_1, float fake_factor_2, int id1, int id2) {
+            return 0.5 *
+                   (fake_factor_1 * (id1 == 0) + fake_factor_2 * (id2 == 0));
+        },
+        {ff_1, ff_2, id_1, id_2});
+}
+
+/**
  * @brief This function adds a new column to the dataframe, assigning it a
  * constant value for all entries.
  *
@@ -477,6 +579,65 @@ template <typename T>
 inline ROOT::RDF::RNode Define(ROOT::RDF::RNode df,
                                const std::string &outputname, T const &value) {
     return df.Define(outputname, [value]() { return value; }, {});
+}
+
+/**
+ * @brief This function creates a new column that takes the value of
+ * `value_quantity` if `cond_quantity` is `true`, and `1` otherwise -- a
+ * common pattern for gating a scale factor so it only applies under some
+ * condition (e.g. a genuine-object requirement), leaving the weight
+ * untouched (multiplicative no-op) otherwise.
+ *
+ * @tparam T type of the value quantity (and of the output column)
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param cond_quantity name of the boolean column deciding which value is
+ * picked
+ * @param value_quantity name of the quantity column used if `cond_quantity`
+ * is `true`
+ *
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode Gate(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &cond_quantity,
+                             const std::string &value_quantity) {
+    return df.Define(outputname,
+                     [](const bool &cond, const T &value) {
+                         return cond ? value : static_cast<T>(1);
+                     },
+                     {cond_quantity, value_quantity});
+}
+
+/**
+ * @brief This function creates a new column that takes the value of
+ * `true_quantity` if `cond_quantity` is `true`, and the value of
+ * `false_quantity` otherwise (a ternary/if-else selection between two
+ * quantity columns).
+ *
+ * @tparam T type of the two value quantities (and of the output column)
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param cond_quantity name of the boolean column deciding which value is
+ * picked
+ * @param true_quantity name of the quantity column used if `cond_quantity`
+ * is `true`
+ * @param false_quantity name of the quantity column used if `cond_quantity`
+ * is `false`
+ *
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+Select(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &cond_quantity, const std::string &true_quantity,
+       const std::string &false_quantity) {
+    return df.Define(
+        outputname,
+        [](const bool &cond, const T &true_value, const T &false_value) {
+            return cond ? true_value : false_value;
+        },
+        {cond_quantity, true_quantity, false_quantity});
 }
 
 /**
@@ -516,6 +677,132 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
                               const std::string &lumi, const std::string &run,
                               const std::string &event,
                               const UInt_t &master_seed = 42);
+
+/**
+ * @brief This function defines four per-file constant columns --
+ * `xsec_output` (cross section), `ngen_weight_output` (1 / number of
+ * generated events), `genweight_output` (effective normalization factor
+ * accounting for negative generator weights) and `split_weight_output` (1 /
+ * the fraction of the sample kept by an era split) -- by looking up this file's
+ * sample nick in a `nick -> {xsec, nevents, generator_weight}` JSON table.
+ *
+ * The sample nick is parsed from the input file's path at runtime via
+ * `ROOT::RDF::RSampleInfo` (path convention: `.../{era}/{nick}/{scope}/
+ * {nick}_{N}.root`), so one compiled executable correctly normalizes every
+ * nick contained in its input sample. An unknown nick throws rather than
+ * silently defaulting.
+ *
+ * @param df input dataframe
+ * @param correctionManager correction manager responsible for loading the
+ * normalization JSON table
+ * @param xsec_output name of the new column containing the cross section
+ * @param ngen_weight_output name of the new column containing 1/nevents
+ * @param genweight_output name of the new column containing the effective
+ * generator-weight normalization factor
+ * @param split_weight_output name of the new column containing 1 /
+ * `split_fraction`, the generator-weight fraction of the sample kept by an
+ * era split (e.g. `FractionSplitFlag`), or 1 / `default_split_fraction` for
+ * nicks without one
+ * @param norm_table_path path to the `nick -> {xsec, nevents,
+ * generator_weight[, split_fraction]}` JSON lookup table
+ * @param default_split_fraction fraction of the sample kept by the era split
+ * if the nick has no measured `split_fraction`, 1 for samples used in a
+ * single era
+ *
+ * @return a dataframe with the four new columns
+ */
+ROOT::RDF::RNode SampleNormalization(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
+    const std::string &xsec_output, const std::string &ngen_weight_output,
+    const std::string &genweight_output, const std::string &split_weight_output,
+    const std::string &norm_table_path,
+    const double &default_split_fraction = 1.0);
+
+/**
+ * @brief Looks up the STXS normalization of each event in the `stxs` block of
+ * the normalization table (written by TAUER's analyses/smhtt/stxs_tools.py):
+ * `nick -> {family, bins: {htxs_bin -> [norm, R_up, R_down]}}`. The sample
+ * nick is parsed from the input file path as in `SampleNormalization`. Nicks
+ * without an `stxs` block (and bins missing from it) get family 0, norm 1 and
+ * the LHE scale weights unchanged.
+ *
+ * @param df input dataframe
+ * @param correctionManager correction manager responsible for loading the table
+ * @param family_output name of the column holding the sample family code
+ * @param norm_output name of the column with the per-bin normalization factor
+ * @param scale_up_output name of the column with `lhe_scale_up / R_up`
+ * @param scale_down_output name of the column with `lhe_scale_down / R_down`
+ * @param norm_table_path path to the normalization JSON table
+ * @param htxs_bin_column name of the HTXS stage-1.2 category column
+ * @param lhe_scale_up_column name of the LHEScaleWeight mu_R = mu_F = 2 column
+ * @param lhe_scale_down_column name of the LHEScaleWeight mu_R = mu_F = 0.5
+ * column
+ *
+ * @return a dataframe with the four new columns
+ */
+ROOT::RDF::RNode STXSNormalization(
+    ROOT::RDF::RNode df,
+    correctionManager::CorrectionManager &correctionManager,
+    const std::string &family_output, const std::string &norm_output,
+    const std::string &scale_up_output, const std::string &scale_down_output,
+    const std::string &norm_table_path, const std::string &htxs_bin_column,
+    const std::string &lhe_scale_up_column,
+    const std::string &lhe_scale_down_column);
+
+/**
+ * @brief This function creates the column with the LHEScaleWeight factor of
+ * one nuisance of the STXS scheme: 1 for the nominal, otherwise the normalized
+ * LHE scale weight (`up` or `down`, from `STXSNormalization`) for the events
+ * in the (stxs family, HTXS bin) pairs the nuisance applies to and 1 for all
+ * others.
+ *
+ * @param df input dataframe
+ * @param correctionManager correction manager responsible for loading the table
+ * @param output name of the new column
+ * @param table_path path to the JSON table `nuisance -> [[family, HTXS bin],
+ * ...]`
+ * @param variation `nominal` or `<nuisance>_up` / `<nuisance>_down`
+ * @param family_column name of the sample family code column
+ * @param htxs_bin_column name of the HTXS stage-1.2 category column
+ * @param scale_up_column name of the normalized scale-up weight column
+ * @param scale_down_column name of the normalized scale-down weight column
+ *
+ * @return a dataframe with the new column of type `double`
+ */
+ROOT::RDF::RNode
+STXSLheScale(ROOT::RDF::RNode df,
+             correctionManager::CorrectionManager &correctionManager,
+             const std::string &output, const std::string &table_path,
+             const std::string &variation, const std::string &family_column,
+             const std::string &htxs_bin_column,
+             const std::string &scale_up_column,
+             const std::string &scale_down_column);
+
+/**
+ * @brief This function creates a new column with `sign(genWeight) /
+ * negative_fraction`. This is the standard normalization for MC generators
+ * that produce negative event weights (e.g. amc@NLO, POWHEG): using only the
+ * sign of the generator weight, divided by the sample's effective
+ * normalization factor (`1 - 2 * (fraction of negative-weight events)`),
+ * normalizes by the *effective* number of events instead of the raw event
+ * count, so negative-weight events correctly dilute the yield rather than
+ * being ignored or double-penalized.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param genweight_quantity name of the column containing the generator
+ * weight (`Float_t`, as stored in NanoAOD)
+ * @param negative_fraction_quantity name of the column containing the
+ * sample's effective normalization factor (`1 - 2 * negative-weight
+ * fraction`)
+ *
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode
+NormalizedGenWeightSign(ROOT::RDF::RNode df, const std::string &outputname,
+                        const std::string &genweight_quantity,
+                        const std::string &negative_fraction_quantity);
 
 /**
  * @brief This function creates a new column in the dataframe by applying
