@@ -1138,6 +1138,15 @@ GoldenJSON(ROOT::RDF::RNode df,
            correctionManager::CorrectionManager &correctionManager,
            const std::string &filtername, const std::string &run,
            const std::string &luminosity, const std::string &json_path);
+ROOT::RDF::RNode
+HashFilter(
+    ROOT::RDF::RNode df,
+    const std::string &filtername,
+    const std::string &event_hash,
+    const double &u_min,
+    const double &u_max
+);
+
 } // end namespace filter
 } // end namespace event
 
