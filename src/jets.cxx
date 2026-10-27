@@ -1891,11 +1891,14 @@ BtaggingWP(ROOT::RDF::RNode df,
                 denom = 1.0 - jet_eff;
             }
 
-            // Handle edge cases, in which numerator or denominator have non-positive values
+            // Handle edge cases, in which numerator or denominator have
+            // non-positive values
             auto jet_comp = 1.0;
             if (num <= 0 || denom <= 0) {
                 Logger::get(logger_name)
-                    ->warn("Got non-positive contributions to fraction ({} / {}), set jet scale factor to 1.0", num, denom);
+                    ->warn("Got non-positive contributions to fraction ({} / "
+                           "{}), set jet scale factor to 1.0",
+                           num, denom);
             } else {
                 // Calculate the jet contribution for valid num/denom
                 jet_comp = num / denom;
@@ -1904,7 +1907,9 @@ BtaggingWP(ROOT::RDF::RNode df,
             // Handle edge cases, in which the fraction is not finite
             if (std::isnan(jet_comp) || !std::isfinite(jet_comp)) {
                 Logger::get(logger_name)
-                    ->warn("Got ill-defined fraction value {}, set jet scale factor to 1.0", jet_comp);
+                    ->warn("Got ill-defined fraction value {}, set jet scale "
+                           "factor to 1.0",
+                           jet_comp);
                 jet_comp = 1.0;
             }
 
@@ -2178,14 +2183,17 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
                     "Arrived at unexpected b tagging working point " + btag_wp);
             }
             Logger::get(logger_name)
-                ->debug("Jet contribution: got numerator {} and denominator {}", num, denom);
+                ->debug("Jet contribution: got numerator {} and denominator {}",
+                        num, denom);
 
-
-            // Handle edge cases, in which numerator or denominator have non-positive values
+            // Handle edge cases, in which numerator or denominator have
+            // non-positive values
             auto jet_comp = 1.0;
             if (num <= 0 || denom <= 0) {
                 Logger::get(logger_name)
-                    ->warn("Got non-positive contributions to fraction ({} / {}), set jet scale factor to 1.0", num, denom);
+                    ->warn("Got non-positive contributions to fraction ({} / "
+                           "{}), set jet scale factor to 1.0",
+                           num, denom);
                 jet_comp = 1.0;
             } else {
                 // Calculate the jet contribution
@@ -2195,7 +2203,9 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
             // Handle edge cases, in which the fraction is not finite
             if (std::isnan(jet_comp) || !std::isfinite(jet_comp)) {
                 Logger::get(logger_name)
-                    ->warn("Got ill-defined fraction value {}, set jet scale factor to 1.0", jet_comp);
+                    ->warn("Got ill-defined fraction value {}, set jet scale "
+                           "factor to 1.0",
+                           jet_comp);
                 jet_comp = 1.0;
             }
 
