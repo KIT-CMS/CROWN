@@ -1895,7 +1895,7 @@ BtaggingWP(ROOT::RDF::RNode df,
             auto jet_comp = 1.0;
             if (num <= 0 || denom <= 0) {
                 Logger::get(logger_name)
-                    ->warn("Got non-positive contributions to fraction, set jet scale factor to 1.0");
+                    ->warn("Got non-positive contributions to fraction ({} / {}), set jet scale factor to 1.0", num, denom);
             } else {
                 // Calculate the jet contribution for valid num/denom
                 jet_comp = num / denom;
@@ -2185,7 +2185,7 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
             auto jet_comp = 1.0;
             if (num <= 0 || denom <= 0) {
                 Logger::get(logger_name)
-                    ->warn("Got non-positive contributions to fraction, set jet scale factor to 1.0");
+                    ->warn("Got non-positive contributions to fraction ({} / {}), set jet scale factor to 1.0", num, denom);
                 jet_comp = 1.0;
             } else {
                 // Calculate the jet contribution
