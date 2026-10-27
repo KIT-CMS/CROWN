@@ -1897,7 +1897,7 @@ BtaggingWP(ROOT::RDF::RNode df,
             auto jet_comp = 1.0;
             if (num <= 0 || denom <= 0) {
                 Logger::get(logger_name)
-                    ->warning("Got non-positive contributions to fraction, set jet scale factor to 1.0");
+                    ->warn("Got non-positive contributions to fraction, set jet scale factor to 1.0");
             } else {
                 // Calculate the jet contribution for valid num/denom
                 jet_comp = num / denom;
@@ -1906,7 +1906,7 @@ BtaggingWP(ROOT::RDF::RNode df,
             // Handle edge cases, in which the fraction is not finite
             if (std::isnan(jet_comp) || !std::isfinite(jet_comp)) {
                 Logger::get(logger_name)
-                    ->warning("Got ill-defined fraction value {}, set jet scale factor to 1.0", jet_comp);
+                    ->warn("Got ill-defined fraction value {}, set jet scale factor to 1.0", jet_comp);
                 jet_comp = 1.0;
             }
 
@@ -2187,7 +2187,7 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
             auto jet_comp = 1.0;
             if (num <= 0 || denom <= 0) {
                 Logger::get(logger_name)
-                    ->warning("Got non-positive contributions to fraction, set jet scale factor to 1.0");
+                    ->warn("Got non-positive contributions to fraction, set jet scale factor to 1.0");
                 jet_comp = 1.0;
             } else {
                 // Calculate the jet contribution
@@ -2197,7 +2197,7 @@ BtaggingMultipleWP(ROOT::RDF::RNode df,
             // Handle edge cases, in which the fraction is not finite
             if (std::isnan(jet_comp) || !std::isfinite(jet_comp)) {
                 Logger::get(logger_name)
-                    ->warning("Got ill-defined fraction value {}, set jet scale factor to 1.0", jet_comp);
+                    ->warn("Got ill-defined fraction value {}, set jet scale factor to 1.0", jet_comp);
                 jet_comp = 1.0;
             }
 
