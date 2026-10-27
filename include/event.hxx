@@ -701,9 +701,13 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
  * generator-weight normalization factor
  * @param split_weight_output name of the new column containing 1 /
  * `split_fraction`, the generator-weight fraction of the sample kept by an
- * era split (e.g. `FractionSplitFlag`), or 1 for nicks without one
+ * era split (e.g. `FractionSplitFlag`), or 1 / `default_split_fraction` for
+ * nicks without one
  * @param norm_table_path path to the `nick -> {xsec, nevents,
  * generator_weight[, split_fraction]}` JSON lookup table
+ * @param default_split_fraction fraction of the sample kept by the era split
+ * if the nick has no measured `split_fraction`, 1 for samples used in a
+ * single era
  *
  * @return a dataframe with the four new columns
  */
@@ -712,7 +716,8 @@ ROOT::RDF::RNode SampleNormalization(
     correctionManager::CorrectionManager &correctionManager,
     const std::string &xsec_output, const std::string &ngen_weight_output,
     const std::string &genweight_output, const std::string &split_weight_output,
-    const std::string &norm_table_path);
+    const std::string &norm_table_path,
+    const double &default_split_fraction = 1.0);
 
 /**
  * @brief Looks up the STXS normalization of each event in the `stxs` block of

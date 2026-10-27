@@ -80,9 +80,13 @@ double SampleNormalizationLookupField(const nlohmann::json &norm_table,
  * generator-weight normalization factor
  * @param split_weight_output name of the new column containing 1 /
  * `split_fraction`, the generator-weight fraction of the sample kept by an
- * era split (e.g. `FractionSplitFlag`), or 1 for nicks without one
+ * era split (e.g. `FractionSplitFlag`), or 1 / `default_split_fraction` for
+ * nicks without one
  * @param norm_table_path path to the `nick -> {xsec, nevents,
  * generator_weight[, split_fraction]}` JSON lookup table
+ * @param default_split_fraction fraction of the sample kept by the era split
+ * if the nick has no measured `split_fraction`, 1 for samples used in a
+ * single era
  *
  * @return a dataframe with the four new columns
  */
@@ -91,7 +95,7 @@ ROOT::RDF::RNode SampleNormalization(
     correctionManager::CorrectionManager &correctionManager,
     const std::string &xsec_output, const std::string &ngen_weight_output,
     const std::string &genweight_output, const std::string &split_weight_output,
-    const std::string &norm_table_path) {
+    const std::string &norm_table_path, const double &default_split_fraction) {
     nlohmann::json norm_table = *correctionManager.loadjson(norm_table_path);
 
     // crossSectionPerEventWeight -- the raw xsec (pb)
@@ -120,16 +124,17 @@ ROOT::RDF::RNode SampleNormalization(
                 norm_table, SampleNormalizationParseNickFromPath(id.AsString()),
                 "generator_weight");
         });
-    // weight_campaign_split -- 1/split_fraction, 1 for samples used in a single
-    // era
+    // weight_campaign_split -- 1/split_fraction, 1/default_split_fraction if
+    // not measured
     return df3.DefinePerSample(
         split_weight_output,
-        [norm_table](unsigned int /*slot*/, const ROOT::RDF::RSampleInfo &id) {
+        [norm_table, default_split_fraction](unsigned int /*slot*/,
+                                             const ROOT::RDF::RSampleInfo &id) {
             const auto &entry = norm_table.at(
                 SampleNormalizationParseNickFromPath(id.AsString()));
-            return entry.contains("split_fraction")
-                       ? 1.0 / entry.at("split_fraction").get<double>()
-                       : 1.0;
+            return 1.0 / (entry.contains("split_fraction")
+                              ? entry.at("split_fraction").get<double>()
+                              : default_split_fraction);
         });
 }
 
