@@ -3087,6 +3087,11 @@ Trigger(ROOT::RDF::RNode df,
  * corrtype, syst, syst_var). If the trigger flag is `false`, or the evaluation
  * fails, a scale factor of 1.0 is returned.
  *
+ * The bare efficiencies can be retrieved with `correction_type` chosen as
+ * `"data"` (for data efficiency) or `"mc"` (for efficiency in simulation). The
+ * default value of this variable if `"sf"`, which returns the data-MC scale
+ * factor.
+ *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
  * correction file
@@ -3099,6 +3104,9 @@ Trigger(ROOT::RDF::RNode df,
  * variation is applied to the efficiencies in data and MC
  * @param syst_variable name of the systematic variable of the jet \f$p_T\f$,
  * only used for corrections that have this input
+ * @param correction_type correction type to be saved as output; use `"sf"` for
+ * the scale factor, `"data"` for efficiency in data, `"mc"` for
+ * efficiency in MC. By default, this input parameter is set to `"sf"`.
  *
  * @return a new dataframe containing the new column
  */
@@ -3108,14 +3116,25 @@ TriggerJetLeg(ROOT::RDF::RNode df,
               const std::string &outputname, const std::string &jet_p4,
               const std::string &trigger_flag, const std::string &sf_file,
               const std::string &sf_name, const std::string &variation,
-              const std::string &syst_variable) {
+              const std::string &syst_variable,
+              const std::string &correction_type = "sf") {
+    // Define logger name
+    const std::string logger_name = "physicsobject::tau::scalefactor::TriggerJetLeg";
+
+    // Check if the correction type is 'sf', 'data', or 'mc'
+    if (!(correction_type == "sf" || correction_type == "data" || correction_type == "mc")) {
+        Logger::get(logger_name)->critical("Unknown correction type {}", correction_type);
+        throw std::runtime_error("Unknown correction type");
+    }
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
+
     // This check is based on an assumption that the number of inputs is 4
     // for 2022 and 2023, and 5 for 2024 and later. If this assumption changes
     // in the future, this check may need to be updated.
     const bool has_syst_variable = evaluator->inputs().size() == 5;
+
     auto scale_factor =
-        [evaluator, variation, syst_variable, has_syst_variable](
+        [evaluator, variation, syst_variable, has_syst_variable, logger_name, correction_type] (
             const ROOT::Math::PtEtaPhiMVector &jet, const bool &trigger_flag) {
             float sf = 1.;
             try {
@@ -3124,17 +3143,22 @@ TriggerJetLeg(ROOT::RDF::RNode df,
                     const double abseta = std::abs(jet.eta());
                     if (has_syst_variable) {
                         sf = evaluator->evaluate(
-                            {pt, abseta, "sf", variation, syst_variable});
+                            {pt, abseta, correction_type, variation, syst_variable});
                     } else {
-                        const double eff_data = evaluator->evaluate(
-                            {pt, abseta, variation, "data"});
-                        const double eff_mc =
-                            evaluator->evaluate({pt, abseta, variation, "mc"});
-                        sf = eff_mc > 0. ? eff_data / eff_mc : 1.;
+                        if (correction_type == "sf") {
+                            const double eff_data = evaluator->evaluate(
+                                {pt, abseta, variation, "data"});
+                            const double eff_mc =
+                                evaluator->evaluate({pt, abseta, variation, "mc"});
+                            sf = eff_mc > 0. ? eff_data / eff_mc : 1.;
+                        } else {
+                            sf = evaluator->evaluate(
+                                {pt, abseta, variation, correction_type});
+                        }
                     }
                 }
             } catch (const std::runtime_error &e) {
-                Logger::get("physicsobject::tau::scalefactor::TriggerJetLeg")
+                Logger::get(logger_name)
                     ->debug("Scale factor evaluation failed");
             }
             return sf;
