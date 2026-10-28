@@ -3119,11 +3119,14 @@ TriggerJetLeg(ROOT::RDF::RNode df,
               const std::string &syst_variable,
               const std::string &correction_type = "sf") {
     // Define logger name
-    const std::string logger_name = "physicsobject::tau::scalefactor::TriggerJetLeg";
+    const std::string logger_name =
+        "physicsobject::tau::scalefactor::TriggerJetLeg";
 
     // Check if the correction type is 'sf', 'data', or 'mc'
-    if (!(correction_type == "sf" || correction_type == "data" || correction_type == "mc")) {
-        Logger::get(logger_name)->critical("Unknown correction type {}", correction_type);
+    if (!(correction_type == "sf" || correction_type == "data" ||
+          correction_type == "mc")) {
+        Logger::get(logger_name)
+            ->critical("Unknown correction type {}", correction_type);
         throw std::runtime_error("Unknown correction type");
     }
     auto evaluator = correction_manager.loadCorrection(sf_file, sf_name);
@@ -3133,36 +3136,36 @@ TriggerJetLeg(ROOT::RDF::RNode df,
     // in the future, this check may need to be updated.
     const bool has_syst_variable = evaluator->inputs().size() == 5;
 
-    auto scale_factor =
-        [evaluator, variation, syst_variable, has_syst_variable, logger_name, correction_type] (
-            const ROOT::Math::PtEtaPhiMVector &jet, const bool &trigger_flag) {
-            float sf = 1.;
-            try {
-                if (trigger_flag) {
-                    const double pt = jet.pt();
-                    const double abseta = std::abs(jet.eta());
-                    if (has_syst_variable) {
-                        sf = evaluator->evaluate(
-                            {pt, abseta, correction_type, variation, syst_variable});
+    auto scale_factor = [evaluator, variation, syst_variable, has_syst_variable,
+                         logger_name, correction_type](
+                            const ROOT::Math::PtEtaPhiMVector &jet,
+                            const bool &trigger_flag) {
+        float sf = 1.;
+        try {
+            if (trigger_flag) {
+                const double pt = jet.pt();
+                const double abseta = std::abs(jet.eta());
+                if (has_syst_variable) {
+                    sf = evaluator->evaluate({pt, abseta, correction_type,
+                                              variation, syst_variable});
+                } else {
+                    if (correction_type == "sf") {
+                        const double eff_data = evaluator->evaluate(
+                            {pt, abseta, variation, "data"});
+                        const double eff_mc =
+                            evaluator->evaluate({pt, abseta, variation, "mc"});
+                        sf = eff_mc > 0. ? eff_data / eff_mc : 1.;
                     } else {
-                        if (correction_type == "sf") {
-                            const double eff_data = evaluator->evaluate(
-                                {pt, abseta, variation, "data"});
-                            const double eff_mc =
-                                evaluator->evaluate({pt, abseta, variation, "mc"});
-                            sf = eff_mc > 0. ? eff_data / eff_mc : 1.;
-                        } else {
-                            sf = evaluator->evaluate(
-                                {pt, abseta, variation, correction_type});
-                        }
+                        sf = evaluator->evaluate(
+                            {pt, abseta, variation, correction_type});
                     }
                 }
-            } catch (const std::runtime_error &e) {
-                Logger::get(logger_name)
-                    ->debug("Scale factor evaluation failed");
             }
-            return sf;
-        };
+        } catch (const std::runtime_error &e) {
+            Logger::get(logger_name)->debug("Scale factor evaluation failed");
+        }
+        return sf;
+    };
     return df.Define(outputname, scale_factor, {jet_p4, trigger_flag});
 }
 
