@@ -95,7 +95,7 @@ struct fmt::formatter<std::bitset<N>> : formatter<std::string> {
 
 class Logger {
   public:
-    enum class Logger::LogLevel { DEBUG, INFO, WARN, ERR, CRITICAL, OFF };
+    enum class LogLevel { DEBUG, INFO, WARN, ERR, CRITICAL, OFF };
     static const std::shared_ptr<spdlog::logger> &get(std::string_view name);
     static void setLevel(LogLevel level);
     static void enableFileLogging(std::string filename);
