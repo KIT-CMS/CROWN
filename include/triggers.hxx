@@ -1,11 +1,11 @@
 #pragma once
 
-#include <array>
-#include <optional>
 #include <Math/Vector4D.h>
 #include <ROOT/RDataFrame.hxx>
-#include <utility>  // from standard library
+#include <array>
+#include <optional>
 #include <utility/CorrectionManager.hxx>
+#include <utility> // from standard library
 
 namespace trigger {
 

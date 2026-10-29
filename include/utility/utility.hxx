@@ -6,7 +6,7 @@
 #include <tuple>
 #include <type_traits>
 #include <typeinfo>
-#include <utility>  // from standard library
+#include <utility> // from standard library
 #include <vector>
 
 #include <ROOT/RDataFrame.hxx>
