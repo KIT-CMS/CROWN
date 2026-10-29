@@ -6,7 +6,7 @@
 #include <tuple>
 #include <type_traits>
 #include <typeinfo>
-#include <utility> // make_index_sequence
+#include <utility>  // from standard library
 #include <vector>
 
 #include <ROOT/RDataFrame.hxx>
