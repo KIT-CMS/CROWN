@@ -6,7 +6,7 @@
 #include <string_view>
 
 
-static const std::shared_ptr<spdlog::logger>& Logger::get(std::string_view name) {
+const std::shared_ptr<spdlog::logger>& Logger::get(std::string_view name) {
     // per-thread cache keeps the hot path lock-free
     thread_local std::unordered_map<std::string_view,
                                     const std::shared_ptr<spdlog::logger> *>
@@ -37,7 +37,7 @@ static const std::shared_ptr<spdlog::logger>& Logger::get(std::string_view name)
 }
 
 
-static void Logger::setLevel(LogLevel level) {
+void Logger::setLevel(LogLevel level) {
     std::unique_lock<std::shared_mutex> writeLock(getInstance()._mutex);
     getInstance()._level = level;
 
@@ -50,7 +50,7 @@ static void Logger::setLevel(LogLevel level) {
 }
 
 
-static void enableFileLogging(std::string filename) {
+void Logger::enableFileLogging(std::string filename) {
     std::unique_lock<std::shared_mutex> writeLock(getInstance()._mutex);
     getInstance()._fileName = std::make_unique<std::string>(filename);
     for (auto &[key, logger] : getInstance()._loggers) {
@@ -69,7 +69,7 @@ Logger::~Logger() {
 }
 
 
-static Logger &Logger::getInstance() {
+Logger &Logger::getInstance() {
     static Logger instance;
     return instance;
 }
