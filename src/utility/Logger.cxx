@@ -2,11 +2,10 @@
 
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-#include <vector>
 #include <string_view>
+#include <vector>
 
-
-const std::shared_ptr<spdlog::logger>& Logger::get(std::string_view name) {
+const std::shared_ptr<spdlog::logger> &Logger::get(std::string_view name) {
     // per-thread cache keeps the hot path lock-free
     thread_local std::unordered_map<std::string_view,
                                     const std::shared_ptr<spdlog::logger> *>
@@ -36,7 +35,6 @@ const std::shared_ptr<spdlog::logger>& Logger::get(std::string_view name) {
     return it->second;
 }
 
-
 void Logger::setLevel(LogLevel level) {
     std::unique_lock<std::shared_mutex> writeLock(getInstance()._mutex);
     getInstance()._level = level;
@@ -48,7 +46,6 @@ void Logger::setLevel(LogLevel level) {
     for (auto &[key, logger] : getInstance()._loggers)
         logger->set_level(convertLevelToSpdlog(level));
 }
-
 
 void Logger::enableFileLogging(std::string filename) {
     std::unique_lock<std::shared_mutex> writeLock(getInstance()._mutex);
@@ -62,18 +59,15 @@ void Logger::enableFileLogging(std::string filename) {
     }
 }
 
-
 Logger::~Logger() {
     _loggers.clear();
     _fileName.reset();
 }
 
-
 Logger &Logger::getInstance() {
     static Logger instance;
     return instance;
 }
-
 
 spdlog::level::level_enum Logger::convertLevelToSpdlog(LogLevel level) {
     switch (level) {
