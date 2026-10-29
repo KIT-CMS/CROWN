@@ -1,12 +1,10 @@
-#ifndef GUARD_TRIGGERS_H
-#define GUARD_TRIGGERS_H
+#pragma once
 
-#include "utility/CorrectionManager.hxx"
+#include <Math/Vector4D.h>
+#include <ROOT/RDataFrame.hxx>
 #include <array>
 #include <optional>
-#include <utility>
-
-typedef std::bitset<30> IntBits;
+#include <utility/CorrectionManager.hxx>
 
 namespace trigger {
 
@@ -82,4 +80,3 @@ ROOT::RDF::RNode SelectScaleFactor(ROOT::RDF::RNode df,
                                    const std::vector<std::string> &sf_inputs,
                                    const int &n_pass_sfs);
 } // end namespace trigger
-#endif /* GUARD_TRIGGERS_H */

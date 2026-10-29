@@ -1,12 +1,10 @@
-#ifndef GUARD_EVENT_H
-#define GUARD_EVENT_H
-
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "TRandom3.h"
+#include <ROOT/RDataFrame.hxx>
+#include <TRandom3.h>
+#include <event.hxx>
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
 
 namespace event {
 namespace quantity {
@@ -34,7 +32,7 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
                               const std::string &outputname,
                               const std::string &lumi, const std::string &run,
                               const std::string &event,
-                              const UInt_t &master_seed = 42) {
+                              const UInt_t &master_seed) {
 
     auto generate_seed = [master_seed](const unsigned int &lumi,
                                        const unsigned int &run,
@@ -122,5 +120,3 @@ GoldenJSON(ROOT::RDF::RNode df,
 }
 } // end namespace filter
 } // end namespace event
-
-#endif /* GUARD_EVENT_H */

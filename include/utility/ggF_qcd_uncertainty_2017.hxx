@@ -1,5 +1,4 @@
-#ifndef GUARDGGH_HTXS_H
-#define GUARDGGH_HTXS_H
+#pragma once
 
 #include <vector>
 
@@ -34,5 +33,3 @@ double pT120(double pT, int Njets30);
 double pT60(double pT, int Njets30);
 NumV jetBinUnc(int Njets30, int STXS);
 NumV unc2sf(const NumV &unc, double Nsigma);
-
-#endif /* GUARDGGH_HTXS_H */

@@ -1,11 +1,9 @@
-#ifndef GUARD_LORENTZVECTORS_H
-#define GUARD_LORENTZVECTORS_H
-
-#include "../include/defaults.hxx"
-#include "../include/utility/Logger.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <defaults.hxx>
+#include <lorentzvectors.hxx>
+#include <utility/Logger.hxx>
 
 namespace lorentzvector {
 
@@ -308,4 +306,3 @@ ROOT::RDF::RNode Scale(ROOT::RDF::RNode df, const std::string &outputname,
                      {vector});
 }
 } // end namespace lorentzvector
-#endif /* GUARD_LORENTZVECTORS_H */
