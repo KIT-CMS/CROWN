@@ -8,7 +8,7 @@
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
-#include <spdlog/fmt/bundled/core.h> // Include fmt library header
+#include <spdlog/fmt/bundled/core.h>
 #include <spdlog/spdlog.h>
 #include <string>
 #include <string_view>
