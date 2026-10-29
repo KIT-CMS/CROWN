@@ -5,7 +5,6 @@
 #include <array>
 #include <optional>
 #include <utility/CorrectionManager.hxx>
-#include <utility> // from standard library
 
 namespace trigger {
 
