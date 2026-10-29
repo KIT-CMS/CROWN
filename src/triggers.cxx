@@ -10,6 +10,7 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <regex>
+#include <utility>  // from standard library
 #include <triggers.hxx>
 #include <utility/CorrectionManager.hxx>
 #include <utility/Logger.hxx>
