@@ -276,7 +276,7 @@ LHEScale(ROOT::RDF::RNode df,
     const std::string nuisance = variation.substr(0, split);
     const bool use_up = variation.substr(split + 1) == "up";
     const nlohmann::json &stxs_table =
-        *correctionManager.loadjson(stxs_table_path);
+        *correction_manager.loadjson(stxs_table_path);
     auto members = std::make_shared<std::set<std::pair<int, int>>>();
     for (const auto &pair : stxs_table.at("lhe_scale_nuisances").at(nuisance)) {
         members->insert({pair.at(0).get<int>(), pair.at(1).get<int>()});
