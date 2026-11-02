@@ -2,17 +2,11 @@
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "TRandom3.h"
-#include <array>
-#include <fstream>
-#include <memory>
+#include <cmath>
+#include <cstdint>
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
-#include <set>
 #include <stdexcept>
-#include <unordered_map>
-#include <vector>
-#include <exception>
-#include <cmath>
 
 namespace event {
 namespace quantity {
@@ -115,9 +109,9 @@ ROOT::RDF::RNode SampleSplitWeight(ROOT::RDF::RNode df,
         Logger::get(logger_name)->critical(msg);
         throw std::runtime_error(msg);
     }
-
-    return df.Define(output,
-                     [u_min, u_max]() { return (float)1 / (u_max - u_min); });
+    // Calculate the weight
+    float w = static_cast<float>(1 / (u_max - u_min));
+    return df.Define(output, [w]() { return w; });
 }
 
 } // end namespace quantity
@@ -198,7 +192,8 @@ GoldenJSON(ROOT::RDF::RNode df,
  *
  * @param df The input data frame
  * @param filtername Name of the filter
- * @param event_hash Name of the column containing the event hash values
+ * @param event_hash Name of the column containing the event hash values, must
+ * be of type `unsigned int`
  * @param u_min Minimal value of the considered interval for the event passing
  * the filter; will be mapped to uint32 range; must be a value between 0 and 1
  * @param u_max Maximal value of the considered interval for the event passing
