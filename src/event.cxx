@@ -5,8 +5,15 @@
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "TRandom3.h"
+#include <array>
+#include <fstream>
+#include <memory>
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
+#include <set>
+#include <stdexcept>
+#include <unordered_map>
+#include <vector>
 
 namespace event {
 namespace quantity {

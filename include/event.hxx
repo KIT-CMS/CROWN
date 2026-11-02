@@ -463,6 +463,69 @@ Product(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
+ * @brief This function creates a new column in the dataframe that contains the
+ * ratio `quantity_1 / quantity_2` of the values of two existing columns. As
+ * for `Product`, the two input columns can have different stored types, the
+ * values are converted to `double` before the division and the resulting
+ * column is of type `double`.
+ *
+ * @tparam T1 type of the numerator quantity
+ * @tparam T2 type of the denominator quantity
+ * @param df input dataframe
+ * @param outputname name of the new column containing the ratio
+ * @param quantity_1 name of the numerator column, expected to be of type `T1`
+ * @param quantity_2 name of the denominator column, expected to be of type
+ * `T2`
+ *
+ * @return a dataframe with the new column of type `double`
+ *
+ * @note If a value of `quantity_2` is `0`, a warning is logged and the
+ * result is `inf` (or `nan` for `0 / 0`).
+ */
+template <typename T1, typename T2>
+inline ROOT::RDF::RNode
+Divide(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &quantity_1, const std::string &quantity_2) {
+    return df.Define(outputname,
+                     [quantity_2](const T1 &value_1, const T2 &value_2) {
+                         if (static_cast<double>(value_2) == 0.) {
+                             Logger::get("event::quantity::Divide")
+                                 ->warn("Division by zero, {} is 0, the "
+                                        "result is inf or nan",
+                                        quantity_2);
+                         }
+                         double ratio = static_cast<double>(value_1) /
+                                        static_cast<double>(value_2);
+                         return ratio;
+                     },
+                     {quantity_1, quantity_2});
+}
+
+/**
+ * @brief This function creates a new column with a quantity raised to a
+ * constant power, e.g. the nominal weight (power 1), its square (2) or no
+ * weight at all (0).
+ *
+ * @tparam T type of the quantity column
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param quantity name of the quantity column
+ * @param exponent power the quantity is raised to
+ *
+ * @return a dataframe with the new column of type `double`
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+Power(ROOT::RDF::RNode df, const std::string &outputname,
+      const std::string &quantity, const double &exponent) {
+    return df.Define(outputname,
+                     [exponent](const T &value) {
+                         return std::pow(static_cast<double>(value), exponent);
+                     },
+                     {quantity});
+}
+
+/**
  * @brief This function adds a new column to the dataframe, assigning it a
  * constant value for all entries.
  *
@@ -477,6 +540,67 @@ template <typename T>
 inline ROOT::RDF::RNode Define(ROOT::RDF::RNode df,
                                const std::string &outputname, T const &value) {
     return df.Define(outputname, [value]() { return value; }, {});
+}
+
+/**
+ * @brief This function creates a new column that takes the value of
+ * `true_quantity` if `cond_quantity` is `true`, and the constant
+ * `false_value` otherwise. With the default `false_value` of `1`, this is the
+ * common pattern for applying a scale factor only under some condition.
+ *
+ * @tparam T type of the value quantity (and of the output column)
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param cond_quantity name of the boolean column deciding which value is
+ * picked
+ * @param true_quantity name of the quantity column used if `cond_quantity`
+ * is `true`
+ * @param false_value constant used if `cond_quantity` is `false`, default is
+ * `1`
+ *
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+IfElse(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &cond_quantity, const std::string &true_quantity,
+       const T &false_value = static_cast<T>(1)) {
+    return df.Define(outputname,
+                     [false_value](const bool &cond, const T &true_value) {
+                         return cond ? true_value : false_value;
+                     },
+                     {cond_quantity, true_quantity});
+}
+
+/**
+ * @brief This function creates a new column that takes the value of
+ * `true_quantity` if `cond_quantity` is `true`, and the value of
+ * `false_quantity` otherwise (an if-else selection between two quantity
+ * columns).
+ *
+ * @tparam T type of the two value quantities (and of the output column)
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param cond_quantity name of the boolean column deciding which value is
+ * picked
+ * @param true_quantity name of the quantity column used if `cond_quantity`
+ * is `true`
+ * @param false_quantity name of the quantity column used if `cond_quantity`
+ * is `false`
+ *
+ * @return a dataframe with the new column
+ */
+template <typename T>
+inline ROOT::RDF::RNode
+IfElse(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &cond_quantity, const std::string &true_quantity,
+       const std::string &false_quantity) {
+    return df.Define(
+        outputname,
+        [](const bool &cond, const T &true_value, const T &false_value) {
+            return cond ? true_value : false_value;
+        },
+        {cond_quantity, true_quantity, false_quantity});
 }
 
 /**
@@ -516,6 +640,27 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
                               const std::string &lumi, const std::string &run,
                               const std::string &event,
                               const UInt_t &master_seed = 42);
+
+/**
+ * @brief This function creates a new column with the sign of an existing
+ * `quantity` column: `-1` for negative values and `+1` otherwise (including
+ * `0`). A typical use is the sign of the generator weight, which replaces the
+ * generator weight itself for samples with negative event weights.
+ *
+ * @tparam T type of the input quantity values
+ * @param df input dataframe
+ * @param outputname name of the new column
+ * @param quantity name of the column the sign is taken of
+ *
+ * @return a dataframe with the new column of type `double`
+ */
+template <typename T>
+inline ROOT::RDF::RNode Sign(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &quantity) {
+    return df.Define(outputname,
+                     [](const T &value) { return value < 0 ? -1.0 : 1.0; },
+                     {quantity});
+}
 
 /**
  * @brief This function creates a new column in the dataframe by applying

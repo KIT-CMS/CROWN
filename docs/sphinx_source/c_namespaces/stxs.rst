@@ -1,6 +1,6 @@
-Namespace: Htxs
+Namespace: Stxs
 ===============
-.. doxygennamespace:: htxs
+.. doxygennamespace:: stxs
    :members:
    :undoc-members:
    :private-members:
