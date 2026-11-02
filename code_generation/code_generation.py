@@ -776,7 +776,13 @@ class CodeGenerator(object):
                     global_commands = self.output_commands[self.global_scope]
                 else:
                     global_commands = []
-                outputset = list(set(self.output_commands[scope] + global_commands))
+                outputset = list(
+                    set(
+                        self.output_commands[scope]
+                        + global_commands
+                        + self.sample_info_columns
+                    )
+                )
                 # now split by __ and get a set of all the shifts per variable
                 for i, output in enumerate(outputset):
                     try:
@@ -828,7 +834,13 @@ class CodeGenerator(object):
                     global_commands = self.output_commands[self.global_scope]
                 else:
                     global_commands = []
-                outputset = list(set(self.output_commands[scope] + global_commands))
+                outputset = list(
+                    set(
+                        self.output_commands[scope]
+                        + global_commands
+                        + self.sample_info_columns
+                    )
+                )
                 # now split by __ and get a set of all the shifts per variable
                 for output in outputset:
                     try:
