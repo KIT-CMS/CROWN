@@ -496,6 +496,45 @@ Product(ROOT::RDF::RNode df, const std::string &outputname,
 }
 
 /**
+ * @brief This function creates a new column in the dataframe that contains the
+ * ratio `quantity_1 / quantity_2` of the values of two existing columns. As
+ * for `Product`, the two input columns can have different stored types, the
+ * values are converted to `double` before the division and the resulting
+ * column is of type `double`.
+ *
+ * @tparam T1 type of the numerator quantity
+ * @tparam T2 type of the denominator quantity
+ * @param df input dataframe
+ * @param outputname name of the new column containing the ratio
+ * @param quantity_1 name of the numerator column, expected to be of type `T1`
+ * @param quantity_2 name of the denominator column, expected to be of type
+ * `T2`
+ *
+ * @return a dataframe with the new column of type `double`
+ *
+ * @note If a value of `quantity_2` is `0`, a warning is logged and the
+ * result is `inf` (or `nan` for `0 / 0`).
+ */
+template <typename T1, typename T2>
+inline ROOT::RDF::RNode
+Divide(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &quantity_1, const std::string &quantity_2) {
+    return df.Define(outputname,
+                     [quantity_2](const T1 &value_1, const T2 &value_2) {
+                         if (static_cast<double>(value_2) == 0.) {
+                             Logger::get("event::quantity::Divide")
+                                 ->warn("Division by zero, {} is 0, the "
+                                        "result is inf or nan",
+                                        quantity_2);
+                         }
+                         double ratio = static_cast<double>(value_1) /
+                                        static_cast<double>(value_2);
+                         return ratio;
+                     },
+                     {quantity_1, quantity_2});
+}
+
+/**
  * @brief This function creates a new column with a quantity raised to a
  * constant power, e.g. the nominal weight (power 1), its square (2) or no
  * weight at all (0).
@@ -509,59 +548,14 @@ Product(ROOT::RDF::RNode df, const std::string &outputname,
  * @return a dataframe with the new column of type `double`
  */
 template <typename T>
-inline ROOT::RDF::RNode Power(ROOT::RDF::RNode df,
-                              const std::string &outputname,
-                              const std::string &quantity, double exponent) {
+inline ROOT::RDF::RNode
+Power(ROOT::RDF::RNode df, const std::string &outputname,
+      const std::string &quantity, const double &exponent) {
     return df.Define(outputname,
                      [exponent](const T &value) {
                          return std::pow(static_cast<double>(value), exponent);
                      },
                      {quantity});
-}
-
-/**
- * @brief This function creates a new column with a copy of a quantity.
- *
- * @tparam T type of the quantity column
- * @param df input dataframe
- * @param outputname name of the new column
- * @param quantity name of the quantity column
- *
- * @return a dataframe with the new column of type `T`
- */
-template <typename T>
-inline ROOT::RDF::RNode Copy(ROOT::RDF::RNode df, const std::string &outputname,
-                             const std::string &quantity) {
-    return df.Define(outputname, [](const T &value) { return value; },
-                     {quantity});
-}
-
-/**
- * @brief This function creates the fake factor weight of the fully hadronic
- * anti-isolated region, where exactly one of the two taus fails the
- * isolation: `0.5 * (ff_1 * [id_1 == 0] + ff_2 * [id_2 == 0])`, i.e. half of
- * the fake factor of the failing tau.
- *
- * @param df input dataframe
- * @param outputname name of the new column
- * @param ff_1 name of the fake factor column of the leading tau (`float`)
- * @param ff_2 name of the fake factor column of the subleading tau (`float`)
- * @param id_1 name of the isolation flag column of the leading tau (`int`)
- * @param id_2 name of the isolation flag column of the subleading tau (`int`)
- *
- * @return a dataframe with the new column of type `double`
- */
-inline ROOT::RDF::RNode
-AntiIsoFakeFactor(ROOT::RDF::RNode df, const std::string &outputname,
-                  const std::string &ff_1, const std::string &ff_2,
-                  const std::string &id_1, const std::string &id_2) {
-    return df.Define(
-        outputname,
-        [](float fake_factor_1, float fake_factor_2, int id1, int id2) {
-            return 0.5 *
-                   (fake_factor_1 * (id1 == 0) + fake_factor_2 * (id2 == 0));
-        },
-        {ff_1, ff_2, id_1, id_2});
 }
 
 /**
@@ -583,37 +577,39 @@ inline ROOT::RDF::RNode Define(ROOT::RDF::RNode df,
 
 /**
  * @brief This function creates a new column that takes the value of
- * `value_quantity` if `cond_quantity` is `true`, and `1` otherwise -- a
- * common pattern for gating a scale factor so it only applies under some
- * condition (e.g. a genuine-object requirement), leaving the weight
- * untouched (multiplicative no-op) otherwise.
+ * `true_quantity` if `cond_quantity` is `true`, and the constant
+ * `false_value` otherwise. With the default `false_value` of `1`, this is the
+ * common pattern for applying a scale factor only under some condition.
  *
  * @tparam T type of the value quantity (and of the output column)
  * @param df input dataframe
  * @param outputname name of the new column
  * @param cond_quantity name of the boolean column deciding which value is
  * picked
- * @param value_quantity name of the quantity column used if `cond_quantity`
+ * @param true_quantity name of the quantity column used if `cond_quantity`
  * is `true`
+ * @param false_value constant used if `cond_quantity` is `false`, default is
+ * `1`
  *
  * @return a dataframe with the new column
  */
 template <typename T>
-inline ROOT::RDF::RNode Gate(ROOT::RDF::RNode df, const std::string &outputname,
-                             const std::string &cond_quantity,
-                             const std::string &value_quantity) {
+inline ROOT::RDF::RNode
+IfElse(ROOT::RDF::RNode df, const std::string &outputname,
+       const std::string &cond_quantity, const std::string &true_quantity,
+       const T &false_value = static_cast<T>(1)) {
     return df.Define(outputname,
-                     [](const bool &cond, const T &value) {
-                         return cond ? value : static_cast<T>(1);
+                     [false_value](const bool &cond, const T &true_value) {
+                         return cond ? true_value : false_value;
                      },
-                     {cond_quantity, value_quantity});
+                     {cond_quantity, true_quantity});
 }
 
 /**
  * @brief This function creates a new column that takes the value of
  * `true_quantity` if `cond_quantity` is `true`, and the value of
- * `false_quantity` otherwise (a ternary/if-else selection between two
- * quantity columns).
+ * `false_quantity` otherwise (an if-else selection between two quantity
+ * columns).
  *
  * @tparam T type of the two value quantities (and of the output column)
  * @param df input dataframe
@@ -629,7 +625,7 @@ inline ROOT::RDF::RNode Gate(ROOT::RDF::RNode df, const std::string &outputname,
  */
 template <typename T>
 inline ROOT::RDF::RNode
-Select(ROOT::RDF::RNode df, const std::string &outputname,
+IfElse(ROOT::RDF::RNode df, const std::string &outputname,
        const std::string &cond_quantity, const std::string &true_quantity,
        const std::string &false_quantity) {
     return df.Define(
@@ -679,130 +675,25 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
                               const UInt_t &master_seed = 42);
 
 /**
- * @brief This function defines four per-file constant columns --
- * `xsec_output` (cross section), `ngen_weight_output` (1 / number of
- * generated events), `genweight_output` (effective normalization factor
- * accounting for negative generator weights) and `split_weight_output` (1 /
- * the fraction of the sample kept by an era split) -- by looking up this file's
- * sample nick in a `nick -> {xsec, nevents, generator_weight}` JSON table.
+ * @brief This function creates a new column with the sign of an existing
+ * `quantity` column: `-1` for negative values and `+1` otherwise (including
+ * `0`). A typical use is the sign of the generator weight, which replaces the
+ * generator weight itself for samples with negative event weights.
  *
- * The sample nick is parsed from the input file's path at runtime via
- * `ROOT::RDF::RSampleInfo` (path convention: `.../{era}/{nick}/{scope}/
- * {nick}_{N}.root`), so one compiled executable correctly normalizes every
- * nick contained in its input sample. An unknown nick throws rather than
- * silently defaulting.
- *
+ * @tparam T type of the input quantity values
  * @param df input dataframe
- * @param correctionManager correction manager responsible for loading the
- * normalization JSON table
- * @param xsec_output name of the new column containing the cross section
- * @param ngen_weight_output name of the new column containing 1/nevents
- * @param genweight_output name of the new column containing the effective
- * generator-weight normalization factor
- * @param split_weight_output name of the new column containing 1 /
- * `split_fraction`, the generator-weight fraction of the sample kept by an
- * era split (e.g. `FractionSplitFlag`), or 1 / `default_split_fraction` for
- * nicks without one
- * @param norm_table_path path to the `nick -> {xsec, nevents,
- * generator_weight[, split_fraction]}` JSON lookup table
- * @param default_split_fraction fraction of the sample kept by the era split
- * if the nick has no measured `split_fraction`, 1 for samples used in a
- * single era
- *
- * @return a dataframe with the four new columns
- */
-ROOT::RDF::RNode SampleNormalization(
-    ROOT::RDF::RNode df,
-    correctionManager::CorrectionManager &correctionManager,
-    const std::string &xsec_output, const std::string &ngen_weight_output,
-    const std::string &genweight_output, const std::string &split_weight_output,
-    const std::string &norm_table_path,
-    const double &default_split_fraction = 1.0);
-
-/**
- * @brief Looks up the STXS normalization of each event in the `stxs` block of
- * the normalization table (written by TAUER's analyses/smhtt/stxs_tools.py):
- * `nick -> {family, bins: {htxs_bin -> [norm, R_up, R_down]}}`. The sample
- * nick is parsed from the input file path as in `SampleNormalization`. Nicks
- * without an `stxs` block (and bins missing from it) get family 0, norm 1 and
- * the LHE scale weights unchanged.
- *
- * @param df input dataframe
- * @param correctionManager correction manager responsible for loading the table
- * @param family_output name of the column holding the sample family code
- * @param norm_output name of the column with the per-bin normalization factor
- * @param scale_up_output name of the column with `lhe_scale_up / R_up`
- * @param scale_down_output name of the column with `lhe_scale_down / R_down`
- * @param norm_table_path path to the normalization JSON table
- * @param htxs_bin_column name of the HTXS stage-1.2 category column
- * @param lhe_scale_up_column name of the LHEScaleWeight mu_R = mu_F = 2 column
- * @param lhe_scale_down_column name of the LHEScaleWeight mu_R = mu_F = 0.5
- * column
- *
- * @return a dataframe with the four new columns
- */
-ROOT::RDF::RNode STXSNormalization(
-    ROOT::RDF::RNode df,
-    correctionManager::CorrectionManager &correctionManager,
-    const std::string &family_output, const std::string &norm_output,
-    const std::string &scale_up_output, const std::string &scale_down_output,
-    const std::string &norm_table_path, const std::string &htxs_bin_column,
-    const std::string &lhe_scale_up_column,
-    const std::string &lhe_scale_down_column);
-
-/**
- * @brief This function creates the column with the LHEScaleWeight factor of
- * one nuisance of the STXS scheme: 1 for the nominal, otherwise the normalized
- * LHE scale weight (`up` or `down`, from `STXSNormalization`) for the events
- * in the (stxs family, HTXS bin) pairs the nuisance applies to and 1 for all
- * others.
- *
- * @param df input dataframe
- * @param correctionManager correction manager responsible for loading the table
- * @param output name of the new column
- * @param table_path path to the JSON table `nuisance -> [[family, HTXS bin],
- * ...]`
- * @param variation `nominal` or `<nuisance>_up` / `<nuisance>_down`
- * @param family_column name of the sample family code column
- * @param htxs_bin_column name of the HTXS stage-1.2 category column
- * @param scale_up_column name of the normalized scale-up weight column
- * @param scale_down_column name of the normalized scale-down weight column
+ * @param outputname name of the new column
+ * @param quantity name of the column the sign is taken of
  *
  * @return a dataframe with the new column of type `double`
  */
-ROOT::RDF::RNode
-STXSLheScale(ROOT::RDF::RNode df,
-             correctionManager::CorrectionManager &correctionManager,
-             const std::string &output, const std::string &table_path,
-             const std::string &variation, const std::string &family_column,
-             const std::string &htxs_bin_column,
-             const std::string &scale_up_column,
-             const std::string &scale_down_column);
-
-/**
- * @brief This function creates a new column with `sign(genWeight) /
- * negative_fraction`. This is the standard normalization for MC generators
- * that produce negative event weights (e.g. amc@NLO, POWHEG): using only the
- * sign of the generator weight, divided by the sample's effective
- * normalization factor (`1 - 2 * (fraction of negative-weight events)`),
- * normalizes by the *effective* number of events instead of the raw event
- * count, so negative-weight events correctly dilute the yield rather than
- * being ignored or double-penalized.
- *
- * @param df input dataframe
- * @param outputname name of the new column
- * @param genweight_quantity name of the column containing the generator
- * weight (`Float_t`, as stored in NanoAOD)
- * @param negative_fraction_quantity name of the column containing the
- * sample's effective normalization factor (`1 - 2 * negative-weight
- * fraction`)
- *
- * @return a dataframe with the new column
- */
-ROOT::RDF::RNode
-NormalizedGenWeightSign(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::string &genweight_quantity,
-                        const std::string &negative_fraction_quantity);
+template <typename T>
+inline ROOT::RDF::RNode Sign(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &quantity) {
+    return df.Define(outputname,
+                     [](const T &value) { return value < 0 ? -1.0 : 1.0; },
+                     {quantity});
+}
 
 /**
  * @brief This function creates a new column in the dataframe by applying

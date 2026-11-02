@@ -245,7 +245,7 @@ To perform the generation of friend trees locally, use
 Production of friend trees with additional friends as input
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If the requested friend tree depends on additional friend trees the ``--friend-mapping``` parameter is used to specify the friends required for the new friend configuration. The command
+If the requested friend tree depends on additional friend trees the ``--friend-mapping`` parameter is used to specify the friends required for the new friend configuration. The command
 
 .. code-block:: bash
 

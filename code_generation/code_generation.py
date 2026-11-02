@@ -223,6 +223,11 @@ class CodeGenerator(object):
     ):
         self.main_template = self.load_template(main_template_path)
         self.subset_template = self.load_template(sub_template_path)
+        self.sample_info_columns: List[str] = (
+            ["nick", "negative_events_fraction", "one_over_nevents", "xsec"]
+            if "CROWN_SAMPLE_INFO" in self.main_template
+            else []
+        )
         self.configuration = configuration
         self.scopes = self.configuration.scopes
 
@@ -580,7 +585,13 @@ class CodeGenerator(object):
                     global_commands = self.output_commands[self.global_scope]
                 else:
                     global_commands = []
-                outputset = list(set(self.output_commands[scope] + global_commands))
+                outputset = list(
+                    set(
+                        self.output_commands[scope]
+                        + global_commands
+                        + self.sample_info_columns
+                    )
+                )
                 # sort the output list to get alphabetical order of the output names
                 outputset.sort()
                 outputstring = '", "'.join(outputset)
@@ -657,7 +668,13 @@ class CodeGenerator(object):
                 global_commands = self.output_commands[self.global_scope]
             else:
                 global_commands = []
-            outputset = list(set(self.output_commands[scope] + global_commands))
+            outputset = list(
+                set(
+                    self.output_commands[scope]
+                    + global_commands
+                    + self.sample_info_columns
+                )
+            )
             # now split by __ and get a set of all the shifts
             quantityset = list(set([x.split("__")[0] for x in outputset]))
             quantityset.sort()

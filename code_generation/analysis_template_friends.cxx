@@ -6,7 +6,7 @@
 #include "include/embedding.hxx"
 #include "include/fatjets.hxx"
 #include "include/genparticles.hxx"
-#include "include/htxs.hxx"
+#include "include/stxs.hxx"
 #include "include/jets.hxx"
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"

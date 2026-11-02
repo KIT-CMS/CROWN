@@ -7,7 +7,7 @@
 #include "include/event.hxx"
 #include "include/fatjets.hxx"
 #include "include/genparticles.hxx"
-#include "include/htxs.hxx"
+#include "include/stxs.hxx"
 #include "include/jets.hxx"
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"
@@ -31,7 +31,9 @@
 #include <TObjString.h>
 #include <TTree.h>
 #include <TVector.h>
+#include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <onnxruntime_cxx_api.h>
 #include <regex>
 #include <string>
@@ -130,8 +132,43 @@ int main(int argc, char *argv[]) {
     // {MULTITHREADING}
 
     // initialize df
-    ROOT::RDataFrame df0(basetree, input_files);
-    ROOT::RDF::Experimental::AddProgressBar(df0); // add progress bar
+    ROOT::RDataFrame df_input(basetree, input_files);
+    ROOT::RDF::Experimental::AddProgressBar(df_input); // add progress bar
+    // add the sample information given by CROWN_SAMPLE_INFO (set by KingMaker
+    // automatically or can be set by hand by the user if running CROWN manually)
+    double sample_xsec = -10.;
+    double sample_nevents = -10.;
+    double sample_generator_weight = -10.;
+    std::string sample_nick = "";
+    if (const char *sample_info_path = std::getenv("CROWN_SAMPLE_INFO")) {
+        std::ifstream sample_info_file(sample_info_path);
+        if (!sample_info_file.is_open()) {
+            Logger::get("main")->critical(
+                "CROWN_SAMPLE_INFO is set, but {} cannot be opened",
+                sample_info_path);
+            return 1;
+        }
+        const auto sample_info = nlohmann::json::parse(sample_info_file);
+        sample_xsec = sample_info.value("xsec", -10.);
+        sample_nevents = sample_info.value("nevents", -10.);
+        sample_generator_weight = sample_info.value("generator_weight", -10.);
+        sample_nick = sample_info.value("nick", "");
+    } else {
+        Logger::get("main")->warn("CROWN_SAMPLE_INFO is not set, xsec, "
+                                  "nevents and generator_weight are set to "
+                                  "-10. and nick to an empty string");
+    }
+    Logger::get("main")->info("Sample information: nick {}, xsec {}, "
+                              "nevents {}, generator_weight {}",
+                              sample_nick, sample_xsec, sample_nevents,
+                              sample_generator_weight);
+    ROOT::RDF::RNode df0 =
+        df_input.Define("xsec", [sample_xsec]() { return sample_xsec; })
+            .Define("one_over_nevents", [sample_nevents]() { return (1. / sample_nevents); })
+            .Define("negative_events_fraction", [sample_generator_weight]() {
+                return sample_generator_weight;
+            })
+            .Define("nick", [sample_nick]() { return sample_nick; });
     Logger::get("main")->info("Starting Setup of Dataframe with {} events",
                               nevents);
     std::vector<ROOT::RDF::RResultPtr<ROOT::RDF::RCutFlowReport>> cutReports;
