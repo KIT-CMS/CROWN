@@ -2,28 +2,17 @@
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "TRandom3.h"
-<<<<<<< HEAD
 #include <array>
 #include <fstream>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
-<<<<<<< HEAD
 #include <set>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
-=======
 #include <exception>
 #include <cmath>
-
->>>>>>> 97ac829 (Add event hash-based filter to enable splitting of MC samples)
-=======
-#include <cmath>
-#include <exception>
-#include <nlohmann/json.hpp>
-#include <openssl/sha.h>
->>>>>>> dbce0ae (Format code)
 
 namespace event {
 namespace quantity {
