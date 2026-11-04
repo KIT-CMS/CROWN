@@ -1,19 +1,12 @@
-#ifndef GUARD_EVENT_H
-#define GUARD_EVENT_H
-
 #include "../include/utility/CorrectionManager.hxx"
 #include "../include/utility/Logger.hxx"
 #include "ROOT/RDataFrame.hxx"
 #include "TRandom3.h"
-#include <array>
-#include <fstream>
-#include <memory>
+#include <cmath>
+#include <cstdint>
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
-#include <set>
 #include <stdexcept>
-#include <unordered_map>
-#include <vector>
 
 namespace event {
 namespace quantity {
@@ -69,6 +62,127 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
     return df.Define(outputname, generate_seed, {lumi, run, event});
 }
 
+/**
+ * @brief This function creates a flag column that is `true` for events whose
+ * hash falls into a given fraction of the hash range, e.g., to split up a
+ * sample into mutually exclusive ones.
+ *
+ * The event hash can be generated using the `event::quantity::GenerateSeed`
+ * function. The output is a `uint32_t`. The range `[u_min, u_max)` defines
+ * which events are flagged, with `u_min` and `u_max` being numbers between 0
+ * and 1. These boundaries are scaled to the `uint32_t` value range. The flag
+ * is `true` if `event_hash` is within the scaled interval:
+ *
+ * ```
+ * u_min * 2^32 <= event_hash < u_max * 2^32
+ * ```
+ *
+ * This function can be used to split up a MC sample into several subsamples
+ * for different data-taking eras.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new flag column
+ * @param event_hash name of the column containing the event hash values, must
+ * be of type `unsigned int`
+ * @param u_min minimal value of the considered interval for the flag to be
+ * `true`; will be mapped to uint32 range; must be a value between 0 and 1
+ * @param u_max maximal value of the considered interval for the flag to be
+ * `true`; will be mapped to uint32 range; must be a value between 0 and 1
+ *
+ * @return a dataframe with the new flag column
+ *
+ * @throws std::runtime_error if `u_min` or `u_max` are outside the `[0, 1]`
+ * interval, or if `u_min >= u_max`.
+ */
+ROOT::RDF::RNode HashFlag(ROOT::RDF::RNode df, const std::string &outputname,
+                          const std::string &event_hash, const double &u_min,
+                          const double &u_max) {
+    // Define the logger name
+    const std::string logger_name = "event::quantity::HashFlag";
+
+    // Catch misconfiguration of u_min and u_max
+    if (u_min < 0 || u_min > 1 || u_max < 0 || u_max > 1) {
+        const std::string msg =
+            "u_min and u_max must be numbers between 0 and 1";
+        Logger::get(logger_name)->critical(msg);
+        throw std::runtime_error(msg);
+    }
+    if (u_min >= u_max) {
+        const std::string msg = "u_min must be strictly smaller than u_max";
+        Logger::get(logger_name)->critical(msg);
+        throw std::runtime_error(msg);
+    }
+
+    // Define lower and upper bounds on the hash. As it is a uint32, the
+    // largest possible value is 2**32 - 1
+    auto hash_min = uint64_t(u_min * std::pow(2, 32));
+    auto hash_max = uint64_t(u_max * std::pow(2, 32));
+
+    auto flag = [logger_name, hash_min,
+                 hash_max](const unsigned int &event_hash) {
+        // Flag the event if the hash is inside the [hash_min, hash_max)
+        // interval
+        Logger::get(logger_name)
+            ->debug("Got hash {}, check if it is in [{}, {})", event_hash,
+                    hash_min, hash_max);
+        return (hash_min <= event_hash) && (event_hash < hash_max);
+    };
+
+    return df.Define(outputname, flag, {event_hash});
+}
+
+/**
+ * @brief This function calculates the weight for a sample split. The weight
+ * corresponds to the `event::quantity::HashFlag` flag.
+ *
+ * This selection is unphysical and has been introduced to create independent
+ * event samples for different eras. Thus, when the sample is split, the
+ * lower number of selected MC events needs to be compensated with a weight,
+ * which scales the sample back to the correct normalization. The weight is
+ * obtained by inverting the size of the range `[u_min, u_max)` (with both
+ * numbers between 0 and 1), from which the events have been drawn:
+ *
+ * ```cpp
+ * 1 / (u_max - u_min)
+ * ```
+ *
+ * This function can be used to split up a MC sample into several subsamples
+ * for different data-taking eras.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output weight
+ * @param u_min minimal value of the considered interval for the event passing
+ * the filter; must be a value between 0 and 1
+ * @param u_max maximal value of the considered interval for the event passing
+ * the filter; must be a value between 0 and 1
+ *
+ * @return a dataframe with the new column
+ *
+ * @throws std::runtime_error if `u_min` or `u_max` are outside the `[0, 1]`
+ * interval, or if `u_min >= u_max`.
+ */
+ROOT::RDF::RNode HashSplitWeight(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const double &u_min, const double &u_max) {
+    // Define the logger name
+    const std::string logger_name = "event::quantity::HashSplitWeight";
+
+    // Catch misconfiguration of u_min and u_max
+    if (u_min < 0 || u_min > 1 || u_max < 0 || u_max > 1) {
+        const std::string msg =
+            "u_min and u_max must be numbers between 0 and 1";
+        Logger::get(logger_name)->critical(msg);
+        throw std::runtime_error(msg);
+    }
+    if (u_min >= u_max) {
+        const std::string msg = "u_min must be strictly smaller than u_max";
+        Logger::get(logger_name)->critical(msg);
+        throw std::runtime_error(msg);
+    }
+    // Calculate the weight
+    float w = static_cast<float>(1.0 / (u_max - u_min));
+    return df.Define(outputname, [w]() { return w; });
+}
 } // end namespace quantity
 
 namespace filter {
@@ -127,7 +241,6 @@ GoldenJSON(ROOT::RDF::RNode df,
     };
     return df.Filter(jsonFilterlambda, {run, luminosity}, filtername);
 }
+
 } // end namespace filter
 } // end namespace event
-
-#endif /* GUARD_EVENT_H */
