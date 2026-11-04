@@ -1,8 +1,7 @@
-#ifndef GUARDSTXS_H
-#define GUARDSTXS_H
+#pragma once
 
-#include "ROOT/RDataFrame.hxx"
-#include "utility/CorrectionManager.hxx"
+#include <ROOT/RDataFrame.hxx>
+#include <utility/CorrectionManager.hxx>
 
 namespace stxs {
 ROOT::RDF::RNode
@@ -31,4 +30,3 @@ LHEScale(ROOT::RDF::RNode df,
          const std::string &variation, const std::string &nick,
          const std::string &htxs_bin, const std::string &lhe_scale_weights);
 } // namespace stxs
-#endif /* GUARDSTXS_H */
