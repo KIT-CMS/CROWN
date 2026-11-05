@@ -3114,8 +3114,7 @@ TriggerJetLeg(ROOT::RDF::RNode df,
               const std::string &outputname, const std::string &jet_p4,
               const std::string &trigger_flag, const std::string &sf_file,
               const std::string &sf_name, const std::string &variation,
-              const std::string &syst_variable,
-              const std::string &correction_type = "sf") {
+              const std::string &syst_variable, const std::string &correction_type) {
     // Define logger name
     const std::string logger_name =
         "physicsobject::tau::scalefactor::TriggerJetLeg";
