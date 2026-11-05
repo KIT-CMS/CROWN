@@ -97,7 +97,6 @@ foreach(FILENAME ${FILELIST})
 endforeach()
 
 # install only the referenced files instead of all of data/ and payloads/
-# executables check that data/ exists, so always create it
 install(DIRECTORY DESTINATION ${INSTALLDIR}/data)
 list(REMOVE_DUPLICATES DATA_FILES)
 foreach(DATA_FILE ${DATA_FILES})
