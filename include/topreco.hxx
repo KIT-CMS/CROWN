@@ -1,14 +1,13 @@
-#ifndef GUARD_TOPRECO_H
-#define GUARD_TOPRECO_H
+#pragma once
 
-#include "ROOT/RDFHelpers.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "TVector2.h"
 #include <Math/Boost.h>
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <ROOT/RDFHelpers.hxx>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <TVector2.h>
 
 namespace topreco {
 
@@ -164,5 +163,3 @@ ROOT::RDF::RNode BTagScaleFactorsGeneric(
     const float &max_bjet_eta_sf);
 
 } // end namespace topreco
-
-#endif /* GUARD_TOPRECO_H */

@@ -1,20 +1,17 @@
-#ifndef GUARD_TOPRECO_H
-#define GUARD_TOPRECO_H
-
-#include "../include/topreco.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDFHelpers.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "TMinuit.h"
-#include "TVector2.h"
-#include "correction.h"
 #include <Math/Boost.h>
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <ROOT/RDFHelpers.hxx>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <TMinuit.h>
+#include <TVector2.h>
 #include <cmath>
+#include <correction.h>
+#include <topreco.hxx>
+#include <utility/Logger.hxx>
+#include <utility/utility.hxx>
 
 const float W_MASS = 80.377;  // PDG value as of 10/22
 const float TOP_MASS = 172.5; // gen mass
@@ -2604,5 +2601,3 @@ ROOT::RDF::RNode BTagScaleFactorsGeneric(
 }
 
 } // end namespace topreco
-
-#endif /* GUARD_TOPRECO_H */

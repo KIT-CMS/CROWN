@@ -1,12 +1,12 @@
-#ifndef GUARD_TRIPLESELECTION_H
-#define GUARD_TRIPLESELECTION_H
+#pragma once
 
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "TVector2.h"
-#include "bitset"
-#include "utility/Logger.hxx"
-#include "utility/utility.hxx"
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <TVector2.h>
+#include <bitset>
+#include <pairselection.hxx>
+#include <utility/Logger.hxx>
+#include <utility/utility.hxx>
 
 typedef std::bitset<15> StatusBits;
 bool check_mother(ROOT::RVec<GenParticle> genparticles, const int index,
@@ -106,4 +106,3 @@ ROOT::RDF::RNode TripleSelection(ROOT::RDF::RNode df,
                                  const float &mindeltaR_lep1lep2);
 }
 } // namespace whtautau_tripleselection
-#endif /* GUARD_TRIPLESELECTION_H */

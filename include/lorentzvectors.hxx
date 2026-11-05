@@ -1,12 +1,11 @@
-#ifndef GUARD_LORENTZVECTORS_H
-#define GUARD_LORENTZVECTORS_H
+#pragma once
 
-#include "ROOT/RDFHelpers.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "defaults.hxx"
-#include "utility/utility.hxx"
 #include <Math/Vector4D.h>
+#include <ROOT/RDFHelpers.hxx>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <defaults.hxx>
+#include <utility/utility.hxx>
 
 namespace lorentzvector {
 
@@ -313,4 +312,3 @@ ROOT::RDF::RNode GetRapidity(ROOT::RDF::RNode df, const std::string &outputname,
         LV_list);
 }
 } // end namespace lorentzvector
-#endif /* GUARD_LORENTZVECTORS_H */

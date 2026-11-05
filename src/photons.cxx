@@ -1,7 +1,5 @@
-#ifndef GUARD_PHOTONS_H
-#define GUARD_PHOTONS_H
+#include <photons.hxx>
 
 namespace physicsobject {
 namespace photon {} // namespace photon
 } // end namespace physicsobject
-#endif /* GUARD_PHOTONS_H */

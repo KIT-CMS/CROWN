@@ -1,11 +1,11 @@
-#ifndef GUARD_ML_H
-#define GUARD_ML_H
+#pragma once
 
-#include "TMVA/RModel.hxx"
-#include "utility/CorrectionManager.hxx"
-#include "utility/OnnxSessionManager.hxx"
-#include "utility/utility.hxx"
+#include <TMVA/RModel.hxx>
+#include <TStopwatch.h>
 #include <cstddef>
+#include <utility/CorrectionManager.hxx>
+#include <utility/OnnxSessionManager.hxx>
+#include <utility/utility.hxx>
 
 namespace ml {
 
@@ -101,4 +101,3 @@ inline ROOT::RDF::RNode GenericOnnxEvaluator(
     return df1;
 }
 } // end namespace ml
-#endif /* GUARD_ML_H */

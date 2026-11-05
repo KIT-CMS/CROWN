@@ -1,22 +1,20 @@
-#ifndef GUARDSTXS_H
-#define GUARDSTXS_H
-
-#include "../include/event.hxx"
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/ggF_qcd_uncertainty_2017.hxx"
-#include "../include/utility/qq2Hqq_uncert_scheme.hxx"
-#include "ROOT/RDFHelpers.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "TFile.h"
-#include "TGraphErrors.h"
+#include <ROOT/RDFHelpers.hxx>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <TFile.h>
+#include <TGraphErrors.h>
 #include <array>
+#include <event.hxx>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <set>
 #include <unordered_map>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
+#include <utility/ggF_qcd_uncertainty_2017.hxx>
+#include <utility/qq2Hqq_uncert_scheme.hxx>
 #include <vector>
+
 /// namespace used for STXS related functions
 namespace stxs {
 /**
@@ -311,4 +309,3 @@ LHEScale(ROOT::RDF::RNode df,
         {index_column, htxs_bin, lhe_scale_weights});
 }
 } // namespace stxs
-#endif /* GUARDSTXS_H */

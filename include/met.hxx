@@ -1,10 +1,9 @@
-#ifndef GUARD_MET_H
-#define GUARD_MET_H
+#pragma once
 
-#include "event.hxx"
-#include "utility/CorrectionManager.hxx"
-#include "utility/utility.hxx"
 #include <cmath>
+#include <event.hxx>
+#include <utility/CorrectionManager.hxx>
+#include <utility/utility.hxx>
 
 namespace met {
 
@@ -262,4 +261,3 @@ PropagateToMET(ROOT::RDF::RNode df, const std::string &outputname,
                const std::string &eta, const std::string &phi,
                const std::string &mass, bool apply_propagation, float min_pt);
 } // end namespace physicsobject
-#endif /* GUARD_MET_H */

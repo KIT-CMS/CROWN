@@ -1,8 +1,7 @@
-#ifndef TauAnalysis_ClassicSVfit_svFitAuxFunctions_h
-#define TauAnalysis_ClassicSVfit_svFitAuxFunctions_h
+#pragma once
 
-#include "Math/LorentzVector.h"
-#include "Math/Vector3D.h"
+#include <Math/LorentzVector.h>
+#include <Math/Vector3D.h>
 #include <TGraphErrors.h>
 
 #include <string>
@@ -127,4 +126,3 @@ struct integrationParameters {
 };
 
 } // namespace fastmtt
-#endif

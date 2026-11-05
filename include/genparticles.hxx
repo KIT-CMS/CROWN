@@ -1,14 +1,13 @@
-#ifndef GUARD_GENPARTICLES_H
-#define GUARD_GENPARTICLES_H
+#pragma once
 
-#include "../include/utility/Logger.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "bitset"
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <bitset>
 #include <cmath>
+#include <utility/Logger.hxx>
 
 namespace genparticles {
 
@@ -63,4 +62,3 @@ ROOT::RDF::RNode DecayFlavor(ROOT::RDF::RNode df, const std::string &outputname,
                              const std::string &lhe_status);
 } // end namespace drell_yan
 } // end namespace genparticles
-#endif /* GUARD_GENPARTICLES_H */

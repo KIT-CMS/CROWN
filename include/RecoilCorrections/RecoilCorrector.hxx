@@ -1,17 +1,17 @@
-#ifndef HTT_RecoilCorrector_h
-#define HTT_RecoilCorrector_h
+#pragma once
 
-#include "Math/Vector2D.h"
-#include "Math/VectorUtil.h"
-#include "TVector.h"
-#include "TVector2.h"
+#include <Math/Vector2D.h>
+#include <Math/VectorUtil.h>
 #include <TF1.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TMath.h>
 #include <TRandom.h>
 #include <TString.h>
-#include <assert.h>
+#include <TVector.h>
+#include <TVector2.h>
+#include <string>
+#include <vector>
 
 class RecoilCorrector {
 
@@ -134,5 +134,3 @@ class RecoilCorrector {
     float _xminMetZParalMC[5][3];
     float _xmaxMetZParalMC[5][3];
 };
-
-#endif

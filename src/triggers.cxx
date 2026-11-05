@@ -1,22 +1,20 @@
-#ifndef GUARD_TRIGGERS_H
-#define GUARD_TRIGGERS_H
-
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "bitset"
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
 #include <array>
+#include <bitset>
 #include <cmath>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <regex>
-#include <utility>
+#include <triggers.hxx>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
+#include <utility/utility.hxx>
+#include <utility> // from standard library
 
 typedef std::bitset<30> IntBits;
 
@@ -1085,4 +1083,3 @@ ROOT::RDF::RNode SelectScaleFactor(ROOT::RDF::RNode df,
     return df.Define(outputname, expression);
 }
 } // end namespace trigger
-#endif /* GUARD_TRIGGERS_H */
