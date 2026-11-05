@@ -11,7 +11,6 @@ typedef std::bitset<15> StatusBits;
 /**
  * @brief A struct to store the information of a generator pair for easier
  * access
- *
  */
 struct GenParticle {
     int index;
