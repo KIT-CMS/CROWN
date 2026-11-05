@@ -619,18 +619,32 @@ Trigger(ROOT::RDF::RNode df,
             // correction shifts below good tau pt selection
             try {
                 if (pt >= 0.0 && std::abs(eta) >= 0.0) {
-                    if (variation == "nominal") {
-                        sf = evaluator->evaluate({eta, pt, "nominal"});
-                    } else if (variation == "systup") {
-                        sf = evaluator->evaluate({eta, pt, "systup"});
-                    } else if (variation == "systdown") {
-                        sf = evaluator->evaluate({eta, pt, "systdown"});
+                    if (
+                        variation == "nominal"
+                        || variation == "systup"
+                        || variation == "systdown"
+                        || variation == "nominal_DATAeff"
+                        || variation == "nominal_MCeff"
+                    ) {
+                        sf = evaluator->evaluate({eta, pt, variation});
                     } else if (variation == "statup") {
                         sf = evaluator->evaluate({eta, pt, "nominal"}) +
                              evaluator->evaluate({eta, pt, "stat"});
                     } else if (variation == "statdown") {
                         sf = evaluator->evaluate({eta, pt, "nominal"}) -
                              evaluator->evaluate({eta, pt, "stat"});
+                    } else if (variation == "statup_DATAeff") {
+                        sf = evaluator->evaluate({eta, pt, "nominal_DATAeff"}) +
+                             evaluator->evaluate({eta, pt, "stat_DATAeff"});
+                    } else if (variation == "statdown_DATAeff") {
+                        sf = evaluator->evaluate({eta, pt, "nominal_DATAeff"}) -
+                             evaluator->evaluate({eta, pt, "stat_DATAeff"});
+                    } else if (variation == "statup_MCeff") {
+                        sf = evaluator->evaluate({eta, pt, "nominal_MCeff"}) +
+                             evaluator->evaluate({eta, pt, "stat_MCeff"});
+                    } else if (variation == "statdown_MCeff") {
+                        sf = evaluator->evaluate({eta, pt, "nominal_MCeff"}) -
+                             evaluator->evaluate({eta, pt, "stat_MCeff"});
                     } else {
                         Logger::get("physicsobject::muon::scalefactor::Trigger")
                             ->debug("variation {} not implemented, check your "
