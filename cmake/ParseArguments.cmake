@@ -72,22 +72,6 @@ if(NOT BUILD_CROWNLIB_ONLY)
         "Please specify the Analysis to be used with -DANALYSIS=my_analysis_name"
     )
   endif()
-  # if analysis is set, check the folder to find any potential payload files to
-  # be used
-  file(GLOB PAYLOADS
-       ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/payloads/*)
-  if(NOT PAYLOADS)
-    message(
-      STATUS
-        "No payload files found in ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/payloads/ for analysis ${ANALYSIS}"
-    )
-  else()
-    message(
-      STATUS
-        "Found payload files in ${CMAKE_SOURCE_DIR}/analysis_configurations/${ANALYSIS}/payloads/ for analysis ${ANALYSIS}"
-    )
-  endif()
-
   if(NOT DEFINED CONFIG)
     message(
       FATAL_ERROR
