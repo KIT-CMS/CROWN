@@ -12,12 +12,8 @@ if(NOT EXISTS "${CACHE_DIR}")
   file(MAKE_DIRECTORY "${CACHE_DIR}")
 endif()
 
-# Fingerprint of the ROOT install currently in use. The generated dictionary's
-# ABI depends on the exact ROOT build (e.g. TGenericClassInfo's constructor
-# signature has changed between ROOT/LCG releases), not just on our own header,
-# so a ROOT install/version change has to invalidate the cache too - a stale
-# dictionary built against a different ROOT silently fails to compile with
-# confusing "no matching function" errors.
+# Fingerprint of the ROOT version used for the build. Relevant if the compiled files
+# are used with a different ROOT version that can be incompatible.
 execute_process(
   COMMAND root-config --prefix
   OUTPUT_VARIABLE ROOT_PREFIX
@@ -32,11 +28,13 @@ if(NOT EXISTS "${PERSISTENT_LIB}"
    OR NOT EXISTS "${FINGERPRINT_FILE}")
   set(NEEDS_REBUILD TRUE)
 else()
-  file(TIMESTAMP "${SRC_HEADER}" SRC_TIME "%s")
   file(TIMESTAMP "${PERSISTENT_LIB}" BIN_TIME "%s")
-  if(${SRC_TIME} GREATER ${BIN_TIME})
-    set(NEEDS_REBUILD TRUE)
-  endif()
+  foreach(SRC_FILE "${SRC_HEADER}" "${SRC_LINKDEF}")
+    file(TIMESTAMP "${SRC_FILE}" SRC_TIME "%s")
+    if(${SRC_TIME} GREATER ${BIN_TIME})
+      set(NEEDS_REBUILD TRUE)
+    endif()
+  endforeach()
   file(READ "${PERSISTENT_CC}" CACHED_CONTENT)
   string(FIND "${CACHED_CONTENT}" "${SRC_HEADER}" PATH_MATCH)
   if(${PATH_MATCH} EQUAL -1)
@@ -63,15 +61,19 @@ if(NEEDS_REBUILD)
   message(
     STATUS "Cache miss: Regenerating ROOT Dictionary and Bootstrap Lib...")
 
+  # Remove the old fingerprint file to avoid confusion if the build fails
+  # and the fingerprint is not updated
+  file(REMOVE "${FINGERPRINT_FILE}")
+
   # Read in root-config flags
   execute_process(
     COMMAND root-config --cflags
     OUTPUT_VARIABLE ROOT_C_FLAGS
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ERROR_IS_FATAL ANY)
   execute_process(
     COMMAND root-config --libs
     OUTPUT_VARIABLE ROOT_L_FLAGS
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ERROR_IS_FATAL ANY)
   separate_arguments(C_FLAGS_LIST NATIVE_COMMAND "${ROOT_C_FLAGS}")
   separate_arguments(L_FLAGS_LIST NATIVE_COMMAND "${ROOT_L_FLAGS}")
 
@@ -80,16 +82,16 @@ if(NEEDS_REBUILD)
     COMMAND
       rootcling -f ${PERSISTENT_CC} -I${CMAKE_CURRENT_SOURCE_DIR}
       -I${CMAKE_CURRENT_SOURCE_DIR}/include -c ${SRC_HEADER} ${SRC_LINKDEF}
-    WORKING_DIRECTORY ${CACHE_DIR})
+    WORKING_DIRECTORY ${CACHE_DIR} COMMAND_ERROR_IS_FATAL ANY)
 
   # Compile the bootstrap .so using the cached .cc
   execute_process(
     COMMAND
       g++ -shared -fPIC -o ${PERSISTENT_LIB} ${PERSISTENT_CC}
-      -I${CMAKE_CURRENT_SOURCE_DIR}/include ${C_FLAGS_LIST} ${L_FLAGS_LIST})
+      -I${CMAKE_CURRENT_SOURCE_DIR}/include ${C_FLAGS_LIST} ${L_FLAGS_LIST}
+      COMMAND_ERROR_IS_FATAL ANY)
 
-  # Record which ROOT install these assets were built against, so a later ROOT
-  # change is detected instead of silently reusing an ABI-incompatible cache
+  # Record which ROOT install these assets were built against
   file(WRITE "${FINGERPRINT_FILE}" "${ROOT_FINGERPRINT}")
 
   message(STATUS "Dictionary assets cached in .cache/")
