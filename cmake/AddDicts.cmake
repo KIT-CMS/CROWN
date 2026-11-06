@@ -12,8 +12,8 @@ if(NOT EXISTS "${CACHE_DIR}")
   file(MAKE_DIRECTORY "${CACHE_DIR}")
 endif()
 
-# Fingerprint of the ROOT version used for the build. Relevant if the compiled files
-# are used with a different ROOT version that can be incompatible.
+# Fingerprint of the ROOT version used for the build. Relevant if the compiled
+# files are used with a different ROOT version that can be incompatible.
 execute_process(
   COMMAND root-config --prefix
   OUTPUT_VARIABLE ROOT_PREFIX
@@ -61,8 +61,8 @@ if(NEEDS_REBUILD)
   message(
     STATUS "Cache miss: Regenerating ROOT Dictionary and Bootstrap Lib...")
 
-  # Remove the old fingerprint file to avoid confusion if the build fails
-  # and the fingerprint is not updated
+  # Remove the old fingerprint file to avoid confusion if the build fails and
+  # the fingerprint is not updated
   file(REMOVE "${FINGERPRINT_FILE}")
 
   # Read in root-config flags
