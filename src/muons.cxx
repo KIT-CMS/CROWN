@@ -619,13 +619,10 @@ Trigger(ROOT::RDF::RNode df,
             // correction shifts below good tau pt selection
             try {
                 if (pt >= 0.0 && std::abs(eta) >= 0.0) {
-                    if (
-                        variation == "nominal"
-                        || variation == "systup"
-                        || variation == "systdown"
-                        || variation == "nominal_DATAeff"
-                        || variation == "nominal_MCeff"
-                    ) {
+                    if (variation == "nominal" || variation == "systup" ||
+                        variation == "systdown" ||
+                        variation == "nominal_DATAeff" ||
+                        variation == "nominal_MCeff") {
                         sf = evaluator->evaluate({eta, pt, variation});
                     } else if (variation == "statup") {
                         sf = evaluator->evaluate({eta, pt, "nominal"}) +
