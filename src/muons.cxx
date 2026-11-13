@@ -481,6 +481,12 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
                     sf = evaluator->evaluate({eta, eval_pt, "systup"});
                 } else if (variation == "systdown") {
                     sf = evaluator->evaluate({eta, eval_pt, "systdown"});
+                } else if (variation == "systonlyup" ||
+                           variation == "systonlydown") {
+                    // MUO systup/down include the stat part
+                    sf = evaluator->evaluate({eta, eval_pt, "nominal"}) +
+                         (variation == "systonlyup" ? 1. : -1.) *
+                             evaluator->evaluate({eta, eval_pt, "syst"});
                 } else if (variation == "statup") {
                     sf = evaluator->evaluate({eta, eval_pt, "nominal"}) +
                          evaluator->evaluate({eta, eval_pt, "stat"});
@@ -550,6 +556,12 @@ IsoAndID(ROOT::RDF::RNode df,
                     sf = evaluator->evaluate({eta, pt, "systup"});
                 } else if (variation == "systdown") {
                     sf = evaluator->evaluate({eta, pt, "systdown"});
+                } else if (variation == "systonlyup" ||
+                           variation == "systonlydown") {
+                    // MUO systup/down include the stat part
+                    sf = evaluator->evaluate({eta, pt, "nominal"}) +
+                         (variation == "systonlyup" ? 1. : -1.) *
+                             evaluator->evaluate({eta, pt, "syst"});
                 } else if (variation == "statup") {
                     sf = evaluator->evaluate({eta, pt, "nominal"}) +
                          evaluator->evaluate({eta, pt, "stat"});
@@ -722,6 +734,12 @@ Trigger(ROOT::RDF::RNode df,
                         sf = evaluator->evaluate({eta, pt, "systup"});
                     } else if (variation == "systdown") {
                         sf = evaluator->evaluate({eta, pt, "systdown"});
+                    } else if (variation == "systonlyup" ||
+                               variation == "systonlydown") {
+                        // MUO systup/down include the stat part
+                        sf = evaluator->evaluate({eta, pt, "nominal"}) +
+                             (variation == "systonlyup" ? 1. : -1.) *
+                                 evaluator->evaluate({eta, pt, "syst"});
                     } else if (variation == "statup") {
                         sf = evaluator->evaluate({eta, pt, "nominal"}) +
                              evaluator->evaluate({eta, pt, "stat"});
