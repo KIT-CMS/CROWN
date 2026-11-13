@@ -265,7 +265,10 @@ ROOT::RDF::RNode LHEscale(ROOT::RDF::RNode df, const std::string &outputname,
             }
             std::pair<const float, const float> variations = {mu_f, mu_r};
             int index = index_map[variations];
-            return scale_weights.at(index);
+            // relative to the central weight, not 1 in W+-H MiNNLO
+            return scale_weights.size() == 9 && scale_weights.at(4) != 0
+                       ? scale_weights.at(index) / scale_weights.at(4)
+                       : scale_weights.at(index);
         };
     auto df1 =
         df.Define(outputname, lhe_scale_weights_lambda, {lhe_scale_weights});
