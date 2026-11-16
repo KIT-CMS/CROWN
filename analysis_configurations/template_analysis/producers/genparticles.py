@@ -28,7 +28,7 @@ with defaults(scopes=["mm"]):
             output=[q.gen_p4_2],
         )
 
-    with defaults(input=[q.get_p4_1]):
+    with defaults(input=[q.gen_p4_1]):
         gen_pt_1 = Producer(
             call="lorentzvector::GetPt({df}, {output}, {input})",
             output=[q.gen_pt_1],
