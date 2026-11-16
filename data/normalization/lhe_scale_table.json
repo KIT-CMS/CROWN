@@ -1,5 +1,5 @@
 {
- "CMS_LHEScaleWeight_WH_highpt": [
+ "CMS_HIG26018_QCDscale_WH_highpt_ACCEPT": [
   [
    3,
    303
@@ -25,7 +25,7 @@
    305
   ]
  ],
- "CMS_LHEScaleWeight_WH_lowpt": [
+ "CMS_HIG26018_QCDscale_WH_lowpt_ACCEPT": [
   [
    3,
    301
@@ -43,7 +43,7 @@
    302
   ]
  ],
- "CMS_LHEScaleWeight_ZH_highpt": [
+ "CMS_HIG26018_QCDscale_ZH_highpt_ACCEPT": [
   [
    5,
    403
@@ -57,7 +57,7 @@
    405
   ]
  ],
- "CMS_LHEScaleWeight_ZH_lowpt": [
+ "CMS_HIG26018_QCDscale_ZH_lowpt_ACCEPT": [
   [
    5,
    401
@@ -67,8 +67,8 @@
    402
   ]
  ],
- "CMS_LHEScaleWeight_bbH": [],
- "CMS_LHEScaleWeight_ggH_0jet": [
+ "CMS_HIG26018_QCDscale_bbH_ACCEPT": [],
+ "CMS_HIG26018_QCDscale_ggH_0jet_ACCEPT": [
   [
    1,
    105
@@ -78,7 +78,7 @@
    106
   ]
  ],
- "CMS_LHEScaleWeight_ggH_1jet_lowpt": [
+ "CMS_HIG26018_QCDscale_ggH_1jet_lowpt_ACCEPT": [
   [
    1,
    107
@@ -92,7 +92,7 @@
    109
   ]
  ],
- "CMS_LHEScaleWeight_ggH_2jet_lowpt": [
+ "CMS_HIG26018_QCDscale_ggH_2jet_lowpt_ACCEPT": [
   [
    1,
    110
@@ -106,7 +106,7 @@
    112
   ]
  ],
- "CMS_LHEScaleWeight_ggH_highpt": [
+ "CMS_HIG26018_QCDscale_ggH_highpt_ACCEPT": [
   [
    1,
    101
@@ -116,7 +116,7 @@
    102
   ]
  ],
- "CMS_LHEScaleWeight_ggH_vbflike": [
+ "CMS_HIG26018_QCDscale_ggH_vbflike_ACCEPT": [
   [
    1,
    113
@@ -134,7 +134,7 @@
    116
   ]
  ],
- "CMS_LHEScaleWeight_ggH_very_highpt": [
+ "CMS_HIG26018_QCDscale_ggH_very_highpt_ACCEPT": [
   [
    1,
    103
@@ -144,9 +144,9 @@
    104
   ]
  ],
- "CMS_LHEScaleWeight_ggZH_highpt": [],
- "CMS_LHEScaleWeight_ggZH_lowpt": [],
- "CMS_LHEScaleWeight_qqH_0jet": [
+ "CMS_HIG26018_QCDscale_ggZH_highpt_ACCEPT": [],
+ "CMS_HIG26018_QCDscale_ggZH_lowpt_ACCEPT": [],
+ "CMS_HIG26018_QCDscale_qqH_0jet_ACCEPT": [
   [
    2,
    201
@@ -164,7 +164,7 @@
    201
   ]
  ],
- "CMS_LHEScaleWeight_qqH_1jet": [
+ "CMS_HIG26018_QCDscale_qqH_1jet_ACCEPT": [
   [
    2,
    202
@@ -182,7 +182,7 @@
    202
   ]
  ],
- "CMS_LHEScaleWeight_qqH_highmjj_highpt": [
+ "CMS_HIG26018_QCDscale_qqH_highmjj_highpt_ACCEPT": [
   [
    2,
    206
@@ -200,7 +200,7 @@
    206
   ]
  ],
- "CMS_LHEScaleWeight_qqH_highmjj_lowpt": [
+ "CMS_HIG26018_QCDscale_qqH_highmjj_lowpt_ACCEPT": [
   [
    2,
    207
@@ -266,7 +266,7 @@
    210
   ]
  ],
- "CMS_LHEScaleWeight_qqH_lowmjj": [
+ "CMS_HIG26018_QCDscale_qqH_lowmjj_ACCEPT": [
   [
    2,
    203
@@ -316,9 +316,9 @@
    205
   ]
  ],
- "CMS_LHEScaleWeight_tHW": [],
- "CMS_LHEScaleWeight_tHq": [],
- "CMS_LHEScaleWeight_ttH_highpt": [
+ "CMS_HIG26018_QCDscale_tHW_ACCEPT": [],
+ "CMS_HIG26018_QCDscale_tHq_ACCEPT": [],
+ "CMS_HIG26018_QCDscale_ttH_highpt_ACCEPT": [
   [
    6,
    604
@@ -328,7 +328,7 @@
    605
   ]
  ],
- "CMS_LHEScaleWeight_ttH_lowpt": [
+ "CMS_HIG26018_QCDscale_ttH_lowpt_ACCEPT": [
   [
    6,
    601
