@@ -312,9 +312,11 @@ ROOT::RDF::RNode LHEpdf(ROOT::RDF::RNode df, const std::string &outputname,
             }
             const int n_pdfs = pdf_weights.size();
             if (n_pdfs == 101 || n_pdfs == 103) {
+                // relative to the central member, not 1 in W+-H MiNNLO
+                const float central = pdf_weights[0] != 0 ? pdf_weights[0] : 1.0;
                 float sum = 0.0;
                 for (size_t i = 1; i < 101; i++) {
-                    float diff = pdf_weights[i] - 1;
+                    float diff = pdf_weights[i] / central - 1;
                     sum += diff * diff;
                 }
                 if (variation == "up") {
@@ -371,10 +373,11 @@ ROOT::RDF::RNode LHEalphaS(ROOT::RDF::RNode df, const std::string &outputname,
         }
         const int n_pdfs = pdf_weights.size();
         if (n_pdfs == 103) {
+            const float central = pdf_weights[0] != 0 ? pdf_weights[0] : 1.0;
             if (variation == "down") {
-                return pdf_weights[101];
+                return pdf_weights[101] / central;
             } else if (variation == "up") {
-                return pdf_weights[102];
+                return pdf_weights[102] / central;
             } else {
                 Logger::get("event::reweighting::LHEalphaS")
                     ->error("Invalid variation: {}", variation);
