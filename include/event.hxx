@@ -731,15 +731,6 @@ ROOT::RDF::RNode HashSplitWeight(ROOT::RDF::RNode df,
 
 const nlohmann::json &
 LoadSampleInfo(correctionManager::CorrectionManager &correction_manager);
-ROOT::RDF::RNode
-SampleInfo(ROOT::RDF::RNode df,
-           correctionManager::CorrectionManager &correction_manager,
-           const std::string &outputname, const std::string &key);
-ROOT::RDF::RNode
-SampleInfo(ROOT::RDF::RNode df,
-           correctionManager::CorrectionManager &correction_manager,
-           const std::string &outputname, const std::string &key,
-           const double &default_value);
 
 /**
  * @brief This function creates a new column with the sign of an existing
