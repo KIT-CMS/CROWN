@@ -21,12 +21,11 @@ ROOT::RDF::RNode
 Normalization(ROOT::RDF::RNode df,
               correctionManager::CorrectionManager &correction_manager,
               const std::string &family_output, const std::string &norm_output,
-              const std::string &stxs_table_path, const std::string &nick,
               const std::string &htxs_bin);
 ROOT::RDF::RNode
 LHEScale(ROOT::RDF::RNode df,
          correctionManager::CorrectionManager &correction_manager,
-         const std::string &output, const std::string &stxs_table_path,
-         const std::string &variation, const std::string &nick,
-         const std::string &htxs_bin, const std::string &lhe_scale_weights);
+         const std::string &output, const std::string &nuisance_table_path,
+         const std::string &variation, const std::string &htxs_bin,
+         const std::string &lhe_scale_weights);
 } // namespace stxs
