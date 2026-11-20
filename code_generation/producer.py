@@ -1208,8 +1208,8 @@ class SwitchProducer:
        otherwise operate on the class itself.
     3. If the resulting object is already a producer (not a nested class),
        return it directly.
-    4. Look up *version* if the object has a variant for it, else the era default from :data:`ERA_NANOAOD_VERSION_DEFAULTS`.
-       as an attribute of the object.
+    4. Look up *version* as an attribute of the object if it has one, else the
+       era default from :data:`ERA_NANOAOD_VERSION_DEFAULTS`.
     """
 
     @classmethod
