@@ -215,6 +215,39 @@ LoadSampleInfo(correctionManager::CorrectionManager &correction_manager) {
     return *correction_manager.loadjson(path);
 }
 
+/**
+ * @brief This function calculates the weight of the part of a sample kept by
+ * a split, e.g. `FractionSplitFlag`: `1 / split_fraction`, the measured
+ * generator-weight fraction of the part (`split_fraction` column written by
+ * the analysis template from the sample information), or `1 /
+ * default_fraction` for samples without a measured fraction (`split_fraction`
+ * not positive, -1 if it is not in the sample information).
+ *
+ * @param df input dataframe
+ * @param outputname name of the new weight column
+ * @param split_fraction name of the column with the measured fraction
+ * @param default_fraction fraction used if the sample has no measured one,
+ * e.g. the luminosity share of the era, 1 for unsplit samples
+ *
+ * @return a dataframe with the new column
+ *
+ * @throws std::runtime_error if `default_fraction` is not in (0, 1]
+ */
+ROOT::RDF::RNode SplitWeight(ROOT::RDF::RNode df, const std::string &outputname,
+                             const std::string &split_fraction,
+                             const double &default_fraction) {
+    if (default_fraction <= 0 || default_fraction > 1) {
+        const std::string msg = "default_fraction must be in (0, 1]";
+        Logger::get("event::quantity::SplitWeight")->critical(msg);
+        throw std::runtime_error(msg);
+    }
+    return df.Define(outputname,
+                     [default_fraction](const double &fraction) {
+                         return 1. /
+                                (fraction > 0 ? fraction : default_fraction);
+                     },
+                     {split_fraction});
+}
 } // end namespace quantity
 
 namespace filter {
