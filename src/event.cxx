@@ -2,7 +2,9 @@
 #include <TRandom3.h>
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <event.hxx>
+#include <fstream>
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
 #include <stdexcept>
@@ -183,6 +185,95 @@ ROOT::RDF::RNode HashSplitWeight(ROOT::RDF::RNode df,
     // Calculate the weight
     float w = static_cast<float>(1.0 / (u_max - u_min));
     return df.Define(outputname, [w]() { return w; });
+}
+
+/**
+ * @brief This function returns the sample information of the processed
+ * sample, i.e. its entry of the sample database (e.g. `nick`, `xsec`,
+ * `nevents`, `generator_weight` and optional analysis-specific fields), read
+ * from the JSON file given by the `CROWN_SAMPLE_INFO` environment variable
+ * (written by KingMaker for every job).
+ *
+ * @param correction_manager correction manager responsible for loading and
+ * caching the JSON file
+ *
+ * @return the sample information as a JSON object
+ *
+ * @throws std::runtime_error if `CROWN_SAMPLE_INFO` is not set or the file
+ * cannot be opened
+ */
+const nlohmann::json &
+LoadSampleInfo(correctionManager::CorrectionManager &correction_manager) {
+    const std::string logger_name = "event::quantity::LoadSampleInfo";
+    const char *path = std::getenv("CROWN_SAMPLE_INFO");
+    if (path == nullptr || !std::ifstream(path).good()) {
+        const std::string msg =
+            "CROWN_SAMPLE_INFO is not set or its file cannot be opened";
+        Logger::get(logger_name)->critical(msg);
+        throw std::runtime_error(msg);
+    }
+    return *correction_manager.loadjson(path);
+}
+
+/**
+ * @brief This function defines a new column with the constant value of the
+ * field `key` of the sample information (see `LoadSampleInfo`).
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * sample information
+ * @param outputname name of the new column of type `double`
+ * @param key field of the sample information, e.g. `xsec`
+ *
+ * @return a dataframe with the new column
+ *
+ * @throws std::runtime_error if the field is missing or null
+ */
+ROOT::RDF::RNode
+SampleInfo(ROOT::RDF::RNode df,
+           correctionManager::CorrectionManager &correction_manager,
+           const std::string &outputname, const std::string &key) {
+    const auto &sample_info = LoadSampleInfo(correction_manager);
+    if (!sample_info.contains(key) || sample_info.at(key).is_null()) {
+        const std::string msg = "Field '" + key +
+                                "' missing in the sample information of " +
+                                sample_info.value("nick", std::string("?"));
+        Logger::get("event::quantity::SampleInfo")->critical(msg);
+        throw std::runtime_error(msg);
+    }
+    const double value = sample_info.at(key).get<double>();
+    return df.Define(outputname, [value]() { return value; });
+}
+
+/**
+ * @brief This function defines a new column with the constant value of the
+ * field `key` of the sample information (see `LoadSampleInfo`), or
+ * `default_value` if the field is missing or null.
+ *
+ * @param df input dataframe
+ * @param correction_manager correction manager responsible for loading the
+ * sample information
+ * @param outputname name of the new column of type `double`
+ * @param key field of the sample information, e.g. `split_fraction`
+ * @param default_value value used if the field is missing or null
+ *
+ * @return a dataframe with the new column
+ */
+ROOT::RDF::RNode
+SampleInfo(ROOT::RDF::RNode df,
+           correctionManager::CorrectionManager &correction_manager,
+           const std::string &outputname, const std::string &key,
+           const double &default_value) {
+    const auto &sample_info = LoadSampleInfo(correction_manager);
+    double value = default_value;
+    if (sample_info.contains(key) && !sample_info.at(key).is_null()) {
+        value = sample_info.at(key).get<double>();
+    } else {
+        Logger::get("event::quantity::SampleInfo")
+            ->info("Field '{}' missing in the sample information, using {}",
+                   key, default_value);
+    }
+    return df.Define(outputname, [value]() { return value; });
 }
 } // end namespace quantity
 

@@ -137,69 +137,55 @@ qqH_WG1_uncertainties(ROOT::RDF::RNode df,
 
 namespace {
 
-// `samples` section of the STXS table
-// `nick -> {family, bins: {htxs_bin -> [norm, R_up, R_down]}}`
-// (written by
+// `stxs` field of the sample information `{family, bins: {htxs_bin -> [norm,
+// R_up, R_down]}}` (written to the sample database from
 // https://github.com/KIT-CMS/TAUER/blob/master/analyses/smhtt/common/stxs_tools.py)
-struct STXSTable {
-    struct Entry {
-        int family;
-        std::unordered_map<int, std::array<double, 3>> bins;
-    };
-    std::vector<Entry> entries;
-    std::unordered_map<std::string, int> index;
+struct STXSEntry {
+    int family = 0;
+    std::unordered_map<int, std::array<double, 3>> bins;
 
-    // index of the nick in `entries`, -1 if the nick is not in the table
-    int find(const std::string &nick) const {
-        auto it = index.find(nick);
-        return it == index.end() ? -1 : it->second;
-    }
-    // [norm, R_up, R_down] of a bin, nullptr if the nick or the bin is not in
-    // the table
-    const std::array<double, 3> *lookup(int idx, int bin) const {
-        if (idx < 0) {
-            return nullptr;
-        }
-        auto it = entries.at(idx).bins.find(bin);
-        return it == entries.at(idx).bins.end() ? nullptr : &it->second;
+    // [norm, R_up, R_down] of a bin, nullptr if the bin is not in the entry
+    const std::array<double, 3> *lookup(int bin) const {
+        auto it = bins.find(bin);
+        return it == bins.end() ? nullptr : &it->second;
     }
 };
 
-std::shared_ptr<const STXSTable>
-LoadSTXSTable(correctionManager::CorrectionManager &correction_manager,
-              const std::string &stxs_table_path) {
-    const nlohmann::json &json = *correction_manager.loadjson(stxs_table_path);
-    auto table = std::make_shared<STXSTable>();
-    for (const auto &[nick, entry] : json.at("samples").items()) {
-        STXSTable::Entry stxs_entry{entry.at("family").get<int>(), {}};
-        for (const auto &[bin, factors] : entry.at("bins").items()) {
-            stxs_entry.bins[std::stoi(bin)] = {factors.at(0).get<double>(),
-                                               factors.at(1).get<double>(),
-                                               factors.at(2).get<double>()};
-        }
-        table->index[nick] = table->entries.size();
-        table->entries.push_back(stxs_entry);
+std::shared_ptr<const STXSEntry>
+LoadSTXSEntry(correctionManager::CorrectionManager &correction_manager) {
+    const nlohmann::json &sample_info =
+        event::quantity::LoadSampleInfo(correction_manager);
+    auto entry = std::make_shared<STXSEntry>();
+    if (!sample_info.contains("stxs") || sample_info.at("stxs").is_null()) {
+        Logger::get("stxs::LoadSTXSEntry")
+            ->warn("No STXS entry in the sample information of {}, family 0 "
+                   "and norm 1",
+                   sample_info.value("nick", std::string("?")));
+        return entry;
     }
-    return table;
+    const nlohmann::json &stxs = sample_info.at("stxs");
+    entry->family = stxs.at("family").get<int>();
+    for (const auto &[bin, factors] : stxs.at("bins").items()) {
+        entry->bins[std::stoi(bin)] = {factors.at(0).get<double>(),
+                                       factors.at(1).get<double>(),
+                                       factors.at(2).get<double>()};
+    }
+    return entry;
 }
 
 } // namespace
 
 /**
- * @brief Looks up the STXS normalization of each event in the `samples`
- * section of the STXS table (written by
- * https://github.com/KIT-CMS/TAUER/blob/master/analyses/smhtt/common/stxs_tools.py):
- * `nick -> {family, bins: {htxs_bin -> [norm, R_up, R_down]}}`. The sample
- * nick is read from the `nick` column of the ntuple. Nicks missing from the
- * table (and bins missing from it) get family 0 and norm 1.
+ * @brief Defines the STXS normalization of each event from the `stxs` field
+ * of the sample information (see `event::quantity::LoadSampleInfo`):
+ * `{family, bins: {htxs_bin -> [norm, R_up, R_down]}}`. Samples without the
+ * field get family 0 and norm 1, bins missing from it norm 1.
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
- * table
+ * sample information
  * @param family_output name of the column holding the sample family code
  * @param norm_output name of the column with the per-bin normalization factor
- * @param stxs_table_path path to the STXS JSON table
- * @param nick name of the column containing the sample nick
  * @param htxs_bin name of the HTXS stage-1.2 category column
  *
  * @return a dataframe with the two new columns
@@ -208,25 +194,16 @@ ROOT::RDF::RNode
 Normalization(ROOT::RDF::RNode df,
               correctionManager::CorrectionManager &correction_manager,
               const std::string &family_output, const std::string &norm_output,
-              const std::string &stxs_table_path, const std::string &nick,
               const std::string &htxs_bin) {
-    auto table = LoadSTXSTable(correction_manager, stxs_table_path);
-    const std::string index_column = family_output + "_nick_index";
-    auto df1 = df.Define(
-        index_column,
-        [table](const std::string &nick) { return table->find(nick); }, {nick});
-    auto df2 =
-        df1.Define(family_output,
-                   [table](int idx) {
-                       return idx < 0 ? 0 : table->entries.at(idx).family;
-                   },
-                   {index_column});
-    return df2.Define(norm_output,
-                      [table](int idx, int bin) {
-                          auto factors = table->lookup(idx, bin);
+    auto entry = LoadSTXSEntry(correction_manager);
+    const int family = entry->family;
+    auto df1 = df.Define(family_output, [family]() { return family; });
+    return df1.Define(norm_output,
+                      [entry](int bin) {
+                          auto factors = entry->lookup(bin);
                           return factors ? (*factors)[0] : 1.0;
                       },
-                      {index_column, htxs_bin});
+                      {htxs_bin});
 }
 
 /**
@@ -234,26 +211,25 @@ Normalization(ROOT::RDF::RNode df,
  * one nuisance of the STXS scheme, selected by `variation`:
  * - `nominal`: 1 for all events
  * - `<nuisance>_up` / `<nuisance>_down`: for the events in the (family, HTXS
- * bin) pairs the nuisance applies to, the LHE scale weight divided by the
- * per-bin ratio `R_up` / `R_down` of the STXS table, and 1 for all others.
+ * bin) pairs the nuisance applies to, the LHE scale weight relative to the
+ * central one divided by the per-bin ratio `R_up` / `R_down`, and 1 for all
+ * others.
  *
  * Dividing by `R_up` / `R_down` removes the effect of the scale variation on
  * the cross section of the HTXS bin, keeping only its effect on the
- * acceptance. Everything is taken from the STXS table (written by TAUER's
- * analyses/smhtt/common/stxs_tools.py): the family and the ratios from its
- * `samples` section `nick -> {family, bins: {htxs_bin -> [norm, R_up,
- * R_down]}}`, using the `nick` column of the ntuple, and the (family, HTXS
- * bin) pairs of the nuisance from its `lhe_scale_nuisances` section
- * `nuisance -> [[family, HTXS bin], ...]`. Events of nicks missing from the
- * table get 1, bins missing from it keep the unnormalized LHE scale weight.
+ * acceptance. The family and the ratios are taken from the `stxs` field of the
+ * sample information `{family, bins: {htxs_bin -> [norm, R_up, R_down]}}`,
+ * the (family, HTXS bin) pairs of the nuisance from the nuisance table
+ * `nuisance -> [[family, HTXS bin], ...]` (both written by TAUER's
+ * analyses/smhtt/common/stxs_tools.py). Samples without the `stxs` field get
+ * 1, bins missing from it keep the unnormalized LHE scale weight.
  *
  * @param df input dataframe
  * @param correction_manager correction manager responsible for loading the
- * table
+ * nuisance table and the sample information
  * @param outputname name of the new column
- * @param stxs_table_path path to the STXS JSON table
+ * @param nuisance_table_path path to the JSON nuisance table
  * @param variation `nominal` or `<nuisance>_up` / `<nuisance>_down`
- * @param nick name of the column containing the sample nick
  * @param htxs_bin name of the HTXS stage-1.2 category column
  * @param lhe_scale_weights of the `LHEScaleWeight` column, its
  * mu_R = mu_F = 0.5 (`down`) is index 0, mu_R = mu_F = 2 (`up`) index 8 with
@@ -264,32 +240,28 @@ Normalization(ROOT::RDF::RNode df,
 ROOT::RDF::RNode
 LHEScale(ROOT::RDF::RNode df,
          correctionManager::CorrectionManager &correction_manager,
-         const std::string &outputname, const std::string &stxs_table_path,
-         const std::string &variation, const std::string &nick,
-         const std::string &htxs_bin, const std::string &lhe_scale_weights) {
+         const std::string &outputname, const std::string &nuisance_table_path,
+         const std::string &variation, const std::string &htxs_bin,
+         const std::string &lhe_scale_weights) {
     if (variation == "nominal") {
         return df.Define(outputname, []() { return 1.0; });
     }
     const auto split = variation.rfind('_');
     const std::string nuisance = variation.substr(0, split);
     const bool use_up = variation.substr(split + 1) == "up";
-    const nlohmann::json &stxs_table =
-        *correction_manager.loadjson(stxs_table_path);
-    auto members = std::make_shared<std::set<std::pair<int, int>>>();
-    for (const auto &pair : stxs_table.at("lhe_scale_nuisances").at(nuisance)) {
-        members->insert({pair.at(0).get<int>(), pair.at(1).get<int>()});
+    auto entry = LoadSTXSEntry(correction_manager);
+    // HTXS bins of this sample's family the nuisance applies to
+    auto bins = std::make_shared<std::set<int>>();
+    for (const auto &pair :
+         correction_manager.loadjson(nuisance_table_path)->at(nuisance)) {
+        if (pair.at(0).get<int>() == entry->family) {
+            bins->insert(pair.at(1).get<int>());
+        }
     }
-    auto table = LoadSTXSTable(correction_manager, stxs_table_path);
-    const std::string index_column = outputname + "_nick_index";
-    auto df1 = df.Define(
-        index_column,
-        [table](const std::string &nick) { return table->find(nick); }, {nick});
-    return df1.Define(
+    return df.Define(
         outputname,
-        [table, members, use_up](int idx, int bin,
-                                 const ROOT::RVec<float> &scale_weights) {
-            if (idx < 0 ||
-                !members->count({table->entries.at(idx).family, bin})) {
+        [entry, bins, use_up](int bin, const ROOT::RVec<float> &scale_weights) {
+            if (!bins->count(bin)) {
                 return 1.0;
             }
             if (scale_weights.size() != 8 && scale_weights.size() != 9) {
@@ -302,10 +274,16 @@ LHEScale(ROOT::RDF::RNode df,
             // 7 without it (8 weights); mu_R = mu_F = 0.5: index 0 in both
             const std::size_t index =
                 use_up ? (scale_weights.size() == 9 ? 8 : 7) : 0;
-            const double scale = scale_weights.at(index);
-            auto factors = table->lookup(idx, bin);
+            // relative to the central weight as the ratios, not 1 in W+-H
+            // MiNNLO
+            const double central =
+                scale_weights.size() == 9 && scale_weights.at(4) != 0
+                    ? scale_weights.at(4)
+                    : 1.0;
+            const double scale = scale_weights.at(index) / central;
+            auto factors = entry->lookup(bin);
             return factors ? scale / (*factors)[use_up ? 1 : 2] : scale;
         },
-        {index_column, htxs_bin, lhe_scale_weights});
+        {htxs_bin, lhe_scale_weights});
 }
 } // namespace stxs
