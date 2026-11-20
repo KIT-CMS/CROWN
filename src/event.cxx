@@ -215,66 +215,6 @@ LoadSampleInfo(correctionManager::CorrectionManager &correction_manager) {
     return *correction_manager.loadjson(path);
 }
 
-/**
- * @brief This function defines a new column with the constant value of the
- * field `key` of the sample information (see `LoadSampleInfo`).
- *
- * @param df input dataframe
- * @param correction_manager correction manager responsible for loading the
- * sample information
- * @param outputname name of the new column of type `double`
- * @param key field of the sample information, e.g. `xsec`
- *
- * @return a dataframe with the new column
- *
- * @throws std::runtime_error if the field is missing or null
- */
-ROOT::RDF::RNode
-SampleInfo(ROOT::RDF::RNode df,
-           correctionManager::CorrectionManager &correction_manager,
-           const std::string &outputname, const std::string &key) {
-    const auto &sample_info = LoadSampleInfo(correction_manager);
-    if (!sample_info.contains(key) || sample_info.at(key).is_null()) {
-        const std::string msg = "Field '" + key +
-                                "' missing in the sample information of " +
-                                sample_info.value("nick", std::string("?"));
-        Logger::get("event::quantity::SampleInfo")->critical(msg);
-        throw std::runtime_error(msg);
-    }
-    const double value = sample_info.at(key).get<double>();
-    return df.Define(outputname, [value]() { return value; });
-}
-
-/**
- * @brief This function defines a new column with the constant value of the
- * field `key` of the sample information (see `LoadSampleInfo`), or
- * `default_value` if the field is missing or null.
- *
- * @param df input dataframe
- * @param correction_manager correction manager responsible for loading the
- * sample information
- * @param outputname name of the new column of type `double`
- * @param key field of the sample information, e.g. `split_fraction`
- * @param default_value value used if the field is missing or null
- *
- * @return a dataframe with the new column
- */
-ROOT::RDF::RNode
-SampleInfo(ROOT::RDF::RNode df,
-           correctionManager::CorrectionManager &correction_manager,
-           const std::string &outputname, const std::string &key,
-           const double &default_value) {
-    const auto &sample_info = LoadSampleInfo(correction_manager);
-    double value = default_value;
-    if (sample_info.contains(key) && !sample_info.at(key).is_null()) {
-        value = sample_info.at(key).get<double>();
-    } else {
-        Logger::get("event::quantity::SampleInfo")
-            ->info("Field '{}' missing in the sample information, using {}",
-                   key, default_value);
-    }
-    return df.Define(outputname, [value]() { return value; });
-}
 } // end namespace quantity
 
 namespace filter {
