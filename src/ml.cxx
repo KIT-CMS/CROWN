@@ -1,20 +1,17 @@
-#ifndef GUARD_ML_H
-#define GUARD_ML_H
-
-#include "../include/ml.hxx"
-#include "../include/defaults.hxx"
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/OnnxSessionManager.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <defaults.hxx>
+#include <ml.hxx>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
+#include <utility/OnnxSessionManager.hxx>
+#include <utility/utility.hxx>
 
-#include "TInterpreter.h"
-#include "TMVA/RModel.hxx"
-#include "TSystem.h"
+#include <TInterpreter.h>
+#include <TMVA/RModel.hxx>
+#include <TSystem.h>
 #include <assert.h>
 #include <filesystem>
 #include <fstream>
@@ -206,4 +203,3 @@ StandardTransformer(ROOT::RDF::RNode df,
 }
 
 } // end namespace ml
-#endif /* GUARD_ML_H */

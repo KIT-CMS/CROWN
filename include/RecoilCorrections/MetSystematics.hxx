@@ -1,5 +1,4 @@
-#ifndef HTT_MetSystematic_h
-#define HTT_MetSystematic_h
+#pragma once
 
 #include <TF1.h>
 #include <TFile.h>
@@ -8,7 +7,7 @@
 #include <TMath.h>
 #include <TRandom.h>
 #include <TString.h>
-#include <assert.h>
+#include <string>
 
 class MetSystematic {
 
@@ -53,5 +52,3 @@ class MetSystematic {
     // first index : type of uncertainty 0=response, 1=resolution
     // second index  : jet multiplicity bin (0,1,2);
 };
-
-#endif

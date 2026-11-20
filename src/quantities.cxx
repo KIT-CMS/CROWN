@@ -1,18 +1,17 @@
-#ifndef GUARD_QUANTITIES_H
-#define GUARD_QUANTITIES_H
-
-#include "../include/SVFit/FastMTT.hxx"
-#include "../include/SVFit/MeasuredTauLepton.hxx"
-#include "../include/defaults.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <SVFit/FastMTT.hxx>
+#include <SVFit/MeasuredTauLepton.hxx>
 #include <array>
 #include <cmath>
 #include <cstring>
+#include <defaults.hxx>
+#include <quantities.hxx>
+#include <stdexcept>
+#include <utility/Logger.hxx>
+#include <utility/utility.hxx>
 
 namespace quantities {
 
@@ -381,6 +380,14 @@ FastMtt(ROOT::RDF::RNode df, const std::string &outputname,
         const std::string &met_cov_xx, const std::string &met_cov_xy,
         const std::string &met_cov_yy, const std::string &decay_mode_1,
         const std::string &decay_mode_2, const std::string &finalstate) {
+    if (finalstate.size() != 2) {
+        const std::string msg = "FastMTT: final state must consist of exactly "
+                                "2 characters, got '" +
+                                finalstate + "'";
+        Logger::get("FastMTT")->critical(msg);
+        throw std::runtime_error(msg);
+    }
+    // encode the final state as a single number for the cache key
     const float finalstate_code = finalstate[0] * 256 + finalstate[1];
     // initialize the FastMTT algorithm
     auto calculate_fast_mtt =
@@ -527,4 +534,3 @@ ROOT::RDF::RNode pt_W(ROOT::RDF::RNode df, const std::string &outputname,
         vectors);
 }
 } // end namespace quantities
-#endif /* GUARD_QUANTITIES_H */

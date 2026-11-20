@@ -1,5 +1,5 @@
-#include "../../include/SVFit/MeasuredTauLepton.hxx"
-#include "../../include/SVFit/AuxFunctions.hxx"
+#include <SVFit/AuxFunctions.hxx>
+#include <SVFit/MeasuredTauLepton.hxx>
 
 #include <TMath.h>
 

@@ -1,7 +1,7 @@
-#ifndef GUARD_MUONS_H
-#define GUARD_MUONS_H
+#pragma once
 
-#include "utility/CorrectionManager.hxx"
+#include <ROOT/RDataFrame.hxx>
+#include <utility/CorrectionManager.hxx>
 
 namespace physicsobject {
 namespace muon {
@@ -60,4 +60,3 @@ Trigger(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace muon
 } // end namespace physicsobject
-#endif /* GUARD_MUONS_H */

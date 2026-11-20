@@ -1,11 +1,9 @@
-#ifndef GUARD_PHYSICSOBJECTS_H
-#define GUARD_PHYSICSOBJECTS_H
-
-#include "../include/utility/Logger.hxx"
-#include "ROOT/RDataFrame.hxx"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <ROOT/RDataFrame.hxx>
 #include <cmath>
+#include <physicsobjects.hxx>
+#include <utility/Logger.hxx>
 
 /**
  * This namespace contains functions to apply cuts on physics objects. The
@@ -417,4 +415,3 @@ ROOT::RDF::RNode MassCorrectionWithPt(ROOT::RDF::RNode df,
     return df1;
 }
 } // end namespace physicsobject
-#endif /* GUARD_PHYSICSOBJECTS_H */

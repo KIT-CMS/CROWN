@@ -1,276 +1,16 @@
-#ifndef GUARD_EVENT_H
-#define GUARD_EVENT_H
-
-#include "../include/utility/CorrectionManager.hxx"
-#include "../include/utility/Logger.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "TRandom3.h"
+#include <ROOT/RDataFrame.hxx>
+#include <TRandom3.h>
+#include <cmath>
+#include <cstdint>
+#include <event.hxx>
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
-#include <array>
-#include <memory>
-#include <set>
 #include <stdexcept>
-#include <unordered_map>
-#include <vector>
+#include <utility/CorrectionManager.hxx>
+#include <utility/Logger.hxx>
 
 namespace event {
 namespace quantity {
-
-namespace {
-
-std::string SampleNormalizationParseNickFromPath(const std::string &sample_id) {
-    auto tree_sep = sample_id.rfind('/');
-    std::string filename =
-        (tree_sep == std::string::npos) ? sample_id : sample_id.substr(0, tree_sep);
-    std::vector<std::string> parts;
-    size_t pos = 0;
-    size_t next;
-    while ((next = filename.find('/', pos)) != std::string::npos) {
-        parts.push_back(filename.substr(pos, next - pos));
-        pos = next + 1;
-    }
-    parts.push_back(filename.substr(pos));
-    if (parts.size() < 3) {
-        throw std::runtime_error(
-            "event::quantity::SampleNormalization: path '" + filename +
-            "' has too few segments to contain a nick (expected "
-            ".../era/nick/scope/nick_N.root)");
-    }
-    return parts[parts.size() - 3];
-}
-
-double SampleNormalizationLookupField(const nlohmann::json &norm_table,
-                                      const std::string &nick,
-                                      const std::string &field) {
-    if (!norm_table.contains(nick)) {
-        Logger::get("event::quantity::SampleNormalization")
-            ->error("nick '{}' not found in the normalization table, "
-                    "sample_database is missing an entry for this ",
-                    nick);
-        throw std::runtime_error(
-            "event::quantity::SampleNormalization: unknown nick " + nick);
-    }
-    return norm_table.at(nick).at(field).get<double>();
-}
-
-} // namespace
-
-/**
- * @brief This function defines four per-file constant columns --
- * `xsec_output` (cross section), `ngen_weight_output` (1 / number of
- * generated events), `genweight_output` (effective normalization factor
- * accounting for negative generator weights) and `split_weight_output` (1 /
- * the fraction of the sample kept by an era split) -- by looking up this file's
- * sample nick in a `nick -> {xsec, nevents, generator_weight}` JSON table.
- *
- * The sample nick is parsed from the input file's path at runtime via
- * `ROOT::RDF::RSampleInfo` (path convention: `.../{era}/{nick}/{scope}/
- * {nick}_{N}.root`), so one compiled executable correctly normalizes every
- * nick contained in its input sample. An unknown nick throws rather than
- * silently defaulting.
- *
- * @param df input dataframe
- * @param correctionManager correction manager responsible for loading the
- * normalization JSON table
- * @param xsec_output name of the new column containing the cross section
- * @param ngen_weight_output name of the new column containing 1/nevents
- * @param genweight_output name of the new column containing the effective
- * generator-weight normalization factor
- * @param split_weight_output name of the new column containing 1 /
- * `split_fraction`, the generator-weight fraction of the sample kept by an
- * era split (e.g. `FractionSplitFlag`), or 1 / `default_split_fraction` for
- * nicks without one
- * @param norm_table_path path to the `nick -> {xsec, nevents,
- * generator_weight[, split_fraction]}` JSON lookup table
- * @param default_split_fraction fraction of the sample kept by the era split
- * if the nick has no measured `split_fraction`, 1 for samples used in a
- * single era
- *
- * @return a dataframe with the four new columns
- */
-ROOT::RDF::RNode
-SampleNormalization(ROOT::RDF::RNode df,
-                    correctionManager::CorrectionManager &correctionManager,
-                    const std::string &xsec_output,
-                    const std::string &ngen_weight_output,
-                    const std::string &genweight_output,
-                    const std::string &split_weight_output,
-                    const std::string &norm_table_path,
-                    const double &default_split_fraction) {
-    nlohmann::json norm_table = *correctionManager.loadjson(norm_table_path);
-
-    // crossSectionPerEventWeight -- the raw xsec (pb)
-    auto df1 = df.DefinePerSample(
-        xsec_output,
-        [norm_table](unsigned int /*slot*/, const ROOT::RDF::RSampleInfo &id) {
-            return SampleNormalizationLookupField(
-                norm_table, SampleNormalizationParseNickFromPath(id.AsString()),
-                "xsec");
-        });
-    // numberGeneratedEventsWeight -- 1/nevents
-    auto df2 = df1.DefinePerSample(
-        ngen_weight_output,
-        [norm_table](unsigned int /*slot*/, const ROOT::RDF::RSampleInfo &id) {
-            return 1.0 / SampleNormalizationLookupField(
-                             norm_table,
-                             SampleNormalizationParseNickFromPath(id.AsString()),
-                             "nevents");
-        });
-    // negative_events_fraction -- effective normalization factor
-    auto df3 = df2.DefinePerSample(
-        genweight_output,
-        [norm_table](unsigned int /*slot*/, const ROOT::RDF::RSampleInfo &id) {
-            return SampleNormalizationLookupField(
-                norm_table, SampleNormalizationParseNickFromPath(id.AsString()),
-                "generator_weight");
-        });
-    // weight_campaign_split -- 1/split_fraction, 1/default_split_fraction if
-    // not measured
-    return df3.DefinePerSample(
-        split_weight_output,
-        [norm_table, default_split_fraction](unsigned int /*slot*/,
-                                             const ROOT::RDF::RSampleInfo &id) {
-            const auto &entry = norm_table.at(
-                SampleNormalizationParseNickFromPath(id.AsString()));
-            return 1.0 / (entry.contains("split_fraction")
-                              ? entry.at("split_fraction").get<double>()
-                              : default_split_fraction);
-        });
-}
-
-ROOT::RDF::RNode
-STXSNormalization(ROOT::RDF::RNode df,
-                  correctionManager::CorrectionManager &correctionManager,
-                  const std::string &family_output,
-                  const std::string &norm_output,
-                  const std::string &scale_up_output,
-                  const std::string &scale_down_output,
-                  const std::string &norm_table_path,
-                  const std::string &htxs_bin_column,
-                  const std::string &lhe_scale_up_column,
-                  const std::string &lhe_scale_down_column) {
-    struct STXSTable {
-        int family;
-        std::unordered_map<int, std::array<double, 3>> bins;
-    };
-    nlohmann::json norm_table = *correctionManager.loadjson(norm_table_path);
-    auto tables = std::make_shared<std::vector<STXSTable>>();
-    auto index = std::make_shared<std::unordered_map<std::string, int>>();
-    for (const auto &[nick, entry] : norm_table.items()) {
-        if (!entry.contains("stxs")) {
-            continue;
-        }
-        STXSTable table{entry.at("stxs").at("family").get<int>(), {}};
-        for (const auto &[bin, factors] : entry.at("stxs").at("bins").items()) {
-            table.bins[std::stoi(bin)] = {factors.at(0).get<double>(),
-                                          factors.at(1).get<double>(),
-                                          factors.at(2).get<double>()};
-        }
-        (*index)[nick] = tables->size();
-        tables->push_back(table);
-    }
-    const std::string index_column = family_output + "_nick_index";
-    auto df1 = df.DefinePerSample(
-        index_column,
-        [index](unsigned int /*slot*/, const ROOT::RDF::RSampleInfo &id) {
-            auto it = index->find(
-                SampleNormalizationParseNickFromPath(id.AsString()));
-            return it == index->end() ? -1 : it->second;
-        });
-    auto lookup = [tables](int idx, int bin) -> const std::array<double, 3> * {
-        if (idx < 0) {
-            return nullptr;
-        }
-        auto it = tables->at(idx).bins.find(bin);
-        return it == tables->at(idx).bins.end() ? nullptr : &it->second;
-    };
-    auto df2 = df1.Define(
-        family_output,
-        [tables](int idx) { return idx < 0 ? 0 : tables->at(idx).family; },
-        {index_column});
-    auto df3 = df2.Define(
-        norm_output,
-        [lookup](int idx, int bin) {
-            auto factors = lookup(idx, bin);
-            return factors ? (*factors)[0] : 1.0;
-        },
-        {index_column, htxs_bin_column});
-    auto df4 = df3.Define(
-        scale_up_output,
-        [lookup](int idx, int bin, float scale) {
-            auto factors = lookup(idx, bin);
-            return factors ? scale / (*factors)[1] : scale;
-        },
-        {index_column, htxs_bin_column, lhe_scale_up_column});
-    return df4.Define(
-        scale_down_output,
-        [lookup](int idx, int bin, float scale) {
-            auto factors = lookup(idx, bin);
-            return factors ? scale / (*factors)[2] : scale;
-        },
-        {index_column, htxs_bin_column, lhe_scale_down_column});
-}
-
-ROOT::RDF::RNode
-STXSLheScale(ROOT::RDF::RNode df,
-             correctionManager::CorrectionManager &correctionManager,
-             const std::string &output, const std::string &table_path,
-             const std::string &variation, const std::string &family_column,
-             const std::string &htxs_bin_column,
-             const std::string &scale_up_column,
-             const std::string &scale_down_column) {
-    if (variation == "nominal") {
-        return df.Define(output, []() { return 1.0; });
-    }
-    const auto split = variation.rfind('_');
-    const std::string nuisance = variation.substr(0, split);
-    const bool use_up = variation.substr(split + 1) == "up";
-    nlohmann::json table = *correctionManager.loadjson(table_path);
-    auto members = std::make_shared<std::set<std::pair<int, int>>>();
-    for (const auto &pair : table.at(nuisance)) {
-        members->insert({pair.at(0).get<int>(), pair.at(1).get<int>()});
-    }
-    return df.Define(
-        output,
-        [members, use_up](int family, int bin, double up, double down) {
-            return members->count({family, bin}) ? (use_up ? up : down) : 1.0;
-        },
-        {family_column, htxs_bin_column, scale_up_column, scale_down_column});
-}
-
-/**
- * @brief This function creates a new column with `sign(genWeight) /
- * negative_fraction`. This is the standard normalization for MC generators
- * that produce negative event weights (e.g. amc@NLO, POWHEG): using only the
- * sign of the generator weight, divided by the sample's effective
- * normalization factor (`1 - 2 * (fraction of negative-weight events)`),
- * normalizes by the *effective* number of events instead of the raw event
- * count, so negative-weight events correctly dilute the yield rather than
- * being ignored or double-penalized.
- *
- * @param df input dataframe
- * @param outputname name of the new column
- * @param genweight_quantity name of the column containing the generator
- * weight (`Float_t`, as stored in NanoAOD)
- * @param negative_fraction_quantity name of the column containing the
- * sample's effective normalization factor (`1 - 2 * negative-weight
- * fraction`)
- *
- * @return a dataframe with the new column
- */
-ROOT::RDF::RNode
-NormalizedGenWeightSign(ROOT::RDF::RNode df, const std::string &outputname,
-                        const std::string &genweight_quantity,
-                        const std::string &negative_fraction_quantity) {
-    return df.Define(
-        outputname,
-        [](const float &genWeight, const double &negative_fraction) {
-            double sign = (genWeight < 0) ? -1.0 : 1.0;
-            return sign / negative_fraction;
-        },
-        {genweight_quantity, negative_fraction_quantity});
-}
 
 /**
  * @brief This function defines a new column in the dataframe with seeds for a
@@ -295,7 +35,7 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
                               const std::string &outputname,
                               const std::string &lumi, const std::string &run,
                               const std::string &event,
-                              const UInt_t &master_seed = 42) {
+                              const UInt_t &master_seed) {
 
     auto generate_seed = [master_seed](const unsigned int &lumi,
                                        const unsigned int &run,
@@ -323,6 +63,127 @@ ROOT::RDF::RNode GenerateSeed(ROOT::RDF::RNode df,
     return df.Define(outputname, generate_seed, {lumi, run, event});
 }
 
+/**
+ * @brief This function creates a flag column that is `true` for events whose
+ * hash falls into a given fraction of the hash range, e.g., to split up a
+ * sample into mutually exclusive ones.
+ *
+ * The event hash can be generated using the `event::quantity::GenerateSeed`
+ * function. The output is a `uint32_t`. The range `[u_min, u_max)` defines
+ * which events are flagged, with `u_min` and `u_max` being numbers between 0
+ * and 1. These boundaries are scaled to the `uint32_t` value range. The flag
+ * is `true` if `event_hash` is within the scaled interval:
+ *
+ * ```
+ * u_min * 2^32 <= event_hash < u_max * 2^32
+ * ```
+ *
+ * This function can be used to split up a MC sample into several subsamples
+ * for different data-taking eras.
+ *
+ * @param df input dataframe
+ * @param outputname name of the new flag column
+ * @param event_hash name of the column containing the event hash values, must
+ * be of type `unsigned int`
+ * @param u_min minimal value of the considered interval for the flag to be
+ * `true`; will be mapped to uint32 range; must be a value between 0 and 1
+ * @param u_max maximal value of the considered interval for the flag to be
+ * `true`; will be mapped to uint32 range; must be a value between 0 and 1
+ *
+ * @return a dataframe with the new flag column
+ *
+ * @throws std::runtime_error if `u_min` or `u_max` are outside the `[0, 1]`
+ * interval, or if `u_min >= u_max`.
+ */
+ROOT::RDF::RNode HashFlag(ROOT::RDF::RNode df, const std::string &outputname,
+                          const std::string &event_hash, const double &u_min,
+                          const double &u_max) {
+    // Define the logger name
+    const std::string logger_name = "event::quantity::HashFlag";
+
+    // Catch misconfiguration of u_min and u_max
+    if (u_min < 0 || u_min > 1 || u_max < 0 || u_max > 1) {
+        const std::string msg =
+            "u_min and u_max must be numbers between 0 and 1";
+        Logger::get(logger_name)->critical(msg);
+        throw std::runtime_error(msg);
+    }
+    if (u_min >= u_max) {
+        const std::string msg = "u_min must be strictly smaller than u_max";
+        Logger::get(logger_name)->critical(msg);
+        throw std::runtime_error(msg);
+    }
+
+    // Define lower and upper bounds on the hash. As it is a uint32, the
+    // largest possible value is 2**32 - 1
+    auto hash_min = uint64_t(u_min * std::pow(2, 32));
+    auto hash_max = uint64_t(u_max * std::pow(2, 32));
+
+    auto flag = [logger_name, hash_min,
+                 hash_max](const unsigned int &event_hash) {
+        // Flag the event if the hash is inside the [hash_min, hash_max)
+        // interval
+        Logger::get(logger_name)
+            ->debug("Got hash {}, check if it is in [{}, {})", event_hash,
+                    hash_min, hash_max);
+        return (hash_min <= event_hash) && (event_hash < hash_max);
+    };
+
+    return df.Define(outputname, flag, {event_hash});
+}
+
+/**
+ * @brief This function calculates the weight for a sample split. The weight
+ * corresponds to the `event::quantity::HashFlag` flag.
+ *
+ * This selection is unphysical and has been introduced to create independent
+ * event samples for different eras. Thus, when the sample is split, the
+ * lower number of selected MC events needs to be compensated with a weight,
+ * which scales the sample back to the correct normalization. The weight is
+ * obtained by inverting the size of the range `[u_min, u_max)` (with both
+ * numbers between 0 and 1), from which the events have been drawn:
+ *
+ * ```cpp
+ * 1 / (u_max - u_min)
+ * ```
+ *
+ * This function can be used to split up a MC sample into several subsamples
+ * for different data-taking eras.
+ *
+ * @param df input dataframe
+ * @param outputname name of the output weight
+ * @param u_min minimal value of the considered interval for the event passing
+ * the filter; must be a value between 0 and 1
+ * @param u_max maximal value of the considered interval for the event passing
+ * the filter; must be a value between 0 and 1
+ *
+ * @return a dataframe with the new column
+ *
+ * @throws std::runtime_error if `u_min` or `u_max` are outside the `[0, 1]`
+ * interval, or if `u_min >= u_max`.
+ */
+ROOT::RDF::RNode HashSplitWeight(ROOT::RDF::RNode df,
+                                 const std::string &outputname,
+                                 const double &u_min, const double &u_max) {
+    // Define the logger name
+    const std::string logger_name = "event::quantity::HashSplitWeight";
+
+    // Catch misconfiguration of u_min and u_max
+    if (u_min < 0 || u_min > 1 || u_max < 0 || u_max > 1) {
+        const std::string msg =
+            "u_min and u_max must be numbers between 0 and 1";
+        Logger::get(logger_name)->critical(msg);
+        throw std::runtime_error(msg);
+    }
+    if (u_min >= u_max) {
+        const std::string msg = "u_min must be strictly smaller than u_max";
+        Logger::get(logger_name)->critical(msg);
+        throw std::runtime_error(msg);
+    }
+    // Calculate the weight
+    float w = static_cast<float>(1.0 / (u_max - u_min));
+    return df.Define(outputname, [w]() { return w; });
+}
 } // end namespace quantity
 
 namespace filter {
@@ -381,7 +242,6 @@ GoldenJSON(ROOT::RDF::RNode df,
     };
     return df.Filter(jsonFilterlambda, {run, luminosity}, filtername);
 }
+
 } // end namespace filter
 } // end namespace event
-
-#endif /* GUARD_EVENT_H */

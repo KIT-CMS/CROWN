@@ -144,7 +144,7 @@ with defaults(scopes=["global", "em", "et", "mt", "tt", "mm"]):
         output=[q.topPtReweightWeight],
     )
     GGH_NNLO_Reweighting = Producer(
-        call="""htxs::ggHNNLOWeights(
+        call="""stxs::ggHNNLOWeights(
             {df}, 
             {output}, 
             "{ggHNNLOweightsRootfile}", 
@@ -155,7 +155,7 @@ with defaults(scopes=["global", "em", "et", "mt", "tt", "mm"]):
         output=[q.ggh_NNLO_weight],
     )
     GGH_WG1_Uncertainties = Producer(
-        call="htxs::ggH_WG1_uncertainties({df}, {output_vec}, {input})",
+        call="stxs::ggH_WG1_uncertainties({df}, {output_vec}, {input})",
         input=[
             nanoAOD.HTXS_stage_1_pTjet30,
             nanoAOD.HTXS_Higgs_pt,
@@ -174,7 +174,7 @@ with defaults(scopes=["global", "em", "et", "mt", "tt", "mm"]):
         ],
     )
     QQH_WG1_Uncertainties = Producer(
-        call="htxs::qqH_WG1_uncertainties({df}, {output_vec}, {input})",
+        call="stxs::qqH_WG1_uncertainties({df}, {output_vec}, {input})",
         input=[
             nanoAOD.HTXS_stage1_1_fine_cat_pTjet30GeV
         ],  # using fine stage1.1 flag required by the used macro

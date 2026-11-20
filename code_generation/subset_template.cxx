@@ -1,5 +1,5 @@
-#include "ROOT/RDFHelpers.hxx"
-#include "ROOT/RDataFrame.hxx"
+#include <ROOT/RDFHelpers.hxx>
+#include <ROOT/RDataFrame.hxx>
 #include "RooTrace.h"
 #include "TStopwatch.h"
 #include "include/electrons.hxx"
@@ -8,7 +8,7 @@
 #include "include/fakefactors.hxx"
 #include "include/fatjets.hxx"
 #include "include/genparticles.hxx"
-#include "include/htxs.hxx"
+#include "include/stxs.hxx"
 #include "include/jets.hxx"
 #include "include/lorentzvectors.hxx"
 #include "include/met.hxx"

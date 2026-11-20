@@ -1,17 +1,15 @@
-#ifndef GUARD_TRIPLESELECTION_H
-#define GUARD_TRIPLESELECTION_H
-
-#include "../include/pairselection.hxx"
-#include "../include/utility/Logger.hxx"
-#include "../include/utility/utility.hxx"
-#include "ROOT/RDFHelpers.hxx"
-#include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
-#include "TVector2.h"
-#include "bitset"
 #include <Math/Vector4D.h>
 #include <Math/VectorUtil.h>
+#include <ROOT/RDFHelpers.hxx>
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RVec.hxx>
+#include <TVector2.h>
+#include <bitset>
 #include <cmath>
+#include <pairselection.hxx>
+#include <tripleselection.hxx>
+#include <utility/Logger.hxx>
+#include <utility/utility.hxx>
 
 typedef std::bitset<15> StatusBits;
 namespace whtautau_tripleselection {
@@ -1510,4 +1508,3 @@ ROOT::RDF::RNode TripleSelection(ROOT::RDF::RNode df,
 }
 } // namespace ele_tautau
 } // end namespace whtautau_tripleselection
-#endif /* GUARD_TRIPLESELECTION_H */

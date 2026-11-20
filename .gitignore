@@ -22,8 +22,11 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Ignore local VS code settings
 .vscode
 .vscode/
+*.code-workspace
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -50,3 +53,6 @@ FlameGraph/
 *.pl
 perf.data
 perf.data.old
+
+# Ignore local .claude files
+.claude/

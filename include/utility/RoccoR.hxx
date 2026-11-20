@@ -1,5 +1,4 @@
-#ifndef GUARD_ROCCOR_H
-#define GUARD_ROCCOR_H
+#pragma once
 
 #include <TMath.h>
 #include <cmath>
@@ -210,5 +209,3 @@ class RoccoR {
     double kScaleAndSmearMCerror(int Q, double pt, double eta, double phi,
                                  int n, double u, double w) const;
 };
-
-#endif /* GUARD_ROCCOR_H */

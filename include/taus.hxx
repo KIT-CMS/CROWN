@@ -1,7 +1,7 @@
-#ifndef GUARD_TAUS_H
-#define GUARD_TAUS_H
+#pragma once
 
-#include "utility/CorrectionManager.hxx"
+#include <ROOT/RDataFrame.hxx>
+#include <utility/CorrectionManager.hxx>
 
 namespace physicsobject {
 namespace tau {
@@ -355,7 +355,8 @@ TriggerJetLeg(ROOT::RDF::RNode df,
               const std::string &outputname, const std::string &jet_p4,
               const std::string &trigger_flag, const std::string &sf_file,
               const std::string &sf_name, const std::string &variation,
-              const std::string &syst_variable);
+              const std::string &syst_variable,
+              const std::string &correction_type = "sf");
 
 namespace experimental {
 ROOT::RDF::RNode
@@ -387,4 +388,3 @@ Id_vsMu(ROOT::RDF::RNode df,
 } // end namespace scalefactor
 } // end namespace tau
 } // end namespace physicsobject
-#endif /* GUARD_TAUS_H */

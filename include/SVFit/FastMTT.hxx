@@ -1,10 +1,9 @@
-#ifndef FastMTT_FastMTT_H
-#define FastMTT_FastMTT_H
+#pragma once
 
-#include "Math/LorentzVector.h"
-#include "TBenchmark.h"
-#include "TMatrixD.h"
+#include <Math/LorentzVector.h>
 #include <Math/Vector4D.h>
+#include <TBenchmark.h>
+#include <TMatrixD.h>
 #include <bitset>
 #include <string>
 #include <tuple>
@@ -134,5 +133,3 @@ class FastMTT {
 
     int verbosity;
 };
-
-#endif
