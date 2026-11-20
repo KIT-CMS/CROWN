@@ -104,6 +104,10 @@ if(NOT BUILD_CROWNLIB_ONLY)
     set(FRIENDS "true")
   endif()
 
+  if(NOT DEFINED NANOAOD_VERSION)
+    set(NANOAOD_VERSION "none")
+  endif()
+
   if(NOT DEFINED SAMPLES)
     message(
       FATAL_ERROR "Please specify the samples to be used with -DSAMPLES=samples"
@@ -145,7 +149,7 @@ if(NOT BUILD_CROWNLIB_ONLY)
   # compiler flags are chosen
   message(
     STATUS
-      "|> Code generation arguments:  --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --threads ${THREADS} --debug ${DEBUG_PARSED} --friends ${FRIENDS} --quantities_map ${QUANTITIESMAP}"
+      "|> Code generation arguments:  --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --samples ${SAMPLES} --eras ${ERAS} --threads ${THREADS} --debug ${DEBUG_PARSED} --friends ${FRIENDS} --quantities_map ${QUANTITIESMAP} --nanoaod-version ${NANOAOD_VERSION}"
   )
   message(STATUS "---------------------------------------------")
 else() # if building only the CROWNLIB library
