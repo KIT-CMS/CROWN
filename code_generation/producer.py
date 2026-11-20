@@ -1208,8 +1208,8 @@ class SwitchProducer:
        otherwise operate on the class itself.
     3. If the resulting object is already a producer (not a nested class),
        return it directly.
-    4. Look up *version* (or the era default from :data:`ERA_NANOAOD_VERSION_DEFAULTS`)
-       as an attribute of the object.
+    4. Look up *version* as an attribute of the object if it has one, else the
+       era default from :data:`ERA_NANOAOD_VERSION_DEFAULTS`.
     """
 
     @classmethod
@@ -1226,7 +1226,8 @@ class SwitchProducer:
         Args:
             era:     Data-taking era string, e.g. ``'2018'`` or ``'2024'``.
             version: Explicit variant key, e.g. ``'v9'``, ``'v12'``, ``'v15'``.
-                     Falls back to :data:`ERA_NANOAOD_VERSION_DEFAULTS` when ``None``.
+                     Falls back to :data:`ERA_NANOAOD_VERSION_DEFAULTS` when ``None``
+                     or when the producer has no variant for it.
 
         Raises:
             ValueError: When no matching variant is found.
@@ -1238,7 +1239,8 @@ class SwitchProducer:
         if not isinstance(obj, type):
             return obj
 
-        target_version = version or ERA_NANOAOD_VERSION_DEFAULTS.get(era)
+        # a version without its own variant uses the default of the era
+        target_version = version if version and hasattr(obj, version) else ERA_NANOAOD_VERSION_DEFAULTS.get(era)
         if target_version and hasattr(obj, target_version):
             return getattr(obj, target_version)
 

@@ -29,7 +29,7 @@ foreach(ERA IN LISTS ERAS)
   foreach(SAMPLE IN LISTS SAMPLES)
     message("Generating code for sample ${SAMPLE} and era ${ERA}")
     message(
-      "Running command: ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --subset-template ${GENERATE_CPP_SUBSET_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --sample ${SAMPLE} --era ${ERA} --threads ${THREADS} --debug ${DEBUG_PARSED} --friends ${FRIENDS} --quantities-map ${QUANTITIESMAP}"
+      "Running command: ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/generate.py --template ${GENERATE_CPP_INPUT_TEMPLATE} --subset-template ${GENERATE_CPP_SUBSET_TEMPLATE} --output ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --config ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --sample ${SAMPLE} --era ${ERA} --threads ${THREADS} --debug ${DEBUG_PARSED} --friends ${FRIENDS} --quantities-map ${QUANTITIESMAP} --nanoaod-version ${NANOAOD_VERSION}"
     )
     execute_process(
       COMMAND
@@ -39,7 +39,7 @@ foreach(ERA IN LISTS ERAS)
         ${GENERATE_CPP_OUTPUT_DIRECTORY} --analysis ${ANALYSIS} --config
         ${CONFIG} --scopes ${SCOPES} --shifts ${SHIFTS} --sample ${SAMPLE} --era
         ${ERA} --threads ${THREADS} --debug ${DEBUG_PARSED} --friends ${FRIENDS}
-        --quantities-map ${QUANTITIESMAP}
+        --quantities-map ${QUANTITIESMAP} --nanoaod-version ${NANOAOD_VERSION}
       RESULT_VARIABLE ret
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
     if(ret EQUAL "1")
