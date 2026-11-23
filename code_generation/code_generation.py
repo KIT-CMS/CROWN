@@ -224,7 +224,7 @@ class CodeGenerator(object):
         self.main_template = self.load_template(main_template_path)
         self.subset_template = self.load_template(sub_template_path)
         self.sample_info_columns: List[str] = (
-            ["nick", "negative_events_fraction", "one_over_nevents", "split_fraction", "xsec"]
+            ["nick", "negative_events_fraction", "one_over_nevents", "xsec"]
             if "CROWN_SAMPLE_INFO" in self.main_template
             else []
         )

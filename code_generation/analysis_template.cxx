@@ -139,7 +139,6 @@ int main(int argc, char *argv[]) {
     double sample_xsec = -10.;
     double sample_nevents = -10.;
     double sample_generator_weight = -10.;
-    double sample_split_fraction = -1.;
     std::string sample_nick = "";
     if (const char *sample_info_path = std::getenv("CROWN_SAMPLE_INFO")) {
         std::ifstream sample_info_file(sample_info_path);
@@ -153,9 +152,6 @@ int main(int argc, char *argv[]) {
         sample_xsec = sample_info.value("xsec", -10.);
         sample_nevents = sample_info.value("nevents", -10.);
         sample_generator_weight = sample_info.value("generator_weight", -10.);
-        // measured share of the sample kept by a split of shared MC, -1 if not
-        // measured (see event::quantity::SplitWeight)
-        sample_split_fraction = sample_info.value("split_fraction", -1.);
         sample_nick = sample_info.value("nick", "");
     } else {
         Logger::get("main")->warn("CROWN_SAMPLE_INFO is not set, xsec, "
@@ -163,18 +159,15 @@ int main(int argc, char *argv[]) {
                                   "-10. and nick to an empty string");
     }
     Logger::get("main")->info("Sample information: nick {}, xsec {}, "
-                              "nevents {}, generator_weight {}, "
-                              "split_fraction {}",
+                              "nevents {}, generator_weight {}",
                               sample_nick, sample_xsec, sample_nevents,
-                              sample_generator_weight, sample_split_fraction);
+                              sample_generator_weight);
     ROOT::RDF::RNode df0 =
         df_input.Define("xsec", [sample_xsec]() { return sample_xsec; })
             .Define("one_over_nevents", [sample_nevents]() { return (1. / sample_nevents); })
             .Define("negative_events_fraction", [sample_generator_weight]() {
                 return sample_generator_weight;
             })
-            .Define("split_fraction",
-                    [sample_split_fraction]() { return sample_split_fraction; })
             .Define("nick", [sample_nick]() { return sample_nick; });
     Logger::get("main")->info("Starting Setup of Dataframe with {} events",
                               nevents);
