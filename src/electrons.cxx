@@ -546,15 +546,19 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
             if (std::stoi(era.substr(0, 4)) <= 2018) {
                 if (pt >= 20.0) {
                     reco_name = "RecoAbove20";
-                } else {
+                } else if (pt >= 0.0 && pt < 20.0) {
                     reco_name = "RecoBelow20";
                 }
+                // reco_name stays empty for pt < 0 -> no SF evaluation
             } else {
-                if (pt >= 20.0 && pt < 75.) {
-                    reco_name = "Reco20to75";
-                } else if (pt >= 75.) {
+                if (pt >= 75.) {
                     reco_name = "RecoAbove75";
+                } else if (pt >= 20.0 && pt < 75.0) {
+                    reco_name = "Reco20to75";
+                } else if (pt >= 0.0 && pt < 20.0) {
+                    reco_name = "RecoBelow20";
                 }
+                // reco_name stays empty for pt < 0 -> no SF evaluation
             }
             Logger::get(logger_name)->debug("Reco name - {}", reco_name);
 
