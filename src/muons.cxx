@@ -442,8 +442,8 @@ namespace scalefactor {
  * @param sf_file path to the file with the muon scale factors
  * @param sf_name name of the muon scale factor for the reco correction,
  * e.g. "NUM_TrackerMuons_DEN_genTracks"
- * @param variation name the scale factor variation, "nominal" for the nominal
- * scale factor and "systup"/"systdown" for the up/down variation
+ * @param variation scale factor variation: "nominal", "systup"/"systdown"
+ * (incl. stat), "systonlyup"/"systonlydown" or "statup"/"statdown"
  *
  * @return a new dataframe containing the new column
  *
@@ -475,12 +475,8 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
             // check to prevent muons with default values due to tau energy
             // correction shifts below good tau pt selection
             if (pt >= 0.0 && std::abs(eta) >= 0.0) {
-                if (variation == "nominal") {
-                    sf = evaluator->evaluate({eta, eval_pt, "nominal"});
-                } else if (variation == "systup") {
-                    sf = evaluator->evaluate({eta, eval_pt, "systup"});
-                } else if (variation == "systdown") {
-                    sf = evaluator->evaluate({eta, eval_pt, "systdown"});
+                if (variation == "nominal" || variation == "systup" || variation == "systdown") {
+                    sf = evaluator->evaluate({eta, eval_pt, variation});
                 } else if (variation == "systonlyup" ||
                            variation == "systonlydown") {
                     // MUO systup/down include the stat part
@@ -525,8 +521,8 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
  * @param sf_file path to the file with the muon scale factors
  * @param sf_name name of the muon scale factor for the correction,
  * e.g. "NUM_TightRelIso_DEN_MediumID"
- * @param variation name the scale factor variation, "nominal" for the nominal
- * scale factor and "systup"/"systdown" for the up/down variation
+ * @param variation scale factor variation: "nominal", "systup"/"systdown"
+ * (incl. stat), "systonlyup"/"systonlydown" or "statup"/"statdown"
  *
  * @return a new dataframe containing the new column
  */
@@ -550,12 +546,8 @@ IsoAndID(ROOT::RDF::RNode df,
             // check to prevent muons with default values due to tau energy
             // correction shifts below good tau pt selection
             if (pt >= 0.0 && std::abs(eta) >= 0.0) {
-                if (variation == "nominal") {
-                    sf = evaluator->evaluate({eta, pt, "nominal"});
-                } else if (variation == "systup") {
-                    sf = evaluator->evaluate({eta, pt, "systup"});
-                } else if (variation == "systdown") {
-                    sf = evaluator->evaluate({eta, pt, "systdown"});
+                if (variation == "nominal" || variation == "systup" || variation == "systdown") {
+                    sf = evaluator->evaluate({eta, pt, variation});
                 } else if (variation == "systonlyup" ||
                            variation == "systonlydown") {
                     // MUO systup/down include the stat part
@@ -600,8 +592,9 @@ IsoAndID(ROOT::RDF::RNode df,
  * @param sf_file path to the file with the muon scale factors
  * @param sf_name name of the muon scale factor for the trigger correction,
  * e.g. "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight"
- * @param variation name the scale factor variation, "nominal" for the nominal
- * scale factor and "systup"/"systdown" for the up/down variation
+ * @param variation scale factor variation: "nominal", "systup"/"systdown"
+ * (incl. stat), "systonlyup"/"systonlydown" or "statup"/"statdown";
+ * "nominal" and "stat*" also with the suffix "_DATAeff"/"_MCeff"
  *
  * @return a new dataframe containing the new column
  *
@@ -636,6 +629,12 @@ Trigger(ROOT::RDF::RNode df,
                         variation == "nominal_DATAeff" ||
                         variation == "nominal_MCeff") {
                         sf = evaluator->evaluate({eta, pt, variation});
+                    } else if (variation == "systonlyup" ||
+                               variation == "systonlydown") {
+                        // MUO systup/down include the stat part
+                        sf = evaluator->evaluate({eta, pt, "nominal"}) +
+                            (variation == "systonlyup" ? 1. : -1.) *
+                                evaluator->evaluate({eta, pt, "syst"});
                     } else if (variation == "statup") {
                         sf = evaluator->evaluate({eta, pt, "nominal"}) +
                              evaluator->evaluate({eta, pt, "stat"});
@@ -696,8 +695,8 @@ Trigger(ROOT::RDF::RNode df,
  * @param sf_file path to the file with the muon scale factors
  * @param sf_name name of the muon scale factor for the trigger correction,
  * e.g. "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight"
- * @param variation name the scale factor variation, "nominal" for the nominal
- * scale factor and "systup"/"systdown" for the up/down variation
+ * @param variation scale factor variation: "nominal", "systup"/"systdown"
+ * (incl. stat), "systonlyup"/"systonlydown" or "statup"/"statdown"
  *
  * @return a new dataframe containing the new column
  */
@@ -728,12 +727,9 @@ Trigger(ROOT::RDF::RNode df,
             // correction shifts below good tau pt selection
             try {
                 if (trigger_flag) {
-                    if (variation == "nominal") {
-                        sf = evaluator->evaluate({eta, pt, "nominal"});
-                    } else if (variation == "systup") {
-                        sf = evaluator->evaluate({eta, pt, "systup"});
-                    } else if (variation == "systdown") {
-                        sf = evaluator->evaluate({eta, pt, "systdown"});
+                    if (variation == "nominal" || variation == "systup" ||
+                        variation == "systdown") {
+                        sf = evaluator->evaluate({eta, pt, variation});
                     } else if (variation == "systonlyup" ||
                                variation == "systonlydown") {
                         // MUO systup/down include the stat part
