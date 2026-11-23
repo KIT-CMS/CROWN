@@ -475,7 +475,8 @@ ROOT::RDF::RNode Reco(ROOT::RDF::RNode df,
             // check to prevent muons with default values due to tau energy
             // correction shifts below good tau pt selection
             if (pt >= 0.0 && std::abs(eta) >= 0.0) {
-                if (variation == "nominal" || variation == "systup" || variation == "systdown") {
+                if (variation == "nominal" || variation == "systup" ||
+                    variation == "systdown") {
                     sf = evaluator->evaluate({eta, eval_pt, variation});
                 } else if (variation == "systonlyup" ||
                            variation == "systonlydown") {
@@ -546,7 +547,8 @@ IsoAndID(ROOT::RDF::RNode df,
             // check to prevent muons with default values due to tau energy
             // correction shifts below good tau pt selection
             if (pt >= 0.0 && std::abs(eta) >= 0.0) {
-                if (variation == "nominal" || variation == "systup" || variation == "systdown") {
+                if (variation == "nominal" || variation == "systup" ||
+                    variation == "systdown") {
                     sf = evaluator->evaluate({eta, pt, variation});
                 } else if (variation == "systonlyup" ||
                            variation == "systonlydown") {
@@ -633,8 +635,8 @@ Trigger(ROOT::RDF::RNode df,
                                variation == "systonlydown") {
                         // MUO systup/down include the stat part
                         sf = evaluator->evaluate({eta, pt, "nominal"}) +
-                            (variation == "systonlyup" ? 1. : -1.) *
-                                evaluator->evaluate({eta, pt, "syst"});
+                             (variation == "systonlyup" ? 1. : -1.) *
+                                 evaluator->evaluate({eta, pt, "syst"});
                     } else if (variation == "statup") {
                         sf = evaluator->evaluate({eta, pt, "nominal"}) +
                              evaluator->evaluate({eta, pt, "stat"});
