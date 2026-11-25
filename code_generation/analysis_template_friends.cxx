@@ -32,6 +32,7 @@
 #include <TTree.h>
 #include <TVector.h>
 #include <filesystem>
+#include <memory>
 #include <onnxruntime_cxx_api.h>
 #include <regex>
 #include <string>
@@ -50,7 +51,8 @@ namespace ROOTLogNS = ROOT::Experimental;
 
 int validate_rootfile(std::string file, std::string &basetree) {
     int nevents = 0;
-    TFile *f1 = TFile::Open(file.c_str(), "TIMEOUT=120");
+    // closed when returning, see the input check of analysis_template.cxx
+    std::unique_ptr<TFile> f1(TFile::Open(file.c_str(), "TIMEOUT=120"));
     if (!f1 || f1->IsZombie()) {
         Logger::get("main")->critical("File {} does not exist or is not "
                                       "readable",

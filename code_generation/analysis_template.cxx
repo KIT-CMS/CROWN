@@ -34,6 +34,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 #include <onnxruntime_cxx_api.h>
 #include <regex>
 #include <string>
@@ -87,8 +88,12 @@ int main(int argc, char *argv[]) {
     for (int i = 2; i < argc; i++) {
         input_files.push_back(std::string(argv[i]));
         // Check if the input file exists and is readable, also get the number
-        // of events, using a timeout of 120 seconds
-        TFile *f1 = TFile::Open(argv[i], "TIMEOUT=120");
+        // of events, using a timeout of 120 seconds. The file is closed when
+        // leaving the loop body: left open, ROOT closes it only in its exit
+        // handlers (TROOT::CloseFiles), where closing a remote xrootd file that
+        // stayed idle during the whole event loop blocks the exit, and long
+        // jobs crashed there with a corrupted heap.
+        std::unique_ptr<TFile> f1(TFile::Open(argv[i], "TIMEOUT=120"));
         if (!f1 || f1->IsZombie()) {
             Logger::get("main")->critical("File {} does not exist or is not "
                                           "readable",
